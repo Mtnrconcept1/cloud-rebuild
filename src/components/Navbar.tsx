@@ -223,7 +223,21 @@ export default function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              document.documentElement.classList.toggle("dark");
+              localStorage.setItem("theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
+            }}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Mode sombre</span>
+          </Button>
+
           <Button variant="ghost" size="icon" asChild>
             <Link to="/recherche">
               <Search className="h-5 w-5" />
