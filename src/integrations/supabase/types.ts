@@ -1673,11 +1673,122 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_gift_points: { Args: { claim_code_param: string }; Returns: number }
+      cleanup_expired_groups: { Args: never; Returns: undefined }
+      compute_order_discount_from_payload: {
+        Args: {
+          p_delivery_fee: number
+          p_items_total: number
+          p_metadata: Json
+          p_total_amount: number
+        }
+        Returns: number
+      }
+      create_order_with_items: {
+        Args: {
+          checkout_id_param?: string
+          delivery_address_param: string
+          delivery_fee_param?: number
+          items_param?: Json
+          metadata_param?: Json
+          notes_param?: string
+          restaurant_id_param: string
+          total_amount_param: number
+        }
+        Returns: string
+      }
+      donate_points_for_meal: {
+        Args: { description_param?: string; points_param: number }
+        Returns: boolean
+      }
+      enqueue_deliveries: {
+        Args: { p_notification_id: string }
+        Returns: undefined
+      }
+      enqueue_notification: {
+        Args: {
+          p_body: string
+          p_category: string
+          p_data?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      get_campaign_stats: {
+        Args: { campaign_ids?: string[] }
+        Returns: {
+          campaign_id: string
+          deliveries_failed: number
+          deliveries_queued: number
+          deliveries_sent: number
+          deliveries_total: number
+          email_total: number
+          in_app_total: number
+          notifications_count: number
+          push_total: number
+          read_count: number
+          recipients: number
+        }[]
+      }
+      get_gift_stats: { Args: never; Returns: Json }
+      get_restaurant_comparison: {
+        Args: { p_period: string; p_restaurant_id: string }
+        Returns: Json
+      }
+      get_restaurant_performance: {
+        Args: { p_from: string; p_restaurant_id: string; p_to: string }
+        Returns: Json
+      }
+      get_restaurant_recommendations: {
+        Args: { p_restaurant_id: string }
+        Returns: Json
+      }
+      get_total_donated_meals: { Args: never; Returns: number }
+      get_total_donated_points: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      increment_ad_campaign_metric: {
+        Args: { p_campaign_id: string; p_metric: string }
+        Returns: undefined
+      }
+      recompute_restaurant_review_stats: {
+        Args: { p_restaurant_id: string }
+        Returns: undefined
+      }
+      redeem_loyalty_points: {
+        Args: {
+          description_param?: string
+          points_to_redeem: number
+          user_id_param: string
+        }
+        Returns: boolean
+      }
+      refresh_restaurant_daily_kpis_for_date: {
+        Args: { p_day: string; p_restaurant_id: string }
+        Returns: undefined
+      }
+      refresh_restaurant_daily_kpis_recent_days: {
+        Args: { p_days_back?: number }
+        Returns: undefined
+      }
+      send_gift_points: {
+        Args: {
+          message_param?: string
+          points_param: number
+          recipient_email_param: string
+        }
+        Returns: string
+      }
+      set_test_role: { Args: { new_role: string }; Returns: undefined }
+      validate_service_settings_json: {
+        Args: { _opening_hours: Json }
         Returns: boolean
       }
     }
