@@ -33,7 +33,7 @@ export default function DashboardFactures() {
     if (!restaurants[0]?.id) return toast({ title: "Aucun restaurant", variant: "destructive" });
     if (!Number.isFinite(total) || total <= 0) return toast({ title: "Validation", description: "Montant invalide.", variant: "destructive" });
     const now = new Date();
-    const payload = { restaurant_id: restaurants[0].id, user_id: "00000000-0000-0000-0000-000000000000", total_amount: total, payment_method: "virement", status: "pending", date: now.toISOString().slice(0, 10), time: "00:00", party_size: 1, feature: "invoice_manual" };
+    const payload = { restaurant_id: restaurants[0].id, user_id: "00000000-0000-0000-0000-000000000000", total_amount: total, status: "pending", delivery_address: "facture" };
     const { error } = await supabase.from("orders").insert(payload);
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     toast({ title: "Facture enregistrée" }); load();
