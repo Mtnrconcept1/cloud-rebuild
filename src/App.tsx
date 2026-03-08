@@ -37,6 +37,7 @@ import DashboardPromotions from "./pages/dashboard/DashboardPromotions";
 import DashboardCampagneOverview from "./pages/dashboard/DashboardCampagneOverview";
 import DashboardReseauxSociaux from "./pages/dashboard/DashboardReseauxSociaux";
 import DashboardFactures from "./pages/dashboard/DashboardFactures";
+import DashboardInvoiceSettings from "./pages/dashboard/DashboardInvoiceSettings";
 import DashboardPhotos from "./pages/dashboard/DashboardPhotos";
 import DashboardSupport from "./pages/dashboard/DashboardSupport";
 import DashboardService from "./pages/dashboard/DashboardService";
