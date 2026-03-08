@@ -6,7 +6,9 @@ export async function enableWebPush(userId: string) {
   }
 
   try {
+    // @ts-ignore - firebase is optional
     const { initializeApp, getApps } = await import("firebase/app");
+    // @ts-ignore - firebase is optional
     const { getMessaging, getToken, isSupported } = await import("firebase/messaging");
 
     const supported = await isSupported();
