@@ -28,7 +28,7 @@ export default function DashboardPerformances() {
     const selectedRestaurant = restaurantIds[0];
     const now = new Date(); const from = new Date(now); from.setDate(now.getDate() - 29);
     const [ordersRes, perfRes] = await Promise.all([
-      supabase.from("orders").select("id,status,total_amount,created_at,restaurant_id,user_id,date,time,party_size").eq("restaurant_id", selectedRestaurant).order("created_at", { ascending: false }).limit(30),
+      supabase.from("orders").select("id,status,total_amount,created_at,restaurant_id,user_id").eq("restaurant_id", selectedRestaurant).order("created_at", { ascending: false }).limit(30),
       supabase.rpc("get_restaurant_performance", { p_restaurant_id: selectedRestaurant, p_from: from.toISOString().slice(0, 10), p_to: now.toISOString().slice(0, 10) }),
     ]);
     setError(ordersRes.error?.message || perfRes.error?.message || null);
