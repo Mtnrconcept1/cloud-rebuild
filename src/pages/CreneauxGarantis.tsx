@@ -162,7 +162,7 @@ export default function CreneauxGarantis() {
     navigate("/panier");
   };
 
-  const categories = menuItems ? [...new Set(menuItems.map((i) => i.category || "Autres"))] : [];
+  const categories = menuItems ? [...new Set(menuItems.map((i) => i.category || "Autres"))] as string[] : [];
   const stepIdx = (s: Step) => ["when", "restaurant", "menu", "confirm"].indexOf(s);
 
   return (

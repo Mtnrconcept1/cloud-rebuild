@@ -95,7 +95,7 @@ export default function ZeroAttente() {
     return s + (it ? Number(it.price) * q : 0);
   }, 0) : 0;
 
-  const categories = menuItems ? [...new Set(menuItems.map((i: any) => i.category || "Autres"))] : [];
+  const categories = menuItems ? [...new Set(menuItems.map((i: any) => i.category || "Autres"))] as string[] : [];
 
   const handleAddToCart = () => {
     if (!selectedRestaurant || !menuItems) return;

@@ -1,5 +1,26 @@
-import { initializeApp, getApps } from "firebase/app";
-import { getMessaging, getToken, isSupported } from "firebase/messaging";
+// Firebase push notifications - lazy loaded to avoid hard dependency
+let firebaseApp: any;
+let firebaseMessaging: any;
+
+async function loadFirebase() {
+  try {
+    const { initializeApp, getApps } = await import("firebase/app");
+    const { getMessaging, getToken: gt, isSupported: is } = await import("firebase/messaging");
+    if (getApps().length === 0) {
+      firebaseApp = initializeApp({
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      });
+    } else {
+      firebaseApp = getApps()[0];
+    }
+    return { getMessaging, getToken: gt, isSupported: is };
+  } catch {
+    return null;
+  }
+}
 import { supabase } from "@/integrations/supabase/client";
 
 const firebaseConfig = {

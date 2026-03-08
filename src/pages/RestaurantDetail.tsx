@@ -99,7 +99,7 @@ export default function RestaurantDetail() {
 
   if (!restaurant) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
-  const categories = [...new Set(menuItems?.map((i) => i.category || "Autres"))];
+  const categories = [...new Set(menuItems?.map((i) => i.category || "Autres"))] as string[];
   const avgRating = avgRating10.toFixed(1);
   const reviewCount = restaurant.review_count || reviews?.length || 0;
 

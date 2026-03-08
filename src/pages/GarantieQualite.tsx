@@ -67,7 +67,7 @@ export default function GarantieQualite() {
     return s + (it ? Number(it.price) * q : 0);
   }, 0) : 0;
   const totalWithOption = subtotal + (optionEnabled ? QUALITY_FEE : 0);
-  const categories = menuItems ? [...new Set(menuItems.map((i: any) => i.category || "Autres"))] : [];
+  const categories = menuItems ? [...new Set(menuItems.map((i: any) => i.category || "Autres"))] as string[] : [];
 
   const stepIdx = (s: Step) => ["option", "restaurant", "menu", "confirm"].indexOf(s);
 
