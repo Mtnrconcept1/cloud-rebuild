@@ -1,0 +1,2 @@
+import DashboardLayout from "@/components/DashboardLayout";
+export default function DashboardPhotos() { return <DashboardLayout><div className="space-y-6"><h1 className="font-display text-3xl font-bold">Photos</h1></div></DashboardLayout>; }

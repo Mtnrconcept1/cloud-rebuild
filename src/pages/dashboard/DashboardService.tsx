@@ -1,0 +1,2 @@
+import DashboardLayout from "@/components/DashboardLayout";
+export default function DashboardService() { return <DashboardLayout><div className="space-y-6"><h1 className="font-display text-3xl font-bold">Pilotage de service</h1></div></DashboardLayout>; }

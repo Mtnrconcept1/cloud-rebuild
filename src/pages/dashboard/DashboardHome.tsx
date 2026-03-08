@@ -1,0 +1,2 @@
+import DashboardLayout from "@/components/DashboardLayout";
+export default function DashboardHome() { return <DashboardLayout><div className="space-y-6"><h1 className="font-display text-3xl font-bold">Vue d'ensemble</h1><p className="text-muted-foreground">Bienvenue sur votre tableau de bord restaurateur.</p></div></DashboardLayout>; }

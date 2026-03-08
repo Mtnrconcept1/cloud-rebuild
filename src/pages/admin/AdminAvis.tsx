@@ -1,0 +1,1 @@
+export default function AdminAvis() { return <div className="container py-12"><h1 className="font-display text-3xl font-bold">Avis</h1></div>; }

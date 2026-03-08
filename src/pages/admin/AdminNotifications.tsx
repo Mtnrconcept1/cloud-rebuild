@@ -1,0 +1,1 @@
+export default function AdminNotifications() { return <div className="container py-12"><h1 className="font-display text-3xl font-bold">Notifications</h1></div>; }
