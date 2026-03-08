@@ -198,7 +198,7 @@ export default function RestaurantDetail() {
                       <h2 className="font-display text-xl font-bold border-b pb-2">{category}</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {menuItems?.filter((item) => (item.category || "Autres") === category).map((item) => (
-                          <MenuItemCard key={item.id} {...item} restaurantName={restaurant.name} />
+                          <MenuItemCard key={item.id} id={item.id} name={item.name} description={item.description} price={item.price} imageUrl={item.image_url} category={item.category} restaurantId={item.restaurant_id} restaurantName={restaurant.name} />
                         ))}
                       </div>
                     </div>
