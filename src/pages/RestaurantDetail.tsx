@@ -224,7 +224,7 @@ export default function RestaurantDetail() {
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-6">
-                    {user && <ReviewForm restaurantId={id!} onReviewSubmitted={() => queryClient.invalidateQueries({ queryKey: ["reviews", id] })} />}
+                    {user && <ReviewForm restaurantId={id!} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ["reviews", id] }); }} />}
                     <div className="space-y-4">
                       {reviews?.map((review) => (
                         <div key={review.id} className="p-4 border rounded-xl bg-card space-y-3">
