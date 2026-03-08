@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 
-type Order = { id: string; status: string; total_amount: number | null; created_at: string; restaurant_id: string; user_id: string; date: string; time: string; party_size: number };
+type Order = { id: string; status: string; total_amount: number | null; created_at: string; restaurant_id: string; user_id: string };
 type PerformanceTotals = { orders_count: number; reservations_count: number; revenue: number; avg_ticket: number; cancel_rate: number };
 type PerformanceDaily = { date: string; orders_count: number; reservations_count: number; revenue: number; avg_ticket: number; cancel_rate: number };
 type PerformancePayload = { period: { from: string; to: string }; totals: PerformanceTotals; daily: PerformanceDaily[] };
