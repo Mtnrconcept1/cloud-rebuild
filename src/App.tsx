@@ -37,6 +37,7 @@ import DashboardPromotions from "./pages/dashboard/DashboardPromotions";
 import DashboardCampagneOverview from "./pages/dashboard/DashboardCampagneOverview";
 import DashboardReseauxSociaux from "./pages/dashboard/DashboardReseauxSociaux";
 import DashboardFactures from "./pages/dashboard/DashboardFactures";
+import DashboardInvoiceSettings from "./pages/dashboard/DashboardInvoiceSettings";
 import DashboardPhotos from "./pages/dashboard/DashboardPhotos";
 import DashboardSupport from "./pages/dashboard/DashboardSupport";
 import DashboardService from "./pages/dashboard/DashboardService";
@@ -118,6 +119,7 @@ const App = () => (
               <Route path="/dashboard/avis" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAvis /></ProtectedRoute>} />
               <Route path="/dashboard/compta" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCompta /></ProtectedRoute>} />
               <Route path="/dashboard/factures" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFactures /></ProtectedRoute>} />
+              <Route path="/dashboard/factures/parametres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardInvoiceSettings /></ProtectedRoute>} />
               <Route path="/dashboard/offres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardOffres /></ProtectedRoute>} />
               <Route path="/dashboard/ventes-flash" element={<ProtectedRoute requiredRole="restaurateur"><DashboardVentesFlash /></ProtectedRoute>} />
               <Route path="/dashboard/formules" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFormules /></ProtectedRoute>} />
