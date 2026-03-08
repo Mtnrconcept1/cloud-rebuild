@@ -321,7 +321,7 @@ export default function Profil() {
                     }
                   }}
                 >
-                  D?sactiver le push
+                  Désactiver le push
                 </Button>
               </div>
             </div>
