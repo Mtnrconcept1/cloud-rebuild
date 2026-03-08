@@ -190,6 +190,12 @@ export default function RestaurantCard({
               <span>{cuisine}</span>
               {cuisine && <span>·</span>}
               <PriceRangeIcons range={priceRange} />
+              {deliveryAvailable && (
+                <>
+                  <span>·</span>
+                  <span className="font-semibold text-foreground">{estimatedMinutes.min}-{estimatedMinutes.max} min</span>
+                </>
+              )}
             </div>
             {bestDiscount > 0 && (
               <div className="mt-2">
