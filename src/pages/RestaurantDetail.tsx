@@ -175,9 +175,24 @@ export default function RestaurantDetail() {
                 {restaurant.description && (
                   <div className="space-y-3"><h2 className="font-display text-xl font-bold">L'histoire du restaurant</h2><p className="text-muted-foreground leading-relaxed">{restaurant.description}</p></div>
                 )}
-                <div className="space-y-3"><h2 className="font-display text-xl font-bold">Informations pratiques</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Clock className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Horaires d'ouverture</h3><p className="text-sm text-muted-foreground">Lundi - Dimanche: 11h30 - 22h30</p></div></div><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Info className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Détails</h3><ul className="text-sm text-muted-foreground space-y-1"><li>Cuisine : {restaurant.cuisine_type || "Non spécifié"}</li><li>Fourchette de prix : <PriceRangeIcons range={restaurant.price_range || 2} /></li></ul></div></div></div></div>
+                <div className="space-y-3"><h2 className="font-display text-xl font-bold">Informations pratiques</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Clock className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Horaires d'ouverture</h3>{(() => {
+                  const oh = restaurant.opening_hours as Record<string, any> | null;
+                  const DAY_LABELS: Record<string, string> = { lundi: "Lundi", mardi: "Mardi", mercredi: "Mercredi", jeudi: "Jeudi", vendredi: "Vendredi", samedi: "Samedi", dimanche: "Dimanche" };
+                  if (oh && typeof oh === "object" && !Array.isArray(oh)) {
+                    const days = Object.keys(DAY_LABELS);
+                    const entries = days.filter((d) => oh[d]).map((d) => {
+                      const v = oh[d];
+                      if (typeof v === "string") return { day: DAY_LABELS[d], hours: v };
+                      if (v && typeof v === "object" && v.open && v.close) return { day: DAY_LABELS[d], hours: `${v.open} - ${v.close}` };
+                      if (v === true || v === "true") return { day: DAY_LABELS[d], hours: "Ouvert" };
+                      return null;
+                    }).filter(Boolean) as { day: string; hours: string }[];
+                    if (entries.length > 0) return <div className="space-y-1">{entries.map((e) => <p key={e.day} className="text-sm text-muted-foreground"><span className="font-medium text-foreground">{e.day}</span> : {e.hours}</p>)}</div>;
+                  }
+                  return <p className="text-sm text-muted-foreground">Lundi - Dimanche : 11h30 - 22h30</p>;
+                })()}</div></div><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Info className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Détails</h3><ul className="text-sm text-muted-foreground space-y-1"><li>Cuisine : {restaurant.cuisine_type || "Non spécifié"}</li><li>Fourchette de prix : <PriceRangeIcons range={restaurant.price_range || 2} /></li>{restaurant.delivery_available && <li>Frais de livraison : {Number(restaurant.delivery_fee || 0).toFixed(2)} CHF</li>}{Number(restaurant.min_order_amount) > 0 && <li>Commande min. : {Number(restaurant.min_order_amount).toFixed(2)} CHF</li>}</ul></div></div></div></div>
               </TabsContent>
-              <TabsContent value="menu" className="space-y-8 mt-0">
+              <TabsContent value="menu" className="space-y-6 mt-0">
                 {formulas && formulas.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2"><Percent className="h-5 w-5 text-primary" /><h2 className="font-display text-xl font-bold">Formules et Menus (-{formulas[0].discount_percent}%)</h2></div>
@@ -192,9 +207,25 @@ export default function RestaurantDetail() {
                     </div>
                   </div>
                 )}
+                {/* Sticky category navigation */}
+                {categories.length > 1 && (
+                  <div className="sticky top-16 z-20 -mx-1 px-1 py-2 bg-background/95 backdrop-blur border-b">
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => document.getElementById(cat.replace(/\s+/g, '-').toLowerCase())?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                          className="shrink-0 px-4 py-2 rounded-full text-xs font-bold border bg-secondary/50 text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-8">
                   {categories.map((category) => (
-                    <div key={category} id={category.replace(/\s+/g, '-').toLowerCase()} className="space-y-4 scroll-mt-24">
+                    <div key={category} id={category.replace(/\s+/g, '-').toLowerCase()} className="space-y-4 scroll-mt-32">
                       <h2 className="font-display text-xl font-bold border-b pb-2">{category}</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {menuItems?.filter((item) => (item.category || "Autres") === category).map((item) => (

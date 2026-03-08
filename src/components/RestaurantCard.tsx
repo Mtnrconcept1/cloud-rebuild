@@ -144,6 +144,12 @@ export default function RestaurantCard({
   const ratingNum = rating * 2;
   const displayRating = ratingNum > 0 ? ratingNum.toFixed(1) : null;
 
+  // Estimated delivery time based on rating/popularity (simulated)
+  const estimatedMinutes = useMemo(() => {
+    const base = 25 + Math.floor(Math.random() * 15); // 25-40 min
+    return { min: base, max: base + 10 };
+  }, [id]);
+
   return (
     <div onClick={handleCardClick} className="group block cursor-pointer h-full">
       <div className="premium-card h-full rounded-2xl bg-card border shadow-sm hover:shadow-md transition-shadow overflow-hidden">
@@ -184,6 +190,12 @@ export default function RestaurantCard({
               <span>{cuisine}</span>
               {cuisine && <span>·</span>}
               <PriceRangeIcons range={priceRange} />
+              {deliveryAvailable && (
+                <>
+                  <span>·</span>
+                  <span className="font-semibold text-foreground">{estimatedMinutes.min}-{estimatedMinutes.max} min</span>
+                </>
+              )}
             </div>
             {bestDiscount > 0 && (
               <div className="mt-2">
