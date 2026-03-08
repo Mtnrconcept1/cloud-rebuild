@@ -1,0 +1,1 @@
+export default function AdminHome() { return <div className="container py-12"><h1 className="font-display text-3xl font-bold">Administration</h1><p className="text-muted-foreground mt-2">Panneau d'administration Miamz.</p></div>; }

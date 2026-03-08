@@ -1,0 +1,1 @@
+export default function AdminUtilisateurs() { return <div className="container py-12"><h1 className="font-display text-3xl font-bold">Utilisateurs</h1></div>; }

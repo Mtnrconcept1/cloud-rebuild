@@ -1,0 +1,1 @@
+export default function DropsManagement() { return <div className="container py-12"><h1 className="font-display text-3xl font-bold">Chef's Table Drops</h1></div>; }

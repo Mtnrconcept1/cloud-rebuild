@@ -1,0 +1,2 @@
+import DashboardLayout from "@/components/DashboardLayout";
+export default function DashboardMenu() { return <DashboardLayout><div className="space-y-6"><h1 className="font-display text-3xl font-bold">Menu</h1><p className="text-muted-foreground">Gérez votre carte et vos plats.</p></div></DashboardLayout>; }
