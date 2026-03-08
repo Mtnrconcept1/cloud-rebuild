@@ -69,7 +69,7 @@ export default function DashboardCommandes() {
         `)
         .eq("restaurant_id", restaurant!.id)
         .order("created_at", { ascending: false });
-      return (data ?? []) as OrderWithRelations[];
+      return (data ?? []) as unknown as OrderWithRelations[];
     },
     enabled: !!restaurant,
   });
