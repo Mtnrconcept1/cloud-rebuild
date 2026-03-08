@@ -98,7 +98,7 @@ export default function MultiStop() {
     navigate("/panier");
   };
 
-  const categories = menuItems ? [...new Set(menuItems.map((i) => i.category || "Autres"))] : [];
+  const categories = menuItems ? [...new Set(menuItems.map((i) => i.category || "Autres"))] as string[] : [];
   const allAddressesFilled = stops.every((s) => s.address.trim().length > 0);
 
   return (

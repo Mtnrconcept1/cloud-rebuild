@@ -105,7 +105,7 @@ export default function FlexPrixBas() {
     navigate("/panier");
   };
 
-  const categories = menuItems ? [...new Set(menuItems.map((i) => i.category || "Autres"))] : [];
+  const categories = menuItems ? [...new Set(menuItems.map((i) => i.category || "Autres"))] as string[] : [];
   const stepIdx = (s: Step) => ["window", "restaurant", "menu", "confirm"].indexOf(s);
 
   return (
