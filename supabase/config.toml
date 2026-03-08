@@ -1,1 +1,4 @@
 project_id = "bkjkpwhrdcywgwcsofqb"
+
+[functions.scrape-restaurants]
+verify_jwt = false
