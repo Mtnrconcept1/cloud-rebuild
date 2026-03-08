@@ -45,7 +45,7 @@ export default function DashboardPerformances() {
     if (!restaurants[0]?.id) return toast({ title: "Aucun restaurant", variant: "destructive" });
     if (!Number.isFinite(value) || value <= 0) return toast({ title: "Validation", description: "Montant invalide.", variant: "destructive" });
     const now = new Date();
-    const payload = { restaurant_id: restaurants[0].id, user_id: "00000000-0000-0000-0000-000000000000", status: "pending", total_amount: value, date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5), party_size: 1, feature: "performance_manual" };
+    const payload = { restaurant_id: restaurants[0].id, user_id: "00000000-0000-0000-0000-000000000000", status: "pending", total_amount: value, delivery_address: "performance" };
     const { error } = await supabase.from("orders").insert(payload);
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     toast({ title: "Ligne de performance créée" }); load();
