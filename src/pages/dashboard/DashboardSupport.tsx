@@ -1,2 +1,11 @@
-import DashboardLayout from "@/components/DashboardLayout";
-export default function DashboardSupport() { return <DashboardLayout><div className="space-y-6"><h1 className="font-display text-3xl font-bold">Aide et support</h1></div></DashboardLayout>; }
+import DashboardEmptyState from "./DashboardEmptyState";
+
+export default function DashboardSupport() {
+  return (
+    <DashboardEmptyState
+      title="Aide et support"
+      description="Le centre d'aide restaurateur n'est pas encore alimenté avec du contenu dédié."
+      cta="contacter l'équipe support via le chat en bas de page"
+    />
+  );
+}
