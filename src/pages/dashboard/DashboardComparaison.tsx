@@ -1,62 +1,171 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import { ArrowUp, ArrowDown, Minus, Scale, Euro, ShoppingCart, Star } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type Reservation = { id: string; date: string; party_size: number; status: string; created_at: string; restaurant_id: string; user_id: string; time: string };
-type ComparisonMetrics = { revenue: number; orders_count: number; reservations_count: number; avg_ticket: number; cancel_rate: number };
-type ComparisonPayload = { current: ComparisonMetrics; previous: ComparisonMetrics; delta: ComparisonMetrics; period: string };
+type ComparisonData = {
+  my_revenue: number;
+  my_orders: number;
+  my_avg_rating: number;
+  avg_revenue: number;
+  avg_orders: number;
+  avg_rating: number;
+};
 
-export default function DashboardComparaison() {
-  const { toast } = useToast();
-  const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
-  const [items, setItems] = useState<Reservation[]>([]);
-  const [comparison, setComparison] = useState<ComparisonPayload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [partySize, setPartySize] = useState("2");
+function DeltaIndicator({ my, avg, suffix = "", reverse = false }: { my: number; avg: number; suffix?: string; reverse?: boolean }) {
+  if (avg === 0) return <span className="text-sm text-muted-foreground">—</span>;
+  const diff = ((my - avg) / avg) * 100;
+  const isPositive = reverse ? diff < 0 : diff > 0;
+  const isNeutral = Math.abs(diff) < 2;
 
-  const load = async () => {
-    if (!restaurantIds.length) return setLoading(false);
-    setLoading(true);
-    const selectedRestaurant = restaurantIds[0];
-    const [reservationsRes, comparisonRes] = await Promise.all([
-      supabase.from("reservations").select("id,date,party_size,status,created_at,restaurant_id,user_id,time").eq("restaurant_id", selectedRestaurant).order("date", { ascending: false }).limit(40),
-      supabase.rpc("get_restaurant_comparison", { p_restaurant_id: selectedRestaurant, p_period: "30d" }),
-    ]);
-    setError(reservationsRes.error?.message || comparisonRes.error?.message || null);
-    setItems((reservationsRes.data || []) as Reservation[]);
-    setComparison((comparisonRes.data as ComparisonPayload) || null);
-    setLoading(false);
-  };
+  return (
+    <span className={cn("inline-flex items-center gap-1 text-sm font-medium", isNeutral ? "text-muted-foreground" : isPositive ? "text-green-600" : "text-red-500")}>
+      {isNeutral ? <Minus className="h-3 w-3" /> : isPositive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+      {Math.abs(diff).toFixed(0)}%{suffix}
+    </span>
+  );
+}
 
-  useEffect(() => { if (!loadingRestaurants) load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [loadingRestaurants, restaurantIds.join(",")]);
-
-  const create = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!restaurants[0]?.id) return toast({ title: "Aucun restaurant", variant: "destructive" });
-    const size = Number(partySize);
-    if (!Number.isFinite(size) || size < 1) return toast({ title: "Validation", description: "Nombre de couverts invalide.", variant: "destructive" });
-    const now = new Date();
-    const payload = { restaurant_id: restaurants[0].id, user_id: "00000000-0000-0000-0000-000000000000", date: now.toISOString().slice(0, 10), time: "20:00", party_size: size, status: "confirmed", feature: "comparison_manual" };
-    const { error } = await supabase.from("reservations").insert(payload);
-    if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
-    toast({ title: "Réservation ajoutée" }); load();
+function MetricCard({ label, icon: Icon, myValue, avgValue, format = "number", reverse = false }: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  myValue: number;
+  avgValue: number;
+  format?: "number" | "currency" | "rating";
+  reverse?: boolean;
+}) {
+  const fmt = (v: number) => {
+    if (format === "currency") return `${v.toFixed(0)} €`;
+    if (format === "rating") return `${v.toFixed(1)}/5`;
+    return String(Math.round(v));
   };
 
   return (
-    <DashboardLayout><div className="space-y-6"><h1 className="font-display text-3xl font-bold">Comparaison</h1>
-      <div className="grid gap-3 md:grid-cols-3"><Card><CardHeader><CardTitle>CA actuel</CardTitle></CardHeader><CardContent>{Number(comparison?.current?.revenue || 0).toFixed(2)}€</CardContent></Card><Card><CardHeader><CardTitle>CA précédent</CardTitle></CardHeader><CardContent>{Number(comparison?.previous?.revenue || 0).toFixed(2)}€</CardContent></Card><Card><CardHeader><CardTitle>Écart CA</CardTitle></CardHeader><CardContent>{Number(comparison?.delta?.revenue || 0) >= 0 ? "+" : ""}{Number(comparison?.delta?.revenue || 0).toFixed(2)}€</CardContent></Card></div>
-      <Card><CardHeader><CardTitle>Ajouter une donnée</CardTitle></CardHeader><CardContent><form onSubmit={create} className="flex items-end gap-3"><div><Label>Couverts</Label><Input value={partySize} onChange={(e) => setPartySize(e.target.value)} /></div><Button type="submit">Créer</Button></form></CardContent></Card>
-      {loadingRestaurants || loading ? <p>Chargement...</p> : null}
-      {restaurantError || error ? <p className="text-destructive">Erreur: {restaurantError || error}</p> : null}
-      {!loading && !error && !items.length ? <p>Aucune réservation.</p> : null}
-      <div className="space-y-2">{items.map((item) => <Card key={item.id}><CardContent className="pt-4 flex justify-between"><p className="text-sm">{item.date} · {item.party_size} pers. · {item.status}</p><div className="flex gap-2"><Button size="sm" variant="outline" onClick={async () => { const next = item.status === "confirmed" ? "cancelled" : "confirmed"; const { error } = await supabase.from("reservations").update({ status: next }).eq("id", item.id); if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" }); else { toast({ title: `Statut: ${next}` }); load(); } }}>Activer</Button><Button size="sm" variant="destructive" onClick={async () => { const { error } = await supabase.from("reservations").delete().eq("id", item.id); if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" }); else { toast({ title: "Supprimée" }); load(); } }}>Supprimer</Button></div></CardContent></Card>)}</div>
-    </div></DashboardLayout>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+          <Icon className="h-4 w-4" />{label}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <div className="flex items-baseline gap-2">
+          <p className="text-2xl font-bold">{fmt(myValue)}</p>
+          <DeltaIndicator my={myValue} avg={avgValue} reverse={reverse} />
+        </div>
+        <p className="text-xs text-muted-foreground">Moyenne marché : {fmt(avgValue)}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function DashboardComparaison() {
+  const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
+  const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
+  const [period, setPeriod] = useState("30d");
+  const [comparison, setComparison] = useState<ComparisonData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loadingRestaurants && restaurants.length && !selectedRestaurant) {
+      setSelectedRestaurant(restaurants[0].id);
+    }
+  }, [loadingRestaurants, restaurants, selectedRestaurant]);
+
+  const load = async () => {
+    if (!selectedRestaurant) return setLoading(false);
+    setLoading(true);
+    const { data, error } = await supabase.rpc("get_restaurant_comparison", {
+      p_restaurant_id: selectedRestaurant,
+      p_period: period,
+    });
+    setError(error?.message || null);
+    setComparison(data as ComparisonData | null);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (selectedRestaurant) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRestaurant, period]);
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="font-display text-3xl font-bold">Comparaison marché</h1>
+          <div className="flex gap-2">
+            {restaurants.length > 1 && (
+              <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
+                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {restaurants.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">7 jours</SelectItem>
+                <SelectItem value="30d">30 jours</SelectItem>
+                <SelectItem value="90d">90 jours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {loadingRestaurants || loading ? <p>Chargement...</p> : null}
+        {restaurantError || error ? <p className="text-destructive">Erreur : {restaurantError || error}</p> : null}
+
+        {comparison && !loading && (
+          <div className="grid gap-4 md:grid-cols-3">
+            <MetricCard
+              label="Chiffre d'affaires"
+              icon={Euro}
+              myValue={Number(comparison.my_revenue)}
+              avgValue={Number(comparison.avg_revenue)}
+              format="currency"
+            />
+            <MetricCard
+              label="Commandes"
+              icon={ShoppingCart}
+              myValue={Number(comparison.my_orders)}
+              avgValue={Number(comparison.avg_orders)}
+            />
+            <MetricCard
+              label="Note moyenne"
+              icon={Star}
+              myValue={Number(comparison.my_avg_rating)}
+              avgValue={Number(comparison.avg_rating)}
+              format="rating"
+            />
+          </div>
+        )}
+
+        {comparison && !loading && (
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Scale className="h-5 w-5" />Analyse</CardTitle></CardHeader>
+            <CardContent className="text-sm text-muted-foreground space-y-2">
+              {Number(comparison.my_revenue) > Number(comparison.avg_revenue) ? (
+                <p>✅ Votre CA est supérieur à la moyenne du marché sur cette période.</p>
+              ) : (
+                <p>⚠️ Votre CA est en dessous de la moyenne. Pensez à activer des promotions ou ventes flash.</p>
+              )}
+              {Number(comparison.my_avg_rating) >= 4 ? (
+                <p>✅ Votre note client est excellente ({Number(comparison.my_avg_rating).toFixed(1)}/5).</p>
+              ) : Number(comparison.my_avg_rating) > 0 ? (
+                <p>💡 Votre note peut être améliorée. Consultez les avis pour identifier les points à corriger.</p>
+              ) : (
+                <p>📝 Pas encore d'avis. Encouragez vos clients à laisser un retour.</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }
