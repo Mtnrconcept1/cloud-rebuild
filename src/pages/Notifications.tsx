@@ -29,8 +29,8 @@ export default function Notifications() {
     enabled: !!user,
   });
 
-  const inAppEnabled = notificationPrefs?.channels?.in_app ?? true;
-  const allowedCategories = notificationPrefs?.categories ?? { transactional: true, product: true, marketing: false, system: true };
+  const inAppEnabled = (notificationPrefs as any)?.channels?.in_app ?? true;
+  const allowedCategories = (notificationPrefs as any)?.categories ?? { transactional: true, product: true, marketing: false, system: true };
   const visibleNotifications = (notifications || []).filter((n: any) => allowedCategories?.[n.category] !== false);
   const unreadCount = visibleNotifications.filter((n: any) => !n.read_at).length;
 
