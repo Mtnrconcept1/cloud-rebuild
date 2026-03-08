@@ -119,6 +119,7 @@ const App = () => (
               <Route path="/dashboard/avis" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAvis /></ProtectedRoute>} />
               <Route path="/dashboard/compta" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCompta /></ProtectedRoute>} />
               <Route path="/dashboard/factures" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFactures /></ProtectedRoute>} />
+              <Route path="/dashboard/factures/parametres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardInvoiceSettings /></ProtectedRoute>} />
               <Route path="/dashboard/offres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardOffres /></ProtectedRoute>} />
               <Route path="/dashboard/ventes-flash" element={<ProtectedRoute requiredRole="restaurateur"><DashboardVentesFlash /></ProtectedRoute>} />
               <Route path="/dashboard/formules" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFormules /></ProtectedRoute>} />
