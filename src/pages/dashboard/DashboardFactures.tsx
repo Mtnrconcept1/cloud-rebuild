@@ -21,7 +21,7 @@ export default function DashboardFactures() {
   const load = async () => {
     if (!restaurantIds.length) return setLoading(false);
     setLoading(true);
-    const { data, error } = await supabase.from("orders").select("id,created_at,total_amount,payment_method,status,restaurant_id,user_id,date,time,party_size").in("restaurant_id", restaurantIds).order("created_at", { ascending: false }).limit(25);
+    const { data, error } = await supabase.from("orders").select("id,created_at,total_amount,status,restaurant_id,user_id").in("restaurant_id", restaurantIds).order("created_at", { ascending: false }).limit(25);
     setError(error?.message || null); setItems((data || []) as Invoice[]); setLoading(false);
   };
 
