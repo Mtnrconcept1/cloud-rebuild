@@ -252,7 +252,7 @@ export default function RestaurantDetail() {
           </div>
         </div>
       </div>
-      <ReservationDialog isOpen={reservationOpen} onOpenChange={setReservationOpen} restaurantId={id!} restaurantName={restaurant.name} defaultValues={reservationDefaults} />
+      <ReservationDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurantId={id!} restaurantName={restaurant.name} initialDate={reservationDefaults?.date} initialTime={reservationDefaults?.time} initialPartySize={reservationDefaults?.partySize} />
     </main>
   );
 }
