@@ -240,8 +240,80 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (mode === "product_photos") {
+      const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+      if (!FIRECRAWL_API_KEY) {
+        return new Response(
+          JSON.stringify({ success: false, error: "FIRECRAWL_API_KEY not configured" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: menuItems, error: menuErr } = await supabase
+        .from("menu_items")
+        .select("id, name, category, restaurant_id, image_url")
+        .eq("is_available", true)
+        .or("image_url.is.null,image_url.eq.")
+        .limit(30);
+
+      if (menuErr) throw new Error("Failed to fetch menu items: " + menuErr.message);
+
+      let productPhotosAdded = 0;
+
+      for (const item of menuItems || []) {
+        try {
+          const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              query: `${item.name} ${item.category || "plat"} photo food`,
+              limit: 2,
+              lang: "fr",
+              country: "ch",
+              scrapeOptions: { formats: ["markdown"] },
+            }),
+          });
+
+          const searchData = await searchResponse.json();
+          if (!searchResponse.ok) continue;
+
+          const results = searchData.data || [];
+          let selectedImg: string | null = null;
+
+          for (const result of results) {
+            const markdown = result.markdown || "";
+            const imgMatches = markdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+\.(jpg|jpeg|png|webp)[^\s)]*)\)/gi) || [];
+            for (const match of imgMatches) {
+              const urlMatch = match.match(/\((https?:\/\/[^\s)]+)\)/);
+              const candidate = urlMatch?.[1];
+              if (!candidate) continue;
+              if (candidate.includes("logo") || candidate.includes("icon") || candidate.includes("favicon") || candidate.length > 500) continue;
+              selectedImg = candidate;
+              break;
+            }
+            if (selectedImg) break;
+          }
+
+          if (selectedImg) {
+            const { error } = await supabase.from("menu_items").update({ image_url: selectedImg }).eq("id", item.id);
+            if (!error) productPhotosAdded++;
+          }
+        } catch (e) {
+          console.error(`Error for menu item ${item.name}:`, e);
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, productPhotosAdded }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
-      JSON.stringify({ success: false, error: "Invalid mode. Use 'reviews' or 'photos'" }),
+      JSON.stringify({ success: false, error: "Invalid mode. Use 'reviews', 'photos' or 'product_photos'" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
