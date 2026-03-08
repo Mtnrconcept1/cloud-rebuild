@@ -1,15 +1,30 @@
 import { supabase } from "@/integrations/supabase/client";
 
+async function loadFirebase() {
+  try {
+    // Use variable to prevent Vite from statically analyzing the import
+    const appModule = "firebase/app";
+    const msgModule = "firebase/messaging";
+    const { initializeApp, getApps } = await (Function('m', 'return import(m)')(appModule));
+    const { getMessaging, getToken, isSupported } = await (Function('m', 'return import(m)')(msgModule));
+    return { initializeApp, getApps, getMessaging, getToken, isSupported };
+  } catch {
+    return null;
+  }
+}
+
 export async function enableWebPush(userId: string) {
   if (!("Notification" in window)) {
     return { ok: false, reason: "Notifications non supportées sur ce navigateur." };
   }
 
   try {
-    // @ts-ignore - firebase is optional
-    const { initializeApp, getApps } = await import("firebase/app");
-    // @ts-ignore - firebase is optional
-    const { getMessaging, getToken, isSupported } = await import("firebase/messaging");
+    const firebase = await loadFirebase();
+    if (!firebase) {
+      return { ok: false, reason: "Firebase non disponible." };
+    }
+
+    const { initializeApp, getApps, getMessaging, getToken, isSupported } = firebase;
 
     const supported = await isSupported();
     if (!supported) {
