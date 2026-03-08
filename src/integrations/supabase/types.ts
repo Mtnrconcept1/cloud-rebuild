@@ -1194,6 +1194,83 @@ export type Database = {
           },
         ]
       }
+      restaurant_invoice_settings: {
+        Row: {
+          bank_name: string | null
+          bic: string | null
+          company_address: string | null
+          company_city: string | null
+          company_country: string | null
+          company_name: string | null
+          company_postal_code: string | null
+          created_at: string
+          email: string | null
+          footer_note: string | null
+          iban: string | null
+          id: string
+          logo_url: string | null
+          payment_terms: string | null
+          phone: string | null
+          restaurant_id: string
+          siret: string | null
+          updated_at: string
+          vat_number: string | null
+          website: string | null
+        }
+        Insert: {
+          bank_name?: string | null
+          bic?: string | null
+          company_address?: string | null
+          company_city?: string | null
+          company_country?: string | null
+          company_name?: string | null
+          company_postal_code?: string | null
+          created_at?: string
+          email?: string | null
+          footer_note?: string | null
+          iban?: string | null
+          id?: string
+          logo_url?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          restaurant_id: string
+          siret?: string | null
+          updated_at?: string
+          vat_number?: string | null
+          website?: string | null
+        }
+        Update: {
+          bank_name?: string | null
+          bic?: string | null
+          company_address?: string | null
+          company_city?: string | null
+          company_country?: string | null
+          company_name?: string | null
+          company_postal_code?: string | null
+          created_at?: string
+          email?: string | null
+          footer_note?: string | null
+          iban?: string | null
+          id?: string
+          logo_url?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          restaurant_id?: string
+          siret?: string | null
+          updated_at?: string
+          vat_number?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_invoice_settings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_invoices: {
         Row: {
           amount_ht: number
@@ -1202,6 +1279,7 @@ export type Database = {
           created_at: string
           due_at: string | null
           id: string
+          invoice_number: string | null
           paid_at: string | null
           pdf_url: string | null
           period_end: string
@@ -1217,6 +1295,7 @@ export type Database = {
           created_at?: string
           due_at?: string | null
           id?: string
+          invoice_number?: string | null
           paid_at?: string | null
           pdf_url?: string | null
           period_end: string
@@ -1232,6 +1311,7 @@ export type Database = {
           created_at?: string
           due_at?: string | null
           id?: string
+          invoice_number?: string | null
           paid_at?: string | null
           pdf_url?: string | null
           period_end?: string
@@ -1716,6 +1796,7 @@ export type Database = {
         }
         Returns: string
       }
+      generate_monthly_invoices: { Args: { p_month?: string }; Returns: number }
       get_campaign_stats: {
         Args: { campaign_ids?: string[] }
         Returns: {
