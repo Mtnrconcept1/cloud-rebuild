@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
         (r) => !r.image_url || r.image_url.includes("placeholder") || r.image_url.includes("unsplash.com/photo-1517248135467")
       );
 
-      for (const restaurant of needsImage.slice(0, 20)) {
+      for (const restaurant of needsImage.slice(0, 5)) {
         try {
           const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
             method: "POST",
