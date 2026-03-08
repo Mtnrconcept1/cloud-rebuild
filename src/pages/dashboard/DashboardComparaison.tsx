@@ -23,7 +23,7 @@ function DeltaIndicator({ my, avg, suffix = "", reverse = false }: { my: number;
   const isNeutral = Math.abs(diff) < 2;
 
   return (
-    <span className={cn("inline-flex items-center gap-1 text-sm font-medium", isNeutral ? "text-muted-foreground" : isPositive ? "text-green-600" : "text-red-500")}>
+    <span className={cn("inline-flex items-center gap-1 text-sm font-medium", isNeutral ? "text-muted-foreground" : isPositive ? "text-primary" : "text-destructive")}>
       {isNeutral ? <Minus className="h-3 w-3" /> : isPositive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       {Math.abs(diff).toFixed(0)}%{suffix}
     </span>
