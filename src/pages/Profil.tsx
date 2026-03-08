@@ -96,7 +96,7 @@ export default function Profil() {
     enabled: !!user,
   });
 
-  const prefs = notificationPrefs || {
+  const prefs = (notificationPrefs as any) || {
     channels: { in_app: true, email: true, push: true },
     categories: { transactional: true, product: true, marketing: false, system: true },
   };
