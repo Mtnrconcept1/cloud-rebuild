@@ -321,13 +321,13 @@ export default function Profil() {
                     }
                   }}
                 >
-                  D?sactiver le push
+                  Désactiver le push
                 </Button>
               </div>
             </div>
 
             <div className="rounded-xl border bg-card p-4 space-y-3">
-              <h3 className="font-semibold text-sm">Alertes th?matiques</h3>
+              <h3 className="font-semibold text-sm">Alertes thématiques</h3>
               <div className="space-y-2">
                 {topics.map((topic) => {
                   const isSubscribed = (notificationSubscriptions || []).some((s: any) => s.topic === topic.id);
