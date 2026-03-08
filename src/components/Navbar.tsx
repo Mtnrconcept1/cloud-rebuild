@@ -82,8 +82,8 @@ export default function Navbar() {
     enabled: !!user,
   });
 
-  const inAppEnabled = notificationPrefs?.channels?.in_app ?? true;
-  const allowedCategories = notificationPrefs?.categories ?? {
+  const inAppEnabled = (notificationPrefs as any)?.channels?.in_app ?? true;
+  const allowedCategories = (notificationPrefs as any)?.categories ?? {
     transactional: true,
     product: true,
     marketing: false,
