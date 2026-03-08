@@ -254,7 +254,7 @@ Deno.serve(async (req) => {
         .select("id, name, category, restaurant_id, image_url")
         .eq("is_available", true)
         .or("image_url.is.null,image_url.eq.")
-        .limit(30);
+        .limit(8);
 
       if (menuErr) throw new Error("Failed to fetch menu items: " + menuErr.message);
 
