@@ -6,6 +6,7 @@ import {
   User, LogOut, Search, ShoppingBag, Leaf, ShoppingCart, Menu, Bell,
   Shield, TrendingUp, Users, Route, Layers, ChefHat, Timer,
   ShieldCheck, Calculator, Repeat, Sparkles, MessageCircle, Gift,
+  Moon, Sun,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { LOGO_URL } from "@/lib/constants";
