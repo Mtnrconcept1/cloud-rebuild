@@ -62,6 +62,8 @@ function getRelevanceScore(card: any, ctx: SortContext): number {
     if (name.includes(normalizedQuery)) score += 120;
     if (cuisineType.includes(normalizedQuery)) score += 80;
     if (city.includes(normalizedQuery)) score += 40;
+    // Boost if matched via menu item
+    if (card?._matchedViaMenu) score += 60;
   } else {
     score += rating * 18 + reviews * 0.9;
   }
@@ -109,6 +111,24 @@ function compareRestaurants(a: any, b: any, ctx: SortContext): number {
   return applyDirection(bRelevance - aRelevance || bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
 }
 
+/** Map DB restaurant row to RestaurantCard props */
+function toCardProps(r: any) {
+  return {
+    id: r.id,
+    name: r.name,
+    cuisine: r.cuisine_type || "",
+    rating: r.rating || 0,
+    reviewCount: r.review_count || 0,
+    imageUrl: r.image_url || "",
+    priceRange: r.price_range || 2,
+    deliveryAvailable: !!r.delivery_available,
+    city: r.city || "",
+    address: r.address || "",
+    sponsoredCampaignId: r.campaign_id || undefined,
+    sponsoredPromoImage: r.promo_image || undefined,
+  };
+}
+
 export default function Recherche() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");
@@ -146,6 +166,52 @@ export default function Recherche() {
     },
   });
 
+  // Search menu items by name/description to find restaurants via product search
+  const { data: menuMatchedRestaurantIds = [] } = useQuery({
+    queryKey: ["menu-search", query],
+    queryFn: async () => {
+      if (!query || query.trim().length < 2) return [];
+      const { data } = await supabase
+        .from("menu_items")
+        .select("restaurant_id")
+        .eq("is_available", true)
+        .or(`name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`);
+      // Return unique restaurant IDs
+      const ids = new Set((data || []).map((item: any) => item.restaurant_id));
+      return Array.from(ids);
+    },
+    enabled: !!query && query.trim().length >= 2,
+  });
+
+  // Fetch additional restaurants matched via menu items (not already in main results)
+  const { data: menuMatchedRestaurants = [] } = useQuery({
+    queryKey: ["menu-matched-restaurants", menuMatchedRestaurantIds],
+    queryFn: async () => {
+      if (menuMatchedRestaurantIds.length === 0) return [];
+      const existingIds = new Set((restaurants || []).map((r: any) => r.id));
+      const missingIds = menuMatchedRestaurantIds.filter((id) => !existingIds.has(id));
+      if (missingIds.length === 0) return [];
+      const { data } = await supabase
+        .from("restaurants")
+        .select("*")
+        .eq("is_active", true)
+        .in("id", missingIds);
+      return (data || []).map((r: any) => ({ ...r, _matchedViaMenu: true }));
+    },
+    enabled: menuMatchedRestaurantIds.length > 0 && !!restaurants,
+  });
+
+  // Merge restaurant results: mark menu-matched ones
+  const allRestaurants = useMemo(() => {
+    const base = (restaurants || []).map((r: any) => {
+      if (menuMatchedRestaurantIds.includes(r.id)) {
+        return { ...r, _matchedViaMenu: true };
+      }
+      return r;
+    });
+    return [...base, ...menuMatchedRestaurants];
+  }, [restaurants, menuMatchedRestaurants, menuMatchedRestaurantIds]);
+
   const { data: monthlyReservationsByRestaurant = {} } = useQuery({
     queryKey: ["search-monthly-reservations", monthStartYmd],
     queryFn: async () => {
@@ -181,8 +247,8 @@ export default function Recherche() {
     queryFn: async () => {
       try {
         const [offersRes, formulasRes] = await Promise.all([
-          supabase.from("anti_waste_offers" as any).select("restaurant_id, original_price, discounted_price, available_date").eq("is_active", true).in("offer_type", ["regular", "surprise_bag", "solidarity"] as any).gte("available_date", todayYmd),
-          supabase.from("meal_formulas" as any).select("restaurant_id, discount_percent").eq("is_active", true),
+          supabase.from("anti_waste_offers").select("restaurant_id, original_price, discounted_price, available_date").eq("is_active", true).in("offer_type", ["regular", "surprise_bag", "solidarity"]).gte("available_date", todayYmd),
+          supabase.from("meal_formulas").select("restaurant_id, discount_percent").eq("is_active", true),
         ]);
         const scores: Record<string, number> = {};
         ((offersRes.data || []) as any[]).forEach((offer) => {
@@ -243,7 +309,7 @@ export default function Recherche() {
     return { sortBy, sortDirection, query, monthlyReservationsByRestaurant, monthlyOrdersByRestaurant, promotionScoreByRestaurant };
   }, [sortBy, sortDirection, query, monthlyReservationsByRestaurant, monthlyOrdersByRestaurant, promotionScoreByRestaurant]);
 
-  const sortedOrganicCards = useMemo(() => [...((restaurants || []) as any[])].sort((a, b) => compareRestaurants(a, b, sortContext)), [restaurants, sortContext]);
+  const sortedOrganicCards = useMemo(() => [...(allRestaurants as any[])].sort((a, b) => compareRestaurants(a, b, sortContext)), [allRestaurants, sortContext]);
   const sortedSponsoredCards = useMemo(() => [...sponsoredCards].sort((a, b) => compareRestaurants(a, b, sortContext)), [sponsoredCards, sortContext]);
   const mergedCards = useMemo(() => prioritizeSponsoredCards(sortedOrganicCards, sortedSponsoredCards, { topSlots: 3 }), [sortedOrganicCards, sortedSponsoredCards]);
 
@@ -254,7 +320,7 @@ export default function Recherche() {
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom, cuisine..." className="pl-10" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom, cuisine, plat..." className="pl-10" />
           </div>
           <Button type="submit">Rechercher</Button>
         </form>
@@ -298,7 +364,9 @@ export default function Recherche() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{[1, 2, 3, 4, 5, 6].map((i) => (<div key={i} className="h-[300px] rounded-2xl bg-muted animate-pulse" />))}</div>
         ) : mergedCards.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mergedCards.map((restaurant: any) => (<RestaurantCard key={restaurant.id} {...restaurant} />))}
+            {mergedCards.map((restaurant: any) => (
+              <RestaurantCard key={restaurant.id} {...toCardProps(restaurant)} />
+            ))}
           </div>
         ) : (
           <div className="text-center py-20 text-muted-foreground">Aucun restaurant trouvé pour vos critères.</div>
