@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 
-type Invoice = { id: string; created_at: string; total_amount: number | null; payment_method: string | null; status: string; restaurant_id: string; user_id: string; date: string; time: string; party_size: number };
+type Invoice = { id: string; created_at: string; total_amount: number | null; status: string; restaurant_id: string; user_id: string };
 
 export default function DashboardFactures() {
   const { toast } = useToast();
