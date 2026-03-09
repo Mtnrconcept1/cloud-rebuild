@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ReservationDetailModal from "@/components/ReservationDetailModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,7 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("datetime");
+  const [confirmedReservation, setConfirmedReservation] = useState<any>(null);
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("19:00");
   const [partySize, setPartySize] = useState(2);
@@ -92,7 +94,21 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); } else {
       await trackSponsoredConversion(restaurantId);
       if (donatePoints && earnedXp > 0) { await (supabase.rpc as any)("donate_points_for_meal", { points_param: earnedXp, description_param: `Don solidaire (réservation chez ${restaurantName})` }); }
-      toast({ title: donatePoints ? "Réservation confirmée ! XP reversés 💚" : "Réservation confirmée ! +100 XP 🎉", description: `Chez ${restaurantName} le ${format(date, "dd/MM/yyyy")} à ${time}` });
+      queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+      setConfirmedReservation({
+        id: reservationId,
+        date: format(date!, "yyyy-MM-dd"),
+        time,
+        party_size: partySize,
+        status: "pending",
+        feature: selectedPromo ? "promo-formule" : "classique",
+        notes: promoNote + (notes || ""),
+        total_amount: 0,
+        created_at: new Date().toISOString(),
+        metadata: reservationMetadata,
+        preorder_items: [],
+        restaurant_name: restaurantName,
+      });
       onOpenChange(false); resetForm();
     }
   };
@@ -101,6 +117,7 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
   const handleOpenChange = (open: boolean) => { if (!open) resetForm(); onOpenChange(open); };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden">
         <div className="flex items-center justify-center gap-2 pt-6 px-6">
@@ -194,5 +211,11 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
         </div>
       </DialogContent>
     </Dialog>
+    <ReservationDetailModal
+      reservation={confirmedReservation}
+      open={!!confirmedReservation}
+      onOpenChange={(open) => { if (!open) setConfirmedReservation(null); }}
+    />
+    </>
   );
 }
