@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PromoCarousel from "@/components/PromoCarousel";
+import CampaignBanner from "@/components/CampaignBanner";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import NearbyRestaurantsMap from "@/components/NearbyRestaurantsMap";
 import { useAuth } from "@/lib/auth";
