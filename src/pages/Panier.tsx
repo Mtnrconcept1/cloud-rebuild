@@ -283,9 +283,7 @@ export default function Panier() {
         finalTotal,
         customerEmail: user.email || "client@miamz.ch",
         metadata: {
-          feature: isZeroAttente ? "zero-attente" : "standard",
-          arrival_date: isZeroAttente ? arrivalDate : null,
-          arrival_time: isZeroAttente ? arrivalTime : null,
+          feature: "standard",
           delivery_address: address || null,
           payment_method: paymentMethod
         }
