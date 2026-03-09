@@ -226,6 +226,73 @@ export default function RestaurantDetail() {
                     </div>
                   </div>
                 )}
+                {flashSales && flashSales.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500 fill-amber-500" /><h2 className="font-display text-xl font-bold">Ventes Flash</h2><Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 text-[10px]">{flashSales.length} offre{flashSales.length > 1 ? "s" : ""}</Badge></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {flashSales.map((sale: any) => {
+                        const discount = sale.original_price > 0 ? Math.round((1 - Number(sale.discounted_price) / Number(sale.original_price)) * 100) : 0;
+                        return (
+                          <div key={sale.id} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-amber-500/20 bg-amber-500/5">
+                            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                              <Zap className="h-6 w-6 text-amber-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm truncate">{sale.title}</p>
+                              <div className="flex items-baseline gap-2 mt-0.5">
+                                <span className="text-lg font-black text-amber-600">{Number(sale.discounted_price).toFixed(2)} CHF</span>
+                                <span className="text-xs text-muted-foreground line-through">{Number(sale.original_price).toFixed(2)} CHF</span>
+                                <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 text-[10px]">-{discount}%</Badge>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{sale.quantity_available} restant(s)</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              className="bg-amber-500 hover:bg-amber-600 text-white gap-1.5 shrink-0"
+                              onClick={() => {
+                                addItem({
+                                  menuItemId: `flash-${sale.id}`,
+                                  name: `[Flash] ${sale.title}`,
+                                  price: Number(sale.discounted_price),
+                                  restaurantId: id!,
+                                  restaurantName: restaurant.name,
+                                  metadata: { is_flash_sale: true, flash_sale_id: sale.id, delivery_available: !!sale.delivery_available, takeaway_available: !!sale.takeaway_available },
+                                });
+                                toast({ title: "Vente flash ajoutée !", description: `${sale.title} — ${Number(sale.discounted_price).toFixed(2)} CHF` });
+                              }}
+                            >
+                              <ShoppingCart className="h-4 w-4" /> Ajouter
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {antiWasteOffers && antiWasteOffers.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-600" /><h2 className="font-display text-xl font-bold">Anti-gaspi</h2><Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 text-[10px]">{antiWasteOffers.length} offre{antiWasteOffers.length > 1 ? "s" : ""}</Badge></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {antiWasteOffers.map((offer: any) => (
+                        <AntiWasteCard
+                          key={offer.id}
+                          title={offer.title}
+                          restaurant={restaurant.name}
+                          restaurantId={id}
+                          originalPrice={Number(offer.original_price)}
+                          discountedPrice={Number(offer.discounted_price)}
+                          pickupStart={offer.pickup_start}
+                          pickupEnd={offer.pickup_end}
+                          imageUrl={offer.image_url || ""}
+                          quantityAvailable={offer.quantity_available}
+                          offerType={offer.offer_type as any}
+                          availableDate={offer.available_date}
+                          offerId={offer.id}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {/* Sticky category navigation */}
                 {categories.length > 1 && (
                   <div className="sticky top-16 z-20 -mx-1 px-1 py-2 bg-background/95 backdrop-blur border-b">
