@@ -38,6 +38,7 @@ export default function ChefsTable() {
   const [reserved, setReserved] = useState<Set<string>>(new Set());
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const { data: drops } = useQuery({
     queryKey: ["chefs-table-drops"],
