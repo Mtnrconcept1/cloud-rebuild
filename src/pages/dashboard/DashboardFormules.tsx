@@ -87,7 +87,7 @@ export default function DashboardFormules() {
         id: existing?.id,
         is_active: existing?.is_active ?? false,
         discount_percent: existing?.discount_percent ?? 10,
-        time_slot: (existing?.metadata as any)?.time_slot || existing?.applies_to === "dine_in" ? "lunch" : "both",
+        time_slot: existing?.description?.includes("Soir") ? "dinner" : existing?.description?.includes("Midi & Soir") ? "both" : existing?.description?.includes("Midi") ? "lunch" : "both",
         applies_to: existing?.applies_to ?? "both",
       };
     }
