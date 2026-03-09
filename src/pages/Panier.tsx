@@ -186,15 +186,15 @@ export default function Panier() {
           payment_method: paymentMethod,
           donate_earned_xp: donateEarnedXp,
           order_reference: orderReference,
-          arrival_date: isZeroAttente ? arrivalDate : null,
-          arrival_time: isZeroAttente ? arrivalTime : null,
-          pickup_date: orderMode === "takeaway" && !isZeroAttente && !hasAntiGaspi
+          arrival_date: null,
+          arrival_time: null,
+          pickup_date: orderMode === "takeaway" && !hasAntiGaspi
             ? (hasTakeawayFlash ? flashPickupDate : pickupDate)
             : null,
-          pickup_time: orderMode === "takeaway" && !isZeroAttente && !hasAntiGaspi
+          pickup_time: orderMode === "takeaway" && !hasAntiGaspi
             ? (hasTakeawayFlash ? flashPickupStart : pickupTime)
             : null,
-          pickup_time_end: orderMode === "takeaway" && !isZeroAttente && !hasAntiGaspi && hasTakeawayFlash
+          pickup_time_end: orderMode === "takeaway" && !hasAntiGaspi && hasTakeawayFlash
             ? flashPickupEnd
             : null,
           flex_option: flexOption,
