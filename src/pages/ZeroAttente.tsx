@@ -155,6 +155,7 @@ export default function ZeroAttente() {
   } : null;
 
   return (
+    <>
     <FeatureWizard
       title="Zéro attente"
       subtitle="Réservez, précommandez, arrivez et c'est servi"
