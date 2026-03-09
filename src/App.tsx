@@ -42,6 +42,7 @@ import DashboardInvoiceSettings from "./pages/dashboard/DashboardInvoiceSettings
 import DashboardPhotos from "./pages/dashboard/DashboardPhotos";
 import DashboardSupport from "./pages/dashboard/DashboardSupport";
 import DashboardService from "./pages/dashboard/DashboardService";
+import DashboardAdvisor from "./pages/dashboard/DashboardAdvisor";
 import SuiviCommande from "./pages/SuiviCommande";
 import AdminHome from "./pages/admin/AdminHome";
 import AdminRestaurants from "./pages/admin/AdminRestaurants";
