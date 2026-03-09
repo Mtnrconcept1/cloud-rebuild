@@ -1,68 +1,200 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import { Plus, BadgePercent, Trash2, Edit2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-type Promotion = { id: string; title: string; discounted_price: number; original_price: number; is_active: boolean; sale_date: string; restaurant_id: string };
-const initialForm = { restaurant_id: "", title: "", original_price: "20", discounted_price: "15", sale_date: new Date().toISOString().slice(0, 10) };
+const PROMO_TYPES = [
+  { value: "percentage", label: "Pourcentage" },
+  { value: "fixed", label: "Montant fixe" },
+  { value: "free_delivery", label: "Livraison gratuite" },
+];
+
+const TARGET_OPTIONS = [
+  { value: "all", label: "Tous les clients" },
+  { value: "new", label: "Nouveaux clients" },
+  { value: "returning", label: "Clients fidèles" },
+];
 
 export default function DashboardPromotions() {
+  const { restaurantIds } = useOwnerRestaurants();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
-  const [items, setItems] = useState<Promotion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(initialForm);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
 
-  const load = async () => {
-    if (!restaurantIds.length) return setLoading(false);
-    setLoading(true);
-    const { data, error } = await supabase.from("flash_sales").select("id,title,discounted_price,original_price,is_active,sale_date,restaurant_id").in("restaurant_id", restaurantIds).order("created_at", { ascending: false });
-    setError(error?.message || null); setItems((data || []) as Promotion[]); setLoading(false);
+  const { data: promotions, isLoading } = useQuery({
+    queryKey: ["dashboard-promotions", restaurantIds],
+    queryFn: async () => {
+      if (!restaurantIds.length) return [];
+      const { data } = await supabase
+        .from("restaurant_promotions")
+        .select("*")
+        .in("restaurant_id", restaurantIds)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: restaurantIds.length > 0,
+  });
+
+  const toggleActive = async (id: string, current: boolean) => {
+    await supabase.from("restaurant_promotions").update({ active: !current }).eq("id", id);
+    queryClient.invalidateQueries({ queryKey: ["dashboard-promotions"] });
+    toast({ title: current ? "Promotion désactivée" : "Promotion activée" });
   };
 
-  useEffect(() => { if (!loadingRestaurants) { if (!form.restaurant_id && restaurants[0]?.id) setForm((v) => ({ ...v, restaurant_id: restaurants[0].id })); load(); } /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [loadingRestaurants, restaurantIds.join(",")]);
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!form.restaurant_id || !form.title.trim()) return toast({ title: "Validation", description: "Restaurant et titre requis.", variant: "destructive" });
-    const original = Number(form.original_price); const discounted = Number(form.discounted_price);
-    if (!Number.isFinite(original) || !Number.isFinite(discounted) || discounted >= original) return toast({ title: "Validation", description: "Le prix promo doit être inférieur au prix d'origine.", variant: "destructive" });
-    const payload = { restaurant_id: form.restaurant_id, title: form.title.trim(), original_price: original, discounted_price: discounted, sale_date: form.sale_date, sale_start: `${form.sale_date}T10:00:00`, sale_end: `${form.sale_date}T22:00:00`, quantity_available: 50, takeaway_available: true, delivery_available: true, is_active: true };
-    const { error } = editingId ? await supabase.from("flash_sales").update(payload).eq("id", editingId) : await supabase.from("flash_sales").insert(payload);
-    if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
-    toast({ title: editingId ? "Promotion mise à jour" : "Promotion créée" });
-    setEditingId(null); setForm({ ...initialForm, restaurant_id: restaurants[0]?.id || "" }); load();
+  const deletePromo = async (id: string) => {
+    await supabase.from("restaurant_promotions").delete().eq("id", id);
+    queryClient.invalidateQueries({ queryKey: ["dashboard-promotions"] });
+    toast({ title: "Promotion supprimée" });
   };
 
   return (
-    <DashboardLayout><div className="space-y-6"><h1 className="font-display text-3xl font-bold">Promotions</h1>
-      <Card><CardHeader><CardTitle>{editingId ? "Éditer" : "Créer"} une promotion</CardTitle></CardHeader><CardContent>
-        <form className="grid gap-3 md:grid-cols-2" onSubmit={submit}>
-          <div><Label>Restaurant</Label><select className="w-full rounded-md border bg-background px-3 py-2 text-sm" value={form.restaurant_id} onChange={(e) => setForm((v) => ({ ...v, restaurant_id: e.target.value }))}><option value="">Sélectionner</option>{restaurants.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
-          <div><Label>Titre</Label><Input value={form.title} onChange={(e) => setForm((v) => ({ ...v, title: e.target.value }))} /></div>
-          <div><Label>Prix initial</Label><Input value={form.original_price} onChange={(e) => setForm((v) => ({ ...v, original_price: e.target.value }))} /></div>
-          <div><Label>Prix promo</Label><Input value={form.discounted_price} onChange={(e) => setForm((v) => ({ ...v, discounted_price: e.target.value }))} /></div>
-          <div><Label>Date</Label><Input type="date" value={form.sale_date} onChange={(e) => setForm((v) => ({ ...v, sale_date: e.target.value }))} /></div>
-          <div className="flex gap-2 items-end"><Button type="submit">Enregistrer</Button>{editingId && <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm({ ...initialForm, restaurant_id: restaurants[0]?.id || "" }); }}>Annuler</Button>}</div>
-        </form>
-      </CardContent></Card>
-      {loadingRestaurants || loading ? <p>Chargement...</p> : null}
-      {restaurantError || error ? <p className="text-destructive">Erreur: {restaurantError || error}</p> : null}
-      {!loading && !error && !items.length ? <p>Aucune promotion.</p> : null}
-      <div className="grid gap-3">{items.map((item) => (
-        <Card key={item.id}><CardContent className="pt-6 space-y-3"><div className="flex justify-between"><p className="font-medium">{item.title}</p><p>{item.discounted_price}€ / <span className="line-through">{item.original_price}€</span></p></div>
-          <div className="flex items-center gap-2"><Switch checked={item.is_active} onCheckedChange={async (checked) => { const { error } = await supabase.from("flash_sales").update({ is_active: checked }).eq("id", item.id); if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" }); else { toast({ title: checked ? "Promotion activée" : "Promotion désactivée" }); load(); } }} /><span className="text-sm">Active</span></div>
-          <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => { setEditingId(item.id); setForm({ restaurant_id: item.restaurant_id, title: item.title, original_price: String(item.original_price), discounted_price: String(item.discounted_price), sale_date: item.sale_date.slice(0, 10) }); }}>Éditer</Button><Button size="sm" variant="destructive" onClick={async () => { const { error } = await supabase.from("flash_sales").delete().eq("id", item.id); if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" }); else { toast({ title: "Promotion supprimée" }); load(); } }}>Supprimer</Button></div>
-        </CardContent></Card>
-      ))}</div>
-    </div></DashboardLayout>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BadgePercent className="h-6 w-6 text-primary" />
+            <h1 className="font-display text-3xl font-bold">Promotions</h1>
+          </div>
+          <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setEditing(null); }}>
+            <DialogTrigger asChild>
+              <Button className="gap-2"><Plus className="h-4 w-4" /> Nouvelle promotion</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader><DialogTitle>{editing ? "Modifier la promotion" : "Nouvelle promotion"}</DialogTitle></DialogHeader>
+              <PromoForm
+                restaurantIds={restaurantIds}
+                initial={editing}
+                onSaved={() => {
+                  setOpen(false);
+                  setEditing(null);
+                  queryClient.invalidateQueries({ queryKey: ["dashboard-promotions"] });
+                  toast({ title: editing ? "Promotion modifiée" : "Promotion créée" });
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-20 bg-muted animate-pulse rounded-xl" />)}</div>
+        ) : !promotions?.length ? (
+          <Card><CardContent className="py-12 text-center text-muted-foreground">Aucune promotion active. Créez-en une pour attirer plus de clients !</CardContent></Card>
+        ) : (
+          <div className="space-y-3">
+            {promotions.map((promo: any) => {
+              const isExpired = new Date(promo.end_at) < new Date();
+              return (
+                <Card key={promo.id}>
+                  <CardContent className="flex items-center gap-4 py-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <p className="font-semibold text-sm">{promo.name}</p>
+                        <Badge className="bg-primary/10 text-primary text-[10px]">
+                          {promo.promotion_type === "percentage" ? `-${promo.promotion_value}%` :
+                           promo.promotion_type === "fixed" ? `-${promo.promotion_value} CHF` :
+                           "Livraison gratuite"}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {TARGET_OPTIONS.find(t => t.value === promo.target)?.label || promo.target}
+                        </Badge>
+                        {!promo.active && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
+                        {isExpired && <Badge variant="destructive" className="text-[10px]">Expirée</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(promo.start_at).toLocaleDateString("fr-FR")} → {new Date(promo.end_at).toLocaleDateString("fr-FR")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch checked={promo.active} onCheckedChange={() => toggleActive(promo.id, promo.active)} />
+                      <Button size="icon" variant="ghost" onClick={() => { setEditing(promo); setOpen(true); }}><Edit2 className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => deletePromo(promo.id)}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}
+
+function PromoForm({ restaurantIds, initial, onSaved }: { restaurantIds: string[]; initial?: any; onSaved: () => void }) {
+  const [name, setName] = useState(initial?.name || "");
+  const [promoType, setPromoType] = useState(initial?.promotion_type || "percentage");
+  const [promoValue, setPromoValue] = useState(initial?.promotion_value?.toString() || "10");
+  const [target, setTarget] = useState(initial?.target || "all");
+  const [startAt, setStartAt] = useState(initial?.start_at?.split("T")[0] || new Date().toISOString().split("T")[0]);
+  const [endAt, setEndAt] = useState(initial?.end_at?.split("T")[0] || "");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const payload = {
+      restaurant_id: initial?.restaurant_id || restaurantIds[0],
+      name,
+      promotion_type: promoType,
+      promotion_value: Number(promoValue),
+      target,
+      start_at: new Date(startAt).toISOString(),
+      end_at: endAt ? new Date(endAt).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
+    };
+    if (initial) {
+      await supabase.from("restaurant_promotions").update(payload).eq("id", initial.id);
+    } else {
+      await supabase.from("restaurant_promotions").insert(payload);
+    }
+    setLoading(false);
+    onSaved();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Nom de la promotion</Label>
+        <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: -20% ce weekend" required />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Type</Label>
+          <Select value={promoType} onValueChange={setPromoType}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{PROMO_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Valeur {promoType === "percentage" ? "(%)" : "(CHF)"}</Label>
+          <Input type="number" step="0.01" value={promoValue} onChange={e => setPromoValue(e.target.value)} required />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Cible</Label>
+        <Select value={target} onValueChange={setTarget}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>{TARGET_OPTIONS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2"><Label>Date début</Label><Input type="date" value={startAt} onChange={e => setStartAt(e.target.value)} required /></div>
+        <div className="space-y-2"><Label>Date fin</Label><Input type="date" value={endAt} onChange={e => setEndAt(e.target.value)} required /></div>
+      </div>
+      <Button type="submit" disabled={loading} className="w-full">
+        {loading ? "Enregistrement..." : initial ? "Modifier" : "Créer la promotion"}
+      </Button>
+    </form>
   );
 }

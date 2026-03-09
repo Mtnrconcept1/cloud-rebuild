@@ -61,7 +61,7 @@ export default function DashboardPerformances() {
   const chartData = kpis.map((k) => ({
     date: new Date(k.kpi_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
     Commandes: k.orders_count,
-    "CA (€)": Number(k.revenue),
+    "CA (CHF)": Number(k.revenue),
     "Panier moyen": Number(k.avg_ticket),
   }));
 
@@ -97,11 +97,11 @@ export default function DashboardPerformances() {
           </Card>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Euro className="h-4 w-4" />CA</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalRevenue.toFixed(0)} €</p></CardContent>
+            <CardContent><p className="text-2xl font-bold">{totalRevenue.toFixed(0)} CHF</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><TrendingUp className="h-4 w-4" />Panier moyen</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{avgTicket.toFixed(1)} €</p></CardContent>
+            <CardContent><p className="text-2xl font-bold">{avgTicket.toFixed(1)} CHF</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" />Réservations</CardTitle></CardHeader>
@@ -127,7 +127,7 @@ export default function DashboardPerformances() {
                     <XAxis dataKey="date" className="text-xs" />
                     <YAxis className="text-xs" />
                     <Tooltip />
-                    <Bar dataKey="CA (€)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="CA (CHF)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>

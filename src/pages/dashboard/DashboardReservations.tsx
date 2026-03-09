@@ -59,10 +59,11 @@ export default function DashboardReservations() {
       const { data: reservationRows, error: reservationError } = await supabase.from("reservations").select("*").eq("restaurant_id", restaurant!.id).order("date", { ascending: true }).order("time", { ascending: true });
       if (reservationError) throw reservationError;
       if (!reservationRows?.length) return [] as ReservationWithProfile[];
-      const userIds = Array.from(new Set(reservationRows.map((r) => r.user_id).filter(Boolean)));
-      const { data: profilesData } = await supabase.from("profiles").select("user_id, full_name, phone").in("user_id", userIds);
-      const profilesByUserId = new Map((profilesData || []).map((p) => [p.user_id, p]));
-      return reservationRows.map((r) => ({ ...r, customer: profilesByUserId.get(r.user_id) || null }));
+
+      // Use SECURITY DEFINER function to fetch customer profiles (bypasses profiles RLS)
+      const { data: profilesData } = await supabase.rpc("get_reservation_customers" as any, { p_restaurant_id: restaurant!.id });
+      const profilesByUserId = new Map((profilesData || []).map((p: any) => [p.user_id, { full_name: p.full_name, phone: p.phone }]));
+      return reservationRows.map((r) => ({ ...r, customer: (profilesByUserId.get(r.user_id) as Pick<ProfileRow, "full_name" | "phone">) || null })) as ReservationWithProfile[];
     },
     enabled: !!restaurant,
   });
