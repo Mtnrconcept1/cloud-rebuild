@@ -106,7 +106,7 @@ export async function trackSponsoredImpression(campaignId: string, restaurantId?
   try {
     await supabase.rpc("increment_ad_campaign_metric", {
       p_campaign_id: campaignId,
-      p_metric: "impression",
+      p_metric: "impressions",
     });
   } catch {
     // Silent fail
