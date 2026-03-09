@@ -8,13 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Timer, Utensils, Clock, CheckCircle2, ChevronLeft,
-  Armchair, ChefHat, Zap, ArrowRight, Plus, Minus, Users,
+  Armchair, ChefHat, Zap, ArrowRight, Plus, Minus, Users, CreditCard,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
+import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
 
-type Step = "info" | "restaurant" | "menu" | "confirm";
+type Step = "info" | "restaurant" | "menu" | "payment" | "confirm";
 
 export default function ZeroAttente() {
   const { user } = useAuth();
@@ -31,6 +32,7 @@ export default function ZeroAttente() {
   const [loading, setLoading] = useState(false);
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
 
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants-zero-wait", preSelectedRestaurantId],
@@ -75,7 +77,7 @@ export default function ZeroAttente() {
 
   const categories = menuItems ? [...new Set(menuItems.map((i: any) => i.category || "Autres"))] as string[] : [];
 
-  const handleConfirmReservation = async () => {
+  const handlePayAndReserve = async () => {
     if (!user) {
       toast({ title: "Connectez-vous", description: "Vous devez être connecté pour réserver.", variant: "destructive" });
       return;
@@ -97,6 +99,57 @@ export default function ZeroAttente() {
         };
       });
 
+    // For online payment methods, redirect to Stripe first
+    if (paymentMethod !== "cash") {
+      const stripeItems = preorderItems.map((pi) => ({
+        name: pi.name,
+        price: pi.unit_price,
+        quantity: pi.quantity,
+        restaurant_name: selectedRestaurant.name,
+      }));
+
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          items: stripeItems,
+          payment_method: paymentMethod,
+          return_url: `${window.location.origin}/zero-attente`,
+          order_metadata: {
+            restaurant_id: selectedRestaurant.id,
+            order_reference: `ZA-${Date.now()}`,
+            delivery_fee: 0,
+          },
+        },
+      });
+
+      if (checkoutError || !checkoutData?.url) {
+        setLoading(false);
+        toast({ title: "Erreur paiement", description: checkoutError?.message || "Impossible de créer la session de paiement.", variant: "destructive" });
+        return;
+      }
+
+      // Save reservation data to sessionStorage so we can create it after payment
+      sessionStorage.setItem("zero-attente-pending", JSON.stringify({
+        restaurantId: selectedRestaurant.id,
+        restaurantName: selectedRestaurant.name,
+        arrivalDate,
+        arrivalTime,
+        partySize,
+        preorderItems,
+        subtotal,
+        count,
+        paymentMethod,
+      }));
+
+      // Redirect to Stripe
+      window.location.href = checkoutData.url;
+      return;
+    }
+
+    // Cash payment: create reservation directly
+    await createReservation(preorderItems);
+  };
+
+  const createReservation = async (preorderItems: any[], checkoutSessionId?: string) => {
     const { data, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
       p_restaurant_id: selectedRestaurant.id,
       p_date: arrivalDate,
@@ -109,8 +162,11 @@ export default function ZeroAttente() {
         total_amount: subtotal,
         arrival_date: arrivalDate,
         arrival_time: arrivalTime,
+        payment_method: paymentMethod,
+        checkout_session_id: checkoutSessionId || null,
+        paid: paymentMethod !== "cash",
       },
-      p_notes: `[Zéro Attente] ${count} plat(s) précommandé(s) - Total: ${subtotal.toFixed(2)} CHF`,
+      p_notes: `[Zéro Attente] ${count} plat(s) précommandé(s) - Total: ${subtotal.toFixed(2)} CHF - Paiement: ${paymentMethod}`,
     });
 
     setLoading(false);
@@ -122,6 +178,66 @@ export default function ZeroAttente() {
       setStep("confirm");
     }
   };
+
+  // Handle return from Stripe
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const sessionId = params.get("session_id");
+
+    if (status === "success" && sessionId) {
+      const pending = sessionStorage.getItem("zero-attente-pending");
+      if (pending) {
+        const data = JSON.parse(pending);
+        sessionStorage.removeItem("zero-attente-pending");
+
+        // Restore state
+        setSelectedRestaurant({ id: data.restaurantId, name: data.restaurantName });
+        setArrivalDate(data.arrivalDate);
+        setArrivalTime(data.arrivalTime);
+        setPartySize(data.partySize);
+        setPaymentMethod(data.paymentMethod);
+
+        // Create reservation after successful payment
+        const doCreate = async () => {
+          setLoading(true);
+          const { data: resData, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
+            p_restaurant_id: data.restaurantId,
+            p_date: data.arrivalDate,
+            p_time: data.arrivalTime,
+            p_party_size: data.partySize,
+            p_feature: "zero-attente",
+            p_metadata: {
+              feature: "zero-attente",
+              preorder_items: data.preorderItems,
+              total_amount: data.subtotal,
+              arrival_date: data.arrivalDate,
+              arrival_time: data.arrivalTime,
+              payment_method: data.paymentMethod,
+              checkout_session_id: sessionId,
+              paid: true,
+            },
+            p_notes: `[Zéro Attente] ${data.count} plat(s) précommandé(s) - Total: ${data.subtotal.toFixed(2)} CHF - Paiement: ${data.paymentMethod} (payé)`,
+          });
+          setLoading(false);
+          if (error) {
+            toast({ title: "Erreur", description: error.message, variant: "destructive" });
+          } else {
+            setReservationId(resData);
+            setStep("confirm");
+          }
+        };
+        doCreate();
+      }
+
+      // Clean URL params
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (status === "cancelled") {
+      sessionStorage.removeItem("zero-attente-pending");
+      toast({ title: "Paiement annulé", description: "Vous pouvez réessayer.", variant: "destructive" });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   const handleGoToReservations = () => {
     setShowDetailModal(true);
@@ -149,7 +265,7 @@ export default function ZeroAttente() {
     notes: `[Zéro Attente] ${count} plat(s) précommandé(s) - Total: ${subtotal.toFixed(2)} CHF`,
     total_amount: subtotal,
     created_at: new Date().toISOString(),
-    metadata: { feature: "zero-attente" } as any,
+    metadata: { feature: "zero-attente", payment_method: paymentMethod, paid: paymentMethod !== "cash" } as any,
     preorder_items: preorderItemsForModal as any,
     restaurant_name: selectedRestaurant?.name || "",
   } : null;
@@ -158,13 +274,14 @@ export default function ZeroAttente() {
     <>
     <FeatureWizard
       title="Zéro attente"
-      subtitle="Réservez, précommandez, arrivez et c'est servi"
+      subtitle="Réservez, précommandez, payez et c'est servi"
       icon={Timer}
       colorClass="indigo-500"
       steps={([
         { id: "info", label: "Heure" },
         { id: "restaurant", label: "Restaurant" },
         { id: "menu", label: "Menu" },
+        { id: "payment", label: "Paiement" },
         { id: "confirm", label: "Confirmer" },
       ] as const).filter(s => s.id !== "restaurant" || !preSelectedRestaurantId)}
       currentStepId={step}
@@ -176,7 +293,7 @@ export default function ZeroAttente() {
           {[
             { icon: Armchair, title: "Réservez", desc: "Choisissez votre heure", color: "indigo" },
             { icon: Utensils, title: "Précommandez", desc: "Sélectionnez vos plats", color: "indigo" },
-            { icon: ChefHat, title: "Synchronisé", desc: "Le chef lance selon votre ETA", color: "indigo" },
+            { icon: CreditCard, title: "Payez", desc: "Paiement sécurisé à l'avance", color: "indigo" },
             { icon: Zap, title: "0 attente", desc: "Arrivez, asseyez-vous, dégustez", color: "indigo" },
           ].map((item, i) => (
             <div key={i} className="rounded-xl border bg-card p-4 text-center space-y-2 relative">
@@ -287,19 +404,60 @@ export default function ZeroAttente() {
                   <span>{count} article{count > 1 ? "s" : ""} · {partySize} convive(s)</span>
                   <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-indigo-600">
-                  <ChefHat className="h-3 w-3" />
-                  <span>Le chef synchronisera la préparation avec votre arrivée le {arrivalDate} à {arrivalTime}</span>
-                </div>
-                <div className="flex justify-between font-bold border-t pt-2 mt-2">
-                  <span>Total</span>
-                  <span>{subtotal.toFixed(2)} CHF</span>
-                </div>
-                <Button onClick={handleConfirmReservation} disabled={loading} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
-                  {loading ? "Réservation en cours..." : "Confirmer la réservation"}
+                <Button onClick={() => setStep("payment")} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
+                  <CreditCard className="h-4 w-4" />
+                  Passer au paiement · {subtotal.toFixed(2)} CHF
                 </Button>
               </div>
             )}
+          </div>
+        )}
+
+        {step === "payment" && (
+          <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
+            <WizardBackButton onClick={() => setStep("menu")} label="Menu" />
+
+            <div className="rounded-lg bg-indigo-500/5 p-3 text-sm flex items-center gap-2">
+              <Timer className="h-4 w-4 text-indigo-500" />
+              {selectedRestaurant?.name} · {arrivalDate} {arrivalTime} · {partySize} convive(s)
+            </div>
+
+            {/* Order summary */}
+            <div className="rounded-xl border bg-card p-4 space-y-2">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Utensils className="h-4 w-4 text-muted-foreground" />
+                Récapitulatif
+              </h3>
+              {menuItems && Object.entries(quantities).filter(([, q]) => q > 0).map(([id, qty]) => {
+                const item = menuItems.find((m: any) => m.id === id);
+                if (!item) return null;
+                return (
+                  <div key={id} className="flex justify-between text-sm">
+                    <span>{qty}× {item.name}</span>
+                    <span className="font-medium">{(Number(item.price) * qty).toFixed(2)} CHF</span>
+                  </div>
+                );
+              })}
+              <div className="flex justify-between font-bold border-t pt-2 mt-2">
+                <span>Total à payer</span>
+                <span>{subtotal.toFixed(2)} CHF</span>
+              </div>
+            </div>
+
+            {/* Payment method selector */}
+            <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
+
+            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-700">
+              <strong>Paiement à l'avance requis</strong> — Le Zéro Attente nécessite un prépaiement pour garantir la synchronisation avec le chef.
+            </div>
+
+            <Button
+              onClick={handlePayAndReserve}
+              disabled={loading}
+              className="w-full bg-indigo-500 hover:opacity-90 gap-2 text-base py-6"
+            >
+              {loading ? "Traitement en cours..." : `Payer ${subtotal.toFixed(2)} CHF et réserver`}
+            </Button>
           </div>
         )}
 
@@ -307,8 +465,8 @@ export default function ZeroAttente() {
           <div className="space-y-6 animate-in slide-in-from-bottom-8">
             <div className="rounded-2xl bg-indigo-500/5 border border-indigo-500/20 p-6 text-center space-y-2">
               <CheckCircle2 className="h-12 w-12 text-indigo-500 mx-auto" />
-              <h2 className="font-display text-xl font-bold">Réservation confirmée !</h2>
-              <p className="text-sm text-muted-foreground">Votre table et vos plats précommandés sont réservés.</p>
+              <h2 className="font-display text-xl font-bold">Réservation confirmée et payée !</h2>
+              <p className="text-sm text-muted-foreground">Votre table et vos plats précommandés sont réservés. Le paiement a été effectué.</p>
             </div>
             <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
               <div className="flex justify-between">
@@ -328,7 +486,7 @@ export default function ZeroAttente() {
                 <span className="font-medium">{count} plat{count > 1 ? "s" : ""}</span>
               </div>
               <div className="flex justify-between border-t pt-2">
-                <span className="font-semibold">Total</span>
+                <span className="font-semibold">Total payé</span>
                 <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
               </div>
             </div>
