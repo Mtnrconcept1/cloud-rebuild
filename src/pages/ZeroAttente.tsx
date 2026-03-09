@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Timer, Utensils, Clock, CheckCircle2, ChevronRight, ChevronLeft,
-  Armchair, ChefHat, Zap, ArrowRight, ShoppingCart, Plus, Minus,
+  Timer, Utensils, Clock, CheckCircle2, ChevronLeft,
+  Armchair, ChefHat, Zap, ArrowRight, Plus, Minus, Users,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FeatureWizard, WizardBackButton, WizardNextButton, WizardCartSummary } from "@/components/FeatureWizard";
+import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
 
 type Step = "info" | "restaurant" | "menu" | "confirm";
 
 export default function ZeroAttente() {
-  const { addItem, clearCart, updateCartMetadata, setOrderMode } = useCart();
+  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -24,60 +24,36 @@ export default function ZeroAttente() {
   const [step, setStep] = useState<Step>("info");
   const [arrivalDate, setArrivalDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [arrivalTime, setArrivalTime] = useState("19:30");
+  const [partySize, setPartySize] = useState(2);
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(false);
+  const [reservationId, setReservationId] = useState<string | null>(null);
 
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants-zero-wait", preSelectedRestaurantId],
     queryFn: async () => {
-      // If we have a pre-selected ID, fetch it specifically plus others
       if (preSelectedRestaurantId) {
-        const { data: specific } = await supabase
-          .from("restaurants")
-          .select("*")
-          .eq("id", preSelectedRestaurantId)
-          .single();
-
-        const { data: others } = await supabase
-          .from("restaurants")
-          .select("*")
-          .eq("is_active", true)
-          .neq("id", preSelectedRestaurantId)
-          .order("rating", { ascending: false })
-          .limit(8);
-
+        const { data: specific } = await supabase.from("restaurants").select("*").eq("id", preSelectedRestaurantId).single();
+        const { data: others } = await supabase.from("restaurants").select("*").eq("is_active", true).neq("id", preSelectedRestaurantId).order("rating", { ascending: false }).limit(8);
         return specific ? [specific, ...(others || [])] : (others || []);
       }
-
-      const { data } = await supabase
-        .from("restaurants")
-        .select("*")
-        .eq("is_active", true)
-        .order("rating", { ascending: false })
-        .limit(9);
+      const { data } = await supabase.from("restaurants").select("*").eq("is_active", true).order("rating", { ascending: false }).limit(9);
       return data || [];
     },
   });
 
-  // Auto-select restaurant if coming from a restaurant page
   useEffect(() => {
     if (preSelectedRestaurantId && restaurants && !selectedRestaurant) {
       const found = restaurants.find((r: any) => r.id === preSelectedRestaurantId);
-      if (found) {
-        setSelectedRestaurant(found);
-      }
+      if (found) setSelectedRestaurant(found);
     }
   }, [preSelectedRestaurantId, restaurants, selectedRestaurant]);
 
   const { data: menuItems } = useQuery({
     queryKey: ["menu-zero-wait", selectedRestaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("menu_items")
-        .select("*")
-        .eq("restaurant_id", selectedRestaurant.id)
-        .eq("is_available", true)
-        .order("category");
+      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category");
       return data || [];
     },
     enabled: !!selectedRestaurant,
@@ -97,44 +73,61 @@ export default function ZeroAttente() {
 
   const categories = menuItems ? [...new Set(menuItems.map((i: any) => i.category || "Autres"))] as string[] : [];
 
-  const handleAddToCart = () => {
+  const handleConfirmReservation = async () => {
+    if (!user) {
+      toast({ title: "Connectez-vous", description: "Vous devez être connecté pour réserver.", variant: "destructive" });
+      return;
+    }
     if (!selectedRestaurant || !menuItems) return;
-    clearCart();
-    setOrderMode("takeaway");
 
-    // Save arrival time to cart metadata
-    updateCartMetadata({
-      feature: "zero-attente",
-      arrivalTime: arrivalTime,
-      arrivalDate: arrivalDate
+    setLoading(true);
+
+    const preorderItems = Object.entries(quantities)
+      .filter(([, qty]) => qty > 0)
+      .map(([id, qty]) => {
+        const item = menuItems.find((m: any) => m.id === id);
+        return {
+          menu_item_id: id,
+          name: item?.name || "",
+          quantity: qty,
+          unit_price: Number(item?.price || 0),
+          total_price: Number(item?.price || 0) * qty,
+        };
+      });
+
+    const { data, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
+      p_restaurant_id: selectedRestaurant.id,
+      p_date: arrivalDate,
+      p_time: arrivalTime,
+      p_party_size: partySize,
+      p_feature: "zero-attente",
+      p_metadata: {
+        feature: "zero-attente",
+        preorder_items: preorderItems,
+        total_amount: subtotal,
+        arrival_date: arrivalDate,
+        arrival_time: arrivalTime,
+      },
+      p_notes: `[Zéro Attente] ${count} plat(s) précommandé(s) - Total: ${subtotal.toFixed(2)} CHF`,
     });
 
-    Object.entries(quantities).forEach(([id, qty]) => {
-      const item = menuItems.find((m: any) => m.id === id);
-      if (item && qty > 0) {
-        for (let i = 0; i < qty; i++) {
-          addItem({
-            menuItemId: item.id,
-            name: item.name,
-            price: Number(item.price),
-            restaurantId: selectedRestaurant.id,
-            restaurantName: selectedRestaurant.name,
-          });
-        }
-      }
-    });
-    setStep("confirm");
+    setLoading(false);
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      setReservationId(data);
+      setStep("confirm");
+    }
   };
 
-  const handleCheckout = () => {
+  const handleGoToReservations = () => {
     toast({
-      title: "Zéro attente activé !",
-      description: `${selectedRestaurant?.name} - Arrivee ${arrivalDate} ${arrivalTime} - ${count} plat${count > 1 ? "s" : ""}`
+      title: "Zéro attente réservé !",
+      description: `${selectedRestaurant?.name} - ${arrivalDate} ${arrivalTime} - ${count} plat(s)`,
     });
-    navigate("/panier");
+    navigate("/reservations");
   };
-
-  const stepIdx = (s: Step) => ["info", "restaurant", "menu", "confirm"].indexOf(s);
 
   return (
     <FeatureWizard
@@ -146,7 +139,7 @@ export default function ZeroAttente() {
         { id: "info", label: "Heure" },
         { id: "restaurant", label: "Restaurant" },
         { id: "menu", label: "Menu" },
-        { id: "confirm", label: "Confirmer" }
+        { id: "confirm", label: "Confirmer" },
       ] as const).filter(s => s.id !== "restaurant" || !preSelectedRestaurantId)}
       currentStepId={step}
       onStepChange={(id) => setStep(id as Step)}
@@ -173,34 +166,23 @@ export default function ZeroAttente() {
           <div className="rounded-xl border bg-card p-5 space-y-4 animate-in fade-in-50">
             <h2 className="font-semibold flex items-center gap-2">
               <Clock className="h-5 w-5 text-indigo-500" />
-              Date et heure d’arrivée prévue
+              Date, heure et convives
             </h2>
-            <div className="grid gap-3 sm:grid-cols-[160px_120px_1fr] items-center">
-              <Input
-                type="date"
-                value={arrivalDate}
-                onChange={(e) => setArrivalDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
-              />
-              <Input
-                type="time"
-                value={arrivalTime}
-                onChange={(e) => setArrivalTime(e.target.value)}
-                className="w-32"
-              />
-              <p className="text-sm text-muted-foreground">
-                Le chef démarrera la préparation automatiquement selon votre ETA
-              </p>
+            <div className="grid gap-3 sm:grid-cols-[160px_120px_100px] items-center">
+              <Input type="date" value={arrivalDate} onChange={(e) => setArrivalDate(e.target.value)} min={new Date().toISOString().split("T")[0]} />
+              <Input type="time" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} className="w-32" />
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <Input type="number" min={1} max={20} value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} className="w-20" />
+              </div>
             </div>
+            <p className="text-sm text-muted-foreground">Le chef démarrera la préparation automatiquement selon votre ETA</p>
             <WizardNextButton
               onClick={() => {
-                if (preSelectedRestaurantId && selectedRestaurant) {
-                  setStep("menu");
-                } else {
-                  setStep("restaurant");
-                }
+                if (preSelectedRestaurantId && selectedRestaurant) setStep("menu");
+                else setStep("restaurant");
               }}
-              label={preSelectedRestaurantId && selectedRestaurant ? `Commander chez ${selectedRestaurant.name}` : "Choisir un restaurant"}
+              label={preSelectedRestaurantId && selectedRestaurant ? `Réserver chez ${selectedRestaurant.name}` : "Choisir un restaurant"}
               colorClass="indigo-500"
             />
           </div>
@@ -211,7 +193,7 @@ export default function ZeroAttente() {
             <WizardBackButton onClick={() => setStep("info")} label="Heure" />
             <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm">
               <Timer className="h-4 w-4 text-indigo-500" />
-              <span>Arrivée le <strong>{arrivalDate}</strong> à <strong>{arrivalTime}</strong></span>
+              <span>Arrivée le <strong>{arrivalDate}</strong> à <strong>{arrivalTime}</strong> · <strong>{partySize}</strong> convive(s)</span>
             </div>
             <h2 className="font-display text-xl font-semibold">Restaurants compatibles Zéro Attente</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -221,18 +203,11 @@ export default function ZeroAttente() {
                   onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }}
                   className="text-left rounded-xl border-2 overflow-hidden hover:border-indigo-500/30 border-border transition-all"
                 >
-                  <img
-                    src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop"}
-                    alt={r.name}
-                    className="w-full h-32 object-cover"
-                  />
+                  <img src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop"} alt={r.name} className="w-full h-32 object-cover" />
                   <div className="p-3">
                     <p className="font-bold text-sm">{r.name}</p>
                     <p className="text-xs text-muted-foreground">{r.cuisine_type} · {r.city}</p>
-                    <Badge variant="outline" className="mt-1 text-[10px] gap-1">
-                      <Timer className="h-2.5 w-2.5" />
-                      Zéro attente
-                    </Badge>
+                    <Badge variant="outline" className="mt-1 text-[10px] gap-1"><Timer className="h-2.5 w-2.5" />Zéro attente</Badge>
                   </div>
                 </button>
               ))}
@@ -248,7 +223,7 @@ export default function ZeroAttente() {
             />
             <div className="rounded-lg bg-indigo-500/5 p-3 text-sm flex items-center gap-2">
               <Timer className="h-4 w-4 text-indigo-500" />
-              Arrivée {arrivalDate} {arrivalTime} · {selectedRestaurant?.name}
+              Arrivée {arrivalDate} {arrivalTime} · {partySize} convive(s) · {selectedRestaurant?.name}
             </div>
             {categories.map((cat) => (
               <div key={cat} className="space-y-2">
@@ -281,21 +256,21 @@ export default function ZeroAttente() {
             ))}
 
             {count > 0 && (
-              <div className="sticky bottom-4 rounded-xl border bg-card p-4 shadow-lg space-y-2 mt-8 animate-in slide-in-from-bottom-4">
+              <div className="sticky bottom-4 rounded-xl border bg-card/90 backdrop-blur-xl p-4 shadow-lg space-y-2 mt-8 animate-in slide-in-from-bottom-4">
                 <div className="flex justify-between text-sm">
-                  <span>{count} article{count > 1 ? "s" : ""}</span>
+                  <span>{count} article{count > 1 ? "s" : ""} · {partySize} convive(s)</span>
                   <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-indigo-600">
                   <ChefHat className="h-3 w-3" />
-                  <span>Le chef synchronisera la preparation avec votre arrivee le {arrivalDate} a {arrivalTime}</span>
+                  <span>Le chef synchronisera la préparation avec votre arrivée le {arrivalDate} à {arrivalTime}</span>
                 </div>
                 <div className="flex justify-between font-bold border-t pt-2 mt-2">
                   <span>Total</span>
                   <span>{subtotal.toFixed(2)} CHF</span>
                 </div>
-                <Button onClick={handleAddToCart} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
-                  <ShoppingCart className="h-4 w-4" /> Confirmer la précommande
+                <Button onClick={handleConfirmReservation} disabled={loading} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
+                  {loading ? "Réservation en cours..." : "Confirmer la réservation"}
                 </Button>
               </div>
             )}
@@ -306,7 +281,8 @@ export default function ZeroAttente() {
           <div className="space-y-6 animate-in slide-in-from-bottom-8">
             <div className="rounded-2xl bg-indigo-500/5 border border-indigo-500/20 p-6 text-center space-y-2">
               <CheckCircle2 className="h-12 w-12 text-indigo-500 mx-auto" />
-              <h2 className="font-display text-xl font-bold">Précommande confirmée !</h2>
+              <h2 className="font-display text-xl font-bold">Réservation confirmée !</h2>
+              <p className="text-sm text-muted-foreground">Votre table et vos plats précommandés sont réservés.</p>
             </div>
             <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
               <div className="flex justify-between">
@@ -318,7 +294,11 @@ export default function ZeroAttente() {
                 <span className="font-medium">{arrivalDate} {arrivalTime}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Articles</span>
+                <span className="text-muted-foreground">Convives</span>
+                <span className="font-medium">{partySize}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Articles précommandés</span>
                 <span className="font-medium">{count} plat{count > 1 ? "s" : ""}</span>
               </div>
               <div className="flex justify-between border-t pt-2">
@@ -331,8 +311,8 @@ export default function ZeroAttente() {
               <span>Le chef sera synchronisé avec votre arrivée</span>
             </div>
             <WizardNextButton
-              onClick={handleCheckout}
-              label="Procéder au paiement"
+              onClick={handleGoToReservations}
+              label="Voir mes réservations"
               colorClass="indigo-500"
             />
           </div>
