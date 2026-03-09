@@ -180,6 +180,7 @@ export default function ChefsTable() {
   } : null;
 
   return (
+    <>
     <FeatureWizard
       title="Chef's Table"
       subtitle="Plats off-menu en édition ultra-limitée"
