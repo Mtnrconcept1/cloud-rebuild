@@ -117,6 +117,78 @@ export default function Panier() {
     setLoading(true);
 
     try {
+      // For online payments (not cash), redirect to Stripe
+      if (paymentMethod !== "cash") {
+        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
+          body: {
+            items: items.map(i => ({
+              name: i.name,
+              price: i.price,
+              quantity: i.quantity,
+              restaurant_name: i.restaurantName,
+            })),
+            payment_method: paymentMethod,
+            return_url: `${window.location.origin}/commandes`,
+            order_metadata: {
+              order_reference: orderReference,
+              restaurant_id: restaurantId,
+              delivery_fee: deliveryFee,
+              formula_discount: formulaDiscount,
+              points_discount: pointsDiscount,
+              flex_discount: flexDiscount,
+              checkout_id: checkoutId,
+            },
+          },
+        });
+
+        if (checkoutError) throw new Error(checkoutError.message);
+        if (checkoutData?.error) throw new Error(checkoutData.error);
+
+        // Before redirecting, create orders in pending_payment status
+        for (const [resId, resItems] of Object.entries(itemsByRestaurant)) {
+          const qualityFeeItem = resItems.find(i => i.menuItemId === "garantie-qualite-fee");
+          const realItems = resItems.filter(i => i.menuItemId !== "garantie-qualite-fee");
+          if (realItems.length === 0) continue;
+
+          const resSubtotal = realItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+          const resDiscount = restaurantId === resId ? formulaDiscount : 0;
+          const qualityFeeAmount = qualityFeeItem?.price || 0;
+          const deliveryFeePerRestaurant = deliveryFee / resCount;
+
+          const finalMetadata = buildOrderMetadata(resId, resSubtotal, resDiscount, qualityFeeAmount, deliveryFeePerRestaurant, resCount);
+
+          const orderItemsJson = realItems.map((item) => ({
+            menu_item_id: item.menuItemId, restaurant_id: item.restaurantId,
+            quantity: Math.floor(item.quantity), unit_price: Number(item.price),
+            total_price: Number(item.price) * Math.floor(item.quantity), metadata: item.metadata || {},
+          }));
+
+          const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
+            body: { restaurant_id: resId, delivery_address: address, delivery_fee: deliveryFeePerRestaurant, total_amount: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount, notes: notes || null, items: orderItemsJson, metadata: { ...finalMetadata, stripe_session_id: checkoutData.session_id }, checkout_id: checkoutId },
+          });
+          if (validateError) throw new Error(validateError.message);
+          if (validateResult?.error) throw new Error(validateResult.error);
+          if (!firstOrderId) firstOrderId = validateResult?.order_id;
+          await trackSponsoredConversion(resId);
+        }
+
+        // Handle loyalty points
+        if (useLoyaltyPoints && pointsToRedeem > 0) {
+          const { error: rpcError } = await (supabase.rpc as any)("redeem_loyalty_points", { user_id_param: user.id, points_to_redeem: pointsToRedeem, description_param: `Paiement pour commande du ${new Date().toLocaleDateString()}` });
+          if (rpcError) throw rpcError;
+        }
+
+        clearCart();
+        queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
+
+        // Redirect to Stripe
+        if (checkoutData?.url) {
+          window.location.href = checkoutData.url;
+          return;
+        }
+      }
+
+      // Cash payment flow — create orders directly as confirmed
       for (const [resId, resItems] of Object.entries(itemsByRestaurant)) {
         const qualityFeeItem = resItems.find(i => i.menuItemId === "garantie-qualite-fee");
         const realItems = resItems.filter(i => i.menuItemId !== "garantie-qualite-fee");
@@ -124,29 +196,10 @@ export default function Panier() {
 
         const resSubtotal = realItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
         const resDiscount = restaurantId === resId ? formulaDiscount : 0;
-        const resFormulaDiscountPercent = resSubtotal > 0 && resDiscount > 0 ? (resDiscount / resSubtotal) * 100 : 0;
         const qualityFeeAmount = qualityFeeItem?.price || 0;
         const deliveryFeePerRestaurant = deliveryFee / resCount;
 
-        const finalMetadata = {
-          ...cartMetadata,
-          feature: hasAntiGaspi ? "anti-gaspi" : cartMetadata?.feature,
-          has_anti_gaspi: hasAntiGaspi, has_flash_sale: flashItems.length > 0,
-          quality_guarantee: !!qualityFeeItem, quality_fee_amount: qualityFeeAmount,
-          formula_applied: resDiscount > 0 ? formulaName : null,
-          formula_discount_amount: resDiscount > 0 ? Number(resDiscount.toFixed(2)) : 0,
-          formula_discount_percent: resFormulaDiscountPercent > 0 ? Number(resFormulaDiscountPercent.toFixed(2)) : 0,
-          pre_discount_subtotal: Number(resSubtotal.toFixed(2)),
-          original_total: Number((resSubtotal + deliveryFeePerRestaurant + qualityFeeAmount).toFixed(2)),
-          multi_restaurant: resCount > 1, total_restaurants: resCount,
-          payment_method: paymentMethod, donate_earned_xp: donateEarnedXp, order_reference: orderReference,
-          arrival_date: null, arrival_time: null,
-          pickup_date: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupDate : pickupDate) : null,
-          pickup_time: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupStart : pickupTime) : null,
-          pickup_time_end: orderMode === "takeaway" && !hasAntiGaspi && hasTakeawayFlash ? flashPickupEnd : null,
-          flex_option: flexOption,
-          flex_guarantee: flexOption === "express" ? "1% discount per minute delay" : flexOption === "standard" ? "1% discount per 2 minute delay" : "10% subtotal discount applied",
-        };
+        const finalMetadata = buildOrderMetadata(resId, resSubtotal, resDiscount, qualityFeeAmount, deliveryFeePerRestaurant, resCount);
 
         const orderItemsJson = realItems.map((item) => ({
           menu_item_id: item.menuItemId, restaurant_id: item.restaurantId,
@@ -197,6 +250,29 @@ export default function Panier() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const buildOrderMetadata = (resId: string, resSubtotal: number, resDiscount: number, qualityFeeAmount: number, deliveryFeePerRestaurant: number, resCount: number) => {
+    const resFormulaDiscountPercent = resSubtotal > 0 && resDiscount > 0 ? (resDiscount / resSubtotal) * 100 : 0;
+    return {
+      ...cartMetadata,
+      feature: hasAntiGaspi ? "anti-gaspi" : cartMetadata?.feature,
+      has_anti_gaspi: hasAntiGaspi, has_flash_sale: flashItems.length > 0,
+      quality_guarantee: !!qualityFeeAmount, quality_fee_amount: qualityFeeAmount,
+      formula_applied: resDiscount > 0 ? formulaName : null,
+      formula_discount_amount: resDiscount > 0 ? Number(resDiscount.toFixed(2)) : 0,
+      formula_discount_percent: resFormulaDiscountPercent > 0 ? Number(resFormulaDiscountPercent.toFixed(2)) : 0,
+      pre_discount_subtotal: Number(resSubtotal.toFixed(2)),
+      original_total: Number((resSubtotal + deliveryFeePerRestaurant + qualityFeeAmount).toFixed(2)),
+      multi_restaurant: resCount > 1, total_restaurants: resCount,
+      payment_method: paymentMethod, donate_earned_xp: donateEarnedXp, order_reference: generateOrderReference(),
+      arrival_date: null, arrival_time: null,
+      pickup_date: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupDate : pickupDate) : null,
+      pickup_time: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupStart : pickupTime) : null,
+      pickup_time_end: orderMode === "takeaway" && !hasAntiGaspi && hasTakeawayFlash ? flashPickupEnd : null,
+      flex_option: flexOption,
+      flex_guarantee: flexOption === "express" ? "1% discount per minute delay" : flexOption === "standard" ? "1% discount per 2 minute delay" : "10% subtotal discount applied",
+    };
   };
 
   if (items.length === 0) {
