@@ -173,12 +173,12 @@ Deno.serve(async (req) => {
     // 4. Create order via RPC (uses service role to bypass RLS, but we set user context)
     const checkoutUuid = checkout_id || crypto.randomUUID();
     const itemsJson = items.map((i) => ({
-      menu_item_id: i.menu_item_id,
+      menu_item_id: uuidRegex.test(i.menu_item_id) ? i.menu_item_id : null,
       restaurant_id: i.restaurant_id || restaurant_id,
       quantity: i.quantity,
       unit_price: i.unit_price,
       total_price: i.unit_price * i.quantity,
-      metadata: i.metadata || {},
+      metadata: { ...(i.metadata || {}), original_item_id: i.menu_item_id },
     }));
 
     const { data: orderId, error: orderError } = await supabaseUser.rpc(
