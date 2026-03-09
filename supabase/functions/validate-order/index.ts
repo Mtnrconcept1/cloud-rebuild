@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
 
       const menuMap = new Map(menuItems?.map((m: any) => [m.id, m]) || []);
 
-      for (const item of regularItems) {
+      for (const item of items) {
         const dbItem = menuMap.get(item.menu_item_id) as any;
         if (!dbItem) {
           return new Response(

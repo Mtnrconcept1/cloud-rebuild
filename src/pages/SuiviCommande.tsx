@@ -19,9 +19,9 @@ const STEPS = [
   { key: "delivered", label: "Livrée", icon: CheckCircle2, description: "Votre commande a été livrée !", countdownLabel: "" },
 ];
 
-// Simulated route: ~20 waypoints from restaurant to delivery
-const RESTAURANT = { lat: 48.8566, lng: 2.3522 };
-const DELIVERY = { lat: 48.8706, lng: 2.3477 };
+// Simulated route: Lausanne area (Swiss context)
+const RESTAURANT = { lat: 46.5197, lng: 6.6323 };
+const DELIVERY = { lat: 46.5285, lng: 6.6270 };
 
 function generateRoute(from: { lat: number; lng: number }, to: { lat: number; lng: number }, points: number) {
   const route = [];
