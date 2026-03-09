@@ -59,17 +59,23 @@ export default function DashboardCommandes() {
   const { data: orders } = useQuery({
     queryKey: ["dashboard-all-orders", restaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select(`
-          *,
-          delivery_tracking(*),
-          profiles(full_name, phone),
-          order_items(*, menu_items(name), anti_waste_offers(title))
-        `)
-        .eq("restaurant_id", restaurant!.id)
-        .order("created_at", { ascending: false });
-      return (data ?? []) as unknown as OrderWithRelations[];
+      const [ordersRes, customersRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select(`*, delivery_tracking(*), order_items(*, menu_items(name), anti_waste_offers(title))`)
+          .eq("restaurant_id", restaurant!.id)
+          .order("created_at", { ascending: false }),
+        supabase.rpc("get_order_customers" as any, { p_restaurant_id: restaurant!.id }),
+      ]);
+
+      const customerMap = new Map(
+        ((customersRes.data || []) as any[]).map((c: any) => [c.user_id, { full_name: c.full_name, phone: c.phone }])
+      );
+
+      return ((ordersRes.data ?? []) as any[]).map((o) => ({
+        ...o,
+        profiles: customerMap.get(o.user_id) || null,
+      })) as unknown as OrderWithRelations[];
     },
     enabled: !!restaurant,
   });
