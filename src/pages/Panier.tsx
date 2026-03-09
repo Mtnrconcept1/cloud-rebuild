@@ -439,7 +439,7 @@ export default function Panier() {
           )}
           <div className="space-y-2">
             <Label>Notes (optionnel)</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={isZeroAttente ? "Préférences de table, allergies..." : "Code d'entrée, étage..."} />
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Code d'entrée, étage..." />
           </div>
         </div>
 
