@@ -102,7 +102,10 @@ export default function Index() {
       <HeroSection />
 
       <section className="pt-4 pb-8 md:pt-6 md:pb-12 bg-miamz-warm/20">
-        <div className="container px-4"><PromoCarousel /></div>
+        <div className="container px-4 space-y-4">
+          <CampaignBanner page="home" maxBanners={1} />
+          <PromoCarousel />
+        </div>
       </section>
 
       <SearchAndCategories />
