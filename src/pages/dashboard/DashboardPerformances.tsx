@@ -61,7 +61,7 @@ export default function DashboardPerformances() {
   const chartData = kpis.map((k) => ({
     date: new Date(k.kpi_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
     Commandes: k.orders_count,
-    "CA (€)": Number(k.revenue),
+    "CA (CHF)": Number(k.revenue),
     "Panier moyen": Number(k.avg_ticket),
   }));
 
