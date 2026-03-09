@@ -27,20 +27,7 @@ interface MealFormulaRow { id: string; name: string; description: string | null;
 
 const ESTIMATED_SPEND_PER_GUEST_CHF = 35;
 
-export function getPromosForDate(date: Date): PromoOffer[] {
-  const day = date.getDay();
-  const promos: PromoOffer[] = [];
-  if (day >= 1 && day <= 5) {
-    promos.push({ id: "entree-plat-30", label: "Entrée + Plat", description: "Formule déjeuner entrée + plat", discount: 30, formula: "Entrée + Plat" });
-    promos.push({ id: "plat-dessert-30", label: "Plat + Dessert", description: "Formule déjeuner plat + dessert", discount: 30, formula: "Plat + Dessert" });
-  }
-  if (day === 0 || day === 6) {
-    promos.push({ id: "entree-plat-50", label: "Entrée + Plat", description: "Offre week-end entrée + plat", discount: 50, formula: "Entrée + Plat" });
-    promos.push({ id: "plat-dessert-40", label: "Plat + Dessert", description: "Offre week-end plat + dessert", discount: 40, formula: "Plat + Dessert" });
-  }
-  promos.push({ id: "entree-plat-20", label: "Entrée + Plat (Early Bird)", description: "Réservation avant 19h - entrée + plat", discount: 20, formula: "Entrée + Plat" });
-  return promos;
-}
+// getPromosForDate removed — promotions now come from meal_formulas table server-side
 
 export default function ReservationDialog({ restaurantId, restaurantName, open, onOpenChange, initialDate, initialTime, initialPartySize }: ReservationDialogProps) {
   const { user } = useAuth();
