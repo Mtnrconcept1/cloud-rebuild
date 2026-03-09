@@ -34,8 +34,7 @@ export default function Panier() {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal" | "apple" | "google">("card");
   const [flexOption, setFlexOption] = useState<"express" | "standard" | "flex">("standard");
 
-  const [arrivalDate, setArrivalDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [arrivalTime, setArrivalTime] = useState("");
+  const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [pickupTime, setPickupTime] = useState("");
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
