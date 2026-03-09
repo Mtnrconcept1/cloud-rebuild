@@ -135,10 +135,8 @@ export default function Panier() {
     if (orderMode === "delivery") {
       if (!address.trim()) return toast({ title: "Adresse requise", variant: "destructive" });
     } else {
-      // For takeaway, Chef's Table, Zero Attente
-      if (isZeroAttente) {
-        if (!arrivalDate.trim() || !arrivalTime.trim()) return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez indiquer la date et l'heure d'arrivee." });
-      } else if (!hasAntiGaspi && !hasTakeawayFlash && (!pickupDate || !pickupTime)) {
+      // For takeaway
+      if (!hasAntiGaspi && !hasTakeawayFlash && (!pickupDate || !pickupTime)) {
         return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande." });
       }
     }
