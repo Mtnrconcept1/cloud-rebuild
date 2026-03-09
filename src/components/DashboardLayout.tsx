@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BadgePercent, BarChart3, BookOpen, CalendarDays, Camera, CircleHelp, LayoutDashboard, Menu, MessageSquareText, Megaphone, ReceiptText, Scale, Share2, ShoppingCart, Sparkles, UtensilsCrossed, Zap, Leaf, Percent, SlidersHorizontal } from "lucide-react";
+import { BadgePercent, BarChart3, BookOpen, Bot, CalendarDays, Camera, CircleHelp, LayoutDashboard, Menu, MessageSquareText, Megaphone, ReceiptText, Scale, Share2, ShoppingCart, Sparkles, UtensilsCrossed, Zap, Leaf, Percent, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
