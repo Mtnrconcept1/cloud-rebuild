@@ -117,7 +117,7 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
   const handleOpenChange = (open: boolean) => { if (!open) resetForm(); onOpenChange(open); };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden">
         <div className="flex items-center justify-center gap-2 pt-6 px-6">
           {(["datetime", "mode", "promo", "confirm"] as Step[]).map((s, i) => {
