@@ -26,7 +26,7 @@ export default function HeroSection() {
   return (
     <section ref={heroRef} className="relative overflow-hidden border-b">
       <div
-        className="absolute inset-0 bg-[url('/fond3.jpg')] bg-cover bg-center md:bg-[url('/fond4.png')] blur-[2px] will-change-transform"
+        className="absolute inset-0 bg-[url('/fond3.png')] bg-cover bg-center md:bg-[url('/fond4.png')] blur-[2px] will-change-transform"
         style={{ transform: "translateY(calc(var(--scroll-y, 0px) * 0.4))" }}
         aria-hidden="true"
       />
