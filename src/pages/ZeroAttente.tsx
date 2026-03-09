@@ -344,5 +344,14 @@ export default function ZeroAttente() {
         )}
       </div>
     </FeatureWizard>
+    <ReservationDetailModal
+      reservation={detailForModal}
+      open={showDetailModal}
+      onOpenChange={(open) => {
+        setShowDetailModal(open);
+        if (!open) navigate("/reservations");
+      }}
+    />
+    </>
   );
 }
