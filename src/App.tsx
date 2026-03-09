@@ -42,6 +42,7 @@ import DashboardInvoiceSettings from "./pages/dashboard/DashboardInvoiceSettings
 import DashboardPhotos from "./pages/dashboard/DashboardPhotos";
 import DashboardSupport from "./pages/dashboard/DashboardSupport";
 import DashboardService from "./pages/dashboard/DashboardService";
+import DashboardAdvisor from "./pages/dashboard/DashboardAdvisor";
 import SuiviCommande from "./pages/SuiviCommande";
 import AdminHome from "./pages/admin/AdminHome";
 import AdminRestaurants from "./pages/admin/AdminRestaurants";
@@ -112,6 +113,7 @@ const App = () => (
               {/* Dashboard restaurateur */}
               <Route path="/dashboard" element={<ProtectedRoute requiredRole="restaurateur"><DashboardHome /></ProtectedRoute>} />
               <Route path="/dashboard/restaurant" element={<ProtectedRoute requiredRole="restaurateur"><DashboardRestaurant /></ProtectedRoute>} />
+              <Route path="/dashboard/advisor" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAdvisor /></ProtectedRoute>} />
               <Route path="/dashboard/menu" element={<ProtectedRoute requiredRole="restaurateur"><DashboardMenu /></ProtectedRoute>} />
               <Route path="/dashboard/reservations" element={<ProtectedRoute requiredRole="restaurateur"><DashboardReservations /></ProtectedRoute>} />
               <Route path="/dashboard/commandes" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCommandes /></ProtectedRoute>} />
