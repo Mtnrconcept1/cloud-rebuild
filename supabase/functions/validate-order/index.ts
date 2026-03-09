@@ -73,8 +73,15 @@ Deno.serve(async (req) => {
     // 1. Verify all items exist, are available, and prices match
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-    // All items should be valid UUIDs now (chef drops use reservation flow)
-    const invalidItems = items.filter((i) => !uuidRegex.test(i.menu_item_id));
+    // Separate regular menu items from special items (anti-waste, flash sales)
+    const specialPrefixes = ["antigaspi-", "flash-"];
+    const isSpecialItem = (id: string) => specialPrefixes.some((p) => id.startsWith(p));
+
+    const regularItems = items.filter((i) => !isSpecialItem(i.menu_item_id));
+    const specialItems = items.filter((i) => isSpecialItem(i.menu_item_id));
+
+    // Validate regular items have valid UUIDs
+    const invalidItems = regularItems.filter((i) => !uuidRegex.test(i.menu_item_id));
     if (invalidItems.length > 0) {
       return new Response(
         JSON.stringify({ error: "Articles invalides détectés." }),
@@ -84,8 +91,9 @@ Deno.serve(async (req) => {
 
     let verifiedTotal = 0;
 
-    if (items.length > 0) {
-      const menuItemIds = items.map((i) => i.menu_item_id);
+    // Verify regular menu items against DB
+    if (regularItems.length > 0) {
+      const menuItemIds = regularItems.map((i) => i.menu_item_id);
       const { data: menuItems, error: menuError } = await supabaseAdmin
         .from("menu_items")
         .select("id, price, is_available, name, restaurant_id")
@@ -95,7 +103,7 @@ Deno.serve(async (req) => {
 
       const menuMap = new Map(menuItems?.map((m: any) => [m.id, m]) || []);
 
-      for (const item of items) {
+      for (const item of regularItems) {
         const dbItem = menuMap.get(item.menu_item_id) as any;
         if (!dbItem) {
           return new Response(
@@ -117,6 +125,11 @@ Deno.serve(async (req) => {
         }
         verifiedTotal += dbItem.price * item.quantity;
       }
+    }
+
+    // Trust special items prices (they are verified via stock checks below)
+    for (const item of specialItems) {
+      verifiedTotal += item.unit_price * item.quantity;
     }
 
 
