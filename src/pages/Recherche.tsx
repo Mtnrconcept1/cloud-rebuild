@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import RestaurantCard from "@/components/RestaurantCard";
 import { Search, SlidersHorizontal, X } from "lucide-react";
+import CampaignBanner from "@/components/CampaignBanner";
 import { Badge } from "@/components/ui/badge";
 import { trackEvent, getActiveSponsoredRestaurants } from "@/lib/analytics";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
