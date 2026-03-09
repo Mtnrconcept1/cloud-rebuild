@@ -124,12 +124,35 @@ export default function ZeroAttente() {
   };
 
   const handleGoToReservations = () => {
-    toast({
-      title: "Zéro attente réservé !",
-      description: `${selectedRestaurant?.name} - ${arrivalDate} ${arrivalTime} - ${count} plat(s)`,
-    });
-    navigate("/reservations");
+    setShowDetailModal(true);
   };
+
+  const preorderItemsForModal = menuItems ? Object.entries(quantities)
+    .filter(([, qty]) => qty > 0)
+    .map(([id, qty]) => {
+      const item = menuItems.find((m: any) => m.id === id);
+      return {
+        name: item?.name || "",
+        quantity: qty,
+        unit_price: Number(item?.price || 0),
+        total_price: Number(item?.price || 0) * qty,
+      };
+    }) : [];
+
+  const detailForModal = reservationId ? {
+    id: reservationId,
+    date: arrivalDate,
+    time: arrivalTime,
+    party_size: partySize,
+    status: "pending",
+    feature: "zero-attente",
+    notes: `[Zéro Attente] ${count} plat(s) précommandé(s) - Total: ${subtotal.toFixed(2)} CHF`,
+    total_amount: subtotal,
+    created_at: new Date().toISOString(),
+    metadata: { feature: "zero-attente" } as any,
+    preorder_items: preorderItemsForModal as any,
+    restaurant_name: selectedRestaurant?.name || "",
+  } : null;
 
   return (
     <FeatureWizard
