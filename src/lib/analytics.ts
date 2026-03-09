@@ -147,7 +147,7 @@ export async function trackSponsoredConversion(restaurantId: string) {
   try {
     await supabase.rpc("increment_ad_campaign_metric", {
       p_campaign_id: campaignId,
-      p_metric: "conversion",
+      p_metric: "conversions",
     });
 
     const attributions = readSponsoredAttributions();
