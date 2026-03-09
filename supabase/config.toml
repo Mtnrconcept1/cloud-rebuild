@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.enrich-restaurants]
 verify_jwt = false
+
+[functions.generate-invoices]
+verify_jwt = false
+
+[functions.validate-order]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false

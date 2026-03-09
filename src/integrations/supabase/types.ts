@@ -153,6 +153,42 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       chef_table_drops: {
         Row: {
           chef_name: string
@@ -304,6 +340,45 @@ export type Database = {
           platform?: string
           token?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      email_queue: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          created_at: string | null
+          error: string | null
+          id: string
+          metadata: Json | null
+          sent_at: string | null
+          status: string | null
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string | null
+          error?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+          to_email: string
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string | null
+          error?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+          to_email?: string
         }
         Relationships: []
       }
@@ -971,6 +1046,7 @@ export type Database = {
           discount_amount: number | null
           donate_earned_xp: boolean | null
           id: string
+          idempotency_key: string | null
           metadata: Json | null
           notes: string | null
           order_number: string | null
@@ -989,6 +1065,7 @@ export type Database = {
           discount_amount?: number | null
           donate_earned_xp?: boolean | null
           id?: string
+          idempotency_key?: string | null
           metadata?: Json | null
           notes?: string | null
           order_number?: string | null
@@ -1007,6 +1084,7 @@ export type Database = {
           discount_amount?: number | null
           donate_earned_xp?: boolean | null
           id?: string
+          idempotency_key?: string | null
           metadata?: Json | null
           notes?: string | null
           order_number?: string | null
@@ -1753,6 +1831,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_reservation: {
+        Args: { p_reservation_id: string }
+        Returns: boolean
+      }
       claim_gift_points: { Args: { claim_code_param: string }; Returns: number }
       cleanup_expired_groups: { Args: never; Returns: undefined }
       compute_order_discount_from_payload: {
@@ -1839,6 +1921,7 @@ export type Database = {
         Args: { p_campaign_id: string; p_metric: string }
         Returns: undefined
       }
+      mark_noshow_reservations: { Args: never; Returns: number }
       recompute_restaurant_review_stats: {
         Args: { p_restaurant_id: string }
         Returns: undefined
@@ -1868,6 +1951,18 @@ export type Database = {
         Returns: string
       }
       set_test_role: { Args: { new_role: string }; Returns: undefined }
+      validate_and_create_reservation: {
+        Args: {
+          p_date: string
+          p_feature?: string
+          p_metadata?: Json
+          p_notes?: string
+          p_party_size: number
+          p_restaurant_id: string
+          p_time: string
+        }
+        Returns: string
+      }
       validate_service_settings_json: {
         Args: { _opening_hours: Json }
         Returns: boolean

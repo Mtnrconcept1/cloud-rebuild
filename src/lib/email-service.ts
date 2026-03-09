@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface OrderDetails {
     orderReference: string;
     restaurantName: string;
@@ -26,14 +28,41 @@ export function generateOrderReference(): string {
 }
 
 export async function sendOrderConfirmationEmail(details: OrderDetails) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Queue email via edge function instead of simulating
+    try {
+        const { error } = await supabase.from("email_queue" as any).insert({
+            to_email: details.customerEmail,
+            subject: `Confirmation de commande ${details.orderReference} - Miamz`,
+            body_text: buildEmailText(details),
+            metadata: {
+                order_reference: details.orderReference,
+                restaurant_name: details.restaurantName,
+                total: details.finalTotal,
+                feature: details.metadata.feature || "standard",
+            },
+        });
 
+        if (error) {
+            console.warn("[Email Queue] Failed to queue email, falling back to log:", error.message);
+            logEmailFallback(details);
+        } else {
+            console.log(`[Email Queued] Confirmation for ${details.orderReference} to ${details.customerEmail}`);
+        }
+    } catch (e) {
+        console.warn("[Email Queue] Exception, falling back to log:", e);
+        logEmailFallback(details);
+    }
+
+    return true;
+}
+
+function buildEmailText(details: OrderDetails): string {
     const itemsList = details.items
         .map((item) => `- ${item.name} (x${item.quantity}) : ${(item.price * item.quantity).toFixed(2)} CHF`)
         .join("\n");
 
-    const emailBody = `
-========= CONFIRMATION DE COMMANDE MIAMZ =========
+    return `
+CONFIRMATION DE COMMANDE MIAMZ
 Référence : ${details.orderReference}
 Restaurant : ${details.restaurantName}
 Destinataire : ${details.customerEmail}
@@ -48,18 +77,11 @@ Frais : ${details.deliveryFee.toFixed(2)} CHF
 ${details.pointsDiscount ? `Réduction Fidélité : -${details.pointsDiscount.toFixed(2)} CHF` : ""}
 TOTAL : ${details.finalTotal.toFixed(2)} CHF
 
-INFORMATIONS COMPLÉMENTAIRES :
-Feature : ${details.metadata.feature || "Standard"}
-${details.metadata.arrival_time ? `Heure d'arrivée prévue : ${details.metadata.arrival_time}` : ""}
-${details.metadata.delivery_address ? `Adresse de livraison : ${details.metadata.delivery_address}` : ""}
-Méthode de paiement : ${details.metadata.payment_method || "Carte"}
-
 Merci d'avoir accordé votre confiance à Miamz !
-==================================================
-  `;
+    `.trim();
+}
 
-    console.log("%c[Simulated Email Sent]", "color: #ec4899; font-weight: bold; font-size: 1.2em;");
-    console.log(emailBody);
-
-    return true;
+function logEmailFallback(details: OrderDetails) {
+    console.log("%c[Email Fallback]", "color: #ec4899; font-weight: bold;");
+    console.log(buildEmailText(details));
 }

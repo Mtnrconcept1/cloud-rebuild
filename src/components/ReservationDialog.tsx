@@ -27,20 +27,7 @@ interface MealFormulaRow { id: string; name: string; description: string | null;
 
 const ESTIMATED_SPEND_PER_GUEST_CHF = 35;
 
-export function getPromosForDate(date: Date): PromoOffer[] {
-  const day = date.getDay();
-  const promos: PromoOffer[] = [];
-  if (day >= 1 && day <= 5) {
-    promos.push({ id: "entree-plat-30", label: "Entrée + Plat", description: "Formule déjeuner entrée + plat", discount: 30, formula: "Entrée + Plat" });
-    promos.push({ id: "plat-dessert-30", label: "Plat + Dessert", description: "Formule déjeuner plat + dessert", discount: 30, formula: "Plat + Dessert" });
-  }
-  if (day === 0 || day === 6) {
-    promos.push({ id: "entree-plat-50", label: "Entrée + Plat", description: "Offre week-end entrée + plat", discount: 50, formula: "Entrée + Plat" });
-    promos.push({ id: "plat-dessert-40", label: "Plat + Dessert", description: "Offre week-end plat + dessert", discount: 40, formula: "Plat + Dessert" });
-  }
-  promos.push({ id: "entree-plat-20", label: "Entrée + Plat (Early Bird)", description: "Réservation avant 19h - entrée + plat", discount: 20, formula: "Entrée + Plat" });
-  return promos;
-}
+// getPromosForDate removed — promotions now come from meal_formulas table server-side
 
 export default function ReservationDialog({ restaurantId, restaurantName, open, onOpenChange, initialDate, initialTime, initialPartySize }: ReservationDialogProps) {
   const { user } = useAuth();
@@ -91,7 +78,16 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
     const reservationMetadata = { feature: selectedPromo ? "promo-formule" : "classique", promo_applied: !!selectedPromo, promo_offer_id: selectedPromo?.id ?? null, promo_discount_percent: promoDiscountPercent > 0 ? promoDiscountPercent : null, service: servicePeriod };
     const promoNote = selectedPromo ? `[PROMO: ${selectedPromo.formula} -${selectedPromo.discount}%] ` : "[À la carte] ";
 
-    const { error } = await supabase.from("reservations").insert({ restaurant_id: restaurantId, user_id: user.id, date: format(date, "yyyy-MM-dd"), time, party_size: partySize, feature: selectedPromo ? "promo-formule" : "classique", metadata: reservationMetadata, notes: promoNote + (notes || "") });
+    // Use server-side validation function instead of direct insert
+    const { data: reservationId, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
+      p_restaurant_id: restaurantId,
+      p_date: format(date, "yyyy-MM-dd"),
+      p_time: time,
+      p_party_size: partySize,
+      p_feature: selectedPromo ? "promo-formule" : "classique",
+      p_metadata: reservationMetadata,
+      p_notes: promoNote + (notes || ""),
+    });
     setLoading(false);
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); } else {
       await trackSponsoredConversion(restaurantId);
