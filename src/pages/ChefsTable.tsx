@@ -305,5 +305,14 @@ export default function ChefsTable() {
         )}
       </div>
     </FeatureWizard>
+    <ReservationDetailModal
+      reservation={detailForModal}
+      open={showDetailModal}
+      onOpenChange={(open) => {
+        setShowDetailModal(open);
+        if (!open) navigate("/reservations");
+      }}
+    />
+    </>
   );
 }
