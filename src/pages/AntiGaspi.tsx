@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import CampaignBanner from "@/components/CampaignBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { Leaf, Gift, Heart, Info } from "lucide-react";
 import AntiWasteCard from "@/components/AntiWasteCard";
