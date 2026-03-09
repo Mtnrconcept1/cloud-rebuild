@@ -39,7 +39,7 @@ function MetricCard({ label, icon: Icon, myValue, avgValue, format = "number", r
   reverse?: boolean;
 }) {
   const fmt = (v: number) => {
-    if (format === "currency") return `${v.toFixed(0)} €`;
+    if (format === "currency") return `${v.toFixed(0)} CHF`;
     if (format === "rating") return `${v.toFixed(1)}/5`;
     return String(Math.round(v));
   };
