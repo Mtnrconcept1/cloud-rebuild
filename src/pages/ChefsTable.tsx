@@ -156,12 +156,28 @@ export default function ChefsTable() {
   };
 
   const handleGoToReservations = () => {
-    toast({
-      title: "Chef's Table réservé !",
-      description: `${reservedDrops.length} plat(s) · ${reservedTotal.toFixed(2)} CHF`,
-    });
-    navigate("/reservations");
+    setShowDetailModal(true);
   };
+
+  const detailForModal = confirmed ? {
+    id: crypto.randomUUID(),
+    date: reservedDrops[0] ? new Date(reservedDrops[0].dropTime).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    time: reservedDrops[0] ? new Date(reservedDrops[0].dropTime).toTimeString().slice(0, 5) : "19:00",
+    party_size: 1,
+    status: "pending",
+    feature: "chefs_table",
+    notes: `[Chef's Table] ${reservedDrops.map((d) => d.dish).join(", ")}`,
+    total_amount: reservedTotal,
+    created_at: new Date().toISOString(),
+    metadata: { feature: "chefs_table" } as any,
+    preorder_items: reservedDrops.map((d) => ({
+      name: `${d.dish} (${d.chef})`,
+      quantity: 1,
+      unit_price: d.price,
+      total_price: d.price,
+    })) as any,
+    restaurant_name: reservedDrops[0]?.restaurant || "",
+  } : null;
 
   return (
     <FeatureWizard
