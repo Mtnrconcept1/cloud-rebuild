@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import CampaignBanner from "@/components/CampaignBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { Leaf, Gift, Heart, Info } from "lucide-react";
 import AntiWasteCard from "@/components/AntiWasteCard";
@@ -27,6 +28,7 @@ export default function AntiGaspi() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container px-4 py-8 space-y-8">
+        <CampaignBanner page="anti_waste" maxBanners={1} />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center shrink-0">

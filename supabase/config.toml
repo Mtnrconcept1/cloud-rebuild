@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.restaurant-advisor]
 verify_jwt = false
+
+[functions.generate-campaign]
+verify_jwt = false
