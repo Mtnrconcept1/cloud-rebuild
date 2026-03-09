@@ -103,14 +103,12 @@ export async function trackEvent({
 }
 
 export async function trackSponsoredImpression(campaignId: string, restaurantId?: string) {
-  try {
-    await supabase.rpc("increment_ad_campaign_metric", {
-      p_campaign_id: campaignId,
-      p_metric: "impressions",
-    });
-  } catch {
-    // Silent fail
-  }
+  const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+    p_campaign_id: campaignId,
+    p_metric: "impressions",
+  });
+  if (error) console.warn("[analytics] impression error:", error.message);
+
   if (currentUserId) {
     trackEvent({
       eventType: "sponsored_impression",
@@ -123,14 +121,12 @@ export async function trackSponsoredImpression(campaignId: string, restaurantId?
 export async function trackSponsoredClick(campaignId: string, restaurantId: string) {
   rememberSponsoredAttribution(campaignId, restaurantId);
 
-  try {
-    await supabase.rpc("increment_ad_campaign_metric", {
-      p_campaign_id: campaignId,
-      p_metric: "clicks",
-    });
-  } catch {
-    // Silent fail
-  }
+  const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+    p_campaign_id: campaignId,
+    p_metric: "clicks",
+  });
+  if (error) console.warn("[analytics] click error:", error.message);
+
   if (currentUserId) {
     trackEvent({
       eventType: "sponsored_click",
@@ -144,19 +140,19 @@ export async function trackSponsoredConversion(restaurantId: string) {
   const campaignId = getValidSponsoredCampaignId(restaurantId);
   if (!campaignId) return false;
 
-  try {
-    await supabase.rpc("increment_ad_campaign_metric", {
-      p_campaign_id: campaignId,
-      p_metric: "conversions",
-    });
-
-    const attributions = readSponsoredAttributions();
-    delete attributions[restaurantId];
-    writeSponsoredAttributions(attributions);
-    return true;
-  } catch {
+  const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+    p_campaign_id: campaignId,
+    p_metric: "conversions",
+  });
+  if (error) {
+    console.warn("[analytics] conversion error:", error.message);
     return false;
   }
+
+  const attributions = readSponsoredAttributions();
+  delete attributions[restaurantId];
+  writeSponsoredAttributions(attributions);
+  return true;
 }
 
 export interface AudienceCriteria {

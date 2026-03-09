@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PromoCarousel from "@/components/PromoCarousel";
+import CampaignBanner from "@/components/CampaignBanner";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import NearbyRestaurantsMap from "@/components/NearbyRestaurantsMap";
 import { useAuth } from "@/lib/auth";
@@ -101,7 +102,10 @@ export default function Index() {
       <HeroSection />
 
       <section className="pt-4 pb-8 md:pt-6 md:pb-12 bg-miamz-warm/20">
-        <div className="container px-4"><PromoCarousel /></div>
+        <div className="container px-4 space-y-4">
+          <CampaignBanner page="home" maxBanners={1} />
+          <PromoCarousel />
+        </div>
       </section>
 
       <SearchAndCategories />
