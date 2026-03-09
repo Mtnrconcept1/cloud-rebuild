@@ -62,8 +62,8 @@ export default function DashboardReservations() {
 
       // Use SECURITY DEFINER function to fetch customer profiles (bypasses profiles RLS)
       const { data: profilesData } = await supabase.rpc("get_reservation_customers" as any, { p_restaurant_id: restaurant!.id });
-      const profilesByUserId = new Map((profilesData || []).map((p: any) => [p.user_id, p]));
-      return reservationRows.map((r) => ({ ...r, customer: profilesByUserId.get(r.user_id) || null }));
+      const profilesByUserId = new Map((profilesData || []).map((p: any) => [p.user_id, { full_name: p.full_name, phone: p.phone }]));
+      return reservationRows.map((r) => ({ ...r, customer: (profilesByUserId.get(r.user_id) as Pick<ProfileRow, "full_name" | "phone">) || null })) as ReservationWithProfile[];
     },
     enabled: !!restaurant,
   });
