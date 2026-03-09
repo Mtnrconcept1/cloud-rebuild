@@ -296,9 +296,7 @@ export default function Panier() {
           : `Votre commande est en cours de préparation. Réf: ${orderReference}`
       });
 
-      if (isZeroAttente) {
-        navigate("/reservations");
-      } else if (firstOrderId) {
+      if (firstOrderId) {
         navigate(`/commande/${firstOrderId}`);
       } else {
         navigate("/commandes");
