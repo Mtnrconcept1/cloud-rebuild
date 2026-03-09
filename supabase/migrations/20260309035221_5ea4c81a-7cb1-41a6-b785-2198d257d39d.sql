@@ -1,0 +1,19 @@
+
+CREATE OR REPLACE FUNCTION public.get_order_customers(p_restaurant_id uuid)
+RETURNS TABLE(user_id uuid, full_name text, phone text)
+LANGUAGE plpgsql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT DISTINCT p.user_id, p.full_name, p.phone
+  FROM profiles p
+  INNER JOIN orders o ON o.user_id = p.user_id
+  WHERE o.restaurant_id = p_restaurant_id
+    AND EXISTS (
+      SELECT 1 FROM restaurants rest
+      WHERE rest.id = p_restaurant_id AND rest.owner_id = auth.uid()
+    );
+END;
+$$;

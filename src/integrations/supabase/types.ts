@@ -1896,6 +1896,14 @@ export type Database = {
         }[]
       }
       get_gift_stats: { Args: never; Returns: Json }
+      get_order_customers: {
+        Args: { p_restaurant_id: string }
+        Returns: {
+          full_name: string
+          phone: string
+          user_id: string
+        }[]
+      }
       get_reservation_customers: {
         Args: { p_restaurant_id: string }
         Returns: {
