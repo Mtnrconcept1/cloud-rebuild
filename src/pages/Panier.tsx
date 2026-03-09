@@ -34,12 +34,8 @@ export default function Panier() {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal" | "apple" | "google">("card");
   const [flexOption, setFlexOption] = useState<"express" | "standard" | "flex">("standard");
 
-  // orderMode="delivery" overrides any stale zero-attente metadata if the user switched modes on a restaurant page
-  // orderMode="delivery" overrides any stale zero-attente metadata if the user switched modes on a restaurant page
-  const isZeroAttente = cartMetadata?.feature === "zero-attente";
-
-  const [arrivalDate, setArrivalDate] = useState((isZeroAttente && (cartMetadata?.arrivalDate || cartMetadata?.arrival_date)) ? (cartMetadata.arrivalDate || cartMetadata.arrival_date) : new Date().toISOString().split('T')[0]);
-  const [arrivalTime, setArrivalTime] = useState((isZeroAttente && cartMetadata?.arrivalTime) ? cartMetadata.arrivalTime : "");
+  const [arrivalDate, setArrivalDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [arrivalTime, setArrivalTime] = useState("");
   const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [pickupTime, setPickupTime] = useState("");
   const lastDiscount = useRef({ amount: 0, name: null as string | null });

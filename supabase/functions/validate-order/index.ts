@@ -119,10 +119,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // For special items (chef drops, etc.), trust the price from the frontend
-    for (const item of specialItems) {
-      verifiedTotal += item.unit_price * item.quantity;
-    }
 
     // 2. Check anti-waste stock if applicable
     if (metadata && (metadata as any).has_anti_gaspi) {
