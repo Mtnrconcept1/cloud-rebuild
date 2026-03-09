@@ -94,7 +94,21 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); } else {
       await trackSponsoredConversion(restaurantId);
       if (donatePoints && earnedXp > 0) { await (supabase.rpc as any)("donate_points_for_meal", { points_param: earnedXp, description_param: `Don solidaire (réservation chez ${restaurantName})` }); }
-      toast({ title: donatePoints ? "Réservation confirmée ! XP reversés 💚" : "Réservation confirmée ! +100 XP 🎉", description: `Chez ${restaurantName} le ${format(date, "dd/MM/yyyy")} à ${time}` });
+      queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+      setConfirmedReservation({
+        id: reservationId,
+        date: format(date!, "yyyy-MM-dd"),
+        time,
+        party_size: partySize,
+        status: "pending",
+        feature: selectedPromo ? "promo-formule" : "classique",
+        notes: promoNote + (notes || ""),
+        total_amount: 0,
+        created_at: new Date().toISOString(),
+        metadata: reservationMetadata,
+        preorder_items: [],
+        restaurant_name: restaurantName,
+      });
       onOpenChange(false); resetForm();
     }
   };
