@@ -54,7 +54,7 @@ export default function Panier() {
     flex: 0
   };
 
-  const deliveryFee = (orderMode === "takeaway" || isZeroAttente) ? 0 : flexFees[flexOption];
+  const deliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
 
   // Récupérer les points de l'utilisateur
   const { data: profile } = useQuery({
