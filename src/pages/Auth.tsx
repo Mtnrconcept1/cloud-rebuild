@@ -20,26 +20,34 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [roleMode, setRoleMode] = useState(initialRole);
   const [loading, setLoading] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleResetPassword = async () => {
+    if (!email.trim()) return toast({ title: "Entrez votre email", variant: "destructive" });
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email envoyé", description: "Vérifiez votre boîte mail pour réinitialiser votre mot de passe." });
+      setForgotPassword(false);
+    }
+    setLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (isLogin) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: "Erreur", description: error.message, variant: "destructive" });
       } else {
-        if (email === "rbarman@hotmail.ch" && data.user) {
-          try {
-            await (supabase.rpc as any)("set_test_role", { new_role: roleMode });
-            await supabase.auth.refreshSession();
-          } catch (rErr) {
-            console.error("Test role assignment failed", rErr);
-          }
-        }
         navigate("/");
       }
     } else {
