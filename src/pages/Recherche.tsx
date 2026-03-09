@@ -317,6 +317,7 @@ export default function Recherche() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container py-8 space-y-6">
+        <CampaignBanner page="search" maxBanners={1} />
         <h1 className="font-display text-3xl font-bold">Rechercher un restaurant</h1>
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="relative flex-1">
