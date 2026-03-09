@@ -106,7 +106,7 @@ export async function trackSponsoredImpression(campaignId: string, restaurantId?
   try {
     await supabase.rpc("increment_ad_campaign_metric", {
       p_campaign_id: campaignId,
-      p_metric: "impression",
+      p_metric: "impressions",
     });
   } catch {
     // Silent fail
@@ -126,7 +126,7 @@ export async function trackSponsoredClick(campaignId: string, restaurantId: stri
   try {
     await supabase.rpc("increment_ad_campaign_metric", {
       p_campaign_id: campaignId,
-      p_metric: "click",
+      p_metric: "clicks",
     });
   } catch {
     // Silent fail
@@ -147,7 +147,7 @@ export async function trackSponsoredConversion(restaurantId: string) {
   try {
     await supabase.rpc("increment_ad_campaign_metric", {
       p_campaign_id: campaignId,
-      p_metric: "conversion",
+      p_metric: "conversions",
     });
 
     const attributions = readSponsoredAttributions();
