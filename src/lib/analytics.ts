@@ -144,19 +144,19 @@ export async function trackSponsoredConversion(restaurantId: string) {
   const campaignId = getValidSponsoredCampaignId(restaurantId);
   if (!campaignId) return false;
 
-  try {
-    await supabase.rpc("increment_ad_campaign_metric", {
-      p_campaign_id: campaignId,
-      p_metric: "conversions",
-    });
-
-    const attributions = readSponsoredAttributions();
-    delete attributions[restaurantId];
-    writeSponsoredAttributions(attributions);
-    return true;
-  } catch {
+  const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+    p_campaign_id: campaignId,
+    p_metric: "conversions",
+  });
+  if (error) {
+    console.warn("[analytics] conversion error:", error.message);
     return false;
   }
+
+  const attributions = readSponsoredAttributions();
+  delete attributions[restaurantId];
+  writeSponsoredAttributions(attributions);
+  return true;
 }
 
 export interface AudienceCriteria {
