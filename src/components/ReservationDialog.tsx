@@ -36,6 +36,7 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("datetime");
+  const [confirmedReservation, setConfirmedReservation] = useState<any>(null);
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("19:00");
   const [partySize, setPartySize] = useState(2);
