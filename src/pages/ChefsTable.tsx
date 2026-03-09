@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
+import ReservationDetailModal from "@/components/ReservationDetailModal";
 
 interface FlashDrop {
   id: string;
