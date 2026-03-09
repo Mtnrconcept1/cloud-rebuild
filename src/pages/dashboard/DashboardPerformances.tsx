@@ -97,11 +97,11 @@ export default function DashboardPerformances() {
           </Card>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Euro className="h-4 w-4" />CA</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalRevenue.toFixed(0)} €</p></CardContent>
+            <CardContent><p className="text-2xl font-bold">{totalRevenue.toFixed(0)} CHF</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><TrendingUp className="h-4 w-4" />Panier moyen</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{avgTicket.toFixed(1)} €</p></CardContent>
+            <CardContent><p className="text-2xl font-bold">{avgTicket.toFixed(1)} CHF</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" />Réservations</CardTitle></CardHeader>
