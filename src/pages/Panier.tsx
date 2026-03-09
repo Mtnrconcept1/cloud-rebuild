@@ -150,7 +150,6 @@ export default function Panier() {
     const resCount = Object.keys(itemsByRestaurant).length;
     const checkoutId = crypto.randomUUID();
     let firstOrderId: string | null = null;
-    let firstReservationId: string | null = null;
     const orderReference = generateOrderReference();
     setLoading(true);
 
