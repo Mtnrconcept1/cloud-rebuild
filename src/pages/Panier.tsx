@@ -369,28 +369,7 @@ export default function Panier() {
             </div>
           ) : (
             <div className="space-y-4">
-              {isZeroAttente ? (
-                <div className="space-y-2">
-                  <Label>Date et heure d'arrivee desirees</Label>
-                  <div className="flex flex-wrap gap-3">
-                    <Input
-                      type="date"
-                      value={arrivalDate}
-                      onChange={(e) => setArrivalDate(e.target.value)}
-                      required
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full sm:w-48"
-                    />
-                    <Input
-                      type="time"
-                      value={arrivalTime}
-                      onChange={(e) => setArrivalTime(e.target.value)}
-                      required
-                      className="w-full sm:w-48"
-                    />
-                  </div>
-                </div>
-              ) : hasAntiGaspi ? (
+              {hasAntiGaspi ? (
                 <div className="p-4 rounded-xl bg-miamz-green/10 border border-miamz-green/20 space-y-2">
                   <div className="flex items-center gap-2 text-miamz-green font-bold">
                     <Leaf className="h-4 w-4" />
