@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
+import ReservationDetailModal from "@/components/ReservationDetailModal";
 
 type Step = "info" | "restaurant" | "menu" | "confirm";
 
