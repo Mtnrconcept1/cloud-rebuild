@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import {
   CalendarDays, Clock, Users, MapPin, Utensils, ChefHat,
-  Zap, Timer, AlertTriangle, X,
+  Zap, Timer, AlertTriangle, X, CreditCard, Banknote, Receipt,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -213,6 +213,49 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
               )}
             </div>
           )}
+
+          {/* Payment details */}
+          {reservation.total_amount > 0 && (() => {
+            const meta = isJsonRecord(reservation.metadata) ? reservation.metadata : {};
+            const paymentMethod = String(meta.payment_method || "card");
+            const promoDiscountPct = Number(meta.promo_discount_percent || 0);
+            const subtotalBeforeDiscount = preorderItems.reduce((sum, item) => sum + item.total_price, 0);
+            const discountAmount = promoDiscountPct > 0 ? subtotalBeforeDiscount * promoDiscountPct / 100 : 0;
+            const pmLabels: Record<string, string> = { card: "Carte bancaire", twint: "TWINT", cash: "Espèces" };
+            const pmLabel = pmLabels[paymentMethod] || pmLabels.card;
+            const PmIcon = paymentMethod === "cash" ? Banknote : CreditCard;
+
+            return (
+              <div className="rounded-xl border p-4 space-y-2">
+                <h4 className="text-sm font-semibold flex items-center gap-1.5">
+                  <Receipt className="h-4 w-4 text-muted-foreground" />
+                  Détail du paiement
+                </h4>
+                <div className="space-y-1.5 text-xs">
+                  {subtotalBeforeDiscount > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Sous-total</span>
+                      <span>{subtotalBeforeDiscount.toFixed(2)} CHF</span>
+                    </div>
+                  )}
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span>Réduction -{promoDiscountPct}%</span>
+                      <span>-{discountAmount.toFixed(2)} CHF</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-foreground pt-1 border-t">
+                    <span>Total payé</span>
+                    <span>{Number(reservation.total_amount).toFixed(2)} CHF</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
+                    <PmIcon className="h-3 w-3" />
+                    <span>Payé par {pmLabel}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Notes */}
           {reservation.notes && (

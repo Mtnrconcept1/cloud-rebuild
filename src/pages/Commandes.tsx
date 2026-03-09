@@ -1,14 +1,86 @@
-// Placeholder - will be populated with full content from source project
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, MapPin } from "lucide-react";
+import { ShoppingCart, MapPin, CreditCard, Banknote, Receipt, Percent, Truck, Sparkles, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import { Package } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+
+const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
+  card: { label: "Carte bancaire", icon: CreditCard },
+  twint: { label: "TWINT", icon: CreditCard },
+  cash: { label: "Espèces", icon: Banknote },
+};
+
+function PaymentBreakdown({ order }: { order: any }) {
+  const meta = (order.metadata || {}) as any;
+  const subtotal = Number(meta.pre_discount_subtotal || 0);
+  const formulaDiscount = Number(meta.formula_discount_amount || 0);
+  const flexDiscount = Number(meta.flex_discount || 0);
+  const pointsDiscount = Number(meta.points_discount || 0);
+  const deliveryFee = Number(order.delivery_fee || 0);
+  const qualityFee = Number(meta.quality_fee_amount || 0);
+  const total = Number(order.total_amount);
+  const paymentMethod = meta.payment_method || "card";
+  const formulaName = meta.formula_applied;
+  const flexOption = meta.flex_option;
+  const hasBreakdown = subtotal > 0;
+
+  if (!hasBreakdown) return null;
+
+  const pm = PAYMENT_LABELS[paymentMethod] || PAYMENT_LABELS.card;
+  const PmIcon = pm.icon;
+
+  return (
+    <div className="mt-3 pt-3 border-t border-dashed space-y-1.5 text-xs">
+      <div className="flex justify-between text-muted-foreground">
+        <span>Sous-total</span>
+        <span>{subtotal.toFixed(2)} CHF</span>
+      </div>
+      {formulaDiscount > 0 && (
+        <div className="flex justify-between text-emerald-600">
+          <span className="flex items-center gap-1"><Percent className="h-3 w-3" />{formulaName || "Formule"}</span>
+          <span>-{formulaDiscount.toFixed(2)} CHF</span>
+        </div>
+      )}
+      {flexDiscount > 0 && (
+        <div className="flex justify-between text-emerald-600">
+          <span className="flex items-center gap-1"><Sparkles className="h-3 w-3" />Remise Flex</span>
+          <span>-{flexDiscount.toFixed(2)} CHF</span>
+        </div>
+      )}
+      {pointsDiscount > 0 && (
+        <div className="flex justify-between text-emerald-600">
+          <span className="flex items-center gap-1"><Gift className="h-3 w-3" />Points fidélité</span>
+          <span>-{pointsDiscount.toFixed(2)} CHF</span>
+        </div>
+      )}
+      {deliveryFee > 0 && (
+        <div className="flex justify-between text-muted-foreground">
+          <span className="flex items-center gap-1"><Truck className="h-3 w-3" />Livraison{flexOption ? ` (${flexOption})` : ""}</span>
+          <span>+{deliveryFee.toFixed(2)} CHF</span>
+        </div>
+      )}
+      {qualityFee > 0 && (
+        <div className="flex justify-between text-muted-foreground">
+          <span>Garantie qualité</span>
+          <span>+{qualityFee.toFixed(2)} CHF</span>
+        </div>
+      )}
+      <div className="flex justify-between font-bold text-foreground pt-1">
+        <span>Total</span>
+        <span>{total.toFixed(2)} CHF</span>
+      </div>
+      <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
+        <PmIcon className="h-3 w-3" />
+        <span>Payé par {pm.label}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function Commandes() {
   const { user } = useAuth();
@@ -70,6 +142,7 @@ export default function Commandes() {
                             </div>
                           ))}
                         </div>
+                        <PaymentBreakdown order={order} />
                         {normalizeOrderStatus(order.status) !== "delivered" && normalizeOrderStatus(order.status) !== "cancelled" && (order.delivery_address && (order.metadata as any)?.feature !== "zero-attente" && !(order.metadata as any)?.pickup_time) && (
                           <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
                             <Link to={`/commande/${order.id}`}><MapPin className="h-3 w-3 mr-1" />Suivi temps réel</Link>
