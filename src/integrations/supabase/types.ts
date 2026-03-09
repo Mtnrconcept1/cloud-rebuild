@@ -1950,7 +1950,6 @@ export type Database = {
         }
         Returns: string
       }
-      set_test_role: { Args: { new_role: string }; Returns: undefined }
       validate_and_create_reservation: {
         Args: {
           p_date: string
