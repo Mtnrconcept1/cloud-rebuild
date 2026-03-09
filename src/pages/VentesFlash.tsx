@@ -188,6 +188,7 @@ export default function VentesFlash() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container py-8 space-y-6">
+        <CampaignBanner page="flash_sales" maxBanners={1} />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
