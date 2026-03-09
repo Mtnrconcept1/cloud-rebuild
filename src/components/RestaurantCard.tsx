@@ -112,11 +112,14 @@ export default function RestaurantCard({
     queryClient.invalidateQueries({ queryKey: ["favorite", id] });
   };
 
-  const todayPromos = useMemo(() => getPromosForDate(new Date()), []);
-  const bestDiscount = useMemo(() => {
-    if (todayPromos.length === 0) return 0;
-    return Math.max(...todayPromos.map((p) => p.discount));
-  }, [todayPromos]);
+  // Fetch best discount from meal_formulas for this restaurant
+  const { data: bestDiscount = 0 } = useQuery({
+    queryKey: ["restaurant-best-discount", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("meal_formulas").select("discount_percent").eq("restaurant_id", id).eq("is_active", true).order("discount_percent", { ascending: false }).limit(1);
+      return data?.[0]?.discount_percent || 0;
+    },
+  });
   const timeSlots = useMemo(() => getNextTimeSlots(), []);
 
   useEffect(() => {
