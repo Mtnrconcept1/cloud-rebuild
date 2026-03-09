@@ -213,23 +213,30 @@ export default function Panier() {
 
         const orderItemsJson = realItems.map((item) => ({
           menu_item_id: item.menuItemId,
+          restaurant_id: item.restaurantId,
           quantity: Math.floor(item.quantity),
           unit_price: Number(item.price),
-          total_price: Number(item.price) * Math.floor(item.quantity)
+          total_price: Number(item.price) * Math.floor(item.quantity),
+          metadata: item.metadata || {},
         }));
 
-        const { data: orderId, error: orderError } = await (supabase.rpc as any)("create_order_with_items", {
-          restaurant_id_param: resId,
-          delivery_address_param: address,
-          delivery_fee_param: deliveryFeePerRestaurant,
-          total_amount_param: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
-          notes_param: notes || null,
-          metadata_param: finalMetadata,
-          checkout_id_param: checkoutId,
-          items_param: orderItemsJson
+        // Use validate-order edge function for server-side validation
+        const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
+          body: {
+            restaurant_id: resId,
+            delivery_address: address,
+            delivery_fee: deliveryFeePerRestaurant,
+            total_amount: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
+            notes: notes || null,
+            items: orderItemsJson,
+            metadata: finalMetadata,
+            checkout_id: checkoutId,
+          },
         });
 
-        if (orderError) throw orderError;
+        if (validateError) throw new Error(validateError.message);
+        if (validateResult?.error) throw new Error(validateResult.error);
+        const orderId = validateResult?.order_id;
         if (isZeroAttente) {
           if (!firstReservationId) firstReservationId = orderId;
         } else if (!firstOrderId) {
