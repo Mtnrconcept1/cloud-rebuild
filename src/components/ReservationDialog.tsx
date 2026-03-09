@@ -78,7 +78,16 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
     const reservationMetadata = { feature: selectedPromo ? "promo-formule" : "classique", promo_applied: !!selectedPromo, promo_offer_id: selectedPromo?.id ?? null, promo_discount_percent: promoDiscountPercent > 0 ? promoDiscountPercent : null, service: servicePeriod };
     const promoNote = selectedPromo ? `[PROMO: ${selectedPromo.formula} -${selectedPromo.discount}%] ` : "[À la carte] ";
 
-    const { error } = await supabase.from("reservations").insert({ restaurant_id: restaurantId, user_id: user.id, date: format(date, "yyyy-MM-dd"), time, party_size: partySize, feature: selectedPromo ? "promo-formule" : "classique", metadata: reservationMetadata, notes: promoNote + (notes || "") });
+    // Use server-side validation function instead of direct insert
+    const { data: reservationId, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
+      p_restaurant_id: restaurantId,
+      p_date: format(date, "yyyy-MM-dd"),
+      p_time: time,
+      p_party_size: partySize,
+      p_feature: selectedPromo ? "promo-formule" : "classique",
+      p_metadata: reservationMetadata,
+      p_notes: promoNote + (notes || ""),
+    });
     setLoading(false);
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); } else {
       await trackSponsoredConversion(restaurantId);
