@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import {
   CalendarDays, Clock, Users, MapPin, Utensils, ChefHat,
-  Zap, Timer, AlertTriangle, X,
+  Zap, Timer, AlertTriangle, X, CreditCard, Banknote, Receipt,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
