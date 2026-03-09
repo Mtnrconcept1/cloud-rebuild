@@ -36,7 +36,6 @@ export default function Panier() {
 
   const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [pickupTime, setPickupTime] = useState("");
-  const [pickupTime, setPickupTime] = useState("");
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
   const hasAntiGaspi = items.some(item => item.metadata?.is_anti_waste);
   const antiGaspiItem = items.find(item => item.metadata?.is_anti_waste);
