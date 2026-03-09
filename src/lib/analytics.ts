@@ -212,18 +212,18 @@ export async function getRestaurantCampaigns(restaurantId: string) {
   return (data || []) as any[];
 }
 
-export async function getActiveSponsoredRestaurants(page: "home" | "search" | "category") {
+export async function getActiveSponsoredRestaurants(page: string) {
   const { data } = await supabase
     .from("ad_campaigns" as any)
     .select("*, restaurants(*)")
-    .eq("type", "boost")
+    .in("type", ["boost", "banner", "sponsored"])
     .eq("status", "active");
 
   const all = (data || []) as any[];
   return all.filter((c: any) => {
     const pages = c.target_pages;
     if (!pages) return true;
-    if (Array.isArray(pages)) return pages.includes(page);
+    if (Array.isArray(pages)) return pages.length === 0 || pages.includes(page);
     return true;
   });
 }
