@@ -67,6 +67,24 @@ export default function RestaurantDetail() {
     enabled: !!id,
   });
 
+  const { data: flashSales } = useQuery({
+    queryKey: ["restaurant-flash-sales", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("flash_sales").select("*").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: antiWasteOffers } = useQuery({
+    queryKey: ["restaurant-anti-waste", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
   const { data: isFavorite } = useQuery({
     queryKey: ["favorite", id, user?.id],
     queryFn: async () => {
