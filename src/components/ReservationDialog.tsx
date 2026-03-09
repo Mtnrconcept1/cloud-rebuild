@@ -210,5 +210,11 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
         </div>
       </DialogContent>
     </Dialog>
+    <ReservationDetailModal
+      reservation={confirmedReservation}
+      open={!!confirmedReservation}
+      onOpenChange={(open) => { if (!open) setConfirmedReservation(null); }}
+    />
+    </>
   );
 }
