@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploadProps { value: string; onChange: (url: string) => void; label?: string; bucket?: string; className?: string; }
 
-export default function ImageUpload({ value, onChange, label = "Image", bucket = "image", className = "" }: ImageUploadProps) {
+
+export default function ImageUpload({ value, onChange, label = "Image", bucket = "images", className = "" }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
