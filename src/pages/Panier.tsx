@@ -19,7 +19,7 @@ import { trackSponsoredConversion } from "@/lib/analytics";
 import CartItemList from "@/components/cart/CartItemList";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import FlexOptions from "@/components/cart/FlexOptions";
-import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
 
 export default function Panier() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode } = useCart();
