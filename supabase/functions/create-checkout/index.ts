@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-08-27.basil",
     });
 
     // Map payment method to Stripe payment_method_types
@@ -60,10 +60,9 @@ Deno.serve(async (req) => {
         paymentMethodTypes.push("twint");
         break;
       case "postfinance_card":
-        paymentMethodTypes.push("postfinance_card");
-        break;
       case "postfinance_efinance":
-        paymentMethodTypes.push("postfinance_efinance");
+        // PostFinance not directly supported by Stripe Checkout — fall back to card
+        paymentMethodTypes.push("card");
         break;
       case "card":
       default:
