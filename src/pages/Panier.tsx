@@ -35,7 +35,7 @@ export default function Panier() {
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
   const [pointsToRedeemInput, setPointsToRedeemInput] = useState(0);
   const [donateEarnedXp, setDonateEarnedXp] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal" | "apple" | "google">("card");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
   const [flexOption, setFlexOption] = useState<"express" | "standard" | "flex">("standard");
   const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [pickupTime, setPickupTime] = useState("");
