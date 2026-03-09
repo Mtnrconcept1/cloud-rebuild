@@ -519,8 +519,8 @@ export default function Panier() {
             </div>
           )}
           <div className="flex justify-between text-sm">
-            <span>{isZeroAttente ? "Service (Sur place)" : `Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span>
-            <span>{isZeroAttente ? "0.00 CHF" : `${deliveryFee.toFixed(2)} CHF`}</span>
+            <span>{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span>
+            <span>{deliveryFee.toFixed(2)} CHF</span>
           </div>
           {pointsDiscount > 0 && (
             <div className="flex justify-between text-sm font-medium text-pink-500">
