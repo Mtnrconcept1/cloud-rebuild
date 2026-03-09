@@ -102,6 +102,7 @@ export default function Auth() {
               </button>
             </div>
           ) : (
+          <>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
@@ -128,7 +129,7 @@ export default function Auth() {
               </button>
             </div>
           )}
-          </form>
+          </>
           )}
           <div className="mt-4 text-center">
             <button type="button" onClick={() => { setIsLogin(!isLogin); setForgotPassword(false); }} className="text-sm text-muted-foreground hover:text-primary transition-colors">
