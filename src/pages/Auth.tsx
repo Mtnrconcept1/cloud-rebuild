@@ -20,26 +20,34 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [roleMode, setRoleMode] = useState(initialRole);
   const [loading, setLoading] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleResetPassword = async () => {
+    if (!email.trim()) return toast({ title: "Entrez votre email", variant: "destructive" });
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email envoyé", description: "Vérifiez votre boîte mail pour réinitialiser votre mot de passe." });
+      setForgotPassword(false);
+    }
+    setLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (isLogin) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: "Erreur", description: error.message, variant: "destructive" });
       } else {
-        if (email === "rbarman@hotmail.ch" && data.user) {
-          try {
-            await (supabase.rpc as any)("set_test_role", { new_role: roleMode });
-            await supabase.auth.refreshSession();
-          } catch (rErr) {
-            console.error("Test role assignment failed", rErr);
-          }
-        }
         navigate("/");
       }
     } else {
@@ -69,20 +77,32 @@ export default function Auth() {
           <CardDescription>{isLogin ? "Connectez-vous pour accéder à vos restaurants favoris" : "Rejoignez Miamz et découvrez les meilleurs restaurants"}</CardDescription>
         </CardHeader>
         <CardContent>
-          {(!isLogin || email === "rbarman@hotmail.ch") && (
+          {!isLogin && (
             <div className="mb-6 space-y-2">
-              {email === "rbarman@hotmail.ch" && isLogin && (
-                <p className="text-xs text-center text-muted-foreground font-medium text-primary">Mode Test : Choisissez le rôle cible</p>
-              )}
               <Tabs defaultValue="client" value={roleMode} onValueChange={setRoleMode} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="client">Client</TabsTrigger>
                   <TabsTrigger value="restaurateur">Restaurateur</TabsTrigger>
-                  <TabsTrigger value="admin">Admin</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
           )}
+
+          {forgotPassword ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="resetEmail">Email</Label>
+                <Input id="resetEmail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" required />
+              </div>
+              <Button className="w-full" onClick={handleResetPassword} disabled={loading}>
+                {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
+              </Button>
+              <button type="button" onClick={() => setForgotPassword(false)} className="w-full text-sm text-muted-foreground hover:text-primary transition-colors">
+                Retour à la connexion
+              </button>
+            </div>
+          ) : (
+          <>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
@@ -102,8 +122,17 @@ export default function Auth() {
               {loading ? "Chargement..." : isLogin ? "Se connecter" : "S'inscrire"}
             </Button>
           </form>
+          {isLogin && (
+            <div className="mt-2 text-center">
+              <button type="button" onClick={() => setForgotPassword(true)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                Mot de passe oublié ?
+              </button>
+            </div>
+          )}
+          </>
+          )}
           <div className="mt-4 text-center">
-            <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            <button type="button" onClick={() => { setIsLogin(!isLogin); setForgotPassword(false); }} className="text-sm text-muted-foreground hover:text-primary transition-colors">
               {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
             </button>
           </div>

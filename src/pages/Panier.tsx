@@ -34,12 +34,6 @@ export default function Panier() {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal" | "apple" | "google">("card");
   const [flexOption, setFlexOption] = useState<"express" | "standard" | "flex">("standard");
 
-  // orderMode="delivery" overrides any stale zero-attente metadata if the user switched modes on a restaurant page
-  // orderMode="delivery" overrides any stale zero-attente metadata if the user switched modes on a restaurant page
-  const isZeroAttente = cartMetadata?.feature === "zero-attente";
-
-  const [arrivalDate, setArrivalDate] = useState((isZeroAttente && (cartMetadata?.arrivalDate || cartMetadata?.arrival_date)) ? (cartMetadata.arrivalDate || cartMetadata.arrival_date) : new Date().toISOString().split('T')[0]);
-  const [arrivalTime, setArrivalTime] = useState((isZeroAttente && cartMetadata?.arrivalTime) ? cartMetadata.arrivalTime : "");
   const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [pickupTime, setPickupTime] = useState("");
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
@@ -58,7 +52,7 @@ export default function Panier() {
     flex: 0
   };
 
-  const deliveryFee = (orderMode === "takeaway" || isZeroAttente) ? 0 : flexFees[flexOption];
+  const deliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
 
   // Récupérer les points de l'utilisateur
   const { data: profile } = useQuery({
@@ -139,10 +133,8 @@ export default function Panier() {
     if (orderMode === "delivery") {
       if (!address.trim()) return toast({ title: "Adresse requise", variant: "destructive" });
     } else {
-      // For takeaway, Chef's Table, Zero Attente
-      if (isZeroAttente) {
-        if (!arrivalDate.trim() || !arrivalTime.trim()) return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez indiquer la date et l'heure d'arrivee." });
-      } else if (!hasAntiGaspi && !hasTakeawayFlash && (!pickupDate || !pickupTime)) {
+      // For takeaway
+      if (!hasAntiGaspi && !hasTakeawayFlash && (!pickupDate || !pickupTime)) {
         return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande." });
       }
     }
@@ -157,7 +149,6 @@ export default function Panier() {
     const resCount = Object.keys(itemsByRestaurant).length;
     const checkoutId = crypto.randomUUID();
     let firstOrderId: string | null = null;
-    let firstReservationId: string | null = null;
     const orderReference = generateOrderReference();
     setLoading(true);
 
@@ -192,15 +183,15 @@ export default function Panier() {
           payment_method: paymentMethod,
           donate_earned_xp: donateEarnedXp,
           order_reference: orderReference,
-          arrival_date: isZeroAttente ? arrivalDate : null,
-          arrival_time: isZeroAttente ? arrivalTime : null,
-          pickup_date: orderMode === "takeaway" && !isZeroAttente && !hasAntiGaspi
+          arrival_date: null,
+          arrival_time: null,
+          pickup_date: orderMode === "takeaway" && !hasAntiGaspi
             ? (hasTakeawayFlash ? flashPickupDate : pickupDate)
             : null,
-          pickup_time: orderMode === "takeaway" && !isZeroAttente && !hasAntiGaspi
+          pickup_time: orderMode === "takeaway" && !hasAntiGaspi
             ? (hasTakeawayFlash ? flashPickupStart : pickupTime)
             : null,
-          pickup_time_end: orderMode === "takeaway" && !isZeroAttente && !hasAntiGaspi && hasTakeawayFlash
+          pickup_time_end: orderMode === "takeaway" && !hasAntiGaspi && hasTakeawayFlash
             ? flashPickupEnd
             : null,
           flex_option: flexOption,
@@ -237,9 +228,7 @@ export default function Panier() {
         if (validateError) throw new Error(validateError.message);
         if (validateResult?.error) throw new Error(validateResult.error);
         const orderId = validateResult?.order_id;
-        if (isZeroAttente) {
-          if (!firstReservationId) firstReservationId = orderId;
-        } else if (!firstOrderId) {
+        if (!firstOrderId) {
           firstOrderId = orderId;
         }
 
@@ -291,9 +280,7 @@ export default function Panier() {
         finalTotal,
         customerEmail: user.email || "client@miamz.ch",
         metadata: {
-          feature: isZeroAttente ? "zero-attente" : "standard",
-          arrival_date: isZeroAttente ? arrivalDate : null,
-          arrival_time: isZeroAttente ? arrivalTime : null,
+          feature: "standard",
           delivery_address: address || null,
           payment_method: paymentMethod
         }
@@ -306,9 +293,7 @@ export default function Panier() {
           : `Votre commande est en cours de préparation. Réf: ${orderReference}`
       });
 
-      if (isZeroAttente) {
-        navigate("/reservations");
-      } else if (firstOrderId) {
+      if (firstOrderId) {
         navigate(`/commande/${firstOrderId}`);
       } else {
         navigate("/commandes");
@@ -381,28 +366,7 @@ export default function Panier() {
             </div>
           ) : (
             <div className="space-y-4">
-              {isZeroAttente ? (
-                <div className="space-y-2">
-                  <Label>Date et heure d'arrivee desirees</Label>
-                  <div className="flex flex-wrap gap-3">
-                    <Input
-                      type="date"
-                      value={arrivalDate}
-                      onChange={(e) => setArrivalDate(e.target.value)}
-                      required
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full sm:w-48"
-                    />
-                    <Input
-                      type="time"
-                      value={arrivalTime}
-                      onChange={(e) => setArrivalTime(e.target.value)}
-                      required
-                      className="w-full sm:w-48"
-                    />
-                  </div>
-                </div>
-              ) : hasAntiGaspi ? (
+              {hasAntiGaspi ? (
                 <div className="p-4 rounded-xl bg-miamz-green/10 border border-miamz-green/20 space-y-2">
                   <div className="flex items-center gap-2 text-miamz-green font-bold">
                     <Leaf className="h-4 w-4" />
@@ -472,7 +436,7 @@ export default function Panier() {
           )}
           <div className="space-y-2">
             <Label>Notes (optionnel)</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={isZeroAttente ? "Préférences de table, allergies..." : "Code d'entrée, étage..."} />
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Code d'entrée, étage..." />
           </div>
         </div>
 
@@ -552,8 +516,8 @@ export default function Panier() {
             </div>
           )}
           <div className="flex justify-between text-sm">
-            <span>{isZeroAttente ? "Service (Sur place)" : `Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span>
-            <span>{isZeroAttente ? "0.00 CHF" : `${deliveryFee.toFixed(2)} CHF`}</span>
+            <span>{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span>
+            <span>{deliveryFee.toFixed(2)} CHF</span>
           </div>
           {pointsDiscount > 0 && (
             <div className="flex justify-between text-sm font-medium text-pink-500">

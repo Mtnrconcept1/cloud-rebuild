@@ -51,15 +51,14 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: userData, error: userError } = await supabaseUser.auth.getUser();
+    if (userError || !userData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claimsData.claims.sub;
+    const userId = userData.user.id;
 
     const payload: ValidateOrderPayload = await req.json();
     const { restaurant_id, delivery_address, delivery_fee, total_amount, notes, items, metadata, checkout_id } = payload;
@@ -72,15 +71,21 @@ Deno.serve(async (req) => {
     }
 
     // 1. Verify all items exist, are available, and prices match
-    // Filter to only valid UUIDs (skip chef-table drops, special items with suffixed IDs)
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const regularItems = items.filter((i) => uuidRegex.test(i.menu_item_id));
-    const specialItems = items.filter((i) => !uuidRegex.test(i.menu_item_id));
+
+    // All items should be valid UUIDs now (chef drops use reservation flow)
+    const invalidItems = items.filter((i) => !uuidRegex.test(i.menu_item_id));
+    if (invalidItems.length > 0) {
+      return new Response(
+        JSON.stringify({ error: "Articles invalides détectés." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     let verifiedTotal = 0;
 
-    if (regularItems.length > 0) {
-      const menuItemIds = regularItems.map((i) => i.menu_item_id);
+    if (items.length > 0) {
+      const menuItemIds = items.map((i) => i.menu_item_id);
       const { data: menuItems, error: menuError } = await supabaseAdmin
         .from("menu_items")
         .select("id, price, is_available, name, restaurant_id")
@@ -90,7 +95,7 @@ Deno.serve(async (req) => {
 
       const menuMap = new Map(menuItems?.map((m: any) => [m.id, m]) || []);
 
-      for (const item of regularItems) {
+      for (const item of items) {
         const dbItem = menuMap.get(item.menu_item_id) as any;
         if (!dbItem) {
           return new Response(
@@ -114,10 +119,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // For special items (chef drops, etc.), trust the price from the frontend
-    for (const item of specialItems) {
-      verifiedTotal += item.unit_price * item.quantity;
-    }
 
     // 2. Check anti-waste stock if applicable
     if (metadata && (metadata as any).has_anti_gaspi) {
