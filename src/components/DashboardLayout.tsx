@@ -11,6 +11,7 @@ type NavSection = { title: string; items: NavItem[]; };
 const NAV_SECTIONS: NavSection[] = [
   { title: "Réussite et performances", items: [
     { to: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
+    { to: "/dashboard/advisor", label: "Assistant IA", icon: Bot },
     { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingCart },
     { to: "/dashboard/reservations", label: "Réservations", icon: CalendarDays },
     { to: "/dashboard/recommandations", label: "Recommandations", icon: Sparkles },
