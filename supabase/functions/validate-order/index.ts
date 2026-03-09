@@ -72,38 +72,51 @@ Deno.serve(async (req) => {
     }
 
     // 1. Verify all items exist, are available, and prices match
-    const menuItemIds = items.map((i) => i.menu_item_id);
-    const { data: menuItems, error: menuError } = await supabaseAdmin
-      .from("menu_items")
-      .select("id, price, is_available, name, restaurant_id")
-      .in("id", menuItemIds);
+    // Filter to only valid UUIDs (skip chef-table drops, special items with suffixed IDs)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const regularItems = items.filter((i) => uuidRegex.test(i.menu_item_id));
+    const specialItems = items.filter((i) => !uuidRegex.test(i.menu_item_id));
 
-    if (menuError) throw menuError;
-
-    const menuMap = new Map(menuItems?.map((m: any) => [m.id, m]) || []);
     let verifiedTotal = 0;
 
-    for (const item of items) {
-      const dbItem = menuMap.get(item.menu_item_id) as any;
-      if (!dbItem) {
-        return new Response(
-          JSON.stringify({ error: `Article introuvable : ${item.menu_item_id}` }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    if (regularItems.length > 0) {
+      const menuItemIds = regularItems.map((i) => i.menu_item_id);
+      const { data: menuItems, error: menuError } = await supabaseAdmin
+        .from("menu_items")
+        .select("id, price, is_available, name, restaurant_id")
+        .in("id", menuItemIds);
+
+      if (menuError) throw menuError;
+
+      const menuMap = new Map(menuItems?.map((m: any) => [m.id, m]) || []);
+
+      for (const item of regularItems) {
+        const dbItem = menuMap.get(item.menu_item_id) as any;
+        if (!dbItem) {
+          return new Response(
+            JSON.stringify({ error: `Article introuvable : ${item.menu_item_id}` }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        if (!dbItem.is_available) {
+          return new Response(
+            JSON.stringify({ error: `Article indisponible : ${dbItem.name}` }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        if (Math.abs(dbItem.price - item.unit_price) > 0.01) {
+          return new Response(
+            JSON.stringify({ error: `Prix incorrect pour ${dbItem.name}. Attendu : ${dbItem.price} CHF` }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        verifiedTotal += dbItem.price * item.quantity;
       }
-      if (!dbItem.is_available) {
-        return new Response(
-          JSON.stringify({ error: `Article indisponible : ${dbItem.name}` }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (Math.abs(dbItem.price - item.unit_price) > 0.01) {
-        return new Response(
-          JSON.stringify({ error: `Prix incorrect pour ${dbItem.name}. Attendu : ${dbItem.price} CHF` }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      verifiedTotal += dbItem.price * item.quantity;
+    }
+
+    // For special items (chef drops, etc.), trust the price from the frontend
+    for (const item of specialItems) {
+      verifiedTotal += item.unit_price * item.quantity;
     }
 
     // 2. Check anti-waste stock if applicable
