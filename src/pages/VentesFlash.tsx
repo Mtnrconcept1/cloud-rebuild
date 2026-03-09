@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import CampaignBanner from "@/components/CampaignBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
