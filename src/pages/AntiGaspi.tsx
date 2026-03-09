@@ -87,6 +87,7 @@ export default function AntiGaspi() {
                       quantityAvailable={offer.quantity_available}
                       offerType={offer.offer_type as any}
                       availableDate={offer.available_date}
+                      offerId={offer.id}
                     />
                   </div>
                 );

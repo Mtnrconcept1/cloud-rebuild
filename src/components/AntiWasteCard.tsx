@@ -1,6 +1,9 @@
-import { Leaf, Clock, MapPin, Star, Gift, Heart, Zap } from "lucide-react";
+import { Leaf, Clock, MapPin, Star, Gift, Heart, Zap, ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useCart } from "@/lib/cart";
+import { useToast } from "@/hooks/use-toast";
 import CountdownTimer from "@/components/CountdownTimer";
 
 interface AntiWasteCardProps {
@@ -19,6 +22,7 @@ interface AntiWasteCardProps {
   offerType?: 'regular' | 'surprise_bag' | 'solidarity' | 'flash_alert';
   availableDate?: string;
   isFlash?: boolean;
+  offerId?: string;
 }
 
 const CUISINE_IMAGES: Record<string, string> = {
@@ -48,12 +52,38 @@ function getBestImage(offerImage: string, restaurantImage?: string, title?: stri
 export default function AntiWasteCard({
   title, restaurant, restaurantId, restaurantCity, restaurantRating, restaurantImageUrl,
   originalPrice, discountedPrice, pickupStart, pickupEnd, imageUrl, quantityAvailable,
-  offerType, availableDate, isFlash,
+  offerType, availableDate, isFlash, offerId,
 }: AntiWasteCardProps) {
   const discount = Math.round((1 - discountedPrice / originalPrice) * 100);
   const resolvedImage = getBestImage(imageUrl, restaurantImageUrl, title);
   const flashTarget = (isFlash && availableDate && pickupEnd) ? new Date(`${availableDate}T${pickupEnd}`) : null;
   const showCountdown = flashTarget && flashTarget.getTime() > Date.now();
+  const { addItem } = useCart();
+  const { toast } = useToast();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!restaurantId) return;
+    addItem({
+      menuItemId: `antigaspi-${offerId || title}`,
+      name: `[Anti-gaspi] ${title}`,
+      price: discountedPrice,
+      restaurantId,
+      restaurantName: restaurant,
+      metadata: {
+        is_anti_waste: true,
+        offer_id: offerId,
+        original_price: originalPrice,
+        pickup_start: pickupStart,
+        pickup_end: pickupEnd,
+      },
+    });
+    toast({
+      title: "Ajouté au panier !",
+      description: `${title} — ${discountedPrice.toFixed(2)} CHF (à emporter)`,
+    });
+  };
 
   const content = (
     <div className="premium-card rounded-2xl bg-card border shadow-sm h-full flex flex-col">
@@ -108,6 +138,16 @@ export default function AntiWasteCard({
               <Clock className="h-3.5 w-3.5 text-primary" />
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Retrait {pickupStart} - {pickupEnd}</span>
             </div>
+          )}
+          {restaurantId && (
+            <Button
+              onClick={handleAddToCart}
+              size="sm"
+              className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Ajouter au panier · À emporter
+            </Button>
           )}
         </div>
       </div>

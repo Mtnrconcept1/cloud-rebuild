@@ -5,12 +5,13 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, DollarSign, ChevronRight } from "lucide-react";
+import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, DollarSign, ChevronRight, Flame } from "lucide-react";
 import MenuItemCard from "@/components/MenuItemCard";
 import ReviewForm from "@/components/ReviewForm";
 import ReservationDialog from "@/components/ReservationDialog";
 import ReservationWidget from "@/components/ReservationWidget";
 import PriceRangeIcons from "@/components/PriceRangeIcons";
+import AntiWasteCard from "@/components/AntiWasteCard";
 import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/lib/cart";
@@ -63,6 +64,24 @@ export default function RestaurantDetail() {
   const { data: formulas } = useQuery({
     queryKey: ["restaurant-formulas", id],
     queryFn: async () => { const { data } = await supabase.from("meal_formulas").select("*, meal_formula_categories(*)").eq("restaurant_id", id!).eq("is_active", true); return data || []; },
+    enabled: !!id,
+  });
+
+  const { data: flashSales } = useQuery({
+    queryKey: ["restaurant-flash-sales", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("flash_sales").select("*").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: antiWasteOffers } = useQuery({
+    queryKey: ["restaurant-anti-waste", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
+      return data || [];
+    },
     enabled: !!id,
   });
 
@@ -203,6 +222,73 @@ export default function RestaurantDetail() {
                           {formula.description && <p className="text-sm text-muted-foreground">{formula.description}</p>}
                           <div className="flex gap-2 text-xs font-semibold text-primary">{formula.meal_formula_categories?.map((c: any) => c.category).join(' + ')}</div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {flashSales && flashSales.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500 fill-amber-500" /><h2 className="font-display text-xl font-bold">Ventes Flash</h2><Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 text-[10px]">{flashSales.length} offre{flashSales.length > 1 ? "s" : ""}</Badge></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {flashSales.map((sale: any) => {
+                        const discount = sale.original_price > 0 ? Math.round((1 - Number(sale.discounted_price) / Number(sale.original_price)) * 100) : 0;
+                        return (
+                          <div key={sale.id} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-amber-500/20 bg-amber-500/5">
+                            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                              <Zap className="h-6 w-6 text-amber-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm truncate">{sale.title}</p>
+                              <div className="flex items-baseline gap-2 mt-0.5">
+                                <span className="text-lg font-black text-amber-600">{Number(sale.discounted_price).toFixed(2)} CHF</span>
+                                <span className="text-xs text-muted-foreground line-through">{Number(sale.original_price).toFixed(2)} CHF</span>
+                                <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 text-[10px]">-{discount}%</Badge>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{sale.quantity_available} restant(s)</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              className="bg-amber-500 hover:bg-amber-600 text-white gap-1.5 shrink-0"
+                              onClick={() => {
+                                addItem({
+                                  menuItemId: `flash-${sale.id}`,
+                                  name: `[Flash] ${sale.title}`,
+                                  price: Number(sale.discounted_price),
+                                  restaurantId: id!,
+                                  restaurantName: restaurant.name,
+                                  metadata: { is_flash_sale: true, flash_sale_id: sale.id, delivery_available: !!sale.delivery_available, takeaway_available: !!sale.takeaway_available },
+                                });
+                                toast({ title: "Vente flash ajoutée !", description: `${sale.title} — ${Number(sale.discounted_price).toFixed(2)} CHF` });
+                              }}
+                            >
+                              <ShoppingCart className="h-4 w-4" /> Ajouter
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {antiWasteOffers && antiWasteOffers.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-600" /><h2 className="font-display text-xl font-bold">Anti-gaspi</h2><Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 text-[10px]">{antiWasteOffers.length} offre{antiWasteOffers.length > 1 ? "s" : ""}</Badge></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {antiWasteOffers.map((offer: any) => (
+                        <AntiWasteCard
+                          key={offer.id}
+                          title={offer.title}
+                          restaurant={restaurant.name}
+                          restaurantId={id}
+                          originalPrice={Number(offer.original_price)}
+                          discountedPrice={Number(offer.discounted_price)}
+                          pickupStart={offer.pickup_start}
+                          pickupEnd={offer.pickup_end}
+                          imageUrl={offer.image_url || ""}
+                          quantityAvailable={offer.quantity_available}
+                          offerType={offer.offer_type as any}
+                          availableDate={offer.available_date}
+                          offerId={offer.id}
+                        />
                       ))}
                     </div>
                   </div>
