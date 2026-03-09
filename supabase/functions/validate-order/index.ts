@@ -71,15 +71,21 @@ Deno.serve(async (req) => {
     }
 
     // 1. Verify all items exist, are available, and prices match
-    // Filter to only valid UUIDs (skip chef-table drops, special items with suffixed IDs)
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const regularItems = items.filter((i) => uuidRegex.test(i.menu_item_id));
-    const specialItems = items.filter((i) => !uuidRegex.test(i.menu_item_id));
+
+    // All items should be valid UUIDs now (chef drops use reservation flow)
+    const invalidItems = items.filter((i) => !uuidRegex.test(i.menu_item_id));
+    if (invalidItems.length > 0) {
+      return new Response(
+        JSON.stringify({ error: "Articles invalides détectés." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     let verifiedTotal = 0;
 
-    if (regularItems.length > 0) {
-      const menuItemIds = regularItems.map((i) => i.menu_item_id);
+    if (items.length > 0) {
+      const menuItemIds = items.map((i) => i.menu_item_id);
       const { data: menuItems, error: menuError } = await supabaseAdmin
         .from("menu_items")
         .select("id, price, is_available, name, restaurant_id")
