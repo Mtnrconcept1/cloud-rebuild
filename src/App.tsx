@@ -73,6 +73,7 @@ import OrderConflictDialog from "./components/OrderConflictDialog";
 const queryClient = new QueryClient();
 
 const App = () => (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
