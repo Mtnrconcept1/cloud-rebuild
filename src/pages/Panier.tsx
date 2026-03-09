@@ -231,9 +231,7 @@ export default function Panier() {
         if (validateError) throw new Error(validateError.message);
         if (validateResult?.error) throw new Error(validateResult.error);
         const orderId = validateResult?.order_id;
-        if (isZeroAttente) {
-          if (!firstReservationId) firstReservationId = orderId;
-        } else if (!firstOrderId) {
+        if (!firstOrderId) {
           firstOrderId = orderId;
         }
 
