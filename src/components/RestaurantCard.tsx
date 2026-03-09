@@ -143,7 +143,7 @@ export default function RestaurantCard({
     navigate(`/restaurant/${id}?reserve=true&time=${slot}`);
   };
 
-  const ratingNum = rating * 2;
+  const ratingNum = Math.min(rating, 10);
   const displayRating = ratingNum > 0 ? ratingNum.toFixed(1) : null;
 
   // Estimated delivery time based on rating/popularity (simulated)
