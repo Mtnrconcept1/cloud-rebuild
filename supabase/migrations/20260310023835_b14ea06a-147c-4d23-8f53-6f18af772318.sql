@@ -1,0 +1,1 @@
+ALTER TABLE public.notification_subscriptions ADD CONSTRAINT notification_subscriptions_user_topic_unique UNIQUE (user_id, topic);
