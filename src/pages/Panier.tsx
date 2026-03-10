@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
 import FormulaDetector from "@/components/FormulaDetector";
+import PromotionDetector from "@/components/PromotionDetector";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { generateOrderReference, sendOrderConfirmationEmail } from "@/lib/email-service";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
