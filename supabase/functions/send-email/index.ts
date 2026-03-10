@@ -36,8 +36,31 @@ Deno.serve(async (req) => {
 
     for (const email of emails) {
       try {
-        // For now, log the email (in production, integrate with a real email provider)
-        console.log(`[Email] To: ${email.to_email}, Subject: ${email.subject}`);
+        // Send via Resend API
+        const resendApiKey = Deno.env.get("RESEND_API_KEY");
+        if (resendApiKey) {
+          const resendResponse = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${resendApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: Deno.env.get("EMAIL_FROM") || "Miamz <noreply@miamz.ch>",
+              to: email.to_email,
+              subject: email.subject,
+              html: email.body_html || undefined,
+              text: email.body_text || email.body || undefined,
+            }),
+          });
+
+          if (!resendResponse.ok) {
+            const errorBody = await resendResponse.text();
+            throw new Error(`Resend API error: ${resendResponse.status} - ${errorBody}`);
+          }
+        } else {
+          console.log(`[Email] (No RESEND_API_KEY) To: ${email.to_email}, Subject: ${email.subject}`);
+        }
 
         // Mark as sent
         await supabaseAdmin
