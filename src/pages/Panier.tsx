@@ -33,6 +33,8 @@ export default function Panier() {
   const [loading, setLoading] = useState(false);
   const [formulaDiscount, setFormulaDiscount] = useState(0);
   const [formulaName, setFormulaName] = useState<string | null>(null);
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoName, setPromoName] = useState<string | null>(null);
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
   const [pointsToRedeemInput, setPointsToRedeemInput] = useState(0);
   const [donateEarnedXp, setDonateEarnedXp] = useState(false);
