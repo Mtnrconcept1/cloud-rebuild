@@ -103,11 +103,15 @@ export async function trackEvent({
 }
 
 export async function trackSponsoredImpression(campaignId: string, restaurantId?: string) {
-  const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
-    p_campaign_id: campaignId,
-    p_metric: "impressions",
-  });
-  if (error) console.warn("[analytics] impression error:", error.message);
+  try {
+    const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+      p_campaign_id: campaignId,
+      p_metric: "impressions",
+    });
+    if (error) console.warn("[analytics] impression error:", error.message);
+  } catch {
+    // Silently fail — likely blocked by ad blocker
+  }
 
   if (currentUserId) {
     trackEvent({
