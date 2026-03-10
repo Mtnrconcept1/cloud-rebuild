@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UtensilsCrossed, ShoppingCart, CalendarDays, Sparkles, Bell, DollarSign, TrendingDown, FileText, Shield } from "lucide-react";
+import { Users, UtensilsCrossed, ShoppingCart, CalendarDays, Sparkles, Bell, DollarSign, TrendingDown, FileText, Shield, Layers, Crown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { useFeatureFlags } from "@/lib/featureFlags";
@@ -175,6 +175,18 @@ export default function AdminHome() {
         </Card>
 
         {/* Quick Links */}
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/admin/catalog")}>
+          <CardHeader>
+            <div className="flex items-center gap-2"><Layers className="h-5 w-5 text-indigo-500" /><CardTitle>Catalogue Central (Cuisines/Collections)</CardTitle></div>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Gérez l'algorithme de découverte globale.</p></CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/admin/loyalty")}>
+          <CardHeader>
+            <div className="flex items-center gap-2"><Crown className="h-5 w-5 text-amber-500" /><CardTitle>Fidélité & Abonnement (Miamz+)</CardTitle></div>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Configurez l'abonnement livraison 0€.</p></CardContent>
+        </Card>
         <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/admin/drops")}>
           <CardHeader>
             <div className="flex items-center gap-2"><UtensilsCrossed className="h-5 w-5 text-pink-500" /><CardTitle>Gérer les Drops</CardTitle></div>

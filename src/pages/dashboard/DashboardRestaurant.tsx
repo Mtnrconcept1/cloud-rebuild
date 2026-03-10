@@ -17,7 +17,7 @@ export default function DashboardRestaurant() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "", address: "", city: "", phone: "", cuisine_type: "", image_url: "", delivery_available: false, delivery_fee: 0, min_order_amount: 0 });
+  const [form, setForm] = useState({ name: "", description: "", address: "", city: "", phone: "", cuisine_type: "", image_url: "", delivery_available: false, delivery_fee: 0, min_order_amount: 0, supports_pickup: false, supports_dinein: false, supports_reservation: false });
 
   const { data: restaurant } = useQuery({
     queryKey: ["my-restaurant", user?.id],
@@ -34,6 +34,7 @@ export default function DashboardRestaurant() {
         name: restaurant.name, description: restaurant.description || "", address: restaurant.address, city: restaurant.city,
         phone: restaurant.phone || "", cuisine_type: restaurant.cuisine_type || "", image_url: restaurant.image_url || "",
         delivery_available: restaurant.delivery_available || false, delivery_fee: Number(restaurant.delivery_fee) || 0, min_order_amount: Number(restaurant.min_order_amount) || 0,
+        supports_pickup: restaurant.supports_pickup || false, supports_dinein: restaurant.supports_dinein || false, supports_reservation: restaurant.supports_reservation || false,
       });
     }
   }, [restaurant]);
@@ -82,7 +83,25 @@ export default function DashboardRestaurant() {
               <div className="space-y-2"><Label>Commande minimum (CHF)</Label><Input type="number" step="0.01" value={form.min_order_amount} onChange={(e) => setForm({ ...form, min_order_amount: Number(e.target.value) })} /></div>
             </div>
           )}
-          <Button onClick={handleSave} disabled={loading}>{loading ? "Enregistrement..." : "Sauvegarder"}</Button>
+
+          <div className="border-t pt-4 mt-6">
+            <h3 className="font-semibold mb-4">Modes de consommation alternatifs</h3>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="flex items-center gap-2">
+                <Switch checked={form.supports_pickup} onCheckedChange={(c) => setForm({ ...form, supports_pickup: c })} />
+                <Label>À emporter (Click & Collect)</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch checked={form.supports_dinein} onCheckedChange={(c) => setForm({ ...form, supports_dinein: c })} />
+                <Label>Sur place (Dine-in)</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch checked={form.supports_reservation} onCheckedChange={(c) => setForm({ ...form, supports_reservation: c })} />
+                <Label>Réservation de table</Label>
+              </div>
+            </div>
+          </div>
+          <Button onClick={handleSave} disabled={loading} className="w-full mt-8">{loading ? "Enregistrement..." : "Sauvegarder"}</Button>
         </div>
       </div>
     </DashboardLayout>

@@ -168,7 +168,7 @@ CREATE TABLE public.payment_transactions (
 CREATE INDEX idx_payment_transactions_order ON public.payment_transactions (order_id);
 
 -- Step 11: Create user_wallets table
-CREATE TABLE public.user_wallets (
+CREATE TABLE IF NOT EXISTS public.user_wallets (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
   balance numeric NOT NULL DEFAULT 0,
@@ -409,7 +409,11 @@ AS $$
         AND dj.status IN ('accepted', 'arriving_pickup', 'picked_up', 'arriving_dropoff')
     )
   ORDER BY
-    (1.0 / GREATEST(distance_km, 0.1)) * c.rating * (c.acceptance_rate / 100.0) DESC
+    (1.0 / GREATEST((6371 * acos(
+      cos(radians(p_lat)) * cos(radians(c.current_lat)) *
+      cos(radians(c.current_lng) - radians(p_lng)) +
+      sin(radians(p_lat)) * sin(radians(c.current_lat))
+    )), 0.1)) * c.rating * (c.acceptance_rate / 100.0) DESC
   LIMIT p_limit;
 $$;
 

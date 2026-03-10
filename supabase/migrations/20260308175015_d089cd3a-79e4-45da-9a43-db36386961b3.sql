@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Remaining tables batch 3
 
@@ -26,7 +27,7 @@ CREATE TABLE public.gift_points (
   points_amount integer NOT NULL,
   message text,
   status text NOT NULL DEFAULT 'pending',
-  claim_code text DEFAULT encode(gen_random_bytes(6), 'hex'),
+  claim_code text DEFAULT substr(md5(random()::text), 1, 12),
   claimed_at timestamptz,
   expires_at timestamptz NOT NULL DEFAULT (now() + interval '30 days'),
   created_at timestamptz NOT NULL DEFAULT now()

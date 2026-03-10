@@ -1,23 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, UtensilsCrossed, Pizza, Flame, Coffee, Salad, IceCream } from "lucide-react";
+import { Search, UtensilsCrossed } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
-
-const CATEGORIES = [
-  { label: "Tout", icon: UtensilsCrossed, query: "" },
-  { label: "Pizza", icon: Pizza, query: "pizza" },
-  { label: "Burgers", icon: Flame, query: "burger" },
-  { label: "Café", icon: Coffee, query: "café" },
-  { label: "Salades", icon: Salad, query: "salade" },
-  { label: "Desserts", icon: IceCream, query: "dessert" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SearchAndCategories() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
   const navigate = useNavigate();
+
+  const { data: cuisines } = useQuery({
+    queryKey: ["cuisines-list"],
+    queryFn: async () => {
+      const { data } = await supabase.from("cuisines" as any).select("*").order("name");
+      return data || [];
+    }
+  });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,13 +45,21 @@ export default function SearchAndCategories() {
         </form>
 
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 justify-center">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = activeCategory === cat.query;
+          <button onClick={() => { setActiveCategory(""); navigate('/recherche'); }} className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl shrink-0 transition-all text-sm font-bold ${activeCategory === "" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"}`}>
+            <UtensilsCrossed className="h-4 w-4" />
+            <span>Tout</span>
+          </button>
+
+          {cuisines?.map((cat: any) => {
+            const isActive = activeCategory === cat.name.toLowerCase();
             return (
-              <button key={cat.label} onClick={() => handleCategoryClick(cat.query)} className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl shrink-0 transition-all text-sm font-bold ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"}`}>
-                <Icon className="h-4 w-4" />
-                <span>{cat.label}</span>
+              <button key={cat.id} onClick={() => handleCategoryClick(cat.name.toLowerCase())} className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl shrink-0 transition-all text-sm font-bold ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                {cat.icon_url ? (
+                  <img src={cat.icon_url} alt={cat.name} className="w-5 h-5 rounded-full object-cover" />
+                ) : (
+                  <UtensilsCrossed className="h-4 w-4" />
+                )}
+                <span>{cat.name}</span>
               </button>
             );
           })}

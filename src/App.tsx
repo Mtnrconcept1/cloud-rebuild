@@ -44,10 +44,16 @@ import DashboardSupport from "./pages/dashboard/DashboardSupport";
 import DashboardService from "./pages/dashboard/DashboardService";
 import DashboardAdvisor from "./pages/dashboard/DashboardAdvisor";
 import SuiviCommande from "./pages/SuiviCommande";
+import CourierHome from "./pages/courier/CourierHome";
+import CourierJobs from "./pages/courier/CourierJobs";
+import CourierEarnings from "./pages/courier/CourierEarnings";
+import CourierProfile from "./pages/courier/CourierProfile";
 import AdminHome from "./pages/admin/AdminHome";
 import AdminRestaurants from "./pages/admin/AdminRestaurants";
 import AdminUtilisateurs from "./pages/admin/AdminUtilisateurs";
 import AdminAvis from "./pages/admin/AdminAvis";
+import AdminCatalog from "./pages/admin/AdminCatalog";
+import AdminLoyalty from "./pages/admin/AdminLoyalty";
 import DropsManagement from "./pages/admin/DropsManagement";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import NotFound from "./pages/NotFound";
@@ -75,85 +81,92 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <ErrorBoundary>
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <AuthProvider>
-          <CartProvider>
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/recherche" element={<Recherche />} />
-              <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-              <Route path="/anti-gaspi" element={<AntiGaspi />} />
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <AuthProvider>
+            <CartProvider>
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/recherche" element={<Recherche />} />
+                <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+                <Route path="/anti-gaspi" element={<AntiGaspi />} />
 
-              <Route path="/panier" element={<Panier />} />
-              <Route path="/commandes" element={<ProtectedRoute><Commandes /></ProtectedRoute>} />
-              <Route path="/commande/:id" element={<ProtectedRoute><SuiviCommande /></ProtectedRoute>} />
-              <Route path="/reservations" element={<ProtectedRoute><Reservations /></ProtectedRoute>} />
-              <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-              {/* New features */}
-              <Route path="/creneaux-garantis" element={<CreneauxGarantis />} />
-              <Route path="/flex-prix-bas" element={<FlexPrixBas />} />
-              <Route path="/match-groupes" element={<MatchGroupes />} />
-              <Route path="/multi-stop" element={<MultiStop />} />
-              <Route path="/multi-restaurant" element={<MultiRestaurant />} />
-              <Route path="/chefs-table" element={<ChefsTable />} />
-              <Route path="/zero-attente" element={<ZeroAttente />} />
-              <Route path="/garantie-qualite" element={<GarantieQualite />} />
-              <Route path="/budget-auto" element={<BudgetAuto />} />
-              <Route path="/abonnement" element={<Abonnement />} />
-              <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
-              <Route path="/ventes-flash" element={<VentesFlash />} />
-              {/* Dashboard restaurateur */}
-              <Route path="/dashboard" element={<ProtectedRoute requiredRole="restaurateur"><DashboardHome /></ProtectedRoute>} />
-              <Route path="/dashboard/restaurant" element={<ProtectedRoute requiredRole="restaurateur"><DashboardRestaurant /></ProtectedRoute>} />
-              <Route path="/dashboard/advisor" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAdvisor /></ProtectedRoute>} />
-              <Route path="/dashboard/menu" element={<ProtectedRoute requiredRole="restaurateur"><DashboardMenu /></ProtectedRoute>} />
-              <Route path="/dashboard/reservations" element={<ProtectedRoute requiredRole="restaurateur"><DashboardReservations /></ProtectedRoute>} />
-              <Route path="/dashboard/commandes" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCommandes /></ProtectedRoute>} />
-              <Route path="/dashboard/recommandations" element={<ProtectedRoute requiredRole="restaurateur"><DashboardRecommandations /></ProtectedRoute>} />
-              <Route path="/dashboard/performances" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPerformances /></ProtectedRoute>} />
-              <Route path="/dashboard/comparaison" element={<ProtectedRoute requiredRole="restaurateur"><DashboardComparaison /></ProtectedRoute>} />
-              <Route path="/dashboard/avis" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAvis /></ProtectedRoute>} />
-              <Route path="/dashboard/compta" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCompta /></ProtectedRoute>} />
-              <Route path="/dashboard/factures" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFactures /></ProtectedRoute>} />
-              <Route path="/dashboard/factures/parametres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardInvoiceSettings /></ProtectedRoute>} />
-              <Route path="/dashboard/offres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardOffres /></ProtectedRoute>} />
-              <Route path="/dashboard/ventes-flash" element={<ProtectedRoute requiredRole="restaurateur"><DashboardVentesFlash /></ProtectedRoute>} />
-              <Route path="/dashboard/formules" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFormules /></ProtectedRoute>} />
-              <Route path="/dashboard/photos" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPhotos /></ProtectedRoute>} />
-              <Route path="/dashboard/promotions" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPromotions /></ProtectedRoute>} />
-              <Route path="/dashboard/campagne-overview" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCampagneOverview /></ProtectedRoute>} />
-              <Route path="/dashboard/reseaux-sociaux" element={<ProtectedRoute requiredRole="restaurateur"><DashboardReseauxSociaux /></ProtectedRoute>} />
-              <Route path="/dashboard/campagnes" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCampagnes /></ProtectedRoute>} />
-              <Route path="/dashboard/support" element={<ProtectedRoute requiredRole="restaurateur"><DashboardSupport /></ProtectedRoute>} />
-              <Route path="/dashboard/service" element={<ProtectedRoute requiredRole="restaurateur"><DashboardService /></ProtectedRoute>} />
-              {/* Admin */}
-              <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminHome /></ProtectedRoute>} />
-              <Route path="/admin/restaurants" element={<ProtectedRoute requiredRole="admin"><AdminRestaurants /></ProtectedRoute>} />
-              <Route path="/admin/utilisateurs" element={<ProtectedRoute requiredRole="admin"><AdminUtilisateurs /></ProtectedRoute>} />
-              <Route path="/admin/avis" element={<ProtectedRoute requiredRole="admin"><AdminAvis /></ProtectedRoute>} />
-              <Route path="/admin/drops" element={<ProtectedRoute requiredRole="admin"><DropsManagement /></ProtectedRoute>} />
-              <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><AdminNotifications /></ProtectedRoute>} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/cgu" element={<CGU />} />
-              <Route path="/a-propos" element={<APropos />} />
-              <Route path="/aide" element={<Aide />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <SupportChat />
-            <OrderConflictDialog />
-          </CartProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+                <Route path="/panier" element={<Panier />} />
+                <Route path="/commandes" element={<ProtectedRoute><Commandes /></ProtectedRoute>} />
+                <Route path="/commande/:id" element={<ProtectedRoute><SuiviCommande /></ProtectedRoute>} />
+                <Route path="/reservations" element={<ProtectedRoute><Reservations /></ProtectedRoute>} />
+                <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
+                <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+                {/* New features */}
+                <Route path="/creneaux-garantis" element={<CreneauxGarantis />} />
+                <Route path="/flex-prix-bas" element={<FlexPrixBas />} />
+                <Route path="/match-groupes" element={<MatchGroupes />} />
+                <Route path="/multi-stop" element={<MultiStop />} />
+                <Route path="/multi-restaurant" element={<MultiRestaurant />} />
+                <Route path="/chefs-table" element={<ChefsTable />} />
+                <Route path="/zero-attente" element={<ZeroAttente />} />
+                <Route path="/garantie-qualite" element={<GarantieQualite />} />
+                <Route path="/budget-auto" element={<BudgetAuto />} />
+                <Route path="/abonnement" element={<Abonnement />} />
+                <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
+                <Route path="/ventes-flash" element={<VentesFlash />} />
+                {/* Dashboard restaurateur */}
+                <Route path="/dashboard" element={<ProtectedRoute requiredRole="restaurateur"><DashboardHome /></ProtectedRoute>} />
+                <Route path="/dashboard/restaurant" element={<ProtectedRoute requiredRole="restaurateur"><DashboardRestaurant /></ProtectedRoute>} />
+                <Route path="/dashboard/advisor" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAdvisor /></ProtectedRoute>} />
+                <Route path="/dashboard/menu" element={<ProtectedRoute requiredRole="restaurateur"><DashboardMenu /></ProtectedRoute>} />
+                <Route path="/dashboard/reservations" element={<ProtectedRoute requiredRole="restaurateur"><DashboardReservations /></ProtectedRoute>} />
+                <Route path="/dashboard/commandes" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCommandes /></ProtectedRoute>} />
+                <Route path="/dashboard/recommandations" element={<ProtectedRoute requiredRole="restaurateur"><DashboardRecommandations /></ProtectedRoute>} />
+                <Route path="/dashboard/performances" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPerformances /></ProtectedRoute>} />
+                <Route path="/dashboard/comparaison" element={<ProtectedRoute requiredRole="restaurateur"><DashboardComparaison /></ProtectedRoute>} />
+                <Route path="/dashboard/avis" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAvis /></ProtectedRoute>} />
+                <Route path="/dashboard/compta" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCompta /></ProtectedRoute>} />
+                <Route path="/dashboard/factures" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFactures /></ProtectedRoute>} />
+                <Route path="/dashboard/factures/parametres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardInvoiceSettings /></ProtectedRoute>} />
+                <Route path="/dashboard/offres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardOffres /></ProtectedRoute>} />
+                <Route path="/dashboard/ventes-flash" element={<ProtectedRoute requiredRole="restaurateur"><DashboardVentesFlash /></ProtectedRoute>} />
+                <Route path="/dashboard/formules" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFormules /></ProtectedRoute>} />
+                <Route path="/dashboard/photos" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPhotos /></ProtectedRoute>} />
+                <Route path="/dashboard/promotions" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPromotions /></ProtectedRoute>} />
+                <Route path="/dashboard/campagne-overview" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCampagneOverview /></ProtectedRoute>} />
+                <Route path="/dashboard/reseaux-sociaux" element={<ProtectedRoute requiredRole="restaurateur"><DashboardReseauxSociaux /></ProtectedRoute>} />
+                <Route path="/dashboard/campagnes" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCampagnes /></ProtectedRoute>} />
+                <Route path="/dashboard/support" element={<ProtectedRoute requiredRole="restaurateur"><DashboardSupport /></ProtectedRoute>} />
+                <Route path="/dashboard/service" element={<ProtectedRoute requiredRole="restaurateur"><DashboardService /></ProtectedRoute>} />
+                {/* Courier App */}
+                <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><CourierHome /></ProtectedRoute>} />
+                <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><CourierJobs /></ProtectedRoute>} />
+                <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><CourierEarnings /></ProtectedRoute>} />
+                <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><CourierProfile /></ProtectedRoute>} />
+                {/* Admin */}
+                <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminHome /></ProtectedRoute>} />
+                <Route path="/admin/restaurants" element={<ProtectedRoute requiredRole="admin"><AdminRestaurants /></ProtectedRoute>} />
+                <Route path="/admin/utilisateurs" element={<ProtectedRoute requiredRole="admin"><AdminUtilisateurs /></ProtectedRoute>} />
+                <Route path="/admin/avis" element={<ProtectedRoute requiredRole="admin"><AdminAvis /></ProtectedRoute>} />
+                <Route path="/admin/catalog" element={<ProtectedRoute requiredRole="admin"><AdminCatalog /></ProtectedRoute>} />
+                <Route path="/admin/loyalty" element={<ProtectedRoute requiredRole="admin"><AdminLoyalty /></ProtectedRoute>} />
+                <Route path="/admin/drops" element={<ProtectedRoute requiredRole="admin"><DropsManagement /></ProtectedRoute>} />
+                <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><AdminNotifications /></ProtectedRoute>} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/cgu" element={<CGU />} />
+                <Route path="/a-propos" element={<APropos />} />
+                <Route path="/aide" element={<Aide />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <SupportChat />
+              <OrderConflictDialog />
+            </CartProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   </ErrorBoundary>
 );
 
