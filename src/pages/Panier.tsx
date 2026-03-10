@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
 import FormulaDetector from "@/components/FormulaDetector";
+import PromotionDetector from "@/components/PromotionDetector";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { generateOrderReference, sendOrderConfirmationEmail } from "@/lib/email-service";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
@@ -32,6 +33,8 @@ export default function Panier() {
   const [loading, setLoading] = useState(false);
   const [formulaDiscount, setFormulaDiscount] = useState(0);
   const [formulaName, setFormulaName] = useState<string | null>(null);
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoName, setPromoName] = useState<string | null>(null);
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
   const [pointsToRedeemInput, setPointsToRedeemInput] = useState(0);
   const [donateEarnedXp, setDonateEarnedXp] = useState(false);
@@ -73,7 +76,12 @@ export default function Panier() {
     }
   }, []);
 
-  const subFinalTotal = total - formulaDiscount + deliveryFee;
+  const handlePromoCalculated = useCallback((discount: number, name: string | null) => {
+    setPromoDiscount(discount);
+    setPromoName(name);
+  }, []);
+
+  const subFinalTotal = total - formulaDiscount - promoDiscount + deliveryFee;
   const flexDiscount = flexOption === "flex" ? total * 0.1 : 0;
   const maxPointsRedeemable = Math.min(loyaltyPoints, Math.floor(Math.max(subFinalTotal - flexDiscount, 0) * 100));
 
@@ -262,6 +270,8 @@ export default function Panier() {
       formula_applied: resDiscount > 0 ? formulaName : null,
       formula_discount_amount: resDiscount > 0 ? Number(resDiscount.toFixed(2)) : 0,
       formula_discount_percent: resFormulaDiscountPercent > 0 ? Number(resFormulaDiscountPercent.toFixed(2)) : 0,
+      promotion_applied: promoDiscount > 0 ? promoName : null,
+      promotion_discount_amount: promoDiscount > 0 ? Number(promoDiscount.toFixed(2)) : 0,
       pre_discount_subtotal: Number(resSubtotal.toFixed(2)),
       original_total: Number((resSubtotal + deliveryFeePerRestaurant + qualityFeeAmount).toFixed(2)),
       multi_restaurant: resCount > 1, total_restaurants: resCount,
@@ -297,6 +307,7 @@ export default function Panier() {
         <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
 
         <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
+        <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
 
         <div className="space-y-4 pt-4 border-t">
           {orderMode === "delivery" ? (
@@ -348,6 +359,7 @@ export default function Panier() {
 
           <div className="flex justify-between text-sm"><span>Sous-total</span><span>{total.toFixed(2)} CHF</span></div>
           {formulaDiscount > 0 && <div className="flex justify-between text-sm text-accent font-medium"><span>Réduction formule ({formulaName})</span><span>-{formulaDiscount.toFixed(2)} CHF</span></div>}
+          {promoDiscount > 0 && <div className="flex justify-between text-sm text-primary font-medium"><span>Promotion ({promoName})</span><span>-{promoDiscount.toFixed(2)} CHF</span></div>}
           <div className="flex justify-between text-sm"><span>{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span><span>{deliveryFee.toFixed(2)} CHF</span></div>
           {pointsDiscount > 0 && <div className="flex justify-between text-sm font-medium text-pink-500"><span>Réduction Fidélité ({pointsToRedeem} pts)</span><span>-{pointsDiscount.toFixed(2)} CHF</span></div>}
           {flexDiscount > 0 && <div className="flex justify-between text-sm font-medium text-emerald-600"><span>Réduction Offres (10%)</span><span>-{flexDiscount.toFixed(2)} CHF</span></div>}

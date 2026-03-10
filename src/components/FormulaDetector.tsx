@@ -30,11 +30,10 @@ export default function FormulaDetector({ items, restaurantId, onDiscountCalcula
   const { data: formulas } = useQuery({
     queryKey: ["formulas", restaurantId],
     queryFn: async () => {
-      const scoped = await supabase.from("meal_formulas").select("id, name, discount_percent, formula_key, meal_formula_categories(category, course_order)").eq("restaurant_id", restaurantId!).eq("is_active", true).eq("applies_to", "delivery_takeaway" as any);
-      if (!scoped.error) return (scoped.data || []) as FormulaWithCategories[];
-      const fallback = await supabase.from("meal_formulas").select("id, name, discount_percent, meal_formula_categories(category, course_order)").eq("restaurant_id", restaurantId!).eq("is_active", true);
-      if (fallback.error) throw fallback.error;
-      return (fallback.data || []) as FormulaWithCategories[];
+      const { data, error } = await supabase.from("meal_formulas").select("id, name, discount_percent, formula_key, applies_to, meal_formula_categories(category, course_order)").eq("restaurant_id", restaurantId!).eq("is_active", true);
+      if (error) throw error;
+      // Filter formulas that apply to delivery/takeaway (not dine_in only)
+      return ((data || []) as (FormulaWithCategories & { applies_to: string })[]).filter(f => f.applies_to !== "dine_in");
     },
     enabled: !!restaurantId,
   });
