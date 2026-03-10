@@ -305,6 +305,7 @@ export default function Panier() {
         <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
 
         <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
+        <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
 
         <div className="space-y-4 pt-4 border-t">
           {orderMode === "delivery" ? (
