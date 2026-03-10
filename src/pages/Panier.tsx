@@ -81,7 +81,7 @@ export default function Panier() {
     setPromoName(name);
   }, []);
 
-  const subFinalTotal = total - formulaDiscount + deliveryFee;
+  const subFinalTotal = total - formulaDiscount - promoDiscount + deliveryFee;
   const flexDiscount = flexOption === "flex" ? total * 0.1 : 0;
   const maxPointsRedeemable = Math.min(loyaltyPoints, Math.floor(Math.max(subFinalTotal - flexDiscount, 0) * 100));
 
