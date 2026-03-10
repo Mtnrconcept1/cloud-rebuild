@@ -26,12 +26,12 @@ export default function HeroSection() {
   return (
     <section ref={heroRef} className="relative overflow-hidden border-b">
       <div
-        className="absolute inset-0 bg-[url('/fond4.png')] bg-cover bg-center blur-[0.7px] will-change-transform"
+        className="absolute inset-0 bg-[url('/fond4.png')] -translate-y-1/2 bg-cover bg-center blur-[2,7px] will-change-transform"
         style={{ transform: "translateY(calc(var(--scroll-y, 0px) * 0.4))" }}
         aria-hidden="true"
       />
       <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] md:w-[600px] md:h-[600px] bg-white/80 blur-[30px] rounded-full pointer-events-none will-change-transform"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] md:w-[600px] md:h-[600px] bg-white/70 blur-[30px] rounded-full pointer-events-none will-change-transform"
         style={{ transform: "translate(calc(-50% + var(--scroll-y, 0px) * -0.1), calc(-50% + var(--scroll-y, 0px) * 0.2))" }}
       />
       <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.10)] pointer-events-none" />
