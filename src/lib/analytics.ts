@@ -148,12 +148,16 @@ export async function trackSponsoredConversion(restaurantId: string) {
   const campaignId = getValidSponsoredCampaignId(restaurantId);
   if (!campaignId) return false;
 
-  const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
-    p_campaign_id: campaignId,
-    p_metric: "conversions",
-  });
-  if (error) {
-    console.warn("[analytics] conversion error:", error.message);
+  try {
+    const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+      p_campaign_id: campaignId,
+      p_metric: "conversions",
+    });
+    if (error) {
+      console.warn("[analytics] conversion error:", error.message);
+      return false;
+    }
+  } catch {
     return false;
   }
 
