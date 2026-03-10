@@ -120,6 +120,7 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
     <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+        <DialogTitle className="sr-only">Réservation</DialogTitle>
         <div className="flex items-center justify-center gap-2 pt-6 px-6">
           {(["datetime", "mode", "promo", "confirm"] as Step[]).map((s, i) => {
             const allSteps: Step[] = ["datetime", "mode", "promo", "confirm"];
