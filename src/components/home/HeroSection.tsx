@@ -37,7 +37,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.10)] pointer-events-none" />
 
       <div
-        className="container relative px-4 py-28 md:py-40 flex flex-col items-center text-center space-y-8 will-change-transform"
+        className="container relative px-4 py-14 md:py-40 flex flex-col items-center text-center space-y-6 md:space-y-8 will-change-transform"
         style={{ transform: "translateY(calc(var(--scroll-y, 0px) * -0.15))" }}
       >
         <img src="/logo.png" alt="Deliveroom" className="h-28 sm:h-36 md:h-48 w-auto object-contain drop-shadow-lg" />
