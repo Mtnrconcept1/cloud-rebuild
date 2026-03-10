@@ -270,6 +270,8 @@ export default function Panier() {
       formula_applied: resDiscount > 0 ? formulaName : null,
       formula_discount_amount: resDiscount > 0 ? Number(resDiscount.toFixed(2)) : 0,
       formula_discount_percent: resFormulaDiscountPercent > 0 ? Number(resFormulaDiscountPercent.toFixed(2)) : 0,
+      promotion_applied: promoDiscount > 0 ? promoName : null,
+      promotion_discount_amount: promoDiscount > 0 ? Number(promoDiscount.toFixed(2)) : 0,
       pre_discount_subtotal: Number(resSubtotal.toFixed(2)),
       original_total: Number((resSubtotal + deliveryFeePerRestaurant + qualityFeeAmount).toFixed(2)),
       multi_restaurant: resCount > 1, total_restaurants: resCount,
