@@ -125,11 +125,15 @@ export async function trackSponsoredImpression(campaignId: string, restaurantId?
 export async function trackSponsoredClick(campaignId: string, restaurantId: string) {
   rememberSponsoredAttribution(campaignId, restaurantId);
 
-  const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
-    p_campaign_id: campaignId,
-    p_metric: "clicks",
-  });
-  if (error) console.warn("[analytics] click error:", error.message);
+  try {
+    const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+      p_campaign_id: campaignId,
+      p_metric: "clicks",
+    });
+    if (error) console.warn("[analytics] click error:", error.message);
+  } catch {
+    // Silently fail — likely blocked by ad blocker
+  }
 
   if (currentUserId) {
     trackEvent({
