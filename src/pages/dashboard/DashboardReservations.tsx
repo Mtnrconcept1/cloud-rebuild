@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useDashboardRestaurant } from "./DashboardContext";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -48,7 +48,7 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
 };
 
 export default function DashboardReservations() {
-  const { user } = useAuth();
+  const { selectedId } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -60,7 +60,7 @@ export default function DashboardReservations() {
 
   useEffect(() => { if (typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches) setIsCompactMode(true); }, []);
 
-  const { data: restaurant } = useQuery({ queryKey: ["my-restaurant", user?.id], queryFn: async () => { const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id).maybeSingle(); return data; }, enabled: !!user });
+  const restaurant = selectedId ? { id: selectedId } : null;
 
   const { data: reservations = [] } = useQuery({
     queryKey: ["dashboard-all-reservations", restaurant?.id],

@@ -1,24 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { CalendarDays, ShoppingCart, TrendingUp } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+import { useDashboardRestaurant } from "./DashboardContext";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { selectedId } = useDashboardRestaurant();
   const today = new Date().toISOString().split("T")[0];
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
   const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant", user?.id],
+    queryKey: ["my-restaurant-detail", selectedId],
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("*").eq("owner_id", user!.id).order("created_at", { ascending: true }).limit(1);
-      return data?.[0] || null;
+      const { data } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
+      return data;
     },
-    enabled: !!user,
+    enabled: !!selectedId,
   });
 
   const { data: recentOrders } = useQuery({

@@ -1,26 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
-import { useOwnerRestaurants } from "./useOwnerRestaurants";
-import { Button } from "@/components/ui/button";
+import { useDashboardRestaurant } from "./DashboardContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Percent, Trash2, Edit2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
-const APPLIES_TO = [
-  { value: "dine_in", label: "Sur place" },
-  { value: "takeaway", label: "À emporter" },
-  { value: "both", label: "Les deux" },
-];
+import { Percent, UtensilsCrossed, CakeSlice, Salad, Loader2 } from "lucide-react";
 
 const DAYS_OF_WEEK = [
   { value: "mon", label: "Lun" },
@@ -32,100 +22,108 @@ const DAYS_OF_WEEK = [
   { value: "sun", label: "Dim" },
 ];
 
+type PresetFormula = {
+  formula_key: string;
+  name: string;
+  description: string;
+  categories: string[];
+  defaultDiscount: number;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+};
+
+const PRESET_FORMULAS: PresetFormula[] = [
+  {
+    formula_key: "entree_plat",
+    name: "Entrée + Plat",
+    description: "Offrez une réduction lorsque le client prend une entrée et un plat.",
+    categories: ["Entrées", "Plats"],
+    defaultDiscount: 15,
+    icon: Salad,
+    color: "from-emerald-500 to-green-600",
+  },
+  {
+    formula_key: "plat_dessert",
+    name: "Plat + Dessert",
+    description: "Encouragez les clients à prendre un dessert avec leur plat.",
+    categories: ["Plats", "Desserts"],
+    defaultDiscount: 15,
+    icon: CakeSlice,
+    color: "from-orange-500 to-amber-600",
+  },
+  {
+    formula_key: "entree_plat_dessert",
+    name: "Entrée + Plat + Dessert",
+    description: "Le menu complet : la meilleure offre pour vos clients.",
+    categories: ["Entrées", "Plats", "Desserts"],
+    defaultDiscount: 20,
+    icon: UtensilsCrossed,
+    color: "from-violet-500 to-indigo-600",
+  },
+];
+
+type Availability = { days: string[]; startTime: string; endTime: string };
+
+const DEFAULT_AVAILABILITY: Availability = {
+  days: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+  startTime: "11:30",
+  endTime: "14:30",
+};
+
 export default function DashboardFormules() {
-  const { restaurantIds } = useOwnerRestaurants();
+  const { selectedId } = useDashboardRestaurant();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<any>(null);
+
+  const restaurantId = selectedId;
 
   const { data: formulas, isLoading } = useQuery({
-    queryKey: ["dashboard-formulas", restaurantIds],
+    queryKey: ["dashboard-formulas", restaurantId],
     queryFn: async () => {
-      if (!restaurantIds.length) return [];
-      const { data } = await supabase.from("meal_formulas").select("*, meal_formula_categories(*)").in("restaurant_id", restaurantIds).order("created_at", { ascending: false });
+      if (!restaurantId) return [];
+      const { data } = await supabase
+        .from("meal_formulas")
+        .select("*, meal_formula_categories(*)")
+        .eq("restaurant_id", restaurantId)
+        .order("created_at", { ascending: true });
       return data || [];
     },
-    enabled: restaurantIds.length > 0,
+    enabled: !!restaurantId,
   });
 
-  const toggleActive = async (id: string, current: boolean) => {
-    await supabase.from("meal_formulas").update({ is_active: !current }).eq("id", id);
-    queryClient.invalidateQueries({ queryKey: ["dashboard-formulas"] });
-    toast({ title: current ? "Formule désactivée" : "Formule activée" });
-  };
-
-  const deleteFormula = async (id: string) => {
-    await supabase.from("meal_formula_categories").delete().eq("formula_id", id);
-    await supabase.from("meal_formulas").delete().eq("id", id);
-    queryClient.invalidateQueries({ queryKey: ["dashboard-formulas"] });
-    toast({ title: "Formule supprimée" });
-  };
+  // Build a map of formula_key -> existing DB record
+  const formulaMap = new Map<string, any>();
+  formulas?.forEach((f: any) => {
+    if (f.formula_key) formulaMap.set(f.formula_key, f);
+  });
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Percent className="h-6 w-6 text-primary" />
+        <div className="flex items-center gap-3">
+          <Percent className="h-6 w-6 text-primary" />
+          <div>
             <h1 className="font-display text-3xl font-bold">Formules & Menus</h1>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => {
-              setEditing({ name: "Entrée + Plat", formula_key: "entree_plat", categories: "Entrées, Plats", discount_percent: 15, is_standard: true });
-              setOpen(true);
-            }}>Std: E+P</Button>
-            <Button variant="outline" size="sm" onClick={() => {
-              setEditing({ name: "Plat + Dessert", formula_key: "plat_dessert", categories: "Plats, Desserts", discount_percent: 15, is_standard: true });
-              setOpen(true);
-            }}>Std: P+D</Button>
-            <Button variant="outline" size="sm" onClick={() => {
-              setEditing({ name: "Entrée + Plat + Dessert", formula_key: "entree_plat_dessert", categories: "Entrées, Plats, Desserts", discount_percent: 20, is_standard: true });
-              setOpen(true);
-            }}>Std: E+P+D</Button>
-            <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setEditing(null); }}>
-              <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Nouvelle formule</Button></DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>{editing?.id ? "Modifier la formule" : "Nouvelle formule"}</DialogTitle></DialogHeader>
-                <FormulaForm restaurantIds={restaurantIds} initial={editing} onSaved={() => { setOpen(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ["dashboard-formulas"] }); toast({ title: editing?.id ? "Modifiée" : "Formule créée" }); }} />
-              </DialogContent>
-            </Dialog>
+            <p className="text-sm text-muted-foreground mt-1">Activez et configurez vos formules promotionnelles</p>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-24 bg-muted animate-pulse rounded-xl" />)}</div>
-        ) : !formulas?.length ? (
-          <Card><CardContent className="py-12 text-center text-muted-foreground">Aucune formule. Créez des menus combinés avec réductions !</CardContent></Card>
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
         ) : (
-          <div className="space-y-3">
-            {formulas.map((f: any) => (
-              <Card key={f.id}>
-                <CardContent className="flex items-center gap-4 py-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-sm">{f.name}</p>
-                      <Badge className="bg-primary/10 text-primary text-[10px]">-{f.discount_percent}%</Badge>
-                      <Badge variant="outline" className="text-[10px]">{APPLIES_TO.find(a => a.value === f.applies_to)?.label}</Badge>
-                      {!f.is_active && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
-                    </div>
-                    {f.description && <p className="text-xs text-muted-foreground truncate">{f.description}</p>}
-                    <p className="text-xs text-primary font-medium mt-1">
-                      {f.meal_formula_categories?.map((c: any) => c.category).join(" + ")}
-                    </p>
-                    {f.availability?.days?.length > 0 && (
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        Dispo: {f.availability.days.map((d: string) => DAYS_OF_WEEK.find(dw => dw.value === d)?.label).join(", ")} · {f.availability.startTime} - {f.availability.endTime}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={f.is_active} onCheckedChange={() => toggleActive(f.id, f.is_active)} />
-                    <Button size="icon" variant="ghost" onClick={() => { setEditing(f); setOpen(true); }}><Edit2 className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => deleteFormula(f.id)}><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="space-y-4">
+            {PRESET_FORMULAS.map((preset) => (
+              <PresetFormulaCard
+                key={preset.formula_key}
+                preset={preset}
+                existing={formulaMap.get(preset.formula_key) || null}
+                restaurantId={restaurantId!}
+                onSaved={() => {
+                  queryClient.invalidateQueries({ queryKey: ["dashboard-formulas"] });
+                }}
+              />
             ))}
           </div>
         )}
@@ -134,111 +132,220 @@ export default function DashboardFormules() {
   );
 }
 
-function FormulaForm({ restaurantIds, initial, onSaved }: { restaurantIds: string[]; initial?: any; onSaved: () => void }) {
-  const [name, setName] = useState(initial?.name || "");
-  const [formulaKey, setFormulaKey] = useState(initial?.formula_key || "");
-  const [description, setDescription] = useState(initial?.description || "");
-  const [discountPercent, setDiscountPercent] = useState(initial?.discount_percent?.toString() || "10");
-  const [appliesTo, setAppliesTo] = useState(initial?.applies_to || "both");
-  const [categories, setCategories] = useState<string>(
-    initial?.categories || initial?.meal_formula_categories?.map((c: any) => c.category).join(", ") || ""
+function PresetFormulaCard({
+  preset,
+  existing,
+  restaurantId,
+  onSaved,
+}: {
+  preset: PresetFormula;
+  existing: any | null;
+  restaurantId: string;
+  onSaved: () => void;
+}) {
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [isActive, setIsActive] = useState(existing?.is_active ?? false);
+  const [discount, setDiscount] = useState<string>(
+    (existing?.discount_percent ?? preset.defaultDiscount).toString()
   );
-  const [availability, setAvailability] = useState(initial?.availability || {
-    days: ["mon", "tue", "wed", "thu", "fri"],
-    startTime: "12:00",
-    endTime: "14:30"
-  });
-  const [loading, setLoading] = useState(false);
+  const [availability, setAvailability] = useState<Availability>(
+    existing?.availability && existing.availability.days?.length > 0
+      ? existing.availability
+      : DEFAULT_AVAILABILITY
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const key = formulaKey || name.toLowerCase().replace(/\s+/g, "_");
-    const payload = {
-      restaurant_id: initial?.restaurant_id || restaurantIds[0],
-      name, formula_key: key, description, discount_percent: Number(discountPercent), applies_to: appliesTo,
-      availability, is_standard: !!initial?.is_standard,
-    };
+  // Sync with DB data when it changes
+  useEffect(() => {
+    setIsActive(existing?.is_active ?? false);
+    setDiscount((existing?.discount_percent ?? preset.defaultDiscount).toString());
+    if (existing?.availability && existing.availability.days?.length > 0) {
+      setAvailability(existing.availability);
+    }
+  }, [existing, preset.defaultDiscount]);
 
-    let formulaId = initial?.id;
-    if (initial) {
-      await supabase.from("meal_formulas").update(payload).eq("id", initial.id);
-      await supabase.from("meal_formula_categories").delete().eq("formula_id", initial.id);
+  const save = async (active: boolean, disc: string, avail: Availability) => {
+    setSaving(true);
+    const discountVal = Math.min(100, Math.max(1, Number(disc) || preset.defaultDiscount));
+
+    if (existing) {
+      // Update existing
+      await supabase.from("meal_formulas").update({
+        is_active: active,
+        discount_percent: discountVal,
+        availability: avail,
+      }).eq("id", existing.id);
     } else {
-      const { data } = await supabase.from("meal_formulas").insert(payload).select("id").single();
-      formulaId = data?.id;
+      // Create the formula for the first time
+      const { data } = await supabase.from("meal_formulas").insert({
+        restaurant_id: restaurantId,
+        name: preset.name,
+        description: preset.description,
+        formula_key: preset.formula_key,
+        discount_percent: discountVal,
+        applies_to: "both",
+        is_active: active,
+        is_standard: true,
+        availability: avail,
+      }).select("id").single();
+
+      // Insert categories
+      if (data?.id) {
+        const cats = preset.categories.map((c, i) => ({
+          formula_id: data.id,
+          category: c,
+          course_order: i + 1,
+        }));
+        await supabase.from("meal_formula_categories").insert(cats);
+      }
     }
 
-    if (formulaId && categories.trim()) {
-      const cats = categories.split(",").map((c, i) => ({
-        formula_id: formulaId!,
-        category: c.trim(),
-        course_order: i + 1,
-      }));
-      await supabase.from("meal_formula_categories").insert(cats);
-    }
-
-    setLoading(false);
+    setSaving(false);
     onSaved();
+    toast({ title: active ? "Formule activée" : "Formule désactivée" });
   };
 
+  const handleToggle = async (checked: boolean) => {
+    setIsActive(checked);
+    await save(checked, discount, availability);
+  };
+
+  const handleDiscountBlur = async () => {
+    if (!existing && !isActive) return; // Don't create if not active yet
+    const currentVal = existing?.discount_percent?.toString() ?? preset.defaultDiscount.toString();
+    if (discount !== currentVal) {
+      await save(isActive, discount, availability);
+    }
+  };
+
+  const handleDayToggle = async (day: string) => {
+    const newDays = availability.days.includes(day)
+      ? availability.days.filter((d) => d !== day)
+      : [...availability.days, day];
+    const newAvail = { ...availability, days: newDays };
+    setAvailability(newAvail);
+    if (existing || isActive) {
+      await save(isActive, discount, newAvail);
+    }
+  };
+
+  const handleTimeChange = async (field: "startTime" | "endTime", value: string) => {
+    const newAvail = { ...availability, [field]: value };
+    setAvailability(newAvail);
+    // Save on blur instead to avoid excessive updates
+  };
+
+  const handleTimeBlur = async () => {
+    if (!existing && !isActive) return;
+    await save(isActive, discount, availability);
+  };
+
+  const Icon = preset.icon;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2"><Label>Nom</Label><Input value={name} onChange={e => setName(e.target.value)} placeholder="Menu Midi" required /></div>
-      <div className="space-y-2"><Label>Clé (optionnel)</Label><Input value={formulaKey} onChange={e => setFormulaKey(e.target.value)} placeholder="menu_midi" /></div>
-      <div className="space-y-2"><Label>Description</Label><Textarea value={description} onChange={e => setDescription(e.target.value)} /></div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2"><Label>Réduction (%)</Label><Input type="number" min="1" max="100" value={discountPercent} onChange={e => setDiscountPercent(e.target.value)} required /></div>
-        <div className="space-y-2">
-          <Label>S'applique à</Label>
-          <Select value={appliesTo} onValueChange={setAppliesTo}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{APPLIES_TO.map(a => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}</SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label>Catégories (séparées par des virgules)</Label>
-        <Input value={categories} onChange={e => setCategories(e.target.value)} placeholder="Entrées, Plats, Desserts" />
-        <p className="text-[11px] text-muted-foreground">Les catégories doivent correspondre aux catégories de votre menu.</p>
-      </div>
-
-      <div className="space-y-3 border-t pt-4">
-        <Label className="text-sm font-semibold">Planification (Horaires & Jours)</Label>
-        <div className="flex flex-wrap gap-2">
-          {DAYS_OF_WEEK.map(day => (
-            <label key={day.value} className={cn(
-              "flex flex-col items-center justify-center w-10 h-10 rounded-lg border cursor-pointer text-[10px] transition-colors",
-              availability.days.includes(day.value) ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"
-            )}>
-              <input
-                type="checkbox"
-                className="hidden"
-                checked={availability.days.includes(day.value)}
-                onChange={() => {
-                  const newDays = availability.days.includes(day.value)
-                    ? availability.days.filter((d: string) => d !== day.value)
-                    : [...availability.days, day.value];
-                  setAvailability({ ...availability, days: newDays });
-                }}
-              />
-              {day.label}
-            </label>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label className="text-xs">Heure de début</Label>
-            <Input type="time" value={availability.startTime} onChange={e => setAvailability({ ...availability, startTime: e.target.value })} />
+    <Card className={cn("transition-all", isActive ? "border-primary/30 shadow-sm" : "opacity-75")}>
+      <CardContent className="p-5 space-y-4">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className={cn("h-10 w-10 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0", preset.color)}>
+              <Icon className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">{preset.name}</h3>
+                {isActive && <Badge className="bg-green-100 text-green-700 text-[10px]">Active</Badge>}
+                {saving && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">{preset.description}</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                {preset.categories.map((cat, i) => (
+                  <span key={cat}>
+                    {i > 0 && <span className="text-muted-foreground mx-0.5">+</span>}
+                    <Badge variant="outline" className="text-[10px] font-normal">{cat}</Badge>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Heure de fin</Label>
-            <Input type="time" value={availability.endTime} onChange={e => setAvailability({ ...availability, endTime: e.target.value })} />
-          </div>
+          <Switch checked={isActive} onCheckedChange={handleToggle} disabled={saving} />
         </div>
-      </div>
 
-      <Button type="submit" disabled={loading} className="w-full">{loading ? "Enregistrement..." : (initial?.id ? "Modifier" : "Créer la formule")}</Button>
-    </form>
+        {/* Settings row - only shown when active or when existing */}
+        {(isActive || existing) && (
+          <div className="border-t pt-4 space-y-4">
+            {/* Discount */}
+            <div className="flex items-center gap-4">
+              <div className="space-y-1 w-32">
+                <Label className="text-xs font-medium">Réduction</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                    onBlur={handleDiscountBlur}
+                    className="pr-8"
+                    disabled={saving}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-[11px] text-muted-foreground">Le pourcentage de réduction appliqué sur le total de la formule.</p>
+              </div>
+            </div>
+
+            {/* Days */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Jours disponibles</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {DAYS_OF_WEEK.map((day) => (
+                  <button
+                    key={day.value}
+                    type="button"
+                    onClick={() => handleDayToggle(day.value)}
+                    disabled={saving}
+                    className={cn(
+                      "w-10 h-9 rounded-lg text-xs font-medium transition-colors border",
+                      availability.days.includes(day.value)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background hover:bg-muted border-border text-muted-foreground"
+                    )}
+                  >
+                    {day.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Time slots */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Heure de début</Label>
+                <Input
+                  type="time"
+                  value={availability.startTime}
+                  onChange={(e) => handleTimeChange("startTime", e.target.value)}
+                  onBlur={handleTimeBlur}
+                  disabled={saving}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Heure de fin</Label>
+                <Input
+                  type="time"
+                  value={availability.endTime}
+                  onChange={(e) => handleTimeChange("endTime", e.target.value)}
+                  onBlur={handleTimeBlur}
+                  disabled={saving}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Settings, Store } from "lucide-react";
+import { useDashboardRestaurant } from "./DashboardContext";
 
 const DAYS = [
   { key: "monday", label: "Lundi" },
@@ -29,17 +29,17 @@ const DEFAULT_SCHEDULE: Schedule = Object.fromEntries(
 );
 
 export default function DashboardService() {
-  const { user } = useAuth();
+  const { selectedId } = useDashboardRestaurant();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant-service", user?.id],
+    queryKey: ["my-restaurant-service", selectedId],
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
       return data;
     },
-    enabled: !!user,
+    enabled: !!selectedId,
   });
 
   const [schedule, setSchedule] = useState<Schedule>(DEFAULT_SCHEDULE);

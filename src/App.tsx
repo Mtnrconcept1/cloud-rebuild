@@ -9,6 +9,7 @@ import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 // Client-facing pages (eagerly loaded for instant first paint)
 import Index from "./pages/Index";
@@ -125,29 +126,29 @@ const App = () => (
                   <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
                   <Route path="/ventes-flash" element={<VentesFlash />} />
                   {/* Dashboard restaurateur */}
-                  <Route path="/dashboard" element={<ProtectedRoute requiredRole="restaurateur"><DashboardHome /></ProtectedRoute>} />
-                  <Route path="/dashboard/restaurant" element={<ProtectedRoute requiredRole="restaurateur"><DashboardRestaurant /></ProtectedRoute>} />
-                  <Route path="/dashboard/advisor" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAdvisor /></ProtectedRoute>} />
-                  <Route path="/dashboard/menu" element={<ProtectedRoute requiredRole="restaurateur"><DashboardMenu /></ProtectedRoute>} />
-                  <Route path="/dashboard/reservations" element={<ProtectedRoute requiredRole="restaurateur"><DashboardReservations /></ProtectedRoute>} />
-                  <Route path="/dashboard/commandes" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCommandes /></ProtectedRoute>} />
-                  <Route path="/dashboard/recommandations" element={<ProtectedRoute requiredRole="restaurateur"><DashboardRecommandations /></ProtectedRoute>} />
-                  <Route path="/dashboard/performances" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPerformances /></ProtectedRoute>} />
-                  <Route path="/dashboard/comparaison" element={<ProtectedRoute requiredRole="restaurateur"><DashboardComparaison /></ProtectedRoute>} />
-                  <Route path="/dashboard/avis" element={<ProtectedRoute requiredRole="restaurateur"><DashboardAvis /></ProtectedRoute>} />
-                  <Route path="/dashboard/compta" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCompta /></ProtectedRoute>} />
-                  <Route path="/dashboard/factures" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFactures /></ProtectedRoute>} />
-                  <Route path="/dashboard/factures/parametres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardInvoiceSettings /></ProtectedRoute>} />
-                  <Route path="/dashboard/offres" element={<ProtectedRoute requiredRole="restaurateur"><DashboardOffres /></ProtectedRoute>} />
-                  <Route path="/dashboard/ventes-flash" element={<ProtectedRoute requiredRole="restaurateur"><DashboardVentesFlash /></ProtectedRoute>} />
-                  <Route path="/dashboard/formules" element={<ProtectedRoute requiredRole="restaurateur"><DashboardFormules /></ProtectedRoute>} />
-                  <Route path="/dashboard/photos" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPhotos /></ProtectedRoute>} />
-                  <Route path="/dashboard/promotions" element={<ProtectedRoute requiredRole="restaurateur"><DashboardPromotions /></ProtectedRoute>} />
-                  <Route path="/dashboard/campagne-overview" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCampagneOverview /></ProtectedRoute>} />
-                  <Route path="/dashboard/reseaux-sociaux" element={<ProtectedRoute requiredRole="restaurateur"><DashboardReseauxSociaux /></ProtectedRoute>} />
-                  <Route path="/dashboard/campagnes" element={<ProtectedRoute requiredRole="restaurateur"><DashboardCampagnes /></ProtectedRoute>} />
-                  <Route path="/dashboard/support" element={<ProtectedRoute requiredRole="restaurateur"><DashboardSupport /></ProtectedRoute>} />
-                  <Route path="/dashboard/service" element={<ProtectedRoute requiredRole="restaurateur"><DashboardService /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<DashboardRoute><DashboardHome /></DashboardRoute>} />
+                  <Route path="/dashboard/restaurant" element={<DashboardRoute><DashboardRestaurant /></DashboardRoute>} />
+                  <Route path="/dashboard/advisor" element={<DashboardRoute><DashboardAdvisor /></DashboardRoute>} />
+                  <Route path="/dashboard/menu" element={<DashboardRoute><DashboardMenu /></DashboardRoute>} />
+                  <Route path="/dashboard/reservations" element={<DashboardRoute><DashboardReservations /></DashboardRoute>} />
+                  <Route path="/dashboard/commandes" element={<DashboardRoute><DashboardCommandes /></DashboardRoute>} />
+                  <Route path="/dashboard/recommandations" element={<DashboardRoute><DashboardRecommandations /></DashboardRoute>} />
+                  <Route path="/dashboard/performances" element={<DashboardRoute><DashboardPerformances /></DashboardRoute>} />
+                  <Route path="/dashboard/comparaison" element={<DashboardRoute><DashboardComparaison /></DashboardRoute>} />
+                  <Route path="/dashboard/avis" element={<DashboardRoute><DashboardAvis /></DashboardRoute>} />
+                  <Route path="/dashboard/compta" element={<DashboardRoute><DashboardCompta /></DashboardRoute>} />
+                  <Route path="/dashboard/factures" element={<DashboardRoute><DashboardFactures /></DashboardRoute>} />
+                  <Route path="/dashboard/factures/parametres" element={<DashboardRoute><DashboardInvoiceSettings /></DashboardRoute>} />
+                  <Route path="/dashboard/offres" element={<DashboardRoute><DashboardOffres /></DashboardRoute>} />
+                  <Route path="/dashboard/ventes-flash" element={<DashboardRoute><DashboardVentesFlash /></DashboardRoute>} />
+                  <Route path="/dashboard/formules" element={<DashboardRoute><DashboardFormules /></DashboardRoute>} />
+                  <Route path="/dashboard/photos" element={<DashboardRoute><DashboardPhotos /></DashboardRoute>} />
+                  <Route path="/dashboard/promotions" element={<DashboardRoute><DashboardPromotions /></DashboardRoute>} />
+                  <Route path="/dashboard/campagne-overview" element={<DashboardRoute><DashboardCampagneOverview /></DashboardRoute>} />
+                  <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><DashboardReseauxSociaux /></DashboardRoute>} />
+                  <Route path="/dashboard/campagnes" element={<DashboardRoute><DashboardCampagnes /></DashboardRoute>} />
+                  <Route path="/dashboard/support" element={<DashboardRoute><DashboardSupport /></DashboardRoute>} />
+                  <Route path="/dashboard/service" element={<DashboardRoute><DashboardService /></DashboardRoute>} />
                   {/* Courier App */}
                   <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><CourierHome /></ProtectedRoute>} />
                   <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><CourierJobs /></ProtectedRoute>} />

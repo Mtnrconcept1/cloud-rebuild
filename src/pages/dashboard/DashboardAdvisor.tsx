@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +11,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
+import { useDashboardRestaurant } from "./DashboardContext";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -26,7 +25,7 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export default function DashboardAdvisor() {
-  const { user } = useAuth();
+  const { selectedId, restaurants } = useDashboardRestaurant();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -34,18 +33,9 @@ export default function DashboardAdvisor() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("restaurants")
-        .select("id, name")
-        .eq("owner_id", user!.id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
+  const restaurant = selectedId
+    ? { id: selectedId, name: restaurants.find((r) => r.id === selectedId)?.name || "Mon restaurant" }
+    : null;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

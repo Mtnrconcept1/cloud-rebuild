@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -12,25 +11,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { useDashboardRestaurant } from "./DashboardContext";
 
 const emptyItem = { name: "", description: "", price: 0, category: "", image_url: "", is_available: true };
 
 export default function DashboardMenu() {
-  const { user } = useAuth();
+  const { selectedId } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyItem);
 
-  const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id).maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
+  const restaurant = selectedId ? { id: selectedId } : null;
 
   const { data: items } = useQuery({
     queryKey: ["my-menu-items", restaurant?.id],

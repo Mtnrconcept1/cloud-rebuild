@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,25 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/ImageUpload";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { useDashboardRestaurant } from "./DashboardContext";
+import { CreditCard, CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
 
 export default function DashboardRestaurant() {
   const { user } = useAuth();
+  const { selectedId } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [connectLoading, setConnectLoading] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", address: "", city: "", phone: "", cuisine_type: "", image_url: "", delivery_available: false, delivery_fee: 0, min_order_amount: 0, supports_pickup: false, supports_dinein: false, supports_reservation: false });
 
   const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant", user?.id],
+    queryKey: ["my-restaurant", selectedId],
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("*").eq("owner_id", user!.id).order("created_at", { ascending: true }).limit(1);
-      return data?.[0] || null;
+      const { data } = await supabase.from("restaurants").select("*").eq("id", selectedId!).single();
+      return data;
     },
-    enabled: !!user,
+    enabled: !!selectedId,
   });
 
   useEffect(() => {
@@ -53,6 +57,35 @@ export default function DashboardRestaurant() {
     }
     setLoading(false);
     queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
+    queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
+  };
+
+  const handleStripeConnect = async () => {
+    if (!restaurant) return;
+    setConnectLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-connect-onboard`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            restaurant_id: restaurant.id,
+            return_url: window.location.href,
+          }),
+        }
+      );
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Erreur");
+      window.location.href = data.url;
+    } catch (e: any) {
+      toast({ title: "Erreur", description: e.message, variant: "destructive" });
+      setConnectLoading(false);
+    }
   };
 
   return (
@@ -102,6 +135,31 @@ export default function DashboardRestaurant() {
             </div>
           </div>
           <Button onClick={handleSave} disabled={loading} className="w-full mt-8">{loading ? "Enregistrement..." : "Sauvegarder"}</Button>
+
+          {restaurant && (
+            <div className="border-t pt-4 mt-6">
+              <h3 className="font-semibold mb-4 flex items-center gap-2"><CreditCard className="h-5 w-5" /> Paiements Stripe Connect</h3>
+              <p className="text-sm text-muted-foreground mb-4">Connectez votre compte Stripe pour recevoir les paiements directement sur votre compte bancaire.</p>
+              {(restaurant as any).stripe_account_id ? (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-green-50 border border-green-200">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-green-800">Compte Stripe connecté</p>
+                    <p className="text-xs text-green-600 font-mono">{(restaurant as any).stripe_account_id}</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleStripeConnect} disabled={connectLoading} className="gap-1.5">
+                    {connectLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                    Gérer
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={handleStripeConnect} disabled={connectLoading} variant="outline" className="w-full gap-2">
+                  {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                  {connectLoading ? "Redirection..." : "Connecter mon compte Stripe"}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

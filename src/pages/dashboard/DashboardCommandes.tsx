@@ -1,4 +1,3 @@
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -10,6 +9,7 @@ import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "
 import { Separator } from "@/components/ui/separator";
 import { mapOrderStatusToTrackingStatus, normalizeOrderStatus } from "@/lib/orderStatus";
 import type { Database } from "@/integrations/supabase/types";
+import { useDashboardRestaurant } from "./DashboardContext";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type DeliveryTrackingRow = Database["public"]["Tables"]["delivery_tracking"]["Row"];
@@ -43,18 +43,11 @@ const SIMULATED_COORDS = {
 };
 
 export default function DashboardCommandes() {
-  const { user } = useAuth();
+  const { selectedId } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id).maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
+  const restaurant = selectedId ? { id: selectedId } : null;
 
   const { data: orders } = useQuery({
     queryKey: ["dashboard-all-orders", restaurant?.id],

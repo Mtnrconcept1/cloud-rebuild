@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BadgePercent, BarChart3, BookOpen, Bot, CalendarDays, Camera, CircleHelp, LayoutDashboard, Menu, MessageSquareText, Megaphone, ReceiptText, Scale, Share2, ShoppingCart, Sparkles, UtensilsCrossed, Zap, Leaf, Percent, SlidersHorizontal } from "lucide-react";
+import { BarChart3, BookOpen, Bot, CalendarDays, Camera, CircleHelp, LayoutDashboard, Menu, MessageSquareText, Megaphone, ReceiptText, Scale, Share2, ShoppingCart, Sparkles, UtensilsCrossed, Zap, Leaf, Percent, SlidersHorizontal, ChevronDown, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
+import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
 
 type NavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }>; };
 type NavSection = { title: string; items: NavItem[]; };
@@ -50,6 +51,52 @@ const NAV_SECTIONS: NavSection[] = [
 
 const NAV_ITEMS = NAV_SECTIONS.flatMap((s) => s.items);
 
+function RestaurantSelector() {
+  const { restaurants, selectedId, setSelectedId } = useDashboardRestaurant();
+  const [open, setOpen] = useState(false);
+
+  if (restaurants.length <= 1) {
+    const name = restaurants[0]?.name || "Mon restaurant";
+    return (
+      <div className="px-3 py-2 mb-2 flex items-center gap-2 text-sm font-semibold text-sidebar-foreground">
+        <Store className="h-4 w-4 text-primary" />
+        <span className="truncate">{name}</span>
+      </div>
+    );
+  }
+
+  const selected = restaurants.find((r) => r.id === selectedId);
+
+  return (
+    <div className="px-2 mb-2 relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors text-sm font-semibold"
+      >
+        <Store className="h-4 w-4 text-primary shrink-0" />
+        <span className="truncate flex-1 text-left">{selected?.name || "Choisir..."}</span>
+        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="absolute z-50 left-2 right-2 mt-1 rounded-xl border bg-card shadow-lg py-1 max-h-60 overflow-y-auto">
+          {restaurants.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => { setSelectedId(r.id); setOpen(false); }}
+              className={cn(
+                "w-full text-left px-3 py-2 text-sm hover:bg-sidebar-accent/50 transition-colors",
+                r.id === selectedId && "bg-primary/10 text-primary font-semibold"
+              )}
+            >
+              {r.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NavItems({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return <>
     {NAV_SECTIONS.map((section) => (
@@ -75,6 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SheetTrigger asChild><Button variant="ghost" size="icon"><Menu className="h-5 w-5" /></Button></SheetTrigger>
           <SheetContent side="left" className="w-72 p-4 overflow-y-auto">
             <SheetHeader><SheetTitle className="font-display text-lg font-semibold px-3 py-2">Dashboard</SheetTitle></SheetHeader>
+            <RestaurantSelector />
             <nav className="flex flex-col gap-1 mt-2"><NavItems pathname={pathname} onNavigate={() => setOpen(false)} /></nav>
           </SheetContent>
         </Sheet>
@@ -82,6 +130,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       <aside className="hidden md:flex w-72 border-r bg-sidebar flex-col p-4 overflow-y-auto">
         <h2 className="font-display text-lg font-semibold px-3 py-2 mb-1">Dashboard</h2>
+        <RestaurantSelector />
         <nav className="flex flex-col gap-1"><NavItems pathname={pathname} /></nav>
       </aside>
       <main className="flex-1 p-6">{children}</main>

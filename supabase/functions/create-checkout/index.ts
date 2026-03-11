@@ -35,6 +35,11 @@ Deno.serve(async (req) => {
       });
     }
 
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
     const {
       items,
       payment_method,
@@ -52,6 +57,18 @@ Deno.serve(async (req) => {
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
       apiVersion: "2025-08-27.basil",
     });
+
+    // Look up restaurant's Stripe Connected Account for payment routing
+    let stripeAccountId: string | null = null;
+    const restaurantId = order_metadata?.restaurant_id;
+    if (restaurantId) {
+      const { data: restaurant } = await supabaseAdmin
+        .from("restaurants")
+        .select("stripe_account_id")
+        .eq("id", restaurantId)
+        .maybeSingle();
+      stripeAccountId = restaurant?.stripe_account_id || null;
+    }
 
     // Map payment method to Stripe payment_method_types
     const paymentMethodTypes: string[] = [];
@@ -98,8 +115,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    // Build Stripe Checkout Session params
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: paymentMethodTypes,
       line_items: lineItems,
       mode: "payment",
@@ -112,7 +129,25 @@ Deno.serve(async (req) => {
         restaurant_id: order_metadata?.restaurant_id || "",
         payment_method_label: payment_method,
       },
-    });
+    };
+
+    // Route payment to restaurant's Stripe Connected Account via destination charge
+    if (stripeAccountId) {
+      const platformFeePercent = 0.10; // 10% platform commission
+      const totalAmount = lineItems.reduce(
+        (sum: number, li: any) => sum + li.price_data.unit_amount * li.quantity,
+        0
+      );
+      sessionParams.payment_intent_data = {
+        transfer_data: {
+          destination: stripeAccountId,
+        },
+        application_fee_amount: Math.round(totalAmount * platformFeePercent),
+      };
+    }
+
+    // Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return new Response(
       JSON.stringify({ url: session.url, session_id: session.id }),
