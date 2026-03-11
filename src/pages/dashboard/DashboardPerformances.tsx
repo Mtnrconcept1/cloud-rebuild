@@ -1,11 +1,24 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { TrendingUp, ShoppingCart, Euro, CalendarDays, XCircle, Star } from "lucide-react";
+import {
+  TrendingUp,
+  ShoppingCart,
+  Euro,
+  CalendarDays,
+  XCircle,
+  Star,
+  DollarSign,
+  Receipt,
+  CreditCard,
+  Percent,
+} from "lucide-react";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 type KpiRow = {
@@ -18,8 +31,17 @@ type KpiRow = {
   satisfaction_score: number;
 };
 
-type OrderLite = { created_at: string; total_amount: number | string | null; status: string | null };
-type ReservationLite = { date: string; status: string | null };
+type OrderLite = {
+  created_at: string;
+  total_amount: number | string | null;
+  status: string | null;
+  metadata?: unknown;
+};
+
+type ReservationLite = {
+  date: string;
+  status: string | null;
+};
 
 const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed"]);
 const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "no_show"]);
@@ -29,6 +51,19 @@ function dayKeyFromIso(iso: string | null | undefined): string | null {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
   return d.toISOString().slice(0, 10);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toNumber(value: unknown) {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
 }
 
 function buildFallbackKpis(orders: OrderLite[], reservations: ReservationLite[]): KpiRow[] {
@@ -53,14 +88,13 @@ function buildFallbackKpis(orders: OrderLite[], reservations: ReservationLite[])
   }
 
   for (const reservation of reservations) {
-    const key = reservation.date;
-    if (!key) continue;
-    const bucket = byDay.get(key) || { orderTotal: 0, orderValid: 0, revenue: 0, reservations: 0, cancelled: 0 };
+    if (!reservation.date) continue;
+    const bucket = byDay.get(reservation.date) || { orderTotal: 0, orderValid: 0, revenue: 0, reservations: 0, cancelled: 0 };
     const status = String(reservation.status || "").toLowerCase();
     if (!INVALID_RESERVATION_STATUSES.has(status)) {
       bucket.reservations += 1;
     }
-    byDay.set(key, bucket);
+    byDay.set(reservation.date, bucket);
   }
 
   return Array.from(byDay.entries())
@@ -77,24 +111,44 @@ function buildFallbackKpis(orders: OrderLite[], reservations: ReservationLite[])
 }
 
 export default function DashboardPerformances() {
-  const { restaurants, selectedId, setSelectedId, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
+  const { restaurants, selectedId, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
   const [kpis, setKpis] = useState<KpiRow[]>([]);
+  const [orders, setOrders] = useState<OrderLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState("30");
 
+  const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
+  const from = new Date();
+  from.setDate(from.getDate() - Number(period));
+  const fromDay = from.toISOString().slice(0, 10);
+
+  const { data: invoices = [], isLoading: loadingInvoices, error: invoicesError } = useQuery({
+    queryKey: ["dashboard-performance-invoices", selectedId],
+    queryFn: async () => {
+      if (!selectedId) return [];
+      const { data, error: invoiceError } = await supabase
+        .from("restaurant_invoices")
+        .select("*")
+        .eq("restaurant_id", selectedId)
+        .order("period_end", { ascending: false })
+        .limit(10);
+      if (invoiceError) throw invoiceError;
+      return data || [];
+    },
+    enabled: !!selectedId,
+  });
+
   const load = async () => {
     if (!selectedId) {
       setKpis([]);
+      setOrders([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
     setError(null);
-    const from = new Date();
-    from.setDate(from.getDate() - Number(period));
-    const fromDay = from.toISOString().slice(0, 10);
 
     const [kpiRes, ordersRes, reservationsRes] = await Promise.all([
       supabase
@@ -105,7 +159,7 @@ export default function DashboardPerformances() {
         .order("kpi_date", { ascending: true }),
       supabase
         .from("orders")
-        .select("created_at, total_amount, status")
+        .select("created_at, total_amount, status, metadata")
         .eq("restaurant_id", selectedId)
         .gte("created_at", `${fromDay}T00:00:00.000Z`),
       supabase
@@ -115,147 +169,355 @@ export default function DashboardPerformances() {
         .gte("date", fromDay),
     ]);
 
+    const orderRows = (ordersRes.data || []) as OrderLite[];
+    const reservationRows = (reservationsRes.data || []) as ReservationLite[];
+    setOrders(orderRows);
+
     const kpiRows = (kpiRes.data || []) as KpiRow[];
     if (kpiRows.length > 0) {
       setKpis(kpiRows);
-      setError(kpiRes.error?.message || null);
+      setError(kpiRes.error?.message || ordersRes.error?.message || reservationsRes.error?.message || null);
       setLoading(false);
       return;
     }
 
-    const fallbackRows = buildFallbackKpis((ordersRes.data || []) as OrderLite[], (reservationsRes.data || []) as ReservationLite[]);
+    const fallbackRows = buildFallbackKpis(orderRows, reservationRows);
     const fallbackError = ordersRes.error?.message || reservationsRes.error?.message || null;
     setKpis(fallbackRows);
     setError(fallbackRows.length > 0 && !fallbackError ? null : fallbackError || kpiRes.error?.message || null);
     setLoading(false);
   };
 
+  const refreshSelectedRestaurantKpis = async () => {
+    if (!selectedId) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      for (let offset = Number(period) - 1; offset >= 0; offset -= 1) {
+        const d = new Date();
+        d.setDate(d.getDate() - offset);
+        await supabase.rpc("refresh_restaurant_daily_kpis_for_date", {
+          p_restaurant_id: selectedId,
+          p_day: d.toISOString().slice(0, 10),
+        });
+      }
+      await load();
+    } catch (refreshError) {
+      setLoading(false);
+      setError(refreshError instanceof Error ? refreshError.message : "Impossible de recalculer les KPIs.");
+    }
+  };
+
   useEffect(() => {
     if (selectedId) load();
+    else {
+      setKpis([]);
+      setOrders([]);
+      setLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, period]);
 
-  const totalOrders = kpis.reduce((s, k) => s + k.orders_count, 0);
-  const totalRevenue = kpis.reduce((s, k) => s + Number(k.revenue), 0);
+  const totalOrders = kpis.reduce((sum, kpi) => sum + Number(kpi.orders_count || 0), 0);
+  const totalRevenue = kpis.reduce((sum, kpi) => sum + Number(kpi.revenue || 0), 0);
   const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-  const totalReservations = kpis.reduce((s, k) => s + k.reservations_count, 0);
-  const avgCancel = kpis.length > 0 ? kpis.reduce((s, k) => s + Number(k.cancel_rate), 0) / kpis.length : 0;
-  const satisfactionValues = kpis.map((k) => Number(k.satisfaction_score)).filter((v) => Number.isFinite(v) && v > 0);
+  const totalReservations = kpis.reduce((sum, kpi) => sum + Number(kpi.reservations_count || 0), 0);
+  const avgCancel = kpis.length > 0
+    ? kpis.reduce((sum, kpi) => sum + Number(kpi.cancel_rate || 0), 0) / kpis.length
+    : 0;
+  const satisfactionValues = kpis
+    .map((kpi) => Number(kpi.satisfaction_score))
+    .filter((value) => Number.isFinite(value) && value > 0);
   const avgSatisfaction = satisfactionValues.length > 0
-    ? satisfactionValues.reduce((s, v) => s + v, 0) / satisfactionValues.length
+    ? satisfactionValues.reduce((sum, value) => sum + value, 0) / satisfactionValues.length
     : 0;
 
-  const chartData = kpis.map((k) => ({
-    date: new Date(k.kpi_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
-    Commandes: k.orders_count,
-    "CA (CHF)": Number(k.revenue),
-    "Panier moyen": Number(k.avg_ticket),
+  const validOrders = orders.filter((order) => !INVALID_ORDER_STATUSES.has(String(order.status || "").toLowerCase()));
+  const invalidOrders = orders.length - validOrders.length;
+  let formulaDiscount = 0;
+  let promoDiscount = 0;
+  let loyaltyDiscount = 0;
+  let flexDiscount = 0;
+
+  for (const order of validOrders) {
+    const metadata = isRecord(order.metadata) ? order.metadata : {};
+    const formulaValue = toNumber(metadata.formula_discount_amount);
+    formulaDiscount += formulaValue || toNumber(metadata.formula_discount);
+    promoDiscount += toNumber(metadata.promotion_discount_amount) || toNumber(metadata.promo_discount_amount);
+    loyaltyDiscount += toNumber(metadata.points_discount);
+    flexDiscount += toNumber(metadata.flex_discount);
+  }
+
+  const totalDiscounts = formulaDiscount + promoDiscount + loyaltyDiscount + flexDiscount;
+  const netRevenue = validOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+  const grossRevenue = netRevenue + totalDiscounts;
+  const accountingAvgTicket = validOrders.length > 0 ? netRevenue / validOrders.length : 0;
+  const accountingCancelRate = orders.length > 0 ? Math.round((invalidOrders / orders.length) * 100) : 0;
+
+  const chartData = kpis.map((kpi) => ({
+    date: new Date(kpi.kpi_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
+    Commandes: Number(kpi.orders_count || 0),
+    "CA (CHF)": Number(kpi.revenue || 0),
+    "Panier moyen": Number(kpi.avg_ticket || 0),
   }));
+
+  const isBusy = loadingRestaurants || loading || loadingInvoices;
+  const combinedError = restaurantError || error || invoicesError?.message || null;
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-display text-3xl font-bold">Performances</h1>
-          <div className="flex gap-2">
-            {restaurants.length > 1 && (
-              <Select value={selectedId || ""} onValueChange={setSelectedId}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {restaurants.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7">7 jours</SelectItem>
-                <SelectItem value="30">30 jours</SelectItem>
-                <SelectItem value="90">90 jours</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-2">
+            <h1 className="font-display text-3xl font-bold">Performances</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">{selectedRestaurant?.name || "Aucun restaurant selectionne"}</Badge>
+              <span className="text-sm text-muted-foreground">
+                Toutes les donnees affichees sont filtrees sur le restaurant selectionne.
+              </span>
+            </div>
           </div>
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 jours</SelectItem>
+              <SelectItem value="30">30 jours</SelectItem>
+              <SelectItem value="90">90 jours</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {!selectedId && !loadingRestaurants ? (
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><ShoppingCart className="h-4 w-4" />Commandes</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalOrders}</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Euro className="h-4 w-4" />CA</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalRevenue.toFixed(0)} CHF</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><TrendingUp className="h-4 w-4" />Panier moyen</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{avgTicket.toFixed(1)} CHF</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" />Réservations</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalReservations}</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><XCircle className="h-4 w-4" />Annulation</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{avgCancel.toFixed(1)}%</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Star className="h-4 w-4" />Client Satisfaction</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{avgSatisfaction > 0 ? `${avgSatisfaction.toFixed(1)}/5` : "N/A"}</p></CardContent>
-          </Card>
-        </div>
-
-        {loadingRestaurants || loading ? <p>Chargement...</p> : null}
-        {restaurantError || error ? <p className="text-destructive">Erreur : {restaurantError || error}</p> : null}
-
-        {!loading && chartData.length > 0 && (
-          <>
-            <Card>
-              <CardHeader><CardTitle>Chiffre d'affaires</CardTitle></CardHeader>
-              <CardContent className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip />
-                    <Bar dataKey="CA (CHF)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle>Commandes / jour</CardTitle></CardHeader>
-              <CardContent className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="Commandes" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {!loading && !error && chartData.length === 0 && (
-          <Card>
-            <CardContent className="pt-6 text-center text-muted-foreground">
-              <TrendingUp className="mx-auto h-10 w-10 mb-2 opacity-40" />
-              <p>Aucune donnée de performance sur cette période.</p>
-              <Button variant="outline" className="mt-3" onClick={async () => {
-                if (!selectedId) return;
-                await supabase.rpc("refresh_restaurant_daily_kpis_recent_days", { p_days_back: Number(period) });
-                load();
-              }}>
-                Recalculer les KPIs
-              </Button>
+            <CardContent className="py-10 text-center text-muted-foreground">
+              Aucun restaurant disponible pour ce dashboard.
             </CardContent>
           </Card>
-        )}
+        ) : null}
+
+        {selectedId ? (
+          <>
+            <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <ShoppingCart className="h-4 w-4" />
+                    Commandes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{totalOrders}</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <Euro className="h-4 w-4" />
+                    CA
+                  </CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{totalRevenue.toFixed(0)} CHF</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <TrendingUp className="h-4 w-4" />
+                    Panier moyen
+                  </CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{avgTicket.toFixed(1)} CHF</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <CalendarDays className="h-4 w-4" />
+                    Reservations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{totalReservations}</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <XCircle className="h-4 w-4" />
+                    Annulation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{avgCancel.toFixed(1)}%</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <Star className="h-4 w-4" />
+                    Satisfaction
+                  </CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{avgSatisfaction > 0 ? `${avgSatisfaction.toFixed(1)}/5` : "N/A"}</p></CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground flex items-center gap-1">
+                    <DollarSign className="h-4 w-4" />
+                    CA net
+                  </CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold text-primary">{netRevenue.toFixed(2)} CHF</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">CA brut estime</CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{grossRevenue.toFixed(2)} CHF</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">Commandes valides</CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{validOrders.length}</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">Panier comptable</CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{accountingAvgTicket.toFixed(2)} CHF</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">Annulation commandes</CardTitle>
+                </CardHeader>
+                <CardContent><p className="text-2xl font-bold">{accountingCancelRate}%</p></CardContent>
+              </Card>
+            </div>
+
+            {isBusy ? <p>Chargement...</p> : null}
+            {combinedError ? <p className="text-destructive">Erreur : {combinedError}</p> : null}
+
+            {!loading && chartData.length > 0 ? (
+              <div className="grid gap-4 xl:grid-cols-2">
+                <Card>
+                  <CardHeader><CardTitle>Chiffre d'affaires</CardTitle></CardHeader>
+                  <CardContent className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="date" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <Tooltip />
+                        <Bar dataKey="CA (CHF)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle>Commandes / jour</CardTitle></CardHeader>
+                  <CardContent className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="date" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="Commandes" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
+
+            <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Percent className="h-4 w-4" />
+                    Remises sur la periode
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between"><span>Formules</span><span>-{formulaDiscount.toFixed(2)} CHF</span></div>
+                  <div className="flex justify-between"><span>Promotions</span><span>-{promoDiscount.toFixed(2)} CHF</span></div>
+                  <div className="flex justify-between"><span>Fidelite</span><span>-{loyaltyDiscount.toFixed(2)} CHF</span></div>
+                  <div className="flex justify-between"><span>Flex</span><span>-{flexDiscount.toFixed(2)} CHF</span></div>
+                  <div className="flex justify-between font-semibold border-t pt-2">
+                    <span>Total remises</span>
+                    <span>-{totalDiscounts.toFixed(2)} CHF</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Lecture comptable
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground space-y-1">
+                  <p>Le CA net correspond aux commandes validees du restaurant selectionne.</p>
+                  <p>Le CA brut estime ajoute les remises retrouvees dans les metadonnees de commande.</p>
+                  <p>Les factures ci-dessous sont limitees au restaurant actuellement actif dans la sidebar.</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-4">
+              <h2 className="font-display text-xl font-bold flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                Factures recentes
+              </h2>
+              {loadingInvoices ? (
+                <Card><CardContent className="py-8 text-center text-muted-foreground">Chargement...</CardContent></Card>
+              ) : !invoices.length ? (
+                <Card><CardContent className="py-8 text-center text-muted-foreground">Aucune facture disponible</CardContent></Card>
+              ) : (
+                <div className="space-y-3">
+                  {invoices.map((invoice: any) => (
+                    <Card key={invoice.id}>
+                      <CardContent className="flex items-center justify-between gap-3 py-4">
+                        <div>
+                          <p className="font-semibold text-sm">{invoice.period_start} {"->"} {invoice.period_end}</p>
+                          <p className="text-xs text-muted-foreground">
+                            HT: {Number(invoice.amount_ht).toFixed(2)} | TVA: {Number(invoice.amount_tva).toFixed(2)} | TTC: {Number(invoice.amount_ttc).toFixed(2)} CHF
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={invoice.status === "paid" ? "default" : invoice.status === "sent" ? "secondary" : "outline"}
+                            className="text-[10px]"
+                          >
+                            {invoice.status === "paid" ? "Payee" : invoice.status === "sent" ? "Envoyee" : "Brouillon"}
+                          </Badge>
+                          {invoice.pdf_url ? (
+                            <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
+                              PDF
+                            </a>
+                          ) : null}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {!loading && !combinedError && chartData.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center text-muted-foreground">
+                  <TrendingUp className="mx-auto h-10 w-10 mb-2 opacity-40" />
+                  <p>Aucune donnee de performance sur cette periode.</p>
+                  <Button variant="outline" className="mt-3" onClick={refreshSelectedRestaurantKpis}>
+                    Recalculer les KPIs
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : null}
+          </>
+        ) : null}
       </div>
     </DashboardLayout>
   );

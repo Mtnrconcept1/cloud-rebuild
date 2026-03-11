@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
@@ -53,7 +53,6 @@ const DashboardCommandes = lazy(() => import("./pages/dashboard/DashboardCommand
 const DashboardOffres = lazy(() => import("./pages/dashboard/DashboardOffres"));
 const DashboardVentesFlash = lazy(() => import("./pages/dashboard/DashboardVentesFlash"));
 const DashboardFormules = lazy(() => import("./pages/dashboard/DashboardFormules"));
-const DashboardCompta = lazy(() => import("./pages/dashboard/DashboardCompta"));
 const DashboardCampagnes = lazy(() => import("./pages/dashboard/DashboardCampagnes"));
 const DashboardRecommandations = lazy(() => import("./pages/dashboard/DashboardRecommandations"));
 const DashboardPerformances = lazy(() => import("./pages/dashboard/DashboardPerformances"));
@@ -136,7 +135,7 @@ const App = () => (
                   <Route path="/dashboard/performances" element={<DashboardRoute><DashboardPerformances /></DashboardRoute>} />
                   <Route path="/dashboard/comparaison" element={<DashboardRoute><DashboardComparaison /></DashboardRoute>} />
                   <Route path="/dashboard/avis" element={<DashboardRoute><DashboardAvis /></DashboardRoute>} />
-                  <Route path="/dashboard/compta" element={<DashboardRoute><DashboardCompta /></DashboardRoute>} />
+                  <Route path="/dashboard/compta" element={<Navigate to="/dashboard/performances" replace />} />
                   <Route path="/dashboard/factures" element={<DashboardRoute><DashboardFactures /></DashboardRoute>} />
                   <Route path="/dashboard/factures/parametres" element={<DashboardRoute><DashboardInvoiceSettings /></DashboardRoute>} />
                   <Route path="/dashboard/offres" element={<DashboardRoute><DashboardOffres /></DashboardRoute>} />
