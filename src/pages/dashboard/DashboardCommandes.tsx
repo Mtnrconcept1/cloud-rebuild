@@ -1,4 +1,4 @@
-import { useAuth } from "@/lib/auth";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -10,6 +10,7 @@ import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "
 import { Separator } from "@/components/ui/separator";
 import { mapOrderStatusToTrackingStatus, normalizeOrderStatus } from "@/lib/orderStatus";
 import type { Database } from "@/integrations/supabase/types";
+import { useOwnerRestaurants } from "./useOwnerRestaurants";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type DeliveryTrackingRow = Database["public"]["Tables"]["delivery_tracking"]["Row"];
@@ -43,29 +44,32 @@ const SIMULATED_COORDS = {
 };
 
 export default function DashboardCommandes() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useOwnerRestaurants();
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
 
-  const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id).maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
+  useEffect(() => {
+    if (!restaurants.length) {
+      setSelectedRestaurantId(null);
+      return;
+    }
 
-  const { data: orders } = useQuery({
-    queryKey: ["dashboard-all-orders", restaurant?.id],
+    if (!selectedRestaurantId || !restaurants.some((restaurant) => restaurant.id === selectedRestaurantId)) {
+      setSelectedRestaurantId(restaurants[0].id);
+    }
+  }, [restaurants, selectedRestaurantId]);
+
+  const { data: orders, error: ordersError } = useQuery({
+    queryKey: ["dashboard-all-orders", selectedRestaurantId],
     queryFn: async () => {
       const [ordersRes, customersRes] = await Promise.all([
         supabase
           .from("orders")
           .select(`*, delivery_tracking(*), order_items(*, menu_items(name), anti_waste_offers(title))`)
-          .eq("restaurant_id", restaurant!.id)
+          .eq("restaurant_id", selectedRestaurantId!)
           .order("created_at", { ascending: false }),
-        supabase.rpc("get_order_customers" as any, { p_restaurant_id: restaurant!.id }),
+        supabase.rpc("get_order_customers" as any, { p_restaurant_id: selectedRestaurantId! }),
       ]);
 
       const customerMap = new Map(
@@ -77,7 +81,7 @@ export default function DashboardCommandes() {
         profiles: customerMap.get(o.user_id) || null,
       })) as unknown as OrderWithRelations[];
     },
-    enabled: !!restaurant,
+    enabled: !!selectedRestaurantId,
   });
 
   const updateStatus = async (orderId: string, status: string) => {
@@ -121,13 +125,51 @@ export default function DashboardCommandes() {
       }
     }
 
-    queryClient.invalidateQueries({ queryKey: ["dashboard-all-orders"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-all-orders", selectedRestaurantId] });
   };
+
+  const hasRestaurants = restaurants.length > 0;
+
+  const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedRestaurantId);
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <h1 className="font-display text-3xl font-bold">Commandes</h1>
+
+        {restaurantsLoading && <p className="text-muted-foreground">Chargement des restaurants…</p>}
+        {restaurantsError && <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p>}
+        {!restaurantsLoading && !restaurantsError && !hasRestaurants && (
+          <p className="text-muted-foreground">Aucun restaurant lié à votre compte.</p>
+        )}
+
+        {hasRestaurants && (
+          <div className="max-w-md space-y-1">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Restaurant</p>
+            <Select value={selectedRestaurantId ?? undefined} onValueChange={setSelectedRestaurantId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un restaurant" />
+              </SelectTrigger>
+              <SelectContent>
+                {restaurants.map((restaurant) => (
+                  <SelectItem key={restaurant.id} value={restaurant.id}>
+                    {restaurant.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {hasRestaurants && !selectedRestaurant && (
+          <p className="text-muted-foreground">Veuillez sélectionner un restaurant pour afficher les commandes.</p>
+        )}
+
+        {ordersError && (
+          <p className="text-destructive">Erreur lors du chargement des commandes : {(ordersError as Error).message}</p>
+        )}
+
+        {!restaurantsLoading && !restaurantsError && hasRestaurants && selectedRestaurant && !ordersError && (
         <div className="space-y-3">
           {orders?.map((o) => {
             const tracking = o.delivery_tracking?.[0] ?? null;
@@ -227,6 +269,7 @@ export default function DashboardCommandes() {
           })}
           {(!orders || orders.length === 0) && <p className="text-muted-foreground text-center py-8">Aucune commande</p>}
         </div>
+        )}
       </div>
     </DashboardLayout>
   );

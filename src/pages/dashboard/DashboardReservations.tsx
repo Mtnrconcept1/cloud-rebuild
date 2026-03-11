@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Check, CreditCard, Dot, ShieldAlert, UserCheck, Utensils, X } from "lucide-react";
+import { useOwnerRestaurants } from "./useOwnerRestaurants";
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -48,7 +48,6 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
 };
 
 export default function DashboardReservations() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -57,30 +56,41 @@ export default function DashboardReservations() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<SortBy>("time");
   const [isCompactMode, setIsCompactMode] = useState(false);
+  const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useOwnerRestaurants();
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
 
   useEffect(() => { if (typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches) setIsCompactMode(true); }, []);
 
-  const { data: restaurant } = useQuery({ queryKey: ["my-restaurant", user?.id], queryFn: async () => { const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id).maybeSingle(); return data; }, enabled: !!user });
+  useEffect(() => {
+    if (!restaurants.length) {
+      setSelectedRestaurantId(null);
+      return;
+    }
 
-  const { data: reservations = [] } = useQuery({
-    queryKey: ["dashboard-all-reservations", restaurant?.id],
+    if (!selectedRestaurantId || !restaurants.some((restaurant) => restaurant.id === selectedRestaurantId)) {
+      setSelectedRestaurantId(restaurants[0].id);
+    }
+  }, [restaurants, selectedRestaurantId]);
+
+  const { data: reservations = [], error: reservationsError } = useQuery({
+    queryKey: ["dashboard-all-reservations", selectedRestaurantId],
     queryFn: async () => {
-      const { data: reservationRows, error: reservationError } = await supabase.from("reservations").select("*").eq("restaurant_id", restaurant!.id).order("date", { ascending: true }).order("time", { ascending: true });
+      const { data: reservationRows, error: reservationError } = await supabase.from("reservations").select("*").eq("restaurant_id", selectedRestaurantId!).order("date", { ascending: true }).order("time", { ascending: true });
       if (reservationError) throw reservationError;
       if (!reservationRows?.length) return [] as ReservationWithProfile[];
 
       // Use SECURITY DEFINER function to fetch customer profiles (bypasses profiles RLS)
-      const { data: profilesData } = await supabase.rpc("get_reservation_customers" as any, { p_restaurant_id: restaurant!.id });
+      const { data: profilesData } = await supabase.rpc("get_reservation_customers" as any, { p_restaurant_id: selectedRestaurantId! });
       const profilesByUserId = new Map((profilesData || []).map((p: any) => [p.user_id, { full_name: p.full_name, phone: p.phone }]));
       return reservationRows.map((r) => ({ ...r, customer: (profilesByUserId.get(r.user_id) as Pick<ProfileRow, "full_name" | "phone">) || null })) as ReservationWithProfile[];
     },
-    enabled: !!restaurant,
+    enabled: !!selectedRestaurantId,
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => { const { error } = await supabase.from("reservations").update({ status }).eq("id", id); if (error) throw error; return { id, status }; },
     onMutate: async ({ id, status }) => {
-      const queryKey = ["dashboard-all-reservations", restaurant?.id];
+      const queryKey = ["dashboard-all-reservations", selectedRestaurantId];
       await queryClient.cancelQueries({ queryKey });
       const previousReservations = queryClient.getQueryData<ReservationWithProfile[]>(queryKey) || [];
       queryClient.setQueryData<ReservationWithProfile[]>(queryKey, (current = []) => current.map((r) => (r.id === id ? { ...r, status } : r)));
@@ -117,6 +127,34 @@ export default function DashboardReservations() {
           <h1 className="font-display text-3xl font-bold">Réservations</h1>
           <Button variant="outline" size="sm" className="sm:hidden" onClick={() => setIsCompactMode((p) => !p)}>{isCompactMode ? "Vue détaillée" : "Mode compact"}</Button>
         </div>
+
+        {restaurantsLoading && <p className="text-muted-foreground">Chargement des restaurants…</p>}
+        {restaurantsError && <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p>}
+        {!restaurantsLoading && !restaurantsError && restaurants.length === 0 && (<p className="text-muted-foreground">Aucun restaurant lié à votre compte.</p>)}
+
+        {restaurants.length > 0 && (
+          <div className="max-w-md space-y-1">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Restaurant</p>
+            <Select value={selectedRestaurantId ?? undefined} onValueChange={setSelectedRestaurantId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un restaurant" />
+              </SelectTrigger>
+              <SelectContent>
+                {restaurants.map((restaurant) => (
+                  <SelectItem key={restaurant.id} value={restaurant.id}>
+                    {restaurant.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {restaurants.length > 0 && !selectedRestaurantId && (<p className="text-muted-foreground">Veuillez sélectionner un restaurant pour afficher les réservations.</p>)}
+
+        {reservationsError && (<p className="text-destructive">Erreur lors du chargement des réservations : {(reservationsError as Error).message}</p>)}
+
+        {restaurants.length > 0 && selectedRestaurantId && !reservationsError && (
         <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1"><p className="text-xs uppercase tracking-wide text-muted-foreground">Date</p><Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} /></div>
           <div className="space-y-1"><p className="text-xs uppercase tracking-wide text-muted-foreground">Service</p><Select value={serviceFilter} onValueChange={(v) => setServiceFilter(v as ServiceFilter)}><SelectTrigger><SelectValue placeholder="Tous les services" /></SelectTrigger><SelectContent><SelectItem value="all">Tous</SelectItem><SelectItem value="lunch">Lunch</SelectItem><SelectItem value="dinner">Dinner</SelectItem></SelectContent></Select></div>
@@ -206,6 +244,7 @@ export default function DashboardReservations() {
             ))}
           </div>
         ) : (<p className="py-10 text-center text-muted-foreground">Aucune réservation pour les filtres sélectionnés.</p>)}
+        )}
       </div>
     </DashboardLayout>
   );
