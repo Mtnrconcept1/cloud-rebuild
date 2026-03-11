@@ -10,12 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle, Check, Dot, ShieldAlert, UserCheck, X } from "lucide-react";
+import { AlertTriangle, Check, CreditCard, Dot, ShieldAlert, UserCheck, Utensils, X } from "lucide-react";
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ReservationWithProfile = ReservationRow & { customer: Pick<ProfileRow, "full_name" | "phone"> | null };
-type ReservationMetadata = { service?: string; promo?: string; discount?: number; risk_level?: string; no_show_risk?: boolean; key_notes?: string[] };
+type ReservationMetadata = { service?: string; promo?: string; discount?: number; risk_level?: string; no_show_risk?: boolean; key_notes?: string[]; payment_method?: string; card_last4?: string; preorder_items?: Array<{ name: string; quantity: number }> };
 type ServiceFilter = "all" | "lunch" | "dinner";
 type SortBy = "time" | "party_size" | "status";
 const SERVICE_CUTOFF_HOUR = 16;
@@ -25,16 +25,25 @@ const getSafeTime = (value: string | null | undefined) => (value && value.slice(
 const toService = (reservation: ReservationRow): ServiceFilter => { const hour = Number.parseInt(getSafeTime(reservation.time).split(":")[0] || "0", 10); return hour < SERVICE_CUTOFF_HOUR ? "lunch" : "dinner"; };
 
 const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
-  if (!isJsonRecord(reservation.metadata)) return {};
-  const riskValue = reservation.metadata.risk_level;
-  const keyNotes = reservation.metadata.key_notes;
+  const meta = isJsonRecord(reservation.metadata) ? reservation.metadata : {};
+  const riskValue = meta.risk_level;
+  const keyNotes = meta.key_notes;
+
+  // Combine preorder items from column (priority) and metadata
+  const columnItems = Array.isArray(reservation.preorder_items) ? reservation.preorder_items : [];
+  const metaItems = Array.isArray(meta.preorder_items) ? meta.preorder_items : [];
+  const preorderItems = columnItems.length > 0 ? columnItems : metaItems;
+
   return {
-    service: typeof reservation.metadata.service === "string" ? reservation.metadata.service.toLowerCase() : undefined,
-    promo: typeof reservation.metadata.promo === "string" ? reservation.metadata.promo : undefined,
-    discount: typeof reservation.metadata.discount === "number" ? reservation.metadata.discount : undefined,
+    service: typeof meta.service === "string" ? meta.service.toLowerCase() : undefined,
+    promo: typeof meta.promo === "string" ? meta.promo : undefined,
+    discount: typeof meta.discount === "number" ? meta.discount : undefined,
     risk_level: typeof riskValue === "string" ? riskValue : undefined,
-    no_show_risk: typeof reservation.metadata.no_show_risk === "boolean" ? reservation.metadata.no_show_risk : undefined,
+    no_show_risk: typeof meta.no_show_risk === "boolean" ? meta.no_show_risk : undefined,
     key_notes: Array.isArray(keyNotes) && keyNotes.every((item) => typeof item === "string") ? (keyNotes as string[]) : undefined,
+    payment_method: typeof meta.payment_method === "string" ? meta.payment_method : undefined,
+    card_last4: typeof meta.card_last4 === "string" ? meta.card_last4 : undefined,
+    preorder_items: preorderItems.length > 0 ? (preorderItems as any[]) : undefined,
   };
 };
 
@@ -144,6 +153,44 @@ export default function DashboardReservations() {
                               {keyNotes.slice(0, 2).map((note) => (<Badge key={note} variant="outline" className="text-[11px]">{note}</Badge>))}
                               {reservation.notes && !isCompactMode && (<Badge variant="outline" className="text-[11px]"><AlertTriangle className="mr-1 h-3 w-3" />{reservation.notes}</Badge>)}
                             </div>
+
+                            {/* Extra details logic: preorder items and payment info */}
+                            {!isCompactMode && (
+                              <div className="mt-4 space-y-3 pt-3 border-t">
+                                {metadata.preorder_items && metadata.preorder_items.length > 0 && (
+                                  <div className="space-y-1.5">
+                                    <p className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+                                      <Utensils className="h-3 w-3" /> Plats réservés
+                                    </p>
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                      {metadata.preorder_items.map((item, i) => (
+                                        <div key={i} className="flex items-center gap-2 text-sm bg-muted/20 p-2 rounded-lg">
+                                          <span className="font-bold text-primary text-xs">x{item.quantity}</span>
+                                          <span className="font-medium">{item.name}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                                  {metadata.payment_method && (
+                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                      <CreditCard className="h-3.5 w-3.5" />
+                                      <span>Paiement : <strong className="text-foreground uppercase">{metadata.payment_method}</strong></span>
+                                      {metadata.card_last4 && (
+                                        <span className="bg-secondary px-1.5 py-0.5 rounded font-mono">**** {metadata.card_last4}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {reservation.total_amount > 0 && (
+                                    <div className="text-sm font-bold text-primary">
+                                      Total : {Number(reservation.total_amount).toFixed(2)} CHF
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-2 sm:justify-end">
                             <Button size="sm" variant="outline" onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })} disabled={updateStatusMutation.isPending}><UserCheck className="mr-1 h-4 w-4" />Arrivée</Button>

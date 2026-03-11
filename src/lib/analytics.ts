@@ -5,11 +5,14 @@ export type AnalyticsEventType =
   | "search"
   | "menu_view"
   | "add_to_cart"
+  | "checkout_initiated"
   | "order_completed"
   | "favorite_added"
+  | "favorite_removed"
   | "category_click"
   | "sponsored_impression"
-  | "sponsored_click";
+  | "sponsored_click"
+  | "review_submitted";
 
 interface TrackEventParams {
   eventType: AnalyticsEventType;
@@ -20,6 +23,7 @@ interface TrackEventParams {
 }
 
 let currentUserId: string | null = null;
+
 const SPONSORED_ATTRIBUTION_KEY = "miamz-sponsored-attribution-v1";
 const SPONSORED_ATTRIBUTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
@@ -75,6 +79,15 @@ function getValidSponsoredCampaignId(restaurantId: string): string | null {
   return attribution.campaignId;
 }
 
+// Auto-sync authentication state
+supabase.auth.getSession().then(({ data: { session } }) => {
+  currentUserId = session?.user?.id || null;
+});
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  currentUserId = session?.user?.id || null;
+});
+
 export function setAnalyticsUser(userId: string | null) {
   currentUserId = userId;
 }
@@ -83,42 +96,97 @@ export async function trackEvent({
   eventType,
   eventData = {},
   restaurantId,
-  cuisineType,
-  city,
 }: TrackEventParams) {
-  if (!currentUserId) return;
-
   try {
-    await supabase.from("user_analytics" as any).insert({
-      user_id: currentUserId,
-      event_type: eventType,
-      event_data: eventData,
-      restaurant_id: restaurantId || null,
-      cuisine_type: cuisineType || null,
-      city: city || null,
+    await supabase.from("event_store").insert({
+      entity_id: (restaurantId || currentUserId || "anonymous") as any,
+      entity_type: restaurantId ? "restaurant" : "user",
+      event_name: eventType,
+      payload: { ...eventData, user_id: currentUserId },
     });
   } catch (e) {
-    // Silent fail — analytics should never break the app
+    // Silent fail
+  }
+}
+
+export async function trackSearch(
+  query: string,
+  resultsCount: number,
+  location?: { lat: number; lng: number }
+) {
+  try {
+    await supabase.from("search_logs").insert({
+      user_id: currentUserId,
+      search_query: query,
+      results_count: resultsCount,
+      location_lat: location?.lat,
+      location_lng: location?.lng,
+    });
+  } catch (e) {
+    // Silent fail
+  }
+}
+
+export async function trackImpression(
+  entityType: "restaurant" | "dish" | "collection" | "ad",
+  entityId: string,
+  source?: string
+) {
+  try {
+    const payload = {
+      user_id: currentUserId,
+      entity_type: entityType,
+      entity_id: entityId,
+      source: source,
+    };
+
+    if (!currentUserId) {
+      // Anonymous users don't have SELECT permission, so just insert without select
+      await supabase.from("impressions").insert(payload);
+      return null;
+    }
+
+    const { data } = await supabase.from("impressions").insert(payload).select("id").single();
+    return data?.id;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function trackClick(
+  entityType: "restaurant" | "dish" | "collection" | "ad",
+  entityId: string,
+  impressionId?: string
+) {
+  try {
+    await supabase.from("clicks").insert({
+      user_id: currentUserId,
+      entity_type: entityType,
+      entity_id: entityId,
+      impression_id: impressionId,
+    });
+  } catch (e) {
+    // Silent fail
   }
 }
 
 export async function trackSponsoredImpression(campaignId: string, restaurantId?: string) {
   try {
-    const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+    // 1. Increment the legacy metric via RPC
+    await supabase.rpc("increment_ad_campaign_metric", {
       p_campaign_id: campaignId,
       p_metric: "impressions",
     });
-    if (error) console.warn("[analytics] impression error:", error.message);
-  } catch {
-    // Silently fail — likely blocked by ad blocker
-  }
 
-  if (currentUserId) {
-    trackEvent({
-      eventType: "sponsored_impression",
-      eventData: { campaign_id: campaignId },
-      restaurantId,
-    });
+    // 2. Log in the new impressions table
+    await trackImpression("ad", campaignId, "sponsored_banner");
+
+    // 3. Log the restaurant impression if available
+    if (restaurantId) {
+      await trackImpression("restaurant", restaurantId, "sponsored_banner");
+    }
+  } catch {
+    // Silently fail
   }
 }
 
@@ -126,21 +194,31 @@ export async function trackSponsoredClick(campaignId: string, restaurantId: stri
   rememberSponsoredAttribution(campaignId, restaurantId);
 
   try {
-    const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
+    // 1. Increment the legacy metric via RPC
+    await supabase.rpc("increment_ad_campaign_metric", {
       p_campaign_id: campaignId,
       p_metric: "clicks",
     });
-    if (error) console.warn("[analytics] click error:", error.message);
-  } catch {
-    // Silently fail — likely blocked by ad blocker
-  }
 
-  if (currentUserId) {
-    trackEvent({
-      eventType: "sponsored_click",
-      eventData: { campaign_id: campaignId },
-      restaurantId,
+    // 2. Log in the new clicks table
+    await trackClick("ad", campaignId);
+
+    // 3. Log the restaurant click
+    await trackClick("restaurant", restaurantId);
+  } catch {
+    // Silently fail
+  }
+}
+
+export async function trackCheckoutEvent(orderId: string, eventType: string, payload: any = {}) {
+  try {
+    await supabase.from("order_events").insert({
+      order_id: orderId,
+      event_type: eventType,
+      payload: payload,
     });
+  } catch (e) {
+    // Silent fail
   }
 }
 

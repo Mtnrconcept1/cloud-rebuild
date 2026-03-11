@@ -12,7 +12,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Json } from "@/integrations/supabase/types";
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
 
 interface PreorderItem {
   name: string;
@@ -74,30 +80,18 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
   const FeatureIcon = featureInfo.icon;
 
   const preorderItems: PreorderItem[] = (() => {
-    if (Array.isArray(reservation.preorder_items)) {
-      return reservation.preorder_items.filter(
-        (item): item is Record<string, Json> => isJsonRecord(item)
-      ).map((item) => ({
-        name: String(item.name || item.dish || ""),
-        quantity: Number(item.quantity || 1),
-        unit_price: Number(item.unit_price || item.price || 0),
-        total_price: Number(item.total_price || 0),
-      }));
-    }
-    if (isJsonRecord(reservation.metadata)) {
-      const metaItems = reservation.metadata.preorder_items || reservation.metadata.drops;
-      if (Array.isArray(metaItems)) {
-        return metaItems.filter(
-          (item): item is Record<string, Json> => isJsonRecord(item)
-        ).map((item) => ({
-          name: String(item.name || item.dish || ""),
-          quantity: Number(item.quantity || 1),
-          unit_price: Number(item.unit_price || item.price || 0),
-          total_price: Number(item.total_price || Number(item.price || 0) * Number(item.quantity || 1)),
-        }));
-      }
-    }
-    return [];
+    const fromColumn = Array.isArray(reservation.preorder_items) ? reservation.preorder_items : [];
+    const fromMetadata = isJsonRecord(reservation.metadata) ? (reservation.metadata.preorder_items || reservation.metadata.drops) : [];
+    const itemsToProcess = (fromColumn.length > 0) ? fromColumn : (Array.isArray(fromMetadata) ? fromMetadata : []);
+
+    return itemsToProcess.filter(
+      (item): item is Record<string, Json> => isJsonRecord(item)
+    ).map((item) => ({
+      name: String(item.name || item.dish || ""),
+      quantity: Number(item.quantity || 1),
+      unit_price: Number(item.unit_price || item.price || 0),
+      total_price: Number(item.total_price || (Number(item.price || 0) * Number(item.quantity || 1)) || 0),
+    }));
   })();
 
   const promoInfo = (() => {
@@ -251,6 +245,9 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
                   <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
                     <PmIcon className="h-3 w-3" />
                     <span>Payé par {pmLabel}</span>
+                    {meta.card_last4 && (
+                      <span className="ml-1 bg-secondary px-1 py-0.5 rounded font-mono text-[10px]">**** {String(meta.card_last4)}</span>
+                    )}
                   </div>
                 </div>
               </div>

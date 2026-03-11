@@ -15,7 +15,7 @@ import PromotionDetector from "@/components/PromotionDetector";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { generateOrderReference, sendOrderConfirmationEmail } from "@/lib/email-service";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
-import { trackSponsoredConversion } from "@/lib/analytics";
+import { trackSponsoredConversion, trackEvent, trackCheckoutEvent } from "@/lib/analytics";
 
 import CartItemList from "@/components/cart/CartItemList";
 import LoyaltySection from "@/components/cart/LoyaltySection";
@@ -97,6 +97,8 @@ export default function Panier() {
 
   const handleCheckout = async () => {
     if (!user) return navigate("/auth");
+
+    trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
     if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
 
     const hasIncompatibleFlashMode = flashItems.some((item) => {
@@ -172,11 +174,25 @@ export default function Panier() {
           }));
 
           const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
-            body: { restaurant_id: resId, delivery_address: address, delivery_fee: deliveryFeePerRestaurant, total_amount: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount, notes: notes || null, items: orderItemsJson, metadata: { ...finalMetadata, stripe_session_id: checkoutData.session_id }, checkout_id: checkoutId },
+            body: {
+              restaurant_id: resId,
+              delivery_address: address,
+              delivery_fee: deliveryFeePerRestaurant,
+              total_amount: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
+              notes: notes || null,
+              items: orderItemsJson,
+              metadata: { ...finalMetadata, stripe_session_id: checkoutData.session_id },
+              checkout_id: checkoutId
+            },
           });
+
           if (validateError) throw new Error(validateError.message);
           if (validateResult?.error) throw new Error(validateResult.error);
           if (!firstOrderId) firstOrderId = validateResult?.order_id;
+
+          if (validateResult?.order_id) {
+            await trackCheckoutEvent(validateResult.order_id, "checkout_online_pending", { stripe_session_id: checkoutData.session_id });
+          }
           await trackSponsoredConversion(resId);
         }
 
@@ -216,12 +232,26 @@ export default function Panier() {
         }));
 
         const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
-          body: { restaurant_id: resId, delivery_address: address, delivery_fee: deliveryFeePerRestaurant, total_amount: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount, notes: notes || null, items: orderItemsJson, metadata: finalMetadata, checkout_id: checkoutId },
+          body: {
+            restaurant_id: resId,
+            delivery_address: address,
+            delivery_fee: deliveryFeePerRestaurant,
+            total_amount: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
+            notes: notes || null,
+            items: orderItemsJson,
+            metadata: finalMetadata,
+            checkout_id: checkoutId
+          },
         });
+
         if (validateError) throw new Error(validateError.message);
         if (validateResult?.error) throw new Error(validateResult.error);
         const orderId = validateResult?.order_id;
         if (!firstOrderId) firstOrderId = orderId;
+
+        if (orderId) {
+          await trackCheckoutEvent(orderId, "checkout_cash_confirmed", { total: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount });
+        }
 
         if (cartMetadata.groupId) {
           await supabase.from("group_members" as any).update({ order_id: orderId }).eq("group_id", cartMetadata.groupId).eq("user_id", user.id);
@@ -275,7 +305,7 @@ export default function Panier() {
       pre_discount_subtotal: Number(resSubtotal.toFixed(2)),
       original_total: Number((resSubtotal + deliveryFeePerRestaurant + qualityFeeAmount).toFixed(2)),
       multi_restaurant: resCount > 1, total_restaurants: resCount,
-      payment_method: paymentMethod, donate_earned_xp: donateEarnedXp, order_reference: generateOrderReference(),
+      payment_method: paymentMethod, donate_earned_xp: donateEarnedXp,
       arrival_date: null, arrival_time: null,
       pickup_date: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupDate : pickupDate) : null,
       pickup_time: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupStart : pickupTime) : null,

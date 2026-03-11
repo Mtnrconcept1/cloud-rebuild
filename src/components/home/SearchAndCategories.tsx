@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, UtensilsCrossed } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackClick } from "@/lib/analytics";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,10 +25,11 @@ export default function SearchAndCategories() {
     navigate(searchQuery.trim() ? `/recherche?q=${encodeURIComponent(searchQuery)}` : "/recherche");
   };
 
-  const handleCategoryClick = (query: string) => {
+  const handleCategoryClick = (cat: any) => {
+    const query = cat.name.toLowerCase();
     setActiveCategory(query);
     if (query) {
-      trackEvent({ eventType: "category_click", eventData: { category: query } });
+      trackClick("collection", cat.id);
       navigate(`/recherche?q=${encodeURIComponent(query)}`);
     }
   };
@@ -53,7 +54,7 @@ export default function SearchAndCategories() {
           {cuisines?.map((cat: any) => {
             const isActive = activeCategory === cat.name.toLowerCase();
             return (
-              <button key={cat.id} onClick={() => handleCategoryClick(cat.name.toLowerCase())} className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl shrink-0 transition-all text-sm font-bold ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"}`}>
+              <button key={cat.id} onClick={() => handleCategoryClick(cat)} className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl shrink-0 transition-all text-sm font-bold ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"}`}>
                 {cat.icon_url ? (
                   <img src={cat.icon_url} alt={cat.name} className="w-5 h-5 rounded-full object-cover" />
                 ) : (

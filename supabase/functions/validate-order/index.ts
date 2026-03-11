@@ -133,53 +133,92 @@ Deno.serve(async (req) => {
     }
 
 
-    // 2. Check anti-waste stock if applicable
+    // 2. Check and decrement anti-waste stock atomically via SQL
     if (metadata && (metadata as any).has_anti_gaspi) {
       for (const item of items) {
         if ((item.metadata as any)?.anti_waste_offer_id) {
-          const { data: offer } = await supabaseAdmin
+          const offerId = (item.metadata as any).anti_waste_offer_id;
+          const qty = Math.floor(item.quantity);
+
+          // Verify price
+          const { data: offer, error: offerError } = await supabaseAdmin
             .from("anti_waste_offers")
-            .select("quantity_available, is_active")
-            .eq("id", (item.metadata as any).anti_waste_offer_id)
+            .select("discounted_price, is_active, title")
+            .eq("id", offerId)
             .single();
 
-          if (!offer || !offer.is_active || offer.quantity_available < item.quantity) {
+          if (offerError || !offer || !offer.is_active) {
+            return new Response(JSON.stringify({ error: "Offre anti-gaspi invalide ou expirée." }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+
+          if (Math.abs(offer.discounted_price - item.unit_price) > 0.01) {
             return new Response(
-              JSON.stringify({ error: "Stock anti-gaspi insuffisant." }),
+              JSON.stringify({ error: `Prix incorrect pour ${offer.title}. Attendu : ${offer.discounted_price} CHF` }),
               { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           }
 
-          // Decrement stock atomically
-          await supabaseAdmin
-            .from("anti_waste_offers")
-            .update({ quantity_available: offer.quantity_available - item.quantity })
-            .eq("id", (item.metadata as any).anti_waste_offer_id);
+          // Truly atomic decrement: UPDATE ... SET qty = qty - N WHERE qty >= N
+          const { data: updated, error: updateError } = await supabaseAdmin.rpc("decrement_stock", {
+            p_table: "anti_waste_offers",
+            p_id: offerId,
+            p_qty: qty,
+          });
+
+          if (updateError || !updated) {
+            return new Response(JSON.stringify({ error: "Stock anti-gaspi insuffisant ou erreur de mise à jour." }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
         }
       }
     }
 
-    // 3. Check flash sale stock
+    // 3. Check and decrement flash sale stock atomically via SQL
     if (metadata && (metadata as any).has_flash_sale) {
       for (const item of items) {
         if ((item.metadata as any)?.flash_sale_id) {
-          const { data: sale } = await supabaseAdmin
+          const saleId = (item.metadata as any).flash_sale_id;
+          const qty = Math.floor(item.quantity);
+
+          // Verify price
+          const { data: sale, error: saleError } = await supabaseAdmin
             .from("flash_sales")
-            .select("quantity_available, is_active")
-            .eq("id", (item.metadata as any).flash_sale_id)
+            .select("discounted_price, is_active, title")
+            .eq("id", saleId)
             .single();
 
-          if (!sale || !sale.is_active || sale.quantity_available < item.quantity) {
+          if (saleError || !sale || !sale.is_active) {
+            return new Response(JSON.stringify({ error: "Vente flash invalide ou expirée." }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+
+          if (Math.abs(sale.discounted_price - item.unit_price) > 0.01) {
             return new Response(
-              JSON.stringify({ error: "Stock vente flash insuffisant." }),
+              JSON.stringify({ error: `Prix incorrect pour ${sale.title}. Attendu : ${sale.discounted_price} CHF` }),
               { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           }
 
-          await supabaseAdmin
-            .from("flash_sales")
-            .update({ quantity_available: sale.quantity_available - item.quantity })
-            .eq("id", (item.metadata as any).flash_sale_id);
+          // Truly atomic decrement
+          const { data: updated, error: updateError } = await supabaseAdmin.rpc("decrement_stock", {
+            p_table: "flash_sales",
+            p_id: saleId,
+            p_qty: qty,
+          });
+
+          if (updateError || !updated) {
+            return new Response(JSON.stringify({ error: "Stock vente flash insuffisant ou erreur de mise à jour." }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
         }
       }
     }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -19,6 +20,16 @@ const APPLIES_TO = [
   { value: "dine_in", label: "Sur place" },
   { value: "takeaway", label: "À emporter" },
   { value: "both", label: "Les deux" },
+];
+
+const DAYS_OF_WEEK = [
+  { value: "mon", label: "Lun" },
+  { value: "tue", label: "Mar" },
+  { value: "wed", label: "Mer" },
+  { value: "thu", label: "Jeu" },
+  { value: "fri", label: "Ven" },
+  { value: "sat", label: "Sam" },
+  { value: "sun", label: "Dim" },
 ];
 
 export default function DashboardFormules() {
@@ -59,17 +70,31 @@ export default function DashboardFormules() {
             <Percent className="h-6 w-6 text-primary" />
             <h1 className="font-display text-3xl font-bold">Formules & Menus</h1>
           </div>
-          <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setEditing(null); }}>
-            <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Nouvelle formule</Button></DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle>{editing ? "Modifier la formule" : "Nouvelle formule"}</DialogTitle></DialogHeader>
-              <FormulaForm restaurantIds={restaurantIds} initial={editing} onSaved={() => { setOpen(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ["dashboard-formulas"] }); toast({ title: editing ? "Modifiée" : "Formule créée" }); }} />
-            </DialogContent>
-          </Dialog>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => {
+              setEditing({ name: "Entrée + Plat", formula_key: "entree_plat", categories: "Entrées, Plats", discount_percent: 15, is_standard: true });
+              setOpen(true);
+            }}>Std: E+P</Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              setEditing({ name: "Plat + Dessert", formula_key: "plat_dessert", categories: "Plats, Desserts", discount_percent: 15, is_standard: true });
+              setOpen(true);
+            }}>Std: P+D</Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              setEditing({ name: "Entrée + Plat + Dessert", formula_key: "entree_plat_dessert", categories: "Entrées, Plats, Desserts", discount_percent: 20, is_standard: true });
+              setOpen(true);
+            }}>Std: E+P+D</Button>
+            <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setEditing(null); }}>
+              <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Nouvelle formule</Button></DialogTrigger>
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>{editing?.id ? "Modifier la formule" : "Nouvelle formule"}</DialogTitle></DialogHeader>
+                <FormulaForm restaurantIds={restaurantIds} initial={editing} onSaved={() => { setOpen(false); setEditing(null); queryClient.invalidateQueries({ queryKey: ["dashboard-formulas"] }); toast({ title: editing?.id ? "Modifiée" : "Formule créée" }); }} />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-24 bg-muted animate-pulse rounded-xl" />)}</div>
+          <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-24 bg-muted animate-pulse rounded-xl" />)}</div>
         ) : !formulas?.length ? (
           <Card><CardContent className="py-12 text-center text-muted-foreground">Aucune formule. Créez des menus combinés avec réductions !</CardContent></Card>
         ) : (
@@ -88,6 +113,11 @@ export default function DashboardFormules() {
                     <p className="text-xs text-primary font-medium mt-1">
                       {f.meal_formula_categories?.map((c: any) => c.category).join(" + ")}
                     </p>
+                    {f.availability?.days?.length > 0 && (
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Dispo: {f.availability.days.map((d: string) => DAYS_OF_WEEK.find(dw => dw.value === d)?.label).join(", ")} · {f.availability.startTime} - {f.availability.endTime}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch checked={f.is_active} onCheckedChange={() => toggleActive(f.id, f.is_active)} />
@@ -111,8 +141,13 @@ function FormulaForm({ restaurantIds, initial, onSaved }: { restaurantIds: strin
   const [discountPercent, setDiscountPercent] = useState(initial?.discount_percent?.toString() || "10");
   const [appliesTo, setAppliesTo] = useState(initial?.applies_to || "both");
   const [categories, setCategories] = useState<string>(
-    initial?.meal_formula_categories?.map((c: any) => c.category).join(", ") || ""
+    initial?.categories || initial?.meal_formula_categories?.map((c: any) => c.category).join(", ") || ""
   );
+  const [availability, setAvailability] = useState(initial?.availability || {
+    days: ["mon", "tue", "wed", "thu", "fri"],
+    startTime: "12:00",
+    endTime: "14:30"
+  });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,6 +157,7 @@ function FormulaForm({ restaurantIds, initial, onSaved }: { restaurantIds: strin
     const payload = {
       restaurant_id: initial?.restaurant_id || restaurantIds[0],
       name, formula_key: key, description, discount_percent: Number(discountPercent), applies_to: appliesTo,
+      availability, is_standard: !!initial?.is_standard,
     };
 
     let formulaId = initial?.id;
@@ -166,7 +202,43 @@ function FormulaForm({ restaurantIds, initial, onSaved }: { restaurantIds: strin
         <Input value={categories} onChange={e => setCategories(e.target.value)} placeholder="Entrées, Plats, Desserts" />
         <p className="text-[11px] text-muted-foreground">Les catégories doivent correspondre aux catégories de votre menu.</p>
       </div>
-      <Button type="submit" disabled={loading} className="w-full">{loading ? "Enregistrement..." : initial ? "Modifier" : "Créer la formule"}</Button>
+
+      <div className="space-y-3 border-t pt-4">
+        <Label className="text-sm font-semibold">Planification (Horaires & Jours)</Label>
+        <div className="flex flex-wrap gap-2">
+          {DAYS_OF_WEEK.map(day => (
+            <label key={day.value} className={cn(
+              "flex flex-col items-center justify-center w-10 h-10 rounded-lg border cursor-pointer text-[10px] transition-colors",
+              availability.days.includes(day.value) ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"
+            )}>
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={availability.days.includes(day.value)}
+                onChange={() => {
+                  const newDays = availability.days.includes(day.value)
+                    ? availability.days.filter((d: string) => d !== day.value)
+                    : [...availability.days, day.value];
+                  setAvailability({ ...availability, days: newDays });
+                }}
+              />
+              {day.label}
+            </label>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label className="text-xs">Heure de début</Label>
+            <Input type="time" value={availability.startTime} onChange={e => setAvailability({ ...availability, startTime: e.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Heure de fin</Label>
+            <Input type="time" value={availability.endTime} onChange={e => setAvailability({ ...availability, endTime: e.target.value })} />
+          </div>
+        </div>
+      </div>
+
+      <Button type="submit" disabled={loading} className="w-full">{loading ? "Enregistrement..." : (initial?.id ? "Modifier" : "Créer la formule")}</Button>
     </form>
   );
 }

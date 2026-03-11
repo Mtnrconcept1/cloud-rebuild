@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { TrendingUp, ShoppingCart, Euro, CalendarDays, XCircle } from "lucide-react";
+import { TrendingUp, ShoppingCart, Euro, CalendarDays, XCircle, Star } from "lucide-react";
 
 type KpiRow = {
   kpi_date: string;
@@ -15,6 +15,7 @@ type KpiRow = {
   avg_ticket: number;
   reservations_count: number;
   cancel_rate: number;
+  satisfaction_score: number;
 };
 
 export default function DashboardPerformances() {
@@ -38,7 +39,7 @@ export default function DashboardPerformances() {
     from.setDate(from.getDate() - Number(period));
     const { data, error } = await supabase
       .from("restaurant_daily_kpis")
-      .select("kpi_date, orders_count, revenue, avg_ticket, reservations_count, cancel_rate")
+      .select("kpi_date, orders_count, revenue, avg_ticket, reservations_count, cancel_rate, satisfaction_score")
       .eq("restaurant_id", selectedRestaurant)
       .gte("kpi_date", from.toISOString().slice(0, 10))
       .order("kpi_date", { ascending: true });
@@ -57,6 +58,7 @@ export default function DashboardPerformances() {
   const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   const totalReservations = kpis.reduce((s, k) => s + k.reservations_count, 0);
   const avgCancel = kpis.length > 0 ? kpis.reduce((s, k) => s + Number(k.cancel_rate), 0) / kpis.length : 0;
+  const avgSatisfaction = kpis.length > 0 ? kpis.reduce((s, k) => s + Number(k.satisfaction_score), 0) / kpis.filter(k => k.satisfaction_score > 0).length : 0;
 
   const chartData = kpis.map((k) => ({
     date: new Date(k.kpi_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
@@ -90,7 +92,7 @@ export default function DashboardPerformances() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><ShoppingCart className="h-4 w-4" />Commandes</CardTitle></CardHeader>
             <CardContent><p className="text-2xl font-bold">{totalOrders}</p></CardContent>
@@ -110,6 +112,10 @@ export default function DashboardPerformances() {
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><XCircle className="h-4 w-4" />Annulation</CardTitle></CardHeader>
             <CardContent><p className="text-2xl font-bold">{avgCancel.toFixed(1)}%</p></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Star className="h-4 w-4" />Client Satisfaction</CardTitle></CardHeader>
+            <CardContent><p className="text-2xl font-bold">{avgSatisfaction > 0 ? `${avgSatisfaction.toFixed(1)}/5` : "N/A"}</p></CardContent>
           </Card>
         </div>
 

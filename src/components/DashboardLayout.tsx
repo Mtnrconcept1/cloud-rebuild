@@ -9,35 +9,42 @@ type NavItem = { to: string; label: string; icon: React.ComponentType<{ classNam
 type NavSection = { title: string; items: NavItem[]; };
 
 const NAV_SECTIONS: NavSection[] = [
-  { title: "Réussite et performances", items: [
-    { to: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
-    { to: "/dashboard/advisor", label: "Assistant IA", icon: Bot },
-    { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingCart },
-    { to: "/dashboard/reservations", label: "Réservations", icon: CalendarDays },
-    { to: "/dashboard/recommandations", label: "Recommandations", icon: Sparkles },
-    { to: "/dashboard/performances", label: "Performances", icon: BarChart3 },
-    { to: "/dashboard/comparaison", label: "Comparaison", icon: Scale },
-    { to: "/dashboard/avis", label: "Avis clients", icon: MessageSquareText },
-  ]},
-  { title: "Marketing", items: [
-    { to: "/dashboard/campagne-overview", label: "Campagnes", icon: Megaphone },
-    { to: "/dashboard/promotions", label: "Promotions", icon: BadgePercent },
-    { to: "/dashboard/reseaux-sociaux", label: "Réseaux sociaux", icon: Share2 },
-    { to: "/dashboard/campagnes", label: "Campagnes avancées", icon: Megaphone },
-  ]},
-  { title: "Paiements", items: [
-    { to: "/dashboard/compta", label: "Comptabilité", icon: BarChart3 },
-    { to: "/dashboard/factures", label: "Factures", icon: ReceiptText },
-  ]},
-  { title: "Page du restaurant", items: [
-    { to: "/dashboard/restaurant", label: "Mon restaurant", icon: UtensilsCrossed },
-    { to: "/dashboard/menu", label: "Menu", icon: BookOpen },
-    { to: "/dashboard/photos", label: "Photos", icon: Camera },
-    { to: "/dashboard/offres", label: "Anti-gaspi", icon: Leaf },
-    { to: "/dashboard/ventes-flash", label: "Ventes flash", icon: Zap },
-    { to: "/dashboard/formules", label: "Formules", icon: Percent },
-    { to: "/dashboard/service", label: "Pilotage de service", icon: SlidersHorizontal },
-  ]},
+  {
+    title: "Réussite et performances", items: [
+      { to: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
+      { to: "/dashboard/advisor", label: "Assistant IA", icon: Bot },
+      { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingCart },
+      { to: "/dashboard/reservations", label: "Réservations", icon: CalendarDays },
+      { to: "/dashboard/recommandations", label: "Recommandations", icon: Sparkles },
+      { to: "/dashboard/performances", label: "Performances", icon: BarChart3 },
+      { to: "/dashboard/comparaison", label: "Comparaison", icon: Scale },
+      { to: "/dashboard/avis", label: "Avis clients", icon: MessageSquareText },
+    ]
+  },
+  {
+    title: "Marketing", items: [
+      { to: "/dashboard/campagne-overview", label: "Campagnes", icon: Megaphone },
+      { to: "/dashboard/reseaux-sociaux", label: "Réseaux sociaux", icon: Share2 },
+      { to: "/dashboard/campagnes", label: "Campagnes avancées", icon: Megaphone },
+    ]
+  },
+  {
+    title: "Paiements", items: [
+      { to: "/dashboard/compta", label: "Comptabilité", icon: BarChart3 },
+      { to: "/dashboard/factures", label: "Factures", icon: ReceiptText },
+    ]
+  },
+  {
+    title: "Page du restaurant", items: [
+      { to: "/dashboard/restaurant", label: "Mon restaurant", icon: UtensilsCrossed },
+      { to: "/dashboard/menu", label: "Menu", icon: BookOpen },
+      { to: "/dashboard/photos", label: "Photos", icon: Camera },
+      { to: "/dashboard/offres", label: "Anti-gaspi", icon: Leaf },
+      { to: "/dashboard/ventes-flash", label: "Ventes flash", icon: Zap },
+      { to: "/dashboard/formules", label: "Formules", icon: Percent },
+      { to: "/dashboard/service", label: "Pilotage de service", icon: SlidersHorizontal },
+    ]
+  },
   { title: "Support", items: [{ to: "/dashboard/support", label: "Aide et support", icon: CircleHelp }] },
 ];
 

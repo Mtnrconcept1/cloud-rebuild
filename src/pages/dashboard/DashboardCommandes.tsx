@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { Bike, MapPin, User, Phone, Package2, ClipboardList } from "lucide-react";
+import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { mapOrderStatusToTrackingStatus, normalizeOrderStatus } from "@/lib/orderStatus";
 import type { Database } from "@/integrations/supabase/types";
@@ -151,7 +151,18 @@ export default function DashboardCommandes() {
                   <div className="flex items-center gap-3">
                     <div className="text-right mr-4">
                       <p className="font-bold text-lg text-primary">{Number(o.total_amount).toFixed(2)} CHF</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Paiement Reçu</p>
+                      <div className="flex flex-col items-end">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Paiement Reçu</p>
+                        {o.metadata && typeof o.metadata === 'object' && !Array.isArray(o.metadata) && (o.metadata as any).payment_method && (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <CreditCard className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-[10px] font-medium uppercase">{(o.metadata as any).payment_method}</span>
+                            {(o.metadata as any).card_last4 && (
+                              <span className="text-[10px] bg-secondary px-1 rounded font-mono">**** {(o.metadata as any).card_last4}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <Select value={normalizeOrderStatus(o.status)} onValueChange={(v) => updateStatus(o.id, v)}>
                       <SelectTrigger className="w-40 h-10 shadow-sm"><SelectValue /></SelectTrigger>

@@ -9,7 +9,7 @@ import RestaurantCard from "@/components/RestaurantCard";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import CampaignBanner from "@/components/CampaignBanner";
 import { Badge } from "@/components/ui/badge";
-import { trackEvent, getActiveSponsoredRestaurants } from "@/lib/analytics";
+import { trackEvent, trackSearch, getActiveSponsoredRestaurants } from "@/lib/analytics";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 
 const CUISINES = ["Italien", "Pizza", "Burger", "Japonais", "Sushi", "Chinois", "Indien", "Thai", "Mexicain", "Libanais", "Francais", "Suisse", "Vegetarien", "Vegan", "Poke", "Kebab", "Tacos", "Pates", "Salade", "Dessert"];
@@ -274,11 +274,6 @@ export default function Recherche() {
     setSearchParams(params);
   };
 
-  useEffect(() => {
-    if (query || cuisine || city) {
-      trackEvent({ eventType: "search", eventData: { query, cuisine, city, price, delivery, minRating10, sortBy, sortDirection } });
-    }
-  }, [query, cuisine, city, price, delivery, minRating10, sortBy, sortDirection]);
 
   const { data: sponsoredCampaigns } = useQuery({
     queryKey: ["sponsored-search"],
@@ -313,6 +308,12 @@ export default function Recherche() {
   const sortedOrganicCards = useMemo(() => [...(allRestaurants as any[])].sort((a, b) => compareRestaurants(a, b, sortContext)), [allRestaurants, sortContext]);
   const sortedSponsoredCards = useMemo(() => [...sponsoredCards].sort((a, b) => compareRestaurants(a, b, sortContext)), [sponsoredCards, sortContext]);
   const mergedCards = useMemo(() => prioritizeSponsoredCards(sortedOrganicCards, sortedSponsoredCards, { topSlots: 3 }), [sortedOrganicCards, sortedSponsoredCards]);
+
+  useEffect(() => {
+    if (mergedCards.length > 0 && (query || cuisine || city)) {
+      trackSearch(query || cuisine || city, mergedCards.length);
+    }
+  }, [query, cuisine, city, mergedCards.length]);
 
   return (
     <main className="min-h-screen bg-background">

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Bike, Megaphone, Heart, Percent } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
-import { trackSponsoredClick, trackSponsoredImpression } from "@/lib/analytics";
+import { trackSponsoredClick, trackSponsoredImpression, trackImpression, trackClick } from "@/lib/analytics";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -123,14 +123,20 @@ export default function RestaurantCard({
   const timeSlots = useMemo(() => getNextTimeSlots(), []);
 
   useEffect(() => {
-    if (!isSponsored || impressionTracked.current) return;
+    if (impressionTracked.current) return;
     impressionTracked.current = true;
-    trackSponsoredImpression(sponsoredCampaignId, id);
+    if (isSponsored && sponsoredCampaignId) {
+      trackSponsoredImpression(sponsoredCampaignId, id);
+    } else {
+      trackImpression("restaurant", id);
+    }
   }, [id, isSponsored, sponsoredCampaignId]);
 
   const handleCardClick = () => {
     if (isSponsored && sponsoredCampaignId) {
       trackSponsoredClick(sponsoredCampaignId, id);
+    } else {
+      trackClick("restaurant", id);
     }
     navigate(`/restaurant/${id}`);
   };

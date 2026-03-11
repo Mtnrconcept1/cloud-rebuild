@@ -54,56 +54,107 @@ Deno.serve(async (req) => {
         }
 
         // Find order by checkout_id or order_number
-        const { data: order, error: orderError } = await supabaseAdmin
+        const { data: order } = await supabaseAdmin
           .from("orders")
-          .select("id, status, restaurant_id, delivery_address, total_amount")
+          .select("id, status, restaurant_id, delivery_address, total_amount, metadata")
           .or(`order_number.eq.${orderRef},checkout_id.eq.${session.id}`)
           .maybeSingle();
 
-        if (orderError || !order) {
-          console.error("Order not found for reference:", orderRef, orderError);
-          break;
+        // Also try to find a reservation
+        const { data: reservation } = await supabaseAdmin
+          .from("reservations")
+          .select("id, metadata")
+          .filter("metadata->>checkout_session_id", "eq", session.id)
+          .maybeSingle();
+
+        // Retrieve payment method details from Stripe if possible
+        let cardBrand = "";
+        let cardLast4 = "";
+        try {
+          if (session.payment_intent && typeof session.payment_intent === "string") {
+            const pi = await stripe.paymentIntents.retrieve(session.payment_intent, {
+              expand: ["payment_method"],
+            });
+            const pm = pi.payment_method as any;
+            if (pm?.card) {
+              cardBrand = pm.card.brand;
+              cardLast4 = pm.card.last4;
+            }
+          }
+        } catch (e) {
+          console.error("Error fetching payment method details:", e);
         }
 
-        // Update order status to confirmed
-        await supabaseAdmin
-          .from("orders")
-          .update({
-            status: "confirmed",
-            metadata: {
-              stripe_session_id: session.id,
-              stripe_payment_intent: session.payment_intent,
-              payment_status: session.payment_status,
-            },
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", order.id);
+        if (order) {
+          // Update order status to confirmed and add card info
+          const existingMeta = typeof order.metadata === 'object' && !Array.isArray(order.metadata) ? order.metadata : {};
+          await supabaseAdmin
+            .from("orders")
+            .update({
+              status: "confirmed",
+              metadata: {
+                ...existingMeta,
+                stripe_session_id: session.id,
+                stripe_payment_intent: session.payment_intent,
+                payment_status: session.payment_status,
+                card_brand: cardBrand,
+                card_last4: cardLast4,
+              },
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", order.id);
+        }
+
+        if (reservation) {
+          // Update reservation metadata with card info
+          const existingMeta = typeof reservation.metadata === 'object' && !Array.isArray(reservation.metadata) ? reservation.metadata : {};
+          await supabaseAdmin
+            .from("reservations")
+            .update({
+              status: "confirmed",
+              metadata: {
+                ...existingMeta,
+                card_brand: cardBrand,
+                card_last4: cardLast4,
+                paid: true,
+              },
+            })
+            .eq("id", reservation.id);
+        }
 
         // Record payment transaction
         await supabaseAdmin.from("payment_transactions").insert({
-          order_id: order.id,
+          order_id: order?.id || null,
           user_id: userId,
           stripe_checkout_session_id: session.id,
           stripe_payment_intent_id: typeof session.payment_intent === "string"
             ? session.payment_intent : null,
           amount: (session.amount_total || 0) / 100,
-          currency: session.currency || "chf",
+          currency: (session.currency || "chf").toLowerCase(),
           type: "charge",
           status: "succeeded",
+          metadata: {
+            card_brand: cardBrand,
+            card_last4: cardLast4,
+            order_reference: orderRef,
+            reservation_id: reservation?.id || null,
+          },
         });
 
-        // Create delivery tracking record
-        await supabaseAdmin.from("delivery_tracking").insert({
-          order_id: order.id,
-          status: "preparing",
-          estimated_arrival: new Date(Date.now() + 35 * 60 * 1000).toISOString(),
-        });
+        if (order) {
+          // Create delivery tracking record
+          await supabaseAdmin.from("delivery_tracking").upsert({
+            order_id: order.id,
+            status: "preparing",
+            estimated_arrival: new Date(Date.now() + 35 * 60 * 1000).toISOString(),
+          });
 
-        // Create dispatch job
-        await supabaseAdmin.from("dispatch_jobs").insert({
-          order_id: order.id,
-          status: "pending",
-        });
+          // Create dispatch job
+          await supabaseAdmin.from("dispatch_jobs").upsert({
+            order_id: order.id,
+            status: "pending",
+          });
+        }
 
         // Notify restaurant via notification
         if (restaurantId) {
@@ -250,8 +301,8 @@ Deno.serve(async (req) => {
         // Find user by stripe customer ID in metadata or payment transactions
         const subStatus = subscription.status === "active" ? "active"
           : subscription.status === "canceled" ? "cancelled"
-          : subscription.status === "past_due" ? "past_due"
-          : subscription.status;
+            : subscription.status === "past_due" ? "past_due"
+              : subscription.status;
 
         console.log(`Subscription ${subscription.id} status: ${subStatus} for customer ${customerId}`);
         break;

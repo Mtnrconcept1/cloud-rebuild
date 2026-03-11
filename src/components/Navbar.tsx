@@ -49,7 +49,7 @@ const FEATURES = [
 ];
 
 export default function Navbar() {
-  const { user, role, signOut } = useAuth();
+  const { user, role, roles, switchRole, signOut } = useAuth();
   const { itemCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -317,7 +317,27 @@ export default function Navbar() {
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
+                {roles.length > 1 && (
+                  <div className="px-2 py-2 border-b mb-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Espace actif</p>
+                    <div className="flex gap-1 flex-wrap">
+                      {roles.map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => switchRole(r)}
+                          className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
+                            role === r
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          }`}
+                        >
+                          {{ client: "Client", restaurateur: "Restaurateur", admin: "Admin", courier: "Livreur" }[r]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <DropdownMenuItem asChild>
                   <Link to="/profil">Mon profil</Link>
                 </DropdownMenuItem>
@@ -327,14 +347,19 @@ export default function Navbar() {
                 <DropdownMenuItem asChild>
                   <Link to="/reservations">Mes réservations</Link>
                 </DropdownMenuItem>
-                {(role === "restaurateur" || role === "admin") && (
+                {(role === "restaurateur" || role === "admin" || roles.includes("restaurateur")) && (
                   <DropdownMenuItem asChild>
                     <Link to="/dashboard" className="font-bold text-primary">Dashboard Restaurant</Link>
                   </DropdownMenuItem>
                 )}
-                {role === "admin" && (
+                {(role === "admin" || roles.includes("admin")) && (
                   <DropdownMenuItem asChild>
-                    <Link to="/admin">Administration</Link>
+                    <Link to="/admin" className="font-bold text-primary">Administration</Link>
+                  </DropdownMenuItem>
+                )}
+                {(role === "courier" || roles.includes("courier")) && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/courier" className="font-bold text-primary">Espace Livreur</Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={signOut} className="text-destructive font-medium border-t mt-2 pt-2">
@@ -400,6 +425,26 @@ export default function Navbar() {
 
                 {user && (
                   <div className="border-t pt-4 mt-2 space-y-4">
+                    {roles.length > 1 && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Espace actif</p>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {roles.map((r) => (
+                            <button
+                              key={r}
+                              onClick={() => { switchRole(r); setMenuOpen(false); }}
+                              className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
+                                role === r
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+                              }`}
+                            >
+                              {{ client: "Client", restaurateur: "Restaurateur", admin: "Admin", courier: "Livreur" }[r]}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <Link to="/profil" className="text-sm font-medium hover:text-primary flex items-center gap-2">
                       <User className="h-4 w-4" />
                       Mon profil
@@ -408,6 +453,18 @@ export default function Navbar() {
                       <ShoppingBag className="h-4 w-4" />
                       Mes commandes
                     </Link>
+                    {(roles.includes("restaurateur") || roles.includes("admin")) && (
+                      <Link to="/dashboard" className="text-sm font-bold text-primary flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4" />
+                        Dashboard Restaurant
+                      </Link>
+                    )}
+                    {roles.includes("admin") && (
+                      <Link to="/admin" className="text-sm font-bold text-primary flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        Administration
+                      </Link>
+                    )}
                   </div>
                 )}
                 <div className="border-t pt-4 mt-2 space-y-4">

@@ -22,8 +22,8 @@ export default function DashboardRestaurant() {
   const { data: restaurant } = useQuery({
     queryKey: ["my-restaurant", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("*").eq("owner_id", user!.id).maybeSingle();
-      return data;
+      const { data } = await supabase.from("restaurants").select("*").eq("owner_id", user!.id).order("created_at", { ascending: true }).limit(1);
+      return data?.[0] || null;
     },
     enabled: !!user,
   });

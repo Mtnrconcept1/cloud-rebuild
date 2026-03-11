@@ -250,15 +250,23 @@ BEGIN
   INSERT INTO restaurant_daily_kpis (restaurant_id, kpi_date, orders_count, revenue, avg_ticket, reservations_count, reviews_count, satisfaction_score, cancel_rate)
   SELECT
     p_restaurant_id, p_day::date,
-    COALESCE(count(*), 0),
-    COALESCE(sum(total_amount), 0),
-    COALESCE(avg(total_amount), 0),
-    0, 0, 0, 0
-  FROM orders WHERE restaurant_id = p_restaurant_id AND created_at::date = p_day::date
+    COALESCE(count(o.id), 0),
+    COALESCE(sum(o.total_amount) FILTER (WHERE o.status != 'cancelled'), 0),
+    COALESCE(avg(o.total_amount) FILTER (WHERE o.status != 'cancelled'), 0),
+    (SELECT count(*) FROM reservations r WHERE r.restaurant_id = p_restaurant_id AND r.date = p_day::date AND r.status != 'cancelled'),
+    (SELECT count(*) FROM reviews rev WHERE rev.restaurant_id = p_restaurant_id AND rev.created_at::date = p_day::date),
+    COALESCE((SELECT avg(rating) FROM reviews rev WHERE rev.restaurant_id = p_restaurant_id AND rev.created_at::date = p_day::date), 0),
+    COALESCE(round(count(o.id) FILTER (WHERE o.status = 'cancelled')::numeric / NULLIF(count(o.id), 0) * 100, 1), 0)
+  FROM orders o 
+  WHERE o.restaurant_id = p_restaurant_id AND o.created_at::date = p_day::date
   ON CONFLICT (restaurant_id, kpi_date) DO UPDATE SET
     orders_count = EXCLUDED.orders_count,
     revenue = EXCLUDED.revenue,
     avg_ticket = EXCLUDED.avg_ticket,
+    reservations_count = EXCLUDED.reservations_count,
+    reviews_count = EXCLUDED.reviews_count,
+    satisfaction_score = EXCLUDED.satisfaction_score,
+    cancel_rate = EXCLUDED.cancel_rate,
     updated_at = now();
 END;
 $$;

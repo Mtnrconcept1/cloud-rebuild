@@ -33,6 +33,8 @@ export default function ZeroAttente() {
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
+  const [confirmedCount, setConfirmedCount] = useState<number | null>(null);
+  const [confirmedSubtotal, setConfirmedSubtotal] = useState<number | null>(null);
 
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants-zero-wait", preSelectedRestaurantId],
@@ -146,10 +148,14 @@ export default function ZeroAttente() {
     }
 
     // Cash payment: create reservation directly
-    await createReservation(preorderItems);
+    setConfirmedCount(count);
+    setConfirmedSubtotal(subtotal);
+    await createReservation(preorderItems, undefined, count, subtotal);
   };
 
-  const createReservation = async (preorderItems: any[], checkoutSessionId?: string) => {
+  const createReservation = async (preorderItems: any[], checkoutSessionId?: string, itemCount?: number, totalAmount?: number) => {
+    const finalCount = itemCount ?? count;
+    const finalSubtotal = totalAmount ?? subtotal;
     const { data, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
       p_restaurant_id: selectedRestaurant.id,
       p_date: arrivalDate,
@@ -159,14 +165,14 @@ export default function ZeroAttente() {
       p_metadata: {
         feature: "zero-attente",
         preorder_items: preorderItems,
-        total_amount: subtotal,
+        total_amount: finalSubtotal,
         arrival_date: arrivalDate,
         arrival_time: arrivalTime,
         payment_method: paymentMethod,
         checkout_session_id: checkoutSessionId || null,
         paid: paymentMethod !== "cash",
       },
-      p_notes: `[Zéro Attente] ${count} plat(s) précommandé(s) - Total: ${subtotal.toFixed(2)} CHF - Paiement: ${paymentMethod}`,
+      p_notes: `[Zéro Attente] ${finalCount} plat(s) précommandé(s) - Total: ${finalSubtotal.toFixed(2)} CHF - Paiement: ${paymentMethod}`,
     });
 
     setLoading(false);
@@ -174,6 +180,8 @@ export default function ZeroAttente() {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
+      setConfirmedCount(finalCount);
+      setConfirmedSubtotal(finalSubtotal);
       setReservationId(data);
       setStep("confirm");
     }
@@ -201,6 +209,16 @@ export default function ZeroAttente() {
         // Create reservation after successful payment
         const doCreate = async () => {
           setLoading(true);
+
+          // Try to fetch card info from payment_transactions (in case webhook already ran)
+          const { data: txn } = await supabase
+            .from("payment_transactions")
+            .select("metadata")
+            .eq("stripe_checkout_session_id", sessionId)
+            .maybeSingle();
+
+          const txnMeta = (txn?.metadata as any) || {};
+
           const { data: resData, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
             p_restaurant_id: data.restaurantId,
             p_date: data.arrivalDate,
@@ -216,6 +234,8 @@ export default function ZeroAttente() {
               payment_method: data.paymentMethod,
               checkout_session_id: sessionId,
               paid: true,
+              card_brand: txnMeta.card_brand || null,
+              card_last4: txnMeta.card_last4 || null,
             },
             p_notes: `[Zéro Attente] ${data.count} plat(s) précommandé(s) - Total: ${data.subtotal.toFixed(2)} CHF - Paiement: ${data.paymentMethod} (payé)`,
           });
@@ -223,6 +243,8 @@ export default function ZeroAttente() {
           if (error) {
             toast({ title: "Erreur", description: error.message, variant: "destructive" });
           } else {
+            setConfirmedCount(data.count);
+            setConfirmedSubtotal(data.subtotal);
             setReservationId(resData);
             setStep("confirm");
           }
@@ -255,6 +277,9 @@ export default function ZeroAttente() {
       };
     }) : [];
 
+  const displayCount = confirmedCount ?? count;
+  const displaySubtotal = confirmedSubtotal ?? subtotal;
+
   const detailForModal = reservationId ? {
     id: reservationId,
     date: arrivalDate,
@@ -262,8 +287,8 @@ export default function ZeroAttente() {
     party_size: partySize,
     status: "pending",
     feature: "zero-attente",
-    notes: `[Zéro Attente] ${count} plat(s) précommandé(s) - Total: ${subtotal.toFixed(2)} CHF`,
-    total_amount: subtotal,
+    notes: `[Zéro Attente] ${displayCount} plat(s) précommandé(s) - Total: ${displaySubtotal.toFixed(2)} CHF`,
+    total_amount: displaySubtotal,
     created_at: new Date().toISOString(),
     metadata: { feature: "zero-attente", payment_method: paymentMethod, paid: paymentMethod !== "cash" } as any,
     preorder_items: preorderItemsForModal as any,
@@ -272,245 +297,245 @@ export default function ZeroAttente() {
 
   return (
     <>
-    <FeatureWizard
-      title="Zéro attente"
-      subtitle="Réservez, précommandez, payez et c'est servi"
-      icon={Timer}
-      colorClass="indigo-500"
-      steps={([
-        { id: "info", label: "Heure" },
-        { id: "restaurant", label: "Restaurant" },
-        { id: "menu", label: "Menu" },
-        { id: "payment", label: "Paiement" },
-        { id: "confirm", label: "Confirmer" },
-      ] as const).filter(s => s.id !== "restaurant" || !preSelectedRestaurantId)}
-      currentStepId={step}
-      onStepChange={(id) => setStep(id as Step)}
-    >
-      <div className="space-y-8">
-        {/* How it works */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          {[
-            { icon: Armchair, title: "Réservez", desc: "Choisissez votre heure", color: "indigo" },
-            { icon: Utensils, title: "Précommandez", desc: "Sélectionnez vos plats", color: "indigo" },
-            { icon: CreditCard, title: "Payez", desc: "Paiement sécurisé à l'avance", color: "indigo" },
-            { icon: Zap, title: "0 attente", desc: "Arrivez, asseyez-vous, dégustez", color: "indigo" },
-          ].map((item, i) => (
-            <div key={i} className="rounded-xl border bg-card p-4 text-center space-y-2 relative">
-              <item.icon className="h-6 w-6 text-indigo-500 mx-auto" />
-              <h3 className="font-semibold text-sm">{item.title}</h3>
-              <p className="text-xs text-muted-foreground">{item.desc}</p>
-              {i < 3 && <ArrowRight className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />}
-            </div>
-          ))}
-        </div>
+      <FeatureWizard
+        title="Zéro attente"
+        subtitle="Réservez, précommandez, payez et c'est servi"
+        icon={Timer}
+        colorClass="indigo-500"
+        steps={([
+          { id: "info", label: "Heure" },
+          { id: "restaurant", label: "Restaurant" },
+          { id: "menu", label: "Menu" },
+          { id: "payment", label: "Paiement" },
+          { id: "confirm", label: "Confirmer" },
+        ] as const).filter(s => s.id !== "restaurant" || !preSelectedRestaurantId)}
+        currentStepId={step}
+        onStepChange={(id) => setStep(id as Step)}
+      >
+        <div className="space-y-8">
+          {/* How it works */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {[
+              { icon: Armchair, title: "Réservez", desc: "Choisissez votre heure", color: "indigo" },
+              { icon: Utensils, title: "Précommandez", desc: "Sélectionnez vos plats", color: "indigo" },
+              { icon: CreditCard, title: "Payez", desc: "Paiement sécurisé à l'avance", color: "indigo" },
+              { icon: Zap, title: "0 attente", desc: "Arrivez, asseyez-vous, dégustez", color: "indigo" },
+            ].map((item, i) => (
+              <div key={i} className="rounded-xl border bg-card p-4 text-center space-y-2 relative">
+                <item.icon className="h-6 w-6 text-indigo-500 mx-auto" />
+                <h3 className="font-semibold text-sm">{item.title}</h3>
+                <p className="text-xs text-muted-foreground">{item.desc}</p>
+                {i < 3 && <ArrowRight className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />}
+              </div>
+            ))}
+          </div>
 
-        {step === "info" && (
-          <div className="rounded-xl border bg-card p-5 space-y-4 animate-in fade-in-50">
-            <h2 className="font-semibold flex items-center gap-2">
-              <Clock className="h-5 w-5 text-indigo-500" />
-              Date, heure et convives
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-[160px_120px_100px] items-center">
-              <Input type="date" value={arrivalDate} onChange={(e) => setArrivalDate(e.target.value)} min={new Date().toISOString().split("T")[0]} />
-              <Input type="time" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} className="w-32" />
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <Input type="number" min={1} max={20} value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} className="w-20" />
+          {step === "info" && (
+            <div className="rounded-xl border bg-card p-5 space-y-4 animate-in fade-in-50">
+              <h2 className="font-semibold flex items-center gap-2">
+                <Clock className="h-5 w-5 text-indigo-500" />
+                Date, heure et convives
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-[160px_120px_100px] items-center">
+                <Input type="date" value={arrivalDate} onChange={(e) => setArrivalDate(e.target.value)} min={new Date().toISOString().split("T")[0]} />
+                <Input type="time" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} className="w-32" />
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <Input type="number" min={1} max={20} value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} className="w-20" />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">Le chef démarrera la préparation automatiquement selon votre ETA</p>
+              <WizardNextButton
+                onClick={() => {
+                  if (preSelectedRestaurantId && selectedRestaurant) setStep("menu");
+                  else setStep("restaurant");
+                }}
+                label={preSelectedRestaurantId && selectedRestaurant ? `Réserver chez ${selectedRestaurant.name}` : "Choisir un restaurant"}
+                colorClass="indigo-500"
+              />
+            </div>
+          )}
+
+          {step === "restaurant" && (
+            <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
+              <WizardBackButton onClick={() => setStep("info")} label="Heure" />
+              <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm">
+                <Timer className="h-4 w-4 text-indigo-500" />
+                <span>Arrivée le <strong>{arrivalDate}</strong> à <strong>{arrivalTime}</strong> · <strong>{partySize}</strong> convive(s)</span>
+              </div>
+              <h2 className="font-display text-xl font-semibold">Restaurants compatibles Zéro Attente</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {restaurants?.map((r: any) => (
+                  <button
+                    key={r.id}
+                    onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }}
+                    className="text-left rounded-xl border-2 overflow-hidden hover:border-indigo-500/30 border-border transition-all"
+                  >
+                    <img src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop"} alt={r.name} className="w-full h-32 object-cover" />
+                    <div className="p-3">
+                      <p className="font-bold text-sm">{r.name}</p>
+                      <p className="text-xs text-muted-foreground">{r.cuisine_type} · {r.city}</p>
+                      <Badge variant="outline" className="mt-1 text-[10px] gap-1"><Timer className="h-2.5 w-2.5" />Zéro attente</Badge>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">Le chef démarrera la préparation automatiquement selon votre ETA</p>
-            <WizardNextButton
-              onClick={() => {
-                if (preSelectedRestaurantId && selectedRestaurant) setStep("menu");
-                else setStep("restaurant");
-              }}
-              label={preSelectedRestaurantId && selectedRestaurant ? `Réserver chez ${selectedRestaurant.name}` : "Choisir un restaurant"}
-              colorClass="indigo-500"
-            />
-          </div>
-        )}
+          )}
 
-        {step === "restaurant" && (
-          <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
-            <WizardBackButton onClick={() => setStep("info")} label="Heure" />
-            <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm">
-              <Timer className="h-4 w-4 text-indigo-500" />
-              <span>Arrivée le <strong>{arrivalDate}</strong> à <strong>{arrivalTime}</strong> · <strong>{partySize}</strong> convive(s)</span>
-            </div>
-            <h2 className="font-display text-xl font-semibold">Restaurants compatibles Zéro Attente</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {restaurants?.map((r: any) => (
-                <button
-                  key={r.id}
-                  onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }}
-                  className="text-left rounded-xl border-2 overflow-hidden hover:border-indigo-500/30 border-border transition-all"
-                >
-                  <img src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop"} alt={r.name} className="w-full h-32 object-cover" />
-                  <div className="p-3">
-                    <p className="font-bold text-sm">{r.name}</p>
-                    <p className="text-xs text-muted-foreground">{r.cuisine_type} · {r.city}</p>
-                    <Badge variant="outline" className="mt-1 text-[10px] gap-1"><Timer className="h-2.5 w-2.5" />Zéro attente</Badge>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {step === "menu" && (
-          <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
-            <WizardBackButton
-              onClick={() => setStep(preSelectedRestaurantId && selectedRestaurant ? "info" : "restaurant")}
-              label={preSelectedRestaurantId && selectedRestaurant ? "Heure" : "Restaurant"}
-            />
-            <div className="rounded-lg bg-indigo-500/5 p-3 text-sm flex items-center gap-2">
-              <Timer className="h-4 w-4 text-indigo-500" />
-              Arrivée {arrivalDate} {arrivalTime} · {partySize} convive(s) · {selectedRestaurant?.name}
-            </div>
-            {categories.map((cat) => (
-              <div key={cat} className="space-y-2">
-                <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">{cat}</h3>
-                {menuItems?.filter((i: any) => (i.category || "Autres") === cat).map((item: any) => {
-                  const q = quantities[item.id] || 0;
-                  return (
-                    <div key={item.id} className="flex items-center gap-3 p-3 border rounded-xl bg-card">
-                      {item.image_url && <img src={item.image_url} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0" />}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm">{item.name}</p>
-                        {item.description && <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>}
-                        <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {q > 0 && <>
-                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQty(item.id, -1)}>
-                            <Minus className="h-3 w-3" />
+          {step === "menu" && (
+            <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
+              <WizardBackButton
+                onClick={() => setStep(preSelectedRestaurantId && selectedRestaurant ? "info" : "restaurant")}
+                label={preSelectedRestaurantId && selectedRestaurant ? "Heure" : "Restaurant"}
+              />
+              <div className="rounded-lg bg-indigo-500/5 p-3 text-sm flex items-center gap-2">
+                <Timer className="h-4 w-4 text-indigo-500" />
+                Arrivée {arrivalDate} {arrivalTime} · {partySize} convive(s) · {selectedRestaurant?.name}
+              </div>
+              {categories.map((cat) => (
+                <div key={cat} className="space-y-2">
+                  <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">{cat}</h3>
+                  {menuItems?.filter((i: any) => (i.category || "Autres") === cat).map((item: any) => {
+                    const q = quantities[item.id] || 0;
+                    return (
+                      <div key={item.id} className="flex items-center gap-3 p-3 border rounded-xl bg-card">
+                        {item.image_url && <img src={item.image_url} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0" />}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm">{item.name}</p>
+                          {item.description && <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>}
+                          <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {q > 0 && <>
+                            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQty(item.id, -1)}>
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-5 text-center text-sm font-semibold">{q}</span>
+                          </>}
+                          <Button size="icon" variant={q > 0 ? "outline" : "default"} className="h-7 w-7" onClick={() => updateQty(item.id, 1)}>
+                            <Plus className="h-3 w-3" />
                           </Button>
-                          <span className="w-5 text-center text-sm font-semibold">{q}</span>
-                        </>}
-                        <Button size="icon" variant={q > 0 ? "outline" : "default"} className="h-7 w-7" onClick={() => updateQty(item.id, 1)}>
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                        </div>
                       </div>
+                    );
+                  })}
+                </div>
+              ))}
+
+              {count > 0 && (
+                <div className="sticky bottom-4 rounded-xl border bg-card/90 backdrop-blur-xl p-4 shadow-lg space-y-2 mt-8 animate-in slide-in-from-bottom-4">
+                  <div className="flex justify-between text-sm">
+                    <span>{count} article{count > 1 ? "s" : ""} · {partySize} convive(s)</span>
+                    <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
+                  </div>
+                  <Button onClick={() => setStep("payment")} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
+                    <CreditCard className="h-4 w-4" />
+                    Passer au paiement · {subtotal.toFixed(2)} CHF
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === "payment" && (
+            <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
+              <WizardBackButton onClick={() => setStep("menu")} label="Menu" />
+
+              <div className="rounded-lg bg-indigo-500/5 p-3 text-sm flex items-center gap-2">
+                <Timer className="h-4 w-4 text-indigo-500" />
+                {selectedRestaurant?.name} · {arrivalDate} {arrivalTime} · {partySize} convive(s)
+              </div>
+
+              {/* Order summary */}
+              <div className="rounded-xl border bg-card p-4 space-y-2">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <Utensils className="h-4 w-4 text-muted-foreground" />
+                  Récapitulatif
+                </h3>
+                {menuItems && Object.entries(quantities).filter(([, q]) => q > 0).map(([id, qty]) => {
+                  const item = menuItems.find((m: any) => m.id === id);
+                  if (!item) return null;
+                  return (
+                    <div key={id} className="flex justify-between text-sm">
+                      <span>{qty}× {item.name}</span>
+                      <span className="font-medium">{(Number(item.price) * qty).toFixed(2)} CHF</span>
                     </div>
                   );
                 })}
-              </div>
-            ))}
-
-            {count > 0 && (
-              <div className="sticky bottom-4 rounded-xl border bg-card/90 backdrop-blur-xl p-4 shadow-lg space-y-2 mt-8 animate-in slide-in-from-bottom-4">
-                <div className="flex justify-between text-sm">
-                  <span>{count} article{count > 1 ? "s" : ""} · {partySize} convive(s)</span>
-                  <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
+                <div className="flex justify-between font-bold border-t pt-2 mt-2">
+                  <span>Total à payer</span>
+                  <span>{subtotal.toFixed(2)} CHF</span>
                 </div>
-                <Button onClick={() => setStep("payment")} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
-                  <CreditCard className="h-4 w-4" />
-                  Passer au paiement · {subtotal.toFixed(2)} CHF
-                </Button>
               </div>
-            )}
-          </div>
-        )}
 
-        {step === "payment" && (
-          <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
-            <WizardBackButton onClick={() => setStep("menu")} label="Menu" />
+              {/* Payment method selector */}
+              <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
 
-            <div className="rounded-lg bg-indigo-500/5 p-3 text-sm flex items-center gap-2">
-              <Timer className="h-4 w-4 text-indigo-500" />
-              {selectedRestaurant?.name} · {arrivalDate} {arrivalTime} · {partySize} convive(s)
+              <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-700">
+                <strong>Paiement à l'avance requis</strong> — Le Zéro Attente nécessite un prépaiement pour garantir la synchronisation avec le chef.
+              </div>
+
+              <Button
+                onClick={handlePayAndReserve}
+                disabled={loading}
+                className="w-full bg-indigo-500 hover:opacity-90 gap-2 text-base py-6"
+              >
+                {loading ? "Traitement en cours..." : `Payer ${subtotal.toFixed(2)} CHF et réserver`}
+              </Button>
             </div>
+          )}
 
-            {/* Order summary */}
-            <div className="rounded-xl border bg-card p-4 space-y-2">
-              <h3 className="font-semibold text-sm flex items-center gap-2">
-                <Utensils className="h-4 w-4 text-muted-foreground" />
-                Récapitulatif
-              </h3>
-              {menuItems && Object.entries(quantities).filter(([, q]) => q > 0).map(([id, qty]) => {
-                const item = menuItems.find((m: any) => m.id === id);
-                if (!item) return null;
-                return (
-                  <div key={id} className="flex justify-between text-sm">
-                    <span>{qty}× {item.name}</span>
-                    <span className="font-medium">{(Number(item.price) * qty).toFixed(2)} CHF</span>
-                  </div>
-                );
-              })}
-              <div className="flex justify-between font-bold border-t pt-2 mt-2">
-                <span>Total à payer</span>
-                <span>{subtotal.toFixed(2)} CHF</span>
+          {step === "confirm" && (
+            <div className="space-y-6 animate-in slide-in-from-bottom-8">
+              <div className="rounded-2xl bg-indigo-500/5 border border-indigo-500/20 p-6 text-center space-y-2">
+                <CheckCircle2 className="h-12 w-12 text-indigo-500 mx-auto" />
+                <h2 className="font-display text-xl font-bold">Réservation confirmée et payée !</h2>
+                <p className="text-sm text-muted-foreground">Votre table et vos plats précommandés sont réservés. Le paiement a été effectué.</p>
               </div>
+              <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Restaurant</span>
+                  <span className="font-medium">{selectedRestaurant?.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Arrivée prévue</span>
+                  <span className="font-medium">{arrivalDate} {arrivalTime}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Convives</span>
+                  <span className="font-medium">{partySize}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Articles précommandés</span>
+                  <span className="font-medium">{(confirmedCount ?? count)} plat{(confirmedCount ?? count) > 1 ? "s" : ""}</span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="font-semibold">Total payé</span>
+                  <span className="font-bold">{(confirmedSubtotal ?? subtotal).toFixed(2)} CHF</span>
+                </div>
+              </div>
+              <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm text-indigo-600">
+                <ChefHat className="h-4 w-4" />
+                <span>Le chef sera synchronisé avec votre arrivée</span>
+              </div>
+              <WizardNextButton
+                onClick={handleGoToReservations}
+                label="Voir mes réservations"
+                colorClass="indigo-500"
+              />
             </div>
-
-            {/* Payment method selector */}
-            <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
-
-            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-700">
-              <strong>Paiement à l'avance requis</strong> — Le Zéro Attente nécessite un prépaiement pour garantir la synchronisation avec le chef.
-            </div>
-
-            <Button
-              onClick={handlePayAndReserve}
-              disabled={loading}
-              className="w-full bg-indigo-500 hover:opacity-90 gap-2 text-base py-6"
-            >
-              {loading ? "Traitement en cours..." : `Payer ${subtotal.toFixed(2)} CHF et réserver`}
-            </Button>
-          </div>
-        )}
-
-        {step === "confirm" && (
-          <div className="space-y-6 animate-in slide-in-from-bottom-8">
-            <div className="rounded-2xl bg-indigo-500/5 border border-indigo-500/20 p-6 text-center space-y-2">
-              <CheckCircle2 className="h-12 w-12 text-indigo-500 mx-auto" />
-              <h2 className="font-display text-xl font-bold">Réservation confirmée et payée !</h2>
-              <p className="text-sm text-muted-foreground">Votre table et vos plats précommandés sont réservés. Le paiement a été effectué.</p>
-            </div>
-            <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Restaurant</span>
-                <span className="font-medium">{selectedRestaurant?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Arrivée prévue</span>
-                <span className="font-medium">{arrivalDate} {arrivalTime}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Convives</span>
-                <span className="font-medium">{partySize}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Articles précommandés</span>
-                <span className="font-medium">{count} plat{count > 1 ? "s" : ""}</span>
-              </div>
-              <div className="flex justify-between border-t pt-2">
-                <span className="font-semibold">Total payé</span>
-                <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
-              </div>
-            </div>
-            <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm text-indigo-600">
-              <ChefHat className="h-4 w-4" />
-              <span>Le chef sera synchronisé avec votre arrivée</span>
-            </div>
-            <WizardNextButton
-              onClick={handleGoToReservations}
-              label="Voir mes réservations"
-              colorClass="indigo-500"
-            />
-          </div>
-        )}
-      </div>
-    </FeatureWizard>
-    <ReservationDetailModal
-      reservation={detailForModal}
-      open={showDetailModal}
-      onOpenChange={(open) => {
-        setShowDetailModal(open);
-        if (!open) navigate("/reservations");
-      }}
-    />
+          )}
+        </div>
+      </FeatureWizard>
+      <ReservationDetailModal
+        reservation={detailForModal}
+        open={showDetailModal}
+        onOpenChange={(open) => {
+          setShowDetailModal(open);
+          if (!open) navigate("/reservations");
+        }}
+      />
     </>
   );
 }

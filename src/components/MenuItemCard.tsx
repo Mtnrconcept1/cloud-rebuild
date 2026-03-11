@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { resolveMenuItemImageUrl } from "@/lib/menu-item-images";
+import { trackClick, trackImpression } from "@/lib/analytics";
+import { useEffect, useRef } from "react";
 
 interface MenuItemCardProps {
   id: string;
@@ -19,7 +21,16 @@ export default function MenuItemCard({ id, name, description, price, imageUrl, c
   const { addItem } = useCart();
   const { toast } = useToast();
 
+  const impressionTracked = useRef(false);
+
+  useEffect(() => {
+    if (impressionTracked.current) return;
+    impressionTracked.current = true;
+    trackImpression("dish", id, "restaurant_detail");
+  }, [id]);
+
   const handleAdd = () => {
+    trackClick("dish", id);
     addItem({ menuItemId: id, name, price, restaurantId, restaurantName });
     toast({ title: "Ajouté au panier", description: `${name} ajouté` });
   };

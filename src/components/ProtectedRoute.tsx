@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, loading, role } = useAuth();
+  const { user, loading, role, roles } = useAuth();
 
   if (loading) {
     return (
@@ -19,7 +19,8 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  if (requiredRole && role !== requiredRole && role !== "admin") {
+  // Allow if: active role matches, OR user has the required role, OR user is admin
+  if (requiredRole && role !== requiredRole && !roles.includes(requiredRole) && role !== "admin" && !roles.includes("admin")) {
     return <Navigate to="/" replace />;
   }
 

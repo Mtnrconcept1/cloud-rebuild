@@ -1,0 +1,17 @@
+{
+  "name": "Miamz — Commandez malin, mangez bien",
+  "short_name": "Miamz",
+  "description": "Livraison de restaurants, offres anti-gaspi, programme fidélité et dons solidaires.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "/iconeapp.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

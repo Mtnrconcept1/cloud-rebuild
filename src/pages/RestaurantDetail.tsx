@@ -15,7 +15,8 @@ import AntiWasteCard from "@/components/AntiWasteCard";
 import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/lib/cart";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackImpression } from "@/lib/analytics";
+import { useRef } from "react";
 
 export default function RestaurantDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,7 @@ export default function RestaurantDetail() {
   const [reservationOpen, setReservationOpen] = useState(false);
   const [showReserveChoice, setShowReserveChoice] = useState(false);
   const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
+  const impressionTracked = useRef(false);
 
   useEffect(() => {
     if (searchParams.get("reserve") === "true") {
@@ -44,8 +46,14 @@ export default function RestaurantDetail() {
   });
 
   useEffect(() => {
-    if (id && restaurant) {
-      trackEvent({ eventType: "page_view", eventData: { page: "restaurant_detail", restaurant_name: restaurant.name }, restaurantId: id, cuisineType: restaurant.cuisine_type || undefined, city: restaurant.city });
+    if (id && restaurant && !impressionTracked.current) {
+      impressionTracked.current = true;
+      trackImpression("restaurant", id, "restaurant_detail");
+      trackEvent({
+        eventType: "page_view",
+        eventData: { page: "restaurant_detail", restaurant_name: restaurant.name },
+        restaurantId: id
+      });
     }
   }, [id, restaurant]);
 

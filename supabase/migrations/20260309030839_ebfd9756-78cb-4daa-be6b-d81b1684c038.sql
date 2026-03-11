@@ -276,6 +276,25 @@ CREATE OR REPLACE TRIGGER trg_update_loyalty_tier
   FOR EACH ROW
   EXECUTE FUNCTION update_loyalty_tier();
 
+CREATE OR REPLACE FUNCTION public.trigger_refresh_kpis()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  IF TG_TABLE_NAME = 'orders' THEN
+    PERFORM refresh_restaurant_daily_kpis_for_date(NEW.restaurant_id, NEW.created_at::date::text);
+  ELSIF TG_TABLE_NAME = 'reservations' THEN
+    PERFORM refresh_restaurant_daily_kpis_for_date(NEW.restaurant_id, NEW.date::text);
+  END IF;
+  RETURN NEW;
+END; $$;
+
+CREATE OR REPLACE TRIGGER trg_refresh_kpis_orders
+  AFTER INSERT OR UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION trigger_refresh_kpis();
+
+CREATE OR REPLACE TRIGGER trg_refresh_kpis_reservations
+  AFTER INSERT OR UPDATE ON reservations
+  FOR EACH ROW EXECUTE FUNCTION trigger_refresh_kpis();
+
 CREATE OR REPLACE TRIGGER trg_audit_orders
   AFTER INSERT OR UPDATE OR DELETE ON orders
   FOR EACH ROW
