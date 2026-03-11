@@ -4,6 +4,8 @@ import { BadgePercent, BarChart3, BookOpen, Bot, CalendarDays, Camera, CircleHel
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState } from "react";
+import { useOwnerRestaurantContext } from "@/pages/dashboard/OwnerRestaurantContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type NavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }>; };
 type NavSection = { title: string; items: NavItem[]; };
@@ -68,9 +70,27 @@ function NavItems({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const { restaurants, selectedRestaurantId, setSelectedRestaurantId } = useOwnerRestaurantContext();
+
+  const restaurantSelect = restaurants.length > 1 ? (
+    <Select value={selectedRestaurantId} onValueChange={setSelectedRestaurantId}>
+      <SelectTrigger className="w-full md:w-60">
+        <SelectValue placeholder="Restaurant actif" />
+      </SelectTrigger>
+      <SelectContent>
+        {restaurants.map((restaurant) => (
+          <SelectItem key={restaurant.id} value={restaurant.id}>
+            {restaurant.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  ) : null;
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      <div className="md:hidden flex items-center gap-3 border-b px-4 py-3 bg-sidebar">
+      <div className="md:hidden flex flex-col gap-3 border-b px-4 py-3 bg-sidebar">
+        <div className="flex items-center gap-3">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild><Button variant="ghost" size="icon"><Menu className="h-5 w-5" /></Button></SheetTrigger>
           <SheetContent side="left" className="w-72 p-4 overflow-y-auto">
@@ -79,9 +99,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </SheetContent>
         </Sheet>
         <h2 className="font-display text-base font-semibold">{NAV_ITEMS.find((item) => item.to === pathname)?.label ?? "Dashboard"}</h2>
+        </div>
+        {restaurantSelect}
       </div>
       <aside className="hidden md:flex w-72 border-r bg-sidebar flex-col p-4 overflow-y-auto">
         <h2 className="font-display text-lg font-semibold px-3 py-2 mb-1">Dashboard</h2>
+        {restaurantSelect}
         <nav className="flex flex-col gap-1"><NavItems pathname={pathname} /></nav>
       </aside>
       <main className="flex-1 p-6">{children}</main>

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Check, CreditCard, Dot, ShieldAlert, UserCheck, Utensils, X } from "lucide-react";
+import { useOwnerRestaurantContext } from "./OwnerRestaurantContext";
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -48,7 +48,7 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
 };
 
 export default function DashboardReservations() {
-  const { user } = useAuth();
+  const { selectedRestaurantId } = useOwnerRestaurantContext();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -60,27 +60,25 @@ export default function DashboardReservations() {
 
   useEffect(() => { if (typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches) setIsCompactMode(true); }, []);
 
-  const { data: restaurant } = useQuery({ queryKey: ["my-restaurant", user?.id], queryFn: async () => { const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id).maybeSingle(); return data; }, enabled: !!user });
-
   const { data: reservations = [] } = useQuery({
-    queryKey: ["dashboard-all-reservations", restaurant?.id],
+    queryKey: ["dashboard-all-reservations", selectedRestaurantId],
     queryFn: async () => {
-      const { data: reservationRows, error: reservationError } = await supabase.from("reservations").select("*").eq("restaurant_id", restaurant!.id).order("date", { ascending: true }).order("time", { ascending: true });
+      const { data: reservationRows, error: reservationError } = await supabase.from("reservations").select("*").eq("restaurant_id", selectedRestaurantId).order("date", { ascending: true }).order("time", { ascending: true });
       if (reservationError) throw reservationError;
       if (!reservationRows?.length) return [] as ReservationWithProfile[];
 
       // Use SECURITY DEFINER function to fetch customer profiles (bypasses profiles RLS)
-      const { data: profilesData } = await supabase.rpc("get_reservation_customers" as any, { p_restaurant_id: restaurant!.id });
+      const { data: profilesData } = await supabase.rpc("get_reservation_customers" as any, { p_restaurant_id: selectedRestaurantId });
       const profilesByUserId = new Map((profilesData || []).map((p: any) => [p.user_id, { full_name: p.full_name, phone: p.phone }]));
       return reservationRows.map((r) => ({ ...r, customer: (profilesByUserId.get(r.user_id) as Pick<ProfileRow, "full_name" | "phone">) || null })) as ReservationWithProfile[];
     },
-    enabled: !!restaurant,
+    enabled: !!selectedRestaurantId,
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => { const { error } = await supabase.from("reservations").update({ status }).eq("id", id); if (error) throw error; return { id, status }; },
     onMutate: async ({ id, status }) => {
-      const queryKey = ["dashboard-all-reservations", restaurant?.id];
+      const queryKey = ["dashboard-all-reservations", selectedRestaurantId];
       await queryClient.cancelQueries({ queryKey });
       const previousReservations = queryClient.getQueryData<ReservationWithProfile[]>(queryKey) || [];
       queryClient.setQueryData<ReservationWithProfile[]>(queryKey, (current = []) => current.map((r) => (r.id === id ? { ...r, status } : r)));
@@ -92,6 +90,7 @@ export default function DashboardReservations() {
   });
 
   const statusOptions = useMemo(() => { const u = Array.from(new Set(reservations.map((r) => r.status))).sort(); return ["all", ...u]; }, [reservations]);
+  const hasActiveRestaurant = !!selectedRestaurantId;
 
   const groupedReservations = useMemo(() => {
     const filtered = reservations.filter((r) => {
@@ -123,7 +122,9 @@ export default function DashboardReservations() {
           <div className="space-y-1"><p className="text-xs uppercase tracking-wide text-muted-foreground">Statut</p><Select value={statusFilter} onValueChange={setStatusFilter}><SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger><SelectContent>{statusOptions.map((s) => (<SelectItem key={s} value={s}>{s === "all" ? "Tous" : s}</SelectItem>))}</SelectContent></Select></div>
           <div className="space-y-1"><p className="text-xs uppercase tracking-wide text-muted-foreground">Tri</p><Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}><SelectTrigger><SelectValue placeholder="Trier" /></SelectTrigger><SelectContent><SelectItem value="time">Heure d'arrivée</SelectItem><SelectItem value="party_size">Taille du groupe</SelectItem><SelectItem value="status">Statut</SelectItem></SelectContent></Select></div>
         </div>
-        {groupedReservations.length > 0 ? (
+        {!hasActiveRestaurant ? (
+          <p className="py-10 text-center text-muted-foreground">Sélectionnez un restaurant actif pour voir les réservations.</p>
+        ) : groupedReservations.length > 0 ? (
           <div className="space-y-4">
             {groupedReservations.map((group) => (
               <section key={group.slot} className="space-y-2">

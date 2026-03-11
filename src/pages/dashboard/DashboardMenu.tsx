@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -12,33 +11,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { useOwnerRestaurantContext } from "./OwnerRestaurantContext";
 
 const emptyItem = { name: "", description: "", price: 0, category: "", image_url: "", is_available: true };
 
 export default function DashboardMenu() {
-  const { user } = useAuth();
+  const { selectedRestaurantId } = useOwnerRestaurantContext();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyItem);
 
-  const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id).maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-
   const { data: items } = useQuery({
-    queryKey: ["my-menu-items", restaurant?.id],
+    queryKey: ["my-menu-items", selectedRestaurantId],
     queryFn: async () => {
-      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", restaurant!.id).order("category").order("name");
+      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurantId).order("category").order("name");
       return data || [];
     },
-    enabled: !!restaurant,
+    enabled: !!selectedRestaurantId,
   });
 
   const openNew = () => { setEditingId(null); setForm(emptyItem); setDialogOpen(true); };
@@ -49,12 +40,12 @@ export default function DashboardMenu() {
   };
 
   const handleSave = async () => {
-    if (!restaurant) return;
+    if (!selectedRestaurantId) return;
     if (editingId) {
       const { error } = await supabase.from("menu_items").update(form).eq("id", editingId);
       if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
-      const { error } = await supabase.from("menu_items").insert({ ...form, restaurant_id: restaurant.id });
+      const { error } = await supabase.from("menu_items").insert({ ...form, restaurant_id: selectedRestaurantId });
       if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     }
     toast({ title: editingId ? "Plat mis à jour" : "Plat ajouté" });
@@ -78,7 +69,7 @@ export default function DashboardMenu() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="font-display text-3xl font-bold">Menu</h1>
-          <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" />Ajouter un plat</Button>
+          <Button onClick={openNew} disabled={!selectedRestaurantId}><Plus className="h-4 w-4 mr-2" />Ajouter un plat</Button>
         </div>
         <div className="space-y-3">
           {items?.map((item) => (
@@ -96,7 +87,8 @@ export default function DashboardMenu() {
               <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4" /></Button>
             </div>
           ))}
-          {(!items || items.length === 0) && <p className="text-muted-foreground text-center py-8">Aucun plat dans le menu</p>}
+          {!selectedRestaurantId && <p className="text-muted-foreground text-center py-8">Sélectionnez un restaurant actif pour gérer son menu.</p>}
+          {selectedRestaurantId && (!items || items.length === 0) && <p className="text-muted-foreground text-center py-8">Aucun plat dans le menu</p>}
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>

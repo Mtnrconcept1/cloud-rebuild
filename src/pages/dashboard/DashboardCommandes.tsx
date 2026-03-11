@@ -1,4 +1,3 @@
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -10,6 +9,7 @@ import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "
 import { Separator } from "@/components/ui/separator";
 import { mapOrderStatusToTrackingStatus, normalizeOrderStatus } from "@/lib/orderStatus";
 import type { Database } from "@/integrations/supabase/types";
+import { useOwnerRestaurantContext } from "./OwnerRestaurantContext";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type DeliveryTrackingRow = Database["public"]["Tables"]["delivery_tracking"]["Row"];
@@ -43,29 +43,20 @@ const SIMULATED_COORDS = {
 };
 
 export default function DashboardCommandes() {
-  const { user } = useAuth();
+  const { selectedRestaurantId } = useOwnerRestaurantContext();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: restaurant } = useQuery({
-    queryKey: ["my-restaurant", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id).maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-
   const { data: orders } = useQuery({
-    queryKey: ["dashboard-all-orders", restaurant?.id],
+    queryKey: ["dashboard-all-orders", selectedRestaurantId],
     queryFn: async () => {
       const [ordersRes, customersRes] = await Promise.all([
         supabase
           .from("orders")
           .select(`*, delivery_tracking(*), order_items(*, menu_items(name), anti_waste_offers(title))`)
-          .eq("restaurant_id", restaurant!.id)
+           .eq("restaurant_id", selectedRestaurantId)
           .order("created_at", { ascending: false }),
-        supabase.rpc("get_order_customers" as any, { p_restaurant_id: restaurant!.id }),
+        supabase.rpc("get_order_customers" as any, { p_restaurant_id: selectedRestaurantId }),
       ]);
 
       const customerMap = new Map(
@@ -77,7 +68,7 @@ export default function DashboardCommandes() {
         profiles: customerMap.get(o.user_id) || null,
       })) as unknown as OrderWithRelations[];
     },
-    enabled: !!restaurant,
+    enabled: !!selectedRestaurantId,
   });
 
   const updateStatus = async (orderId: string, status: string) => {
@@ -128,6 +119,7 @@ export default function DashboardCommandes() {
     <DashboardLayout>
       <div className="space-y-6">
         <h1 className="font-display text-3xl font-bold">Commandes</h1>
+        {!selectedRestaurantId && <p className="text-muted-foreground">Sélectionnez un restaurant actif pour voir les commandes.</p>}
         <div className="space-y-3">
           {orders?.map((o) => {
             const tracking = o.delivery_tracking?.[0] ?? null;

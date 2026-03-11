@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import { useOwnerRestaurantContext } from "./OwnerRestaurantContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { TrendingUp, ShoppingCart, Euro, CalendarDays, XCircle, Star } from "lucide-react";
 
@@ -19,28 +19,21 @@ type KpiRow = {
 };
 
 export default function DashboardPerformances() {
-  const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
-  const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
+  const { selectedRestaurantId, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurantContext();
   const [kpis, setKpis] = useState<KpiRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState("30");
 
-  useEffect(() => {
-    if (!loadingRestaurants && restaurants.length && !selectedRestaurant) {
-      setSelectedRestaurant(restaurants[0].id);
-    }
-  }, [loadingRestaurants, restaurants, selectedRestaurant]);
-
   const load = async () => {
-    if (!selectedRestaurant) return setLoading(false);
+    if (!selectedRestaurantId) return setLoading(false);
     setLoading(true);
     const from = new Date();
     from.setDate(from.getDate() - Number(period));
     const { data, error } = await supabase
       .from("restaurant_daily_kpis")
       .select("kpi_date, orders_count, revenue, avg_ticket, reservations_count, cancel_rate, satisfaction_score")
-      .eq("restaurant_id", selectedRestaurant)
+      .eq("restaurant_id", selectedRestaurantId)
       .gte("kpi_date", from.toISOString().slice(0, 10))
       .order("kpi_date", { ascending: true });
     setError(error?.message || null);
@@ -49,9 +42,9 @@ export default function DashboardPerformances() {
   };
 
   useEffect(() => {
-    if (selectedRestaurant) load();
+    if (selectedRestaurantId) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRestaurant, period]);
+  }, [selectedRestaurantId, period]);
 
   const totalOrders = kpis.reduce((s, k) => s + k.orders_count, 0);
   const totalRevenue = kpis.reduce((s, k) => s + Number(k.revenue), 0);
@@ -73,14 +66,6 @@ export default function DashboardPerformances() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-3xl font-bold">Performances</h1>
           <div className="flex gap-2">
-            {restaurants.length > 1 && (
-              <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {restaurants.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
             <Select value={period} onValueChange={setPeriod}>
               <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -160,9 +145,9 @@ export default function DashboardPerformances() {
           <Card>
             <CardContent className="pt-6 text-center text-muted-foreground">
               <TrendingUp className="mx-auto h-10 w-10 mb-2 opacity-40" />
-              <p>Aucune donnée de performance sur cette période.</p>
+              <p>{selectedRestaurantId ? "Aucune donnée de performance sur cette période." : "Sélectionnez un restaurant actif pour voir les performances."}</p>
               <Button variant="outline" className="mt-3" onClick={async () => {
-                if (!selectedRestaurant) return;
+                if (!selectedRestaurantId) return;
                 await supabase.rpc("refresh_restaurant_daily_kpis_recent_days", { p_days_back: Number(period) });
                 load();
               }}>
