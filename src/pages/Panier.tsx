@@ -193,7 +193,11 @@ export default function Panier() {
           if (validateResult?.order_id) {
             await trackCheckoutEvent(validateResult.order_id, "checkout_online_pending", { stripe_session_id: checkoutData.session_id });
           }
-          await trackSponsoredConversion(resId);
+          await trackSponsoredConversion(resId, {
+            conversionType: "order",
+            entityId: validateResult?.order_id || null,
+            paymentMethod,
+          });
         }
 
         // Handle loyalty points
@@ -256,7 +260,11 @@ export default function Panier() {
         if (cartMetadata.groupId) {
           await supabase.from("group_members" as any).update({ order_id: orderId }).eq("group_id", cartMetadata.groupId).eq("user_id", user.id);
         }
-        await trackSponsoredConversion(resId);
+        await trackSponsoredConversion(resId, {
+          conversionType: "order",
+          entityId: orderId || null,
+          paymentMethod,
+        });
       }
 
       if (useLoyaltyPoints && pointsToRedeem > 0) {

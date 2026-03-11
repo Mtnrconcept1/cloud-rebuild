@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -8,14 +8,25 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Timer, Utensils, Clock, CheckCircle2, ChevronLeft,
-  Armchair, ChefHat, Zap, ArrowRight, Plus, Minus, Users, CreditCard,
+  Armchair, ChefHat, Zap, ArrowRight, Plus, Minus, Users, CreditCard, Sparkles, Percent,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
+import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
+import { formatMissingCoursesText, roundCurrency } from "@/lib/meal-formulas";
+import { trackSponsoredConversion } from "@/lib/analytics";
 
 type Step = "info" | "restaurant" | "menu" | "payment" | "confirm";
+type PricingSummary = {
+  count: number;
+  subtotal: number;
+  formulaDiscount: number;
+  formulaDiscountPercent: number;
+  formulaName: string | null;
+  total: number;
+};
 
 export default function ZeroAttente() {
   const { user } = useAuth();
@@ -33,8 +44,7 @@ export default function ZeroAttente() {
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
-  const [confirmedCount, setConfirmedCount] = useState<number | null>(null);
-  const [confirmedSubtotal, setConfirmedSubtotal] = useState<number | null>(null);
+  const [confirmedPricing, setConfirmedPricing] = useState<PricingSummary | null>(null);
 
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants-zero-wait", preSelectedRestaurantId],
@@ -78,6 +88,51 @@ export default function ZeroAttente() {
   }, 0) : 0;
 
   const categories = menuItems ? [...new Set(menuItems.map((i: any) => i.category || "Autres"))] as string[] : [];
+  const selectedFormulaItems = useMemo(
+    () =>
+      Object.entries(quantities)
+        .filter(([, qty]) => qty > 0)
+        .map(([id, qty]) => {
+          const item = menuItems?.find((m: any) => m.id === id);
+          return {
+            category: item?.category || null,
+            quantity: qty,
+            unitPrice: Number(item?.price || 0),
+          };
+        }),
+    [quantities, menuItems]
+  );
+
+  const {
+    matchedFormula,
+    suggestion,
+    discountAmount: formulaDiscountRaw,
+    finalTotal: totalAfterDiscountRaw,
+  } = useMealFormulaDetection({
+    restaurantId: selectedRestaurant?.id || null,
+    items: selectedFormulaItems,
+    subtotal,
+    reservationDate: arrivalDate,
+    reservationTime: arrivalTime,
+    context: "zero-attente",
+    enabled: !!selectedRestaurant,
+  });
+
+  const formulaDiscount = roundCurrency(formulaDiscountRaw);
+  const formulaName = matchedFormula?.name || null;
+  const formulaDiscountPercent = matchedFormula?.discountPercent || 0;
+  const totalAfterDiscount = roundCurrency(totalAfterDiscountRaw);
+  const currentPricing: PricingSummary = useMemo(
+    () => ({
+      count,
+      subtotal: roundCurrency(subtotal),
+      formulaDiscount,
+      formulaDiscountPercent: roundCurrency(formulaDiscountPercent),
+      formulaName,
+      total: totalAfterDiscount,
+    }),
+    [count, subtotal, formulaDiscount, formulaDiscountPercent, formulaName, totalAfterDiscount]
+  );
 
   const handlePayAndReserve = async () => {
     if (!user) {
@@ -87,6 +142,7 @@ export default function ZeroAttente() {
     if (!selectedRestaurant || !menuItems) return;
 
     setLoading(true);
+    const pricingForCheckout: PricingSummary = { ...currentPricing };
 
     const preorderItems = Object.entries(quantities)
       .filter(([, qty]) => qty > 0)
@@ -119,6 +175,13 @@ export default function ZeroAttente() {
             restaurant_id: selectedRestaurant.id,
             order_reference: `ZA-${Date.now()}`,
             delivery_fee: 0,
+            formula_applied: pricingForCheckout.formulaName,
+            formula_discount: pricingForCheckout.formulaDiscount,
+            formula_discount_amount: pricingForCheckout.formulaDiscount,
+            formula_discount_percent: pricingForCheckout.formulaDiscountPercent,
+            pre_discount_subtotal: pricingForCheckout.subtotal,
+            final_total: pricingForCheckout.total,
+            discount_amount: pricingForCheckout.formulaDiscount,
           },
         },
       });
@@ -137,8 +200,7 @@ export default function ZeroAttente() {
         arrivalTime,
         partySize,
         preorderItems,
-        subtotal,
-        count,
+        pricing: pricingForCheckout,
         paymentMethod,
       }));
 
@@ -148,14 +210,17 @@ export default function ZeroAttente() {
     }
 
     // Cash payment: create reservation directly
-    setConfirmedCount(count);
-    setConfirmedSubtotal(subtotal);
-    await createReservation(preorderItems, undefined, count, subtotal);
+    await createReservation(preorderItems, pricingForCheckout);
   };
 
-  const createReservation = async (preorderItems: any[], checkoutSessionId?: string, itemCount?: number, totalAmount?: number) => {
-    const finalCount = itemCount ?? count;
-    const finalSubtotal = totalAmount ?? subtotal;
+  const createReservation = async (
+    preorderItems: any[],
+    pricing: PricingSummary,
+    checkoutSessionId?: string,
+    cardMeta?: { card_brand?: string | null; card_last4?: string | null },
+    paidOverride?: boolean
+  ) => {
+    const paid = typeof paidOverride === "boolean" ? paidOverride : paymentMethod !== "cash";
     const { data, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
       p_restaurant_id: selectedRestaurant.id,
       p_date: arrivalDate,
@@ -165,14 +230,20 @@ export default function ZeroAttente() {
       p_metadata: {
         feature: "zero-attente",
         preorder_items: preorderItems,
-        total_amount: finalSubtotal,
+        pre_discount_subtotal: pricing.subtotal,
+        formula_applied: pricing.formulaName,
+        formula_discount_amount: pricing.formulaDiscount,
+        formula_discount_percent: pricing.formulaDiscountPercent,
+        total_amount: pricing.total,
         arrival_date: arrivalDate,
         arrival_time: arrivalTime,
         payment_method: paymentMethod,
         checkout_session_id: checkoutSessionId || null,
-        paid: paymentMethod !== "cash",
+        paid,
+        card_brand: cardMeta?.card_brand || null,
+        card_last4: cardMeta?.card_last4 || null,
       },
-      p_notes: `[Zéro Attente] ${finalCount} plat(s) précommandé(s) - Total: ${finalSubtotal.toFixed(2)} CHF - Paiement: ${paymentMethod}`,
+      p_notes: `[Zéro Attente] ${pricing.count} plat(s) précommandé(s) - Sous-total: ${pricing.subtotal.toFixed(2)} CHF - Réduction: ${pricing.formulaDiscount.toFixed(2)} CHF - Total: ${pricing.total.toFixed(2)} CHF - Paiement: ${paymentMethod}${paid ? " (payé)" : ""}`,
     });
 
     setLoading(false);
@@ -180,8 +251,12 @@ export default function ZeroAttente() {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
-      setConfirmedCount(finalCount);
-      setConfirmedSubtotal(finalSubtotal);
+      await trackSponsoredConversion(selectedRestaurant.id, {
+        conversionType: "zero-attente",
+        entityId: data || null,
+        paymentMethod,
+      });
+      setConfirmedPricing(pricing);
       setReservationId(data);
       setStep("confirm");
     }
@@ -198,6 +273,14 @@ export default function ZeroAttente() {
       if (pending) {
         const data = JSON.parse(pending);
         sessionStorage.removeItem("zero-attente-pending");
+        const restoredPricing: PricingSummary = data.pricing || {
+          count: Number(data.count || 0),
+          subtotal: roundCurrency(Number(data.subtotal || 0)),
+          formulaDiscount: roundCurrency(Number(data.formulaDiscount || 0)),
+          formulaDiscountPercent: roundCurrency(Number(data.formulaDiscountPercent || 0)),
+          formulaName: data.formulaName || null,
+          total: roundCurrency(Number(data.total || data.subtotal || 0)),
+        };
 
         // Restore state
         setSelectedRestaurant({ id: data.restaurantId, name: data.restaurantName });
@@ -205,6 +288,11 @@ export default function ZeroAttente() {
         setArrivalTime(data.arrivalTime);
         setPartySize(data.partySize);
         setPaymentMethod(data.paymentMethod);
+        const restoredQuantities = (data.preorderItems || []).reduce((acc: Record<string, number>, item: any) => {
+          if (item?.menu_item_id) acc[item.menu_item_id] = Number(item.quantity || 0);
+          return acc;
+        }, {});
+        setQuantities(restoredQuantities);
 
         // Create reservation after successful payment
         const doCreate = async () => {
@@ -228,7 +316,11 @@ export default function ZeroAttente() {
             p_metadata: {
               feature: "zero-attente",
               preorder_items: data.preorderItems,
-              total_amount: data.subtotal,
+              pre_discount_subtotal: restoredPricing.subtotal,
+              formula_applied: restoredPricing.formulaName,
+              formula_discount_amount: restoredPricing.formulaDiscount,
+              formula_discount_percent: restoredPricing.formulaDiscountPercent,
+              total_amount: restoredPricing.total,
               arrival_date: data.arrivalDate,
               arrival_time: data.arrivalTime,
               payment_method: data.paymentMethod,
@@ -237,14 +329,18 @@ export default function ZeroAttente() {
               card_brand: txnMeta.card_brand || null,
               card_last4: txnMeta.card_last4 || null,
             },
-            p_notes: `[Zéro Attente] ${data.count} plat(s) précommandé(s) - Total: ${data.subtotal.toFixed(2)} CHF - Paiement: ${data.paymentMethod} (payé)`,
+            p_notes: `[Zéro Attente] ${restoredPricing.count} plat(s) précommandé(s) - Sous-total: ${restoredPricing.subtotal.toFixed(2)} CHF - Réduction: ${restoredPricing.formulaDiscount.toFixed(2)} CHF - Total: ${restoredPricing.total.toFixed(2)} CHF - Paiement: ${data.paymentMethod} (payé)`,
           });
           setLoading(false);
           if (error) {
             toast({ title: "Erreur", description: error.message, variant: "destructive" });
           } else {
-            setConfirmedCount(data.count);
-            setConfirmedSubtotal(data.subtotal);
+            await trackSponsoredConversion(data.restaurantId, {
+              conversionType: "zero-attente",
+              entityId: resData || null,
+              paymentMethod: data.paymentMethod,
+            });
+            setConfirmedPricing(restoredPricing);
             setReservationId(resData);
             setStep("confirm");
           }
@@ -277,8 +373,7 @@ export default function ZeroAttente() {
       };
     }) : [];
 
-  const displayCount = confirmedCount ?? count;
-  const displaySubtotal = confirmedSubtotal ?? subtotal;
+  const displayPricing = confirmedPricing || currentPricing;
 
   const detailForModal = reservationId ? {
     id: reservationId,
@@ -287,10 +382,19 @@ export default function ZeroAttente() {
     party_size: partySize,
     status: "pending",
     feature: "zero-attente",
-    notes: `[Zéro Attente] ${displayCount} plat(s) précommandé(s) - Total: ${displaySubtotal.toFixed(2)} CHF`,
-    total_amount: displaySubtotal,
+    notes: `[Zéro Attente] ${displayPricing.count} plat(s) précommandé(s) - Sous-total: ${displayPricing.subtotal.toFixed(2)} CHF - Réduction: ${displayPricing.formulaDiscount.toFixed(2)} CHF - Total: ${displayPricing.total.toFixed(2)} CHF`,
+    total_amount: displayPricing.total,
     created_at: new Date().toISOString(),
-    metadata: { feature: "zero-attente", payment_method: paymentMethod, paid: paymentMethod !== "cash" } as any,
+    metadata: {
+      feature: "zero-attente",
+      payment_method: paymentMethod,
+      paid: paymentMethod !== "cash",
+      pre_discount_subtotal: displayPricing.subtotal,
+      formula_applied: displayPricing.formulaName,
+      formula_discount_amount: displayPricing.formulaDiscount,
+      formula_discount_percent: displayPricing.formulaDiscountPercent,
+      total_amount: displayPricing.total,
+    } as any,
     preorder_items: preorderItemsForModal as any,
     restaurant_name: selectedRestaurant?.name || "",
   } : null;
@@ -393,6 +497,29 @@ export default function ZeroAttente() {
                 <Timer className="h-4 w-4 text-indigo-500" />
                 Arrivée {arrivalDate} {arrivalTime} · {partySize} convive(s) · {selectedRestaurant?.name}
               </div>
+              {count > 0 && matchedFormula && (
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-emerald-700">Formule détectée : {matchedFormula.name}</p>
+                    <p className="text-xs text-emerald-700/80">-{matchedFormula.discountPercent}% appliqué, soit -{formulaDiscount.toFixed(2)} CHF</p>
+                  </div>
+                  <Badge className="bg-emerald-600 text-white">
+                    <Percent className="h-3 w-3 mr-1" />-{formulaDiscount.toFixed(2)} CHF
+                  </Badge>
+                </div>
+              )}
+              {count > 0 && !matchedFormula && suggestion && (
+                <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-indigo-600 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-indigo-700">Formule possible : {suggestion.name}</p>
+                    <p className="text-xs text-indigo-700/80">
+                      Ajoutez {formatMissingCoursesText(suggestion.missingCourses)} pour obtenir -{suggestion.discountPercent}%.
+                    </p>
+                  </div>
+                </div>
+              )}
               {categories.map((cat) => (
                 <div key={cat} className="space-y-2">
                   <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">{cat}</h3>
@@ -429,9 +556,19 @@ export default function ZeroAttente() {
                     <span>{count} article{count > 1 ? "s" : ""} · {partySize} convive(s)</span>
                     <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
                   </div>
+                  {formulaDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-emerald-600 font-medium">
+                      <span>Réduction formule{formulaName ? ` (${formulaName})` : ""}</span>
+                      <span>-{formulaDiscount.toFixed(2)} CHF</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                    <span>Total</span>
+                    <span>{totalAfterDiscount.toFixed(2)} CHF</span>
+                  </div>
                   <Button onClick={() => setStep("payment")} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
                     <CreditCard className="h-4 w-4" />
-                    Passer au paiement · {subtotal.toFixed(2)} CHF
+                    Passer au paiement · {totalAfterDiscount.toFixed(2)} CHF
                   </Button>
                 </div>
               )}
@@ -463,9 +600,19 @@ export default function ZeroAttente() {
                     </div>
                   );
                 })}
+                <div className="flex justify-between text-sm pt-2 border-t mt-2">
+                  <span className="text-muted-foreground">Sous-total</span>
+                  <span className="font-medium">{subtotal.toFixed(2)} CHF</span>
+                </div>
+                {formulaDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-emerald-600 font-medium">
+                    <span>Réduction formule{formulaName ? ` (${formulaName})` : ""}</span>
+                    <span>-{formulaDiscount.toFixed(2)} CHF</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold border-t pt-2 mt-2">
                   <span>Total à payer</span>
-                  <span>{subtotal.toFixed(2)} CHF</span>
+                  <span>{totalAfterDiscount.toFixed(2)} CHF</span>
                 </div>
               </div>
 
@@ -481,7 +628,7 @@ export default function ZeroAttente() {
                 disabled={loading}
                 className="w-full bg-indigo-500 hover:opacity-90 gap-2 text-base py-6"
               >
-                {loading ? "Traitement en cours..." : `Payer ${subtotal.toFixed(2)} CHF et réserver`}
+                {loading ? "Traitement en cours..." : `Payer ${totalAfterDiscount.toFixed(2)} CHF et réserver`}
               </Button>
             </div>
           )}
@@ -508,11 +655,17 @@ export default function ZeroAttente() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Articles précommandés</span>
-                  <span className="font-medium">{(confirmedCount ?? count)} plat{(confirmedCount ?? count) > 1 ? "s" : ""}</span>
+                  <span className="font-medium">{displayPricing.count} plat{displayPricing.count > 1 ? "s" : ""}</span>
                 </div>
+                {displayPricing.formulaDiscount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Réduction formule</span>
+                    <span className="font-medium text-emerald-600">-{displayPricing.formulaDiscount.toFixed(2)} CHF</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-t pt-2">
                   <span className="font-semibold">Total payé</span>
-                  <span className="font-bold">{(confirmedSubtotal ?? subtotal).toFixed(2)} CHF</span>
+                  <span className="font-bold">{displayPricing.total.toFixed(2)} CHF</span>
                 </div>
               </div>
               <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm text-indigo-600">

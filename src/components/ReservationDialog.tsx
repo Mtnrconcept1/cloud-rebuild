@@ -18,15 +18,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { trackSponsoredConversion } from "@/lib/analytics";
 import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
+import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 
 interface ReservationDialogProps { restaurantId: string; restaurantName: string; open: boolean; onOpenChange: (open: boolean) => void; initialDate?: Date; initialTime?: string; initialPartySize?: number; }
 type Step = "datetime" | "mode" | "promo" | "confirm";
 type ReservationMode = "classique" | "zero-attente";
 
 interface PromoOffer { id: string; label: string; description: string; discount: number; formula: string; }
-interface MealFormulaRow { id: string; name: string; description: string | null; discount_percent: number; }
-
-const ESTIMATED_SPEND_PER_GUEST_CHF = 35;
+interface MealFormulaRow { id: string; name: string; description: string | null; discount_percent: number; availability?: MealFormulaAvailability; }
 
 // getPromosForDate removed — promotions now come from meal_formulas table server-side
 
@@ -53,11 +52,20 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
   const earnedXp = 100;
 
   const { data: promos = [], isLoading: isPromosLoading } = useQuery({
-    queryKey: ["reservation-promos", restaurantId],
+    queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time],
     queryFn: async () => {
-      const { data, error } = await supabase.from("meal_formulas").select("id, name, description, discount_percent").eq("restaurant_id", restaurantId).eq("is_active", true).eq("applies_to", "reservation" as any).order("discount_percent", { ascending: false });
+      const { data, error } = await supabase
+        .from("meal_formulas")
+        .select("id, name, description, discount_percent, applies_to, availability")
+        .eq("restaurant_id", restaurantId)
+        .eq("is_active", true)
+        .in("applies_to", ["reservation", "both", "dine_in"] as any)
+        .order("discount_percent", { ascending: false });
       if (error) throw error;
-      return ((data || []) as MealFormulaRow[]).map((f) => ({ id: f.id, label: f.name, description: f.description || "Formule promotionnelle", discount: Number(f.discount_percent) || 0, formula: f.name }));
+      const reservationDate = date ? format(date, "yyyy-MM-dd") : undefined;
+      return ((data || []) as MealFormulaRow[])
+        .filter((f) => isMealFormulaAvailableForSlot(f.availability || null, reservationDate, time))
+        .map((f) => ({ id: f.id, label: f.name, description: f.description || "Formule promotionnelle", discount: Number(f.discount_percent) || 0, formula: f.name }));
     },
     enabled: open && !!restaurantId,
   });
@@ -77,8 +85,18 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
 
     setLoading(true);
     const promoDiscountPercent = selectedPromo ? selectedPromo.discount : 0;
-    const reservationMetadata = { feature: selectedPromo ? "promo-formule" : "classique", promo_applied: !!selectedPromo, promo_offer_id: selectedPromo?.id ?? null, promo_discount_percent: promoDiscountPercent > 0 ? promoDiscountPercent : null, service: servicePeriod };
-    const promoNote = selectedPromo ? `[PROMO: ${selectedPromo.formula} -${selectedPromo.discount}%] ` : "[À la carte] ";
+    const selectedFormulaName = selectedPromo?.formula || null;
+    const reservationMetadata = {
+      feature: selectedPromo ? "promo-formule" : "classique",
+      promo_applied: !!selectedPromo,
+      promo_offer_id: selectedPromo?.id ?? null,
+      promo_discount_percent: promoDiscountPercent > 0 ? promoDiscountPercent : null,
+      formula_applied: selectedFormulaName,
+      formula_discount_percent: promoDiscountPercent > 0 ? promoDiscountPercent : null,
+      formula_discount_amount: null,
+      service: servicePeriod,
+    };
+    const promoNote = selectedPromo ? `[FORMULE: ${selectedPromo.formula} -${selectedPromo.discount}%] ` : "[A la carte] ";
 
     // Use server-side validation function instead of direct insert
     const { data: reservationId, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
@@ -92,7 +110,10 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
     });
     setLoading(false);
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); } else {
-      await trackSponsoredConversion(restaurantId);
+      await trackSponsoredConversion(restaurantId, {
+        conversionType: "reservation",
+        entityId: reservationId || null,
+      });
       if (donatePoints && earnedXp > 0) { await (supabase.rpc as any)("donate_points_for_meal", { points_param: earnedXp, description_param: `Don solidaire (réservation chez ${restaurantName})` }); }
       queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
       setConfirmedReservation({

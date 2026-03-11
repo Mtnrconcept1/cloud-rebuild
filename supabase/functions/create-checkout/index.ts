@@ -115,6 +115,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    const totalBeforeDiscountCents = lineItems.reduce(
+      (sum: number, li: any) => sum + li.price_data.unit_amount * li.quantity,
+      0
+    );
+    const rawDiscountCandidates = [
+      Number(order_metadata?.discount_amount || 0),
+      Number(order_metadata?.formula_discount_amount || 0),
+      Number(order_metadata?.formula_discount || 0),
+    ];
+    const requestedDiscount = rawDiscountCandidates.find((value) => Number.isFinite(value) && value > 0) || 0;
+    const discountCents = Math.min(
+      Math.round(Math.max(0, requestedDiscount) * 100),
+      Math.max(0, totalBeforeDiscountCents)
+    );
+
     // Build Stripe Checkout Session params
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: paymentMethodTypes,
@@ -128,16 +143,27 @@ Deno.serve(async (req) => {
         order_reference: order_metadata?.order_reference || "",
         restaurant_id: order_metadata?.restaurant_id || "",
         payment_method_label: payment_method,
+        formula_applied: String(order_metadata?.formula_applied || ""),
+        formula_discount_amount: (discountCents / 100).toFixed(2),
       },
     };
+
+    if (discountCents > 0) {
+      const coupon = await stripe.coupons.create({
+        amount_off: discountCents,
+        currency: "chf",
+        duration: "once",
+        name: order_metadata?.formula_applied
+          ? `Formule ${order_metadata.formula_applied}`
+          : "Reduction formule",
+      });
+      sessionParams.discounts = [{ coupon: coupon.id }];
+    }
 
     // Route payment to restaurant's Stripe Connected Account via destination charge
     if (stripeAccountId) {
       const platformFeePercent = 0.10; // 10% platform commission
-      const totalAmount = lineItems.reduce(
-        (sum: number, li: any) => sum + li.price_data.unit_amount * li.quantity,
-        0
-      );
+      const totalAmount = Math.max(0, totalBeforeDiscountCents - discountCents);
       sessionParams.payment_intent_data = {
         transfer_data: {
           destination: stripeAccountId,

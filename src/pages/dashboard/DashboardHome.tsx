@@ -7,6 +7,9 @@ import { CalendarDays, ShoppingCart, TrendingUp } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useDashboardRestaurant } from "./DashboardContext";
 
+const INVALID_ORDER_STATUS_FILTER = "(cancelled,refused,payment_failed)";
+const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show)";
+
 export default function Dashboard() {
   const { selectedId } = useDashboardRestaurant();
   const today = new Date().toISOString().split("T")[0];
@@ -24,7 +27,13 @@ export default function Dashboard() {
   const { data: recentOrders } = useQuery({
     queryKey: ["dashboard-recent-orders", restaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*").eq("restaurant_id", restaurant!.id).order("created_at", { ascending: false }).limit(5);
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("restaurant_id", restaurant!.id)
+        .not("status", "in", INVALID_ORDER_STATUS_FILTER)
+        .order("created_at", { ascending: false })
+        .limit(5);
       return data || [];
     },
     enabled: !!restaurant,
@@ -33,7 +42,14 @@ export default function Dashboard() {
   const { data: upcomingReservations } = useQuery({
     queryKey: ["dashboard-upcoming-reservations", restaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("reservations").select("*").eq("restaurant_id", restaurant!.id).gte("date", today).order("date").limit(5);
+      const { data } = await supabase
+        .from("reservations")
+        .select("*")
+        .eq("restaurant_id", restaurant!.id)
+        .gte("date", today)
+        .not("status", "in", INVALID_RESERVATION_STATUS_FILTER)
+        .order("date")
+        .limit(5);
       return data || [];
     },
     enabled: !!restaurant,
@@ -42,7 +58,11 @@ export default function Dashboard() {
   const { data: totalOrders = 0 } = useQuery({
     queryKey: ["dashboard-total-orders", restaurant?.id],
     queryFn: async () => {
-      const { count } = await supabase.from("orders").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurant!.id);
+      const { count } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("restaurant_id", restaurant!.id)
+        .not("status", "in", INVALID_ORDER_STATUS_FILTER);
       return count || 0;
     },
     enabled: !!restaurant,
@@ -51,7 +71,12 @@ export default function Dashboard() {
   const { data: totalUpcomingReservations = 0 } = useQuery({
     queryKey: ["dashboard-total-upcoming-reservations", restaurant?.id, today],
     queryFn: async () => {
-      const { count } = await supabase.from("reservations").select("*", { count: "exact", head: true }).eq("restaurant_id", restaurant!.id).gte("date", today);
+      const { count } = await supabase
+        .from("reservations")
+        .select("*", { count: "exact", head: true })
+        .eq("restaurant_id", restaurant!.id)
+        .gte("date", today)
+        .not("status", "in", INVALID_RESERVATION_STATUS_FILTER);
       return count || 0;
     },
     enabled: !!restaurant,
@@ -60,7 +85,12 @@ export default function Dashboard() {
   const { data: monthlyRevenue = 0 } = useQuery({
     queryKey: ["dashboard-monthly-revenue", restaurant?.id, monthStart],
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("total_amount").eq("restaurant_id", restaurant!.id).gte("created_at", monthStart).not("status", "in", "(cancelled,refused)");
+      const { data } = await supabase
+        .from("orders")
+        .select("total_amount")
+        .eq("restaurant_id", restaurant!.id)
+        .gte("created_at", monthStart)
+        .not("status", "in", INVALID_ORDER_STATUS_FILTER);
       return (data || []).reduce((sum, order) => sum + Number(order.total_amount), 0);
     },
     enabled: !!restaurant,
@@ -85,7 +115,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total commandes</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Commandes validées</CardTitle>
               <ShoppingCart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent><p className="text-2xl font-bold">{totalOrders}</p></CardContent>

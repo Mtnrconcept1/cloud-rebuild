@@ -22,7 +22,11 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
   const { data: reservationDiscounts = [] } = useQuery({
     queryKey: ["reservation-widget-promos", restaurantId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("meal_formulas" as any).select("discount_percent").eq("restaurant_id", restaurantId).eq("is_active", true).eq("applies_to", "reservation");
+      const { data, error } = await (supabase.from("meal_formulas" as any)
+        .select("discount_percent")
+        .eq("restaurant_id", restaurantId)
+        .eq("is_active", true)
+        .in("applies_to", ["reservation", "both", "dine_in"] as any));
       if (error) throw error;
       return ((data || []) as any[]).map((row) => Number(row.discount_percent) || 0);
     },

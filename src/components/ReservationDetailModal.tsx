@@ -96,8 +96,24 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
 
   const promoInfo = (() => {
     if (!isJsonRecord(reservation.metadata)) return null;
+    const formulaDiscountPercent = Number(reservation.metadata.formula_discount_percent || 0);
+    const formulaDiscountAmount = Number(reservation.metadata.formula_discount_amount || 0);
+    const formulaName = reservation.metadata.formula_applied ? String(reservation.metadata.formula_applied) : null;
+    if (formulaDiscountPercent > 0 || formulaDiscountAmount > 0) {
+      return {
+        type: "formula" as const,
+        name: formulaName,
+        discountPercent: formulaDiscountPercent,
+        discountAmount: formulaDiscountAmount,
+      };
+    }
     if (reservation.metadata.promo_discount_percent) {
-      return { discount: Number(reservation.metadata.promo_discount_percent) };
+      return {
+        type: "promo" as const,
+        name: null,
+        discountPercent: Number(reservation.metadata.promo_discount_percent),
+        discountAmount: 0,
+      };
     }
     return null;
   })();
@@ -175,7 +191,10 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
           {promoInfo && (
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 flex items-center gap-2 text-sm text-emerald-700">
               <Utensils className="h-4 w-4" />
-              <span>Formule avec <strong>-{promoInfo.discount}%</strong> de réduction</span>
+              <span>
+                {promoInfo.type === "formula" ? "Formule" : "Promotion"} avec <strong>-{promoInfo.discountPercent}%</strong> de réduction
+                {promoInfo.name ? ` (${promoInfo.name})` : ""}
+              </span>
             </div>
           )}
 
@@ -212,12 +231,20 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
           {reservation.total_amount > 0 && (() => {
             const meta = isJsonRecord(reservation.metadata) ? reservation.metadata : {};
             const paymentMethod = String(meta.payment_method || "card");
+            const formulaDiscountPct = Number(meta.formula_discount_percent || 0);
             const promoDiscountPct = Number(meta.promo_discount_percent || 0);
-            const subtotalBeforeDiscount = preorderItems.reduce((sum, item) => sum + item.total_price, 0);
-            const discountAmount = promoDiscountPct > 0 ? subtotalBeforeDiscount * promoDiscountPct / 100 : 0;
+            const discountPct = formulaDiscountPct > 0 ? formulaDiscountPct : promoDiscountPct;
+            const subtotalFromMeta = Number(meta.pre_discount_subtotal || 0);
+            const subtotalFromItems = preorderItems.reduce((sum, item) => sum + item.total_price, 0);
+            const subtotalBeforeDiscount = subtotalFromMeta > 0 ? subtotalFromMeta : subtotalFromItems;
+            const formulaDiscountAmount = Number(meta.formula_discount_amount || 0);
+            const discountAmount = formulaDiscountAmount > 0
+              ? formulaDiscountAmount
+              : (discountPct > 0 ? subtotalBeforeDiscount * discountPct / 100 : 0);
             const pmLabels: Record<string, string> = { card: "Carte bancaire", twint: "TWINT", cash: "Espèces" };
             const pmLabel = pmLabels[paymentMethod] || pmLabels.card;
             const PmIcon = paymentMethod === "cash" ? Banknote : CreditCard;
+            const formulaName = meta.formula_applied ? String(meta.formula_applied) : null;
 
             return (
               <div className="rounded-xl border p-4 space-y-2">
@@ -234,7 +261,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
                   )}
                   {discountAmount > 0 && (
                     <div className="flex justify-between text-emerald-600">
-                      <span>Réduction -{promoDiscountPct}%</span>
+                      <span>Réduction -{discountPct}%{formulaName ? ` (${formulaName})` : ""}</span>
                       <span>-{discountAmount.toFixed(2)} CHF</span>
                     </div>
                   )}

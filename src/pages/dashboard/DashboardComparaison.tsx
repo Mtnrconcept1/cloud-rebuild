@@ -3,7 +3,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import { useDashboardRestaurant } from "./DashboardContext";
 import { ArrowUp, ArrowDown, Minus, Scale, Euro, ShoppingCart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -63,24 +63,22 @@ function MetricCard({ label, icon: Icon, myValue, avgValue, format = "number", r
 }
 
 export default function DashboardComparaison() {
-  const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
-  const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
+  const { restaurants, selectedId, setSelectedId, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
   const [period, setPeriod] = useState("30d");
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!loadingRestaurants && restaurants.length && !selectedRestaurant) {
-      setSelectedRestaurant(restaurants[0].id);
-    }
-  }, [loadingRestaurants, restaurants, selectedRestaurant]);
-
   const load = async () => {
-    if (!selectedRestaurant) return setLoading(false);
+    if (!selectedId) {
+      setComparison(null);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data, error } = await supabase.rpc("get_restaurant_comparison", {
-      p_restaurant_id: selectedRestaurant,
+      p_restaurant_id: selectedId,
       p_period: period,
     });
     setError(error?.message || null);
@@ -89,9 +87,9 @@ export default function DashboardComparaison() {
   };
 
   useEffect(() => {
-    if (selectedRestaurant) load();
+    if (selectedId) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRestaurant, period]);
+  }, [selectedId, period]);
 
   return (
     <DashboardLayout>
@@ -100,7 +98,7 @@ export default function DashboardComparaison() {
           <h1 className="font-display text-3xl font-bold">Comparaison marché</h1>
           <div className="flex gap-2">
             {restaurants.length > 1 && (
-              <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
+              <Select value={selectedId || ""} onValueChange={setSelectedId}>
                 <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {restaurants.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}

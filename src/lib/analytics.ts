@@ -12,6 +12,7 @@ export type AnalyticsEventType =
   | "category_click"
   | "sponsored_impression"
   | "sponsored_click"
+  | "sponsored_conversion"
   | "review_submitted";
 
 interface TrackEventParams {
@@ -222,7 +223,18 @@ export async function trackCheckoutEvent(orderId: string, eventType: string, pay
   }
 }
 
-export async function trackSponsoredConversion(restaurantId: string) {
+type SponsoredConversionType = "order" | "reservation" | "zero-attente";
+
+interface TrackSponsoredConversionOptions {
+  conversionType?: SponsoredConversionType;
+  entityId?: string | null;
+  paymentMethod?: string | null;
+}
+
+export async function trackSponsoredConversion(
+  restaurantId: string,
+  options?: TrackSponsoredConversionOptions
+) {
   const campaignId = getValidSponsoredCampaignId(restaurantId);
   if (!campaignId) return false;
 
@@ -242,6 +254,19 @@ export async function trackSponsoredConversion(restaurantId: string) {
   const attributions = readSponsoredAttributions();
   delete attributions[restaurantId];
   writeSponsoredAttributions(attributions);
+
+  // Keep a typed conversion trail for campaign analysis and debugging.
+  await trackEvent({
+    eventType: "sponsored_conversion",
+    restaurantId,
+    eventData: {
+      campaign_id: campaignId,
+      conversion_type: options?.conversionType || "order",
+      entity_id: options?.entityId || null,
+      payment_method: options?.paymentMethod || null,
+    },
+  });
+
   return true;
 }
 
@@ -306,7 +331,18 @@ export async function getActiveSponsoredRestaurants(page: string) {
     .eq("status", "active");
 
   const all = (data || []) as any[];
+  const now = Date.now();
   return all.filter((c: any) => {
+    if (c.starts_at) {
+      const startsAt = Date.parse(String(c.starts_at));
+      if (Number.isFinite(startsAt) && startsAt > now) return false;
+    }
+    if (c.ends_at) {
+      const endsAt = Date.parse(String(c.ends_at));
+      if (Number.isFinite(endsAt) && endsAt < now) return false;
+    }
+    if (Number(c.total_budget || 0) > 0 && Number(c.spent || 0) >= Number(c.total_budget || 0)) return false;
+
     const pages = c.target_pages;
     if (!pages) return true;
     if (Array.isArray(pages)) return pages.length === 0 || pages.includes(page);
