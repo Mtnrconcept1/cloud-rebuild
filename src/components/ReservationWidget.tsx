@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 
 interface ReservationWidgetProps { restaurantId: string; restaurantName: string; onReserve: (date: Date, time: string, partySize: number) => void; }
 
@@ -20,15 +21,18 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
   const [partySize, setPartySize] = useState("2");
 
   const { data: reservationDiscounts = [] } = useQuery({
-    queryKey: ["reservation-widget-promos", restaurantId],
+    queryKey: ["reservation-widget-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time],
     queryFn: async () => {
       const { data, error } = await (supabase.from("meal_formulas" as any)
-        .select("discount_percent")
+        .select("discount_percent, availability")
         .eq("restaurant_id", restaurantId)
         .eq("is_active", true)
         .in("applies_to", ["reservation", "both", "dine_in"] as any));
       if (error) throw error;
-      return ((data || []) as any[]).map((row) => Number(row.discount_percent) || 0);
+      const reservationDate = date ? format(date, "yyyy-MM-dd") : undefined;
+      return ((data || []) as Array<{ discount_percent: number | null; availability?: MealFormulaAvailability }>)
+        .filter((row) => isMealFormulaAvailableForSlot(row.availability || null, reservationDate, time))
+        .map((row) => Number(row.discount_percent) || 0);
     },
     enabled: !!restaurantId,
   });

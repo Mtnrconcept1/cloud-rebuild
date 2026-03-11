@@ -1,10 +1,20 @@
+import { detectServiceFromTime, type ServicePeriod } from "@/lib/serviceSettings";
+
 export type FormulaCourse = "entree" | "plat" | "dessert";
 export type MealFormulaContext = "cart" | "zero-attente";
+
+export type MealFormulaServiceAvailability = {
+  enabled?: boolean;
+  startTime?: string;
+  endTime?: string;
+};
 
 export type MealFormulaAvailability = {
   days?: string[];
   startTime?: string;
   endTime?: string;
+  servicePeriods?: ServicePeriod[];
+  services?: Partial<Record<ServicePeriod, MealFormulaServiceAvailability>>;
 } | null;
 
 export type MealFormulaRow = {
@@ -112,6 +122,14 @@ function isTimeInWindow(target: number, start: number, end: number): boolean {
   return target >= start || target <= end;
 }
 
+function isServiceAvailabilityShape(
+  value: MealFormulaAvailability
+): value is Exclude<MealFormulaAvailability, null> & {
+  services: Partial<Record<ServicePeriod, MealFormulaServiceAvailability>>;
+} {
+  return !!value && typeof value === "object" && !!value.services && typeof value.services === "object";
+}
+
 export function isMealFormulaAvailableForSlot(
   availability: MealFormulaAvailability,
   reservationDate?: string,
@@ -131,7 +149,31 @@ export function isMealFormulaAvailableForSlot(
     if (!days.includes(dayCode)) return false;
   }
 
+  const servicePeriod = detectServiceFromTime(reservationTime);
   const targetMinutes = parseTimeToMinutes(reservationTime);
+
+  if (isServiceAvailabilityShape(availability)) {
+    const serviceConfig = availability.services?.[servicePeriod];
+    if (serviceConfig?.enabled === false) return false;
+
+    const serviceStart = parseTimeToMinutes(String(serviceConfig?.startTime || ""));
+    const serviceEnd = parseTimeToMinutes(String(serviceConfig?.endTime || ""));
+    if (targetMinutes !== null && serviceStart !== null && serviceEnd !== null) {
+      return isTimeInWindow(targetMinutes, serviceStart, serviceEnd);
+    }
+
+    if (serviceConfig) return true;
+  }
+
+  const servicePeriods = Array.isArray(availability.servicePeriods)
+    ? availability.servicePeriods.filter(
+        (period): period is ServicePeriod => period === "lunch" || period === "dinner"
+      )
+    : [];
+  if (servicePeriods.length > 0 && !servicePeriods.includes(servicePeriod)) {
+    return false;
+  }
+
   const startMinutes = parseTimeToMinutes(String(availability.startTime || ""));
   const endMinutes = parseTimeToMinutes(String(availability.endTime || ""));
   if (targetMinutes === null || startMinutes === null || endMinutes === null) return true;

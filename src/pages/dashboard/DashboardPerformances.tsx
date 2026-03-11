@@ -12,6 +12,8 @@ import {
   ShoppingCart,
   Euro,
   CalendarDays,
+  SunMedium,
+  MoonStar,
   XCircle,
   Star,
   DollarSign,
@@ -20,6 +22,7 @@ import {
   Percent,
 } from "lucide-react";
 import { useDashboardRestaurant } from "./DashboardContext";
+import { getServicePeriodFromMetadata } from "@/lib/serviceSettings";
 
 type KpiRow = {
   kpi_date: string;
@@ -40,7 +43,10 @@ type OrderLite = {
 
 type ReservationLite = {
   date: string;
+  time?: string | null;
   status: string | null;
+  party_size?: number | null;
+  metadata?: unknown;
 };
 
 const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed"]);
@@ -48,9 +54,9 @@ const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "no_show"]);
 
 function dayKeyFromIso(iso: string | null | undefined): string | null {
   if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toISOString().slice(0, 10);
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -60,8 +66,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function toNumber(value: unknown) {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : 0;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
   }
   return 0;
 }
@@ -99,13 +105,13 @@ function buildFallbackKpis(orders: OrderLite[], reservations: ReservationLite[])
 
   return Array.from(byDay.entries())
     .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([kpi_date, v]) => ({
+    .map(([kpi_date, value]) => ({
       kpi_date,
-      orders_count: v.orderValid,
-      revenue: v.revenue,
-      avg_ticket: v.orderValid > 0 ? v.revenue / v.orderValid : 0,
-      reservations_count: v.reservations,
-      cancel_rate: v.orderTotal > 0 ? (v.cancelled / v.orderTotal) * 100 : 0,
+      orders_count: value.orderValid,
+      revenue: value.revenue,
+      avg_ticket: value.orderValid > 0 ? value.revenue / value.orderValid : 0,
+      reservations_count: value.reservations,
+      cancel_rate: value.orderTotal > 0 ? (value.cancelled / value.orderTotal) * 100 : 0,
       satisfaction_score: 0,
     }));
 }
@@ -114,6 +120,7 @@ export default function DashboardPerformances() {
   const { restaurants, selectedId, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
   const [kpis, setKpis] = useState<KpiRow[]>([]);
   const [orders, setOrders] = useState<OrderLite[]>([]);
+  const [reservations, setReservations] = useState<ReservationLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState("30");
@@ -143,6 +150,7 @@ export default function DashboardPerformances() {
     if (!selectedId) {
       setKpis([]);
       setOrders([]);
+      setReservations([]);
       setLoading(false);
       return;
     }
@@ -164,7 +172,7 @@ export default function DashboardPerformances() {
         .gte("created_at", `${fromDay}T00:00:00.000Z`),
       supabase
         .from("reservations")
-        .select("date, status")
+        .select("date, time, status, party_size, metadata")
         .eq("restaurant_id", selectedId)
         .gte("date", fromDay),
     ]);
@@ -172,6 +180,7 @@ export default function DashboardPerformances() {
     const orderRows = (ordersRes.data || []) as OrderLite[];
     const reservationRows = (reservationsRes.data || []) as ReservationLite[];
     setOrders(orderRows);
+    setReservations(reservationRows);
 
     const kpiRows = (kpiRes.data || []) as KpiRow[];
     if (kpiRows.length > 0) {
@@ -195,11 +204,11 @@ export default function DashboardPerformances() {
 
     try {
       for (let offset = Number(period) - 1; offset >= 0; offset -= 1) {
-        const d = new Date();
-        d.setDate(d.getDate() - offset);
+        const date = new Date();
+        date.setDate(date.getDate() - offset);
         await supabase.rpc("refresh_restaurant_daily_kpis_for_date", {
           p_restaurant_id: selectedId,
-          p_day: d.toISOString().slice(0, 10),
+          p_day: date.toISOString().slice(0, 10),
         });
       }
       await load();
@@ -214,6 +223,7 @@ export default function DashboardPerformances() {
     else {
       setKpis([]);
       setOrders([]);
+      setReservations([]);
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -223,17 +233,31 @@ export default function DashboardPerformances() {
   const totalRevenue = kpis.reduce((sum, kpi) => sum + Number(kpi.revenue || 0), 0);
   const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   const totalReservations = kpis.reduce((sum, kpi) => sum + Number(kpi.reservations_count || 0), 0);
-  const avgCancel = kpis.length > 0
-    ? kpis.reduce((sum, kpi) => sum + Number(kpi.cancel_rate || 0), 0) / kpis.length
-    : 0;
+  const avgCancel =
+    kpis.length > 0 ? kpis.reduce((sum, kpi) => sum + Number(kpi.cancel_rate || 0), 0) / kpis.length : 0;
   const satisfactionValues = kpis
     .map((kpi) => Number(kpi.satisfaction_score))
     .filter((value) => Number.isFinite(value) && value > 0);
-  const avgSatisfaction = satisfactionValues.length > 0
-    ? satisfactionValues.reduce((sum, value) => sum + value, 0) / satisfactionValues.length
-    : 0;
+  const avgSatisfaction =
+    satisfactionValues.length > 0 ? satisfactionValues.reduce((sum, value) => sum + value, 0) / satisfactionValues.length : 0;
 
   const validOrders = orders.filter((order) => !INVALID_ORDER_STATUSES.has(String(order.status || "").toLowerCase()));
+  const validReservations = reservations.filter(
+    (reservation) => !INVALID_RESERVATION_STATUSES.has(String(reservation.status || "").toLowerCase()),
+  );
+  const reservationServiceBreakdown = validReservations.reduce(
+    (acc, reservation) => {
+      const periodKey = getServicePeriodFromMetadata(reservation.metadata, reservation.time || null);
+      acc[periodKey].count += 1;
+      acc[periodKey].covers += Number(reservation.party_size || 0);
+      return acc;
+    },
+    {
+      lunch: { count: 0, covers: 0 },
+      dinner: { count: 0, covers: 0 },
+    },
+  );
+
   const invalidOrders = orders.length - validOrders.length;
   let formulaDiscount = 0;
   let promoDiscount = 0;
@@ -303,7 +327,7 @@ export default function DashboardPerformances() {
             <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  <CardTitle className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                     <ShoppingCart className="h-4 w-4" />
                     Commandes
                   </CardTitle>
@@ -312,7 +336,7 @@ export default function DashboardPerformances() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  <CardTitle className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                     <Euro className="h-4 w-4" />
                     CA
                   </CardTitle>
@@ -321,7 +345,7 @@ export default function DashboardPerformances() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  <CardTitle className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                     <TrendingUp className="h-4 w-4" />
                     Panier moyen
                   </CardTitle>
@@ -330,7 +354,7 @@ export default function DashboardPerformances() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  <CardTitle className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                     <CalendarDays className="h-4 w-4" />
                     Reservations
                   </CardTitle>
@@ -339,7 +363,7 @@ export default function DashboardPerformances() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  <CardTitle className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                     <XCircle className="h-4 w-4" />
                     Annulation
                   </CardTitle>
@@ -348,7 +372,7 @@ export default function DashboardPerformances() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  <CardTitle className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                     <Star className="h-4 w-4" />
                     Satisfaction
                   </CardTitle>
@@ -357,10 +381,10 @@ export default function DashboardPerformances() {
               </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground flex items-center gap-1">
+                  <CardTitle className="flex items-center gap-1 text-sm text-muted-foreground">
                     <DollarSign className="h-4 w-4" />
                     CA net
                   </CardTitle>
@@ -368,28 +392,44 @@ export default function DashboardPerformances() {
                 <CardContent><p className="text-2xl font-bold text-primary">{netRevenue.toFixed(2)} CHF</p></CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">CA brut estime</CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">CA brut estime</CardTitle></CardHeader>
                 <CardContent><p className="text-2xl font-bold">{grossRevenue.toFixed(2)} CHF</p></CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">Commandes valides</CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Commandes valides</CardTitle></CardHeader>
                 <CardContent><p className="text-2xl font-bold">{validOrders.length}</p></CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">Panier comptable</CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Panier comptable</CardTitle></CardHeader>
                 <CardContent><p className="text-2xl font-bold">{accountingAvgTicket.toFixed(2)} CHF</p></CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">Annulation commandes</CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Annulation commandes</CardTitle></CardHeader>
                 <CardContent><p className="text-2xl font-bold">{accountingCancelRate}%</p></CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Reservations midi</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-2xl font-bold">{reservationServiceBreakdown.lunch.count}</p>
+                      <p className="text-xs text-muted-foreground">{reservationServiceBreakdown.lunch.covers} couverts</p>
+                    </div>
+                    <SunMedium className="h-5 w-5 text-amber-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Reservations soir</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-2xl font-bold">{reservationServiceBreakdown.dinner.count}</p>
+                      <p className="text-xs text-muted-foreground">{reservationServiceBreakdown.dinner.covers} couverts</p>
+                    </div>
+                    <MoonStar className="h-5 w-5 text-sky-500" />
+                  </div>
+                </CardContent>
               </Card>
             </div>
 
@@ -433,7 +473,7 @@ export default function DashboardPerformances() {
             <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
                     <Percent className="h-4 w-4" />
                     Remises sur la periode
                   </CardTitle>
@@ -443,7 +483,7 @@ export default function DashboardPerformances() {
                   <div className="flex justify-between"><span>Promotions</span><span>-{promoDiscount.toFixed(2)} CHF</span></div>
                   <div className="flex justify-between"><span>Fidelite</span><span>-{loyaltyDiscount.toFixed(2)} CHF</span></div>
                   <div className="flex justify-between"><span>Flex</span><span>-{flexDiscount.toFixed(2)} CHF</span></div>
-                  <div className="flex justify-between font-semibold border-t pt-2">
+                  <div className="flex justify-between border-t pt-2 font-semibold">
                     <span>Total remises</span>
                     <span>-{totalDiscounts.toFixed(2)} CHF</span>
                   </div>
@@ -452,21 +492,21 @@ export default function DashboardPerformances() {
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
                     <CreditCard className="h-4 w-4" />
                     Lecture comptable
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm text-muted-foreground space-y-1">
+                <CardContent className="space-y-1 text-sm text-muted-foreground">
                   <p>Le CA net correspond aux commandes validees du restaurant selectionne.</p>
                   <p>Le CA brut estime ajoute les remises retrouvees dans les metadonnees de commande.</p>
-                  <p>Les factures ci-dessous sont limitees au restaurant actuellement actif dans la sidebar.</p>
+                  <p>Les reservations sont maintenant ventilees entre service du midi et service du soir.</p>
                 </CardContent>
               </Card>
             </div>
 
             <div className="space-y-4">
-              <h2 className="font-display text-xl font-bold flex items-center gap-2">
+              <h2 className="font-display flex items-center gap-2 text-xl font-bold">
                 <Receipt className="h-5 w-5" />
                 Factures recentes
               </h2>
@@ -480,7 +520,7 @@ export default function DashboardPerformances() {
                     <Card key={invoice.id}>
                       <CardContent className="flex items-center justify-between gap-3 py-4">
                         <div>
-                          <p className="font-semibold text-sm">{invoice.period_start} {"->"} {invoice.period_end}</p>
+                          <p className="text-sm font-semibold">{invoice.period_start} {"->"} {invoice.period_end}</p>
                           <p className="text-xs text-muted-foreground">
                             HT: {Number(invoice.amount_ht).toFixed(2)} | TVA: {Number(invoice.amount_tva).toFixed(2)} | TTC: {Number(invoice.amount_ttc).toFixed(2)} CHF
                           </p>
@@ -508,7 +548,7 @@ export default function DashboardPerformances() {
             {!loading && !combinedError && chartData.length === 0 ? (
               <Card>
                 <CardContent className="pt-6 text-center text-muted-foreground">
-                  <TrendingUp className="mx-auto h-10 w-10 mb-2 opacity-40" />
+                  <TrendingUp className="mx-auto mb-2 h-10 w-10 opacity-40" />
                   <p>Aucune donnee de performance sur cette periode.</p>
                   <Button variant="outline" className="mt-3" onClick={refreshSelectedRestaurantKpis}>
                     Recalculer les KPIs

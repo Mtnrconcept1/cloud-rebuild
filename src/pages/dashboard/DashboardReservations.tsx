@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle, Check, CreditCard, Dot, ShieldAlert, UserCheck, Utensils, X } from "lucide-react";
+import { AlertTriangle, Check, CreditCard, Dot, MoonStar, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
+import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -32,17 +33,10 @@ type ReservationMetadata = {
 type ServiceFilter = "all" | "lunch" | "dinner";
 type SortBy = "time" | "party_size" | "status";
 
-const SERVICE_CUTOFF_HOUR = 16;
-
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 const getSafeTime = (value: string | null | undefined) => (value && value.slice(0, 5)) || "00:00";
-
-const toService = (reservation: ReservationRow): ServiceFilter => {
-  const hour = Number.parseInt(getSafeTime(reservation.time).split(":")[0] || "0", 10);
-  return hour < SERVICE_CUTOFF_HOUR ? "lunch" : "dinner";
-};
 
 const toNumber = (value: Json | undefined): number | undefined => {
   if (typeof value === "number") return value;
@@ -164,7 +158,10 @@ export default function DashboardReservations() {
       if (reservation.date !== selectedDate) return false;
       if (serviceFilter !== "all") {
         const metadataService = extractMetadata(reservation).service;
-        const derivedService = metadataService === "lunch" || metadataService === "dinner" ? metadataService : toService(reservation);
+        const derivedService =
+          metadataService === "lunch" || metadataService === "dinner"
+            ? metadataService
+            : getServicePeriodFromMetadata(reservation.metadata, reservation.time);
         if (derivedService !== serviceFilter) return false;
       }
       if (statusFilter !== "all" && reservation.status !== statusFilter) return false;
@@ -193,6 +190,23 @@ export default function DashboardReservations() {
       totalGuests: items.reduce((sum, item) => sum + (item.party_size || 0), 0),
     }));
   }, [reservations, selectedDate, serviceFilter, statusFilter, sortBy]);
+
+  const serviceBreakdown = useMemo(() => {
+    return reservations
+      .filter((reservation) => reservation.date === selectedDate && (statusFilter === "all" || reservation.status === statusFilter))
+      .reduce(
+        (acc, reservation) => {
+          const period = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
+          acc[period].count += 1;
+          acc[period].covers += Number(reservation.party_size || 0);
+          return acc;
+        },
+        {
+          lunch: { count: 0, covers: 0 },
+          dinner: { count: 0, covers: 0 },
+        },
+      );
+  }, [reservations, selectedDate, statusFilter]);
 
   return (
     <DashboardLayout>
@@ -237,8 +251,8 @@ export default function DashboardReservations() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="lunch">Lunch</SelectItem>
-                    <SelectItem value="dinner">Dinner</SelectItem>
+                    <SelectItem value="lunch">Midi</SelectItem>
+                    <SelectItem value="dinner">Soir</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -272,6 +286,29 @@ export default function DashboardReservations() {
               </div>
             </div>
 
+            <div className="grid gap-3 md:grid-cols-2">
+              <Card>
+                <CardContent className="flex items-center justify-between py-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Service midi</p>
+                    <p className="text-2xl font-bold">{serviceBreakdown.lunch.count}</p>
+                    <p className="text-xs text-muted-foreground">{serviceBreakdown.lunch.covers} couverts</p>
+                  </div>
+                  <SunMedium className="h-5 w-5 text-amber-500" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="flex items-center justify-between py-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Service soir</p>
+                    <p className="text-2xl font-bold">{serviceBreakdown.dinner.count}</p>
+                    <p className="text-xs text-muted-foreground">{serviceBreakdown.dinner.covers} couverts</p>
+                  </div>
+                  <MoonStar className="h-5 w-5 text-sky-500" />
+                </CardContent>
+              </Card>
+            </div>
+
             {groupedReservations.length > 0 ? (
               <div className="space-y-4">
                 {groupedReservations.map((group) => (
@@ -288,6 +325,7 @@ export default function DashboardReservations() {
                     <div className="space-y-2">
                       {group.items.map((reservation) => {
                         const metadata = extractMetadata(reservation);
+                        const servicePeriod = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
                         const hasNoShowRisk = metadata.no_show_risk || metadata.risk_level === "high";
                         const keyNotes = metadata.key_notes || [];
                         const offerName = metadata.formula_applied || metadata.promo;
@@ -304,6 +342,7 @@ export default function DashboardReservations() {
                                   <span className="font-semibold">{reservation.customer?.full_name || "Client inconnu"}</span>
                                   <OrderStatusBadge status={reservation.status} />
                                   <Badge variant="secondary">{reservation.party_size} pers.</Badge>
+                                  <Badge variant="outline">{getServicePeriodLabel(servicePeriod)}</Badge>
                                 </div>
                                 {!isCompactMode ? (
                                   <p className="text-sm text-muted-foreground">

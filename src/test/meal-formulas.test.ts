@@ -112,6 +112,49 @@ describe("detectBestMealFormula", () => {
     expect(result.discountAmount).toBe(0);
   });
 
+  it("filters formulas by split lunch and dinner services", () => {
+    const formulas: MealFormulaRow[] = [
+      {
+        ...baseFormulas[0],
+        availability: {
+          days: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+          services: {
+            lunch: { enabled: true, startTime: "11:30", endTime: "14:30" },
+            dinner: { enabled: false, startTime: "18:30", endTime: "22:00" },
+          },
+          servicePeriods: ["lunch"],
+        },
+      },
+    ];
+
+    const lunchResult = detectBestMealFormula({
+      formulas,
+      items: [
+        { category: "Entrees", quantity: 1, unitPrice: 10 },
+        { category: "Plats", quantity: 1, unitPrice: 20 },
+      ],
+      subtotal: 30,
+      context: "zero-attente",
+      reservationDate: "2026-03-11",
+      reservationTime: "12:30",
+    });
+
+    const dinnerResult = detectBestMealFormula({
+      formulas,
+      items: [
+        { category: "Entrees", quantity: 1, unitPrice: 10 },
+        { category: "Plats", quantity: 1, unitPrice: 20 },
+      ],
+      subtotal: 30,
+      context: "zero-attente",
+      reservationDate: "2026-03-11",
+      reservationTime: "19:30",
+    });
+
+    expect(lunchResult.matchedFormula?.name).toBe("Entree + Plat");
+    expect(dinnerResult.matchedFormula).toBeNull();
+  });
+
   it("excludes dine-in only formulas in cart context", () => {
     const formulas: MealFormulaRow[] = [
       {

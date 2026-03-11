@@ -2,6 +2,11 @@ import type { Json } from "@/integrations/supabase/types";
 
 export type ServicePeriod = "lunch" | "dinner";
 
+export const SERVICE_PERIOD_LABELS: Record<ServicePeriod, string> = {
+  lunch: "Midi",
+  dinner: "Soir",
+};
+
 export type ServiceSettings = {
   start_time: string;
   end_time: string;
@@ -113,6 +118,22 @@ export const detectServiceFromTime = (time: string): ServicePeriod => {
   if (minutes === null) return "dinner";
   return minutes < 16 * 60 ? "lunch" : "dinner";
 };
+
+export const getServicePeriodFromMetadata = (
+  metadata: unknown,
+  time: string | null | undefined,
+): ServicePeriod => {
+  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+    const service = (metadata as Record<string, unknown>).service;
+    if (service === "lunch" || service === "dinner") {
+      return service;
+    }
+  }
+
+  return detectServiceFromTime(time || "");
+};
+
+export const getServicePeriodLabel = (period: ServicePeriod): string => SERVICE_PERIOD_LABELS[period];
 
 export const validateServiceSettings = (settings: ServiceSettings): string | null => {
   const start = parseTime(settings.start_time);
