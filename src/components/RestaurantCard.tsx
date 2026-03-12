@@ -126,7 +126,7 @@ export default function RestaurantCard({
     if (impressionTracked.current) return;
     impressionTracked.current = true;
     if (isSponsored && sponsoredCampaignId) {
-      trackSponsoredImpression(sponsoredCampaignId, id);
+      trackSponsoredImpression(sponsoredCampaignId, id, "restaurant_card");
     } else {
       trackImpression("restaurant", id);
     }
@@ -134,7 +134,7 @@ export default function RestaurantCard({
 
   const handleCardClick = () => {
     if (isSponsored && sponsoredCampaignId) {
-      trackSponsoredClick(sponsoredCampaignId, id);
+      trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card");
     } else {
       trackClick("restaurant", id);
     }
@@ -144,7 +144,7 @@ export default function RestaurantCard({
   const handleSlotClick = (e: React.MouseEvent, slot: string) => {
     e.stopPropagation();
     if (isSponsored && sponsoredCampaignId) {
-      trackSponsoredClick(sponsoredCampaignId, id);
+      trackSponsoredClick(sponsoredCampaignId, id, "restaurant_card_slot");
     }
     navigate(`/restaurant/${id}?reserve=true&time=${slot}`);
   };

@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { trackSponsoredConversion } from "@/lib/analytics";
 import { useAuth } from "@/lib/auth";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
+import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
 
 interface ReservationDialogProps {
@@ -293,6 +294,12 @@ export default function ReservationDialog({
       conversionType: "reservation",
       entityId: reservationId || null,
     });
+
+    try {
+      await dispatchQueuedNotifications("reservation-create");
+    } catch (dispatchError) {
+      console.error("Reservation notification dispatch failed:", dispatchError);
+    }
 
     if (donatePoints && loyaltyPoints >= 0 && earnedXp > 0) {
       await (supabase.rpc as any)("donate_points_for_meal", {

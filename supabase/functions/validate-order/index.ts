@@ -1,4 +1,21 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  createAdminClient,
+  jsonResponse,
+  writeAuditLog,
+} from "../_shared/auth.ts";
+import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
+import {
+  enrichDeliveryMetadata,
+  getEstimatedArrivalTime,
+  isDeliveryOrder,
+  resolveScheduledDelivery,
+} from "../_shared/delivery-dispatch.ts";
+import {
+  enqueueNotification,
+  triggerNotificationDispatch,
+} from "../_shared/notifications.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,257 +43,312 @@ interface ValidateOrderPayload {
   checkout_id?: string;
 }
 
+function buildItemsSummary(items: Array<{ quantity: number; name: string }>) {
+  return items
+    .slice(0, 3)
+    .map((item) => `${item.quantity}x ${item.name}`)
+    .join(", ");
+}
+
+function getOrderJourneyLabel(input: {
+  isDelivery: boolean;
+  metadata: Record<string, unknown>;
+}) {
+  if (input.isDelivery) return "livraison";
+  if (typeof input.metadata.pickup_time === "string" && input.metadata.pickup_time) return "a emporter";
+  return "commande";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let auditRestaurantId = "";
+
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    const supabaseUser = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: userData, error: userError } = await supabaseUser.auth.getUser();
-    if (userError || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const userId = userData.user.id;
-
+    actor = await authenticateRequest(req, { allowServiceRole: false });
     const payload: ValidateOrderPayload = await req.json();
-    const { restaurant_id, delivery_address, delivery_fee, total_amount, notes, items, metadata, checkout_id } = payload;
+    const {
+      restaurant_id,
+      delivery_address,
+      delivery_fee,
+      notes,
+      items,
+      metadata,
+      checkout_id,
+    } = payload;
+    auditRestaurantId = restaurant_id;
 
     if (!restaurant_id || !items || items.length === 0) {
-      return new Response(JSON.stringify({ error: "Restaurant et articles requis." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new HttpError(400, "Restaurant et articles requis.");
     }
 
-    // 1. Verify all items exist, are available, and prices match
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const pricing = await buildVerifiedOrderPricing({
+      adminClient: actor.adminClient,
+      userId: actor.userId!,
+      restaurantId: restaurant_id,
+      items,
+      deliveryFee: delivery_fee || 0,
+      metadata: metadata || {},
+      context: "cart",
+    });
 
-    // Separate regular menu items from special items (anti-waste, flash sales)
-    const specialPrefixes = ["antigaspi-", "flash-"];
-    const isSpecialItem = (id: string) => specialPrefixes.some((p) => id.startsWith(p));
+    for (const item of items) {
+      const itemMetadata = item.metadata || {};
+      if (itemMetadata?.anti_waste_offer_id) {
+        const updated = await actor.adminClient.rpc("decrement_stock", {
+          p_table: "anti_waste_offers",
+          p_id: itemMetadata.anti_waste_offer_id,
+          p_qty: Math.floor(item.quantity || 0),
+        });
 
-    const regularItems = items.filter((i) => !isSpecialItem(i.menu_item_id));
-    const specialItems = items.filter((i) => isSpecialItem(i.menu_item_id));
-
-    // Validate regular items have valid UUIDs
-    const invalidItems = regularItems.filter((i) => !uuidRegex.test(i.menu_item_id));
-    if (invalidItems.length > 0) {
-      return new Response(
-        JSON.stringify({ error: "Articles invalides détectés." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    let verifiedTotal = 0;
-
-    // Verify regular menu items against DB
-    if (regularItems.length > 0) {
-      const menuItemIds = regularItems.map((i) => i.menu_item_id);
-      const { data: menuItems, error: menuError } = await supabaseAdmin
-        .from("menu_items")
-        .select("id, price, is_available, name, restaurant_id")
-        .in("id", menuItemIds);
-
-      if (menuError) throw menuError;
-
-      const menuMap = new Map(menuItems?.map((m: any) => [m.id, m]) || []);
-
-      for (const item of regularItems) {
-        const dbItem = menuMap.get(item.menu_item_id) as any;
-        if (!dbItem) {
-          return new Response(
-            JSON.stringify({ error: `Article introuvable : ${item.menu_item_id}` }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+        if (updated.error || !updated.data) {
+          throw new HttpError(400, "Stock anti-gaspi insuffisant ou erreur de mise a jour.");
         }
-        if (!dbItem.is_available) {
-          return new Response(
-            JSON.stringify({ error: `Article indisponible : ${dbItem.name}` }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        if (Math.abs(dbItem.price - item.unit_price) > 0.01) {
-          return new Response(
-            JSON.stringify({ error: `Prix incorrect pour ${dbItem.name}. Attendu : ${dbItem.price} CHF` }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        verifiedTotal += dbItem.price * item.quantity;
       }
-    }
 
-    // Trust special items prices (they are verified via stock checks below)
-    for (const item of specialItems) {
-      verifiedTotal += item.unit_price * item.quantity;
-    }
+      if (itemMetadata?.flash_sale_id) {
+        const updated = await actor.adminClient.rpc("decrement_stock", {
+          p_table: "flash_sales",
+          p_id: itemMetadata.flash_sale_id,
+          p_qty: Math.floor(item.quantity || 0),
+        });
 
-
-    // 2. Check and decrement anti-waste stock atomically via SQL
-    if (metadata && (metadata as any).has_anti_gaspi) {
-      for (const item of items) {
-        if ((item.metadata as any)?.anti_waste_offer_id) {
-          const offerId = (item.metadata as any).anti_waste_offer_id;
-          const qty = Math.floor(item.quantity);
-
-          // Verify price
-          const { data: offer, error: offerError } = await supabaseAdmin
-            .from("anti_waste_offers")
-            .select("discounted_price, is_active, title")
-            .eq("id", offerId)
-            .single();
-
-          if (offerError || !offer || !offer.is_active) {
-            return new Response(JSON.stringify({ error: "Offre anti-gaspi invalide ou expirée." }), {
-              status: 400,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-
-          if (Math.abs(offer.discounted_price - item.unit_price) > 0.01) {
-            return new Response(
-              JSON.stringify({ error: `Prix incorrect pour ${offer.title}. Attendu : ${offer.discounted_price} CHF` }),
-              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-
-          // Truly atomic decrement: UPDATE ... SET qty = qty - N WHERE qty >= N
-          const { data: updated, error: updateError } = await supabaseAdmin.rpc("decrement_stock", {
-            p_table: "anti_waste_offers",
-            p_id: offerId,
-            p_qty: qty,
-          });
-
-          if (updateError || !updated) {
-            return new Response(JSON.stringify({ error: "Stock anti-gaspi insuffisant ou erreur de mise à jour." }), {
-              status: 400,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
+        if (updated.error || !updated.data) {
+          throw new HttpError(400, "Stock vente flash insuffisant ou erreur de mise a jour.");
         }
       }
     }
 
-    // 3. Check and decrement flash sale stock atomically via SQL
-    if (metadata && (metadata as any).has_flash_sale) {
-      for (const item of items) {
-        if ((item.metadata as any)?.flash_sale_id) {
-          const saleId = (item.metadata as any).flash_sale_id;
-          const qty = Math.floor(item.quantity);
+    const itemsCount = pricing.validatedItems.reduce((sum, item) => sum + item.quantity, 0);
+    const itemsSummary = buildItemsSummary(
+      pricing.validatedItems.map((item) => ({ quantity: item.quantity, name: item.name })),
+    );
 
-          // Verify price
-          const { data: sale, error: saleError } = await supabaseAdmin
-            .from("flash_sales")
-            .select("discounted_price, is_active, title")
-            .eq("id", saleId)
-            .single();
+    const baseMetadata = {
+      ...(metadata || {}),
+      order_reference: String(metadata?.order_reference || ""),
+      formula_applied: pricing.formulaName,
+      formula_discount_amount: pricing.formulaDiscount,
+      formula_discount_percent: pricing.formulaDiscountPercent,
+      promotion_applied: pricing.promoName,
+      promotion_discount_amount: pricing.promoDiscount,
+      points_discount_amount: pricing.pointsDiscount,
+      flex_discount_amount: pricing.flexDiscount,
+      pre_discount_subtotal: pricing.subtotal,
+      original_total: pricing.originalTotal,
+      validated_total: pricing.total,
+      quality_fee_amount: pricing.qualityFee,
+      items_count: itemsCount,
+      items_summary: itemsSummary,
+    };
 
-          if (saleError || !sale || !sale.is_active) {
-            return new Response(JSON.stringify({ error: "Vente flash invalide ou expirée." }), {
-              status: 400,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
+    const isDelivery = isDeliveryOrder({
+      deliveryAddress: delivery_address,
+      metadata: baseMetadata,
+      orderType: String((baseMetadata as Record<string, unknown>).type || ""),
+    });
 
-          if (Math.abs(sale.discounted_price - item.unit_price) > 0.01) {
-            return new Response(
-              JSON.stringify({ error: `Prix incorrect pour ${sale.title}. Attendu : ${sale.discounted_price} CHF` }),
-              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
+    const scheduledDelivery = isDelivery
+      ? await resolveScheduledDelivery(actor.adminClient, restaurant_id, baseMetadata)
+      : null;
 
-          // Truly atomic decrement
-          const { data: updated, error: updateError } = await supabaseAdmin.rpc("decrement_stock", {
-            p_table: "flash_sales",
-            p_id: saleId,
-            p_qty: qty,
-          });
-
-          if (updateError || !updated) {
-            return new Response(JSON.stringify({ error: "Stock vente flash insuffisant ou erreur de mise à jour." }), {
-              status: 400,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
+    const deliveryMetadataBase = scheduledDelivery
+      ? {
+          ...baseMetadata,
+          delivery_schedule_mode: "scheduled",
+          delivery_date: scheduledDelivery.dateValue,
+          delivery_time: scheduledDelivery.timeValue,
+          delivery_service: scheduledDelivery.service,
+          scheduled_delivery_at: scheduledDelivery.scheduledAt,
+          scheduled_delivery_label: scheduledDelivery.scheduledLabel,
         }
-      }
-    }
+      : baseMetadata;
 
-    // 4. Create order via RPC (uses service role to bypass RLS, but we set user context)
+    const authoritativeMetadata = isDelivery
+      ? enrichDeliveryMetadata(deliveryMetadataBase)
+      : baseMetadata;
+
     const checkoutUuid = checkout_id || crypto.randomUUID();
-    const itemsJson = items.map((i) => ({
-      menu_item_id: uuidRegex.test(i.menu_item_id) ? i.menu_item_id : null,
-      restaurant_id: i.restaurant_id || restaurant_id,
-      quantity: i.quantity,
-      unit_price: i.unit_price,
-      total_price: i.unit_price * i.quantity,
-      metadata: { ...(i.metadata || {}), original_item_id: i.menu_item_id },
+    const itemsJson = pricing.validatedItems.map((item) => ({
+      menu_item_id: /^[0-9a-f-]{36}$/i.test(item.menuItemId) ? item.menuItemId : null,
+      restaurant_id: restaurant_id,
+      quantity: item.quantity,
+      unit_price: item.unitPrice,
+      total_price: item.unitPrice * item.quantity,
+      metadata: { ...(item.metadata || {}), original_item_id: item.menuItemId },
     }));
 
-    const { data: orderId, error: orderError } = await supabaseUser.rpc(
+    const { data: orderId, error: orderError } = await actor.userClient!.rpc(
       "create_order_with_items",
       {
         restaurant_id_param: restaurant_id,
         delivery_address_param: delivery_address || "",
-        delivery_fee_param: delivery_fee || 0,
-        total_amount_param: total_amount,
+        delivery_fee_param: pricing.deliveryFee,
+        total_amount_param: pricing.total,
         notes_param: notes || null,
-        metadata_param: metadata || {},
+        metadata_param: authoritativeMetadata,
         checkout_id_param: checkoutUuid,
         items_param: itemsJson,
-      }
+      },
     );
 
-    if (orderError) throw orderError;
+    if (orderError) {
+      throw new HttpError(500, orderError.message);
+    }
 
-    // 5. Queue confirmation email
-    const { data: profile } = await supabaseAdmin
+    const orderReference = String(authoritativeMetadata.order_reference || "");
+    const hasStripeSession = Boolean((authoritativeMetadata as Record<string, unknown>).stripe_session_id);
+    const paymentMethod = String((authoritativeMetadata as Record<string, unknown>).payment_method || "cash");
+
+    const finalMetadata = isDelivery
+      ? enrichDeliveryMetadata(authoritativeMetadata)
+      : authoritativeMetadata;
+    const estimatedDeliveryAt = isDelivery
+      ? getEstimatedArrivalTime(finalMetadata, scheduledDelivery?.scheduledAt || null)
+      : null;
+
+    const { error: updateError } = await actor.adminClient
+      .from("orders")
+      .update({
+        order_number: orderReference || null,
+        total_amount: pricing.total,
+        original_total: pricing.originalTotal,
+        discount_amount: pricing.discountAmount,
+        scheduled_at: scheduledDelivery?.scheduledAt || null,
+        estimated_delivery_at: estimatedDeliveryAt,
+        payment_status: hasStripeSession ? "pending" : (paymentMethod === "cash" ? "pending" : "authorized"),
+        status: hasStripeSession ? "pending_payment" : "confirmed",
+        metadata: finalMetadata,
+        updated_at: new Date().toISOString(),
+      } as any)
+      .eq("id", orderId);
+
+    if (updateError) {
+      throw new HttpError(500, updateError.message);
+    }
+
+    const { data: profile } = await actor.adminClient
       .from("profiles")
       .select("full_name")
-      .eq("user_id", userId)
-      .single();
-
-    const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId);
+      .eq("user_id", actor.userId!)
+      .maybeSingle();
+    const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId!);
     const userEmail = authUser?.user?.email || "client@miamz.ch";
 
-    await supabaseAdmin.from("email_queue").insert({
+    await actor.adminClient.from("email_queue").insert({
       to_email: userEmail,
-      subject: `Confirmation de commande ${(metadata as any)?.order_reference || ""}`,
-      body_text: `Commande confirmée chez le restaurant. Total: ${total_amount} CHF`,
-      metadata: { order_id: orderId, restaurant_id, items: items.length },
+      subject: `Confirmation de commande ${orderReference}`.trim(),
+      body_text: `Commande enregistree. Total valide: ${pricing.total.toFixed(2)} CHF`,
+      metadata: {
+        order_id: orderId,
+        restaurant_id,
+        items: pricing.validatedItems.length,
+        customer_name: profile?.full_name || null,
+      },
     });
 
-    return new Response(
-      JSON.stringify({ order_id: orderId, verified_total: verifiedTotal }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error: unknown) {
-    console.error("validate-order error:", error);
-    const msg = error instanceof Error ? error.message : "Erreur interne";
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (isDelivery && scheduledDelivery) {
+      await actor.adminClient.from("delivery_tracking").upsert({
+        order_id: orderId,
+        status: "scheduled",
+        estimated_arrival: estimatedDeliveryAt,
+      });
+    }
+
+    if (!hasStripeSession) {
+      const { data: restaurant } = await actor.adminClient
+        .from("restaurants")
+        .select("owner_id, name")
+        .eq("id", restaurant_id)
+        .maybeSingle();
+
+      if (restaurant?.owner_id) {
+        const journeyLabel = getOrderJourneyLabel({
+          isDelivery,
+          metadata: finalMetadata as Record<string, unknown>,
+        });
+
+        await enqueueNotification({
+          adminClient: actor.adminClient,
+          userId: restaurant.owner_id,
+          title: "Nouvelle commande",
+          body: `${journeyLabel} - ${orderReference || orderId} - ${pricing.total.toFixed(2)} CHF`,
+          type: "order",
+          category: "transactional",
+          data: {
+            order_id: orderId,
+            order_number: orderReference || null,
+            restaurant_id,
+            restaurant_name: restaurant.name,
+            delivery_address,
+            customer_name: profile?.full_name || null,
+            items_count: itemsCount,
+            items_summary: itemsSummary,
+            scheduled_delivery_at: scheduledDelivery?.scheduledAt || null,
+            scheduled_delivery_label: scheduledDelivery?.scheduledLabel || null,
+            delivery_window_label: finalMetadata.delivery_window_label || null,
+            service_mode: journeyLabel,
+            pickup_time: finalMetadata.pickup_time || null,
+            total_amount: pricing.total,
+            url: "/dashboard/commandes",
+          },
+        });
+      }
+
+      try {
+        await triggerNotificationDispatch({ source: "validate-order", push: true, email: true });
+      } catch (error) {
+        console.error("validate-order push trigger failed:", error);
+      }
+    }
+
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      actor,
+      request: req,
+      functionName: "validate-order",
+      action: "validate_and_create_order",
+      status: "success",
+      targetEntityType: "orders",
+      targetEntityId: String(orderId),
+      metadata: {
+        restaurant_id,
+        checkout_id: checkoutUuid,
+        verified_total: pricing.total,
+        scheduled_at: scheduledDelivery?.scheduledAt || null,
+      },
     });
+
+    return jsonResponse(
+      {
+        order_id: orderId,
+        verified_total: pricing.total,
+        original_total: pricing.originalTotal,
+        discount_amount: pricing.discountAmount,
+      },
+      200,
+      corsHeaders,
+    );
+  } catch (error) {
+    console.error("validate-order error:", error);
+    await writeAuditLog({
+      adminClient: actor?.adminClient || createAdminClient(),
+      actor,
+      request: req,
+      functionName: "validate-order",
+      action: "validate_and_create_order",
+      status: "failure",
+      targetEntityType: auditRestaurantId ? "restaurants" : null,
+      targetEntityId: auditRestaurantId || null,
+      errorMessage: error instanceof Error ? error.message : "Erreur interne",
+    });
+    if (error instanceof HttpError) {
+      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+    }
+    const message = error instanceof Error ? error.message : "Erreur interne";
+    return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });

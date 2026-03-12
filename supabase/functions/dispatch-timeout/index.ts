@@ -1,4 +1,17 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  createAdminClient,
+  jsonResponse,
+  requireRole,
+  writeAuditLog,
+} from "../_shared/auth.ts";
+import {
+  getEstimatedArrivalTime,
+  shouldDispatchDeliveryNow,
+  triggerDispatchOrder,
+} from "../_shared/delivery-dispatch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +30,12 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+
   try {
+    actor = await authenticateRequest(req, { allowSchedulerSecret: true });
+    requireRole(actor, ["admin"]);
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -26,6 +44,54 @@ Deno.serve(async (req) => {
     const now = new Date();
     let expired = 0;
     let redispatched = 0;
+    let scheduledDispatched = 0;
+
+    const { data: scheduledOrders, error: scheduledOrdersError } = await supabaseAdmin
+      .from("orders")
+      .select("id, scheduled_at, delivery_address, status, metadata")
+      .not("scheduled_at", "is", null)
+      .not("delivery_address", "is", null)
+      .in("status", ["preparing"]);
+
+    if (scheduledOrdersError) throw scheduledOrdersError;
+
+    for (const order of scheduledOrders || []) {
+      const scheduledAt = typeof order.scheduled_at === "string" ? order.scheduled_at : null;
+      const metadata = order.metadata && typeof order.metadata === "object" && !Array.isArray(order.metadata)
+        ? order.metadata
+        : {};
+
+      if (!shouldDispatchDeliveryNow(metadata, scheduledAt, now)) {
+        continue;
+      }
+
+      const { data: existingDispatch } = await supabaseAdmin
+        .from("dispatch_jobs")
+        .select("id")
+        .eq("order_id", order.id)
+        .not("status", "in", "(delivered,cancelled,expired)")
+        .limit(1);
+
+      if (existingDispatch && existingDispatch.length > 0) {
+        continue;
+      }
+
+      await supabaseAdmin.from("delivery_tracking").upsert({
+        order_id: order.id,
+        status: "preparing",
+        estimated_arrival: getEstimatedArrivalTime(metadata, scheduledAt, now),
+      });
+
+      const response = await triggerDispatchOrder({
+        orderId: String(order.id),
+      });
+
+      if (response.ok) {
+        scheduledDispatched++;
+      } else {
+        console.error(`Scheduled dispatch failed for order ${order.id}:`, response.body);
+      }
+    }
 
     // Step 1: Find and expire timed-out attempts
     const { data: pendingAttempts, error: fetchError } = await supabaseAdmin
@@ -95,43 +161,48 @@ Deno.serve(async (req) => {
         .select("id", { count: "exact", head: true })
         .eq("dispatch_job_id", job.id);
 
-      const round = Math.floor((count || 0) / 1) + 1; // Each round = 1 attempt
-      const expandedRadius = 5 + (round - 1) * 3; // 5km, 8km, 11km
-
-      // Call dispatch-order to find next courier
-      const dispatchUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/dispatch-order`;
-
-      const response = await fetch(dispatchUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-        },
-        body: JSON.stringify({
-          dispatch_job_id: job.id,
-          order_id: job.order_id,
-          radius_km: expandedRadius,
-          round,
-        }),
+      const round = Math.floor((count || 0) / 1) + 1;
+      const response = await triggerDispatchOrder({
+        dispatchJobId: String(job.id),
+        orderId: String(job.order_id),
+        round,
       });
 
       if (response.ok) {
         redispatched++;
       } else {
-        console.error(`Re-dispatch failed for job ${job.id}:`, await response.text());
+        console.error(`Re-dispatch failed for job ${job.id}:`, response.body);
       }
     }
 
-    return new Response(
-      JSON.stringify({ expired, redispatched, checked_at: now.toISOString() }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      actor,
+      request: req,
+      functionName: "dispatch-timeout",
+      action: "expire_and_redispatch",
+      status: "success",
+      targetEntityType: "dispatch_jobs",
+      metadata: { expired, redispatched, scheduled_dispatched: scheduledDispatched, checked_at: now.toISOString() },
+    });
+
+    return jsonResponse({ expired, redispatched, scheduled_dispatched: scheduledDispatched, checked_at: now.toISOString() }, 200, corsHeaders);
   } catch (error) {
     console.error("dispatch-timeout error:", error);
-    const msg = error instanceof Error ? error.message : "Erreur interne";
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await writeAuditLog({
+      adminClient: actor?.adminClient || createAdminClient(),
+      actor,
+      request: req,
+      functionName: "dispatch-timeout",
+      action: "expire_and_redispatch",
+      status: "failure",
+      targetEntityType: "dispatch_jobs",
+      errorMessage: error instanceof Error ? error.message : "Erreur interne",
     });
+    if (error instanceof HttpError) {
+      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+    }
+    const msg = error instanceof Error ? error.message : "Erreur interne";
+    return jsonResponse({ error: msg }, 500, corsHeaders);
   }
 });

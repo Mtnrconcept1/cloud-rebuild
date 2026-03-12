@@ -6,11 +6,14 @@ import { useAuth } from "@/lib/auth";
 import { Link } from "react-router-dom";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import DeliveryMap from "@/components/DeliveryMap";
+import DeliveryProofCard from "@/components/orders/DeliveryProofCard";
 import { Progress } from "@/components/ui/progress";
 import { Package, ChefHat, Bike, MapPin, CheckCircle2, Phone, Timer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+import { useRealtimeDeliveryTracking, useRealtimeDispatchJob } from "@/hooks/useRealtimeOrder";
+import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 
 const STEPS = [
   { key: "preparing", label: "En préparation", icon: ChefHat, description: "Le restaurant prépare votre commande", countdownLabel: "Prêt dans" },
@@ -47,8 +50,7 @@ export default function SuiviCommande() {
   // Simulation state
   const [simPhase, setSimPhase] = useState(0); // 0=preparing, 1=picked_up, 2=in_transit, 3=delivered
   const [countdown, setCountdown] = useState(COUNTDOWN_DURATION);
-  const [driverPos, setDriverPos] = useState(RESTAURANT);
-  const [routePoints] = useState(() => generateRoute(RESTAURANT, DELIVERY, 40));
+  const [simDriverPos, setSimDriverPos] = useState(RESTAURANT);
   const [routeIndex, setRouteIndex] = useState(0);
   const [simStarted, setSimStarted] = useState(false);
 
@@ -66,22 +68,86 @@ export default function SuiviCommande() {
   });
 
   const { data: siblingOrders } = useQuery({
-    queryKey: ["sibling-orders", order?.checkout_id],
+    queryKey: ["sibling-orders", id, (order?.metadata as any)?.checkout_group_id || order?.checkout_id],
     queryFn: async () => {
-      const { data } = await supabase
+      const checkoutGroupId = (order?.metadata as any)?.checkout_group_id;
+      let query = supabase
         .from("orders")
-        .select("*, restaurants(name, address, city, latitude, longitude)")
-        .eq("checkout_id", order!.checkout_id);
+        .select("*, restaurants(name, address, city, latitude, longitude)");
+
+      if (checkoutGroupId) {
+        query = query.filter("metadata->>checkout_group_id", "eq", checkoutGroupId);
+      } else {
+        query = query.eq("checkout_id", order!.checkout_id);
+      }
+
+      const { data } = await query;
       return data || [];
     },
-    enabled: !!order?.checkout_id,
+    enabled: !!order && (!!(order?.metadata as any)?.checkout_group_id || !!order?.checkout_id),
   });
 
-  const orders = siblingOrders && siblingOrders.length > 0 ? siblingOrders : (order ? [order] : []);
+  const { data: deliveryTrackingRow } = useQuery({
+    queryKey: ["delivery-tracking", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("delivery_tracking")
+        .select("*")
+        .eq("order_id", id!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: dispatchJobRow } = useQuery({
+    queryKey: ["dispatch-job", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("dispatch_jobs")
+        .select("*")
+        .eq("order_id", id!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { tracking: deliveryTrackingUpdate } = useRealtimeDeliveryTracking(id);
+  const { dispatchJob: dispatchJobUpdate } = useRealtimeDispatchJob(id);
+
+  const orders = useMemo(() => siblingOrders && siblingOrders.length > 0 ? siblingOrders : (order ? [order] : []), [siblingOrders, order]);
+  const liveTracking = deliveryTrackingUpdate || deliveryTrackingRow;
+  const liveDispatchJob = dispatchJobUpdate || dispatchJobRow;
+  const hasLiveCourierFlow = Boolean(liveTracking || liveDispatchJob);
+  const routeSteps = useMemo(() => buildDeliveryRouteSteps({
+    routeGeometry: liveDispatchJob?.route_geometry,
+    orders,
+  }), [liveDispatchJob?.route_geometry, orders]);
+
+  const routeOrigin = routeSteps.find((step) => step.type === "pickup" && step.latitude !== null && step.longitude !== null);
+  const routeDestination = [...routeSteps]
+    .reverse()
+    .find((step) => step.type === "dropoff" && step.latitude !== null && step.longitude !== null);
+  const routePoints = useMemo(() => generateRoute(
+    routeOrigin && routeOrigin.latitude !== null && routeOrigin.longitude !== null
+      ? { lat: routeOrigin.latitude, lng: routeOrigin.longitude }
+      : RESTAURANT,
+    routeDestination && routeDestination.latitude !== null && routeDestination.longitude !== null
+      ? { lat: routeDestination.latitude, lng: routeDestination.longitude }
+      : DELIVERY,
+    40,
+  ), [routeDestination, routeOrigin]);
+
+  useEffect(() => {
+    if (routePoints.length > 0 && !hasLiveCourierFlow) {
+      setSimDriverPos(routePoints[Math.min(routeIndex, routePoints.length - 1)] || routePoints[0]);
+    }
+  }, [hasLiveCourierFlow, routeIndex, routePoints]);
 
   // Auto-start simulation when order loads and align with persisted order status
   useEffect(() => {
-    if (!order || simStarted) return;
+    if (!order || simStarted || hasLiveCourierFlow) return;
 
     const normalizedOrderStatus = normalizeOrderStatus((order as any).status);
     const phaseByOrderStatus: Record<string, number> = {
@@ -94,11 +160,11 @@ export default function SuiviCommande() {
 
     setSimPhase(phaseByOrderStatus[normalizedOrderStatus] ?? 0);
     setSimStarted(true);
-  }, [order, simStarted]);
+  }, [hasLiveCourierFlow, order, simStarted]);
 
   // Countdown timer for phases 0 (preparing) and 1 (picked_up)
   useEffect(() => {
-    if (!simStarted || simPhase >= 3) return;
+    if (!simStarted || simPhase >= 3 || hasLiveCourierFlow) return;
 
     if (simPhase <= 1) {
       // Countdown phases
@@ -115,21 +181,43 @@ export default function SuiviCommande() {
       // Moving phase - advance driver along route
       if (routeIndex >= routePoints.length - 1) {
         setSimPhase(3);
-        setDriverPos(DELIVERY);
+        setSimDriverPos(routePoints[routePoints.length - 1] || DELIVERY);
         return;
       }
       const speed = (COUNTDOWN_DURATION * 1000) / routePoints.length; // spread over ~20s
-      const timer = setTimeout(() => {
-        const nextIdx = routeIndex + 1;
-        setRouteIndex(nextIdx);
-        setDriverPos(routePoints[nextIdx]);
+        const timer = setTimeout(() => {
+          const nextIdx = routeIndex + 1;
+          setRouteIndex(nextIdx);
+          setSimDriverPos(routePoints[nextIdx]);
       }, speed);
       return () => clearTimeout(timer);
     }
-  }, [simStarted, simPhase, countdown, routeIndex, routePoints]);
+  }, [hasLiveCourierFlow, simStarted, simPhase, countdown, routeIndex, routePoints]);
 
-  const currentStep = STEPS[simPhase] || STEPS[3];
-  const progress = ((simPhase + 1) / STEPS.length) * 100;
+  const livePhase = (() => {
+    const dispatchStatus = String(liveDispatchJob?.status || "");
+    const trackingStatus = String(liveTracking?.status || "");
+
+    if (dispatchStatus === "delivered" || trackingStatus === "delivered" || normalizeOrderStatus(order?.status) === "delivered") {
+      return 3;
+    }
+    if (dispatchStatus === "arriving_dropoff" || trackingStatus === "in_transit" || normalizeOrderStatus(order?.status) === "delivering") {
+      return 2;
+    }
+    if (dispatchStatus === "picked_up" || trackingStatus === "picked_up" || normalizeOrderStatus(order?.status) === "picked_up") {
+      return 1;
+    }
+    return 0;
+  })();
+
+  const currentPhase = hasLiveCourierFlow ? livePhase : simPhase;
+  const currentStep = STEPS[currentPhase] || STEPS[3];
+  const progress = ((currentPhase + 1) / STEPS.length) * 100;
+  const currentDriverPos = hasLiveCourierFlow && liveTracking?.current_lat && liveTracking?.current_lng
+    ? { lat: Number(liveTracking.current_lat), lng: Number(liveTracking.current_lng) }
+    : simDriverPos;
+  const driverName = liveTracking?.driver_name || "Mohamed B.";
+  const driverPhone = liveTracking?.driver_phone || "0612345678";
 
   // Countdown display
   const formatCountdown = (s: number) => {
@@ -205,9 +293,16 @@ export default function SuiviCommande() {
     );
   }
 
-  const showMap = simPhase >= 2;
-  const showDriver = simPhase >= 1;
-  const isDelivered = simPhase >= 3;
+  const showMap = hasLiveCourierFlow
+    ? Boolean(currentDriverPos?.lat && currentDriverPos?.lng && currentPhase >= 2)
+    : currentPhase >= 2;
+  const showDriver = hasLiveCourierFlow ? Boolean(driverName) : currentPhase >= 1;
+  const isDelivered = currentPhase >= 3;
+  const orderMeta = (order.metadata || {}) as any;
+  const scheduledDeliveryLabel = typeof orderMeta.scheduled_delivery_label === "string" ? orderMeta.scheduled_delivery_label : "";
+  const deliveryProofCode = String(orderMeta.delivery_proof_code || "");
+  const deliveryProofVerifiedAt = orderMeta.delivery_proof_verified_at || null;
+  const showDeliveryProof = isDelivery && !!deliveryProofCode && !isDelivered;
 
   return (
     <main className="min-h-screen bg-background">
@@ -235,7 +330,7 @@ export default function SuiviCommande() {
         </div>
 
         {/* Countdown */}
-        {simPhase < 2 && simStarted && (
+        {!hasLiveCourierFlow && currentPhase < 2 && simStarted && (
           <div className="glass-morphism rounded-3xl p-10 text-center space-y-4 shadow-xl border-primary/10 animate-float relative overflow-hidden">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
@@ -253,14 +348,14 @@ export default function SuiviCommande() {
             <p className="text-lg font-medium text-foreground mt-2">{currentStep.description}</p>
             <div className="flex justify-center gap-1.5 mt-4">
               {[0, 1, 2].map((i) => (
-                <div key={i} className={`h-1.5 w-1.5 rounded-full ${i === simPhase ? 'bg-primary animate-bounce' : 'bg-primary/20'}`} style={{ animationDelay: `${i * 150}ms` }} />
+                <div key={i} className={`h-1.5 w-1.5 rounded-full ${i === currentPhase ? 'bg-primary animate-bounce' : 'bg-primary/20'}`} style={{ animationDelay: `${i * 150}ms` }} />
               ))}
             </div>
           </div>
         )}
 
         {/* Transit progress */}
-        {simPhase === 2 && (
+        {!hasLiveCourierFlow && currentPhase === 2 && (
           <div className="glass-morphism rounded-3xl p-8 text-center space-y-6 shadow-xl border-primary/10 animate-fade-in relative">
             <div className="flex items-center justify-between px-2">
               <div className="flex flex-col items-start">
@@ -309,7 +404,7 @@ export default function SuiviCommande() {
 
         {/* Steps and Restaurant Details */}
         <div className="space-y-4">
-          {orders.length > 1 && simPhase === 0 && (
+          {orders.length > 1 && currentPhase === 0 && (
             <div className="space-y-3 animate-fade-in">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Statut par restaurant</p>
               {orders.map((o: any) => (
@@ -333,8 +428,8 @@ export default function SuiviCommande() {
 
           <div className="space-y-1">
             {STEPS.map((step, i) => {
-              const isActive = i === simPhase;
-              const isDone = i < simPhase;
+              const isActive = i === currentPhase;
+              const isDone = i < currentPhase;
               const StepIcon = step.icon;
               return (
                 <div
@@ -355,7 +450,7 @@ export default function SuiviCommande() {
                     </p>
                   </div>
                   {isDone && <CheckCircle2 className="h-4 w-4 text-accent ml-auto" />}
-                  {isActive && simPhase < 2 && (
+                  {isActive && !hasLiveCourierFlow && currentPhase < 2 && (
                     <span className="text-xs font-mono text-primary font-bold tabular-nums">{formatCountdown(countdown)}</span>
                   )}
                 </div>
@@ -369,35 +464,55 @@ export default function SuiviCommande() {
           <div className="flex items-center gap-3 p-4 border rounded-xl bg-card animate-fade-in">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">🛵</div>
             <div className="flex-1">
-              <p className="font-semibold text-sm">Mohamed B.</p>
+              <p className="font-semibold text-sm">{driverName}</p>
               <p className="text-xs text-muted-foreground">Votre livreur</p>
             </div>
-            <a href="tel:0612345678" className="flex items-center gap-1 text-primary text-sm">
+            <a href={`tel:${driverPhone}`} className="flex items-center gap-1 text-primary text-sm">
               <Phone className="h-4 w-4" />
               Appeler
             </a>
           </div>
         )}
 
+        {showDeliveryProof ? (
+          <DeliveryProofCard code={deliveryProofCode} verifiedAt={deliveryProofVerifiedAt} />
+        ) : null}
+
         {/* Map */}
         {showMap && (
           <div className="space-y-2 animate-fade-in">
             <h2 className="font-semibold text-sm flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary" />
-              Position du livreur en temps réel
+              Position du livreur en temps reel
             </h2>
             <DeliveryMap
-              restaurants={orders.map((o: any) => ({
-                name: o.restaurants?.name || "Restaurant",
-                latitude: o.restaurants?.latitude || RESTAURANT.lat,
-                longitude: o.restaurants?.longitude || RESTAURANT.lng
-              }))}
-              deliveryLat={DELIVERY.lat}
-              deliveryLng={DELIVERY.lng}
-              currentLat={driverPos.lat}
-              currentLng={driverPos.lng}
+              routeStops={routeSteps
+                .filter((step) => step.latitude !== null && step.longitude !== null)
+                .map((step) => ({
+                  ...step,
+                  latitude: step.latitude as number,
+                  longitude: step.longitude as number,
+                }))}
+              currentLat={currentDriverPos.lat}
+              currentLng={currentDriverPos.lng}
               status={currentStep.key}
             />
+            {routeSteps.length > 0 ? (
+              <div className="grid gap-2">
+                {routeSteps.map((step) => (
+                  <div key={step.id} className="flex gap-3 rounded-xl border bg-card p-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                      {step.stepIndex}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{step.label}</p>
+                      {step.restaurantName ? <p className="text-xs text-muted-foreground">{step.restaurantName}</p> : null}
+                      <p className="text-xs text-muted-foreground">{step.address || "-"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         )}
 
@@ -405,8 +520,12 @@ export default function SuiviCommande() {
         <div className="p-4 border rounded-xl bg-card space-y-1">
           <p className="text-xs text-muted-foreground">Adresse de livraison</p>
           <p className="text-sm font-medium">{order.delivery_address}</p>
+          {scheduledDeliveryLabel ? (
+            <p className="text-xs text-muted-foreground">Livraison planifiee : {scheduledDeliveryLabel}</p>
+          ) : null}
         </div>
       </div>
     </main>
   );
 }
+

@@ -151,14 +151,14 @@ export function matchesAudienceCriteria(
   if (normalized.favoritesOnly && (!normalizedRestaurantId || !favoriteRestaurantIds.has(normalizedRestaurantId))) return false;
   if (interactionCount < normalized.minOrders) return false;
   if (normalized.minAvgBasket > 0 && avgBasket < normalized.minAvgBasket) return false;
-  if (daysSinceLastActivity == null || daysSinceLastActivity > normalized.maxDaysSinceOrder) return false;
   if (normalized.journeyTypes.length > 0 && !normalized.journeyTypes.some((journeyType) => journeyTypes.has(journeyType))) return false;
   if (normalized.serviceMoments.length > 0 && !normalized.serviceMoments.some((serviceMoment) => serviceMoments.has(serviceMoment))) return false;
 
-  if (normalized.customerSegment === "new" && interactionCount > 0) return false;
+  if (normalized.customerSegment === "new") return interactionCount === 0;
+  if (daysSinceLastActivity == null || daysSinceLastActivity > normalized.maxDaysSinceOrder) return false;
   if (normalized.customerSegment === "returning" && interactionCount === 0) return false;
   if (normalized.customerSegment === "loyal" && interactionCount < 5 && !favoriteRestaurantIds.has(normalizedRestaurantId)) return false;
-  if (normalized.customerSegment === "inactive" && (daysSinceLastActivity == null || daysSinceLastActivity < 45)) return false;
+  if (normalized.customerSegment === "inactive" && (interactionCount === 0 || daysSinceLastActivity < 45)) return false;
 
   return true;
 }

@@ -76,6 +76,13 @@ const ADMIN_TOOLS = [
     href: "/admin/notifications",
     color: "text-orange-500",
   },
+  {
+    title: "Audit et securite",
+    description: "Surveiller les executions edge et les mutations sensibles.",
+    icon: Shield,
+    href: "/admin/audit",
+    color: "text-amber-500",
+  },
 ];
 
 export default function AdminHome() {
@@ -136,12 +143,41 @@ export default function AdminHome() {
   const { data: auditLogs } = useQuery({
     queryKey: ["admin-audit-logs"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("audit_log" as any)
-        .select("id, action, entity_type, entity_id, created_at")
-        .order("created_at", { ascending: false })
-        .limit(15);
-      return (data as any[]) || [];
+      const [edgeResponse, dataResponse] = await Promise.all([
+        (supabase.from("edge_function_audit_logs" as any))
+          .select("id, function_name, action, status, target_entity_type, target_entity_id, created_at")
+          .order("created_at", { ascending: false })
+          .limit(10),
+        (supabase.from("audit_log" as any))
+          .select("id, action, entity_type, entity_id, created_at")
+          .order("created_at", { ascending: false })
+          .limit(10),
+      ]);
+
+      if (edgeResponse.error) throw edgeResponse.error;
+      if (dataResponse.error) throw dataResponse.error;
+
+      const edgeLogs = ((edgeResponse.data || []) as any[]).map((row) => ({
+        id: `edge-${row.id}`,
+        action: `${row.function_name}:${row.action || "invoke"}`,
+        entity_type: row.target_entity_type || "edge",
+        entity_id: row.target_entity_id || "",
+        created_at: row.created_at,
+        status: row.status === "failure" ? "failure" : "success",
+      }));
+
+      const dataLogs = ((dataResponse.data || []) as any[]).map((row) => ({
+        id: `data-${row.id}`,
+        action: row.action || "mutation",
+        entity_type: row.entity_type || "entity",
+        entity_id: row.entity_id || "",
+        created_at: row.created_at,
+        status: "info",
+      }));
+
+      return [...edgeLogs, ...dataLogs]
+        .sort((left, right) => Date.parse(right.created_at) - Date.parse(left.created_at))
+        .slice(0, 15);
     },
   });
 
@@ -292,9 +328,14 @@ export default function AdminHome() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-amber-500" />
-              <CardTitle>Journal d'audit</CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-amber-500" />
+                <CardTitle>Journal d'audit</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/admin/audit")}>
+                Voir tout
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -313,7 +354,18 @@ export default function AdminHome() {
                         })}
                       </p>
                     </div>
-                    <Badge variant="outline" className="text-xs">{log.entity_type}</Badge>
+                    <Badge
+                      variant={
+                        log.status === "failure"
+                          ? "destructive"
+                          : log.status === "success"
+                            ? "secondary"
+                            : "outline"
+                      }
+                      className="text-xs"
+                    >
+                      {log.status}
+                    </Badge>
                   </div>
                 ))}
                 {(!auditLogs || auditLogs.length === 0) ? (

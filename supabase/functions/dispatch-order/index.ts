@@ -1,4 +1,17 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  createAdminClient,
+  jsonResponse,
+  requireRole,
+  writeAuditLog,
+} from "../_shared/auth.ts";
+import { getDeliveryDispatchConfig } from "../_shared/delivery-dispatch.ts";
+import {
+  enqueueNotification,
+  triggerNotificationDispatch,
+} from "../_shared/notifications.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,44 +19,216 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const ACTIVE_DISPATCH_STATUSES = ["accepted", "arriving_pickup", "picked_up", "arriving_dropoff"];
+
+function asObject(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
+}
+
+function toStringValue(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function toNumberValue(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function getOrderSequence(order: any) {
+  const orderNumber = toStringValue(order?.order_number);
+  if (orderNumber) {
+    const suffixMatch = /-(\d+)$/.exec(orderNumber);
+    if (suffixMatch) return Number(suffixMatch[1]);
+  }
+
+  const createdAt = toStringValue(order?.created_at);
+  if (createdAt) return Date.parse(createdAt);
+  return Number.MAX_SAFE_INTEGER;
+}
+
+async function buildDispatchRouteContext(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  input: {
+    order: any;
+    restaurant: any;
+  },
+) {
+  const metadata = asObject(input.order?.metadata) || {};
+  const checkoutGroupId = toStringValue(metadata.checkout_group_id);
+  const deliveryAddress = toStringValue(input.order?.delivery_address) || "";
+  const deliveryLat = toNumberValue(metadata.delivery_lat);
+  const deliveryLng = toNumberValue(metadata.delivery_lng);
+
+  const siblingOrders = new Map<string, any>();
+  siblingOrders.set(String(input.order.id), {
+    ...input.order,
+    restaurants: input.restaurant,
+  });
+
+  if (checkoutGroupId) {
+    const { data: groupedOrders, error } = await supabaseAdmin
+      .from("orders")
+      .select(`
+        id,
+        order_number,
+        created_at,
+        restaurant_id,
+        delivery_address,
+        metadata,
+        restaurants(
+          id,
+          name,
+          address,
+          latitude,
+          longitude
+        )
+      `)
+      .filter("metadata->>checkout_group_id", "eq", checkoutGroupId);
+
+    if (error) throw error;
+
+    for (const groupedOrder of groupedOrders || []) {
+      if (groupedOrder?.id) {
+        siblingOrders.set(String(groupedOrder.id), groupedOrder);
+      }
+    }
+  }
+
+  const orderedPickups = Array.from(siblingOrders.values())
+    .sort((left, right) => getOrderSequence(left) - getOrderSequence(right))
+    .reduce((acc: any[], order: any) => {
+      const restaurant = Array.isArray(order.restaurants) ? order.restaurants[0] : order.restaurants;
+      if (!restaurant?.id || acc.some((item) => item.restaurant_id === restaurant.id)) {
+        return acc;
+      }
+
+      acc.push({
+        restaurant_id: restaurant.id,
+        restaurant_name: restaurant.name || "Restaurant",
+        address: restaurant.address || "",
+        latitude: toNumberValue(restaurant.latitude),
+        longitude: toNumberValue(restaurant.longitude),
+        order_id: order.id || null,
+        order_number: order.order_number || null,
+      });
+
+      return acc;
+    }, []);
+
+  const routeSteps = orderedPickups.map((pickup, index) => ({
+    id: `pickup-${pickup.restaurant_id}`,
+    type: "pickup",
+    label: orderedPickups.length > 1 ? `Retrait ${index + 1}` : "Retrait",
+    address: pickup.address,
+    latitude: pickup.latitude,
+    longitude: pickup.longitude,
+    restaurant_name: pickup.restaurant_name,
+    order_id: pickup.order_id,
+    order_number: pickup.order_number,
+    step_index: index + 1,
+  }));
+
+  if (deliveryLat !== null && deliveryLng !== null) {
+    routeSteps.push({
+      id: "dropoff",
+      type: "dropoff",
+      label: "Livraison",
+      address: deliveryAddress,
+      latitude: deliveryLat,
+      longitude: deliveryLng,
+      step_index: routeSteps.length + 1,
+    });
+  }
+
+  return {
+    multiRestaurant: orderedPickups.length > 1,
+    routeSteps,
+    pickupLat: orderedPickups[0]?.latitude ?? toNumberValue(input.restaurant?.latitude),
+    pickupLng: orderedPickups[0]?.longitude ?? toNumberValue(input.restaurant?.longitude),
+    dropoffLat: deliveryLat,
+    dropoffLng: deliveryLng,
+    restaurantAddress: toStringValue(input.restaurant?.address),
+  };
+}
+
+async function queueCourierNotification(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  input: {
+    userId: string;
+    title: string;
+    body: string;
+    data: Record<string, unknown>;
+  },
+) {
+  return enqueueNotification({
+    adminClient: supabaseAdmin,
+    userId: input.userId,
+    title: input.title,
+    body: input.body,
+    type: "dispatch",
+    category: "transactional",
+    data: input.data,
+    requestedChannels: {
+      in_app: true,
+      push: true,
+      email: false,
+    },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+
   try {
+    actor = await authenticateRequest(req, { allowSchedulerSecret: true });
+    requireRole(actor, ["admin"]);
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { order_id, dispatch_job_id, radius_km = 5, round = 1 } = await req.json();
+    const { order_id, dispatch_job_id, radius_km = null, round = 1 } = await req.json();
 
     if (!order_id && !dispatch_job_id) {
-      return new Response(JSON.stringify({ error: "order_id or dispatch_job_id required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "dispatch-order",
+        action: "offer_dispatch_job",
+        status: "failure",
+        targetEntityType: "dispatch_jobs",
+        errorMessage: "order_id or dispatch_job_id required",
       });
+      return jsonResponse({ error: "order_id or dispatch_job_id required" }, 400, corsHeaders);
     }
 
-    // Get or create dispatch job
     let jobId = dispatch_job_id;
-    let job;
+    let job: any = null;
 
     if (dispatch_job_id) {
       const { data } = await supabaseAdmin
         .from("dispatch_jobs")
-        .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id)")
+        .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id, order_number, metadata, created_at)")
         .eq("id", dispatch_job_id)
         .maybeSingle();
       job = data;
     } else {
-      // Check if dispatch job already exists for this order
       const { data: existing } = await supabaseAdmin
         .from("dispatch_jobs")
-        .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id)")
+        .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id, order_number, metadata, created_at)")
         .eq("order_id", order_id)
-        .in("status", ["pending", "searching"])
+        .not("status", "in", "(delivered,cancelled,expired)")
         .maybeSingle();
 
       if (existing) {
@@ -53,7 +238,7 @@ Deno.serve(async (req) => {
         const { data: newJob, error } = await supabaseAdmin
           .from("dispatch_jobs")
           .insert({ order_id, status: "searching" })
-          .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id)")
+          .select("*, orders(id, restaurant_id, delivery_address, total_amount, user_id, order_number, metadata, created_at)")
           .single();
 
         if (error) throw error;
@@ -63,23 +248,61 @@ Deno.serve(async (req) => {
     }
 
     if (!job) {
-      return new Response(JSON.stringify({ error: "Dispatch job not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "dispatch-order",
+        action: "offer_dispatch_job",
+        status: "failure",
+        targetEntityType: "dispatch_jobs",
+        targetEntityId: String(jobId || order_id || ""),
+        errorMessage: "Dispatch job not found",
       });
+      return jsonResponse({ error: "Dispatch job not found" }, 404, corsHeaders);
     }
 
-    // Update job status to searching
+    if (ACTIVE_DISPATCH_STATUSES.includes(String(job.status || "")) && job.courier_id) {
+      return jsonResponse({
+        status: "already_assigned",
+        dispatch_job_id: jobId,
+        courier_id: job.courier_id,
+      }, 200, corsHeaders);
+    }
+
+    const orderMetadata = typeof job.orders?.metadata === "object" && !Array.isArray(job.orders?.metadata)
+      ? job.orders.metadata
+      : {};
+    const dispatchConfig = getDeliveryDispatchConfig(
+      orderMetadata,
+      round,
+      typeof radius_km === "number" ? radius_km : null,
+    );
+
     await supabaseAdmin
       .from("dispatch_jobs")
       .update({ status: "searching", updated_at: new Date().toISOString() })
       .eq("id", jobId);
 
-    // Get restaurant coordinates
-    const restaurantId = (job as any).orders?.restaurant_id;
+    const { data: pendingAttempts } = await supabaseAdmin
+      .from("dispatch_attempts")
+      .select("id")
+      .eq("dispatch_job_id", jobId)
+      .eq("status", "pending")
+      .limit(1);
+
+    if (pendingAttempts && pendingAttempts.length > 0) {
+      return jsonResponse({
+        status: "awaiting_response",
+        dispatch_job_id: jobId,
+        round,
+      }, 200, corsHeaders);
+    }
+
+    const restaurantId = job.orders?.restaurant_id;
     const { data: restaurant } = await supabaseAdmin
       .from("restaurants")
-      .select("latitude, longitude, name")
+      .select("latitude, longitude, name, address, owner_id")
       .eq("id", restaurantId)
       .maybeSingle();
 
@@ -89,46 +312,70 @@ Deno.serve(async (req) => {
         .update({ status: "no_courier", updated_at: new Date().toISOString() })
         .eq("id", jobId);
 
-      return new Response(JSON.stringify({ error: "Restaurant has no coordinates" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "dispatch-order",
+        action: "offer_dispatch_job",
+        status: "failure",
+        targetEntityType: "dispatch_jobs",
+        targetEntityId: String(jobId || order_id || ""),
+        errorMessage: "Restaurant has no coordinates",
       });
+
+      return jsonResponse({ error: "Restaurant has no coordinates" }, 400, corsHeaders);
     }
 
-    // Get couriers who already declined this job
+    const routeContext = await buildDispatchRouteContext(supabaseAdmin, {
+      order: job.orders,
+      restaurant,
+    });
+
+    await supabaseAdmin
+      .from("dispatch_jobs")
+      .update({
+        pickup_lat: routeContext.pickupLat,
+        pickup_lng: routeContext.pickupLng,
+        dropoff_lat: routeContext.dropoffLat,
+        dropoff_lng: routeContext.dropoffLng,
+        route_geometry: {
+          steps: routeContext.routeSteps,
+          multi_restaurant: routeContext.multiRestaurant,
+          updated_at: new Date().toISOString(),
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", jobId);
+
     const { data: previousAttempts } = await supabaseAdmin
       .from("dispatch_attempts")
       .select("courier_id")
-      .eq("dispatch_job_id", jobId)
-      .in("status", ["declined", "expired"]);
+      .eq("dispatch_job_id", jobId);
 
-    const excludedCourierIds = (previousAttempts || []).map((a: any) => a.courier_id);
+    const excludedCourierIds = new Set((previousAttempts || []).map((attempt: any) => String(attempt.courier_id)));
 
-    // Find nearby available couriers using RPC
     const { data: nearbyCouriers, error: courierError } = await supabaseAdmin
       .rpc("find_nearby_couriers", {
         p_lat: restaurant.latitude,
         p_lng: restaurant.longitude,
-        p_radius_km: radius_km,
-        p_limit: 10,
+        p_radius_km: dispatchConfig.radiusKm,
+        p_limit: Math.max(dispatchConfig.courierFanout * 3, 10),
       });
 
     if (courierError) throw courierError;
 
-    // Filter out excluded couriers
     const availableCouriers = (nearbyCouriers || []).filter(
-      (c: any) => !excludedCourierIds.includes(c.courier_id)
+      (courier: any) => !excludedCourierIds.has(String(courier.courier_id)),
     );
 
     if (availableCouriers.length === 0) {
       if (round >= 3) {
-        // After 3 rounds, mark as no courier available
         await supabaseAdmin
           .from("dispatch_jobs")
           .update({ status: "no_courier", updated_at: new Date().toISOString() })
           .eq("id", jobId);
 
-        // Notify admin
         const { data: admins } = await supabaseAdmin
           .from("user_roles")
           .select("user_id")
@@ -136,91 +383,196 @@ Deno.serve(async (req) => {
           .limit(5);
 
         for (const admin of admins || []) {
-          await supabaseAdmin.from("notifications").insert({
-            user_id: admin.user_id,
+          await queueCourierNotification(supabaseAdmin, {
+            userId: admin.user_id,
             title: "Aucun livreur disponible",
-            body: `Commande de ${restaurant.name} — aucun livreur trouvé après ${round} tentatives.`,
-            type: "dispatch",
-            category: "system",
-            data: { order_id, dispatch_job_id: jobId },
+            body: `Commande de ${restaurant.name} - aucun livreur trouve apres ${round} tentatives.`,
+            data: { order_id, dispatch_job_id: jobId, status: "no_courier" },
           });
         }
 
-        return new Response(JSON.stringify({
+        if (restaurant?.owner_id) {
+          await enqueueNotification({
+            adminClient: supabaseAdmin,
+            userId: restaurant.owner_id,
+            title: "Aucun livreur disponible",
+            body: `La commande ${job.orders?.order_number || job.order_id} n'a trouve aucun livreur pour le moment.`,
+            type: "dispatch",
+            category: "transactional",
+            data: {
+              order_id: order_id || job.order_id || null,
+              dispatch_job_id: jobId,
+              restaurant_id: restaurantId,
+              status: "no_courier",
+              url: "/dashboard/commandes",
+            },
+          });
+        }
+
+        try {
+          await triggerNotificationDispatch({ source: "dispatch-order-no-courier", push: true, email: true });
+        } catch (error) {
+          console.error("dispatch-order no-courier notification trigger failed:", error);
+        }
+
+        await writeAuditLog({
+          adminClient: actor.adminClient,
+          actor,
+          request: req,
+          functionName: "dispatch-order",
+          action: "offer_dispatch_job",
+          status: "success",
+          targetEntityType: "dispatch_jobs",
+          targetEntityId: String(jobId || order_id || ""),
+          metadata: { round, radius_km: dispatchConfig.radiusKm, outcome: "no_courier" },
+        });
+
+        return jsonResponse({
           status: "no_courier",
           message: `No couriers available after ${round} rounds`,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        }, 200, corsHeaders);
       }
 
-      // Will be retried by dispatch-timeout with expanded radius
-      return new Response(JSON.stringify({
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "dispatch-order",
+        action: "offer_dispatch_job",
+        status: "success",
+        targetEntityType: "dispatch_jobs",
+        targetEntityId: String(jobId || order_id || ""),
+        metadata: { round, radius_km: dispatchConfig.radiusKm, outcome: "searching" },
+      });
+
+      return jsonResponse({
         status: "searching",
         message: `No couriers in round ${round}, will retry with larger radius`,
         round,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }, 200, corsHeaders);
     }
 
-    // Select best courier (first in sorted results from RPC)
-    const bestCourier = availableCouriers[0];
+    const selectedCouriers = availableCouriers.slice(0, dispatchConfig.courierFanout);
+    const attemptsPayload = selectedCouriers.map((courier: any) => {
+      const distanceKm = Number(courier.distance_km || 1);
+      const baseFee = 5.0;
+      const distanceBonus = Math.max(0, (distanceKm - 1) * 1.5);
+      const estimatedEarnings = Math.round((baseFee + distanceBonus) * 100) / 100;
 
-    // Estimate earnings (base fee + distance bonus)
-    const distanceKm = bestCourier.distance_km || 1;
-    const baseFee = 5.0; // CHF
-    const distanceBonus = Math.max(0, (distanceKm - 1) * 1.5); // 1.5 CHF per km after first km
-    const estimatedEarnings = Math.round((baseFee + distanceBonus) * 100) / 100;
-
-    // Create dispatch attempt
-    const { data: attempt, error: attemptError } = await supabaseAdmin
-      .from("dispatch_attempts")
-      .insert({
+      return {
         dispatch_job_id: jobId,
-        courier_id: bestCourier.courier_id,
+        courier_id: courier.courier_id,
         status: "pending",
-        timeout_seconds: 45,
+        timeout_seconds: dispatchConfig.attemptTimeoutSeconds,
         distance_to_pickup_meters: Math.round(distanceKm * 1000),
         estimated_earnings: estimatedEarnings,
-      })
-      .select()
-      .single();
+      };
+    });
+
+    const { data: attempts, error: attemptError } = await supabaseAdmin
+      .from("dispatch_attempts")
+      .insert(attemptsPayload)
+      .select("id, courier_id, estimated_earnings, distance_to_pickup_meters");
 
     if (attemptError) throw attemptError;
 
-    // Notify courier
-    await supabaseAdmin.from("notifications").insert({
-      user_id: bestCourier.user_id,
-      title: "Nouvelle course disponible !",
-      body: `${restaurant.name} — ${distanceKm.toFixed(1)} km — ${estimatedEarnings.toFixed(2)} CHF`,
-      type: "dispatch",
-      category: "transactional",
-      data: {
+    for (const courier of selectedCouriers) {
+      const attempt = (attempts || []).find((item: any) => item.courier_id === courier.courier_id);
+      if (!attempt) continue;
+
+      const distanceKm = Number(courier.distance_km || 0);
+      const estimatedEarnings = Number(attempt.estimated_earnings || 0);
+      const windowLabel = String(orderMetadata.delivery_window_label || dispatchConfig.windowLabel);
+      const scheduledLabel = String(orderMetadata.scheduled_delivery_label || "");
+      const itemsSummary = String(orderMetadata.items_summary || "");
+      const deliveryAddress = String(job.orders?.delivery_address || "");
+
+      await queueCourierNotification(supabaseAdmin, {
+        userId: courier.user_id,
+        title: "Nouvelle course dans votre zone",
+        body: [
+          restaurant.name,
+          itemsSummary,
+          deliveryAddress,
+          scheduledLabel || windowLabel,
+        ].filter(Boolean).join(" - "),
+        data: {
+          dispatch_job_id: jobId,
+          dispatch_attempt_id: attempt.id,
+          order_id: order_id || job.order_id || null,
+          order_number: job.orders?.order_number || order_id || null,
+          restaurant_name: restaurant.name,
+          restaurant_address: routeContext.restaurantAddress || null,
+          restaurant_lat: routeContext.pickupLat,
+          restaurant_lng: routeContext.pickupLng,
+          delivery_address: deliveryAddress || null,
+          delivery_lat: routeContext.dropoffLat,
+          delivery_lng: routeContext.dropoffLng,
+          total_amount: job.orders?.total_amount || null,
+          items_count: orderMetadata.items_count || null,
+          items_summary: itemsSummary || null,
+          distance_km: distanceKm,
+          estimated_earnings: estimatedEarnings,
+          delivery_window_label: windowLabel,
+          scheduled_delivery_label: scheduledLabel || null,
+          multi_restaurant: routeContext.multiRestaurant,
+          route_steps: routeContext.routeSteps,
+          delivery_proof_required: true,
+          url: "/courier/jobs",
+        },
+      });
+    }
+
+    if (selectedCouriers.length > 0) {
+      try {
+        await triggerNotificationDispatch({ source: "dispatch-order", push: true, email: false });
+      } catch (error) {
+        console.error("dispatch-order push trigger failed:", error);
+      }
+    }
+
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      actor,
+      request: req,
+      functionName: "dispatch-order",
+      action: "offer_dispatch_job",
+      status: "success",
+      targetEntityType: "dispatch_jobs",
+      targetEntityId: String(jobId || order_id || ""),
+      metadata: {
+        order_id: order_id || job?.order_id || null,
         dispatch_job_id: jobId,
-        dispatch_attempt_id: attempt.id,
-        restaurant_name: restaurant.name,
-        distance_km: distanceKm,
-        estimated_earnings: estimatedEarnings,
+        round,
+        radius_km: dispatchConfig.radiusKm,
+        courier_count: selectedCouriers.length,
       },
     });
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       status: "offered",
       dispatch_job_id: jobId,
-      attempt_id: attempt.id,
-      courier_id: bestCourier.courier_id,
-      estimated_earnings: estimatedEarnings,
+      attempts: attempts || [],
+      courier_count: selectedCouriers.length,
+      radius_km: dispatchConfig.radiusKm,
       round,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    }, 200, corsHeaders);
   } catch (error) {
     console.error("dispatch-order error:", error);
-    const msg = error instanceof Error ? error.message : "Erreur interne";
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await writeAuditLog({
+      adminClient: actor?.adminClient || createAdminClient(),
+      actor,
+      request: req,
+      functionName: "dispatch-order",
+      action: "offer_dispatch_job",
+      status: "failure",
+      targetEntityType: "dispatch_jobs",
+      errorMessage: error instanceof Error ? error.message : "Erreur interne",
     });
+    if (error instanceof HttpError) {
+      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+    }
+    const msg = error instanceof Error ? error.message : "Erreur interne";
+    return jsonResponse({ error: msg }, 500, corsHeaders);
   }
 });

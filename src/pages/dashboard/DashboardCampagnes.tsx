@@ -149,12 +149,10 @@ export default function DashboardCampagnes() {
     queryFn: async () => {
       if (!selectedId) return EMPTY_CONVERSIONS;
 
-      const { data, error } = await supabase
-        .from("event_store")
-        .select("payload, entity_id, occurred_at")
-        .eq("event_name", "sponsored_conversion")
-        .eq("entity_type", "restaurant")
-        .eq("entity_id", selectedId)
+      const { data, error } = await (supabase.from("ad_campaign_events" as any))
+        .select("conversion_type, occurred_at")
+        .eq("event_type", "conversion")
+        .eq("restaurant_id", selectedId)
         .gte("occurred_at", conversionWindowStart);
 
       if (error) throw error;
@@ -164,13 +162,10 @@ export default function DashboardCampagnes() {
       let zeroAttente = 0;
 
       for (const row of data || []) {
-        const payload = row.payload;
-        if (!payload || typeof payload !== "object" || Array.isArray(payload)) continue;
-
-        const conversionType = String((payload as Record<string, unknown>).conversion_type || "");
+        const conversionType = String(row.conversion_type || "");
         if (conversionType === "order") order += 1;
         else if (conversionType === "reservation") reservation += 1;
-        else if (conversionType === "zero-attente") zeroAttente += 1;
+        else if (conversionType === "zero-attente" || conversionType === "zero_attente") zeroAttente += 1;
       }
 
       return {
@@ -448,11 +443,14 @@ function CampaignForm({
     setAiLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error("Session invalide. Reconnectez-vous.");
+      }
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-campaign`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ restaurantId }),
       });

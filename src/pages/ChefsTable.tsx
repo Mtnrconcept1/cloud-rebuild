@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
+import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 
 interface FlashDrop {
   id: string;
@@ -150,6 +151,11 @@ export default function ChefsTable() {
 
     setLoading(false);
     if (success) {
+      try {
+        await dispatchQueuedNotifications("chefs-table-reservation");
+      } catch (dispatchError) {
+        console.error("Chef's Table notification dispatch failed:", dispatchError);
+      }
       setConfirmed(true);
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
     }

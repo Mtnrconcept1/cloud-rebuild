@@ -97,6 +97,12 @@ export default function AdminNotifications() {
       // Queueing happened in SQL; push dispatch can fail independently.
     }
 
+    try {
+      await supabase.functions.invoke("send-email", { body: {} });
+    } catch {
+      // Email delivery can fail independently from queue creation.
+    }
+
     const result = Array.isArray(data) ? data[0] : data;
     toast({
       title: "Campagne envoyee",

@@ -1,4 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  createAdminClient,
+  jsonResponse,
+  requireRole,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -69,13 +77,15 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+
   try {
+    actor = await authenticateRequest(req, { allowSchedulerSecret: true });
+    requireRole(actor, ["admin"]);
+
     const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
     if (!serviceAccountJson) {
-      return new Response(JSON.stringify({ error: "FIREBASE_SERVICE_ACCOUNT not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "FIREBASE_SERVICE_ACCOUNT not configured" }, 500, corsHeaders);
     }
 
     const serviceAccount = JSON.parse(serviceAccountJson);
@@ -97,9 +107,17 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
     if (!deliveries || deliveries.length === 0) {
-      return new Response(JSON.stringify({ processed: 0 }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "send-push",
+        action: "process_push_queue",
+        status: "success",
+        targetEntityType: "notification_deliveries",
+        metadata: { processed: 0, sent: 0, failed: 0 },
       });
+      return jsonResponse({ processed: 0 }, 200, corsHeaders);
     }
 
     // Get Firebase access token
@@ -115,7 +133,7 @@ Deno.serve(async (req) => {
         if (!notification) {
           await supabaseAdmin
             .from("notification_deliveries")
-            .update({ status: "failed", error: "Notification not found" })
+            .update({ status: "failed", last_error: "Notification not found" })
             .eq("id", delivery.id);
           failed++;
           continue;
@@ -125,12 +143,13 @@ Deno.serve(async (req) => {
         const { data: tokens } = await supabaseAdmin
           .from("device_tokens")
           .select("token, platform")
-          .eq("user_id", notification.user_id);
+          .eq("user_id", notification.user_id)
+          .eq("enabled", true);
 
         if (!tokens || tokens.length === 0) {
           await supabaseAdmin
             .from("notification_deliveries")
-            .update({ status: "failed", error: "No device tokens" })
+            .update({ status: "failed", last_error: "No active device tokens" })
             .eq("id", delivery.id);
           failed++;
           continue;
@@ -147,7 +166,12 @@ Deno.serve(async (req) => {
                 body: notification.body,
               },
               data: notification.data ? Object.fromEntries(
-                Object.entries(notification.data).map(([k, v]) => [k, String(v)])
+                Object.entries(notification.data)
+                  .filter(([key]) => key !== "requested_channels")
+                  .map(([key, value]) => [
+                    key,
+                    typeof value === "string" ? value : JSON.stringify(value),
+                  ])
               ) : undefined,
               android: {
                 priority: "high" as const,
@@ -203,7 +227,7 @@ Deno.serve(async (req) => {
           .update({
             status: anySent ? "sent" : "failed",
             sent_at: anySent ? new Date().toISOString() : null,
-            error: anySent ? null : "All tokens failed",
+            last_error: anySent ? null : "All tokens failed",
           })
           .eq("id", delivery.id);
 
@@ -215,22 +239,41 @@ Deno.serve(async (req) => {
           .from("notification_deliveries")
           .update({
             status: "failed",
-            error: err instanceof Error ? err.message : "Unknown error",
+            last_error: err instanceof Error ? err.message : "Unknown error",
           })
           .eq("id", delivery.id);
         failed++;
       }
     }
 
-    return new Response(JSON.stringify({ processed: deliveries.length, sent, failed }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      actor,
+      request: req,
+      functionName: "send-push",
+      action: "process_push_queue",
+      status: "success",
+      targetEntityType: "notification_deliveries",
+      metadata: { processed: deliveries.length, sent, failed },
     });
+
+    return jsonResponse({ processed: deliveries.length, sent, failed }, 200, corsHeaders);
   } catch (error) {
     console.error("send-push error:", error);
-    const msg = error instanceof Error ? error.message : "Erreur interne";
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await writeAuditLog({
+      adminClient: actor?.adminClient || createAdminClient(),
+      actor,
+      request: req,
+      functionName: "send-push",
+      action: "process_push_queue",
+      status: "failure",
+      targetEntityType: "notification_deliveries",
+      errorMessage: error instanceof Error ? error.message : "Erreur interne",
     });
+    if (error instanceof HttpError) {
+      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+    }
+    const msg = error instanceof Error ? error.message : "Erreur interne";
+    return jsonResponse({ error: msg }, 500, corsHeaders);
   }
 });

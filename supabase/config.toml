@@ -35,3 +35,12 @@ verify_jwt = false
 
 [functions.send-push]
 verify_jwt = false
+
+[functions.courier-portal]
+verify_jwt = false
+
+[functions.notification-dispatch]
+verify_jwt = false
+
+[functions.restaurant-order-status]
+verify_jwt = false

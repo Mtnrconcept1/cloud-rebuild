@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
+import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { AlertTriangle, Check, CreditCard, Dot, MoonStar, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 
@@ -126,6 +127,13 @@ export default function DashboardReservations() {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("reservations").update({ status }).eq("id", id);
       if (error) throw error;
+
+      try {
+        await dispatchQueuedNotifications("dashboard-reservation-status");
+      } catch (dispatchError) {
+        console.error("Reservation status notification dispatch failed:", dispatchError);
+      }
+
       return { id, status };
     },
     onMutate: async ({ id, status }) => {

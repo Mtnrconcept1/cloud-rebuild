@@ -1,4 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  createAdminClient,
+  jsonResponse,
+  requireRole,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +16,12 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+
   try {
+    actor = await authenticateRequest(req, { allowSchedulerSecret: true });
+    requireRole(actor, ["admin"]);
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -21,13 +34,33 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
 
-    return new Response(JSON.stringify({ generated: data }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      actor,
+      request: req,
+      functionName: "generate-invoices",
+      action: "generate_monthly_invoices",
+      status: "success",
+      targetEntityType: "restaurant_invoices",
+      metadata: { month, generated: data },
     });
+
+    return jsonResponse({ generated: data }, 200, corsHeaders);
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await writeAuditLog({
+      adminClient: actor?.adminClient || createAdminClient(),
+      actor,
+      request: req,
+      functionName: "generate-invoices",
+      action: "generate_monthly_invoices",
+      status: "failure",
+      targetEntityType: "restaurant_invoices",
+      errorMessage: err instanceof Error ? err.message : "Erreur interne",
     });
+    if (err instanceof HttpError) {
+      return jsonResponse({ error: err.message }, err.status, corsHeaders);
+    }
+    const message = err instanceof Error ? err.message : "Erreur interne";
+    return jsonResponse({ error: message }, 500, corsHeaders);
   }
 });

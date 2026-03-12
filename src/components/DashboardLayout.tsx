@@ -26,8 +26,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
 
 type NavItem = {
   to: string;
@@ -166,6 +170,43 @@ function NavItems({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { selectedId } = useDashboardRestaurant();
+
+  const handleRealtimeNotification = useCallback((notification: RealtimeNotification) => {
+    const data = notification.data && typeof notification.data === "object" && !Array.isArray(notification.data)
+      ? notification.data
+      : {};
+
+    const restaurantId = typeof data.restaurant_id === "string" ? data.restaurant_id : null;
+    if (restaurantId && selectedId && restaurantId !== selectedId) {
+      return;
+    }
+
+    const itemsSummary = typeof data.items_summary === "string" ? data.items_summary : "";
+    const deliveryAddress = typeof data.delivery_address === "string" ? data.delivery_address : "";
+    const scheduledLabel = typeof data.scheduled_delivery_label === "string" ? data.scheduled_delivery_label : "";
+    const detailParts = [itemsSummary, deliveryAddress, scheduledLabel].filter(Boolean);
+
+    toast(notification.title, {
+      description: detailParts.join(" • ") || notification.body,
+      action: typeof data.url === "string"
+        ? {
+            label: "Voir",
+            onClick: () => {
+              window.location.href = data.url as string;
+            },
+          }
+        : undefined,
+    });
+
+    queryClient.invalidateQueries({ queryKey: ["dashboard-all-orders", selectedId] });
+  }, [queryClient, selectedId]);
+
+  useRealtimeNotifications({
+    enabled: Boolean(selectedId),
+    onInsert: handleRealtimeNotification,
+  });
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">

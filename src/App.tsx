@@ -83,6 +83,7 @@ const AdminCatalog = lazy(() => import("./pages/admin/AdminCatalog"));
 const AdminLoyalty = lazy(() => import("./pages/admin/AdminLoyalty"));
 const DropsManagement = lazy(() => import("./pages/admin/DropsManagement"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 
 const queryClient = new QueryClient();
 
@@ -162,6 +163,7 @@ const App = () => (
                   <Route path="/admin/loyalty" element={<ProtectedRoute requiredRole="admin"><AdminLoyalty /></ProtectedRoute>} />
                   <Route path="/admin/drops" element={<ProtectedRoute requiredRole="admin"><DropsManagement /></ProtectedRoute>} />
                   <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><AdminNotifications /></ProtectedRoute>} />
+                  <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><AdminAuditLogs /></ProtectedRoute>} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/cgu" element={<CGU />} />
                   <Route path="/a-propos" element={<APropos />} />

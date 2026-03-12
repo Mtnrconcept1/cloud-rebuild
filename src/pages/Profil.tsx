@@ -284,6 +284,10 @@ export default function Profil() {
                     <span>Marketing</span>
                     <Switch checked={!!prefs.categories?.marketing} onCheckedChange={() => toggleCategory("marketing")} />
                   </div>
+                  <div className="flex items-center justify-between">
+                    <span>Système</span>
+                    <Switch checked={!!prefs.categories?.system} onCheckedChange={() => toggleCategory("system")} />
+                  </div>
                 </div>
               </div>
             </div>

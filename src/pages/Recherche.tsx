@@ -9,7 +9,7 @@ import RestaurantCard from "@/components/RestaurantCard";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import CampaignBanner from "@/components/CampaignBanner";
 import { Badge } from "@/components/ui/badge";
-import { trackEvent, trackSearch, getActiveSponsoredRestaurants } from "@/lib/analytics";
+import { trackSearch, getActiveSponsoredRestaurants } from "@/lib/analytics";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 import {
   formatRestaurantCategorySummary,
@@ -143,7 +143,8 @@ function toCardProps(r: any) {
 
 export default function Recherche() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const activeQuery = searchParams.get("q") || "";
+  const [query, setQuery] = useState(activeQuery);
   const cuisine = searchParams.get("cuisine") || "";
   const city = searchParams.get("city") || "";
   const price = searchParams.get("price") || "";
@@ -158,23 +159,49 @@ export default function Recherche() {
   const defaultSortDirection = getDefaultSortDirection(sortBy);
   const sortDirection: SortDirection = ORDER_OPTIONS.some((opt) => opt.value === orderParam) ? (orderParam as SortDirection) : defaultSortDirection;
 
-  const monthStart = useMemo(() => { const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d; }, []);
-  const monthStartIso = monthStart.toISOString();
-  const monthStartYmd = monthStartIso.slice(0, 10);
-  const todayYmd = new Date().toISOString().slice(0, 10);
+  useEffect(() => {
+    setQuery(activeQuery);
+  }, [activeQuery]);
 
-  const { data: restaurantsBase = [], isLoading } = useQuery({
-    queryKey: ["restaurants-search-base"],
+  const { data: organicSearchResults = [], isLoading } = useQuery({
+    queryKey: [
+      "restaurants-search",
+      activeQuery,
+      cuisine,
+      city,
+      price,
+      delivery,
+      minRatingDb,
+      sortBy,
+      sortDirection,
+    ],
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("*").eq("is_active", true);
-      return data || [];
+      const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
+        p_query: activeQuery || null,
+        p_city: city || null,
+        p_cuisine: cuisine || null,
+        p_price_range: price ? Number(price) : null,
+        p_delivery_only: delivery === "true",
+        p_min_rating: minRatingDb || 0,
+        p_sort_by: sortBy,
+        p_sort_direction: sortDirection,
+        p_limit: 90,
+        p_offset: 0,
+      });
+
+      if (error) throw error;
+
+      return (data || []).map((restaurant: any) => ({
+        ...restaurant,
+        _categories: Array.isArray(restaurant?.category_names)
+          ? restaurant.category_names.map((name: string, index: number) => ({
+            name,
+            slug: Array.isArray(restaurant?.category_slugs) ? restaurant.category_slugs[index] || null : null,
+          }))
+          : [],
+      }));
     },
   });
-
-  const restaurantIds = useMemo(
-    () => (restaurantsBase || []).map((restaurant: any) => String(restaurant.id)).filter(Boolean),
-    [restaurantsBase]
-  );
 
   const { data: cuisineOptions = [] } = useQuery({
     queryKey: ["search-cuisine-options"],
@@ -193,152 +220,10 @@ export default function Recherche() {
     },
   });
 
-  const cuisineById = useMemo(() => {
-    const map = new Map<string, any>();
-    cuisineOptions.forEach((cuisineOption: any) => {
-      map.set(String(cuisineOption.id), cuisineOption);
-    });
-    return map;
-  }, [cuisineOptions]);
-
-  const { data: restaurantCuisineLinks = [] } = useQuery({
-    queryKey: ["search-restaurant-cuisines", restaurantIds],
-    queryFn: async () => {
-      if (restaurantIds.length === 0) return [];
-      const { data, error } = await supabase
-        .from("restaurant_cuisines")
-        .select("restaurant_id, cuisine_id")
-        .in("restaurant_id", restaurantIds);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: restaurantIds.length > 0,
-  });
-
-  const restaurantCategoriesById = useMemo(() => {
-    const map: Record<string, any[]> = {};
-    (restaurantCuisineLinks || []).forEach((row: any) => {
-      const restaurantId = String(row.restaurant_id || "");
-      const cuisineId = String(row.cuisine_id || "");
-      const cuisineOption = cuisineById.get(cuisineId);
-      if (!restaurantId || !cuisineOption) return;
-      if (!map[restaurantId]) map[restaurantId] = [];
-      map[restaurantId].push(cuisineOption);
-    });
-    return map;
-  }, [cuisineById, restaurantCuisineLinks]);
-
-  const restaurants = useMemo(
-    () => (restaurantsBase || []).map((restaurant: any) => ({
-      ...restaurant,
-      _categories: restaurantCategoriesById[String(restaurant.id)] || [],
-    })),
-    [restaurantCategoriesById, restaurantsBase]
+  const organicRestaurantById = useMemo(
+    () => new Map((organicSearchResults || []).map((restaurant: any) => [String(restaurant.id), restaurant])),
+    [organicSearchResults]
   );
-
-  // Search menu items by name/description to find restaurants via product search
-  const { data: menuMatchedRestaurantIds = [] } = useQuery({
-    queryKey: ["menu-search", query],
-    queryFn: async () => {
-      if (!query || query.trim().length < 2) return [];
-      const { data } = await supabase
-        .from("menu_items")
-        .select("restaurant_id")
-        .eq("is_available", true)
-        .or(`name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`);
-      // Return unique restaurant IDs
-      const ids = new Set((data || []).map((item: any) => item.restaurant_id));
-      return Array.from(ids);
-    },
-    enabled: !!query && query.trim().length >= 2,
-  });
-
-  // Fetch additional restaurants matched via menu items (not already in main results)
-  const { data: menuMatchedRestaurants = [] } = useQuery({
-    queryKey: ["menu-matched-restaurants", menuMatchedRestaurantIds],
-    queryFn: async () => {
-      if (menuMatchedRestaurantIds.length === 0) return [];
-      const existingIds = new Set((restaurants || []).map((r: any) => r.id));
-      const missingIds = menuMatchedRestaurantIds.filter((id) => !existingIds.has(id));
-      if (missingIds.length === 0) return [];
-      const { data } = await supabase
-        .from("restaurants")
-        .select("*")
-        .eq("is_active", true)
-        .in("id", missingIds);
-      return (data || []).map((r: any) => ({ ...r, _matchedViaMenu: true }));
-    },
-    enabled: menuMatchedRestaurantIds.length > 0 && !!restaurants,
-  });
-
-  // Merge restaurant results: mark menu-matched ones
-  const allRestaurants = useMemo(() => {
-    const base = (restaurants || []).map((r: any) => {
-      if (menuMatchedRestaurantIds.includes(r.id)) {
-        return { ...r, _matchedViaMenu: true };
-      }
-      return r;
-    });
-    return [...base, ...menuMatchedRestaurants].map((restaurant: any) => ({
-      ...restaurant,
-      _categories: restaurantCategoriesById[String(restaurant.id)] || restaurant._categories || [],
-    }));
-  }, [restaurants, menuMatchedRestaurants, menuMatchedRestaurantIds, restaurantCategoriesById]);
-
-  const { data: monthlyReservationsByRestaurant = {} } = useQuery({
-    queryKey: ["search-monthly-reservations", monthStartYmd],
-    queryFn: async () => {
-      try {
-        const { data } = await supabase.from("reservations").select("restaurant_id, status, date").gte("date", monthStartYmd);
-        const counts: Record<string, number> = {};
-        (data || []).forEach((row: any) => {
-          if (!row?.restaurant_id || isCancelledStatus(row?.status)) return;
-          counts[row.restaurant_id] = (counts[row.restaurant_id] || 0) + 1;
-        });
-        return counts;
-      } catch { return {}; }
-    },
-  });
-
-  const { data: monthlyOrdersByRestaurant = {} } = useQuery({
-    queryKey: ["search-monthly-orders", monthStartIso],
-    queryFn: async () => {
-      try {
-        const { data } = await supabase.from("orders").select("restaurant_id, status, created_at").gte("created_at", monthStartIso);
-        const counts: Record<string, number> = {};
-        (data || []).forEach((row: any) => {
-          if (!row?.restaurant_id || isCancelledStatus(row?.status)) return;
-          counts[row.restaurant_id] = (counts[row.restaurant_id] || 0) + 1;
-        });
-        return counts;
-      } catch { return {}; }
-    },
-  });
-
-  const { data: promotionScoreByRestaurant = {} } = useQuery({
-    queryKey: ["search-promotion-score", todayYmd],
-    queryFn: async () => {
-      try {
-        const [offersRes, formulasRes] = await Promise.all([
-          supabase.from("anti_waste_offers").select("restaurant_id, original_price, discounted_price, available_date").eq("is_active", true).in("offer_type", ["regular", "surprise_bag", "solidarity"]).gte("available_date", todayYmd),
-          supabase.from("meal_formulas").select("restaurant_id, discount_percent").eq("is_active", true),
-        ]);
-        const scores: Record<string, number> = {};
-        ((offersRes.data || []) as any[]).forEach((offer) => {
-          const rid = String(offer?.restaurant_id || ""); if (!rid) return;
-          const original = toNumber(offer?.original_price); const discounted = toNumber(offer?.discounted_price);
-          const discountPercent = original > 0 ? ((original - discounted) / original) * 100 : 0;
-          scores[rid] = Math.max(scores[rid] || 0, discountPercent);
-        });
-        ((formulasRes.data || []) as any[]).forEach((formula) => {
-          const rid = String(formula?.restaurant_id || ""); if (!rid) return;
-          const discountPercent = toNumber(formula?.discount_percent);
-          scores[rid] = Math.max(scores[rid] || 0, discountPercent);
-        });
-        return scores;
-      } catch { return {}; }
-    },
-  });
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -354,9 +239,10 @@ export default function Recherche() {
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); updateFilter("q", query); };
 
-  const matchesFilters = (restaurant: any) => {
-    const qText = query.trim().toLowerCase();
+  const matchesSponsoredFilters = (restaurant: any) => {
+    const qText = activeQuery.trim().toLowerCase();
     const name = (restaurant?.name || "").toLowerCase();
+    const description = (restaurant?.description || "").toLowerCase();
     const cuisineType = (restaurant?.cuisine_type || "").toLowerCase();
     const cityValue = (restaurant?.city || "").toLowerCase();
     const matchesCategoryText = restaurantMatchesCategoryFilter({
@@ -365,7 +251,7 @@ export default function Recherche() {
       categories: restaurant?._categories || [],
       legacyCuisineType: restaurant?.cuisine_type || null,
     });
-    if (qText && !name.includes(qText) && !cuisineType.includes(qText) && !matchesCategoryText && !restaurant?._matchedViaMenu) return false;
+    if (qText && !name.includes(qText) && !description.includes(qText) && !cuisineType.includes(qText) && !matchesCategoryText && !restaurant?._matchedViaMenu) return false;
     if (cuisine && !matchesCategoryText) return false;
     if (city && !cityValue.includes(city.toLowerCase())) return false;
     if (price && Number(restaurant?.price_range || 0) !== Number(price)) return false;
@@ -375,27 +261,28 @@ export default function Recherche() {
   };
 
   const sponsoredCards = (sponsoredCampaigns || []).map((camp: any) => {
-    const r = camp.restaurants; if (!r) return null;
-    return { ...r, campaign_id: camp.id, promo_image: camp.image_url || null };
-  }).filter((r: any) => !!r && matchesFilters(r)) as any[];
+    const r = camp.restaurants;
+    if (!r) return null;
+    const enrichedRestaurant = organicRestaurantById.get(String(r.id));
+    return {
+      ...r,
+      ...enrichedRestaurant,
+      campaign_id: camp.id,
+      promo_image: camp.image_url || null,
+      _categories: enrichedRestaurant?._categories || [],
+    };
+  }).filter((r: any) => !!r && matchesSponsoredFilters(r)) as any[];
 
-  const sortContext = useMemo<SortContext>(() => {
-    return { sortBy, sortDirection, query, monthlyReservationsByRestaurant, monthlyOrdersByRestaurant, promotionScoreByRestaurant };
-  }, [sortBy, sortDirection, query, monthlyReservationsByRestaurant, monthlyOrdersByRestaurant, promotionScoreByRestaurant]);
-
-  const filteredOrganicCards = useMemo(
-    () => (allRestaurants as any[]).filter((restaurant) => matchesFilters(restaurant)),
-    [allRestaurants, query, cuisine, city, price, delivery, minRatingDb]
+  const mergedCards = useMemo(
+    () => prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3 }),
+    [organicSearchResults, sponsoredCards]
   );
-  const sortedOrganicCards = useMemo(() => [...filteredOrganicCards].sort((a, b) => compareRestaurants(a, b, sortContext)), [filteredOrganicCards, sortContext]);
-  const sortedSponsoredCards = useMemo(() => [...sponsoredCards].sort((a, b) => compareRestaurants(a, b, sortContext)), [sponsoredCards, sortContext]);
-  const mergedCards = useMemo(() => prioritizeSponsoredCards(sortedOrganicCards, sortedSponsoredCards, { topSlots: 3 }), [sortedOrganicCards, sortedSponsoredCards]);
 
   useEffect(() => {
-    if (mergedCards.length > 0 && (query || cuisine || city)) {
-      trackSearch(query || cuisine || city, mergedCards.length);
+    if (mergedCards.length > 0 && (activeQuery || cuisine || city)) {
+      trackSearch(activeQuery || cuisine || city, mergedCards.length);
     }
-  }, [query, cuisine, city, mergedCards.length]);
+  }, [activeQuery, cuisine, city, mergedCards.length]);
 
   return (
     <main className="min-h-screen bg-background">

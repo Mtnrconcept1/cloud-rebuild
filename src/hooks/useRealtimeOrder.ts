@@ -105,6 +105,11 @@ interface DispatchJobUpdate {
   order_id: string;
   courier_id?: string;
   status: string;
+  pickup_lat?: number;
+  pickup_lng?: number;
+  dropoff_lat?: number;
+  dropoff_lng?: number;
+  route_geometry?: Record<string, unknown> | null;
   picked_up_at?: string;
   delivered_at?: string;
   proof_photo_url?: string;

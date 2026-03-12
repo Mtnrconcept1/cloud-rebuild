@@ -3,8 +3,32 @@ import { Input } from "@/components/ui/input";
 import { MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Suggestion { name?: string; street?: string; housenumber?: string; postcode?: string; city?: string; country?: string; full_address: string; }
-interface AddressAutocompleteProps { value: string; onAddressSelect: (address: string, city: string) => void; placeholder?: string; className?: string; }
+export type AddressSelection = {
+  fullAddress: string;
+  latitude: number | null;
+  longitude: number | null;
+  postcode?: string;
+  country?: string;
+};
+
+interface Suggestion {
+  name?: string;
+  street?: string;
+  housenumber?: string;
+  postcode?: string;
+  city?: string;
+  country?: string;
+  full_address: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+interface AddressAutocompleteProps {
+  value: string;
+  onAddressSelect: (address: string, city: string, selection?: AddressSelection) => void;
+  placeholder?: string;
+  className?: string;
+}
 
 export default function AddressAutocomplete({ value, onAddressSelect, placeholder = "Entrez votre adresse...", className = "" }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState(value);
@@ -37,7 +61,20 @@ export default function AddressAutocomplete({ value, onAddressSelect, placeholde
         const postcode = properties.postcode || "";
         const mainLine = house ? `${street} ${house}` : street;
         const cityLine = postcode ? `${postcode} ${city}` : city;
-        return { name: properties.name, street: properties.street, housenumber: properties.housenumber, postcode: properties.postcode, city, country: properties.country, full_address: cityLine ? `${mainLine}, ${cityLine}` : mainLine };
+        const coordinates = Array.isArray(feature.geometry?.coordinates)
+          ? feature.geometry.coordinates
+          : [null, null];
+        return {
+          name: properties.name,
+          street: properties.street,
+          housenumber: properties.housenumber,
+          postcode: properties.postcode,
+          city,
+          country: properties.country,
+          full_address: cityLine ? `${mainLine}, ${cityLine}` : mainLine,
+          latitude: typeof coordinates[1] === "number" ? coordinates[1] : null,
+          longitude: typeof coordinates[0] === "number" ? coordinates[0] : null,
+        };
       });
       setSuggestions(formatted); setIsOpen(true);
     } catch (err: any) { setError("Erreur de recherche"); } finally { setIsLoading(false); }
@@ -51,7 +88,13 @@ export default function AddressAutocomplete({ value, onAddressSelect, placeholde
 
   const handleSelect = (suggestion: Suggestion) => {
     const mainAddress = suggestion.housenumber ? `${suggestion.street || ""} ${suggestion.housenumber}`.trim() : suggestion.street || suggestion.name || "";
-    onAddressSelect(mainAddress, suggestion.city || "");
+    onAddressSelect(mainAddress, suggestion.city || "", {
+      fullAddress: suggestion.full_address,
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude,
+      postcode: suggestion.postcode,
+      country: suggestion.country,
+    });
     setInputValue(suggestion.full_address); setIsOpen(false);
   };
 

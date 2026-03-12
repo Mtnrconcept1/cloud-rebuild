@@ -12,8 +12,8 @@ export default function SponsoredRestaurantCard({ id, name, cuisine, rating, rev
   const displayImage = promoImage || imageUrl;
   const impressionTracked = useRef(false);
 
-  useEffect(() => { if (impressionTracked.current) return; impressionTracked.current = true; trackSponsoredImpression(campaignId, id); }, [campaignId, id]);
-  const handleClick = () => { trackSponsoredClick(campaignId, id); navigate(`/restaurant/${id}`); };
+  useEffect(() => { if (impressionTracked.current) return; impressionTracked.current = true; trackSponsoredImpression(campaignId, id, "sponsored_restaurant_card"); }, [campaignId, id]);
+  const handleClick = () => { trackSponsoredClick(campaignId, id, "sponsored_restaurant_card"); navigate(`/restaurant/${id}`); };
 
   return (
     <div onClick={handleClick} className="group block cursor-pointer h-full">

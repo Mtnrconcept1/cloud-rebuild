@@ -54,6 +54,28 @@ describe("campaignTargeting", () => {
     expect(matches).toBe(true);
   });
 
+  it("allows truly new users to match the new customer segment", () => {
+    const matches = matchesAudienceCriteria(
+      {
+        ...DEFAULT_AUDIENCE_CRITERIA,
+        customerSegment: "new",
+      },
+      {
+        city: "Geneve",
+        favoriteRestaurantIds: [],
+        interactionCount: 0,
+        avgBasket: 0,
+        daysSinceLastActivity: null,
+        cuisineSignals: [],
+        journeyTypes: [],
+        serviceMoments: [],
+      },
+      "restaurant-1",
+    );
+
+    expect(matches).toBe(true);
+  });
+
   it("builds readable targeting summaries", () => {
     const summary = summarizeAudienceCriteria({
       ...DEFAULT_AUDIENCE_CRITERIA,

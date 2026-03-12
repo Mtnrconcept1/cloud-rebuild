@@ -1,5 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+import {
+  HttpError,
+  authenticateRequest,
+  createAdminClient,
+  jsonResponse,
+  requireRestaurantAccess,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,48 +18,19 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let restaurantId = "";
+
   try {
-    const { restaurantId } = await req.json();
+    actor = await authenticateRequest(req, { allowServiceRole: false });
+    ({ restaurantId } = await req.json());
+    if (!restaurantId) throw new HttpError(400, "restaurantId requis");
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const authHeader = req.headers.get("Authorization");
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    // Verify user
-    let userId: string | null = null;
-    if (authHeader) {
-      const userClient = createClient(supabaseUrl, supabaseKey, {
-        global: { headers: { Authorization: authHeader } },
-      });
-      const { data: { user } } = await userClient.auth.getUser();
-      userId = user?.id || null;
-    }
-
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-
-    // Verify ownership
-    const { data: restaurant } = await adminClient
-      .from("restaurants")
-      .select("*")
-      .eq("id", restaurantId)
-      .single();
-
-    if (!restaurant) {
-      return new Response(JSON.stringify({ error: "Restaurant introuvable" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (userId && restaurant.owner_id !== userId) {
-      return new Response(JSON.stringify({ error: "Non autorisé" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Gather restaurant data
+    const restaurant = await requireRestaurantAccess(actor, restaurantId);
+    const adminClient = actor.adminClient;
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
 
     const [ordersRes, reviewsRes, menuRes, campaignsRes, flashRes, antiWasteRes] = await Promise.all([
@@ -70,59 +49,53 @@ serve(async (req) => {
     ]);
 
     const orders = ordersRes.data || [];
-    const completedOrders = orders.filter((o: any) => o.status !== "cancelled");
-    const totalRevenue = completedOrders.reduce((s: number, o: any) => s + Number(o.total_amount || 0), 0);
+    const completedOrders = orders.filter((order: any) => order.status !== "cancelled");
+    const totalRevenue = completedOrders.reduce((sum: number, order: any) => sum + Number(order.total_amount || 0), 0);
     const avgTicket = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
     const reviews = reviewsRes.data || [];
     const avgRating = reviews.length > 0
-      ? reviews.reduce((s: number, r: any) => s + Number(r.rating), 0) / reviews.length
+      ? reviews.reduce((sum: number, review: any) => sum + Number(review.rating), 0) / reviews.length
       : 0;
     const menu = menuRes.data || [];
-    const categories = [...new Set(menu.map((m: any) => m.category).filter(Boolean))];
+    const categories = [...new Set(menu.map((item: any) => item.category).filter(Boolean))];
     const pastCampaigns = campaignsRes.data || [];
 
     const contextSummary = `
 Restaurant: ${restaurant.name}
-Cuisine: ${restaurant.cuisine_type || "Non spécifié"}
-Ville: ${restaurant.city}
+Cuisine: ${restaurant.cuisine_type || "Non specifie"}
+Ville: ${restaurant.city || "Inconnue"}
 Note moyenne: ${avgRating.toFixed(1)}/5 (${reviews.length} avis)
 Commandes 30j: ${completedOrders.length} (CA: ${totalRevenue.toFixed(0)} CHF, panier moyen: ${avgTicket.toFixed(0)} CHF)
-Menu: ${menu.length} plats dans ${categories.length} catégories (${categories.join(", ")})
-Plats populaires: ${menu.slice(0, 5).map((m: any) => `${m.name} (${m.price} CHF)`).join(", ")}
+Menu: ${menu.length} plats dans ${categories.length} categories (${categories.join(", ")})
+Plats populaires: ${menu.slice(0, 5).map((item: any) => `${item.name} (${item.price} CHF)`).join(", ")}
 Ventes flash actives: ${(flashRes.data || []).length}
 Offres anti-gaspi actives: ${(antiWasteRes.data || []).length}
-Campagnes passées: ${pastCampaigns.length} (${pastCampaigns.filter((c: any) => c.status === "active").length} actives)
-${pastCampaigns.length > 0 ? `Perf campagnes: ${pastCampaigns.reduce((s: number, c: any) => s + (c.impressions || 0), 0)} impressions, ${pastCampaigns.reduce((s: number, c: any) => s + (c.clicks || 0), 0)} clics, ${pastCampaigns.reduce((s: number, c: any) => s + (c.conversions || 0), 0)} conversions` : ""}
-Avis récents négatifs: ${reviews.filter((r: any) => r.rating <= 3).map((r: any) => r.comment).filter(Boolean).slice(0, 3).join(" | ") || "Aucun"}
+Campagnes passees: ${pastCampaigns.length} (${pastCampaigns.filter((campaign: any) => campaign.status === "active").length} actives)
+${pastCampaigns.length > 0 ? `Perf campagnes: ${pastCampaigns.reduce((sum: number, campaign: any) => sum + (campaign.impressions || 0), 0)} impressions, ${pastCampaigns.reduce((sum: number, campaign: any) => sum + (campaign.clicks || 0), 0)} clics, ${pastCampaigns.reduce((sum: number, campaign: any) => sum + (campaign.conversions || 0), 0)} conversions` : ""}
+Avis recents negatifs: ${reviews.filter((review: any) => review.rating <= 3).map((review: any) => review.comment).filter(Boolean).slice(0, 3).join(" | ") || "Aucun"}
 `;
 
-    const systemPrompt = `Tu es un expert en marketing digital pour la restauration. Tu dois générer UNE campagne publicitaire optimisée pour le restaurant ci-dessous.
+    const systemPrompt = `Tu es un expert en marketing digital pour la restauration. Tu dois generer UNE campagne publicitaire optimisee pour le restaurant ci-dessous.
 
 CONTEXTE DU RESTAURANT:
 ${contextSummary}
 
 Tu dois retourner un JSON valide avec exactement ces champs:
 {
-  "title": "Titre accrocheur de la campagne (max 60 caractères)",
-  "body": "Description engageante de la campagne (max 200 caractères). Doit donner envie et être actionnable.",
+  "title": "Titre accrocheur de la campagne (max 60 caracteres)",
+  "body": "Description engageante de la campagne (max 200 caracteres). Doit donner envie et etre actionnable.",
   "type": "boost",
   "target_pages": ["home", "search", "flash_sales", "anti_waste"],
-  "total_budget": number (en CHF, adapté au CA du restaurant),
-  "budget_daily": number (en CHF)
+  "total_budget": number,
+  "budget_daily": number
 }
 
-RÈGLES:
-- Le titre doit être accrocheur, utiliser des emojis si pertinent
-- La description doit créer l'urgence ou la curiosité
-- Choisis les target_pages les plus pertinentes (2-3 max):
-  - "home" pour visibilité générale
-  - "search" pour capter les recherches
-  - "flash_sales" si le restaurant fait des ventes flash
-  - "anti_waste" si le restaurant a des offres anti-gaspi
-- Le budget doit être réaliste (5-15% du CA mensuel)
-- Adapte le message aux forces du restaurant (note, cuisine, promotions)
-- Si la note est basse, focus sur une offre spéciale pour reconquérir
-- Si le panier moyen est bas, propose une offre qui l'augmente
+REGLES:
+- Le titre doit etre accrocheur
+- La description doit creer l'urgence ou la curiosite
+- Choisis les target_pages les plus pertinentes (2-3 max)
+- Le budget doit etre realiste (5-15% du CA mensuel)
+- Adapte le message aux forces du restaurant
 
 Retourne UNIQUEMENT le JSON, sans explication.`;
 
@@ -136,26 +109,26 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: "Génère une campagne publicitaire optimisée pour ce restaurant." },
+          { role: "user", content: "Genere une campagne publicitaire optimisee pour ce restaurant." },
         ],
         tools: [
           {
             type: "function",
             function: {
               name: "create_campaign",
-              description: "Crée une campagne publicitaire optimisée",
+              description: "Cree une campagne publicitaire optimisee",
               parameters: {
                 type: "object",
                 properties: {
-                  title: { type: "string", description: "Titre accrocheur (max 60 chars)" },
-                  body: { type: "string", description: "Description engageante (max 200 chars)" },
+                  title: { type: "string" },
+                  body: { type: "string" },
                   type: { type: "string", enum: ["boost", "banner", "push"] },
                   target_pages: {
                     type: "array",
                     items: { type: "string", enum: ["home", "search", "flash_sales", "anti_waste"] },
                   },
-                  total_budget: { type: "number", description: "Budget total en CHF" },
-                  budget_daily: { type: "number", description: "Budget quotidien en CHF" },
+                  total_budget: { type: "number" },
+                  budget_daily: { type: "number" },
                 },
                 required: ["title", "body", "type", "target_pages", "total_budget", "budget_daily"],
                 additionalProperties: false,
@@ -168,48 +141,64 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
     });
 
     if (!aiResponse.ok) {
-      const status = aiResponse.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Trop de requêtes, réessayez dans quelques instants." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (aiResponse.status === 429) {
+        return jsonResponse({ error: "Trop de requetes, reessayez dans quelques instants." }, 429, corsHeaders);
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "Crédits IA insuffisants." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (aiResponse.status === 402) {
+        return jsonResponse({ error: "Credits IA insuffisants." }, 402, corsHeaders);
       }
       throw new Error("Erreur du service IA");
     }
 
     const aiData = await aiResponse.json();
-
-    // Extract from tool call
-    let campaign: any = {};
+    let campaign: Record<string, unknown> = {};
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       try {
         campaign = JSON.parse(toolCall.function.arguments);
       } catch {
-        // Fallback: try content
-        const content = aiData.choices?.[0]?.message?.content || "";
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) campaign = JSON.parse(jsonMatch[0]);
+        campaign = {};
       }
     } else {
-      // Fallback: parse content
       const content = aiData.choices?.[0]?.message?.content || "";
       const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) campaign = JSON.parse(jsonMatch[0]);
+      if (jsonMatch) {
+        campaign = JSON.parse(jsonMatch[0]);
+      }
     }
 
-    return new Response(JSON.stringify(campaign), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await writeAuditLog({
+      adminClient: actor.adminClient,
+      actor,
+      request: req,
+      functionName: "generate-campaign",
+      action: "generate_campaign_copy",
+      status: "success",
+      targetEntityType: "restaurants",
+      targetEntityId: restaurantId,
+      metadata: {
+        generated_title: typeof campaign?.title === "string" ? campaign.title : null,
+        target_pages: Array.isArray(campaign?.target_pages) ? campaign.target_pages : [],
+      },
     });
-  } catch (e) {
-    console.error("generate-campaign error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erreur inconnue" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+
+    return jsonResponse(campaign, 200, corsHeaders);
+  } catch (error) {
+    console.error("generate-campaign error:", error);
+    await writeAuditLog({
+      adminClient: actor?.adminClient || createAdminClient(),
+      actor,
+      request: req,
+      functionName: "generate-campaign",
+      action: "generate_campaign_copy",
+      status: "failure",
+      targetEntityType: restaurantId ? "restaurants" : null,
+      targetEntityId: restaurantId || null,
+      errorMessage: error instanceof Error ? error.message : "Erreur interne",
     });
+    if (error instanceof HttpError) {
+      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+    }
+    return jsonResponse({ error: error instanceof Error ? error.message : "Erreur inconnue" }, 500, corsHeaders);
   }
 });

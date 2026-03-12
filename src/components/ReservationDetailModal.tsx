@@ -12,6 +12,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 export type Json =
   | string
   | number
@@ -151,6 +152,11 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     if (error) {
       toast({ title: "Impossible d'annuler", description: error.message, variant: "destructive" });
     } else {
+      try {
+        await dispatchQueuedNotifications("reservation-cancel");
+      } catch (dispatchError) {
+        console.error("Reservation cancellation notification dispatch failed:", dispatchError);
+      }
       toast({ title: "Réservation annulée", description: "Votre réservation a bien été annulée." });
       queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
       setConfirmCancel(false);

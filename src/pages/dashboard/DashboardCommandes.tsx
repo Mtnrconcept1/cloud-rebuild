@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import DeliveryMap from "@/components/DeliveryMap";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,122 +8,203 @@ import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { mapOrderStatusToTrackingStatus, normalizeOrderStatus } from "@/lib/orderStatus";
-import type { Database } from "@/integrations/supabase/types";
+import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
+import { normalizeOrderStatus } from "@/lib/orderStatus";
+import { dispatchToCouriersClientSide } from "@/lib/clientDispatch";
 import { useDashboardRestaurant } from "./DashboardContext";
 
-type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
-type DeliveryTrackingRow = Database["public"]["Tables"]["delivery_tracking"]["Row"];
-type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-type OrderItemRow = Database["public"]["Tables"]["order_items"]["Row"];
-type MenuItemRow = Database["public"]["Tables"]["menu_items"]["Row"];
-type AntiWasteOfferRow = Database["public"]["Tables"]["anti_waste_offers"]["Row"];
-
-type OrderItemWithRelations = OrderItemRow & {
-  menu_items: Pick<MenuItemRow, "name"> | null;
-  anti_waste_offers: Pick<AntiWasteOfferRow, "title"> | null;
+type DashboardOrderItem = {
+  id: string;
+  quantity: number;
+  total_price: number;
+  unit_price?: number;
+  name?: string | null;
 };
 
-type OrderWithRelations = OrderRow & {
-  delivery_tracking: DeliveryTrackingRow[] | null;
-  profiles: Pick<ProfileRow, "full_name" | "phone"> | null;
-  order_items: OrderItemWithRelations[] | null;
+type DashboardDeliveryTracking = {
+  id?: string;
+  status?: string | null;
+  driver_name?: string | null;
+  driver_phone?: string | null;
+  current_lat?: number | null;
+  current_lng?: number | null;
 };
 
-const STATUSES = ["pending", "preparing", "delivering", "delivered", "cancelled"];
-
-const SIMULATED_COORDS = {
-  restaurant: { lat: 48.8566, lng: 2.3522 },
-  delivery: { lat: 48.8706, lng: 2.3477 },
-  positions: {
-    preparing: { lat: 48.8566, lng: 2.3522 },
-    picked_up: { lat: 48.8596, lng: 2.3502 },
-    in_transit: { lat: 48.8656, lng: 2.349 },
-    delivered: { lat: 48.8706, lng: 2.3477 },
-  },
+type DashboardDispatchJob = {
+  id?: string;
+  status?: string | null;
+  pickup_lat?: number | null;
+  pickup_lng?: number | null;
+  dropoff_lat?: number | null;
+  dropoff_lng?: number | null;
+  route_geometry?: Record<string, unknown> | null;
 };
+
+type DashboardOrder = {
+  id: string;
+  user_id: string;
+  restaurant_id: string;
+  checkout_id: string | null;
+  order_number: string | null;
+  created_at: string;
+  status: string;
+  total_amount: number | string;
+  delivery_fee: number | string | null;
+  delivery_address: string | null;
+  notes: string | null;
+  metadata: Record<string, unknown> | null;
+  customer: {
+    full_name?: string | null;
+    phone?: string | null;
+  } | null;
+  order_items: DashboardOrderItem[];
+  delivery_tracking: DashboardDeliveryTracking | null;
+  dispatch_job: DashboardDispatchJob | null;
+};
+
+const DEFAULT_STATUS_SEQUENCE = ["confirmed", "preparing", "delivering", "delivered", "cancelled"] as const;
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "En attente",
+  pending_payment: "Paiement en attente",
+  confirmed: "Confirmee",
+  preparing: "En preparation",
+  delivering: "En livraison",
+  delivered: "Livree",
+  cancelled: "Annulee",
+};
+
+function isDeliveryDashboardOrder(order: DashboardOrder) {
+  const metadata = order.metadata || {};
+  const explicitType = typeof metadata.type === "string" ? metadata.type.toLowerCase() : "";
+  const feature = typeof metadata.feature === "string" ? metadata.feature.toLowerCase() : "";
+  const hasPickupTime = typeof metadata.pickup_time === "string" || typeof metadata.arrival_time === "string";
+
+  if (explicitType && explicitType !== "delivery") return false;
+  if (!order.delivery_address) return false;
+  if (feature === "zero-attente") return false;
+  return !hasPickupTime;
+}
+
+function getStatusOptions(order: DashboardOrder) {
+  const currentStatus = normalizeOrderStatus(order.status);
+  const baseStatuses = isDeliveryDashboardOrder(order)
+    ? ["confirmed", "preparing", "cancelled"]
+    : [...DEFAULT_STATUS_SEQUENCE];
+
+  return baseStatuses.includes(currentStatus as string)
+    ? baseStatuses
+    : [String(currentStatus), ...baseStatuses.filter((status) => status !== currentStatus)];
+}
 
 export default function DashboardCommandes() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [expandedRouteOrderId, setExpandedRouteOrderId] = useState<string | null>(null);
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
 
   const { data: orders, error: ordersError } = useQuery({
     queryKey: ["dashboard-all-orders", selectedId],
     queryFn: async () => {
-      const [ordersRes, customersRes] = await Promise.all([
-        supabase
-          .from("orders")
-          .select("*, delivery_tracking(*), order_items(*, menu_items(name), anti_waste_offers(title))")
-          .eq("restaurant_id", selectedId!)
-          .order("created_at", { ascending: false }),
-        supabase.rpc("get_order_customers" as any, { p_restaurant_id: selectedId! }),
-      ]);
+      const { data, error } = await supabase.rpc("get_restaurant_orders_dashboard" as any, {
+        p_restaurant_id: selectedId!,
+      });
 
-      const customerMap = new Map(
-        ((customersRes.data || []) as any[]).map((customer: any) => [
-          customer.user_id,
-          { full_name: customer.full_name, phone: customer.phone },
-        ])
-      );
+      if (error) throw error;
 
-      return ((ordersRes.data ?? []) as any[]).map((order) => ({
+      return ((data || []) as any[]).map((order) => ({
         ...order,
-        profiles: customerMap.get(order.user_id) || null,
-      })) as unknown as OrderWithRelations[];
+        metadata: order.metadata && typeof order.metadata === "object" && !Array.isArray(order.metadata)
+          ? order.metadata
+          : {},
+        customer: order.customer && typeof order.customer === "object" && !Array.isArray(order.customer)
+          ? order.customer
+          : null,
+        order_items: Array.isArray(order.order_items) ? order.order_items : [],
+        delivery_tracking: order.delivery_tracking && typeof order.delivery_tracking === "object" && !Array.isArray(order.delivery_tracking)
+          ? order.delivery_tracking
+          : null,
+        dispatch_job: order.dispatch_job && typeof order.dispatch_job === "object" && !Array.isArray(order.dispatch_job)
+          ? order.dispatch_job
+          : null,
+      })) as DashboardOrder[];
     },
     enabled: !!selectedId,
   });
 
   const updateStatus = async (orderId: string, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
-    const { error } = await supabase.from("orders").update({ status: normalizedStatus }).eq("id", orderId);
+    const { data, error } = await supabase.functions.invoke("restaurant-order-status", {
+      body: {
+        order_id: orderId,
+        status: normalizedStatus,
+      },
+    });
+
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
 
-    const trackingStatus = mapOrderStatusToTrackingStatus(normalizedStatus);
-    if (trackingStatus) {
-      const position = SIMULATED_COORDS.positions[trackingStatus as keyof typeof SIMULATED_COORDS.positions] || SIMULATED_COORDS.positions.preparing;
-      const order = orders?.find((item) => item.id === orderId);
-      const existingTracking = order?.delivery_tracking?.[0];
-
-      if (existingTracking) {
-        await supabase
-          .from("delivery_tracking")
-          .update({
-            status: trackingStatus,
-            current_lat: position.lat,
-            current_lng: position.lng,
-            ...(trackingStatus === "in_transit"
-              ? { picked_up_at: new Date().toISOString(), driver_name: "Mohamed B.", driver_phone: "06 12 34 56 78" }
-              : {}),
-            ...(trackingStatus === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
-          })
-          .eq("id", existingTracking.id);
-      } else {
-        const estimatedArrival = new Date();
-        estimatedArrival.setMinutes(estimatedArrival.getMinutes() + 30);
-        await supabase.from("delivery_tracking").insert({
-          order_id: orderId,
-          status: trackingStatus,
-          restaurant_lat: SIMULATED_COORDS.restaurant.lat,
-          restaurant_lng: SIMULATED_COORDS.restaurant.lng,
-          delivery_lat: SIMULATED_COORDS.delivery.lat,
-          delivery_lng: SIMULATED_COORDS.delivery.lng,
-          current_lat: position.lat,
-          current_lng: position.lng,
-          estimated_arrival: estimatedArrival.toISOString(),
-          driver_name: "Mohamed B.",
-          driver_phone: "06 12 34 56 78",
-        });
-      }
+    if (data?.error) {
+      toast({ title: "Erreur", description: String(data.error), variant: "destructive" });
+      return;
     }
 
     queryClient.invalidateQueries({ queryKey: ["dashboard-all-orders", selectedId] });
+
+    const dispatchState = typeof data?.dispatch?.state === "string" ? data.dispatch.state : null;
+    if (dispatchState === "failed") {
+      // Fallback: dispatch client-side to online couriers
+      const currentOrder = orders?.find((o) => o.id === orderId);
+      const orderMeta = (currentOrder?.metadata || {}) as Record<string, any>;
+      try {
+        const fallbackResult = await dispatchToCouriersClientSide({
+          orderId,
+          orderNumber: currentOrder?.order_number || null,
+          restaurantName: selectedRestaurant?.name || "Restaurant",
+          restaurantAddress: (selectedRestaurant as any)?.address || null,
+          restaurantLat: (selectedRestaurant as any)?.latitude || null,
+          restaurantLng: (selectedRestaurant as any)?.longitude || null,
+          deliveryAddress: currentOrder?.delivery_address || null,
+          deliveryLat: orderMeta.delivery_lat ?? null,
+          deliveryLng: orderMeta.delivery_lng ?? null,
+          totalAmount: Number(currentOrder?.total_amount) || null,
+          itemsSummary: currentOrder?.order_items?.map((i) => `${i.quantity}x ${i.name || "Article"}`).join(", ") || null,
+          itemsCount: currentOrder?.order_items?.reduce((sum, i) => sum + i.quantity, 0) || null,
+          deliveryWindowLabel: String(orderMeta.delivery_window_label || "45 min"),
+          scheduledDeliveryLabel: typeof orderMeta.scheduled_delivery_label === "string" ? orderMeta.scheduled_delivery_label : null,
+        });
+
+        if (fallbackResult.notifiedCount > 0) {
+          toast({
+            title: "Livreurs alertes (fallback)",
+            description: `${fallbackResult.notifiedCount} livreur(s) notifie(s) en temps reel.`,
+          });
+        } else {
+          toast({
+            title: "Aucun livreur disponible",
+            description: fallbackResult.errors[0] || "Aucun livreur en ligne actuellement.",
+          });
+        }
+      } catch (fallbackError) {
+        toast({
+          title: "Statut mis a jour (alerte livreur echouee)",
+          description: fallbackError instanceof Error ? fallbackError.message : "Impossible de notifier les livreurs.",
+        });
+      }
+      return;
+    }
+
+    const description = dispatchState === "queued"
+      ? "Le statut est passe en preparation et les livreurs ont ete alertes."
+      : dispatchState === "scheduled"
+        ? "Le statut est passe en preparation. La recherche de livreur demarrera au bon creneau."
+        : `La commande est maintenant "${STATUS_LABELS[String(normalizedStatus)] || normalizedStatus}".`;
+
+    toast({ title: "Statut mis a jour", description });
   };
 
   return (
@@ -150,11 +233,36 @@ export default function DashboardCommandes() {
         {!restaurantsLoading && !restaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
             {orders?.map((order) => {
-              const tracking = order.delivery_tracking?.[0] ?? null;
-              const customer = order.profiles;
+              const tracking = order.delivery_tracking ?? null;
+              const customer = order.customer;
               const items = order.order_items ?? [];
               const customerPhone = customer?.phone ?? "";
               const customerAddress = order.delivery_address ?? "Adresse non renseignee";
+              const paymentMeta = (order.metadata || {}) as Record<string, any>;
+              const deliveryFlowStatus = String(order.dispatch_job?.status || tracking?.status || "");
+              const scheduledLabel = typeof paymentMeta.scheduled_delivery_label === "string" ? paymentMeta.scheduled_delivery_label : "";
+              const statusOptions = getStatusOptions(order);
+              const deliveryLat = paymentMeta.delivery_lat != null && Number.isFinite(Number(paymentMeta.delivery_lat))
+                ? Number(paymentMeta.delivery_lat)
+                : null;
+              const deliveryLng = paymentMeta.delivery_lng != null && Number.isFinite(Number(paymentMeta.delivery_lng))
+                ? Number(paymentMeta.delivery_lng)
+                : null;
+              const routeSteps = buildDeliveryRouteSteps({
+                routeGeometry: order.dispatch_job?.route_geometry,
+                deliveryAddress: order.delivery_address,
+                deliveryLat,
+                deliveryLng,
+              });
+              const routeMapStops = routeSteps
+                .filter((step) => step.latitude !== null && step.longitude !== null)
+                .map((step) => ({
+                  ...step,
+                  latitude: step.latitude as number,
+                  longitude: step.longitude as number,
+                }));
+              const canPreviewRoute = isDeliveryDashboardOrder(order) && routeMapStops.length >= 2;
+              const isRouteExpanded = expandedRouteOrderId === order.id;
 
               return (
                 <div key={order.id} className="space-y-4 rounded-2xl border bg-card p-5 shadow-sm">
@@ -178,13 +286,13 @@ export default function DashboardCommandes() {
                         <p className="text-lg font-bold text-primary">{Number(order.total_amount).toFixed(2)} CHF</p>
                         <div className="flex flex-col items-end">
                           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Paiement recu</p>
-                          {order.metadata && typeof order.metadata === "object" && !Array.isArray(order.metadata) && (order.metadata as any).payment_method ? (
+                          {paymentMeta.payment_method ? (
                             <div className="mt-1 flex items-center gap-1.5">
                               <CreditCard className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-[10px] font-medium uppercase">{(order.metadata as any).payment_method}</span>
-                              {(order.metadata as any).card_last4 ? (
+                              <span className="text-[10px] font-medium uppercase">{paymentMeta.payment_method}</span>
+                              {paymentMeta.card_last4 ? (
                                 <span className="rounded bg-secondary px-1 font-mono text-[10px]">
-                                  **** {(order.metadata as any).card_last4}
+                                  **** {paymentMeta.card_last4}
                                 </span>
                               ) : null}
                             </div>
@@ -196,17 +304,9 @@ export default function DashboardCommandes() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {STATUSES.map((status) => (
+                          {statusOptions.map((status) => (
                             <SelectItem key={status} value={status}>
-                              {(
-                                {
-                                  pending: "En attente",
-                                  preparing: "En preparation",
-                                  delivering: "En livraison",
-                                  delivered: "Livree",
-                                  cancelled: "Annulee",
-                                } as Record<string, string>
-                              )[status] || status}
+                              {STATUS_LABELS[status] || status}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -233,6 +333,7 @@ export default function DashboardCommandes() {
                             <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
                             {customerAddress}
                           </div>
+                          {scheduledLabel ? <div className="text-xs text-muted-foreground">Livraison planifiee : {scheduledLabel}</div> : null}
                         </div>
                       </div>
                     </div>
@@ -249,7 +350,7 @@ export default function DashboardCommandes() {
                               <span className="flex h-5 w-5 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
                                 {item.quantity}
                               </span>
-                              <span className="font-medium">{item.menu_items?.name || item.anti_waste_offers?.title || "Article"}</span>
+                              <span className="font-medium">{item.name || "Article"}</span>
                             </div>
                             <span className="text-muted-foreground">{Number(item.total_price).toFixed(2)} CHF</span>
                           </div>
@@ -266,10 +367,55 @@ export default function DashboardCommandes() {
                     </div>
                   </div>
 
-                  {tracking ? (
+                  {deliveryFlowStatus ? (
                     <div className="flex w-fit items-center gap-2 rounded-full bg-secondary/30 px-2 py-1 text-[10px] font-medium text-muted-foreground">
                       <Bike className="h-3 w-3" />
-                      LIVRAISON : {tracking.status.toUpperCase()}
+                      LIVRAISON : {deliveryFlowStatus.toUpperCase()}
+                    </div>
+                  ) : null}
+
+                  {canPreviewRoute ? (
+                    <div className="space-y-3 rounded-xl border bg-muted/20 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold">Parcours de livraison</p>
+                          <p className="text-xs text-muted-foreground">
+                            {routeSteps.length} etape(s) du retrait a la remise client.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="text-xs font-medium text-primary hover:underline"
+                          onClick={() => setExpandedRouteOrderId(isRouteExpanded ? null : order.id)}
+                        >
+                          {isRouteExpanded ? "Masquer" : "Voir le parcours"}
+                        </button>
+                      </div>
+
+                      {isRouteExpanded ? (
+                        <div className="space-y-3">
+                          <DeliveryMap
+                            routeStops={routeMapStops}
+                            currentLat={tracking?.current_lat ? Number(tracking.current_lat) : undefined}
+                            currentLng={tracking?.current_lng ? Number(tracking.current_lng) : undefined}
+                            className="h-64"
+                          />
+                          <div className="grid gap-2">
+                            {routeSteps.map((step) => (
+                              <div key={step.id} className="flex gap-3 rounded-xl border bg-card p-3">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                                  {step.stepIndex}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold">{step.label}</p>
+                                  {step.restaurantName ? <p className="text-xs text-muted-foreground">{step.restaurantName}</p> : null}
+                                  <p className="text-xs text-muted-foreground">{step.address || "-"}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
@@ -282,3 +428,5 @@ export default function DashboardCommandes() {
     </DashboardLayout>
   );
 }
+
+

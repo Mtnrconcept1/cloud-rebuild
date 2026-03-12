@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,115 +21,124 @@ import {
   Percent,
 } from "lucide-react";
 import { useDashboardRestaurant } from "./DashboardContext";
-import { getServicePeriodFromMetadata } from "@/lib/serviceSettings";
+import type { Database } from "@/integrations/supabase/types";
+import {
+  buildPerformanceSummary,
+  getPerformancePeriodBounds,
+  type OrderPerformanceRow,
+  type PerformanceSummary,
+  type ReservationPerformanceRow,
+  type ReviewPerformanceRow,
+} from "@/lib/dashboardPerformance";
 
-type KpiRow = {
-  kpi_date: string;
-  orders_count: number;
-  revenue: number;
-  avg_ticket: number;
-  reservations_count: number;
-  cancel_rate: number;
-  satisfaction_score: number;
+type RestaurantInvoiceRow = Database["public"]["Tables"]["restaurant_invoices"]["Row"];
+
+const EMPTY_SUMMARY: PerformanceSummary = {
+  dailyRows: [],
+  totalOrders: 0,
+  validOrdersCount: 0,
+  invalidOrdersCount: 0,
+  totalRevenue: 0,
+  grossRevenue: 0,
+  avgTicket: 0,
+  totalReservations: 0,
+  cancelRate: 0,
+  avgSatisfaction: 0,
+  accountingAvgTicket: 0,
+  reservationServiceBreakdown: {
+    lunch: { count: 0, covers: 0 },
+    dinner: { count: 0, covers: 0 },
+  },
+  discounts: {
+    formula: 0,
+    promo: 0,
+    loyalty: 0,
+    flex: 0,
+    total: 0,
+  },
+  hasActivity: false,
 };
 
-type OrderLite = {
-  created_at: string;
-  total_amount: number | string | null;
-  status: string | null;
-  metadata?: unknown;
-};
-
-type ReservationLite = {
-  date: string;
-  time?: string | null;
-  status: string | null;
-  party_size?: number | null;
-  metadata?: unknown;
-};
-
-const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed"]);
-const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "no_show"]);
-
-function dayKeyFromIso(iso: string | null | undefined): string | null {
-  if (!iso) return null;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString().slice(0, 10);
+function formatDayLabel(dayKey: string) {
+  return new Date(`${dayKey}T00:00:00.000Z`).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function toNumber(value: unknown) {
-  if (typeof value === "number") return value;
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function buildFallbackKpis(orders: OrderLite[], reservations: ReservationLite[]): KpiRow[] {
-  const byDay = new Map<
-    string,
-    { orderTotal: number; orderValid: number; revenue: number; reservations: number; cancelled: number }
-  >();
-
-  for (const order of orders) {
-    const key = dayKeyFromIso(order.created_at);
-    if (!key) continue;
-    const bucket = byDay.get(key) || { orderTotal: 0, orderValid: 0, revenue: 0, reservations: 0, cancelled: 0 };
-    bucket.orderTotal += 1;
-    const status = String(order.status || "").toLowerCase();
-    if (INVALID_ORDER_STATUSES.has(status)) {
-      bucket.cancelled += 1;
-    } else {
-      bucket.orderValid += 1;
-      bucket.revenue += Number(order.total_amount || 0);
-    }
-    byDay.set(key, bucket);
-  }
-
-  for (const reservation of reservations) {
-    if (!reservation.date) continue;
-    const bucket = byDay.get(reservation.date) || { orderTotal: 0, orderValid: 0, revenue: 0, reservations: 0, cancelled: 0 };
-    const status = String(reservation.status || "").toLowerCase();
-    if (!INVALID_RESERVATION_STATUSES.has(status)) {
-      bucket.reservations += 1;
-    }
-    byDay.set(reservation.date, bucket);
-  }
-
-  return Array.from(byDay.entries())
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([kpi_date, value]) => ({
-      kpi_date,
-      orders_count: value.orderValid,
-      revenue: value.revenue,
-      avg_ticket: value.orderValid > 0 ? value.revenue / value.orderValid : 0,
-      reservations_count: value.reservations,
-      cancel_rate: value.orderTotal > 0 ? (value.cancelled / value.orderTotal) * 100 : 0,
-      satisfaction_score: 0,
-    }));
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : null;
 }
 
 export default function DashboardPerformances() {
   const { restaurants, selectedId, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
-  const [kpis, setKpis] = useState<KpiRow[]>([]);
-  const [orders, setOrders] = useState<OrderLite[]>([]);
-  const [reservations, setReservations] = useState<ReservationLite[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState("30");
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
-  const from = new Date();
-  from.setDate(from.getDate() - Number(period));
-  const fromDay = from.toISOString().slice(0, 10);
+  const { fromDay, toDay, fromTimestamp, toTimestampExclusive } = useMemo(
+    () => getPerformancePeriodBounds(Number(period)),
+    [period],
+  );
 
-  const { data: invoices = [], isLoading: loadingInvoices, error: invoicesError } = useQuery({
+  const {
+    data: performanceData,
+    isLoading: loadingPerformance,
+    error: performanceError,
+  } = useQuery({
+    queryKey: ["dashboard-performance", selectedId, fromDay, toDay],
+    queryFn: async () => {
+      if (!selectedId) return null;
+
+      const [ordersRes, reservationsRes, reviewsRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("created_at, total_amount, status, metadata")
+          .eq("restaurant_id", selectedId)
+          .gte("created_at", fromTimestamp)
+          .lt("created_at", toTimestampExclusive),
+        supabase
+          .from("reservations")
+          .select("date, time, status, party_size, metadata")
+          .eq("restaurant_id", selectedId)
+          .gte("date", fromDay)
+          .lte("date", toDay),
+        supabase
+          .from("reviews")
+          .select("created_at, rating")
+          .eq("restaurant_id", selectedId)
+          .gte("created_at", fromTimestamp)
+          .lt("created_at", toTimestampExclusive),
+      ]);
+
+      if (ordersRes.error) throw ordersRes.error;
+      if (reservationsRes.error) throw reservationsRes.error;
+      if (reviewsRes.error) throw reviewsRes.error;
+
+      const orders = (ordersRes.data || []) as OrderPerformanceRow[];
+      const reservations = (reservationsRes.data || []) as ReservationPerformanceRow[];
+      const reviews = (reviewsRes.data || []) as ReviewPerformanceRow[];
+
+      return {
+        orders,
+        reservations,
+        reviews,
+        summary: buildPerformanceSummary({
+          orders,
+          reservations,
+          reviews,
+          fromDay,
+          toDay,
+        }),
+      };
+    },
+    enabled: !!selectedId,
+  });
+
+  const {
+    data: invoices = [],
+    isLoading: loadingInvoices,
+    error: invoicesError,
+  } = useQuery({
     queryKey: ["dashboard-performance-invoices", selectedId],
     queryFn: async () => {
       if (!selectedId) return [];
@@ -140,154 +148,23 @@ export default function DashboardPerformances() {
         .eq("restaurant_id", selectedId)
         .order("period_end", { ascending: false })
         .limit(10);
+
       if (invoiceError) throw invoiceError;
       return data || [];
     },
     enabled: !!selectedId,
   });
 
-  const load = async () => {
-    if (!selectedId) {
-      setKpis([]);
-      setOrders([]);
-      setReservations([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    const [kpiRes, ordersRes, reservationsRes] = await Promise.all([
-      supabase
-        .from("restaurant_daily_kpis")
-        .select("kpi_date, orders_count, revenue, avg_ticket, reservations_count, cancel_rate, satisfaction_score")
-        .eq("restaurant_id", selectedId)
-        .gte("kpi_date", fromDay)
-        .order("kpi_date", { ascending: true }),
-      supabase
-        .from("orders")
-        .select("created_at, total_amount, status, metadata")
-        .eq("restaurant_id", selectedId)
-        .gte("created_at", `${fromDay}T00:00:00.000Z`),
-      supabase
-        .from("reservations")
-        .select("date, time, status, party_size, metadata")
-        .eq("restaurant_id", selectedId)
-        .gte("date", fromDay),
-    ]);
-
-    const orderRows = (ordersRes.data || []) as OrderLite[];
-    const reservationRows = (reservationsRes.data || []) as ReservationLite[];
-    setOrders(orderRows);
-    setReservations(reservationRows);
-
-    const kpiRows = (kpiRes.data || []) as KpiRow[];
-    if (kpiRows.length > 0) {
-      setKpis(kpiRows);
-      setError(kpiRes.error?.message || ordersRes.error?.message || reservationsRes.error?.message || null);
-      setLoading(false);
-      return;
-    }
-
-    const fallbackRows = buildFallbackKpis(orderRows, reservationRows);
-    const fallbackError = ordersRes.error?.message || reservationsRes.error?.message || null;
-    setKpis(fallbackRows);
-    setError(fallbackRows.length > 0 && !fallbackError ? null : fallbackError || kpiRes.error?.message || null);
-    setLoading(false);
-  };
-
-  const refreshSelectedRestaurantKpis = async () => {
-    if (!selectedId) return;
-    setLoading(true);
-    setError(null);
-
-    try {
-      for (let offset = Number(period) - 1; offset >= 0; offset -= 1) {
-        const date = new Date();
-        date.setDate(date.getDate() - offset);
-        await supabase.rpc("refresh_restaurant_daily_kpis_for_date", {
-          p_restaurant_id: selectedId,
-          p_day: date.toISOString().slice(0, 10),
-        });
-      }
-      await load();
-    } catch (refreshError) {
-      setLoading(false);
-      setError(refreshError instanceof Error ? refreshError.message : "Impossible de recalculer les KPIs.");
-    }
-  };
-
-  useEffect(() => {
-    if (selectedId) load();
-    else {
-      setKpis([]);
-      setOrders([]);
-      setReservations([]);
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, period]);
-
-  const totalOrders = kpis.reduce((sum, kpi) => sum + Number(kpi.orders_count || 0), 0);
-  const totalRevenue = kpis.reduce((sum, kpi) => sum + Number(kpi.revenue || 0), 0);
-  const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-  const totalReservations = kpis.reduce((sum, kpi) => sum + Number(kpi.reservations_count || 0), 0);
-  const avgCancel =
-    kpis.length > 0 ? kpis.reduce((sum, kpi) => sum + Number(kpi.cancel_rate || 0), 0) / kpis.length : 0;
-  const satisfactionValues = kpis
-    .map((kpi) => Number(kpi.satisfaction_score))
-    .filter((value) => Number.isFinite(value) && value > 0);
-  const avgSatisfaction =
-    satisfactionValues.length > 0 ? satisfactionValues.reduce((sum, value) => sum + value, 0) / satisfactionValues.length : 0;
-
-  const validOrders = orders.filter((order) => !INVALID_ORDER_STATUSES.has(String(order.status || "").toLowerCase()));
-  const validReservations = reservations.filter(
-    (reservation) => !INVALID_RESERVATION_STATUSES.has(String(reservation.status || "").toLowerCase()),
-  );
-  const reservationServiceBreakdown = validReservations.reduce(
-    (acc, reservation) => {
-      const periodKey = getServicePeriodFromMetadata(reservation.metadata, reservation.time || null);
-      acc[periodKey].count += 1;
-      acc[periodKey].covers += Number(reservation.party_size || 0);
-      return acc;
-    },
-    {
-      lunch: { count: 0, covers: 0 },
-      dinner: { count: 0, covers: 0 },
-    },
-  );
-
-  const invalidOrders = orders.length - validOrders.length;
-  let formulaDiscount = 0;
-  let promoDiscount = 0;
-  let loyaltyDiscount = 0;
-  let flexDiscount = 0;
-
-  for (const order of validOrders) {
-    const metadata = isRecord(order.metadata) ? order.metadata : {};
-    const formulaValue = toNumber(metadata.formula_discount_amount);
-    formulaDiscount += formulaValue || toNumber(metadata.formula_discount);
-    promoDiscount += toNumber(metadata.promotion_discount_amount) || toNumber(metadata.promo_discount_amount);
-    loyaltyDiscount += toNumber(metadata.points_discount);
-    flexDiscount += toNumber(metadata.flex_discount);
-  }
-
-  const totalDiscounts = formulaDiscount + promoDiscount + loyaltyDiscount + flexDiscount;
-  const netRevenue = validOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
-  const grossRevenue = netRevenue + totalDiscounts;
-  const accountingAvgTicket = validOrders.length > 0 ? netRevenue / validOrders.length : 0;
-  const accountingCancelRate = orders.length > 0 ? Math.round((invalidOrders / orders.length) * 100) : 0;
-
-  const chartData = kpis.map((kpi) => ({
-    date: new Date(kpi.kpi_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
-    Commandes: Number(kpi.orders_count || 0),
-    "CA (CHF)": Number(kpi.revenue || 0),
-    "Panier moyen": Number(kpi.avg_ticket || 0),
+  const summary = performanceData?.summary || EMPTY_SUMMARY;
+  const chartData = summary.dailyRows.map((row) => ({
+    date: formatDayLabel(row.kpi_date),
+    Commandes: row.orders_count,
+    "CA (CHF)": row.revenue,
+    "Panier moyen": row.avg_ticket,
   }));
 
-  const isBusy = loadingRestaurants || loading || loadingInvoices;
-  const combinedError = restaurantError || error || invoicesError?.message || null;
+  const isBusy = loadingRestaurants || loadingPerformance || loadingInvoices;
+  const combinedError = restaurantError || getErrorMessage(performanceError) || getErrorMessage(invoicesError) || null;
 
   return (
     <DashboardLayout>
@@ -298,7 +175,7 @@ export default function DashboardPerformances() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{selectedRestaurant?.name || "Aucun restaurant selectionne"}</Badge>
               <span className="text-sm text-muted-foreground">
-                Toutes les donnees affichees sont filtrees sur le restaurant selectionne.
+                Donnees filtrees sur le restaurant selectionne du {formatDayLabel(fromDay)} au {formatDayLabel(toDay)}.
               </span>
             </div>
           </div>
@@ -332,7 +209,9 @@ export default function DashboardPerformances() {
                     Commandes
                   </CardTitle>
                 </CardHeader>
-                <CardContent><p className="text-2xl font-bold">{totalOrders}</p></CardContent>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.totalOrders}</p>
+                </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
@@ -341,7 +220,9 @@ export default function DashboardPerformances() {
                     CA
                   </CardTitle>
                 </CardHeader>
-                <CardContent><p className="text-2xl font-bold">{totalRevenue.toFixed(0)} CHF</p></CardContent>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.totalRevenue.toFixed(0)} CHF</p>
+                </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
@@ -350,7 +231,9 @@ export default function DashboardPerformances() {
                     Panier moyen
                   </CardTitle>
                 </CardHeader>
-                <CardContent><p className="text-2xl font-bold">{avgTicket.toFixed(1)} CHF</p></CardContent>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.avgTicket.toFixed(1)} CHF</p>
+                </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
@@ -359,7 +242,9 @@ export default function DashboardPerformances() {
                     Reservations
                   </CardTitle>
                 </CardHeader>
-                <CardContent><p className="text-2xl font-bold">{totalReservations}</p></CardContent>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.totalReservations}</p>
+                </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
@@ -368,7 +253,9 @@ export default function DashboardPerformances() {
                     Annulation
                   </CardTitle>
                 </CardHeader>
-                <CardContent><p className="text-2xl font-bold">{avgCancel.toFixed(1)}%</p></CardContent>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.cancelRate.toFixed(1)}%</p>
+                </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
@@ -377,7 +264,11 @@ export default function DashboardPerformances() {
                     Satisfaction
                   </CardTitle>
                 </CardHeader>
-                <CardContent><p className="text-2xl font-bold">{avgSatisfaction > 0 ? `${avgSatisfaction.toFixed(1)}/5` : "N/A"}</p></CardContent>
+                <CardContent>
+                  <p className="text-2xl font-bold">
+                    {summary.avgSatisfaction > 0 ? `${summary.avgSatisfaction.toFixed(1)}/5` : "N/A"}
+                  </p>
+                </CardContent>
               </Card>
             </div>
 
@@ -389,43 +280,69 @@ export default function DashboardPerformances() {
                     CA net
                   </CardTitle>
                 </CardHeader>
-                <CardContent><p className="text-2xl font-bold text-primary">{netRevenue.toFixed(2)} CHF</p></CardContent>
+                <CardContent>
+                  <p className="text-2xl font-bold text-primary">{summary.totalRevenue.toFixed(2)} CHF</p>
+                </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">CA brut estime</CardTitle></CardHeader>
-                <CardContent><p className="text-2xl font-bold">{grossRevenue.toFixed(2)} CHF</p></CardContent>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">CA brut estime</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.grossRevenue.toFixed(2)} CHF</p>
+                </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Commandes valides</CardTitle></CardHeader>
-                <CardContent><p className="text-2xl font-bold">{validOrders.length}</p></CardContent>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">Commandes valides</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.validOrdersCount}</p>
+                </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Panier comptable</CardTitle></CardHeader>
-                <CardContent><p className="text-2xl font-bold">{accountingAvgTicket.toFixed(2)} CHF</p></CardContent>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">Panier comptable</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.accountingAvgTicket.toFixed(2)} CHF</p>
+                </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Annulation commandes</CardTitle></CardHeader>
-                <CardContent><p className="text-2xl font-bold">{accountingCancelRate}%</p></CardContent>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">Annulation commandes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{summary.cancelRate.toFixed(1)}%</p>
+                </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Reservations midi</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">Reservations midi</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-2xl font-bold">{reservationServiceBreakdown.lunch.count}</p>
-                      <p className="text-xs text-muted-foreground">{reservationServiceBreakdown.lunch.covers} couverts</p>
+                      <p className="text-2xl font-bold">{summary.reservationServiceBreakdown.lunch.count}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {summary.reservationServiceBreakdown.lunch.covers} couverts
+                      </p>
                     </div>
                     <SunMedium className="h-5 w-5 text-amber-500" />
                   </div>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Reservations soir</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">Reservations soir</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-2xl font-bold">{reservationServiceBreakdown.dinner.count}</p>
-                      <p className="text-xs text-muted-foreground">{reservationServiceBreakdown.dinner.covers} couverts</p>
+                      <p className="text-2xl font-bold">{summary.reservationServiceBreakdown.dinner.count}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {summary.reservationServiceBreakdown.dinner.covers} couverts
+                      </p>
                     </div>
                     <MoonStar className="h-5 w-5 text-sky-500" />
                   </div>
@@ -436,10 +353,12 @@ export default function DashboardPerformances() {
             {isBusy ? <p>Chargement...</p> : null}
             {combinedError ? <p className="text-destructive">Erreur : {combinedError}</p> : null}
 
-            {!loading && chartData.length > 0 ? (
+            {!loadingPerformance && summary.hasActivity ? (
               <div className="grid gap-4 xl:grid-cols-2">
                 <Card>
-                  <CardHeader><CardTitle>Chiffre d'affaires</CardTitle></CardHeader>
+                  <CardHeader>
+                    <CardTitle>Chiffre d'affaires</CardTitle>
+                  </CardHeader>
                   <CardContent className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData}>
@@ -454,7 +373,9 @@ export default function DashboardPerformances() {
                 </Card>
 
                 <Card>
-                  <CardHeader><CardTitle>Commandes / jour</CardTitle></CardHeader>
+                  <CardHeader>
+                    <CardTitle>Commandes / jour</CardTitle>
+                  </CardHeader>
                   <CardContent className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData}>
@@ -479,13 +400,25 @@ export default function DashboardPerformances() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span>Formules</span><span>-{formulaDiscount.toFixed(2)} CHF</span></div>
-                  <div className="flex justify-between"><span>Promotions</span><span>-{promoDiscount.toFixed(2)} CHF</span></div>
-                  <div className="flex justify-between"><span>Fidelite</span><span>-{loyaltyDiscount.toFixed(2)} CHF</span></div>
-                  <div className="flex justify-between"><span>Flex</span><span>-{flexDiscount.toFixed(2)} CHF</span></div>
+                  <div className="flex justify-between">
+                    <span>Formules</span>
+                    <span>-{summary.discounts.formula.toFixed(2)} CHF</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Promotions</span>
+                    <span>-{summary.discounts.promo.toFixed(2)} CHF</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Fidelite</span>
+                    <span>-{summary.discounts.loyalty.toFixed(2)} CHF</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Flex</span>
+                    <span>-{summary.discounts.flex.toFixed(2)} CHF</span>
+                  </div>
                   <div className="flex justify-between border-t pt-2 font-semibold">
                     <span>Total remises</span>
-                    <span>-{totalDiscounts.toFixed(2)} CHF</span>
+                    <span>-{summary.discounts.total.toFixed(2)} CHF</span>
                   </div>
                 </CardContent>
               </Card>
@@ -498,9 +431,9 @@ export default function DashboardPerformances() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm text-muted-foreground">
-                  <p>Le CA net correspond aux commandes validees du restaurant selectionne.</p>
-                  <p>Le CA brut estime ajoute les remises retrouvees dans les metadonnees de commande.</p>
-                  <p>Les reservations sont maintenant ventilees entre service du midi et service du soir.</p>
+                  <p>Le CA net exclut les commandes annulees, refusees et en echec de paiement.</p>
+                  <p>Le CA brut estime reconstitue les remises retrouvees dans les metadonnees de commande.</p>
+                  <p>Les reservations du dashboard sont bornees a la periode selectionnee, sans inclure le futur.</p>
                 </CardContent>
               </Card>
             </div>
@@ -511,18 +444,25 @@ export default function DashboardPerformances() {
                 Factures recentes
               </h2>
               {loadingInvoices ? (
-                <Card><CardContent className="py-8 text-center text-muted-foreground">Chargement...</CardContent></Card>
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">Chargement...</CardContent>
+                </Card>
               ) : !invoices.length ? (
-                <Card><CardContent className="py-8 text-center text-muted-foreground">Aucune facture disponible</CardContent></Card>
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">Aucune facture disponible</CardContent>
+                </Card>
               ) : (
                 <div className="space-y-3">
-                  {invoices.map((invoice: any) => (
+                  {invoices.map((invoice: RestaurantInvoiceRow) => (
                     <Card key={invoice.id}>
                       <CardContent className="flex items-center justify-between gap-3 py-4">
                         <div>
-                          <p className="text-sm font-semibold">{invoice.period_start} {"->"} {invoice.period_end}</p>
+                          <p className="text-sm font-semibold">
+                            {invoice.period_start} {"->"} {invoice.period_end}
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            HT: {Number(invoice.amount_ht).toFixed(2)} | TVA: {Number(invoice.amount_tva).toFixed(2)} | TTC: {Number(invoice.amount_ttc).toFixed(2)} CHF
+                            HT: {Number(invoice.amount_ht).toFixed(2)} | TVA: {Number(invoice.amount_tva).toFixed(2)} |
+                            TTC: {Number(invoice.amount_ttc).toFixed(2)} CHF
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -545,14 +485,11 @@ export default function DashboardPerformances() {
               )}
             </div>
 
-            {!loading && !combinedError && chartData.length === 0 ? (
+            {!loadingPerformance && !combinedError && !summary.hasActivity ? (
               <Card>
                 <CardContent className="pt-6 text-center text-muted-foreground">
                   <TrendingUp className="mx-auto mb-2 h-10 w-10 opacity-40" />
                   <p>Aucune donnee de performance sur cette periode.</p>
-                  <Button variant="outline" className="mt-3" onClick={refreshSelectedRestaurantKpis}>
-                    Recalculer les KPIs
-                  </Button>
                 </CardContent>
               </Card>
             ) : null}

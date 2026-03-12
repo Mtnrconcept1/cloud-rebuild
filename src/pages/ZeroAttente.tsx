@@ -16,6 +16,7 @@ import ReservationDetailModal from "@/components/ReservationDetailModal";
 import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
 import { formatMissingCoursesText, roundCurrency } from "@/lib/meal-formulas";
+import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { trackSponsoredConversion } from "@/lib/analytics";
 
 type Step = "info" | "restaurant" | "menu" | "payment" | "confirm";
@@ -164,6 +165,8 @@ export default function ZeroAttente() {
         price: pi.unit_price,
         quantity: pi.quantity,
         restaurant_name: selectedRestaurant.name,
+        menu_item_id: pi.menu_item_id,
+        metadata: {},
       }));
 
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
@@ -256,6 +259,11 @@ export default function ZeroAttente() {
         entityId: data || null,
         paymentMethod,
       });
+      try {
+        await dispatchQueuedNotifications("zero-attente-reservation");
+      } catch (dispatchError) {
+        console.error("Zero-attente notification dispatch failed:", dispatchError);
+      }
       setConfirmedPricing(pricing);
       setReservationId(data);
       setStep("confirm");
@@ -340,6 +348,11 @@ export default function ZeroAttente() {
               entityId: resData || null,
               paymentMethod: data.paymentMethod,
             });
+            try {
+              await dispatchQueuedNotifications("zero-attente-reservation");
+            } catch (dispatchError) {
+              console.error("Zero-attente notification dispatch failed:", dispatchError);
+            }
             setConfirmedPricing(restoredPricing);
             setReservationId(resData);
             setStep("confirm");

@@ -36,6 +36,7 @@ let currentUserId: string | null = null;
 const SPONSORED_ATTRIBUTION_KEY = "miamz-sponsored-attribution-v1";
 const SPONSORED_ATTRIBUTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const SPONSORED_ROTATION_KEY = "miamz-sponsored-rotation-v1";
+const ANALYTICS_VIEWER_KEY = "miamz-analytics-viewer-v1";
 const SPONSORED_AUDIENCE_CACHE_MS = 5 * 60 * 1000;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -50,6 +51,11 @@ interface SponsoredAttribution {
 }
 
 type SponsoredAttributionMap = Record<string, SponsoredAttribution>;
+type SponsoredTrackResult = {
+  recorded: boolean;
+  deduped: boolean;
+  ignored?: boolean;
+};
 
 let sponsoredAudienceSnapshotCache:
   | { userId: string; fetchedAt: number; snapshot: AudienceSnapshot }
@@ -74,6 +80,27 @@ function writeSponsoredAttributions(attributions: SponsoredAttributionMap) {
   } catch {
     // Silent fail
   }
+}
+
+function getOrCreateAnalyticsViewerId() {
+  if (typeof window === "undefined") return "server-render";
+
+  try {
+    const existing = window.localStorage.getItem(ANALYTICS_VIEWER_KEY);
+    if (existing) return existing;
+
+    const created = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(ANALYTICS_VIEWER_KEY, created);
+    return created;
+  } catch {
+    return "ephemeral-viewer";
+  }
+}
+
+function getTrackingPage() {
+  if (typeof window === "undefined") return "server";
+  const pathname = window.location.pathname || "/";
+  return pathname.replace(/^\/+/, "") || "home";
 }
 
 function rememberSponsoredAttribution(campaignId: string, restaurantId: string) {
@@ -424,43 +451,88 @@ export async function trackClick(
   }
 }
 
-export async function trackSponsoredImpression(campaignId: string, restaurantId?: string) {
+async function trackSponsoredEvent(input: {
+  eventType: "impression" | "click" | "conversion";
+  campaignId: string;
+  restaurantId: string;
+  source: string;
+  conversionType?: SponsoredConversionType;
+  entityId?: string | null;
+  paymentMethod?: string | null;
+}): Promise<SponsoredTrackResult> {
   try {
-    // 1. Increment the legacy metric via RPC
-    await supabase.rpc("increment_ad_campaign_metric", {
-      p_campaign_id: campaignId,
-      p_metric: "impressions",
+    const viewerId = getOrCreateAnalyticsViewerId();
+    const { data, error } = await supabase.functions.invoke("track-sponsored-event", {
+      body: {
+        eventType: input.eventType,
+        campaignId: input.campaignId,
+        restaurantId: input.restaurantId,
+        viewerId,
+        source: input.source,
+        page: getTrackingPage(),
+        conversionType: input.conversionType || null,
+        entityId: input.entityId || null,
+        paymentMethod: input.paymentMethod || null,
+      },
     });
 
-    // 2. Log in the new impressions table
-    await trackImpression("ad", campaignId, "sponsored_banner");
-
-    // 3. Log the restaurant impression if available
-    if (restaurantId) {
-      await trackImpression("restaurant", restaurantId, "sponsored_banner");
+    if (error) {
+      console.warn("[analytics] sponsored tracking error:", error.message);
+      return { recorded: false, deduped: false };
     }
-  } catch {
-    // Silently fail
+
+    return {
+      recorded: Boolean(data?.recorded),
+      deduped: Boolean(data?.deduped),
+      ignored: Boolean(data?.ignored),
+    };
+  } catch (error) {
+    console.warn("[analytics] sponsored tracking failed:", error);
+    return { recorded: false, deduped: false };
   }
 }
 
-export async function trackSponsoredClick(campaignId: string, restaurantId: string) {
+export async function trackSponsoredImpression(
+  campaignId: string,
+  restaurantId?: string,
+  source = "sponsored_impression"
+) {
+  if (!restaurantId) return false;
+
+  try {
+    const result = await trackSponsoredEvent({
+      eventType: "impression",
+      campaignId,
+      restaurantId,
+      source,
+    });
+
+    void trackImpression("restaurant", restaurantId, source);
+    return result.recorded || result.deduped || result.ignored || false;
+  } catch {
+    return false;
+  }
+}
+
+export async function trackSponsoredClick(
+  campaignId: string,
+  restaurantId: string,
+  source = "sponsored_click"
+) {
   rememberSponsoredAttribution(campaignId, restaurantId);
 
   try {
-    // 1. Increment the legacy metric via RPC
-    await supabase.rpc("increment_ad_campaign_metric", {
-      p_campaign_id: campaignId,
-      p_metric: "clicks",
+    const result = await trackSponsoredEvent({
+      eventType: "click",
+      campaignId,
+      restaurantId,
+      source,
     });
 
-    // 2. Log in the new clicks table
-    await trackClick("ad", campaignId);
-
-    // 3. Log the restaurant click
-    await trackClick("restaurant", restaurantId);
+    void trackClick("restaurant", restaurantId);
+    return result.recorded || result.deduped || result.ignored || false;
   } catch {
-    // Silently fail
+    return false;
   }
 }
 
@@ -491,34 +563,23 @@ export async function trackSponsoredConversion(
   const campaignId = getValidSponsoredCampaignId(restaurantId);
   if (!campaignId) return false;
 
-  try {
-    const { error } = await supabase.rpc("increment_ad_campaign_metric" as any, {
-      p_campaign_id: campaignId,
-      p_metric: "conversions",
-    });
-    if (error) {
-      console.warn("[analytics] conversion error:", error.message);
-      return false;
-    }
-  } catch {
+  const result = await trackSponsoredEvent({
+    eventType: "conversion",
+    campaignId,
+    restaurantId,
+    source: "sponsored_conversion",
+    conversionType: options?.conversionType || "order",
+    entityId: options?.entityId || null,
+    paymentMethod: options?.paymentMethod || null,
+  });
+
+  if (!result.recorded && !result.deduped && !result.ignored) {
     return false;
   }
 
   const attributions = readSponsoredAttributions();
   delete attributions[restaurantId];
   writeSponsoredAttributions(attributions);
-
-  // Keep a typed conversion trail for campaign analysis and debugging.
-  await trackEvent({
-    eventType: "sponsored_conversion",
-    restaurantId,
-    eventData: {
-      campaign_id: campaignId,
-      conversion_type: options?.conversionType || "order",
-      entity_id: options?.entityId || null,
-      payment_method: options?.paymentMethod || null,
-    },
-  });
 
   return true;
 }
@@ -531,28 +592,19 @@ export async function getAudienceEstimate(
 ): Promise<number> {
   try {
     const normalized = normalizeAudienceCriteria(criteria);
-    let query = supabase.from("profiles" as any).select("user_id", { count: "exact", head: true });
+    if (!normalized.restaurantId) return 0;
 
-    if (normalized.cities.length > 0) {
-      query = query.in("city", normalized.cities);
+    const { data, error } = await (supabase.rpc as any)("estimate_campaign_audience", {
+      p_restaurant_id: normalized.restaurantId,
+      p_criteria: normalized,
+    });
+
+    if (error) {
+      console.warn("[analytics] audience estimate error:", error.message);
+      return 0;
     }
 
-    const { count } = await query;
-    let estimate = count || 0;
-
-    if (normalized.customerSegment === "new") estimate = Math.floor(estimate * 0.45);
-    if (normalized.customerSegment === "returning") estimate = Math.floor(estimate * 0.7);
-    if (normalized.customerSegment === "loyal") estimate = Math.floor(estimate * 0.25);
-    if (normalized.customerSegment === "inactive") estimate = Math.floor(estimate * 0.2);
-    if (normalized.minOrders > 0) estimate = Math.floor(estimate * (normalized.minOrders >= 5 ? 0.35 : 0.6));
-    if (normalized.minAvgBasket > 20) estimate = Math.floor(estimate * (normalized.minAvgBasket >= 50 ? 0.3 : 0.55));
-    if (normalized.cuisines.length > 0) estimate = Math.floor(estimate * Math.max(0.2, 0.65 - (normalized.cuisines.length - 1) * 0.08));
-    if (normalized.favoritesOnly) estimate = Math.floor(estimate * 0.15);
-    if (normalized.maxDaysSinceOrder < 90) estimate = Math.floor(estimate * (normalized.maxDaysSinceOrder <= 30 ? 0.45 : 0.7));
-    if (normalized.journeyTypes.length > 0) estimate = Math.floor(estimate * Math.max(0.25, 0.75 - (normalized.journeyTypes.length - 1) * 0.1));
-    if (normalized.serviceMoments.length > 0) estimate = Math.floor(estimate * Math.max(0.4, 0.8 - (normalized.serviceMoments.length - 1) * 0.15));
-
-    return Math.max(estimate, 0);
+    return Math.max(Number(data) || 0, 0);
   } catch {
     return 0;
   }

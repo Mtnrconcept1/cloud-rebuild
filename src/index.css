@@ -42,38 +42,38 @@
   }
 
   .dark {
-    --background: 220 20% 6%;
-    --foreground: 0 0% 95%;
-    --card: 220 20% 9%;
-    --card-foreground: 0 0% 95%;
-    --popover: 220 20% 9%;
-    --popover-foreground: 0 0% 95%;
+    --background: 222 24% 8%;
+    --foreground: 210 22% 96%;
+    --card: 222 20% 12%;
+    --card-foreground: 210 22% 96%;
+    --popover: 222 20% 11%;
+    --popover-foreground: 210 22% 96%;
     --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 14% 14%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 220 14% 14%;
-    --muted-foreground: 220 10% 55%;
-    --accent: 152 55% 40%;
+    --secondary: 221 18% 17%;
+    --secondary-foreground: 210 22% 94%;
+    --muted: 221 18% 15%;
+    --muted-foreground: 215 15% 71%;
+    --accent: 152 48% 42%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 220 14% 16%;
-    --input: 220 14% 16%;
+    --destructive: 0 68% 38%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 16% 24%;
+    --input: 220 16% 20%;
     --ring: 24 95% 53%;
-    --sidebar-background: 220 20% 8%;
-    --sidebar-foreground: 0 0% 90%;
+    --sidebar-background: 223 23% 10%;
+    --sidebar-foreground: 210 18% 94%;
     --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 14%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 220 14% 16%;
+    --sidebar-accent: 222 18% 16%;
+    --sidebar-accent-foreground: 210 18% 94%;
+    --sidebar-border: 220 16% 23%;
     --sidebar-ring: 24 95% 53%;
     --miamz-green: 152 55% 40%;
     --miamz-green-foreground: 0 0% 100%;
     --miamz-orange: 24 95% 53%;
-    --miamz-orange-light: 220 20% 12%;
-    --miamz-warm: 220 20% 8%;
+    --miamz-orange-light: 222 20% 15%;
+    --miamz-warm: 223 20% 11%;
   }
 }
 
@@ -84,23 +84,37 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+  .dark body {
+    background-image:
+      radial-gradient(circle at top, rgba(249, 115, 22, 0.10), transparent 28%),
+      radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.08), transparent 22%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0));
+    background-attachment: fixed;
+  }
+  ::selection {
+    background: hsla(var(--primary), 0.22);
+    color: hsl(var(--foreground));
+  }
 }
 
 @layer utilities {
   .glass-morphism {
-    @apply bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10;
+    @apply bg-white/70 dark:bg-slate-950/65 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.32)];
   }
   .glass-morphism-dark {
-    @apply bg-black/40 backdrop-blur-lg border border-white/10;
+    @apply bg-slate-950/65 backdrop-blur-lg border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.35)];
   }
   .premium-gradient {
     @apply bg-gradient-to-br from-primary via-primary/90 to-orange-600;
   }
   .premium-card {
-    @apply relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1;
+    @apply relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 dark:shadow-[0_12px_30px_rgba(0,0,0,0.28)] dark:hover:shadow-[0_18px_42px_rgba(249,115,22,0.16)];
   }
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-orange-600;
+  }
+  .dark-surface {
+    @apply dark:bg-card/92 dark:border-white/10 dark:shadow-[0_14px_34px_rgba(0,0,0,0.34)];
   }
   .animate-float {
     animation: float 3s ease-in-out infinite;

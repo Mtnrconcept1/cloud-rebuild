@@ -3,10 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, MapPin, CreditCard, Banknote, Receipt, Percent, Truck, Sparkles, Gift } from "lucide-react";
+import { ShoppingCart, MapPin, CreditCard, Banknote, Percent, Truck, Sparkles, Gift, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
-import { Package } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
@@ -19,8 +18,8 @@ function PaymentBreakdown({ order }: { order: any }) {
   const meta = (order.metadata || {}) as any;
   const subtotal = Number(meta.pre_discount_subtotal || 0);
   const formulaDiscount = Number(meta.formula_discount_amount || 0);
-  const flexDiscount = Number(meta.flex_discount || 0);
-  const pointsDiscount = Number(meta.points_discount || 0);
+  const flexDiscount = Number(meta.flex_discount || meta.flex_discount_amount || 0);
+  const pointsDiscount = Number(meta.points_discount || meta.points_discount_amount || 0);
   const deliveryFee = Number(order.delivery_fee || 0);
   const qualityFee = Number(meta.quality_fee_amount || 0);
   const total = Number(order.total_amount);
@@ -35,42 +34,42 @@ function PaymentBreakdown({ order }: { order: any }) {
   const PmIcon = pm.icon;
 
   return (
-    <div className="mt-3 pt-3 border-t border-dashed space-y-1.5 text-xs">
+    <div className="mt-3 space-y-1.5 border-t border-dashed pt-3 text-xs">
       <div className="flex justify-between text-muted-foreground">
         <span>Sous-total</span>
         <span>{subtotal.toFixed(2)} CHF</span>
       </div>
-      {formulaDiscount > 0 && (
+      {formulaDiscount > 0 ? (
         <div className="flex justify-between text-emerald-600">
           <span className="flex items-center gap-1"><Percent className="h-3 w-3" />{formulaName || "Formule"}</span>
           <span>-{formulaDiscount.toFixed(2)} CHF</span>
         </div>
-      )}
-      {flexDiscount > 0 && (
+      ) : null}
+      {flexDiscount > 0 ? (
         <div className="flex justify-between text-emerald-600">
           <span className="flex items-center gap-1"><Sparkles className="h-3 w-3" />Remise Flex</span>
           <span>-{flexDiscount.toFixed(2)} CHF</span>
         </div>
-      )}
-      {pointsDiscount > 0 && (
+      ) : null}
+      {pointsDiscount > 0 ? (
         <div className="flex justify-between text-emerald-600">
           <span className="flex items-center gap-1"><Gift className="h-3 w-3" />Points fidélité</span>
           <span>-{pointsDiscount.toFixed(2)} CHF</span>
         </div>
-      )}
-      {deliveryFee > 0 && (
+      ) : null}
+      {deliveryFee > 0 ? (
         <div className="flex justify-between text-muted-foreground">
           <span className="flex items-center gap-1"><Truck className="h-3 w-3" />Livraison{flexOption ? ` (${flexOption})` : ""}</span>
           <span>+{deliveryFee.toFixed(2)} CHF</span>
         </div>
-      )}
-      {qualityFee > 0 && (
+      ) : null}
+      {qualityFee > 0 ? (
         <div className="flex justify-between text-muted-foreground">
           <span>Garantie qualité</span>
           <span>+{qualityFee.toFixed(2)} CHF</span>
         </div>
-      )}
-      <div className="flex justify-between font-bold text-foreground pt-1">
+      ) : null}
+      <div className="flex justify-between pt-1 font-bold text-foreground">
         <span>Total</span>
         <span>{total.toFixed(2)} CHF</span>
       </div>
@@ -82,16 +81,43 @@ function PaymentBreakdown({ order }: { order: any }) {
   );
 }
 
+function getDisplayStatus(order: any) {
+  const dispatchStatus = String(order.dispatch_job?.status || "");
+  const trackingStatus = String(order.delivery_tracking?.status || "");
+
+  if (dispatchStatus === "arriving_dropoff" || trackingStatus === "in_transit") return "delivering";
+  if (dispatchStatus === "picked_up" || trackingStatus === "picked_up") return "picked_up";
+  return normalizeOrderStatus(order.status);
+}
+
 export default function Commandes() {
   const { user } = useAuth();
-  const { data: ordersData, isLoading } = useQuery({
+  const { data: ordersData, isLoading, error } = useQuery({
     queryKey: ["my-orders", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*, restaurants(name), order_items(*, menu_items(name))").eq("user_id", user!.id).order("created_at", { ascending: false });
-      return data || [];
-    },
     enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_customer_orders_dashboard" as any);
+      if (error) throw error;
+
+      return ((data || []) as any[]).map((order) => ({
+        ...order,
+        metadata: order.metadata && typeof order.metadata === "object" && !Array.isArray(order.metadata)
+          ? order.metadata
+          : {},
+        restaurant: order.restaurant && typeof order.restaurant === "object" && !Array.isArray(order.restaurant)
+          ? order.restaurant
+          : null,
+        order_items: Array.isArray(order.order_items) ? order.order_items : [],
+        delivery_tracking: order.delivery_tracking && typeof order.delivery_tracking === "object" && !Array.isArray(order.delivery_tracking)
+          ? order.delivery_tracking
+          : null,
+        dispatch_job: order.dispatch_job && typeof order.dispatch_job === "object" && !Array.isArray(order.dispatch_job)
+          ? order.dispatch_job
+          : null,
+      }));
+    },
   });
+
   const orders = (ordersData || []).filter((order) => (order.metadata as any)?.feature !== "zero-attente");
 
   return (
@@ -99,65 +125,89 @@ export default function Commandes() {
       <div className="space-y-6">
         <h1 className="font-display text-3xl font-bold">Mes commandes</h1>
         {isLoading ? (
-          <div className="space-y-4">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />)}</div>
-        ) : orders && orders.length > 0 ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />)}
+          </div>
+        ) : error ? (
+          <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+            Erreur lors du chargement des commandes : {(error as Error).message}
+          </div>
+        ) : orders.length > 0 ? (
           <div className="space-y-6">
             {Object.entries(
               orders.reduce((acc, order) => {
-                const groupKey = order.checkout_id || order.id;
+                const groupKey = (order.metadata as any)?.checkout_group_id || order.checkout_id || order.id;
                 if (!acc[groupKey]) acc[groupKey] = [];
                 acc[groupKey].push(order);
                 return acc;
-              }, {} as Record<string, any[]>)
+              }, {} as Record<string, any[]>),
             ).map(([groupKey, groupOrders]) => {
               const mainOrder = groupOrders[0];
               const totalAmount = groupOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+
               return (
-                <div key={groupKey} className="border rounded-2xl bg-card overflow-hidden shadow-sm">
-                  <div className="p-4 bg-muted/30 border-b flex items-center justify-between">
+                <div key={groupKey} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+                  <div className="flex items-center justify-between border-b bg-muted/30 p-4">
                     <div className="flex items-center gap-3">
-                      <div className="bg-primary/10 p-2 rounded-lg"><Package className="h-5 w-5 text-primary" /></div>
+                      <div className="rounded-lg bg-primary/10 p-2"><Package className="h-5 w-5 text-primary" /></div>
                       <div>
-                        <p className="font-bold text-sm">{mainOrder.order_number || `#${groupKey.slice(0, 8)}`}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(mainOrder.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</p>
+                        <p className="text-sm font-bold">{mainOrder.order_number || `#${String(groupKey).slice(0, 8)}`}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(mainOrder.created_at).toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "long",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-primary">{totalAmount.toFixed(2)} CHF</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{groupOrders.length} restaurant(s)</p>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{groupOrders.length} restaurant(s)</p>
                     </div>
                   </div>
-                  <div className="p-4 space-y-4">
-                    {groupOrders.map((order) => (
-                      <div key={order.id} className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-sm">{(order.restaurants as any)?.name}</h3>
-                          <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
+                  <div className="space-y-4 p-4">
+                    {groupOrders.map((order) => {
+                      const displayStatus = getDisplayStatus(order);
+                      const isTrackableDelivery = Boolean(
+                        order.delivery_address &&
+                        (order.metadata as any)?.feature !== "zero-attente" &&
+                        !(order.metadata as any)?.pickup_time,
+                      );
+
+                      return (
+                        <div key={order.id} className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold">{order.restaurant?.name || "Restaurant"}</h3>
+                            <OrderStatusBadge status={displayStatus} />
+                          </div>
+                          <div className="space-y-2 border-l-2 border-primary/10 pl-4">
+                            {(order.order_items as any[]).map((item) => (
+                              <div key={item.id} className="flex justify-between text-xs">
+                                <span>{item.quantity}x {item.name || "Article"}</span>
+                                <span className="text-muted-foreground">{Number(item.total_price).toFixed(2)} CHF</span>
+                              </div>
+                            ))}
+                          </div>
+                          <PaymentBreakdown order={order} />
+                          {(order.metadata as any)?.scheduled_delivery_label ? <p className="text-xs text-muted-foreground">Livraison planifiee : {(order.metadata as any).scheduled_delivery_label}</p> : null}
+                          {displayStatus !== "delivered" && displayStatus !== "cancelled" && isTrackableDelivery ? (
+                            <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
+                              <Link to={`/commande/${order.id}`}><MapPin className="mr-1 h-3 w-3" />Suivi temps réel</Link>
+                            </Button>
+                          ) : null}
                         </div>
-                        <div className="pl-4 border-l-2 border-primary/10 space-y-2">
-                          {(order.order_items as any[])?.map((item) => (
-                            <div key={item.id} className="flex justify-between text-xs">
-                              <span>{item.quantity}x {(item.menu_items as any)?.name || 'Article'}</span>
-                              <span className="text-muted-foreground">{Number(item.total_price).toFixed(2)} CHF</span>
-                            </div>
-                          ))}
-                        </div>
-                        <PaymentBreakdown order={order} />
-                        {normalizeOrderStatus(order.status) !== "delivered" && normalizeOrderStatus(order.status) !== "cancelled" && (order.delivery_address && (order.metadata as any)?.feature !== "zero-attente" && !(order.metadata as any)?.pickup_time) && (
-                          <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
-                            <Link to={`/commande/${order.id}`}><MapPin className="h-3 w-3 mr-1" />Suivi temps réel</Link>
-                          </Button>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="text-center py-12 space-y-2">
-            <ShoppingCart className="h-10 w-10 mx-auto text-muted-foreground" />
+          <div className="space-y-2 py-12 text-center">
+            <ShoppingCart className="mx-auto h-10 w-10 text-muted-foreground" />
             <p className="text-muted-foreground">Aucune commande pour le moment</p>
           </div>
         )}
@@ -165,3 +215,5 @@ export default function Commandes() {
     </CustomerDashboardLayout>
   );
 }
+
+

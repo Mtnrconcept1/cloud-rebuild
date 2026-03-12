@@ -41,11 +41,11 @@ function CampaignBannerItem({ campaign }: { campaign: any }) {
   useEffect(() => {
     if (tracked.current) return;
     tracked.current = true;
-    trackSponsoredImpression(campaign.id, restaurant?.id);
+    trackSponsoredImpression(campaign.id, restaurant?.id, "campaign_banner");
   }, [campaign.id, restaurant?.id]);
 
   const handleClick = () => {
-    trackSponsoredClick(campaign.id, restaurant?.id || "");
+    trackSponsoredClick(campaign.id, restaurant?.id || "", "campaign_banner");
     if (restaurant?.id) {
       navigate(`/restaurant/${restaurant.id}`);
     }

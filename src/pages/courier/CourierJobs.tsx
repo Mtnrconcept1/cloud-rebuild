@@ -1,133 +1,420 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, Clock, Package } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bike, Clock3, ExternalLink, MapPin, Package, Route, Store, Timer } from "lucide-react";
 import { toast } from "sonner";
 
+import CourierMissionDialog from "@/components/courier/CourierMissionDialog";
+import DeliveryProofPanel from "@/components/courier/DeliveryProofPanel";
+import CourierDashboardLayout from "@/components/CourierDashboardLayout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCourierPresenceSync } from "@/hooks/useCourierPresenceSync";
+import { useCourierProfile } from "@/hooks/useCourierProfile";
+import {
+  COURIER_JOB_STATUS_META,
+  fetchCourierActiveJobs,
+  fetchCourierOffers,
+  fetchCourierRecentJobs,
+  formatCurrency,
+  getNextCourierJobAction,
+  getOfferTimeLeftSeconds,
+  respondToDispatchAttempt,
+  updateCourierJobStatus,
+  verifyCourierDelivery,
+} from "@/lib/courier";
+import {
+  buildCourierMissionFromJob,
+  buildCourierMissionFromOffer,
+  type CourierMissionPreview,
+} from "@/lib/courierMission";
+
+function formatCountdown(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function mapsLink(address: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
 export default function CourierJobs() {
-    const { user } = useAuth();
-    const [jobs, setJobs] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: profile, isLoading: profileLoading } = useCourierProfile();
+  const [clockTick, setClockTick] = useState(Date.now());
+  const [missionDialogOpen, setMissionDialogOpen] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<CourierMissionPreview | null>(null);
 
-    useEffect(() => {
-        if (user) {
-            fetchJobs();
-        }
-    }, [user]);
+  useEffect(() => {
+    const timer = window.setInterval(() => setClockTick(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
-    const fetchJobs = async () => {
-        setLoading(true);
-        // Fetch active or assigned jobs for this courier
-        const { data: courierRow } = await supabase
-            .from('couriers')
-            .select('id')
-            .eq('user_id', user?.id)
-            .maybeSingle();
+  const { data: offers = [], isLoading: offersLoading } = useQuery({
+    queryKey: ["courier-offers", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: () => fetchCourierOffers(profile!.id),
+    refetchInterval: 10000,
+  });
 
-        if (!courierRow) return setLoading(false);
+  const { data: activeJobs = [], isLoading: jobsLoading } = useQuery({
+    queryKey: ["courier-active-jobs", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: () => fetchCourierActiveJobs(profile!.id),
+    refetchInterval: 10000,
+  });
 
-        const { data, error } = await supabase
-            .from("dispatch_jobs")
-            .select(`
-        *,
-        orders (
-          id, pickup_address, delivery_address, restaurant_id, status,
-          restaurants ( name, address )
-        )
-      `)
-            .eq("courier_id", courierRow.id)
-            .in("status", ["assigned", "accepted", "arriving_pickup", "picked_up", "arriving_dropoff"])
-            .order("created_at", { ascending: false });
+  const { data: recentJobs = [] } = useQuery({
+    queryKey: ["courier-recent-jobs", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: () => fetchCourierRecentJobs(profile!.id),
+  });
 
-        if (error) {
-            console.error(error);
-            toast.error("Erreur lors de la récupération des missions.");
-        } else {
-            setJobs(data || []);
-        }
-        setLoading(false);
-    };
+  const activeJob = activeJobs[0] || null;
 
-    const updateJobStatus = async (jobId: string, orderId: string, newStatus: string, actionMsg: string) => {
-        const { error: jobError } = await supabase
-            .from("dispatch_jobs")
-            .update({ status: newStatus, updated_at: new Date().toISOString() })
-            .eq("id", jobId);
+  useCourierPresenceSync({
+    enabled: Boolean(profile?.is_online || activeJobs.length > 0),
+    isOnline: Boolean(profile?.is_online),
+    activeDispatchJobId: activeJob?.id || null,
+  });
 
-        if (jobError) return toast.error("Erreur lors de la mise à jour.");
+  const visibleOffers = useMemo(
+    () => offers.filter((offer: any) => getOfferTimeLeftSeconds(offer.offered_at, offer.timeout_seconds) > 0),
+    [clockTick, offers],
+  );
 
-        // Update order status contextually
-        let orderStatus = '';
-        if (newStatus === 'picked_up') orderStatus = 'picked_up';
-        if (newStatus === 'completed') orderStatus = 'delivered';
+  const refreshCourierQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["courier-offers"] });
+    queryClient.invalidateQueries({ queryKey: ["courier-active-jobs"] });
+    queryClient.invalidateQueries({ queryKey: ["courier-recent-jobs"] });
+    queryClient.invalidateQueries({ queryKey: ["courier-profile"] });
+    queryClient.invalidateQueries({ queryKey: ["courier-earnings"] });
+  };
 
-        if (orderStatus) {
-            await supabase.from("orders").update({ status: orderStatus }).eq("id", orderId);
-        }
+  const openMissionDetails = (mission: CourierMissionPreview | null) => {
+    if (!mission) return;
+    setSelectedMission(mission);
+    setMissionDialogOpen(true);
+  };
 
-        toast.success(actionMsg);
-        fetchJobs();
-    };
+  const respondMutation = useMutation({
+    mutationFn: async ({ attemptId, decision }: { attemptId: string; decision: "accept" | "decline" }) =>
+      respondToDispatchAttempt(attemptId, decision),
+    onSuccess: (_, variables) => {
+      toast.success(variables.decision === "accept" ? "Mission acceptee" : "Mission refusee");
+      refreshCourierQueries();
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Impossible de traiter la mission.");
+    },
+  });
 
-    if (loading) return <div className="p-8 text-center">Chargement des missions...</div>;
+  const statusMutation = useMutation({
+    mutationFn: async ({ dispatchJobId, status }: { dispatchJobId: string; status: string }) =>
+      updateCourierJobStatus(dispatchJobId, status),
+    onSuccess: (_, variables) => {
+      const meta = COURIER_JOB_STATUS_META[variables.status];
+      toast.success(meta?.label || "Mission mise a jour");
+      refreshCourierQueries();
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Impossible de mettre a jour la mission.");
+    },
+  });
 
+  const verifyMutation = useMutation({
+    mutationFn: async ({ dispatchJobId, proofCode, verificationMethod }: { dispatchJobId: string; proofCode: string; verificationMethod: "qr" | "manual_code" }) =>
+      verifyCourierDelivery(dispatchJobId, proofCode, verificationMethod),
+    onSuccess: () => {
+      toast.success("Livraison validee");
+      refreshCourierQueries();
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Impossible de verifier la preuve client.");
+    },
+  });
+
+  if (profileLoading || offersLoading || jobsLoading) {
     return (
-        <div className="container mx-auto p-4 space-y-6 max-w-lg mt-16">
-            <h1 className="text-2xl font-bold">Missions Actives</h1>
-            {jobs.length === 0 ? (
-                <p className="text-muted-foreground">Aucune mission en cours.</p>
-            ) : (
-                <div className="space-y-4">
-                    {jobs.map((job) => (
-                        <Card key={job.id}>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-lg flex items-center justify-between">
-                                    <span>Commande #{job.orders?.id?.split('-')[0]}</span>
-                                    <span className="text-sm px-2 py-1 bg-blue-100 text-blue-800 rounded-full">{job.status}</span>
-                                </CardTitle>
-                                <CardDescription className="flex items-center gap-1 mt-1">
-                                    <Clock className="w-4 h-4" /> Estimé: {job.estimated_distance_meters ? (job.estimated_distance_meters / 1000).toFixed(1) : '?'} km
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex items-start gap-2">
-                                    <Package className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="font-semibold text-sm">Retrait: {job.orders?.restaurants?.name}</p>
-                                        <p className="text-xs text-muted-foreground">{job.orders?.restaurants?.address}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                    <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="font-semibold text-sm">Livraison</p>
-                                        <p className="text-xs text-muted-foreground">{job.orders?.delivery_address}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="flex flex-col gap-2">
-                                {job.status === 'assigned' && (
-                                    <Button className="w-full" onClick={() => updateJobStatus(job.id, job.order_id, 'accepted', 'Mission acceptée')}>
-                                        Accepter la course
-                                    </Button>
-                                )}
-                                {job.status === 'accepted' && (
-                                    <Button className="w-full" variant="outline" onClick={() => updateJobStatus(job.id, job.order_id, 'picked_up', 'Commande récupérée')}>
-                                        J'ai récupéré la commande
-                                    </Button>
-                                )}
-                                {job.status === 'picked_up' && (
-                                    <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => updateJobStatus(job.id, job.order_id, 'completed', 'Commande livrée avec succès')}>
-                                        Confirmer la livraison
-                                    </Button>
-                                )}
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
-            )}
+      <CourierDashboardLayout>
+        <div className="space-y-4">
+          {[1, 2, 3].map((value) => (
+            <div key={value} className="h-28 animate-pulse rounded-2xl bg-muted" />
+          ))}
         </div>
+      </CourierDashboardLayout>
     );
+  }
+
+  return (
+    <CourierDashboardLayout>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h1 className="font-display text-3xl font-bold">Missions</h1>
+          <p className="text-sm text-muted-foreground">
+            Offres en attente, livraisons actives et historique recent.
+          </p>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+          <Card>
+            <CardHeader>
+              <CardTitle>Offres en attente</CardTitle>
+              <CardDescription>
+                {visibleOffers.length > 0
+                  ? `${visibleOffers.length} proposition(s) a repondre rapidement.`
+                  : "Aucune proposition active pour le moment."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {visibleOffers.length > 0 ? (
+                visibleOffers.map((offer: any) => {
+                  const secondsLeft = getOfferTimeLeftSeconds(offer.offered_at, offer.timeout_seconds);
+                  const order = offer.dispatch_jobs?.orders;
+                  const restaurant = order?.restaurants;
+                  const orderMeta = order?.metadata || {};
+
+                  return (
+                    <div key={offer.id} className="rounded-2xl border p-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <p className="font-semibold">{restaurant?.name || "Restaurant"}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Commande {order?.order_number || order?.id || offer.dispatch_job_id}
+                          </p>
+                        </div>
+                        <Badge className="bg-amber-100 text-amber-700">
+                          <Timer className="mr-1 h-3.5 w-3.5" />
+                          {formatCountdown(secondsLeft)}
+                        </Badge>
+                      </div>
+
+                      <div className="mt-4 grid gap-3">
+                        <div className="rounded-xl bg-muted/40 p-3 text-sm">
+                          <div className="mb-1 flex items-center gap-2 font-medium">
+                            <Store className="h-4 w-4 text-muted-foreground" />
+                            Retrait
+                          </div>
+                          <p className="text-muted-foreground">{restaurant?.address || "-"}</p>
+                        </div>
+                        <div className="rounded-xl bg-muted/40 p-3 text-sm">
+                          <div className="mb-1 flex items-center gap-2 font-medium">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            Livraison
+                          </div>
+                          <p className="text-muted-foreground">{order?.delivery_address || "-"}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock3 className="h-4 w-4" />
+                          {(offer.distance_to_pickup_meters || 0) > 0
+                            ? `${((offer.distance_to_pickup_meters || 0) / 1000).toFixed(1)} km`
+                            : "Distance inconnue"}
+                        </span>
+                        {orderMeta?.delivery_window_label ? (
+                          <span>Fenetre {String(orderMeta.delivery_window_label)}</span>
+                        ) : null}
+                        <span className="font-semibold text-foreground">
+                          {formatCurrency(Number(offer.estimated_earnings || 0))}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 flex gap-3">
+                        <Button
+                          className="flex-1"
+                          onClick={() => respondMutation.mutate({ attemptId: offer.id, decision: "accept" })}
+                          disabled={respondMutation.isPending}
+                        >
+                          Accepter
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => respondMutation.mutate({ attemptId: offer.id, decision: "decline" })}
+                          disabled={respondMutation.isPending}
+                        >
+                          Refuser
+                        </Button>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        className="mt-2 w-full"
+                        onClick={() => openMissionDetails(buildCourierMissionFromOffer(offer))}
+                      >
+                        <Route className="mr-2 h-4 w-4" />
+                        Voir le parcours
+                      </Button>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
+                  Aucune course disponible. Passez en ligne et gardez votre position active pour recevoir des offres.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Missions actives</CardTitle>
+              <CardDescription>
+                {activeJobs.length > 0
+                  ? `${activeJobs.length} mission(s) en cours.`
+                  : "Aucune mission active pour l'instant."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {activeJobs.length > 0 ? (
+                activeJobs.map((job: any) => {
+                  const order = job.orders;
+                  const restaurant = order?.restaurants;
+                  const nextAction = getNextCourierJobAction(job.status);
+                  const jobMeta = COURIER_JOB_STATUS_META[job.status] || COURIER_JOB_STATUS_META.pending;
+                  const tracking = Array.isArray(order?.delivery_tracking) ? order.delivery_tracking[0] : null;
+                  const orderMeta = order?.metadata || {};
+                  const requiresProof = job.status === "arriving_dropoff";
+
+                  return (
+                    <div key={job.id} className="rounded-2xl border p-4 shadow-sm">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <p className="font-semibold">{restaurant?.name || "Restaurant"}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Commande {order?.order_number || order?.id || job.order_id}
+                          </p>
+                        </div>
+                        <Badge className={jobMeta.tone}>{jobMeta.label}</Badge>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        <div className="rounded-xl bg-muted/40 p-3 text-sm">
+                          <div className="mb-1 flex items-center gap-2 font-medium">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                            Retrait
+                          </div>
+                          <p>{restaurant?.address || "-"}</p>
+                        </div>
+                        <div className="rounded-xl bg-muted/40 p-3 text-sm">
+                          <div className="mb-1 flex items-center gap-2 font-medium">
+                            <Bike className="h-4 w-4 text-muted-foreground" />
+                            Livraison
+                          </div>
+                          <p>{order?.delivery_address || "-"}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                        <span>{formatCurrency(Number(job.earnings_base || 0) + Number(job.earnings_tip || 0) + Number(job.earnings_bonus || 0))}</span>
+                        {orderMeta?.delivery_window_label ? (
+                          <span>Fenetre {String(orderMeta.delivery_window_label)}</span>
+                        ) : null}
+                        {tracking?.estimated_arrival ? (
+                          <span>ETA client: {new Date(tracking.estimated_arrival).toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit" })}</span>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        <Button
+                          variant="secondary"
+                          onClick={() => openMissionDetails(buildCourierMissionFromJob(job))}
+                        >
+                          <Route className="mr-2 h-4 w-4" />
+                          Details mission
+                        </Button>
+                        <Button asChild variant="outline">
+                          <a href={mapsLink(restaurant?.address || "")} target="_blank" rel="noreferrer">
+                            Retrait <ExternalLink className="ml-2 h-4 w-4" />
+                          </a>
+                        </Button>
+                        <Button asChild variant="outline">
+                          <a href={mapsLink(order?.delivery_address || "")} target="_blank" rel="noreferrer">
+                            Livraison <ExternalLink className="ml-2 h-4 w-4" />
+                          </a>
+                        </Button>
+                        {nextAction && !requiresProof ? (
+                          <Button
+                            onClick={() => statusMutation.mutate({ dispatchJobId: job.id, status: nextAction.nextStatus })}
+                            disabled={statusMutation.isPending}
+                          >
+                            {nextAction.label}
+                          </Button>
+                        ) : null}
+                      </div>
+
+                      {requiresProof ? (
+                        <DeliveryProofPanel
+                          isLoading={verifyMutation.isPending}
+                          onVerify={({ code, verificationMethod }) =>
+                            verifyMutation.mutate({
+                              dispatchJobId: job.id,
+                              proofCode: code,
+                              verificationMethod,
+                            })}
+                        />
+                      ) : null}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
+                  Les missions acceptees apparaitront ici avec le prochain statut a valider.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Historique recent</CardTitle>
+            <CardDescription>Vos dernieres missions terminees ou annulees.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {recentJobs.length > 0 ? (
+              recentJobs.map((job: any) => {
+                const meta = COURIER_JOB_STATUS_META[job.status] || COURIER_JOB_STATUS_META.pending;
+                const total = Number(job.earnings_base || 0) + Number(job.earnings_tip || 0) + Number(job.earnings_bonus || 0);
+                return (
+                  <div key={job.id} className="flex flex-col gap-3 rounded-2xl border p-4 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                      <p className="font-semibold">{job.orders?.restaurants?.name || "Restaurant"}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {job.orders?.order_number || job.order_id} · {new Date(job.updated_at).toLocaleString("fr-CH")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge className={meta.tone}>{meta.label}</Badge>
+                      <span className="font-semibold">{formatCurrency(total)}</span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
+                Aucune mission terminee pour l'instant.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <CourierMissionDialog
+          mission={selectedMission}
+          open={missionDialogOpen}
+          onOpenChange={setMissionDialogOpen}
+          onAccept={selectedMission?.dispatchAttemptId
+            ? () => respondMutation.mutate({ attemptId: selectedMission.dispatchAttemptId!, decision: "accept" })
+            : undefined}
+          onDecline={selectedMission?.dispatchAttemptId
+            ? () => respondMutation.mutate({ attemptId: selectedMission.dispatchAttemptId!, decision: "decline" })
+            : undefined}
+          decisionPending={respondMutation.isPending}
+        />
+      </div>
+    </CourierDashboardLayout>
+  );
 }
