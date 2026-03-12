@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
       payment_method,
       return_url,
       order_metadata,
+      checkout_kind,
     } = await req.json();
 
     if (!items || items.length === 0) {
@@ -60,8 +61,10 @@ Deno.serve(async (req) => {
 
     // Look up restaurant's Stripe Connected Account for payment routing
     let stripeAccountId: string | null = null;
+    const checkoutKind = checkout_kind || order_metadata?.checkout_kind || "order";
+    const disableConnectedAccount = Boolean(order_metadata?.disable_connected_account) || checkoutKind === "campaign";
     const restaurantId = order_metadata?.restaurant_id;
-    if (restaurantId) {
+    if (restaurantId && !disableConnectedAccount) {
       const { data: restaurant } = await supabaseAdmin
         .from("restaurants")
         .select("stripe_account_id")
@@ -142,6 +145,9 @@ Deno.serve(async (req) => {
         user_id: userData.user.id,
         order_reference: order_metadata?.order_reference || "",
         restaurant_id: order_metadata?.restaurant_id || "",
+        campaign_id: order_metadata?.campaign_id || "",
+        campaign_title: order_metadata?.campaign_title || "",
+        checkout_kind: checkoutKind,
         payment_method_label: payment_method,
         formula_applied: String(order_metadata?.formula_applied || ""),
         formula_discount_amount: (discountCents / 100).toFixed(2),
@@ -161,7 +167,7 @@ Deno.serve(async (req) => {
     }
 
     // Route payment to restaurant's Stripe Connected Account via destination charge
-    if (stripeAccountId) {
+    if (stripeAccountId && !disableConnectedAccount) {
       const platformFeePercent = 0.10; // 10% platform commission
       const totalAmount = Math.max(0, totalBeforeDiscountCents - discountCents);
       sessionParams.payment_intent_data = {

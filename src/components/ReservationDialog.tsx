@@ -1,39 +1,102 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import ReservationDetailModal from "@/components/ReservationDetailModal";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Clock, Users, ChevronRight, ChevronLeft, Utensils, Tag, Check, Percent, Heart, Zap } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Switch } from "@/components/ui/switch";
-import { trackSponsoredConversion } from "@/lib/analytics";
-import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
-import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Heart, Loader2, Tag, Utensils, Users, Zap } from "lucide-react";
 
-interface ReservationDialogProps { restaurantId: string; restaurantName: string; open: boolean; onOpenChange: (open: boolean) => void; initialDate?: Date; initialTime?: string; initialPartySize?: number; }
+import ReservationDetailModal from "@/components/ReservationDetailModal";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { trackSponsoredConversion } from "@/lib/analytics";
+import { useAuth } from "@/lib/auth";
+import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
+import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
+
+interface ReservationDialogProps {
+  restaurantId: string;
+  restaurantName: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initialDate?: Date;
+  initialTime?: string;
+  initialPartySize?: number;
+}
+
 type Step = "datetime" | "mode" | "promo" | "confirm";
 type ReservationMode = "classique" | "zero-attente";
+type PromoOfferType = "formula" | "promotion";
 
-interface PromoOffer { id: string; label: string; description: string; discount: number; formula: string; }
-interface MealFormulaRow { id: string; name: string; description: string | null; discount_percent: number; availability?: MealFormulaAvailability; }
+interface PromoOffer {
+  id: string;
+  label: string;
+  description: string;
+  offerType: PromoOfferType;
+  discountLabel: string;
+  discountPercent: number | null;
+  promotionType: string | null;
+  promotionValue: number | null;
+  formulaName: string | null;
+  sortValue: number;
+}
 
-// getPromosForDate removed — promotions now come from meal_formulas table server-side
+interface MealFormulaRow {
+  id: string;
+  name: string;
+  description: string | null;
+  discount_percent: number;
+  availability?: MealFormulaAvailability;
+}
 
-export default function ReservationDialog({ restaurantId, restaurantName, open, onOpenChange, initialDate, initialTime, initialPartySize }: ReservationDialogProps) {
+interface RestaurantPromotionRow {
+  id: string;
+  name: string;
+  promotion_type: string;
+  promotion_value: number;
+  target: string;
+  start_at: string;
+  end_at: string;
+  active: boolean;
+}
+
+function isPromotionEligible(target: string | null | undefined, reservationCount: number) {
+  if (target === "new") return reservationCount === 0;
+  if (target === "returning") return reservationCount > 0;
+  return true;
+}
+
+function buildPromotionDescription(promotion: RestaurantPromotionRow) {
+  if (promotion.promotion_type === "percentage") {
+    return `Promotion de ${Number(promotion.promotion_value) || 0}% sur votre venue.`;
+  }
+  if (promotion.promotion_type === "fixed") {
+    return `Remise de ${Number(promotion.promotion_value || 0).toFixed(2)} CHF associee a votre reservation.`;
+  }
+  return "Offre promotionnelle associee a votre reservation.";
+}
+
+export default function ReservationDialog({
+  restaurantId,
+  restaurantName,
+  open,
+  onOpenChange,
+  initialDate,
+  initialTime,
+  initialPartySize,
+}: ReservationDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
   const [step, setStep] = useState<Step>("datetime");
   const [confirmedReservation, setConfirmedReservation] = useState<any>(null);
   const [date, setDate] = useState<Date>();
@@ -45,199 +108,478 @@ export default function ReservationDialog({ restaurantId, restaurantName, open, 
   const [donatePoints, setDonatePoints] = useState(false);
   const [reservationMode, setReservationMode] = useState<ReservationMode>("classique");
 
-  useEffect(() => { if (open && initialDate) { setDate(initialDate); setTime(initialTime || "19:00"); setPartySize(initialPartySize || 2); setStep("mode"); } }, [open, initialDate, initialTime, initialPartySize]);
+  useEffect(() => {
+    if (!open || !initialDate) return;
+    setDate(initialDate);
+    setTime(initialTime || "19:00");
+    setPartySize(initialPartySize || 2);
+    setStep("mode");
+  }, [open, initialDate, initialTime, initialPartySize]);
 
-  const { data: profile } = useQuery({ queryKey: ["profile-loyalty", user?.id], queryFn: async () => { const { data } = await supabase.from("profiles" as any).select("loyalty_points").eq("user_id", user?.id).single(); return data as any; }, enabled: !!user });
+  const { data: profile } = useQuery({
+    queryKey: ["profile-loyalty", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles" as any).select("loyalty_points").eq("user_id", user?.id).single();
+      return data as any;
+    },
+    enabled: !!user,
+  });
+
   const loyaltyPoints = profile?.loyalty_points || 0;
   const earnedXp = 100;
 
   const { data: promos = [], isLoading: isPromosLoading } = useQuery({
-    queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time],
+    queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time, user?.id || null],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("meal_formulas")
-        .select("id, name, description, discount_percent, applies_to, availability")
-        .eq("restaurant_id", restaurantId)
-        .eq("is_active", true)
-        .in("applies_to", ["reservation", "both", "dine_in"] as any)
-        .order("discount_percent", { ascending: false });
-      if (error) throw error;
       const reservationDate = date ? format(date, "yyyy-MM-dd") : undefined;
-      return ((data || []) as MealFormulaRow[])
-        .filter((f) => isMealFormulaAvailableForSlot(f.availability || null, reservationDate, time))
-        .map((f) => ({ id: f.id, label: f.name, description: f.description || "Formule promotionnelle", discount: Number(f.discount_percent) || 0, formula: f.name }));
+      const reservationDateTime = reservationDate ? new Date(`${reservationDate}T${time}`) : null;
+
+      const [formulaResponse, promotionResponse, reservationCountResponse] = await Promise.all([
+        supabase
+          .from("meal_formulas")
+          .select("id, name, description, discount_percent, applies_to, availability")
+          .eq("restaurant_id", restaurantId)
+          .eq("is_active", true)
+          .in("applies_to", ["reservation", "both", "dine_in"] as any)
+          .order("discount_percent", { ascending: false }),
+        supabase
+          .from("restaurant_promotions")
+          .select("id, name, promotion_type, promotion_value, target, start_at, end_at, active")
+          .eq("restaurant_id", restaurantId)
+          .eq("active", true),
+        user?.id
+          ? (supabase.from("reservations").select("id", { count: "exact", head: true }).eq("restaurant_id", restaurantId).eq("user_id", user.id) as any)
+          : Promise.resolve({ count: 0, error: null }),
+      ]);
+
+      if (formulaResponse.error) throw formulaResponse.error;
+      if (promotionResponse.error) throw promotionResponse.error;
+      if ((reservationCountResponse as any).error) throw (reservationCountResponse as any).error;
+
+      const reservationCount = Number((reservationCountResponse as any).count || 0);
+
+      const formulaOffers: PromoOffer[] = ((formulaResponse.data || []) as MealFormulaRow[])
+        .filter((formula) => isMealFormulaAvailableForSlot(formula.availability || null, reservationDate, time))
+        .map((formula) => ({
+          id: formula.id,
+          label: formula.name,
+          description: formula.description || "Formule promotionnelle liee a votre reservation.",
+          offerType: "formula",
+          discountLabel: `-${Number(formula.discount_percent) || 0}%`,
+          discountPercent: Number(formula.discount_percent) || 0,
+          promotionType: "percentage",
+          promotionValue: Number(formula.discount_percent) || 0,
+          formulaName: formula.name,
+          sortValue: Number(formula.discount_percent) || 0,
+        }));
+
+      const promotionOffers: PromoOffer[] = ((promotionResponse.data || []) as RestaurantPromotionRow[])
+        .filter((promotion) => promotion.promotion_type !== "free_delivery")
+        .filter((promotion) => isPromotionEligible(promotion.target, reservationCount))
+        .filter((promotion) => {
+          if (!reservationDateTime || Number.isNaN(reservationDateTime.getTime())) return true;
+          const startAt = new Date(promotion.start_at);
+          const endAt = new Date(promotion.end_at);
+          if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) return true;
+          return reservationDateTime >= startAt && reservationDateTime <= endAt;
+        })
+        .map((promotion) => {
+          const isPercentage = promotion.promotion_type === "percentage";
+          return {
+            id: promotion.id,
+            label: promotion.name,
+            description: buildPromotionDescription(promotion),
+            offerType: "promotion",
+            discountLabel: isPercentage
+              ? `-${Number(promotion.promotion_value) || 0}%`
+              : `-${Number(promotion.promotion_value || 0).toFixed(2)} CHF`,
+            discountPercent: isPercentage ? Number(promotion.promotion_value) || 0 : null,
+            promotionType: promotion.promotion_type,
+            promotionValue: Number(promotion.promotion_value) || 0,
+            formulaName: null,
+            sortValue: Number(promotion.promotion_value) || 0,
+          };
+        });
+
+      return [...formulaOffers, ...promotionOffers].sort((a, b) => {
+        if (a.sortValue !== b.sortValue) return b.sortValue - a.sortValue;
+        if (a.offerType !== b.offerType) return a.offerType === "formula" ? -1 : 1;
+        return a.label.localeCompare(b.label);
+      });
     },
     enabled: open && !!restaurantId,
   });
 
-  const { data: restaurantSettings } = useQuery({ queryKey: ["restaurant-service-settings", restaurantId], queryFn: async () => { const { data, error } = await supabase.from("restaurants").select("opening_hours").eq("id", restaurantId).maybeSingle(); if (error) throw error; return getServiceSettings(data?.opening_hours); }, enabled: open && !!restaurantId });
+  const { data: restaurantSettings } = useQuery({
+    queryKey: ["restaurant-service-settings", restaurantId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("restaurants").select("opening_hours").eq("id", restaurantId).maybeSingle();
+      if (error) throw error;
+      return getServiceSettings(data?.opening_hours);
+    },
+    enabled: open && !!restaurantId,
+  });
 
-  useEffect(() => { if (!selectedPromo) return; if (!promos.some((p) => p.id === selectedPromo.id)) setSelectedPromo(null); }, [promos, selectedPromo]);
+  useEffect(() => {
+    if (!selectedPromo) return;
+    if (!promos.some((promo) => promo.id === selectedPromo.id)) {
+      setSelectedPromo(null);
+    }
+  }, [promos, selectedPromo]);
 
   const handleSubmit = async () => {
     if (!user || !date) return;
+
     const settingsMap = restaurantSettings || getServiceSettings(null);
     const servicePeriod = detectServiceFromTime(time);
-    const ss = settingsMap[servicePeriod];
-    if (!ss.online_booking_enabled || ss.service_closed) { toast({ title: "Réservations indisponibles", variant: "destructive" }); return; }
-    if (partySize < ss.min_party_size || partySize > ss.max_party_size) { toast({ title: "Nombre de convives invalide", variant: "destructive" }); return; }
-    if (!isTimeWithinService(time, ss)) { toast({ title: "Horaire indisponible", variant: "destructive" }); return; }
+    const serviceSettings = settingsMap[servicePeriod];
+
+    if (!serviceSettings.online_booking_enabled || serviceSettings.service_closed) {
+      toast({ title: "Reservations indisponibles", variant: "destructive" });
+      return;
+    }
+    if (partySize < serviceSettings.min_party_size || partySize > serviceSettings.max_party_size) {
+      toast({ title: "Nombre de convives invalide", variant: "destructive" });
+      return;
+    }
+    if (!isTimeWithinService(time, serviceSettings)) {
+      toast({ title: "Horaire indisponible", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
-    const promoDiscountPercent = selectedPromo ? selectedPromo.discount : 0;
-    const selectedFormulaName = selectedPromo?.formula || null;
+
+    const hasOffer = !!selectedPromo;
+    const isFormulaOffer = selectedPromo?.offerType === "formula";
     const reservationMetadata = {
-      feature: selectedPromo ? "promo-formule" : "classique",
-      promo_applied: !!selectedPromo,
+      feature: hasOffer ? (isFormulaOffer ? "promo-formule" : "promo-offre") : "classique",
+      promo_applied: hasOffer,
       promo_offer_id: selectedPromo?.id ?? null,
-      promo_discount_percent: promoDiscountPercent > 0 ? promoDiscountPercent : null,
-      formula_applied: selectedFormulaName,
-      formula_discount_percent: promoDiscountPercent > 0 ? promoDiscountPercent : null,
+      promo_offer_type: selectedPromo?.offerType ?? null,
+      promo_offer_name: selectedPromo?.label ?? null,
+      promo_discount_percent: selectedPromo?.discountPercent ?? null,
+      promo_discount_value: selectedPromo?.promotionValue ?? null,
+      promotion_name: selectedPromo?.offerType === "promotion" ? selectedPromo.label : null,
+      promotion_type: selectedPromo?.offerType === "promotion" ? selectedPromo.promotionType : null,
+      promotion_value: selectedPromo?.offerType === "promotion" ? selectedPromo.promotionValue : null,
+      formula_applied: isFormulaOffer ? selectedPromo?.formulaName : null,
+      formula_discount_percent: isFormulaOffer ? selectedPromo?.discountPercent : null,
       formula_discount_amount: null,
       service: servicePeriod,
     };
-    const promoNote = selectedPromo ? `[FORMULE: ${selectedPromo.formula} -${selectedPromo.discount}%] ` : "[A la carte] ";
 
-    // Use server-side validation function instead of direct insert
+    const offerPrefix = selectedPromo
+      ? `[OFFRE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
+      : "[A la carte] ";
+
     const { data: reservationId, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
       p_restaurant_id: restaurantId,
       p_date: format(date, "yyyy-MM-dd"),
       p_time: time,
       p_party_size: partySize,
-      p_feature: selectedPromo ? "promo-formule" : "classique",
+      p_feature: hasOffer ? (isFormulaOffer ? "promo-formule" : "promo-offre") : "classique",
       p_metadata: reservationMetadata,
-      p_notes: promoNote + (notes || ""),
+      p_notes: offerPrefix + (notes || ""),
     });
+
     setLoading(false);
-    if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); } else {
-      await trackSponsoredConversion(restaurantId, {
-        conversionType: "reservation",
-        entityId: reservationId || null,
-      });
-      if (donatePoints && earnedXp > 0) { await (supabase.rpc as any)("donate_points_for_meal", { points_param: earnedXp, description_param: `Don solidaire (réservation chez ${restaurantName})` }); }
-      queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
-      setConfirmedReservation({
-        id: reservationId,
-        date: format(date!, "yyyy-MM-dd"),
-        time,
-        party_size: partySize,
-        status: "pending",
-        feature: selectedPromo ? "promo-formule" : "classique",
-        notes: promoNote + (notes || ""),
-        total_amount: 0,
-        created_at: new Date().toISOString(),
-        metadata: reservationMetadata,
-        preorder_items: [],
-        restaurant_name: restaurantName,
-      });
-      onOpenChange(false); resetForm();
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
     }
+
+    await trackSponsoredConversion(restaurantId, {
+      conversionType: "reservation",
+      entityId: reservationId || null,
+    });
+
+    if (donatePoints && loyaltyPoints >= 0 && earnedXp > 0) {
+      await (supabase.rpc as any)("donate_points_for_meal", {
+        points_param: earnedXp,
+        description_param: `Don solidaire (reservation chez ${restaurantName})`,
+      });
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+    setConfirmedReservation({
+      id: reservationId,
+      date: format(date, "yyyy-MM-dd"),
+      time,
+      party_size: partySize,
+      status: "pending",
+      feature: hasOffer ? (isFormulaOffer ? "promo-formule" : "promo-offre") : "classique",
+      notes: offerPrefix + (notes || ""),
+      total_amount: 0,
+      created_at: new Date().toISOString(),
+      metadata: reservationMetadata,
+      preorder_items: [],
+      restaurant_name: restaurantName,
+    });
+    onOpenChange(false);
+    resetForm();
   };
 
-  const resetForm = () => { setStep("datetime"); setDate(undefined); setTime("19:00"); setPartySize(2); setNotes(""); setSelectedPromo(null); setDonatePoints(false); setReservationMode("classique"); };
-  const handleOpenChange = (open: boolean) => { if (!open) resetForm(); onOpenChange(open); };
+  const resetForm = () => {
+    setStep("datetime");
+    setDate(undefined);
+    setTime("19:00");
+    setPartySize(2);
+    setNotes("");
+    setSelectedPromo(null);
+    setDonatePoints(false);
+    setReservationMode("classique");
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) resetForm();
+    onOpenChange(nextOpen);
+  };
 
   return (
     <>
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        <DialogTitle className="sr-only">Réservation</DialogTitle>
-        <div className="flex items-center justify-center gap-2 pt-6 px-6">
-          {(["datetime", "mode", "promo", "confirm"] as Step[]).map((s, i) => {
-            const allSteps: Step[] = ["datetime", "mode", "promo", "confirm"];
-            const currentIdx = allSteps.indexOf(step);
-            return (
-              <div key={s} className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${step === s ? "bg-primary text-primary-foreground" : i < currentIdx ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"}`}>
-                  {i < currentIdx ? <Check className="h-4 w-4" /> : i + 1}
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+          <DialogTitle className="sr-only">Reservation</DialogTitle>
+
+          <div className="flex items-center justify-center gap-2 px-6 pt-6">
+            {(["datetime", "mode", "promo", "confirm"] as Step[]).map((currentStep, index) => {
+              const allSteps: Step[] = ["datetime", "mode", "promo", "confirm"];
+              const currentIndex = allSteps.indexOf(step);
+              return (
+                <div key={currentStep} className="flex items-center gap-2">
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+                      step === currentStep
+                        ? "bg-primary text-primary-foreground"
+                        : index < currentIndex
+                          ? "bg-primary/20 text-primary"
+                          : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    {index < currentIndex ? <Check className="h-4 w-4" /> : index + 1}
+                  </div>
+                  {index < 3 && <div className="h-0.5 w-6 rounded bg-secondary" />}
                 </div>
-                {i < 3 && <div className="w-6 h-0.5 bg-secondary rounded" />}
-              </div>
-            );
-          })}
-        </div>
-        <DialogHeader className="px-6 pt-4 pb-0">
-          <div className="text-lg font-semibold leading-none tracking-tight">
-            {step === "datetime" && "Réserver chez " + restaurantName}
-            {step === "mode" && "Type de réservation"}
-            {step === "promo" && "Choisir une offre"}
-            {step === "confirm" && "Confirmer la réservation"}
+              );
+            })}
           </div>
-        </DialogHeader>
-        <div className="px-6 pb-6 space-y-4">
-          {step === "datetime" && (
-            <>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><CalendarIcon className="h-4 w-4 text-muted-foreground" />Date</Label>
-                <Popover><PopoverTrigger asChild><Button variant="outline" className="w-full justify-start text-left font-normal"><CalendarIcon className="mr-2 h-4 w-4" />{date ? format(date, "EEEE d MMMM yyyy", { locale: fr }) : "Choisir une date"}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} disabled={(d) => d < new Date()} locale={fr} /></PopoverContent></Popover>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-muted-foreground" />Heure</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
-                <div className="space-y-2"><Label className="flex items-center gap-1.5"><Users className="h-4 w-4 text-muted-foreground" />Convives</Label><Input type="number" min={1} max={20} value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} /></div>
-              </div>
-              <Button onClick={() => setStep("mode")} disabled={!date} className="w-full gap-2">Suivant<ChevronRight className="h-4 w-4" /></Button>
-            </>
-          )}
-          {step === "mode" && (
-            <>
-              <div className="space-y-3">
-                <button onClick={() => setReservationMode("classique")} className={`w-full text-left rounded-xl border-2 p-4 transition-all ${reservationMode === "classique" ? "border-primary bg-primary/5" : "border-border"}`}>
-                  <div className="flex items-center gap-3"><Utensils className="h-6 w-6" /><div><p className="font-semibold text-sm">Réservation classique</p><p className="text-xs text-muted-foreground">Réservez avec des promos</p></div></div>
+
+          <DialogHeader className="px-6 pb-0 pt-4">
+            <div className="text-lg font-semibold leading-none tracking-tight">
+              {step === "datetime" && `Reserver chez ${restaurantName}`}
+              {step === "mode" && "Type de reservation"}
+              {step === "promo" && "Choisir une offre"}
+              {step === "confirm" && "Confirmer la reservation"}
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 px-6 pb-6">
+            {step === "datetime" && (
+              <>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    Date
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "EEEE d MMMM yyyy", { locale: fr }) : "Choisir une date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar mode="single" selected={date} onSelect={setDate} disabled={(value) => value < new Date()} locale={fr} />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      Heure
+                    </Label>
+                    <Input type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      Convives
+                    </Label>
+                    <Input type="number" min={1} max={20} value={partySize} onChange={(event) => setPartySize(Number(event.target.value))} />
+                  </div>
+                </div>
+
+                <Button onClick={() => setStep("mode")} disabled={!date} className="w-full gap-2">
+                  Suivant
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+
+            {step === "mode" && (
+              <>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setReservationMode("classique")}
+                    className={`w-full rounded-xl border-2 p-4 text-left transition-all ${reservationMode === "classique" ? "border-primary bg-primary/5" : "border-border"}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Utensils className="h-6 w-6" />
+                      <div>
+                        <p className="text-sm font-semibold">Reservation classique</p>
+                        <p className="text-xs text-muted-foreground">Reserve avec une offre ou une formule.</p>
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setReservationMode("zero-attente")}
+                    className={`w-full rounded-xl border-2 p-4 text-left transition-all ${reservationMode === "zero-attente" ? "border-indigo-500 bg-indigo-500/5" : "border-border"}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Zap className="h-6 w-6" />
+                      <div>
+                        <p className="text-sm font-semibold">Zero Attente</p>
+                        <p className="text-xs text-muted-foreground">Precommande, tout sera pret a l'arrivee.</p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setStep("datetime")}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (reservationMode === "zero-attente") {
+                        onOpenChange(false);
+                        resetForm();
+                        navigate(`/zero-attente?restaurant=${restaurantId}`);
+                        return;
+                      }
+                      setStep("promo");
+                    }}
+                    className="flex-1"
+                  >
+                    {reservationMode === "zero-attente" ? "Zero Attente" : "Suivant"}
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {step === "promo" && (
+              <>
+                <button
+                  onClick={() => setSelectedPromo(null)}
+                  className={`w-full rounded-xl border-2 p-4 text-left ${selectedPromo === null ? "border-primary bg-primary/5" : "border-border"}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Utensils className="h-5 w-5" />
+                    <div>
+                      <p className="text-sm font-semibold">A la carte</p>
+                      <p className="text-xs text-muted-foreground">Reservation sans offre speciale.</p>
+                    </div>
+                  </div>
                 </button>
-                <button onClick={() => setReservationMode("zero-attente")} className={`w-full text-left rounded-xl border-2 p-4 transition-all ${reservationMode === "zero-attente" ? "border-indigo-500 bg-indigo-500/5" : "border-border"}`}>
-                  <div className="flex items-center gap-3"><Zap className="h-6 w-6" /><div><p className="font-semibold text-sm">Zéro Attente</p><p className="text-xs text-muted-foreground">Précommandez, tout sera prêt</p></div></div>
-                </button>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep("datetime")}><ChevronLeft className="h-4 w-4" /></Button>
-                <Button onClick={() => { if (reservationMode === "zero-attente") { onOpenChange(false); resetForm(); navigate(`/zero-attente?restaurant=${restaurantId}`); } else setStep("promo"); }} className="flex-1">{reservationMode === "zero-attente" ? "Zéro Attente" : "Suivant"}<ChevronRight className="h-4 w-4" /></Button>
-              </div>
-            </>
-          )}
-          {step === "promo" && (
-            <>
-              <button onClick={() => setSelectedPromo(null)} className={`w-full text-left rounded-xl border-2 p-4 ${selectedPromo === null ? "border-primary bg-primary/5" : "border-border"}`}>
-                <div className="flex items-center gap-3"><Utensils className="h-5 w-5" /><div><p className="font-semibold text-sm">À la carte</p></div></div>
-              </button>
-              {promos.map((promo) => (
-                <button key={promo.id} onClick={() => setSelectedPromo(promo)} className={`w-full text-left rounded-xl border-2 p-4 ${selectedPromo?.id === promo.id ? "border-miamz-green bg-miamz-green/5" : "border-border"}`}>
-                  <div className="flex items-center gap-3"><Tag className="h-5 w-5" /><div><p className="font-semibold text-sm">{promo.label} <span className="text-miamz-green">-{promo.discount}%</span></p><p className="text-xs text-muted-foreground">{promo.description}</p></div></div>
-                </button>
-              ))}
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep("mode")}><ChevronLeft className="h-4 w-4" /></Button>
-                <Button onClick={() => setStep("confirm")} className="flex-1">Suivant<ChevronRight className="h-4 w-4" /></Button>
-              </div>
-            </>
-          )}
-          {step === "confirm" && (
-            <>
-              <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Restaurant</span><span className="font-medium">{restaurantName}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{date ? format(date, "EEEE d MMMM", { locale: fr }) : ""}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Heure</span><span className="font-medium">{time}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Convives</span><span className="font-medium">{partySize}</span></div>
-                {selectedPromo && <div className="flex justify-between border-t pt-2"><span className="text-muted-foreground">Formule</span><span className="font-semibold text-miamz-green">{selectedPromo.formula} -{selectedPromo.discount}%</span></div>}
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-miamz-green/5 border border-miamz-green/20">
-                <div className="flex items-center gap-3"><Heart className="h-5 w-5 text-miamz-green fill-miamz-green" /><div><Label className="font-semibold cursor-pointer text-sm">Reverser mes XP</Label><p className="text-xs text-muted-foreground">+{earnedXp} XP solidaires</p></div></div>
-                <Switch checked={donatePoints} onCheckedChange={setDonatePoints} />
-              </div>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes..." rows={2} />
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep("promo")}><ChevronLeft className="h-4 w-4" /></Button>
-                <Button onClick={handleSubmit} disabled={loading} className="flex-1">{loading ? "Envoi..." : "Confirmer"}</Button>
-              </div>
-            </>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-    <ReservationDetailModal
-      reservation={confirmedReservation}
-      open={!!confirmedReservation}
-      onOpenChange={(open) => { if (!open) setConfirmedReservation(null); }}
-    />
+
+                {isPromosLoading ? (
+                  <div className="flex items-center justify-center rounded-xl border p-6 text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Chargement des offres...
+                  </div>
+                ) : promos.length > 0 ? (
+                  promos.map((promo) => (
+                    <button
+                      key={promo.id}
+                      onClick={() => setSelectedPromo(promo)}
+                      className={`w-full rounded-xl border-2 p-4 text-left ${selectedPromo?.id === promo.id ? "border-miamz-green bg-miamz-green/5" : "border-border"}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Tag className="mt-0.5 h-5 w-5" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold">{promo.label}</p>
+                            <span className="font-semibold text-miamz-green">{promo.discountLabel}</span>
+                            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                              {promo.offerType === "formula" ? "Formule" : "Promotion"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{promo.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                    Aucune offre n'est disponible pour ce creneau. Vous pouvez continuer en reservation a la carte.
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setStep("mode")}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button onClick={() => setStep("confirm")} className="flex-1">
+                    Suivant
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {step === "confirm" && (
+              <>
+                <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Restaurant</span><span className="font-medium">{restaurantName}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{date ? format(date, "EEEE d MMMM", { locale: fr }) : ""}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Heure</span><span className="font-medium">{time}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Convives</span><span className="font-medium">{partySize}</span></div>
+                  {selectedPromo && (
+                    <div className="flex justify-between border-t pt-2">
+                      <span className="text-muted-foreground">Offre</span>
+                      <span className="font-semibold text-miamz-green">{selectedPromo.label} {selectedPromo.discountLabel}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between rounded-lg border border-miamz-green/20 bg-miamz-green/5 p-3">
+                  <div className="flex items-center gap-3">
+                    <Heart className="h-5 w-5 fill-miamz-green text-miamz-green" />
+                    <div>
+                      <Label className="cursor-pointer text-sm font-semibold">Reverser mes XP</Label>
+                      <p className="text-xs text-muted-foreground">+{earnedXp} XP solidaires</p>
+                    </div>
+                  </div>
+                  <Switch checked={donatePoints} onCheckedChange={setDonatePoints} />
+                </div>
+
+                <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Notes..." rows={2} />
+
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setStep("promo")}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button onClick={handleSubmit} disabled={loading} className="flex-1">
+                    {loading ? "Envoi..." : "Confirmer"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <ReservationDetailModal
+        reservation={confirmedReservation}
+        open={!!confirmedReservation}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setConfirmedReservation(null);
+        }}
+      />
     </>
   );
 }

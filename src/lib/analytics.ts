@@ -1,4 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
+import {
+  DEFAULT_AUDIENCE_CRITERIA,
+  matchesAudienceCriteria,
+  normalizeAudienceCriteria,
+  type AudienceCriteria,
+  type AudienceSnapshot,
+} from "@/lib/campaignTargeting";
+import { pickWeightedCampaign, type WeightedCampaignRotationState } from "@/lib/sponsoredPlacement";
 
 export type AnalyticsEventType =
   | "page_view"
@@ -27,6 +35,14 @@ let currentUserId: string | null = null;
 
 const SPONSORED_ATTRIBUTION_KEY = "miamz-sponsored-attribution-v1";
 const SPONSORED_ATTRIBUTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const SPONSORED_ROTATION_KEY = "miamz-sponsored-rotation-v1";
+const SPONSORED_AUDIENCE_CACHE_MS = 5 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed"]);
+const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "refused"]);
+
+type SponsoredRotationStore = Record<string, WeightedCampaignRotationState>;
 
 interface SponsoredAttribution {
   campaignId: string;
@@ -34,6 +50,10 @@ interface SponsoredAttribution {
 }
 
 type SponsoredAttributionMap = Record<string, SponsoredAttribution>;
+
+let sponsoredAudienceSnapshotCache:
+  | { userId: string; fetchedAt: number; snapshot: AudienceSnapshot }
+  | null = null;
 
 function readSponsoredAttributions(): SponsoredAttributionMap {
   if (typeof window === "undefined") return {};
@@ -80,17 +100,250 @@ function getValidSponsoredCampaignId(restaurantId: string): string | null {
   return attribution.campaignId;
 }
 
+let sponsoredRotationMemoryStore: SponsoredRotationStore = {};
+
+function readSponsoredRotationStore(): SponsoredRotationStore {
+  if (typeof window === "undefined") return sponsoredRotationMemoryStore;
+  try {
+    const raw = window.localStorage.getItem(SPONSORED_ROTATION_KEY);
+    if (!raw) return sponsoredRotationMemoryStore;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return sponsoredRotationMemoryStore;
+    sponsoredRotationMemoryStore = parsed;
+    return parsed;
+  } catch {
+    return sponsoredRotationMemoryStore;
+  }
+}
+
+function writeSponsoredRotationStore(store: SponsoredRotationStore) {
+  sponsoredRotationMemoryStore = store;
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SPONSORED_ROTATION_KEY, JSON.stringify(store));
+  } catch {
+    // Silent fail
+  }
+}
+
+function selectBudgetWeightedCampaignsForPage(campaigns: any[], page: string) {
+  const rotationStore = readSponsoredRotationStore();
+  const groupedCampaigns = new Map<string, any[]>();
+  const passthroughCampaigns: any[] = [];
+
+  (campaigns || []).forEach((campaign: any) => {
+    const restaurantId = String(campaign?.restaurant_id || campaign?.restaurants?.id || "");
+    if (!restaurantId) {
+      passthroughCampaigns.push(campaign);
+      return;
+    }
+    if (!groupedCampaigns.has(restaurantId)) groupedCampaigns.set(restaurantId, []);
+    groupedCampaigns.get(restaurantId)!.push(campaign);
+  });
+
+  const selectedCampaigns: any[] = [];
+
+  groupedCampaigns.forEach((restaurantCampaigns, restaurantId) => {
+    if (restaurantCampaigns.length === 1) {
+      selectedCampaigns.push(restaurantCampaigns[0]);
+      return;
+    }
+
+    const stateKey = `${page}:${restaurantId}`;
+    const cleanedState = rotationStore[stateKey] || { counts: {}, lastShownOrder: {}, sequence: 0 };
+    const activeCampaignIds = new Set(
+      restaurantCampaigns
+        .map((campaign) => campaign?.id)
+        .filter((campaignId): campaignId is string => !!campaignId)
+        .map(String),
+    );
+
+    cleanedState.counts = Object.fromEntries(
+      Object.entries(cleanedState.counts || {}).filter(([campaignId]) => activeCampaignIds.has(campaignId))
+    );
+    cleanedState.lastShownOrder = Object.fromEntries(
+      Object.entries(cleanedState.lastShownOrder || {}).filter(([campaignId]) => activeCampaignIds.has(campaignId))
+    );
+
+    const { campaign, state } = pickWeightedCampaign(restaurantCampaigns, cleanedState);
+    rotationStore[stateKey] = state;
+    if (campaign) selectedCampaigns.push(campaign);
+  });
+
+  writeSponsoredRotationStore(rotationStore);
+  return [...selectedCampaigns, ...passthroughCampaigns];
+}
+
+function isInvalidOrderStatus(status: unknown) {
+  return INVALID_ORDER_STATUSES.has(String(status || "").toLowerCase());
+}
+
+function isInvalidReservationStatus(status: unknown) {
+  return INVALID_RESERVATION_STATUSES.has(String(status || "").toLowerCase());
+}
+
+function normalizeTextToken(value: unknown) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function deriveServiceMoment(value: unknown) {
+  const normalized = normalizeTextToken(value);
+  if (!normalized) return null;
+  if (normalized.includes("week")) return "weekend" as const;
+  if (normalized === "lunch" || normalized === "midi") return "lunch" as const;
+  if (normalized === "dinner" || normalized === "soir") return "dinner" as const;
+  return null;
+}
+
+function deriveTimeServiceMoment(timeValue: unknown) {
+  const raw = String(timeValue || "");
+  const hour = Number(raw.split(":")[0]);
+  if (!Number.isFinite(hour)) return null;
+  return hour < 15 ? "lunch" : "dinner";
+}
+
+async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
+  if (!currentUserId) return null;
+
+  if (
+    sponsoredAudienceSnapshotCache &&
+    sponsoredAudienceSnapshotCache.userId === currentUserId &&
+    (Date.now() - sponsoredAudienceSnapshotCache.fetchedAt) < SPONSORED_AUDIENCE_CACHE_MS
+  ) {
+    return sponsoredAudienceSnapshotCache.snapshot;
+  }
+
+  try {
+    const [profileResponse, favoritesResponse, ordersResponse, reservationsResponse] = await Promise.all([
+      supabase.from("profiles" as any).select("city").eq("user_id", currentUserId).maybeSingle(),
+      supabase.from("favorites" as any).select("restaurant_id").eq("user_id", currentUserId),
+      supabase.from("orders" as any).select("restaurant_id, total_amount, created_at, delivery_address, status").eq("user_id", currentUserId),
+      supabase.from("reservations" as any).select("restaurant_id, created_at, status, feature, metadata, time, date").eq("user_id", currentUserId),
+    ]);
+
+    const validOrders = ((ordersResponse.data || []) as any[]).filter((order) => !isInvalidOrderStatus(order?.status));
+    const validReservations = ((reservationsResponse.data || []) as any[]).filter((reservation) => !isInvalidReservationStatus(reservation?.status));
+    const favoriteRestaurantIds = ((favoritesResponse.data || []) as any[])
+      .map((row: any) => String(row?.restaurant_id || ""))
+      .filter(Boolean);
+
+    const interactedRestaurantIds = Array.from(new Set([
+      ...favoriteRestaurantIds,
+      ...validOrders.map((order: any) => String(order?.restaurant_id || "")).filter(Boolean),
+      ...validReservations.map((reservation: any) => String(reservation?.restaurant_id || "")).filter(Boolean),
+    ]));
+
+    let cuisineSignals: string[] = [];
+    if (interactedRestaurantIds.length > 0) {
+      const [restaurantCuisinesResponse, cuisinesResponse, restaurantsResponse] = await Promise.all([
+        supabase
+          .from("restaurant_cuisines")
+          .select("restaurant_id, cuisine_id")
+          .in("restaurant_id", interactedRestaurantIds),
+        (supabase.from("cuisines") as any).select("id, name, slug, keywords"),
+        (supabase.from("restaurants") as any).select("id, cuisine_type").in("id", interactedRestaurantIds),
+      ]);
+
+      const cuisineMap = new Map<string, string[]>();
+      ((cuisinesResponse.data || []) as any[]).forEach((cuisine: any) => {
+        const tokens = [
+          cuisine?.name,
+          cuisine?.slug,
+          ...(Array.isArray(cuisine?.keywords) ? cuisine.keywords : []),
+        ].map(normalizeTextToken).filter(Boolean);
+        cuisineMap.set(String(cuisine?.id || ""), tokens);
+      });
+
+      cuisineSignals = Array.from(new Set([
+        ...((restaurantCuisinesResponse.data || []) as any[]).flatMap((row: any) => cuisineMap.get(String(row?.cuisine_id || "")) || []),
+        ...((restaurantsResponse.data || []) as any[])
+          .flatMap((restaurant: any) => String(restaurant?.cuisine_type || "").split(","))
+          .map(normalizeTextToken)
+          .filter(Boolean),
+      ]));
+    }
+
+    const journeyTypes = new Set<"delivery" | "takeaway" | "reservation" | "zero_attente">();
+    const serviceMoments = new Set<"lunch" | "dinner" | "weekend">();
+    const activityDates: number[] = [];
+
+    validOrders.forEach((order: any) => {
+      journeyTypes.add(order?.delivery_address ? "delivery" : "takeaway");
+      const timestamp = Date.parse(String(order?.created_at || ""));
+      if (Number.isFinite(timestamp)) {
+        activityDates.push(timestamp);
+        const weekday = new Date(timestamp).getDay();
+        if (weekday === 0 || weekday === 6) serviceMoments.add("weekend");
+      }
+    });
+
+    validReservations.forEach((reservation: any) => {
+      const feature = normalizeTextToken(reservation?.feature || reservation?.metadata?.feature);
+      journeyTypes.add(feature === "zero-attente" || feature === "zero_attente" ? "zero_attente" : "reservation");
+
+      const explicitService = deriveServiceMoment(reservation?.metadata?.service);
+      const fallbackService = explicitService || deriveTimeServiceMoment(reservation?.time);
+      if (fallbackService) serviceMoments.add(fallbackService);
+
+      const dateValue = reservation?.date ? `${reservation.date}T${reservation?.time || "12:00:00"}` : reservation?.created_at;
+      const timestamp = Date.parse(String(dateValue || ""));
+      if (Number.isFinite(timestamp)) {
+        activityDates.push(timestamp);
+        const weekday = new Date(timestamp).getDay();
+        if (weekday === 0 || weekday === 6) serviceMoments.add("weekend");
+      }
+    });
+
+    const totalOrderAmount = validOrders.reduce((sum: number, order: any) => sum + (Number(order?.total_amount) || 0), 0);
+    const avgBasket = validOrders.length > 0 ? totalOrderAmount / validOrders.length : 0;
+    const lastActivityAt = activityDates.length > 0 ? Math.max(...activityDates) : null;
+    const daysSinceLastActivity = lastActivityAt ? Math.max(0, Math.floor((Date.now() - lastActivityAt) / MS_PER_DAY)) : null;
+
+    const snapshot: AudienceSnapshot = {
+      city: (profileResponse.data as any)?.city || null,
+      favoriteRestaurantIds,
+      interactionCount: validOrders.length + validReservations.length,
+      avgBasket,
+      daysSinceLastActivity,
+      cuisineSignals,
+      journeyTypes: Array.from(journeyTypes),
+      serviceMoments: Array.from(serviceMoments),
+    };
+
+    sponsoredAudienceSnapshotCache = {
+      userId: currentUserId,
+      fetchedAt: Date.now(),
+      snapshot,
+    };
+    return snapshot;
+  } catch {
+    return {
+      city: null,
+      favoriteRestaurantIds: [],
+      interactionCount: 0,
+      avgBasket: 0,
+      daysSinceLastActivity: null,
+      cuisineSignals: [],
+      journeyTypes: [],
+      serviceMoments: [],
+    };
+  }
+}
+
 // Auto-sync authentication state
 supabase.auth.getSession().then(({ data: { session } }) => {
   currentUserId = session?.user?.id || null;
+  sponsoredAudienceSnapshotCache = null;
 });
 
 supabase.auth.onAuthStateChange((_event, session) => {
   currentUserId = session?.user?.id || null;
+  sponsoredAudienceSnapshotCache = null;
 });
 
 export function setAnalyticsUser(userId: string | null) {
   currentUserId = userId;
+  sponsoredAudienceSnapshotCache = null;
 }
 
 export async function trackEvent({
@@ -270,43 +523,34 @@ export async function trackSponsoredConversion(
   return true;
 }
 
-export interface AudienceCriteria {
-  cuisines: string[];
-  cities: string[];
-  minOrders: number;
-  maxDaysSinceOrder: number;
-  minAvgBasket: number;
-  favoritesOnly: boolean;
-  restaurantId?: string;
-}
-
-export const DEFAULT_AUDIENCE_CRITERIA: AudienceCriteria = {
-  cuisines: [],
-  cities: [],
-  minOrders: 0,
-  maxDaysSinceOrder: 365,
-  minAvgBasket: 0,
-  favoritesOnly: false,
-};
+export type { AudienceCriteria } from "@/lib/campaignTargeting";
+export { DEFAULT_AUDIENCE_CRITERIA } from "@/lib/campaignTargeting";
 
 export async function getAudienceEstimate(
   criteria: AudienceCriteria
 ): Promise<number> {
   try {
+    const normalized = normalizeAudienceCriteria(criteria);
     let query = supabase.from("profiles" as any).select("user_id", { count: "exact", head: true });
 
-    if (criteria.cities.length > 0) {
-      query = query.in("city", criteria.cities);
+    if (normalized.cities.length > 0) {
+      query = query.in("city", normalized.cities);
     }
 
     const { count } = await query;
     let estimate = count || 0;
 
-    if (criteria.minOrders > 0) estimate = Math.floor(estimate * 0.6);
-    if (criteria.minAvgBasket > 20) estimate = Math.floor(estimate * 0.4);
-    if (criteria.cuisines.length > 0) estimate = Math.floor(estimate * 0.5);
-    if (criteria.favoritesOnly) estimate = Math.floor(estimate * 0.15);
-    if (criteria.maxDaysSinceOrder < 30) estimate = Math.floor(estimate * 0.7);
+    if (normalized.customerSegment === "new") estimate = Math.floor(estimate * 0.45);
+    if (normalized.customerSegment === "returning") estimate = Math.floor(estimate * 0.7);
+    if (normalized.customerSegment === "loyal") estimate = Math.floor(estimate * 0.25);
+    if (normalized.customerSegment === "inactive") estimate = Math.floor(estimate * 0.2);
+    if (normalized.minOrders > 0) estimate = Math.floor(estimate * (normalized.minOrders >= 5 ? 0.35 : 0.6));
+    if (normalized.minAvgBasket > 20) estimate = Math.floor(estimate * (normalized.minAvgBasket >= 50 ? 0.3 : 0.55));
+    if (normalized.cuisines.length > 0) estimate = Math.floor(estimate * Math.max(0.2, 0.65 - (normalized.cuisines.length - 1) * 0.08));
+    if (normalized.favoritesOnly) estimate = Math.floor(estimate * 0.15);
+    if (normalized.maxDaysSinceOrder < 90) estimate = Math.floor(estimate * (normalized.maxDaysSinceOrder <= 30 ? 0.45 : 0.7));
+    if (normalized.journeyTypes.length > 0) estimate = Math.floor(estimate * Math.max(0.25, 0.75 - (normalized.journeyTypes.length - 1) * 0.1));
+    if (normalized.serviceMoments.length > 0) estimate = Math.floor(estimate * Math.max(0.4, 0.8 - (normalized.serviceMoments.length - 1) * 0.15));
 
     return Math.max(estimate, 0);
   } catch {
@@ -324,15 +568,18 @@ export async function getRestaurantCampaigns(restaurantId: string) {
 }
 
 export async function getActiveSponsoredRestaurants(page: string) {
-  const { data } = await supabase
+  const [campaignResponse, audienceSnapshot] = await Promise.all([
+    supabase
     .from("ad_campaigns" as any)
     .select("*, restaurants(*)")
     .in("type", ["boost", "banner", "sponsored"])
-    .eq("status", "active");
+      .eq("status", "active"),
+    getCurrentAudienceSnapshot(),
+  ]);
 
-  const all = (data || []) as any[];
+  const all = (campaignResponse.data || []) as any[];
   const now = Date.now();
-  return all.filter((c: any) => {
+  const activeCampaigns = all.filter((c: any) => {
     if (c.starts_at) {
       const startsAt = Date.parse(String(c.starts_at));
       if (Number.isFinite(startsAt) && startsAt > now) return false;
@@ -347,7 +594,12 @@ export async function getActiveSponsoredRestaurants(page: string) {
     if (!pages) return true;
     if (Array.isArray(pages)) return pages.length === 0 || pages.includes(page);
     return true;
+  }).filter((campaign: any) => {
+    const restaurantId = campaign?.restaurant_id || campaign?.restaurants?.id || null;
+    return matchesAudienceCriteria(campaign?.target_criteria || DEFAULT_AUDIENCE_CRITERIA, audienceSnapshot, restaurantId);
   });
+
+  return selectBudgetWeightedCampaignsForPage(activeCampaigns, page);
 }
 
 export async function createCampaign(campaign: {

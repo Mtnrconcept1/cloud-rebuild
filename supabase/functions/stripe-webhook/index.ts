@@ -47,6 +47,72 @@ Deno.serve(async (req) => {
         const orderRef = session.metadata?.order_reference;
         const userId = session.metadata?.user_id;
         const restaurantId = session.metadata?.restaurant_id;
+        const checkoutKind = session.metadata?.checkout_kind || "order";
+        const campaignId = session.metadata?.campaign_id;
+
+        if (checkoutKind === "campaign" && campaignId) {
+          // Retrieve payment method details from Stripe if possible
+          let cardBrand = "";
+          let cardLast4 = "";
+          try {
+            if (session.payment_intent && typeof session.payment_intent === "string") {
+              const pi = await stripe.paymentIntents.retrieve(session.payment_intent, {
+                expand: ["payment_method"],
+              });
+              const pm = pi.payment_method as any;
+              if (pm?.card) {
+                cardBrand = pm.card.brand;
+                cardLast4 = pm.card.last4;
+              }
+            }
+          } catch (e) {
+            console.error("Error fetching campaign payment method details:", e);
+          }
+
+          const { data: campaign } = await supabaseAdmin
+            .from("ad_campaigns")
+            .select("id, restaurant_id, title")
+            .eq("id", campaignId)
+            .maybeSingle();
+
+          if (campaign) {
+            await supabaseAdmin
+              .from("ad_campaigns")
+              .update({
+                status: "active",
+                payment_status: "paid",
+                payment_method: session.metadata?.payment_method_label || null,
+                paid_amount: (session.amount_total || 0) / 100,
+                stripe_checkout_session_id: session.id,
+                stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+                paid_at: new Date().toISOString(),
+                activated_at: new Date().toISOString(),
+              } as any)
+              .eq("id", campaign.id);
+
+            await supabaseAdmin.from("payment_transactions").insert({
+              user_id: userId,
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: typeof session.payment_intent === "string"
+                ? session.payment_intent : null,
+              amount: (session.amount_total || 0) / 100,
+              currency: (session.currency || "chf").toLowerCase(),
+              type: "charge",
+              status: "succeeded",
+              metadata: {
+                campaign_id: campaign.id,
+                campaign_title: campaign.title,
+                restaurant_id: campaign.restaurant_id,
+                checkout_kind: "campaign",
+                card_brand: cardBrand,
+                card_last4: cardLast4,
+              },
+            });
+          }
+
+          console.log(`Campaign ${campaignId} activated via Stripe session ${session.id}`);
+          break;
+        }
 
         if (!orderRef) {
           console.warn("No order_reference in session metadata");
@@ -197,10 +263,10 @@ Deno.serve(async (req) => {
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-        // Find order by stripe payment intent
+        // Find order or campaign by stripe payment intent
         const { data: txn } = await supabaseAdmin
           .from("payment_transactions")
-          .select("order_id")
+          .select("order_id, metadata")
           .eq("stripe_payment_intent_id", paymentIntent.id)
           .maybeSingle();
 
@@ -222,6 +288,17 @@ Deno.serve(async (req) => {
               failure_message: paymentIntent.last_payment_error?.message,
             },
           });
+        }
+
+        const campaignId = txn?.metadata && typeof txn.metadata === "object" && !Array.isArray(txn.metadata)
+          ? (txn.metadata as any).campaign_id
+          : null;
+
+        if (campaignId) {
+          await supabaseAdmin
+            .from("ad_campaigns")
+            .update({ payment_status: "failed" } as any)
+            .eq("id", campaignId);
         }
 
         console.log(`Payment failed for intent ${paymentIntent.id}`);

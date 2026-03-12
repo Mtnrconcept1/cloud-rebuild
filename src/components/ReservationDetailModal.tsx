@@ -56,6 +56,7 @@ const getFeatureLabel = (feature: string) => {
     case "zero-attente": return { label: "Zéro Attente", icon: Timer, color: "text-indigo-600 bg-indigo-50 border-indigo-200" };
     case "chefs_table": return { label: "Chef's Table", icon: ChefHat, color: "text-amber-600 bg-amber-50 border-amber-200" };
     case "promo-formule": return { label: "Formule promo", icon: Utensils, color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+    case "promo-offre": return { label: "Offre promo", icon: Utensils, color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
     default: return { label: "Classique", icon: Utensils, color: "text-primary bg-primary/5 border-primary/20" };
   }
 };
@@ -99,6 +100,11 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     const formulaDiscountPercent = Number(reservation.metadata.formula_discount_percent || 0);
     const formulaDiscountAmount = Number(reservation.metadata.formula_discount_amount || 0);
     const formulaName = reservation.metadata.formula_applied ? String(reservation.metadata.formula_applied) : null;
+    const promoName = reservation.metadata.promo_offer_name
+      ? String(reservation.metadata.promo_offer_name)
+      : reservation.metadata.promotion_name
+        ? String(reservation.metadata.promotion_name)
+        : null;
     if (formulaDiscountPercent > 0 || formulaDiscountAmount > 0) {
       return {
         type: "formula" as const,
@@ -110,9 +116,17 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     if (reservation.metadata.promo_discount_percent) {
       return {
         type: "promo" as const,
-        name: null,
+        name: promoName,
         discountPercent: Number(reservation.metadata.promo_discount_percent),
         discountAmount: 0,
+      };
+    }
+    if (reservation.metadata.promo_discount_value) {
+      return {
+        type: "promo" as const,
+        name: promoName,
+        discountPercent: 0,
+        discountAmount: Number(reservation.metadata.promo_discount_value),
       };
     }
     return null;
@@ -192,7 +206,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 flex items-center gap-2 text-sm text-emerald-700">
               <Utensils className="h-4 w-4" />
               <span>
-                {promoInfo.type === "formula" ? "Formule" : "Promotion"} avec <strong>-{promoInfo.discountPercent}%</strong> de réduction
+                {promoInfo.type === "formula" ? "Formule" : "Promotion"} avec <strong>{promoInfo.discountAmount > 0 && promoInfo.discountPercent <= 0 ? `-${promoInfo.discountAmount.toFixed(2)} CHF` : `-${promoInfo.discountPercent}%`}</strong> de reduction
                 {promoInfo.name ? ` (${promoInfo.name})` : ""}
               </span>
             </div>
@@ -350,3 +364,4 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     </Dialog>
   );
 }
+

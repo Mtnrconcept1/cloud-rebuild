@@ -11,8 +11,12 @@ import CampaignBanner from "@/components/CampaignBanner";
 import { Badge } from "@/components/ui/badge";
 import { trackEvent, trackSearch, getActiveSponsoredRestaurants } from "@/lib/analytics";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
+import {
+  formatRestaurantCategorySummary,
+  PREDEFINED_RESTAURANT_CATEGORIES,
+  restaurantMatchesCategoryFilter,
+} from "@/lib/restaurantCategories";
 
-const CUISINES = ["Italien", "Pizza", "Burger", "Japonais", "Sushi", "Chinois", "Indien", "Thai", "Mexicain", "Libanais", "Francais", "Suisse", "Vegetarien", "Vegan", "Poke", "Kebab", "Tacos", "Pates", "Salade", "Dessert"];
 type SortValue = "pertinence" | "note" | "promotion" | "prix" | "popularite" | "nouveaux" | "mieux_notes_mois" | "plus_reserves_mois";
 type SortDirection = "asc" | "desc";
 
@@ -112,12 +116,19 @@ function compareRestaurants(a: any, b: any, ctx: SortContext): number {
   return applyDirection(bRelevance - aRelevance || bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
 }
 
+function getRestaurantCuisineSummary(restaurant: any): string {
+  return formatRestaurantCategorySummary(
+    Array.isArray(restaurant?._categories) ? restaurant._categories.map((category: any) => category.name) : [],
+    restaurant?.cuisine_type || ""
+  );
+}
+
 /** Map DB restaurant row to RestaurantCard props */
 function toCardProps(r: any) {
   return {
     id: r.id,
     name: r.name,
-    cuisine: r.cuisine_type || "",
+    cuisine: getRestaurantCuisineSummary(r),
     rating: r.rating || 0,
     reviewCount: r.review_count || 0,
     imageUrl: r.image_url || "",
@@ -152,20 +163,78 @@ export default function Recherche() {
   const monthStartYmd = monthStartIso.slice(0, 10);
   const todayYmd = new Date().toISOString().slice(0, 10);
 
-  const { data: restaurants, isLoading } = useQuery({
-    queryKey: ["restaurants-search", cuisine, city, price, delivery, minRating10, query],
+  const { data: restaurantsBase = [], isLoading } = useQuery({
+    queryKey: ["restaurants-search-base"],
     queryFn: async () => {
-      let q = supabase.from("restaurants").select("*").eq("is_active", true);
-      if (query) q = q.or(`name.ilike.%${query}%,cuisine_type.ilike.%${query}%`);
-      if (cuisine) q = q.ilike("cuisine_type", `%${cuisine}%`);
-      if (city) q = q.ilike("city", `%${city}%`);
-      if (price) q = q.eq("price_range", Number(price));
-      if (delivery === "true") q = q.eq("delivery_available", true);
-      if (minRatingDb > 0) q = q.gte("rating", minRatingDb);
-      const { data } = await q;
+      const { data } = await supabase.from("restaurants").select("*").eq("is_active", true);
       return data || [];
     },
   });
+
+  const restaurantIds = useMemo(
+    () => (restaurantsBase || []).map((restaurant: any) => String(restaurant.id)).filter(Boolean),
+    [restaurantsBase]
+  );
+
+  const { data: cuisineOptions = [] } = useQuery({
+    queryKey: ["search-cuisine-options"],
+    queryFn: async () => {
+      const fallback = PREDEFINED_RESTAURANT_CATEGORIES.map((category) => ({
+        id: category.slug,
+        name: category.name,
+        slug: category.slug,
+        keywords: category.keywords,
+      }));
+      const { data, error } = await (supabase.from("cuisines") as any)
+        .select("id, name, slug, keywords")
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return (data?.length ? data : fallback) as any[];
+    },
+  });
+
+  const cuisineById = useMemo(() => {
+    const map = new Map<string, any>();
+    cuisineOptions.forEach((cuisineOption: any) => {
+      map.set(String(cuisineOption.id), cuisineOption);
+    });
+    return map;
+  }, [cuisineOptions]);
+
+  const { data: restaurantCuisineLinks = [] } = useQuery({
+    queryKey: ["search-restaurant-cuisines", restaurantIds],
+    queryFn: async () => {
+      if (restaurantIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("restaurant_cuisines")
+        .select("restaurant_id, cuisine_id")
+        .in("restaurant_id", restaurantIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: restaurantIds.length > 0,
+  });
+
+  const restaurantCategoriesById = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    (restaurantCuisineLinks || []).forEach((row: any) => {
+      const restaurantId = String(row.restaurant_id || "");
+      const cuisineId = String(row.cuisine_id || "");
+      const cuisineOption = cuisineById.get(cuisineId);
+      if (!restaurantId || !cuisineOption) return;
+      if (!map[restaurantId]) map[restaurantId] = [];
+      map[restaurantId].push(cuisineOption);
+    });
+    return map;
+  }, [cuisineById, restaurantCuisineLinks]);
+
+  const restaurants = useMemo(
+    () => (restaurantsBase || []).map((restaurant: any) => ({
+      ...restaurant,
+      _categories: restaurantCategoriesById[String(restaurant.id)] || [],
+    })),
+    [restaurantCategoriesById, restaurantsBase]
+  );
 
   // Search menu items by name/description to find restaurants via product search
   const { data: menuMatchedRestaurantIds = [] } = useQuery({
@@ -210,8 +279,11 @@ export default function Recherche() {
       }
       return r;
     });
-    return [...base, ...menuMatchedRestaurants];
-  }, [restaurants, menuMatchedRestaurants, menuMatchedRestaurantIds]);
+    return [...base, ...menuMatchedRestaurants].map((restaurant: any) => ({
+      ...restaurant,
+      _categories: restaurantCategoriesById[String(restaurant.id)] || restaurant._categories || [],
+    }));
+  }, [restaurants, menuMatchedRestaurants, menuMatchedRestaurantIds, restaurantCategoriesById]);
 
   const { data: monthlyReservationsByRestaurant = {} } = useQuery({
     queryKey: ["search-monthly-reservations", monthStartYmd],
@@ -287,8 +359,14 @@ export default function Recherche() {
     const name = (restaurant?.name || "").toLowerCase();
     const cuisineType = (restaurant?.cuisine_type || "").toLowerCase();
     const cityValue = (restaurant?.city || "").toLowerCase();
-    if (qText && !name.includes(qText) && !cuisineType.includes(qText)) return false;
-    if (cuisine && !cuisineType.includes(cuisine.toLowerCase())) return false;
+    const matchesCategoryText = restaurantMatchesCategoryFilter({
+      query: qText || null,
+      cuisineFilter: cuisine || null,
+      categories: restaurant?._categories || [],
+      legacyCuisineType: restaurant?.cuisine_type || null,
+    });
+    if (qText && !name.includes(qText) && !cuisineType.includes(qText) && !matchesCategoryText && !restaurant?._matchedViaMenu) return false;
+    if (cuisine && !matchesCategoryText) return false;
     if (city && !cityValue.includes(city.toLowerCase())) return false;
     if (price && Number(restaurant?.price_range || 0) !== Number(price)) return false;
     if (delivery === "true" && !restaurant?.delivery_available) return false;
@@ -305,7 +383,11 @@ export default function Recherche() {
     return { sortBy, sortDirection, query, monthlyReservationsByRestaurant, monthlyOrdersByRestaurant, promotionScoreByRestaurant };
   }, [sortBy, sortDirection, query, monthlyReservationsByRestaurant, monthlyOrdersByRestaurant, promotionScoreByRestaurant]);
 
-  const sortedOrganicCards = useMemo(() => [...(allRestaurants as any[])].sort((a, b) => compareRestaurants(a, b, sortContext)), [allRestaurants, sortContext]);
+  const filteredOrganicCards = useMemo(
+    () => (allRestaurants as any[]).filter((restaurant) => matchesFilters(restaurant)),
+    [allRestaurants, query, cuisine, city, price, delivery, minRatingDb]
+  );
+  const sortedOrganicCards = useMemo(() => [...filteredOrganicCards].sort((a, b) => compareRestaurants(a, b, sortContext)), [filteredOrganicCards, sortContext]);
   const sortedSponsoredCards = useMemo(() => [...sponsoredCards].sort((a, b) => compareRestaurants(a, b, sortContext)), [sponsoredCards, sortContext]);
   const mergedCards = useMemo(() => prioritizeSponsoredCards(sortedOrganicCards, sortedSponsoredCards, { topSlots: 3 }), [sortedOrganicCards, sortedSponsoredCards]);
 
@@ -334,7 +416,7 @@ export default function Recherche() {
           <Input placeholder="Ville..." value={city} onChange={(e) => updateFilter("city", e.target.value)} className="w-32 h-9 text-xs" />
           <Select value={cuisine} onValueChange={(v) => updateFilter("cuisine", v)}>
             <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
-            <SelectContent>{[...CUISINES].sort().map((c) => (<SelectItem key={c} value={c.toLowerCase()}>{c}</SelectItem>))}</SelectContent>
+            <SelectContent>{[...cuisineOptions].sort((a: any, b: any) => String(a.name).localeCompare(String(b.name))).map((c: any) => (<SelectItem key={c.id || c.slug || c.name} value={String(c.slug || c.name).toLowerCase()}>{c.name}</SelectItem>))}</SelectContent>
           </Select>
           <Select value={price} onValueChange={(v) => updateFilter("price", v)}>
             <SelectTrigger className="w-24 h-9 text-xs uppercase font-bold"><SelectValue placeholder="Budget" /></SelectTrigger>

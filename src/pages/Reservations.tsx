@@ -67,6 +67,7 @@ const getFeatureBadge = (feature: string) => {
     case "zero-attente": return { label: "Zéro attente", className: "border-indigo-200 text-indigo-600 bg-indigo-50" };
     case "chefs_table": return { label: "Chef's Table", className: "border-amber-200 text-amber-600 bg-amber-50" };
     case "promo-formule": return { label: "Formule promo", className: "border-emerald-200 text-emerald-600 bg-emerald-50" };
+    case "promo-offre": return { label: "Offre promo", className: "border-emerald-200 text-emerald-600 bg-emerald-50" };
     default: return null;
   }
 };
@@ -203,3 +204,4 @@ export default function Reservations() {
     </CustomerDashboardLayout>
   );
 }
+
