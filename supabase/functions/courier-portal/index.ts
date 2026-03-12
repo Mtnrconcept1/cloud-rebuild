@@ -452,7 +452,7 @@ Deno.serve(async (req) => {
             driver_phone: updatedCourier.phone,
             current_lat: lat,
             current_lng: lng,
-          });
+          }, { onConflict: "order_id" });
       }
 
       await writeAuditLog({
@@ -706,7 +706,7 @@ Deno.serve(async (req) => {
           current_lat: courier.current_lat,
           current_lng: courier.current_lng,
           estimated_arrival: estimatedArrival,
-        });
+        }, { onConflict: "order_id" });
 
       if (order.user_id) {
         await enqueueNotification({
