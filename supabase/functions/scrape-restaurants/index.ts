@@ -1,4 +1,8 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  requireRole,
+} from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,11 +15,19 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
   try {
+    const actor = await authenticateRequest(req, { allowServiceRole: false });
+    requireRole(actor, ["admin"]);
+    const body = await req.json().catch(() => ({}));
+    const ownerId = typeof body?.owner_id === "string" && body.owner_id.trim().length > 0
+      ? body.owner_id.trim()
+      : actor.userId;
+
+    if (!ownerId) {
+      throw new HttpError(400, "owner_id requis");
+    }
+
+    const supabase = actor.adminClient;
     // Check if restaurants already exist
     const { count } = await supabase.from("restaurants").select("*", { count: "exact", head: true });
     if (count && count > 0) {
@@ -25,23 +37,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create demo restaurateur
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-      email: "demo-restaurateur@bitebook.ch",
-      password: "DemoRestaurateur2024!",
-      email_confirm: true,
-      user_metadata: { full_name: "Restaurateur Démo" },
-    });
 
-    if (authError) {
-      return new Response(
-        JSON.stringify({ success: false, error: authError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const ownerId = authUser.user.id;
-    await supabase.from("user_roles").upsert({ user_id: ownerId, role: "restaurateur" }, { onConflict: "user_id,role" });
 
     // Insert all Geneva restaurants
     const restaurants = getGenevaRestaurants();
@@ -260,3 +256,4 @@ function generateMenuItems(cuisineType: string) {
     { name: "Fondant au chocolat", description: "Fondant cœur coulant, glace vanille", price: 12, category: "Desserts" },
   ];
 }
+

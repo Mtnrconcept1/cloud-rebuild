@@ -661,11 +661,7 @@ export default function BudgetAuto() {
                       >
                         <div className="flex gap-4 items-center">
                           <div className="w-20 h-20 rounded-xl bg-muted overflow-hidden shrink-0">
-                            {r.image_url ? (
-                              <img src={r.image_url} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-secondary"><Building2 className="h-8 w-8 text-muted-foreground/30" /></div>
-                            )}
+                            <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-lg leading-tight truncate group-hover:text-cyan-600 transition-colors">{r.name}</h3>

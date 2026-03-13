@@ -5,11 +5,62 @@ import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
 import { trackSponsoredClick, trackSponsoredImpression } from "@/lib/analytics";
 
+const CUISINE_FALLBACKS: Record<string, string> = {
+  italien: "/images/pasta-assortment.jpeg",
+  pizza: "/images/pasta-assortment.jpeg",
+  pâtes: "/images/pasta-assortment.jpeg",
+  japonais: "/images/poke-bowls.jpeg",
+  sushi: "/images/poke-bowls.jpeg",
+  poke: "/images/poke-bowls.jpeg",
+  burger: "/images/smash-burgers.jpeg",
+  hamburger: "/images/gourmet-burgers.jpeg",
+  français: "/images/octopus-fine-dining.jpeg",
+  gastronomique: "/images/octopus-fine-dining.jpeg",
+  chinois: "/images/thai-pad-thai.jpeg",
+  asiatique: "/images/thai-pad-thai.jpeg",
+  thaï: "/images/thai-spread.jpeg",
+  thai: "/images/thai-curry-spread.jpeg",
+  indien: "/images/indian-curry-bowls.jpeg",
+  curry: "/images/indian-curry-bowls.jpeg",
+  kebab: "/images/kebab-box-spread.jpeg",
+  turc: "/images/doner-kebab-plate.jpeg",
+  döner: "/images/doner-kebab-plate.jpeg",
+  mexicain: "/images/mixed-grill-platter.jpeg",
+  poulet: "/images/chicken-bucket-fries.jpeg",
+  chicken: "/images/crispy-chicken.jpeg",
+  rôtisserie: "/images/rotisserie-chicken.jpeg",
+  libanais: "/images/lebanese-mezze.jpeg",
+  grec: "/images/greek-gyros.jpeg",
+  méditerranéen: "/images/lebanese-mezze.jpeg",
+  poisson: "/images/lobster-roll-fries.jpeg",
+  "fruits de mer": "/images/lobster-roll-fries.jpeg",
+  américain: "/images/burgers-wings.jpeg",
+  wings: "/images/burgers-wings.jpeg",
+  "fast food": "/images/stack-shake-spread.jpeg",
+  salade: "/images/poke-bowls.jpeg",
+  healthy: "/images/poke-bowls.jpeg",
+  grill: "/images/mixed-grill-platter.jpeg",
+  viande: "/images/mixed-grill-platter.jpeg",
+  marocain: "/images/indian-feast.jpeg",
+  oriental: "/images/lebanese-mezze.jpeg",
+  default: "/images/mixed-grill-platter.jpeg",
+};
+
+function getCuisineImage(cuisine: string): string {
+  if (cuisine) {
+    const lower = cuisine.toLowerCase();
+    for (const [key, url] of Object.entries(CUISINE_FALLBACKS)) {
+      if (key !== "default" && lower.includes(key)) return url;
+    }
+  }
+  return CUISINE_FALLBACKS.default;
+}
+
 interface SponsoredRestaurantCardProps { id: string; name: string; cuisine: string; rating: number; reviewCount: number; imageUrl: string; priceRange: number; deliveryAvailable: boolean; city: string; campaignId: string; promoText?: string; promoImage?: string; }
 
 export default function SponsoredRestaurantCard({ id, name, cuisine, rating, reviewCount, imageUrl, priceRange, deliveryAvailable, city, campaignId, promoText, promoImage }: SponsoredRestaurantCardProps) {
   const navigate = useNavigate();
-  const displayImage = promoImage || imageUrl;
+  const displayImage = getCuisineImage(cuisine);
   const impressionTracked = useRef(false);
 
   useEffect(() => { if (impressionTracked.current) return; impressionTracked.current = true; trackSponsoredImpression(campaignId, id, "sponsored_restaurant_card"); }, [campaignId, id]);

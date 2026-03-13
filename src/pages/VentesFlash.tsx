@@ -285,7 +285,7 @@ export default function VentesFlash() {
                     >
                       <div className="relative">
                         <img
-                          src={offer.image_url || restaurant?.image_url || "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=300&fit=crop"}
+                          src={offer.image_url || restaurant?.image_url || "/images/mixed-grill-platter.jpeg"}
                           alt={offer.title}
                           className="w-full h-40 object-cover"
                         />

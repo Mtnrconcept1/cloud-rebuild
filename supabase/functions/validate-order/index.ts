@@ -95,33 +95,6 @@ Deno.serve(async (req) => {
       context: "cart",
     });
 
-    for (const item of items) {
-      const itemMetadata = item.metadata || {};
-      if (itemMetadata?.anti_waste_offer_id) {
-        const updated = await actor.adminClient.rpc("decrement_stock", {
-          p_table: "anti_waste_offers",
-          p_id: itemMetadata.anti_waste_offer_id,
-          p_qty: Math.floor(item.quantity || 0),
-        });
-
-        if (updated.error || !updated.data) {
-          throw new HttpError(400, "Stock anti-gaspi insuffisant ou erreur de mise a jour.");
-        }
-      }
-
-      if (itemMetadata?.flash_sale_id) {
-        const updated = await actor.adminClient.rpc("decrement_stock", {
-          p_table: "flash_sales",
-          p_id: itemMetadata.flash_sale_id,
-          p_qty: Math.floor(item.quantity || 0),
-        });
-
-        if (updated.error || !updated.data) {
-          throw new HttpError(400, "Stock vente flash insuffisant ou erreur de mise a jour.");
-        }
-      }
-    }
-
     const itemsCount = pricing.validatedItems.reduce((sum, item) => sum + item.quantity, 0);
     const itemsSummary = buildItemsSummary(
       pricing.validatedItems.map((item) => ({ quantity: item.quantity, name: item.name })),
@@ -181,7 +154,7 @@ Deno.serve(async (req) => {
       metadata: { ...(item.metadata || {}), original_item_id: item.menuItemId },
     }));
 
-    const { data: orderId, error: orderError } = await actor.userClient!.rpc(
+    const { data: orderId, error: orderError } = await actor.adminClient.rpc(
       "create_order_with_items",
       {
         restaurant_id_param: restaurant_id,
@@ -189,7 +162,10 @@ Deno.serve(async (req) => {
         delivery_fee_param: pricing.deliveryFee,
         total_amount_param: pricing.total,
         notes_param: notes || null,
-        metadata_param: authoritativeMetadata,
+        metadata_param: {
+          ...authoritativeMetadata,
+          _internal_user_id: actor.userId,
+        },
         checkout_id_param: checkoutUuid,
         items_param: itemsJson,
       },

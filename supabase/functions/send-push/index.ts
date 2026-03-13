@@ -82,6 +82,10 @@ Deno.serve(async (req) => {
   try {
     actor = await authenticateRequest(req, { allowSchedulerSecret: true });
     requireRole(actor, ["admin"]);
+    const body = await req.json().catch(() => ({}));
+    const userIdFilter = typeof body?.user_id === "string" && body.user_id.trim().length > 0
+      ? body.user_id.trim()
+      : null;
 
     const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
     if (!serviceAccountJson) {
@@ -97,13 +101,19 @@ Deno.serve(async (req) => {
     );
 
     // Fetch queued push notification deliveries
-    const { data: deliveries, error } = await supabaseAdmin
+    let deliveriesQuery = supabaseAdmin
       .from("notification_deliveries")
-      .select("*, notifications(*)")
+      .select("*, notifications!inner(*)")
       .eq("channel", "push")
       .eq("status", "queued")
       .order("created_at", { ascending: true })
       .limit(50);
+
+    if (userIdFilter) {
+      deliveriesQuery = deliveriesQuery.eq("notifications.user_id", userIdFilter);
+    }
+
+    const { data: deliveries, error } = await deliveriesQuery;
 
     if (error) throw error;
     if (!deliveries || deliveries.length === 0) {
@@ -115,7 +125,7 @@ Deno.serve(async (req) => {
         action: "process_push_queue",
         status: "success",
         targetEntityType: "notification_deliveries",
-        metadata: { processed: 0, sent: 0, failed: 0 },
+        metadata: { processed: 0, sent: 0, failed: 0, user_id: userIdFilter },
       });
       return jsonResponse({ processed: 0 }, 200, corsHeaders);
     }
@@ -249,13 +259,13 @@ Deno.serve(async (req) => {
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,
-      request: req,
-      functionName: "send-push",
-      action: "process_push_queue",
-      status: "success",
-      targetEntityType: "notification_deliveries",
-      metadata: { processed: deliveries.length, sent, failed },
-    });
+        request: req,
+        functionName: "send-push",
+        action: "process_push_queue",
+        status: "success",
+        targetEntityType: "notification_deliveries",
+        metadata: { processed: deliveries.length, sent, failed, user_id: userIdFilter },
+      });
 
     return jsonResponse({ processed: deliveries.length, sent, failed }, 200, corsHeaders);
   } catch (error) {

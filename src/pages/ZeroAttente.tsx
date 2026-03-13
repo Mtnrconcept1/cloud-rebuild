@@ -16,7 +16,6 @@ import ReservationDetailModal from "@/components/ReservationDetailModal";
 import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
 import { formatMissingCoursesText, roundCurrency } from "@/lib/meal-formulas";
-import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { trackSponsoredConversion } from "@/lib/analytics";
 
 type Step = "info" | "restaurant" | "menu" | "payment" | "confirm";
@@ -165,25 +164,31 @@ export default function ZeroAttente() {
         price: pi.unit_price,
         quantity: pi.quantity,
         restaurant_name: selectedRestaurant.name,
+        restaurant_id: selectedRestaurant.id,
         menu_item_id: pi.menu_item_id,
         metadata: {},
       }));
 
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
         body: {
+          checkout_kind: "zero-attente",
           items: stripeItems,
           payment_method: paymentMethod,
           return_url: `${window.location.origin}/zero-attente`,
           order_metadata: {
+            checkout_kind: "zero-attente",
             restaurant_id: selectedRestaurant.id,
             order_reference: `ZA-${Date.now()}`,
             delivery_fee: 0,
+            arrival_date: arrivalDate,
+            arrival_time: arrivalTime,
+            party_size: partySize,
             formula_applied: pricingForCheckout.formulaName,
             formula_discount: pricingForCheckout.formulaDiscount,
             formula_discount_amount: pricingForCheckout.formulaDiscount,
             formula_discount_percent: pricingForCheckout.formulaDiscountPercent,
             pre_discount_subtotal: pricingForCheckout.subtotal,
-            final_total: pricingForCheckout.total,
+            authoritative_total: pricingForCheckout.total,
             discount_amount: pricingForCheckout.formulaDiscount,
           },
         },
@@ -194,36 +199,76 @@ export default function ZeroAttente() {
         toast({ title: "Erreur paiement", description: checkoutError?.message || "Impossible de créer la session de paiement.", variant: "destructive" });
         return;
       }
-
-      // Save reservation data to sessionStorage so we can create it after payment
-      sessionStorage.setItem("zero-attente-pending", JSON.stringify({
-        restaurantId: selectedRestaurant.id,
-        restaurantName: selectedRestaurant.name,
-        arrivalDate,
-        arrivalTime,
-        partySize,
-        preorderItems,
-        pricing: pricingForCheckout,
-        paymentMethod,
-      }));
-
       // Redirect to Stripe
       window.location.href = checkoutData.url;
       return;
     }
 
-    // Cash payment: create reservation directly
-    await createReservation(preorderItems, pricingForCheckout);
+    setLoading(false);
+    toast({
+      title: "Paiement requis",
+      description: "Zero Attente n'accepte que les paiements securises a l'avance.",
+      variant: "destructive",
+    });
   };
 
-  const createReservation = async (
-    preorderItems: any[],
-    pricing: PricingSummary,
-    checkoutSessionId?: string,
-    cardMeta?: { card_brand?: string | null; card_last4?: string | null },
-    paidOverride?: boolean
-  ) => {
-    const paid = typeof paidOverride === "boolean" ? paidOverride : paymentMethod !== "cash";
+  const completePaidReservation = async (checkoutSessionId: string) => {
+    setLoading(true);
+    const { data, error } = await supabase.functions.invoke("create-zero-attente-reservation", {
+      body: { session_id: checkoutSessionId },
+    });
+
+    setLoading(false);
+
+    if (error || data?.error) {
+      toast({
+        title: "Erreur",
+        description: error?.message || String(data?.error || "Creation de reservation impossible."),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reservationIdValue = String(data?.reservation_id || "");
+    const restaurantIdValue = String(data?.restaurant_id || selectedRestaurant?.id || "");
+    const restoredQuantities = Array.isArray(data?.preorder_items)
+      ? data.preorder_items.reduce((acc: Record<string, number>, item: any) => {
+        if (item?.menu_item_id) acc[item.menu_item_id] = Number(item.quantity || 0);
+        return acc;
+      }, {})
+      : {};
+
+    setSelectedRestaurant((current) => current || {
+      id: restaurantIdValue,
+      name: data?.restaurant_name || "",
+    });
+    setArrivalDate(String(data?.arrival_date || arrivalDate));
+    setArrivalTime(String(data?.arrival_time || arrivalTime));
+    setPartySize(Number(data?.party_size || partySize));
+    setPaymentMethod((data?.payment_method as PaymentMethodId) || "card");
+    setQuantities(restoredQuantities);
+    setConfirmedPricing({
+      count: Array.isArray(data?.preorder_items)
+        ? data.preorder_items.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0)
+        : 0,
+      subtotal: roundCurrency(Number(data?.pre_discount_subtotal || 0)),
+      formulaDiscount: roundCurrency(Number(data?.formula_discount_amount || 0)),
+      formulaDiscountPercent: roundCurrency(Number(data?.formula_discount_percent || 0)),
+      formulaName: data?.formula_applied || null,
+      total: roundCurrency(Number(data?.total_amount || 0)),
+    });
+    setReservationId(reservationIdValue);
+    setStep("confirm");
+
+    if (restaurantIdValue) {
+      await trackSponsoredConversion(restaurantIdValue, {
+        conversionType: "zero-attente",
+        entityId: reservationIdValue || null,
+        paymentMethod: (data?.payment_method as PaymentMethodId) || paymentMethod,
+      });
+    }
+
+    /*
     const { data, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
       p_restaurant_id: selectedRestaurant.id,
       p_date: arrivalDate,
@@ -268,6 +313,7 @@ export default function ZeroAttente() {
       setReservationId(data);
       setStep("confirm");
     }
+    */
   };
 
   // Handle return from Stripe
@@ -276,6 +322,15 @@ export default function ZeroAttente() {
     const status = params.get("status");
     const sessionId = params.get("session_id");
 
+    if (status === "success" && sessionId) {
+      void completePaidReservation(sessionId);
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (status === "cancelled") {
+      toast({ title: "Paiement annulÃ©", description: "Vous pouvez rÃ©essayer.", variant: "destructive" });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    /*
     if (status === "success" && sessionId) {
       const pending = sessionStorage.getItem("zero-attente-pending");
       if (pending) {
@@ -368,6 +423,7 @@ export default function ZeroAttente() {
       toast({ title: "Paiement annulé", description: "Vous pouvez réessayer.", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
     }
+    */
   }, []);
 
   const handleGoToReservations = () => {
@@ -401,7 +457,7 @@ export default function ZeroAttente() {
     metadata: {
       feature: "zero-attente",
       payment_method: paymentMethod,
-      paid: paymentMethod !== "cash",
+      paid: true,
       pre_discount_subtotal: displayPricing.subtotal,
       formula_applied: displayPricing.formulaName,
       formula_discount_amount: displayPricing.formulaDiscount,
@@ -488,7 +544,7 @@ export default function ZeroAttente() {
                     onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }}
                     className="text-left rounded-xl border-2 overflow-hidden hover:border-indigo-500/30 border-border transition-all"
                   >
-                    <img src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop"} alt={r.name} className="w-full h-32 object-cover" />
+                    <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-32 object-cover" />
                     <div className="p-3">
                       <p className="font-bold text-sm">{r.name}</p>
                       <p className="text-xs text-muted-foreground">{r.cuisine_type} · {r.city}</p>
@@ -630,7 +686,11 @@ export default function ZeroAttente() {
               </div>
 
               {/* Payment method selector */}
-              <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
+              <PaymentMethodSelector
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                allowedMethods={["card", "twint", "postfinance_card", "postfinance_efinance"]}
+              />
 
               <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-700">
                 <strong>Paiement à l'avance requis</strong> — Le Zéro Attente nécessite un prépaiement pour garantir la synchronisation avec le chef.

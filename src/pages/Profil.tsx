@@ -236,7 +236,7 @@ export default function Profil() {
                 const r = f.restaurants as any;
                 return (
                   <Link key={f.id} to={`/restaurant/${r?.id}`} className="flex items-center gap-4 p-3 border rounded-xl bg-card hover:bg-accent transition-colors">
-                    <img src={r?.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop"} alt={r?.name} className="w-12 h-12 rounded-lg object-cover" />
+                    <img src={r?.image_url || "/images/kebab-box-spread.jpeg"} alt={r?.name} className="w-12 h-12 rounded-lg object-cover" />
                     <div>
                       <p className="font-semibold text-sm">{r?.name}</p>
                       <p className="text-xs text-muted-foreground">{r?.cuisine_type} · {r?.city}</p>

@@ -249,7 +249,7 @@ export default function MatchGroupes() {
                       return (
                         <div key={group.id} className="rounded-xl border-2 overflow-hidden border-border hover:border-violet-500/30 transition-all">
                           <div className="flex gap-4 p-4">
-                            <img src={res?.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop"} alt={res?.name} className="w-20 h-20 rounded-lg object-cover shrink-0" />
+                            <img src={res?.image_url || "/images/kebab-box-spread.jpeg"} alt={res?.name} className="w-20 h-20 rounded-lg object-cover shrink-0" />
                             <div className="flex-1 min-w-0 space-y-1.5">
                               <div className="flex items-center justify-between">
                                 <h3 className="font-bold">{res?.name}</h3>
@@ -305,7 +305,7 @@ export default function MatchGroupes() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {restaurants?.map((r: any) => (
                     <button key={r.id} onClick={() => handleCreateGroup(r)} className="text-left rounded-xl border-2 overflow-hidden hover:border-violet-500/30 border-border transition-all">
-                      <img src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop"} alt={r.name} className="w-full h-32 object-cover" />
+                      <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-32 object-cover" />
                       <div className="p-3">
                         <p className="font-bold text-sm">{r.name}</p>
                         <p className="text-xs text-muted-foreground">{r.cuisine_type} · {r.city}</p>

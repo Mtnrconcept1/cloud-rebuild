@@ -25,35 +25,91 @@ interface RestaurantCardProps {
 }
 
 const CUISINE_FALLBACKS: Record<string, string> = {
-  italien: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=450&fit=crop",
-  pizza: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=450&fit=crop",
-  japonais: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&h=450&fit=crop",
-  sushi: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&h=450&fit=crop",
-  burger: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=450&fit=crop",
-  hamburger: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=450&fit=crop",
-  français: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=450&fit=crop",
-  chinois: "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=600&h=450&fit=crop",
-  mexicain: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=450&fit=crop",
-  indien: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&h=450&fit=crop",
-  thaï: "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4?w=600&h=450&fit=crop",
-  kebab: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=600&h=450&fit=crop",
-  café: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&h=450&fit=crop",
-  salade: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=450&fit=crop",
-  dessert: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=600&h=450&fit=crop",
-  default: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=450&fit=crop",
+  // Italien / Pizza / Pâtes
+  italien: "/images/pasta-assortment.jpeg",
+  pizza: "/images/pasta-assortment.jpeg",
+  pâtes: "/images/pasta-assortment.jpeg",
+  pasta: "/images/pasta-assortment.jpeg",
+  // Japonais / Sushi / Poké
+  japonais: "/images/poke-bowls.jpeg",
+  sushi: "/images/poke-bowls.jpeg",
+  poke: "/images/poke-bowls.jpeg",
+  // Burgers
+  burger: "/images/smash-burgers.jpeg",
+  hamburger: "/images/gourmet-burgers.jpeg",
+  smash: "/images/smash-burger-single.jpeg",
+  // Français / Gastronomique
+  français: "/images/octopus-fine-dining.jpeg",
+  gastronomique: "/images/octopus-fine-dining.jpeg",
+  "fine dining": "/images/octopus-fine-dining.jpeg",
+  // Asiatique / Chinois
+  chinois: "/images/thai-pad-thai.jpeg",
+  asiatique: "/images/thai-pad-thai.jpeg",
+  vietnamien: "/images/thai-pad-thai.jpeg",
+  // Thaï
+  thaï: "/images/thai-spread.jpeg",
+  thai: "/images/thai-curry-spread.jpeg",
+  // Indien
+  indien: "/images/indian-curry-bowls.jpeg",
+  indian: "/images/indian-feast.jpeg",
+  curry: "/images/indian-curry-bowls.jpeg",
+  // Kebab / Turc / Döner
+  kebab: "/images/kebab-box-spread.jpeg",
+  turc: "/images/doner-kebab-plate.jpeg",
+  döner: "/images/doner-kebab-plate.jpeg",
+  doner: "/images/doner-kebab-plate.jpeg",
+  // Mexicain / Tex-Mex
+  mexicain: "/images/mixed-grill-platter.jpeg",
+  "tex-mex": "/images/mixed-grill-platter.jpeg",
+  // Poulet / Chicken
+  poulet: "/images/chicken-bucket-fries.jpeg",
+  chicken: "/images/crispy-chicken.jpeg",
+  rôtisserie: "/images/rotisserie-chicken.jpeg",
+  // Méditerranéen / Libanais / Grec
+  libanais: "/images/lebanese-mezze.jpeg",
+  grec: "/images/greek-gyros.jpeg",
+  méditerranéen: "/images/lebanese-mezze.jpeg",
+  mediterrane: "/images/greek-gyros.jpeg",
+  // Fruits de mer / Poisson
+  poisson: "/images/lobster-roll-fries.jpeg",
+  "fruits de mer": "/images/lobster-roll-fries.jpeg",
+  seafood: "/images/lobster-roll-fries.jpeg",
+  // Américain / Fast-food / Wings
+  américain: "/images/burgers-wings.jpeg",
+  wings: "/images/burgers-wings.jpeg",
+  "fast food": "/images/stack-shake-spread.jpeg",
+  "fast-food": "/images/stack-shake-spread.jpeg",
+  // Salade / Healthy / Bowl
+  salade: "/images/poke-bowls.jpeg",
+  healthy: "/images/poke-bowls.jpeg",
+  bowl: "/images/poke-bowls.jpeg",
+  // Grill / Viande / BBQ
+  grill: "/images/mixed-grill-platter.jpeg",
+  viande: "/images/mixed-grill-platter.jpeg",
+  bbq: "/images/mixed-grill-platter.jpeg",
+  // Marocain / Oriental
+  marocain: "/images/indian-feast.jpeg",
+  oriental: "/images/lebanese-mezze.jpeg",
+  // Café / Dessert
+  café: "/images/lobster-roll-fries.jpeg",
+  dessert: "/images/gfc-fried-chicken.jpeg",
+  // Default
+  default: "/images/mixed-grill-platter.jpeg",
 };
 
 function getImageUrl(imageUrl: string, cuisine: string): string {
-  if (imageUrl && !imageUrl.includes("unsplash.com/photo-1517248135467")) {
-    return imageUrl;
-  }
+  // Always use local cuisine-based images — no external URLs
   if (cuisine) {
     const lower = cuisine.toLowerCase();
     for (const [key, url] of Object.entries(CUISINE_FALLBACKS)) {
-      if (lower.includes(key)) return url;
+      if (key !== "default" && lower.includes(key)) return url;
     }
   }
-  return imageUrl || CUISINE_FALLBACKS.default;
+  // If imageUrl is already a local /images/ path, use it
+  if (imageUrl && imageUrl.startsWith("/images/")) {
+    return imageUrl;
+  }
+  return CUISINE_FALLBACKS.default;
 }
 
 function getNextTimeSlots(): string[] {

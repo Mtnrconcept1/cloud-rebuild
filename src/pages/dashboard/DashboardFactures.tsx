@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { Download, FileText, Euro, Settings, RefreshCcw, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAuth } from "@/lib/auth";
 
 type Invoice = {
   id: string;
@@ -51,6 +52,7 @@ const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondar
 
 export default function DashboardFactures() {
   const { toast } = useToast();
+  const { roles } = useAuth();
   const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [settings, setSettings] = useState<Record<string, InvoiceSettings>>({});
@@ -58,6 +60,7 @@ export default function DashboardFactures() {
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
+  const isAdmin = roles.includes("admin");
 
   const load = async () => {
     if (!restaurantIds.length) return setLoading(false);
@@ -83,9 +86,13 @@ export default function DashboardFactures() {
 
   const generateInvoices = async () => {
     setGenerating(true);
-    const { data, error } = await supabase.rpc("generate_monthly_invoices");
-    if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-    else { toast({ title: `${data} facture(s) générée(s)` }); load(); }
+    const { data, error } = await supabase.functions.invoke("generate-invoices", { body: {} });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${Number(data?.generated || 0)} facture(s) generee(s)` });
+      load();
+    }
     setGenerating(false);
   };
 
@@ -107,10 +114,12 @@ export default function DashboardFactures() {
             <Button variant="outline" size="sm" asChild>
               <Link to="/dashboard/factures/parametres"><Settings className="h-4 w-4 mr-1" /> Personnaliser</Link>
             </Button>
-            <Button size="sm" onClick={generateInvoices} disabled={generating}>
-              <RefreshCcw className={`h-4 w-4 mr-1 ${generating ? "animate-spin" : ""}`} />
-              Générer factures
-            </Button>
+            {isAdmin ? (
+              <Button size="sm" onClick={generateInvoices} disabled={generating}>
+                <RefreshCcw className={`h-4 w-4 mr-1 ${generating ? "animate-spin" : ""}`} />
+                Generer factures
+              </Button>
+            ) : null}
           </div>
         </div>
 
@@ -174,14 +183,18 @@ export default function DashboardFactures() {
                         <a href={inv.pdf_url} target="_blank" rel="noreferrer"><Download className="h-4 w-4 mr-1" />PDF</a>
                       </Button>
                     )}
-                    {inv.status !== "paid" && (
+                    {isAdmin && inv.status !== "paid" && (
                       <Button size="sm" onClick={async () => {
                         const { error } = await supabase
                           .from("restaurant_invoices")
                           .update({ status: "paid", paid_at: new Date().toISOString() })
                           .eq("id", inv.id);
-                        if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
-                        else { toast({ title: "Facture marquée comme payée" }); load(); }
+                        if (error) {
+                          toast({ title: "Erreur", description: error.message, variant: "destructive" });
+                        } else {
+                          toast({ title: "Facture marquee comme payee" });
+                          load();
+                        }
                       }}>
                         Marquer payée
                       </Button>
@@ -283,3 +296,4 @@ function InvoicePreview({ invoice, settings, restaurantName }: { invoice: Invoic
     </div>
   );
 }
+

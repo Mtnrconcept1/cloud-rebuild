@@ -86,6 +86,10 @@ Deno.serve(async (req) => {
   try {
     actor = await authenticateRequest(req, { allowSchedulerSecret: true });
     requireRole(actor, ["admin"]);
+    const body = await req.json().catch(() => ({}));
+    const userIdFilter = typeof body?.user_id === "string" && body.user_id.trim().length > 0
+      ? body.user_id.trim()
+      : null;
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -93,20 +97,28 @@ Deno.serve(async (req) => {
     );
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
-    const { data: emails, error } = await supabaseAdmin
-      .from("email_queue")
-      .select("*")
-      .eq("status", "queued")
-      .order("created_at", { ascending: true })
-      .limit(10);
+    const { data: emails, error } = userIdFilter
+      ? { data: [], error: null }
+      : await supabaseAdmin
+        .from("email_queue")
+        .select("*")
+        .eq("status", "queued")
+        .order("created_at", { ascending: true })
+        .limit(10);
 
-    const { data: notificationEmails, error: notificationEmailError } = await supabaseAdmin
+    let notificationQuery = supabaseAdmin
       .from("notification_deliveries")
-      .select("id, target, notifications(*)")
+      .select("id, target, notifications!inner(*)")
       .eq("channel", "email")
       .eq("status", "queued")
       .order("created_at", { ascending: true })
       .limit(10);
+
+    if (userIdFilter) {
+      notificationQuery = notificationQuery.eq("notifications.user_id", userIdFilter);
+    }
+
+    const { data: notificationEmails, error: notificationEmailError } = await notificationQuery;
 
     if (error) throw error;
     if (notificationEmailError) throw notificationEmailError;
@@ -124,6 +136,7 @@ Deno.serve(async (req) => {
           queued_processed: 0,
           notification_processed: 0,
           processed: 0,
+          user_id: userIdFilter,
         },
       });
       return jsonResponse({ processed: 0 }, 200, corsHeaders);
@@ -208,6 +221,7 @@ Deno.serve(async (req) => {
         queued_processed: queuedProcessed,
         notification_processed: notificationProcessed,
         processed: queuedProcessed + notificationProcessed,
+        user_id: userIdFilter,
       },
     });
 

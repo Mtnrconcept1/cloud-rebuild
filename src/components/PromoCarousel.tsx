@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 
 const PROMOS = [
-  { title: "Offres Anti-Gaspi", desc: "Sauvez des repas délicieux à prix réduit.", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=400&fit=crop", link: "/anti-gaspi", badge: "Populaire", icon: Zap, color: "from-emerald-500 to-teal-700" },
-  { title: "Programme Fidélité", desc: "Gagnez des Miamz à chaque commande.", img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop", link: "/profil", badge: "Nouveau", icon: Sparkles, color: "from-primary to-orange-700" },
-  { title: "Chef's Table", desc: "Découvrez des plats exclusifs en édition limitée.", img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&h=400&fit=crop", link: "/chefs-table", badge: "Exclusif", icon: Target, color: "from-indigo-500 to-purple-700" },
+  { title: "Offres Anti-Gaspi", desc: "Sauvez des repas délicieux à prix réduit.", img: "/images/lebanese-mezze.jpeg", link: "/anti-gaspi", badge: "Populaire", icon: Zap, color: "from-emerald-500 to-teal-700" },
+  { title: "Programme Fidélité", desc: "Gagnez des Miamz à chaque commande.", img: "/images/mixed-grill-platter.jpeg", link: "/profil", badge: "Nouveau", icon: Sparkles, color: "from-primary to-orange-700" },
+  { title: "Chef's Table", desc: "Découvrez des plats exclusifs en édition limitée.", img: "/images/octopus-fine-dining.jpeg", link: "/chefs-table", badge: "Exclusif", icon: Target, color: "from-indigo-500 to-purple-700" },
 ];
 
 export default function PromoCarousel() {

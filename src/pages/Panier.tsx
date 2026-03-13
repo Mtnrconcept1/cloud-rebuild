@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import FormulaDetector from "@/components/FormulaDetector";
 import PromotionDetector from "@/components/PromotionDetector";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { generateOrderReference, sendOrderConfirmationEmail } from "@/lib/email-service";
+import { generateOrderReference } from "@/lib/email-service";
 import AddressAutocomplete, { type AddressSelection } from "@/components/AddressAutocomplete";
 import { trackSponsoredConversion, trackEvent, trackCheckoutEvent } from "@/lib/analytics";
 import {
@@ -450,14 +450,6 @@ export default function Panier() {
         queryClient.invalidateQueries({ queryKey: ["donated-meals-total"] });
         queryClient.invalidateQueries({ queryKey: ["donated-points-total"] });
       }
-
-      await sendOrderConfirmationEmail({
-        orderReference, restaurantName: items[0]?.restaurantName || "Restaurant partenaire",
-        items: items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
-        subtotal: total, deliveryFee, formulaDiscount, formulaName, pointsDiscount, finalTotal,
-        customerEmail: user.email || "client@miamz.ch",
-        metadata: { feature: "standard", delivery_address: address || null, payment_method: paymentMethod },
-      });
 
       toast({ title: "Commandes confirmées !", description: resCount > 1 ? `Vos ${resCount} commandes ont été synchronisées. Réf: ${orderReference}` : `Votre commande est en cours de préparation. Réf: ${orderReference}` });
       navigate(firstOrderId ? `/commande/${firstOrderId}` : "/commandes");

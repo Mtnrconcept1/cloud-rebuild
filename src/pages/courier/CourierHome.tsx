@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
 import CourierPushStatusCard from "@/components/courier/CourierPushStatusCard";
-import NotificationTestPanel from "@/components/NotificationTestPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -316,8 +315,6 @@ export default function CourierHome() {
 
           <div className="space-y-6">
             <CourierPushStatusCard />
-
-            <NotificationTestPanel />
 
             <Card>
               <CardHeader>

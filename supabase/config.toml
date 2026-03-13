@@ -1,28 +1,28 @@
 project_id = "rgzqxttqwmaylrzxlzob"
 
 [functions.scrape-restaurants]
-verify_jwt = false
+verify_jwt = true
 
 [functions.enrich-restaurants]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-invoices]
 verify_jwt = false
 
 [functions.validate-order]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-email]
 verify_jwt = false
 
 [functions.restaurant-advisor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-campaign]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-checkout]
-verify_jwt = false
+verify_jwt = true
 
 [functions.stripe-webhook]
 verify_jwt = false
@@ -37,10 +37,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.courier-portal]
-verify_jwt = false
+verify_jwt = true
 
 [functions.notification-dispatch]
 verify_jwt = false
 
 [functions.restaurant-order-status]
-verify_jwt = false
+verify_jwt = true

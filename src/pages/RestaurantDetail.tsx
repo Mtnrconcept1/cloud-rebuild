@@ -140,7 +140,7 @@ export default function RestaurantDetail() {
       <div className="relative h-72 md:h-96">
         <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white border-white/10" onClick={() => navigate('/')}><ArrowLeft className="h-5 w-5" /></Button>
         <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white border-white/10" onClick={toggleFavorite}><Heart className={isFavorite ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5"} /></Button>
-        <img src={restaurant.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=600&fit=crop"} alt={restaurant.name} className="w-full h-full object-cover" />
+        <img src={restaurant.image_url || "/images/kebab-box-spread.jpeg"} alt={restaurant.name} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="container">

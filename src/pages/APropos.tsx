@@ -14,7 +14,7 @@ export default function APropos() {
           <p className="text-foreground/80 leading-relaxed text-lg">Notre plateforme valorise le savoir-faire des chefs, optimise la gestion des stocks et offre une expérience utilisateur fluide et personnalisée.</p>
         </div>
         <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl">
-          <img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&q=80" alt="Restaurant Kitchen" className="object-cover w-full h-full" />
+          <img src="/images/mixed-grill-platter.jpeg" alt="Restaurant Kitchen" className="object-cover w-full h-full" />
         </div>
       </section>
       <section className="bg-secondary/30 rounded-3xl p-8 md:p-12 space-y-12">

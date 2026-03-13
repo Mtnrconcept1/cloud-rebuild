@@ -21,6 +21,7 @@ type TriggerDispatchInput = {
   push?: boolean;
   email?: boolean;
   source?: string;
+  userId?: string;
 };
 
 export async function enqueueNotification(input: EnqueueNotificationInput) {
@@ -42,7 +43,10 @@ export async function enqueueNotification(input: EnqueueNotificationInput) {
   return data as string | null;
 }
 
-async function callDispatcher(functionName: "send-push" | "send-email", source?: string) {
+async function callDispatcher(
+  functionName: "send-push" | "send-email",
+  input: { source?: string; userId?: string } = {},
+) {
   const baseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -54,7 +58,10 @@ async function callDispatcher(functionName: "send-push" | "send-email", source?:
       "Content-Type": "application/json",
       Authorization: `Bearer ${serviceRoleKey}`,
     },
-    body: JSON.stringify({ source: source || "notifications" }),
+    body: JSON.stringify({
+      source: input.source || "notifications",
+      user_id: input.userId || null,
+    }),
   });
 
   if (!response.ok) {
@@ -67,11 +74,17 @@ export async function triggerNotificationDispatch(input: TriggerDispatchInput = 
   const tasks: Promise<void>[] = [];
 
   if (input.push !== false) {
-    tasks.push(callDispatcher("send-push", input.source));
+    tasks.push(callDispatcher("send-push", {
+      source: input.source,
+      userId: input.userId,
+    }));
   }
 
   if (input.email === true) {
-    tasks.push(callDispatcher("send-email", input.source));
+    tasks.push(callDispatcher("send-email", {
+      source: input.source,
+      userId: input.userId,
+    }));
   }
 
   await Promise.all(tasks);

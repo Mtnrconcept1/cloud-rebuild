@@ -41,7 +41,7 @@ export default function RestaurantSection({ title, subtitle, icon: Icon, iconCol
                 cuisine={r.cuisine_type || ""}
                 rating={Number(r.rating) || 0}
                 reviewCount={r.review_count || 0}
-                imageUrl={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=450&fit=crop"}
+                imageUrl={r.image_url || ""}
                 priceRange={r.price_range || 2}
                 deliveryAvailable={r.delivery_available || false}
                 city={r.city}

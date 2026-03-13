@@ -76,11 +76,21 @@ Deno.serve(async (req) => {
       checkout_group_id: String(order_metadata?.checkout_group_id || ""),
       formula_applied: String(order_metadata?.formula_applied || ""),
       formula_discount_amount: "0.00",
+      formula_discount_percent: String(order_metadata?.formula_discount_percent || ""),
       promo_applied: "",
       promo_discount_amount: "0.00",
       points_discount_amount: "0.00",
       flex_discount_amount: "0.00",
       authoritative_total: "0.00",
+      pre_discount_subtotal: String(order_metadata?.pre_discount_subtotal || ""),
+      arrival_date: String(order_metadata?.arrival_date || ""),
+      arrival_time: String(order_metadata?.arrival_time || ""),
+      party_size: String(order_metadata?.party_size || ""),
+      delivery_date: String(order_metadata?.delivery_date || ""),
+      delivery_time: String(order_metadata?.delivery_time || ""),
+      pickup_date: String(order_metadata?.pickup_date || ""),
+      pickup_time: String(order_metadata?.pickup_time || ""),
+      scheduled_delivery_label: String(order_metadata?.scheduled_delivery_label || ""),
     };
 
     if (effectiveKind === "campaign") {
@@ -216,6 +226,12 @@ Deno.serve(async (req) => {
             product_data: {
               name: item.name,
               description: item.source === "menu_item" ? undefined : item.source,
+              metadata: {
+                menu_item_id: String(item.menuItemId || ""),
+                source: String(item.source || ""),
+                anti_waste_offer_id: String(item.metadata?.anti_waste_offer_id || ""),
+                flash_sale_id: String(item.metadata?.flash_sale_id || ""),
+              },
             },
             unit_amount: Math.round(item.unitPrice * 100),
           },

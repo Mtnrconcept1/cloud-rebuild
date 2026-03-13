@@ -319,7 +319,7 @@ export default function Abonnement() {
                       >
                         <div className="flex items-center gap-2">
                           <img
-                            src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop"}
+                            src={r.image_url || "/images/kebab-box-spread.jpeg"}
                             alt={r.name}
                             className="w-10 h-10 rounded-lg object-cover shrink-0"
                           />

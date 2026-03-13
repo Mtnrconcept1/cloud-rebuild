@@ -60,7 +60,7 @@ export default function ChefsTable() {
         totalPortions: drop.total_portions,
         remaining: drop.remaining_portions,
         endsIn: Math.floor((new Date(drop.drop_time).getTime() - Date.now()) / 60000),
-        image: drop.image_url || drop.restaurants?.image_url || "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=800",
+        image: drop.image_url || drop.restaurants?.image_url || "/images/octopus-fine-dining.jpeg",
         rating: Number(drop.restaurants?.rating) || 4.5,
         tags: [drop.restaurants?.cuisine_type || "Exclusif", "Signature"],
         dropTime: drop.drop_time,

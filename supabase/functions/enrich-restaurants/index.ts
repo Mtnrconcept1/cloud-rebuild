@@ -1,4 +1,9 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  requireRole,
+} from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,11 +60,10 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
   try {
+    const actor = await authenticateRequest(req, { allowServiceRole: false });
+    requireRole(actor, ["admin"]);
+    const supabase = actor.adminClient;
     const body = await req.json().catch(() => ({}));
     const mode = body.mode || "reviews"; // "reviews" or "photos"
     
@@ -312,15 +316,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: false, error: "Invalid mode. Use 'reviews', 'photos' or 'product_photos'" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    return jsonResponse(
+      { success: false, error: "Invalid mode. Use 'reviews', 'photos' or 'product_photos'" },
+      400,
+      corsHeaders,
     );
   } catch (error) {
     console.error("Error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    return jsonResponse(
+      { success: false, error: error instanceof Error ? error.message : "Unknown error" },
+      error instanceof HttpError ? error.status : 500,
+      corsHeaders,
     );
   }
 });

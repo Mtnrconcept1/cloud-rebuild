@@ -200,7 +200,7 @@ export default function AdminRestaurants() {
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
                   <div className="flex min-w-0 flex-1 items-start gap-4">
                     <img
-                      src={restaurant.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&h=200&fit=crop"}
+                      src={restaurant.image_url || "/images/kebab-box-spread.jpeg"}
                       alt={restaurant.name}
                       className="h-16 w-16 rounded-xl object-cover"
                     />

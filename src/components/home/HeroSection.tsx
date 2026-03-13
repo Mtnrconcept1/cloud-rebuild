@@ -29,19 +29,19 @@ export default function HeroSection() {
   return (
     <section ref={heroRef} className="relative overflow-hidden border-b dark:border-white/10">
       <div
-        className="absolute inset-0 bg-[url('/fond4.png')] -translate-y-1/2 bg-cover bg-center opacity-95 dark:opacity-40 blur-[2.7px] will-change-transform"
+        className="absolute inset-0 bg-[url('/fond3.png')] -translate-y-1/2 bg-cover bg-center opacity-95 dark:opacity-40 blur-[1.7px] will-change-transform"
         style={{ transform: "translateY(calc(var(--scroll-y, 0px) * 0.4))" }}
         aria-hidden="true"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-white/70 dark:from-slate-950/20 dark:via-slate-950/46 dark:to-slate-950/90 pointer-events-none" />
       <div
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[350px] w-[350px] rounded-full bg-white/70 dark:bg-primary/15 blur-[30px] pointer-events-none will-change-transform md:h-[600px] md:w-[600px]"
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[350px] w-[350px] rounded-full bg-white/70 dark:bg-primary/15 blur-[20px] pointer-events-none will-change-transform md:h-[600px] md:w-[600px]"
         style={{ transform: "translate(calc(-50% + var(--scroll-y, 0px) * -0.1), calc(-50% + var(--scroll-y, 0px) * 0.2))" }}
       />
       <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.10)] dark:shadow-[inset_0_0_180px_rgba(2,6,23,0.82)] pointer-events-none" />
 
       <div
-        className="container relative flex flex-col items-center space-y-6 px-4 py-14 text-center will-change-transform md:space-y-8 md:py-20"
+        className="container relative flex flex-col items-center space-y-9 px-4 py-14 text-center will-change-transform md:space-y-24 md:py-20"
         style={{ transform: "translateY(calc(var(--scroll-y, 0px) * -0.15))" }}
       >
         <img src="/logo.png" alt="Deliveroom" className="h-28 w-auto object-contain drop-shadow-lg sm:h-36 md:h-48" />
@@ -51,7 +51,7 @@ export default function HeroSection() {
             <span className="newspaper-snippet">Commandez malin,</span>
             <span className="italic text-primary">mangez bien.</span>
           </h1>
-          <p className="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl">
+          <p className="mx-auto max-w-2xl font-extrabold text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl">
             Le reflexe food... simple, rentable, solidaire !
           </p>
         </div>

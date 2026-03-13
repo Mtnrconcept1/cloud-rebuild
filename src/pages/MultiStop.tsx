@@ -158,7 +158,7 @@ export default function MultiStop() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {restaurants?.map((r: any) => (
               <button key={r.id} onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }} className="text-left rounded-xl border-2 overflow-hidden hover:border-orange-500/30 border-border transition-all">
-                <img src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop"} alt={r.name} className="w-full h-32 object-cover" />
+                <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-32 object-cover" />
                 <div className="p-3"><p className="font-bold text-sm">{r.name}</p><p className="text-xs text-muted-foreground">{r.cuisine_type} · {r.city}</p></div>
               </button>
             ))}

@@ -26,26 +26,28 @@ interface AntiWasteCardProps {
 }
 
 const CUISINE_IMAGES: Record<string, string> = {
-  panier: "https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=600&h=450&fit=crop",
-  surprise: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=450&fit=crop",
-  boulangerie: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&h=450&fit=crop",
-  pâtisserie: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&h=450&fit=crop",
-  sushi: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&h=450&fit=crop",
-  pizza: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=450&fit=crop",
-  burger: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=450&fit=crop",
-  salade: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=450&fit=crop",
-  default: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=450&fit=crop",
+  panier: "/images/lebanese-mezze.jpeg",
+  surprise: "/images/mixed-grill-platter.jpeg",
+  boulangerie: "/images/stack-shake-spread.jpeg",
+  pâtisserie: "/images/octopus-fine-dining.jpeg",
+  sushi: "/images/poke-bowls.jpeg",
+  pizza: "/images/pasta-assortment.jpeg",
+  burger: "/images/smash-burgers.jpeg",
+  salade: "/images/poke-bowls.jpeg",
+  default: "/images/kebab-box-spread.jpeg",
 };
 
 function getBestImage(offerImage: string, restaurantImage?: string, title?: string): string {
-  if (offerImage && !offerImage.includes("unsplash.com/photo-1504674900247")) return offerImage;
-  if (restaurantImage) return restaurantImage;
+  // Always use local images based on title keywords
   if (title) {
     const lower = title.toLowerCase();
     for (const [key, url] of Object.entries(CUISINE_IMAGES)) {
-      if (lower.includes(key)) return url;
+      if (key !== "default" && lower.includes(key)) return url;
     }
   }
+  // Use local restaurant image if available
+  if (restaurantImage && restaurantImage.startsWith("/images/")) return restaurantImage;
+  if (offerImage && offerImage.startsWith("/images/")) return offerImage;
   return CUISINE_IMAGES.default;
 }
 

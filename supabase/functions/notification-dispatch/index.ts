@@ -29,8 +29,23 @@ Deno.serve(async (req) => {
     const source = typeof payload?.source === "string" && payload.source.trim().length > 0
       ? payload.source.trim()
       : "notification-dispatch";
+    const canProcessGlobally = actor.isAdmin || actor.isServiceRole || actor.authMode === "scheduler_secret";
+    const scopedUserId = canProcessGlobally ? null : actor.userId;
 
-    await triggerNotificationDispatch({ source, push, email });
+    if (!canProcessGlobally && !scopedUserId) {
+      throw new HttpError(401, "Unauthorized");
+    }
+
+    if (!canProcessGlobally && payload?.user_id) {
+      throw new HttpError(403, "Forbidden");
+    }
+
+    await triggerNotificationDispatch({
+      source,
+      push,
+      email,
+      userId: scopedUserId || undefined,
+    });
 
     await writeAuditLog({
       adminClient: actor.adminClient,
@@ -44,10 +59,17 @@ Deno.serve(async (req) => {
         push,
         email,
         source,
+        scoped_user_id: scopedUserId,
       },
     });
 
-    return jsonResponse({ ok: true, push, email, source }, 200, corsHeaders);
+    return jsonResponse({
+      ok: true,
+      push,
+      email,
+      source,
+      scoped_user_id: scopedUserId,
+    }, 200, corsHeaders);
   } catch (error) {
     console.error("notification-dispatch error:", error);
     await writeAuditLog({

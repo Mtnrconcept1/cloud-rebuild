@@ -25,7 +25,7 @@ const FLASH_DEALS = [
     name: "Poke Bowl Fraîcheur",
     original: 18.50,
     discounted: 9.90,
-    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop",
+    image: "/images/poke-bowls.jpeg",
     tag: "Prix Coûtant"
   },
   {
@@ -33,7 +33,7 @@ const FLASH_DEALS = [
     name: "Burger Gourmet Deluxe",
     original: 22.00,
     discounted: 12.00,
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
+    image: "/images/smash-burgers.jpeg",
     tag: "Populaire"
   },
   {
@@ -41,7 +41,7 @@ const FLASH_DEALS = [
     name: "Plateau Sushi Premium",
     original: 35.00,
     discounted: 19.00,
-    image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&h=300&fit=crop",
+    image: "/images/poke-bowls.jpeg",
     tag: "Édition Limitée"
   },
 ];
@@ -189,7 +189,7 @@ export default function FlexPrixBas() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {restaurants?.map((r: any) => (
                 <button key={r.id} onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }} className="text-left rounded-xl border-2 overflow-hidden hover:border-emerald-500/30 border-border transition-all">
-                  <img src={r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop"} alt={r.name} className="w-full h-32 object-cover" />
+                  <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-32 object-cover" />
                   <div className="p-3"><p className="font-bold text-sm">{r.name}</p><p className="text-xs text-muted-foreground">{r.cuisine_type} · {r.city}</p></div>
                 </button>
               ))}
