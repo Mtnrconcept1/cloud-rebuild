@@ -86,7 +86,7 @@ export default function Index() {
     queryFn: async () => {
       const { data } = await supabase
         .from("restaurants")
-        .select("id, name, cuisine_type, rating, city, address")
+        .select("id, name, cuisine_type, rating, city, address, image_url")
         .eq("is_active", true);
       return data || [];
     },
