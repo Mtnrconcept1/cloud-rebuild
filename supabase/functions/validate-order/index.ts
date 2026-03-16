@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
       .eq("user_id", actor.userId!)
       .maybeSingle();
     const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId!);
-    const userEmail = authUser?.user?.email || "client@miamz.ch";
+    const userEmail = authUser?.user?.email || "client@deliveroom.ch";
 
     await actor.adminClient.from("email_queue").insert({
       to_email: userEmail,

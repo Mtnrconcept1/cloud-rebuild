@@ -267,7 +267,7 @@ serve(async (req) => {
       },
     };
 
-    const systemPrompt = `Tu es l'assistant IA expert en restauration de la plateforme Miamz. Tu aides les restaurateurs à optimiser leurs ventes, améliorer leur visibilité et augmenter leur chiffre d'affaires.
+    const systemPrompt = `Tu es l'assistant IA expert en restauration de la plateforme Deliveroom. Tu aides les restaurateurs à optimiser leurs ventes, améliorer leur visibilité et augmenter leur chiffre d'affaires.
 
 Tu as accès aux données complètes du restaurant "${restaurant.name}" :
 

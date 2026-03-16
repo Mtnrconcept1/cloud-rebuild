@@ -21,7 +21,7 @@ const SUGGESTED_PROMPTS = [
   { icon: BarChart3, label: "Optimiser mon menu", prompt: "Analyse mon menu (prix, photos, catégories) et propose des optimisations pour augmenter le panier moyen." },
   { icon: Megaphone, label: "ROI campagnes", prompt: "Analyse les performances de mes campagnes marketing et propose des améliorations pour un meilleur ROI." },
   { icon: Camera, label: "Audit photos", prompt: "Fais un audit de mes photos et de ma page restaurant. Que dois-je améliorer pour attirer plus de clients ?" },
-  { icon: Sparkles, label: "Plan d'action global", prompt: "Donne-moi un plan d'action complet et prioritisé pour optimiser mes performances sur la plateforme Miamz." },
+  { icon: Sparkles, label: "Plan d'action global", prompt: "Donne-moi un plan d'action complet et prioritisé pour optimiser mes performances sur la plateforme Deliveroom." },
 ];
 
 export default function DashboardAdvisor() {

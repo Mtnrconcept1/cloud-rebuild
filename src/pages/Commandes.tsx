@@ -1,12 +1,15 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useNavigate } from "react-router-dom";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, MapPin, CreditCard, Banknote, Percent, Truck, Sparkles, Gift, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+import { useToast } from "@/hooks/use-toast";
 
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
   card: { label: "Carte bancaire", icon: CreditCard },
@@ -92,6 +95,31 @@ function getDisplayStatus(order: any) {
 
 export default function Commandes() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Handle Stripe payment return — redirect to real-time order tracking
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const sessionId = params.get("session_id");
+
+    if (status === "success" && sessionId) {
+      const pendingOrderId = localStorage.getItem("stripe_pending_order_id");
+      localStorage.removeItem("stripe_pending_order_id");
+      window.history.replaceState({}, "", window.location.pathname);
+
+      if (pendingOrderId) {
+        toast({ title: "Paiement confirmé", description: "Suivez votre commande en temps réel." });
+        navigate(`/commande/${pendingOrderId}`, { replace: true });
+        return;
+      }
+    } else if (status === "cancelled") {
+      toast({ title: "Paiement annulé", description: "Vous pouvez réessayer depuis votre panier.", variant: "destructive" });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [navigate, toast]);
+
   const { data: ordersData, isLoading, error } = useQuery({
     queryKey: ["my-orders", user?.id],
     enabled: !!user,

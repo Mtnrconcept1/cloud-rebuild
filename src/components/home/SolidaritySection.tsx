@@ -20,7 +20,7 @@ export default function SolidaritySection({ donatedMeals, donatedPoints }: Solid
             <div className="flex-1 text-center md:text-left space-y-4">
               <div className="space-y-1">
                 <h2 className="font-display text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600">
-                  Impact Solidaire Miamz
+                  Impact Solidaire Deliveroom
                 </h2>
                 <p className="text-muted-foreground text-sm md:text-base max-w-lg">
                   Grâce à vos dons de Miamz, nous offrons ensemble des repas nutritifs à ceux qui en ont le plus besoin.

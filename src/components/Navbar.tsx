@@ -163,7 +163,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/95 shadow-sm dark:border-white/10 dark:bg-slate-950/78 dark:shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <img src={LOGO_URL} alt="Miamz" className="h-10 w-auto object-contain" />
+          <img src={LOGO_URL} alt="Deliveroom" className="h-10 w-auto object-contain" />
         </Link>
 
         <NavigationMenu className="hidden md:flex">

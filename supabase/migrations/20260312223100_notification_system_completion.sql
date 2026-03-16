@@ -773,7 +773,7 @@ BEGIN
   END IF;
 
   v_author_name := CASE
-    WHEN COALESCE(NEW.author_type, '') = 'admin' THEN 'Miamz'
+    WHEN COALESCE(NEW.author_type, '') = 'admin' THEN 'Deliveroom'
     ELSE v_restaurant_name
   END;
 

@@ -451,6 +451,8 @@ export async function trackClick(
   }
 }
 
+let _sponsoredTrackingDisabled = false;
+
 async function trackSponsoredEvent(input: {
   eventType: "impression" | "click" | "conversion";
   campaignId: string;
@@ -460,6 +462,8 @@ async function trackSponsoredEvent(input: {
   entityId?: string | null;
   paymentMethod?: string | null;
 }): Promise<SponsoredTrackResult> {
+  if (_sponsoredTrackingDisabled) return { recorded: false, deduped: false };
+
   try {
     const viewerId = getOrCreateAnalyticsViewerId();
     const { data, error } = await supabase.functions.invoke("track-sponsored-event", {
@@ -477,7 +481,7 @@ async function trackSponsoredEvent(input: {
     });
 
     if (error) {
-      console.warn("[analytics] sponsored tracking error:", error.message);
+      _sponsoredTrackingDisabled = true;
       return { recorded: false, deduped: false };
     }
 
@@ -486,8 +490,8 @@ async function trackSponsoredEvent(input: {
       deduped: Boolean(data?.deduped),
       ignored: Boolean(data?.ignored),
     };
-  } catch (error) {
-    console.warn("[analytics] sponsored tracking failed:", error);
+  } catch {
+    _sponsoredTrackingDisabled = true;
     return { recorded: false, deduped: false };
   }
 }

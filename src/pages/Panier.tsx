@@ -186,6 +186,23 @@ export default function Panier() {
   const handleCheckout = async () => {
     if (!user) return navigate("/auth");
 
+    // Ensure we have a valid session before calling edge functions
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      // No session at all — force re-login
+      await supabase.auth.signOut();
+      toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
+      return navigate("/auth");
+    }
+
+    // Proactively refresh the token to avoid 401 on edge function call
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      await supabase.auth.signOut();
+      toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
+      return navigate("/auth");
+    }
+
     trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
     if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
 
@@ -366,8 +383,11 @@ export default function Panier() {
         clearCart();
         queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
 
-        // Redirect to Stripe
+        // Redirect to Stripe — save order ID for post-payment redirect
         if (checkoutData?.url) {
+          if (firstOrderId) {
+            localStorage.setItem("stripe_pending_order_id", firstOrderId);
+          }
           window.location.href = checkoutData.url;
           return;
         }

@@ -1,4 +1,4 @@
--- Migration: Strict RLS Policies for Miamz Platform
+-- Migration: Strict RLS Policies for Deliveroom Platform
 -- Final corrected version with exhaustive domain coverage and exact column mapping.
 
 -- Helper to reload schema cache
