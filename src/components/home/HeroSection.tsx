@@ -29,7 +29,7 @@ export default function HeroSection() {
   return (
     <section ref={heroRef} className="relative overflow-hidden border-b dark:border-white/10">
       <div
-        className="absolute inset-[-8%] bg-[url('/fond4.png')] md:bg-[url('/fond3.png')] bg-contain bg-center opacity-60 dark:opacity-22 blur-[1px] will-change-transform [--hero-bg-scale:1.] md:[--hero-bg-scale:1.1]"
+        className="absolute inset-[-8%] bg-[url('/fond4.png')] md:bg-[url('/fond3.png')] bg-contain bg-center opacity-90 dark:opacity-22 blur-[0px] will-change-transform [--hero-bg-scale:1.] md:[--hero-bg-scale:1.1]"
         style={{ transform: "translateY(calc(-5% + var(--scroll-y, 0px) * 0.4)) scale(var(--hero-bg-scale))" }}
         aria-hidden="true"
       />
@@ -67,15 +67,15 @@ export default function HeroSection() {
 
         <div className="flex flex-wrap justify-center gap-3 pt-2">
           {[
-            { icon: Star, label: "4.8/5" },
-            { icon: Timer, label: "Des 25 min" },
-            { icon: Store, label: "Restaurants partenaires" },
+            { icon: Star, label: "4.8/5", mobileOnly: false },
+            { icon: Timer, label: "Des 25 min", mobileOnly: false },
+            { icon: Store, label: "Restaurants partenaires", mobileOnly: true },
           ].map((badge) => {
             const Icon = badge.icon;
             return (
               <div
                 key={badge.label}
-                className="flex items-center gap-2 rounded-full border border-white/90 bg-white/90 px-4 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.12)] backdrop-blur-lg dark:border-white/14 dark:bg-slate-950/82 dark:shadow-[0_18px_36px_rgba(0,0,0,0.42)]"
+                className={`${badge.mobileOnly ? "hidden md:flex" : "flex"} items-center gap-2 rounded-full border border-white/90 bg-white/90 px-4 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.12)] backdrop-blur-lg dark:border-white/14 dark:bg-slate-950/82 dark:shadow-[0_18px_36px_rgba(0,0,0,0.42)]`}
               >
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/14 dark:bg-primary/20">
                   <Icon className="h-4 w-4 text-primary" />
@@ -86,10 +86,10 @@ export default function HeroSection() {
           })}
         </div>
 
-        <div className="flex w-full max-w-md flex-col items-center gap-3 pt-2 sm:max-w-lg">
+        <div className="flex w-full max-w-[45%] flex-col items-center gap-3 self-end pt-2 md:max-w-lg md:self-center">
           <Link
             to="/recherche"
-            className="group relative w-full overflow-hidden rounded-full bg-gradient-to-b from-primary to-primary/90 px-8 py-4 text-base font-semibold text-white shadow-[0_18px_42px_rgba(0,0,0,0.22)] transition hover:-translate-y-[1px] hover:shadow-[0_24px_58px_rgba(0,0,0,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/40 dark:shadow-[0_22px_50px_rgba(249,115,22,0.22)]"
+            className="group relative w-full overflow-hidden rounded-full bg-gradient-to-b from-primary to-primary/90 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_42px_rgba(0,0,0,0.22)] transition hover:-translate-y-[1px] hover:shadow-[0_24px_58px_rgba(0,0,0,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/40 dark:shadow-[0_22px_50px_rgba(249,115,22,0.22)] md:px-8 md:py-4 md:text-base"
           >
             <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.35),_transparent_55%)] opacity-60" />
             <span className="relative flex items-center justify-center gap-3">
@@ -102,14 +102,14 @@ export default function HeroSection() {
 
           <Link
             to="/ventes-flash"
-            className="w-full rounded-full border border-white/70 bg-white/82 px-8 py-4 text-base font-semibold text-foreground shadow-[0_14px_35px_rgba(0,0,0,0.12)] backdrop-blur-lg transition hover:bg-white/92 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 dark:border-white/14 dark:bg-slate-950/80 dark:text-foreground dark:shadow-[0_18px_38px_rgba(0,0,0,0.40)] dark:hover:bg-slate-900/88"
+            className="w-full rounded-full border border-white/70 bg-white/82 px-6 py-3.5 text-sm font-semibold text-foreground shadow-[0_14px_35px_rgba(0,0,0,0.12)] backdrop-blur-lg transition hover:bg-white/92 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 dark:border-white/14 dark:bg-slate-950/80 dark:text-foreground dark:shadow-[0_18px_38px_rgba(0,0,0,0.40)] dark:hover:bg-slate-900/88 md:px-8 md:py-4 md:text-base"
           >
             Voir les offres du jour
           </Link>
 
           <Link
             to="/recherche?mode=reservation"
-            className="w-full rounded-full border border-white/60 bg-white/74 px-8 py-4 text-base font-semibold text-foreground/90 shadow-[0_10px_28px_rgba(0,0,0,0.09)] backdrop-blur-md transition hover:bg-white/88 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/10 dark:border-white/12 dark:bg-slate-950/74 dark:text-foreground/96 dark:shadow-[0_14px_32px_rgba(0,0,0,0.36)] dark:hover:bg-slate-900/82"
+            className="w-full rounded-full border border-white/60 bg-white/74 px-6 py-3.5 text-sm font-semibold text-foreground/90 shadow-[0_10px_28px_rgba(0,0,0,0.09)] backdrop-blur-md transition hover:bg-white/88 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/10 dark:border-white/12 dark:bg-slate-950/74 dark:text-foreground/96 dark:shadow-[0_14px_32px_rgba(0,0,0,0.36)] dark:hover:bg-slate-900/82 md:px-8 md:py-4 md:text-base"
           >
             Reserver une table
           </Link>

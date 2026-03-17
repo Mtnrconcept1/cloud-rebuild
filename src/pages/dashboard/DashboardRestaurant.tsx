@@ -47,6 +47,8 @@ export default function DashboardRestaurant() {
     phone: "",
     cuisine_type: "",
     image_url: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
     delivery_available: false,
     delivery_fee: 0,
     min_order_amount: 0,
@@ -102,6 +104,8 @@ export default function DashboardRestaurant() {
       phone: restaurant.phone || "",
       cuisine_type: restaurant.cuisine_type || "",
       image_url: restaurant.image_url || "",
+      latitude: Number(restaurant.latitude) || null,
+      longitude: Number(restaurant.longitude) || null,
       delivery_available: restaurant.delivery_available || false,
       delivery_fee: Number(restaurant.delivery_fee) || 0,
       min_order_amount: Number(restaurant.min_order_amount) || 0,
@@ -283,8 +287,14 @@ export default function DashboardRestaurant() {
             <Label>Adresse</Label>
             <AddressAutocomplete
               value={form.address}
-              onAddressSelect={(address, city) => {
-                setForm((current) => ({ ...current, address, city: city || current.city }));
+              onAddressSelect={(address, city, selection) => {
+                setForm((current) => ({
+                  ...current,
+                  address,
+                  city: city || current.city,
+                  latitude: selection?.latitude ?? current.latitude,
+                  longitude: selection?.longitude ?? current.longitude,
+                }));
               }}
               placeholder="Adresse du restaurant"
             />

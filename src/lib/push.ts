@@ -1,7 +1,6 @@
+import { initializeApp, getApps } from "firebase/app";
+import { getMessaging, getToken, isSupported } from "firebase/messaging";
 import { supabase } from "@/integrations/supabase/client";
-
-const FIREBASE_APP_MODULE = "https://esm.sh/firebase@11.7.1/app";
-const FIREBASE_MESSAGING_MODULE = "https://esm.sh/firebase@11.7.1/messaging";
 
 export type WebPushStatus = {
   enabled: boolean;
@@ -14,7 +13,9 @@ export type WebPushStatus = {
 function getFirebaseConfig() {
   const config = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: "deliveroom-83bf7.firebaseapp.com",
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: "deliveroom-83bf7.firebasestorage.app",
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
   };
@@ -39,16 +40,6 @@ function buildFirebaseMessagingServiceWorkerUrl() {
   url.searchParams.set("messagingSenderId", config.messagingSenderId || "");
   url.searchParams.set("appId", config.appId || "");
   return url.toString();
-}
-
-async function loadFirebase() {
-  try {
-    const { initializeApp, getApps } = await (Function("m", "return import(m)")(FIREBASE_APP_MODULE));
-    const { getMessaging, getToken, isSupported } = await (Function("m", "return import(m)")(FIREBASE_MESSAGING_MODULE));
-    return { initializeApp, getApps, getMessaging, getToken, isSupported };
-  } catch {
-    return null;
-  }
 }
 
 export async function getWebPushStatus(userId: string): Promise<WebPushStatus> {
@@ -86,13 +77,6 @@ export async function enableWebPush(userId: string) {
     if (!isReady) {
       return { ok: false, reason: "Configuration Firebase manquante." };
     }
-
-    const firebase = await loadFirebase();
-    if (!firebase) {
-      return { ok: false, reason: "Firebase non disponible." };
-    }
-
-    const { initializeApp, getApps, getMessaging, getToken, isSupported } = firebase;
 
     const supported = await isSupported();
     if (!supported) {

@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
         order_id: order.id,
         status: dispatchNow ? "preparing" : "scheduled",
         estimated_arrival: estimatedArrival,
-      });
+      }, { onConflict: "order_id" });
 
       if (!dispatchNow) {
         dispatch = {

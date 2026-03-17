@@ -10,7 +10,6 @@ import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
-import { dispatchToCouriersClientSide } from "@/lib/clientDispatch";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 type DashboardOrderItem = {
@@ -174,44 +173,12 @@ export default function DashboardCommandes() {
 
     const dispatchState = typeof data?.dispatch?.state === "string" ? data.dispatch.state : null;
     if (dispatchState === "failed") {
-      // Fallback: dispatch client-side to online couriers
-      const currentOrder = orders?.find((o) => o.id === orderId);
-      const orderMeta = (currentOrder?.metadata || {}) as Record<string, any>;
-      try {
-        const fallbackResult = await dispatchToCouriersClientSide({
-          orderId,
-          orderNumber: currentOrder?.order_number || null,
-          restaurantName: selectedRestaurant?.name || "Restaurant",
-          restaurantAddress: (selectedRestaurant as any)?.address || null,
-          restaurantLat: (selectedRestaurant as any)?.latitude || null,
-          restaurantLng: (selectedRestaurant as any)?.longitude || null,
-          deliveryAddress: currentOrder?.delivery_address || null,
-          deliveryLat: orderMeta.delivery_lat ?? null,
-          deliveryLng: orderMeta.delivery_lng ?? null,
-          totalAmount: Number(currentOrder?.total_amount) || null,
-          itemsSummary: currentOrder?.order_items?.map((i) => `${i.quantity}x ${i.name || "Article"}`).join(", ") || null,
-          itemsCount: currentOrder?.order_items?.reduce((sum, i) => sum + i.quantity, 0) || null,
-          deliveryWindowLabel: String(orderMeta.delivery_window_label || "45 min"),
-          scheduledDeliveryLabel: typeof orderMeta.scheduled_delivery_label === "string" ? orderMeta.scheduled_delivery_label : null,
-        });
-
-        if (fallbackResult.notifiedCount > 0) {
-          toast({
-            title: "Livreurs alertes (fallback)",
-            description: `${fallbackResult.notifiedCount} livreur(s) notifie(s) en temps reel.`,
-          });
-        } else {
-          toast({
-            title: "Aucun livreur disponible",
-            description: fallbackResult.errors[0] || "Aucun livreur en ligne actuellement.",
-          });
-        }
-      } catch (fallbackError) {
-        toast({
-          title: "Statut mis a jour (alerte livreur echouee)",
-          description: fallbackError instanceof Error ? fallbackError.message : "Impossible de notifier les livreurs.",
-        });
-      }
+      const dispatchError = typeof data?.dispatch?.error === "string" ? data.dispatch.error : "Impossible de notifier les livreurs.";
+      toast({
+        title: "Statut mis a jour (alerte livreur echouee)",
+        description: dispatchError,
+        variant: "destructive",
+      });
       return;
     }
 
