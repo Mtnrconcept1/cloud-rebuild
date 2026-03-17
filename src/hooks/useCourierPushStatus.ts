@@ -1,9 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "@/lib/auth";
+import { enablePush, disablePush } from "@/lib/push-unified";
 import {
-  disableWebPush,
-  enableWebPush,
   getWebPushStatus,
   type WebPushStatus,
 } from "@/lib/push";
@@ -28,7 +27,7 @@ export function useCourierPushStatus() {
       return { ok: false, reason: "Utilisateur non connecte." };
     }
 
-    const result = await enableWebPush(user.id);
+    const result = await enablePush(user.id);
     await refresh();
     return result;
   };
@@ -38,7 +37,7 @@ export function useCourierPushStatus() {
       return { ok: false, reason: "Utilisateur non connecte." };
     }
 
-    const result = await disableWebPush(user.id);
+    const result = await disablePush(user.id);
     await refresh();
     return result;
   };

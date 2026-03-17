@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Bike, Coins, Clock3, MapPin, Navigation, ShieldCheck } from "lucide-react";
+import { getCurrentPosition } from "@/lib/geolocation-native";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -85,17 +86,7 @@ export default function CourierHome() {
   const onlineMutation = useMutation({
     mutationFn: async (nextOnline: boolean) => {
       if (nextOnline) {
-        if (!("geolocation" in navigator)) {
-          throw new Error("La geolocalisation est necessaire pour passer en ligne.");
-        }
-
-        const coords = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0,
-          });
-        });
+        const coords = await getCurrentPosition();
 
         return syncCourierPresence({
           isOnline: true,

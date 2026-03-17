@@ -11,7 +11,9 @@
       "Bash(python:*)",
       "Bash(npx vite build:*)",
       "Bash(node -e \"\nconst { createClient } = require\\(''@supabase/supabase-js''\\);\nconst sb = createClient\\(\n  ''https://rgzqxttqwmaylrzxlzob.supabase.co'',\n  process.env.SUPABASE_SERVICE_ROLE_KEY || require\\(''dotenv''\\).config\\(\\).parsed?.SUPABASE_SERVICE_ROLE_KEY || ''''\n\\);\n// Try reading .env for keys\n\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(npx cap:*)"
     ]
   }
 }

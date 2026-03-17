@@ -144,12 +144,29 @@ export default function DashboardCommandes() {
     });
 
     if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      const is401 = error.message?.includes("401") || error.message?.includes("Unauthorized");
+      toast({
+        title: is401 ? "Session expirée" : "Erreur",
+        description: is401 ? "Votre session a expiré, veuillez vous reconnecter." : error.message,
+        variant: "destructive",
+      });
+      if (is401) {
+        window.location.href = "/auth";
+      }
       return;
     }
 
     if (data?.error) {
-      toast({ title: "Erreur", description: String(data.error), variant: "destructive" });
+      const errMsg = String(data.error);
+      const is401 = errMsg.includes("Unauthorized");
+      toast({
+        title: is401 ? "Session expirée" : "Erreur",
+        description: is401 ? "Votre session a expiré, veuillez vous reconnecter." : errMsg,
+        variant: "destructive",
+      });
+      if (is401) {
+        window.location.href = "/auth";
+      }
       return;
     }
 

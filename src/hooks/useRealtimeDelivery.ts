@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { watchPosition } from "@/lib/geolocation-native";
 
 interface CourierPosition {
   lat: number;
@@ -58,7 +59,7 @@ export function useCourierLocationBroadcast(
   enabled: boolean = false
 ) {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const watchIdRef = useRef<number | null>(null);
+  const watchRef = useRef<{ clear: () => void } | null>(null);
 
   const startBroadcasting = useCallback(() => {
     if (!dispatchJobId || !enabled) return;
@@ -69,44 +70,38 @@ export function useCourierLocationBroadcast(
     channelRef.current = channel;
 
     // Start watching position
-    if ("geolocation" in navigator) {
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        async (pos) => {
-          const locationData: CourierPosition = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            heading: pos.coords.heading ?? undefined,
-            speed: pos.coords.speed ?? undefined,
-            timestamp: new Date().toISOString(),
-          };
+    const watcher = watchPosition(
+      (pos) => {
+        const locationData: CourierPosition = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          heading: pos.coords.heading ?? undefined,
+          speed: pos.coords.speed ?? undefined,
+          timestamp: new Date().toISOString(),
+        };
 
-          // Broadcast to subscribers
-          channel.send({
-            type: "broadcast",
-            event: "location",
-            payload: locationData,
-          });
-
-          // Also persist to courier_locations table (throttled — every 10th update)
-          // and update couriers.current_lat/lng
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 5000,
-          timeout: 10000,
-        }
-      );
-    }
+        // Broadcast to subscribers
+        channel.send({
+          type: "broadcast",
+          event: "location",
+          payload: locationData,
+        });
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 5000,
+        timeout: 10000,
+      }
+    );
+    watchRef.current = watcher;
   }, [dispatchJobId, enabled]);
 
   const stopBroadcasting = useCallback(() => {
-    if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
+    watchRef.current?.clear();
+    watchRef.current = null;
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;

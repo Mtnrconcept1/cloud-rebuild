@@ -15,6 +15,13 @@ dist-ssr
 .env.*
 !.env.example
 
+# Capacitor native build artifacts
+ios/App/Pods/
+android/.gradle/
+android/app/build/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

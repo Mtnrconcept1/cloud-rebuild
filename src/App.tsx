@@ -1,16 +1,18 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
+import { setupDeepLinks } from "@/lib/deep-links";
+import { isNative } from "@/lib/platform";
 // Client-facing pages (eagerly loaded for instant first paint)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -87,6 +89,22 @@ const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 
 const queryClient = new QueryClient();
 
+function NativeIntegration() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isNative()) return;
+    setupDeepLinks((path) => navigate(path));
+
+    // Setup native push notification tap handler
+    import("@/lib/push-native").then(({ setupNativePushListeners }) => {
+      setupNativePushListeners((url) => navigate(url));
+    });
+  }, [navigate]);
+
+  return null;
+}
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -95,6 +113,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <NativeIntegration />
           <AuthProvider>
             <CartProvider>
               <Navbar />

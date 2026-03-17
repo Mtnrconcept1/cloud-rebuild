@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { syncCourierPresence } from "@/lib/courier";
+import { watchPosition } from "@/lib/geolocation-native";
 
 type PositionSnapshot = {
   lat: number;
@@ -22,16 +23,16 @@ export function useCourierPresenceSync({
   const [position, setPosition] = useState<PositionSnapshot | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isWatching, setIsWatching] = useState(false);
-  const watchIdRef = useRef<number | null>(null);
+  const watchRef = useRef<{ clear: () => void } | null>(null);
   const lastSyncAtRef = useRef(0);
 
   useEffect(() => {
-    if (!enabled || !("geolocation" in navigator)) {
+    if (!enabled) {
       setIsWatching(false);
       return;
     }
 
-    watchIdRef.current = navigator.geolocation.watchPosition(
+    const watcher = watchPosition(
       (geoPosition) => {
         const nextPosition = {
           lat: geoPosition.coords.latitude,
@@ -59,7 +60,7 @@ export function useCourierPresenceSync({
       },
       (error) => {
         setIsWatching(false);
-        setLocationError(error.message || "Geolocalisation indisponible");
+        setLocationError(error?.message || "Geolocalisation indisponible");
       },
       {
         enableHighAccuracy: true,
@@ -67,12 +68,11 @@ export function useCourierPresenceSync({
         timeout: 10000,
       },
     );
+    watchRef.current = watcher;
 
     return () => {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-        watchIdRef.current = null;
-      }
+      watchRef.current?.clear();
+      watchRef.current = null;
       setIsWatching(false);
     };
   }, [activeDispatchJobId, enabled, isOnline]);

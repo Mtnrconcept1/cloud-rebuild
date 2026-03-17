@@ -14,7 +14,7 @@ import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import ImageUpload from "@/components/ImageUpload";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
-import { enableWebPush, disableWebPush } from "@/lib/push";
+import { enablePush, disablePush } from "@/lib/push-unified";
 
 export default function Profil() {
   const { user } = useAuth();
@@ -302,7 +302,7 @@ export default function Profil() {
                   size="sm"
                   onClick={async () => {
                     if (!user) return;
-                    const res = await enableWebPush(user.id);
+                    const res = await enablePush(user.id);
                     if (!res.ok) {
                       toast({ title: "Push indisponible", description: res.reason, variant: "destructive" });
                     } else {
@@ -317,7 +317,7 @@ export default function Profil() {
                   variant="outline"
                   onClick={async () => {
                     if (!user) return;
-                    const res = await disableWebPush(user.id);
+                    const res = await disablePush(user.id);
                     if (!res.ok) {
                       toast({ title: "Erreur", description: res.reason, variant: "destructive" });
                     } else {
