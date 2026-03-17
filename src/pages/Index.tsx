@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BadgePercent, ChevronRight, Heart, MapPinned, MoonStar, SunMedium, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import PromoCarousel from "@/components/PromoCarousel";
@@ -67,9 +68,28 @@ async function fetchHomeRail(params: HomeRailParams) {
   return ((data || []) as any[]).map(mapSearchRailRestaurant);
 }
 
+const sectionStagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.09 } },
+};
+
+const sectionBounce = {
+  hidden: { opacity: 0, y: 80, scale: 0.88 },
+  visible: {
+    opacity: 1, y: 0, scale: 1,
+    transition: { type: "spring" as const, stiffness: 180, damping: 12, mass: 0.8 },
+  },
+};
+
 export default function Index() {
   const { user } = useAuth();
   const activeFeatures = useActiveFeatures();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     setAnalyticsUser(user?.id || null);
@@ -239,98 +259,130 @@ export default function Index() {
 
   return (
     <main className="min-h-screen pb-20">
-      <HeroSection />
+      <HeroSection contentVisible={isVisible} />
 
-      <section className="bg-miamz-warm/20 pt-4 pb-8 md:pt-6 md:pb-12">
-        <div className="container space-y-4 px-4">
-          <CampaignBanner page="home" maxBanners={1} />
-          <PromoCarousel />
-        </div>
-      </section>
-
-      <SearchAndCategories />
-
-      {user ? (
-        <section className="bg-gradient-to-b from-background to-secondary/10 py-8">
-          <div className="container">
-            <LoyaltyStatus />
-          </div>
-        </section>
-      ) : null}
-
-      <SolidaritySection donatedMeals={donatedMeals} donatedPoints={donatedPoints} />
-
-      <RestaurantSection
-        title="Vos habitudes"
-        subtitle="Pour vous"
-        icon={Heart}
-        iconColor="text-pink-500"
-        restaurants={personalCards}
-        linkText="Retrouver vos favoris"
-      />
-      <RestaurantSection
-        title={userContext?.city ? `Dans ${userContext.city}` : "Pres de chez vous"}
-        subtitle="Local"
-        icon={MapPinned}
-        iconColor="text-sky-500"
-        restaurants={cityRail as any[]}
-        bgClass="bg-secondary/10"
-        linkText="Explorer votre ville"
-      />
-      <RestaurantSection
-        title="Pour ce midi"
-        subtitle="Rapide et fiable"
-        icon={SunMedium}
-        iconColor="text-amber-500"
-        restaurants={lunchCards}
-        linkText="Voir plus pour le midi"
-      />
-      <RestaurantSection
-        title="Pour ce soir"
-        subtitle="Reservations et plaisir"
-        icon={MoonStar}
-        iconColor="text-indigo-500"
-        restaurants={dinnerCards}
-        bgClass="bg-secondary/10"
-        linkText="Voir plus pour le soir"
-      />
-      <RestaurantSection
-        title="Bons plans du moment"
-        subtitle="Offres actives"
-        icon={BadgePercent}
-        iconColor="text-emerald-500"
-        restaurants={offersCards}
-        linkText="Voir toutes les offres"
-      />
-      <RestaurantSection
-        title="Tendances en ce moment"
-        subtitle="Tops"
-        icon={TrendingUp}
-        iconColor="text-primary"
-        restaurants={trendingCards}
-      />
-
-      <section className="py-10 md:py-14">
-        <div className="container space-y-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                <MapPinned className="h-4 w-4 text-blue-500" />
-              </div>
-              <h2 className="font-display text-xl font-semibold md:text-2xl">Restaurants a proximite</h2>
+      <motion.div
+        variants={sectionStagger}
+        initial="hidden"
+        animate={isVisible ? "visible" : "hidden"}
+      >
+        <motion.div variants={sectionBounce}>
+          <section className="bg-miamz-warm/20 pt-4 pb-8 md:pt-6 md:pb-12">
+            <div className="container space-y-4 px-4">
+              <CampaignBanner page="home" maxBanners={1} />
+              <PromoCarousel />
             </div>
-            <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" asChild>
-              <Link to="/recherche">
-                Voir la liste <ChevronRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <NearbyRestaurantsMap restaurants={allRestaurants || []} />
-        </div>
-      </section>
+          </section>
+        </motion.div>
 
-      <FeaturesSection activeFeatures={activeFeatures} />
-      <FooterSection />
+        <motion.div variants={sectionBounce}>
+          <SearchAndCategories />
+        </motion.div>
+
+        {user ? (
+          <motion.div variants={sectionBounce}>
+            <section className="bg-gradient-to-b from-background to-secondary/10 py-8">
+              <div className="container">
+                <LoyaltyStatus />
+              </div>
+            </section>
+          </motion.div>
+        ) : null}
+
+        <motion.div variants={sectionBounce}>
+          <SolidaritySection donatedMeals={donatedMeals} donatedPoints={donatedPoints} />
+        </motion.div>
+
+        <motion.div variants={sectionBounce}>
+          <RestaurantSection
+            title="Vos habitudes"
+            subtitle="Pour vous"
+            icon={Heart}
+            iconColor="text-pink-500"
+            restaurants={personalCards}
+            linkText="Retrouver vos favoris"
+          />
+        </motion.div>
+        <motion.div variants={sectionBounce}>
+          <RestaurantSection
+            title={userContext?.city ? `Dans ${userContext.city}` : "Pres de chez vous"}
+            subtitle="Local"
+            icon={MapPinned}
+            iconColor="text-sky-500"
+            restaurants={cityRail as any[]}
+            bgClass="bg-secondary/10"
+            linkText="Explorer votre ville"
+          />
+        </motion.div>
+        <motion.div variants={sectionBounce}>
+          <RestaurantSection
+            title="Pour ce midi"
+            subtitle="Rapide et fiable"
+            icon={SunMedium}
+            iconColor="text-amber-500"
+            restaurants={lunchCards}
+            linkText="Voir plus pour le midi"
+          />
+        </motion.div>
+        <motion.div variants={sectionBounce}>
+          <RestaurantSection
+            title="Pour ce soir"
+            subtitle="Reservations et plaisir"
+            icon={MoonStar}
+            iconColor="text-indigo-500"
+            restaurants={dinnerCards}
+            bgClass="bg-secondary/10"
+            linkText="Voir plus pour le soir"
+          />
+        </motion.div>
+        <motion.div variants={sectionBounce}>
+          <RestaurantSection
+            title="Bons plans du moment"
+            subtitle="Offres actives"
+            icon={BadgePercent}
+            iconColor="text-emerald-500"
+            restaurants={offersCards}
+            linkText="Voir toutes les offres"
+          />
+        </motion.div>
+        <motion.div variants={sectionBounce}>
+          <RestaurantSection
+            title="Tendances en ce moment"
+            subtitle="Tops"
+            icon={TrendingUp}
+            iconColor="text-primary"
+            restaurants={trendingCards}
+          />
+        </motion.div>
+
+        <motion.div variants={sectionBounce}>
+          <section className="py-10 md:py-14">
+            <div className="container space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
+                    <MapPinned className="h-4 w-4 text-blue-500" />
+                  </div>
+                  <h2 className="font-display text-xl font-semibold md:text-2xl">Restaurants a proximite</h2>
+                </div>
+                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" asChild>
+                  <Link to="/recherche">
+                    Voir la liste <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+              <NearbyRestaurantsMap restaurants={allRestaurants || []} />
+            </div>
+          </section>
+        </motion.div>
+
+        <motion.div variants={sectionBounce}>
+          <FeaturesSection activeFeatures={activeFeatures} />
+        </motion.div>
+        <motion.div variants={sectionBounce}>
+          <FooterSection />
+        </motion.div>
+      </motion.div>
     </main>
   );
 }
