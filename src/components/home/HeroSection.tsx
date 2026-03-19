@@ -113,7 +113,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           </motion.p>
         </motion.div>
 
-        <motion.div variants={bounceScale} className="flex flex-wrap justify-end gap-2 md:justify-center">
+        <motion.div variants={bounceScale} className="flex flex-wrap justify-center gap-2">
           {[
             { icon: Star, label: "4.8/5", mobileOnly: false },
             { icon: Timer, label: "Des 25 min", mobileOnly: false },
@@ -134,7 +134,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           })}
         </motion.div>
 
-        <motion.div variants={bounceRight} className="flex w-full max-w-[45%] flex-col items-center gap-2 self-end md:max-w-lg md:self-center">
+        <motion.div variants={bounceRight} className="flex w-full flex-col items-center gap-2 self-center md:max-w-lg">
           <div className="w-full">
             <Link
               to="/recherche"
