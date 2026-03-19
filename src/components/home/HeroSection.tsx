@@ -60,8 +60,8 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
     <section ref={heroRef} className="relative min-h-[110dvh] md:min-h-[100dvh] overflow-hidden border-b dark:border-white/10">
       {/* Background layers - appear immediately */}
       <motion.div
-        className="absolute inset-[-21%] bg-[url('/fond4.png')] md:bg-[url('/fond3.png')] bg-contain bg-center dark:opacity-22 will-change-transform [--hero-bg-scale:1.] md:[--hero-bg-scale:1.1]"
-        style={{ transform: "translateY(calc(-5% + var(--scroll-y, 0px) * 0.4)) scale(var(--hero-bg-scale))" }}
+        className="absolute inset-[-5%] bg-[url('/fond4.png')] md:bg-[url('/fond3.png')] bg-cover bg-no-repeat bg-center dark:opacity-22 will-change-transform [--hero-bg-scale:1.05] md:[--hero-bg-scale:1.1]"
+        style={{ transform: "translateY(calc(-10% + var(--scroll-y, 0px) * 0.4)) scale(var(--hero-bg-scale))" }}
         initial={{ opacity: 0, scale: 1.15, filter: "blur(0px)" }}
         animate={{ opacity: 0.9, scale: 1, filter: contentVisible ? "blur(1.2px)" : "blur(0px)" }}
         transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
