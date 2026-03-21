@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { useAuth } from "@/lib/auth";
 import {
   buildRestaurantCategorySearchTerms,
@@ -35,6 +36,8 @@ export default function DashboardRestaurant() {
   const { selectedId } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const activeFeatures = useActiveFeatures();
+  const deliveryEnabled = activeFeatures.has("livraison");
 
   const [loading, setLoading] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
@@ -49,8 +52,12 @@ export default function DashboardRestaurant() {
     image_url: "",
     latitude: null as number | null,
     longitude: null as number | null,
-    supports_dinein: true,
-    supports_reservation: true,
+    delivery_available: false,
+    delivery_fee: 0,
+    min_order_amount: 0,
+    supports_pickup: false,
+    supports_dinein: false,
+    supports_reservation: false,
   });
 
   const { data: restaurant } = useQuery({
@@ -102,8 +109,12 @@ export default function DashboardRestaurant() {
       image_url: restaurant.image_url || "",
       latitude: Number(restaurant.latitude) || null,
       longitude: Number(restaurant.longitude) || null,
-      supports_dinein: restaurant.supports_dinein ?? true,
-      supports_reservation: restaurant.supports_reservation ?? true,
+      delivery_available: restaurant.delivery_available || false,
+      delivery_fee: Number(restaurant.delivery_fee) || 0,
+      min_order_amount: Number(restaurant.min_order_amount) || 0,
+      supports_pickup: restaurant.supports_pickup || false,
+      supports_dinein: restaurant.supports_dinein || false,
+      supports_reservation: restaurant.supports_reservation || false,
     });
   }, [restaurant]);
 
@@ -167,10 +178,6 @@ export default function DashboardRestaurant() {
       const payload = {
         ...form,
         cuisine_type: cuisineSummary,
-        delivery_available: false,
-        delivery_fee: 0,
-        min_order_amount: 0,
-        supports_pickup: false,
       };
 
       let restaurantId = restaurant?.id || null;
@@ -193,7 +200,7 @@ export default function DashboardRestaurant() {
         await syncRestaurantCuisines(restaurantId);
       }
 
-      toast({ title: restaurant ? "Restaurant mis a jour" : "Restaurant cree" });
+      toast({ title: restaurant ? "Restaurant mis a jour !" : "Restaurant cree !" });
       queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
       queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
       queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
@@ -233,7 +240,6 @@ export default function DashboardRestaurant() {
     <DashboardLayout>
       <div className="max-w-3xl space-y-6">
         <h1 className="font-display text-3xl font-bold">{restaurant ? "Mon restaurant" : "Creer mon restaurant"}</h1>
-
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -249,7 +255,7 @@ export default function DashboardRestaurant() {
           <div className="space-y-2">
             <Label>Types de restauration</Label>
             <p className="text-xs text-muted-foreground">
-              Ces categories alimentent la recherche et la reservation de table.
+              Selection multiple. Ces categories alimentent la recherche et decrivent precisement votre offre.
             </p>
             <div className="flex flex-wrap gap-2 rounded-xl border p-3">
               {cuisineOptions.map((option) => {
@@ -266,13 +272,13 @@ export default function DashboardRestaurant() {
                 );
               })}
             </div>
-            {selectedCuisineNames.length > 0 ? (
+            {selectedCuisineNames.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-1">
                 {selectedCuisineNames.map((name) => (
                   <Badge key={name} variant="secondary">{name}</Badge>
                 ))}
               </div>
-            ) : null}
+            )}
           </div>
 
           <div className="space-y-2">
@@ -304,35 +310,63 @@ export default function DashboardRestaurant() {
 
           <ImageUpload label="Photo du restaurant" value={form.image_url} onChange={(url) => setForm({ ...form, image_url: url })} />
 
-          <div className="rounded-2xl border bg-secondary/20 p-4">
-            <h3 className="mb-4 font-semibold">Experience sur place</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+          {deliveryEnabled ? (
+            <>
+              <div className="flex items-center gap-4 pt-2">
+                <div className="flex items-center gap-2">
+                  <Switch checked={form.delivery_available} onCheckedChange={(checked) => setForm({ ...form, delivery_available: checked })} />
+                  <Label>Livraison disponible</Label>
+                </div>
+              </div>
+
+              {form.delivery_available && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Frais de livraison (CHF)</Label>
+                    <Input type="number" step="0.01" value={form.delivery_fee} onChange={(event) => setForm({ ...form, delivery_fee: Number(event.target.value) })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Commande minimum (CHF)</Label>
+                    <Input type="number" step="0.01" value={form.min_order_amount} onChange={(event) => setForm({ ...form, min_order_amount: Number(event.target.value) })} />
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+              La livraison est actuellement desactivee par l'administration globale.
+            </div>
+          )}
+
+          <div className="mt-6 border-t pt-4">
+            <h3 className="mb-4 font-semibold">Modes de consommation alternatifs</h3>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="flex items-center gap-2">
+                <Switch checked={form.supports_pickup} onCheckedChange={(checked) => setForm({ ...form, supports_pickup: checked })} />
+                <Label>A emporter (Click & Collect)</Label>
+              </div>
               <div className="flex items-center gap-2">
                 <Switch checked={form.supports_dinein} onCheckedChange={(checked) => setForm({ ...form, supports_dinein: checked })} />
-                <Label>Accueil sur place</Label>
+                <Label>Sur place (Dine-in)</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch checked={form.supports_reservation} onCheckedChange={(checked) => setForm({ ...form, supports_reservation: checked })} />
                 <Label>Reservation de table</Label>
               </div>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Les parcours livraison et retrait sont desactives sur le frontend.
-            </p>
           </div>
 
           <Button onClick={handleSave} disabled={loading} className="mt-8 w-full">
             {loading ? "Enregistrement..." : "Sauvegarder"}
           </Button>
 
-          {restaurant ? (
+          {restaurant && (
             <div className="mt-6 border-t pt-4">
               <h3 className="mb-4 flex items-center gap-2 font-semibold">
-                <CreditCard className="h-5 w-5" />
-                Paiements Stripe Connect
+                <CreditCard className="h-5 w-5" /> Paiements Stripe Connect
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Connectez votre compte Stripe pour recevoir directement les paiements de reservation si necessaire.
+                Connectez votre compte Stripe pour recevoir les paiements directement sur votre compte bancaire.
               </p>
               {(restaurant as any).stripe_account_id ? (
                 <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
@@ -353,7 +387,7 @@ export default function DashboardRestaurant() {
                 </Button>
               )}
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </DashboardLayout>

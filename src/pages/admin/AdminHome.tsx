@@ -20,7 +20,12 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
-import { useFeatureFlags } from "@/lib/featureFlags";
+import {
+  FEATURE_FLAG_GROUP_DESCRIPTIONS,
+  FEATURE_FLAG_GROUP_LABELS,
+  FEATURE_FLAG_GROUP_ORDER,
+  useFeatureFlags,
+} from "@/lib/featureFlags";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -182,6 +187,12 @@ export default function AdminHome() {
   });
 
   const { flags, toggleFlag, activateAllFlags, loading: loadingFlags } = useFeatureFlags();
+  const groupedFlags = FEATURE_FLAG_GROUP_ORDER
+    .map((group) => ({
+      group,
+      flags: flags.filter((flag) => flag.group === group),
+    }))
+    .filter((section) => section.flags.length > 0);
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -382,10 +393,10 @@ export default function AdminHome() {
               <div>
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
-                  <CardTitle>Fonctionnalites exclusives</CardTitle>
+                  <CardTitle>Modules et feature flags</CardTitle>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Tous les feature flags connus peuvent etre pilotes ici.
+                  Activez ou desactivez les briques visibles de l'application depuis cet ecran.
                 </p>
               </div>
               <Button variant="outline" onClick={handleActivateAll} disabled={loadingFlags}>
@@ -394,14 +405,24 @@ export default function AdminHome() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="divide-y">
-              {flags.map((flag) => (
-                <div key={flag.id} className="flex items-center justify-between py-3 gap-4">
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-semibold">{flag.label}</p>
-                    <p className="text-xs text-muted-foreground">{flag.description}</p>
+            <div className="space-y-6">
+              {groupedFlags.map((section) => (
+                <div key={section.group} className="space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold">{FEATURE_FLAG_GROUP_LABELS[section.group]}</p>
+                    <p className="text-xs text-muted-foreground">{FEATURE_FLAG_GROUP_DESCRIPTIONS[section.group]}</p>
                   </div>
-                  <Switch checked={flag.isActive} onCheckedChange={() => toggleFlag(flag.id)} />
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {section.flags.map((flag) => (
+                      <label key={flag.name} className="flex items-center justify-between gap-4 rounded-xl border p-4">
+                        <div className="space-y-0.5">
+                          <p className="text-sm font-semibold">{flag.label}</p>
+                          <p className="text-xs text-muted-foreground">{flag.description}</p>
+                        </div>
+                        <Switch checked={flag.isActive} onCheckedChange={() => toggleFlag(flag.id)} />
+                      </label>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

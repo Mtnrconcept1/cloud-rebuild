@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Heart, Loader2, Tag, Users } from "lucide-react";
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Heart, Loader2, Tag, Utensils, Users, Zap } from "lucide-react";
 
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { trackSponsoredConversion } from "@/lib/analytics";
 import { useAuth } from "@/lib/auth";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
@@ -31,7 +33,8 @@ interface ReservationDialogProps {
   initialPartySize?: number;
 }
 
-type Step = "datetime" | "promo" | "confirm";
+type Step = "datetime" | "mode" | "promo" | "confirm";
+type ReservationMode = "classique" | "zero-attente";
 type PromoOfferType = "formula" | "promotion";
 
 interface PromoOffer {
@@ -94,6 +97,10 @@ export default function ReservationDialog({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const activeFeatures = useActiveFeatures();
+  const zeroWaitEnabled = activeFeatures.has("zero-attente");
+  const steps: Step[] = zeroWaitEnabled ? ["datetime", "mode", "promo", "confirm"] : ["datetime", "promo", "confirm"];
 
   const [step, setStep] = useState<Step>("datetime");
   const [confirmedReservation, setConfirmedReservation] = useState<any>(null);
@@ -104,14 +111,27 @@ export default function ReservationDialog({
   const [selectedPromo, setSelectedPromo] = useState<PromoOffer | null>(null);
   const [loading, setLoading] = useState(false);
   const [donatePoints, setDonatePoints] = useState(false);
+  const [reservationMode, setReservationMode] = useState<ReservationMode>("classique");
 
   useEffect(() => {
     if (!open || !initialDate) return;
     setDate(initialDate);
     setTime(initialTime || "19:00");
     setPartySize(initialPartySize || 2);
-    setStep("promo");
-  }, [open, initialDate, initialTime, initialPartySize]);
+    setStep(zeroWaitEnabled ? "mode" : "promo");
+  }, [open, initialDate, initialTime, initialPartySize, zeroWaitEnabled]);
+
+  useEffect(() => {
+    if (!zeroWaitEnabled && reservationMode === "zero-attente") {
+      setReservationMode("classique");
+    }
+  }, [reservationMode, zeroWaitEnabled]);
+
+  useEffect(() => {
+    if (!zeroWaitEnabled && step === "mode") {
+      setStep("promo");
+    }
+  }, [step, zeroWaitEnabled]);
 
   const { data: profile } = useQuery({
     queryKey: ["profile-loyalty", user?.id],
@@ -331,14 +351,13 @@ export default function ReservationDialog({
     setNotes("");
     setSelectedPromo(null);
     setDonatePoints(false);
+    setReservationMode("classique");
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) resetForm();
     onOpenChange(nextOpen);
   };
-
-  const steps: Step[] = ["datetime", "promo", "confirm"];
 
   return (
     <>
@@ -362,7 +381,7 @@ export default function ReservationDialog({
                   >
                     {index < currentIndex ? <Check className="h-4 w-4" /> : index + 1}
                   </div>
-                  {index < steps.length - 1 ? <div className="h-0.5 w-6 rounded bg-secondary" /> : null}
+                  {index < steps.length - 1 && <div className="h-0.5 w-6 rounded bg-secondary" />}
                 </div>
               );
             })}
@@ -370,14 +389,15 @@ export default function ReservationDialog({
 
           <DialogHeader className="px-6 pb-0 pt-4">
             <div className="text-lg font-semibold leading-none tracking-tight">
-              {step === "datetime" ? `Reserver chez ${restaurantName}` : null}
-              {step === "promo" ? "Choisir une offre" : null}
-              {step === "confirm" ? "Confirmer la reservation" : null}
+              {step === "datetime" && `Reserver chez ${restaurantName}`}
+              {step === "mode" && "Type de reservation"}
+              {step === "promo" && "Choisir une offre"}
+              {step === "confirm" && "Confirmer la reservation"}
             </div>
           </DialogHeader>
 
           <div className="space-y-4 px-6 pb-6">
-            {step === "datetime" ? (
+            {step === "datetime" && (
               <>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1.5">
@@ -392,7 +412,7 @@ export default function ReservationDialog({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" selected={date} onSelect={setDate} disabled={(value) => value < startOfDay(new Date())} locale={fr} />
+                      <Calendar mode="single" selected={date} onSelect={setDate} disabled={(value) => value < new Date()} locale={fr} />
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -414,23 +434,73 @@ export default function ReservationDialog({
                   </div>
                 </div>
 
-                <Button onClick={() => setStep("promo")} disabled={!date} className="w-full gap-2">
+                <Button onClick={() => setStep(zeroWaitEnabled ? "mode" : "promo")} disabled={!date} className="w-full gap-2">
                   Suivant
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </>
-            ) : null}
+            )}
 
-            {step === "promo" ? (
+            {step === "mode" && zeroWaitEnabled && (
+              <>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setReservationMode("classique")}
+                    className={`w-full rounded-xl border-2 p-4 text-left transition-all ${reservationMode === "classique" ? "border-primary bg-primary/5" : "border-border"}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Utensils className="h-6 w-6" />
+                      <div>
+                        <p className="text-sm font-semibold">Reservation classique</p>
+                        <p className="text-xs text-muted-foreground">Reserve avec une offre ou une formule.</p>
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setReservationMode("zero-attente")}
+                    className={`w-full rounded-xl border-2 p-4 text-left transition-all ${reservationMode === "zero-attente" ? "border-indigo-500 bg-indigo-500/5" : "border-border"}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Zap className="h-6 w-6" />
+                      <div>
+                        <p className="text-sm font-semibold">Zero Attente</p>
+                        <p className="text-xs text-muted-foreground">Precommande, tout sera pret a l'arrivee.</p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setStep("datetime")}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (reservationMode === "zero-attente") {
+                        onOpenChange(false);
+                        resetForm();
+                        navigate(`/zero-attente?restaurant=${restaurantId}`);
+                        return;
+                      }
+                      setStep("promo");
+                    }}
+                    className="flex-1"
+                  >
+                    {reservationMode === "zero-attente" ? "Zero Attente" : "Suivant"}
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {step === "promo" && (
               <>
                 <button
                   onClick={() => setSelectedPromo(null)}
-                  className={`w-full rounded-xl border-2 p-4 text-left ${
-                    selectedPromo === null ? "border-primary bg-primary/5" : "border-border"
-                  }`}
+                  className={`w-full rounded-xl border-2 p-4 text-left ${selectedPromo === null ? "border-primary bg-primary/5" : "border-border"}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Tag className="h-5 w-5" />
+                    <Utensils className="h-5 w-5" />
                     <div>
                       <p className="text-sm font-semibold">A la carte</p>
                       <p className="text-xs text-muted-foreground">Reservation sans offre speciale.</p>
@@ -448,14 +518,12 @@ export default function ReservationDialog({
                     <button
                       key={promo.id}
                       onClick={() => setSelectedPromo(promo)}
-                      className={`w-full rounded-xl border-2 p-4 text-left ${
-                        selectedPromo?.id === promo.id ? "border-miamz-green bg-miamz-green/5" : "border-border"
-                      }`}
+                      className={`w-full rounded-xl border-2 p-4 text-left ${selectedPromo?.id === promo.id ? "border-miamz-green bg-miamz-green/5" : "border-border"}`}
                     >
                       <div className="flex items-start gap-3">
                         <Tag className="mt-0.5 h-5 w-5" />
                         <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-semibold">{promo.label}</p>
                             <span className="font-semibold text-miamz-green">{promo.discountLabel}</span>
                             <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -474,7 +542,7 @@ export default function ReservationDialog({
                 )}
 
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setStep("datetime")}>
+                  <Button variant="outline" onClick={() => setStep(zeroWaitEnabled ? "mode" : "datetime")}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <Button onClick={() => setStep("confirm")} className="flex-1">
@@ -483,21 +551,21 @@ export default function ReservationDialog({
                   </Button>
                 </div>
               </>
-            ) : null}
+            )}
 
-            {step === "confirm" ? (
+            {step === "confirm" && (
               <>
                 <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">Restaurant</span><span className="font-medium">{restaurantName}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{date ? format(date, "EEEE d MMMM", { locale: fr }) : ""}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Heure</span><span className="font-medium">{time}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Convives</span><span className="font-medium">{partySize}</span></div>
-                  {selectedPromo ? (
+                  {selectedPromo && (
                     <div className="flex justify-between border-t pt-2">
                       <span className="text-muted-foreground">Offre</span>
                       <span className="font-semibold text-miamz-green">{selectedPromo.label} {selectedPromo.discountLabel}</span>
                     </div>
-                  ) : null}
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between rounded-lg border border-miamz-green/20 bg-miamz-green/5 p-3">
@@ -522,7 +590,7 @@ export default function ReservationDialog({
                   </Button>
                 </div>
               </>
-            ) : null}
+            )}
           </div>
         </DialogContent>
       </Dialog>

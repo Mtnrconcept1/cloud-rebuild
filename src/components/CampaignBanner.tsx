@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getActiveSponsoredRestaurants, trackSponsoredImpression, trackSponsoredClick } from "@/lib/analytics";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { Megaphone, ChevronRight } from "lucide-react";
@@ -11,17 +12,20 @@ interface CampaignBannerProps {
 }
 
 export default function CampaignBanner({ page, maxBanners = 2 }: CampaignBannerProps) {
-  const navigate = useNavigate();
+  const activeFeatures = useActiveFeatures();
+  const campaignsEnabled = activeFeatures.has("campagnes-pub");
 
   const { data: campaigns } = useQuery({
     queryKey: ["campaign-banners", page],
     queryFn: () => getActiveSponsoredRestaurants(page),
+    enabled: campaignsEnabled,
   });
 
   const banners = (campaigns || [])
     .filter((c: any) => c.image_url || c.body)
     .slice(0, maxBanners);
 
+  if (!campaignsEnabled) return null;
   if (!banners.length) return null;
 
   return (
