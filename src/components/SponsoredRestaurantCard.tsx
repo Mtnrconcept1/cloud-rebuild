@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, Bike, MapPin, Megaphone } from "lucide-react";
+import { Star, MapPin, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
 import { trackSponsoredClick, trackSponsoredImpression } from "@/lib/analytics";
@@ -75,7 +75,7 @@ export default function SponsoredRestaurantCard({ id, name, cuisine, rating, rev
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-wrap gap-1.5 sm:flex-col sm:gap-2 max-w-[85%]">
             <Badge className="bg-amber-500/90 backdrop-blur-md text-white text-[9px] sm:text-[10px] gap-1 shadow-sm border-none uppercase font-bold"><Megaphone className="h-3 w-3" />Sponsorisé</Badge>
-            {deliveryAvailable && <Badge className="bg-primary/90 backdrop-blur-md text-white text-[9px] sm:text-[10px] gap-1 shadow-sm border-none uppercase font-bold"><Bike className="h-3 w-3" />Livraison</Badge>}
+            <Badge className="bg-white/90 backdrop-blur-md text-foreground text-[9px] sm:text-[10px] gap-1 shadow-sm border-none uppercase font-bold">Reservation</Badge>
           </div>
         </div>
         <div className="p-3 sm:p-4 space-y-2">

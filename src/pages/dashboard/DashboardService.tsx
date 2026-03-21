@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { Clock, Settings, Store, SunMedium, MoonStar } from "lucide-react";
+
 import DashboardLayout from "@/components/DashboardLayout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Settings, Store, SunMedium, MoonStar } from "lucide-react";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_SERVICE_SETTINGS,
   getServicePeriodLabel,
@@ -21,6 +21,8 @@ import {
   type ServiceSettingsMap,
   validateServiceSettings,
 } from "@/lib/serviceSettings";
+
+import { useDashboardRestaurant } from "./DashboardContext";
 
 const SERVICE_PERIODS: Array<{
   key: ServicePeriod;
@@ -55,16 +57,10 @@ export default function DashboardService() {
   });
 
   const [serviceSettings, setServiceSettings] = useState<ServiceSettingsMap>(DEFAULT_SERVICE_SETTINGS);
-  const [deliveryAvailable, setDeliveryAvailable] = useState(false);
-  const [deliveryFee, setDeliveryFee] = useState("0");
-  const [minOrder, setMinOrder] = useState("0");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!restaurant) return;
-    setDeliveryAvailable(!!restaurant.delivery_available);
-    setDeliveryFee(restaurant.delivery_fee?.toString() || "0");
-    setMinOrder(restaurant.min_order_amount?.toString() || "0");
     setServiceSettings(getServiceSettings(restaurant.opening_hours));
   }, [restaurant]);
 
@@ -103,9 +99,12 @@ export default function DashboardService() {
       .from("restaurants")
       .update({
         opening_hours: openingHours as any,
-        delivery_available: deliveryAvailable,
-        delivery_fee: Number(deliveryFee),
-        min_order_amount: Number(minOrder),
+        delivery_available: false,
+        delivery_fee: 0,
+        min_order_amount: 0,
+        supports_pickup: false,
+        supports_dinein: true,
+        supports_reservation: true,
       })
       .eq("id", restaurant.id);
     setLoading(false);
@@ -147,6 +146,7 @@ export default function DashboardService() {
           {SERVICE_PERIODS.map((period) => {
             const settings = serviceSettings[period.key];
             const Icon = period.icon;
+
             return (
               <Card key={period.key}>
                 <CardHeader>
@@ -165,74 +165,41 @@ export default function DashboardService() {
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
                       <Label>Debut</Label>
-                      <Input
-                        type="time"
-                        value={settings.start_time}
-                        onChange={(event) => updateServiceField(period.key, "start_time", event.target.value)}
-                      />
+                      <Input type="time" value={settings.start_time} onChange={(event) => updateServiceField(period.key, "start_time", event.target.value)} />
                     </div>
                     <div className="space-y-2">
                       <Label>Fin</Label>
-                      <Input
-                        type="time"
-                        value={settings.end_time}
-                        onChange={(event) => updateServiceField(period.key, "end_time", event.target.value)}
-                      />
+                      <Input type="time" value={settings.end_time} onChange={(event) => updateServiceField(period.key, "end_time", event.target.value)} />
                     </div>
                     <div className="space-y-2">
                       <Label>Derniere reservation</Label>
-                      <Input
-                        type="time"
-                        value={settings.last_reservation_time}
-                        onChange={(event) => updateServiceField(period.key, "last_reservation_time", event.target.value)}
-                      />
+                      <Input type="time" value={settings.last_reservation_time} onChange={(event) => updateServiceField(period.key, "last_reservation_time", event.target.value)} />
                     </div>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
                       <Label>Capacite max</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={settings.max_covers}
-                        onChange={(event) => updateServiceField(period.key, "max_covers", Number(event.target.value))}
-                      />
+                      <Input type="number" min={1} value={settings.max_covers} onChange={(event) => updateServiceField(period.key, "max_covers", Number(event.target.value))} />
                     </div>
                     <div className="space-y-2">
                       <Label>Groupe min</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={settings.min_party_size}
-                        onChange={(event) => updateServiceField(period.key, "min_party_size", Number(event.target.value))}
-                      />
+                      <Input type="number" min={1} value={settings.min_party_size} onChange={(event) => updateServiceField(period.key, "min_party_size", Number(event.target.value))} />
                     </div>
                     <div className="space-y-2">
                       <Label>Groupe max</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={settings.max_party_size}
-                        onChange={(event) => updateServiceField(period.key, "max_party_size", Number(event.target.value))}
-                      />
+                      <Input type="number" min={1} value={settings.max_party_size} onChange={(event) => updateServiceField(period.key, "max_party_size", Number(event.target.value))} />
                     </div>
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
                       <span>Reservations en ligne</span>
-                      <Switch
-                        checked={settings.online_booking_enabled}
-                        onCheckedChange={(checked) => updateServiceField(period.key, "online_booking_enabled", checked)}
-                      />
+                      <Switch checked={settings.online_booking_enabled} onCheckedChange={(checked) => updateServiceField(period.key, "online_booking_enabled", checked)} />
                     </label>
                     <label className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
                       <span>Service ferme</span>
-                      <Switch
-                        checked={settings.service_closed}
-                        onCheckedChange={(checked) => updateServiceField(period.key, "service_closed", checked)}
-                      />
+                      <Switch checked={settings.service_closed} onCheckedChange={(checked) => updateServiceField(period.key, "service_closed", checked)} />
                     </label>
                   </div>
 
@@ -253,40 +220,26 @@ export default function DashboardService() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Livraison
+              <Store className="h-5 w-5" />
+              Canal client
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Switch checked={deliveryAvailable} onCheckedChange={setDeliveryAvailable} />
-              <Label>Livraison disponible</Label>
-            </div>
-            {deliveryAvailable ? (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Frais de livraison (CHF)</Label>
-                  <Input type="number" step="0.01" value={deliveryFee} onChange={(event) => setDeliveryFee(event.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Commande minimum (CHF)</Label>
-                  <Input type="number" step="0.01" value={minOrder} onChange={(event) => setMinOrder(event.target.value)} />
-                </div>
-              </div>
-            ) : null}
+          <CardContent className="space-y-1 text-sm text-muted-foreground">
+            <p>Le frontend est maintenant centre sur la reservation de table.</p>
+            <p>Les parcours livraison, panier et retrait sont desactives.</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Store className="h-5 w-5" />
+              <Clock className="h-5 w-5" />
               Lecture dashboard
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-1">
-            <p>Le split midi/soir est maintenant partage avec le module de reservation client.</p>
-            <p>La capacite, les plages horaires et l'ouverture en ligne sont gerees separément par service.</p>
+          <CardContent className="space-y-1 text-sm text-muted-foreground">
+            <p>Le split midi/soir est partage avec le module de reservation client.</p>
+            <p>La capacite, les plages horaires et l'ouverture en ligne sont gerees separement par service.</p>
           </CardContent>
         </Card>
 

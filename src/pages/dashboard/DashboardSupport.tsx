@@ -1,23 +1,22 @@
 import { useState } from "react";
-import DashboardLayout from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useToast } from "@/hooks/use-toast";
 import { CircleHelp, Mail, MessageSquare, Search } from "lucide-react";
+
+import DashboardLayout from "@/components/DashboardLayout";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 const FAQ = [
   { q: "Comment modifier mes horaires d'ouverture ?", a: "Rendez-vous dans « Pilotage de service » pour configurer vos horaires par jour de la semaine." },
-  { q: "Comment créer une vente flash ?", a: "Dans le menu « Ventes flash », cliquez sur « Créer une vente » et remplissez le formulaire avec le prix, la date et les quantités." },
-  { q: "Comment gérer mes avis clients ?", a: "Consultez la section « Avis clients » pour voir et répondre aux retours de vos clients." },
-  { q: "Comment ajouter des photos de mes plats ?", a: "Allez dans « Photos » pour ajouter des images à vos plats. Vous pouvez aussi les modifier depuis « Menu »." },
-  { q: "Comment voir mes factures ?", a: "La section « Factures » liste toutes vos factures avec leur statut de paiement." },
-  { q: "Comment activer la livraison ?", a: "Dans « Mon restaurant », activez l'option livraison et configurez les frais et le montant minimum de commande." },
-  { q: "Qu'est-ce que l'anti-gaspi ?", a: "Les offres anti-gaspi permettent de vendre vos invendus à prix réduit avant la fermeture. Créez-les dans « Anti-gaspi »." },
-  { q: "Comment lancer une campagne marketing ?", a: "Rendez-vous dans « Campagnes » pour créer des campagnes publicitaires ciblées avec un budget quotidien." },
+  { q: "Comment activer la reservation en ligne ?", a: "Dans « Mon restaurant », verifiez que la reservation de table est active, puis reglez vos services dans « Pilotage de service »." },
+  { q: "Comment fermer un service ponctuellement ?", a: "Dans « Pilotage de service », activez « Service ferme » sur le service concerne." },
+  { q: "Comment definir ma capacite ?", a: "Ajustez la capacite maximale ainsi que les tailles de groupe pour chaque service depuis « Pilotage de service »." },
+  { q: "Comment ajouter des photos du lieu ?", a: "Allez dans « Photos » pour publier des visuels de la salle, de l'ambiance ou de la facade." },
+  { q: "Comment gerer mes reservations ?", a: "La section « Reservations » centralise les reservations du jour, les statuts et le detail de chaque table." },
 ];
 
 export default function DashboardSupport() {
@@ -28,18 +27,18 @@ export default function DashboardSupport() {
   const [sending, setSending] = useState(false);
 
   const filteredFaq = search.trim()
-    ? FAQ.filter((f) => f.q.toLowerCase().includes(search.toLowerCase()) || f.a.toLowerCase().includes(search.toLowerCase()))
+    ? FAQ.filter((faq) => faq.q.toLowerCase().includes(search.toLowerCase()) || faq.a.toLowerCase().includes(search.toLowerCase()))
     : FAQ;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!subject.trim() || !message.trim()) {
       return toast({ title: "Validation", description: "Veuillez remplir tous les champs.", variant: "destructive" });
     }
+
     setSending(true);
-    // Simulate sending — in production this would call an edge function
-    await new Promise((r) => setTimeout(r, 800));
-    toast({ title: "Message envoyé", description: "Notre équipe vous répondra sous 24h." });
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    toast({ title: "Message envoye", description: "Notre equipe vous repondra sous 24h." });
     setSubject("");
     setMessage("");
     setSending(false);
@@ -47,31 +46,29 @@ export default function DashboardSupport() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-3xl">
+      <div className="max-w-3xl space-y-6">
         <h1 className="font-display text-3xl font-bold">Aide et support</h1>
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><CircleHelp className="h-5 w-5" />Questions fréquentes</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <CircleHelp className="h-5 w-5" />
+              Questions frequentes
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher dans la FAQ..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Rechercher dans la FAQ..." value={search} onChange={(event) => setSearch(event.target.value)} className="pl-9" />
             </div>
             {filteredFaq.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Aucun résultat. Posez votre question ci-dessous.</p>
+              <p className="text-sm text-muted-foreground">Aucun resultat. Posez votre question ci-dessous.</p>
             ) : (
               <Accordion type="single" collapsible className="w-full">
-                {filteredFaq.map((f, i) => (
-                  <AccordionItem key={i} value={`faq-${i}`}>
-                    <AccordionTrigger className="text-sm text-left">{f.q}</AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground">{f.a}</AccordionContent>
+                {filteredFaq.map((faq, index) => (
+                  <AccordionItem key={index} value={`faq-${index}`}>
+                    <AccordionTrigger className="text-left text-sm">{faq.q}</AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground">{faq.a}</AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
@@ -81,20 +78,23 @@ export default function DashboardSupport() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Mail className="h-5 w-5" />Contacter le support</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Contacter le support
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label>Sujet</Label>
-                <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ex: Problème de facturation" />
+                <Input value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Ex: Disponibilite de reservation" />
               </div>
               <div>
                 <Label>Message</Label>
-                <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Décrivez votre problème en détail..." rows={5} />
+                <Textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Decrivez votre besoin en detail..." rows={5} />
               </div>
               <Button type="submit" disabled={sending}>
-                <MessageSquare className="h-4 w-4 mr-2" />
+                <MessageSquare className="mr-2 h-4 w-4" />
                 {sending ? "Envoi..." : "Envoyer"}
               </Button>
             </form>

@@ -12,8 +12,8 @@ import { LOGO_URL } from "@/lib/constants";
 import { ShoppingBag, ChefHat, Shield, Bike } from "lucide-react";
 
 const ROLE_CONFIG: Record<UserRole, { label: string; desc: string; icon: typeof ShoppingBag; to: string; color: string }> = {
-  client: { label: "Client", desc: "Commander et decouvrir des restaurants", icon: ShoppingBag, to: "/", color: "border-primary bg-primary/5 text-primary" },
-  restaurateur: { label: "Restaurateur", desc: "Gerer mon restaurant et mes commandes", icon: ChefHat, to: "/dashboard", color: "border-amber-500 bg-amber-500/5 text-amber-600" },
+  client: { label: "Client", desc: "Reserver des tables et decouvrir des restaurants", icon: ShoppingBag, to: "/", color: "border-primary bg-primary/5 text-primary" },
+  restaurateur: { label: "Restaurateur", desc: "Gerer mon restaurant et mes reservations", icon: ChefHat, to: "/dashboard", color: "border-amber-500 bg-amber-500/5 text-amber-600" },
   admin: { label: "Administration", desc: "Back-office et gestion de la plateforme", icon: Shield, to: "/admin", color: "border-red-500 bg-red-500/5 text-red-600" },
   courier: { label: "Livreur", desc: "Mes livraisons et mes revenus", icon: Bike, to: "/courier", color: "border-emerald-500 bg-emerald-500/5 text-emerald-600" },
 };
@@ -34,13 +34,14 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, roles, switchRole } = useAuth();
+  const visibleRoles = roles.filter((currentRole) => currentRole !== "courier");
 
   // After login, if user has multiple roles, show role picker
   useEffect(() => {
-    if (user && roles.length > 1 && !showRolePicker) {
+    if (user && visibleRoles.length > 1 && !showRolePicker) {
       setShowRolePicker(true);
     }
-  }, [user, roles]);
+  }, [user, visibleRoles.length, showRolePicker]);
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     switchRole(selectedRole);
@@ -92,7 +93,7 @@ export default function Auth() {
   };
 
   // Role picker screen (shown after login if multiple roles)
-  if (showRolePicker && user && roles.length > 1) {
+  if (showRolePicker && user && visibleRoles.length > 1) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
         <Card className="w-full max-w-md shadow-lg border-0">
@@ -102,7 +103,7 @@ export default function Auth() {
             <CardDescription>Choisissez votre espace pour continuer</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {roles.map((r) => {
+            {visibleRoles.map((r) => {
               const config = ROLE_CONFIG[r];
               return (
                 <button
@@ -127,8 +128,8 @@ export default function Auth() {
   }
 
   // If already logged in with single role, redirect
-  if (user && roles.length === 1) {
-    navigate("/");
+  if (user && visibleRoles.length <= 1) {
+    navigate(visibleRoles[0] ? ROLE_CONFIG[visibleRoles[0]].to : "/");
     return null;
   }
 

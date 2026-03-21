@@ -43,7 +43,6 @@ export default function RestaurantSection({ title, subtitle, icon: Icon, iconCol
                 reviewCount={r.review_count || 0}
                 imageUrl={r.image_url || ""}
                 priceRange={r.price_range || 2}
-                deliveryAvailable={r.delivery_available || false}
                 city={r.city}
                 address={r.address || ""}
                 sponsoredCampaignId={r.campaign_id || undefined}

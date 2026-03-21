@@ -41,11 +41,11 @@ export default function SearchAndCategories() {
           <div className="flex items-center gap-2 text-muted-foreground pl-3">
             <Search className="h-5 w-5 shrink-0 text-primary" />
           </div>
-          <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Envie de sushi, pizza ou d'un burger ?" className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-base" />
-          <Button type="submit" size="lg" className="shrink-0 rounded-xl px-6 font-bold">Trouver</Button>
+          <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Envie d'une table italienne, japonaise ou bistronomique ?" className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-base" />
+          <Button type="submit" size="lg" className="shrink-0 rounded-xl px-6 font-bold">Rechercher</Button>
         </form>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 justify-center">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide px-4 justify-start">
           <button onClick={() => { setActiveCategory(""); navigate('/recherche'); }} className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl shrink-0 transition-all text-sm font-bold ${activeCategory === "" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"}`}>
             <UtensilsCrossed className="h-4 w-4" />
             <span>Tout</span>

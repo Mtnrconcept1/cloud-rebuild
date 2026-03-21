@@ -1,11 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { User, ShoppingCart, CalendarDays, LogOut, LayoutDashboard, Settings, Bell } from "lucide-react";
+import { User, CalendarDays, LogOut, LayoutDashboard, Settings, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 const NAV_ITEMS = [
   { to: "/profil", label: "Mon profil", icon: User },
-  { to: "/commandes", label: "Mes commandes", icon: ShoppingCart },
   { to: "/reservations", label: "Mes réservations", icon: CalendarDays },
   { to: "/notifications", label: "Notifications", icon: Bell },
 ];
