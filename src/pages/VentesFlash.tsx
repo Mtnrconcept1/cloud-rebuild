@@ -30,6 +30,7 @@ export default function VentesFlash() {
   const [selectedOrderMode, setSelectedOrderMode] = useState<"delivery" | "takeaway" | null>(null);
   const activeFeatures = useActiveFeatures();
   const deliveryEnabled = activeFeatures.has("livraison");
+  const multiRestoEnabled = activeFeatures.has("multi-restaurant");
 
   const { data: allOffers, isLoading } = useQuery({
     queryKey: ["flash-sales-page"],
@@ -104,8 +105,27 @@ export default function VentesFlash() {
   const toggleSelect = (id: string) => {
     if (expiredIds.has(id)) return;
     const next = new Set(selected);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      // Block selecting offers from different restaurants when multi-resto is disabled
+      if (!multiRestoEnabled && selected.size > 0) {
+        const currentRestaurantIds = new Set(
+          flashOffers.filter((o: any) => selected.has(o.id)).map((o: any) => o.restaurants?.id || o.restaurant_id),
+        );
+        const newOffer = flashOffers.find((o: any) => o.id === id);
+        const newRestaurantId = newOffer?.restaurants?.id || newOffer?.restaurant_id;
+        if (newRestaurantId && currentRestaurantIds.size > 0 && !currentRestaurantIds.has(newRestaurantId)) {
+          toast({
+            title: "Un seul restaurant",
+            description: "La commande multi-restaurants n'est pas disponible. Sélectionnez des offres du même restaurant.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+      next.add(id);
+    }
     setSelected(next);
   };
 
@@ -132,6 +152,17 @@ export default function VentesFlash() {
   }, [selectedOffers.length, canDeliverAll, canTakeawayAll]);
 
   const handleCheckout = () => {
+    // Block multi-restaurant checkout when feature is disabled
+    const uniqueResIds = new Set(selectedOffers.map((o: any) => o.restaurants?.id || o.restaurant_id));
+    if (!multiRestoEnabled && uniqueResIds.size > 1) {
+      toast({
+        title: "Un seul restaurant",
+        description: "La commande multi-restaurants n'est pas disponible.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!canDeliverAll && !canTakeawayAll) {
       toast({
         title: "Offres incompatibles",
@@ -169,7 +200,7 @@ export default function VentesFlash() {
           sale_date: offer.sale_date,
           sale_start: offer.sale_start,
           sale_end: offer.sale_end,
-          delivery_available: !!offer.delivery_available,
+          delivery_available: deliveryEnabled && !!offer.delivery_available,
           takeaway_available: !!offer.takeaway_available,
         },
       });

@@ -1,4 +1,4 @@
-import { BarChart3, Eye, MousePointerClick, Pause, Play, TrendingUp } from "lucide-react";
+import { BarChart3, Clock, Eye, MousePointerClick, Pause, Play, TrendingUp, Wallet } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import DashboardLayout from "@/components/DashboardLayout";
@@ -20,10 +20,39 @@ type Campaign = {
   conversions: number | null;
   spent: number | null;
   total_budget: number | null;
+  budget_daily: number | null;
+  daily_spent: number | null;
+  daily_spent_date: string | null;
+  cpm_rate: number | null;
   starts_at: string | null;
   ends_at: string | null;
   restaurant_id: string;
 };
+
+function computePacingStatus(campaign: Campaign): { label: string; color: string } {
+  const totalBudget = Number(campaign.total_budget || 0);
+  const spent = Number(campaign.spent || 0);
+  if (totalBudget <= 0 || !campaign.starts_at || !campaign.ends_at) {
+    return { label: "N/A", color: "text-muted-foreground" };
+  }
+
+  const startsAt = Date.parse(campaign.starts_at);
+  const endsAt = Date.parse(campaign.ends_at);
+  const now = Date.now();
+  if (!Number.isFinite(startsAt) || !Number.isFinite(endsAt) || endsAt <= startsAt) {
+    return { label: "N/A", color: "text-muted-foreground" };
+  }
+
+  const timeProgression = Math.min(1, Math.max(0, now - startsAt) / (endsAt - startsAt));
+  if (timeProgression === 0) return { label: "Pas demarre", color: "text-muted-foreground" };
+
+  const budgetProgression = spent / totalBudget;
+  const ratio = budgetProgression / timeProgression;
+
+  if (ratio < 0.8) return { label: "En retard", color: "text-orange-500" };
+  if (ratio > 1.2) return { label: "En avance", color: "text-blue-500" };
+  return { label: "Dans les temps", color: "text-green-500" };
+}
 
 export default function DashboardCampagneOverview() {
   const { toast } = useToast();
@@ -35,7 +64,7 @@ export default function DashboardCampagneOverview() {
     queryKey: ["dashboard-campaigns-overview", selectedId],
     queryFn: async () => {
       const { data, error } = await (supabase.from("ad_campaigns") as any)
-        .select("id, title, type, status, payment_status, impressions, clicks, conversions, spent, total_budget, starts_at, ends_at, restaurant_id")
+        .select("id, title, type, status, payment_status, impressions, clicks, conversions, spent, total_budget, budget_daily, daily_spent, daily_spent_date, cpm_rate, starts_at, ends_at, restaurant_id")
         .eq("restaurant_id", selectedId!)
         .order("created_at", { ascending: false });
 
@@ -52,6 +81,14 @@ export default function DashboardCampagneOverview() {
   const totalConversions = campaigns.reduce((sum, campaign) => sum + (campaign.conversions || 0), 0);
   const totalSpent = campaigns.reduce((sum, campaign) => sum + Number(campaign.spent || 0), 0);
   const ctr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(1) : "0";
+
+  const activeCampaigns = campaigns.filter((c) => c.status === "active");
+  const poolBudgetRestant = activeCampaigns.reduce((sum, c) => {
+    const tb = Number(c.total_budget || 0);
+    const sp = Number(c.spent || 0);
+    return sum + Math.max(0, tb - sp);
+  }, 0);
+  const moyennePool = activeCampaigns.length > 0 ? poolBudgetRestant / activeCampaigns.length : 0;
 
   const toggleStatus = async (id: string, currentStatus: string | null) => {
     const newStatus = currentStatus === "active" ? "paused" : "active";
@@ -135,8 +172,19 @@ export default function DashboardCampagneOverview() {
           {campaigns.map((campaign) => {
             const budget = Number(campaign.total_budget || 0);
             const spent = Number(campaign.spent || 0);
+            const budgetRestant = Math.max(0, budget - spent);
             const progress = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
             const canActivate = (campaign.payment_status || "unpaid") === "paid";
+
+            const budgetDaily = Number(campaign.budget_daily || 0);
+            const today = new Date().toISOString().slice(0, 10);
+            const dailySpent = (String(campaign.daily_spent_date || "") === today)
+              ? Number(campaign.daily_spent || 0) : 0;
+            const dailyProgress = budgetDaily > 0 ? Math.min(100, (dailySpent / budgetDaily) * 100) : 0;
+
+            const pacing = computePacingStatus(campaign);
+            const indiceVsMoyenne = moyennePool > 0 && campaign.status === "active"
+              ? (budgetRestant / moyennePool) : null;
 
             return (
               <Card key={campaign.id}>
@@ -186,6 +234,45 @@ export default function DashboardCampagneOverview() {
                       <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
                     </div>
                   ) : null}
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-muted-foreground">Restant:</span>
+                      <span className="font-medium">{budgetRestant.toFixed(0)} CHF</span>
+                    </div>
+
+                    {budgetDaily > 0 ? (
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-muted-foreground">Jour:</span>
+                          <span className="font-medium">{dailySpent.toFixed(2)} / {budgetDaily.toFixed(0)} CHF</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-1">
+                          <div
+                            className={`h-1 rounded-full transition-all ${dailyProgress >= 100 ? "bg-destructive" : "bg-blue-500"}`}
+                            style={{ width: `${dailyProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-muted-foreground">Pacing:</span>
+                      <span className={`font-medium ${pacing.color}`}>{pacing.label}</span>
+                    </div>
+
+                    {indiceVsMoyenne !== null ? (
+                      <div className="flex items-center gap-1.5">
+                        <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-muted-foreground">vs moyenne:</span>
+                        <span className={`font-medium ${indiceVsMoyenne >= 1 ? "text-green-500" : "text-orange-500"}`}>
+                          {indiceVsMoyenne.toFixed(1)}x
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
 
                   {(campaign.starts_at || campaign.ends_at) ? (
                     <p className="text-[10px] text-muted-foreground">

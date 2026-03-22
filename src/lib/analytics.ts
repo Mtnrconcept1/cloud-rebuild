@@ -153,52 +153,79 @@ function writeSponsoredRotationStore(store: SponsoredRotationStore) {
   }
 }
 
-function selectBudgetWeightedCampaignsForPage(campaigns: any[], page: string) {
+function computePacingFactor(campaign: any): number {
+  const startsAt = campaign.starts_at ? Date.parse(String(campaign.starts_at)) : NaN;
+  const endsAt = campaign.ends_at ? Date.parse(String(campaign.ends_at)) : NaN;
+  const now = Date.now();
+
+  if (!Number.isFinite(startsAt) || !Number.isFinite(endsAt) || endsAt <= startsAt) {
+    return 1.0;
+  }
+
+  const totalDuration = endsAt - startsAt;
+  const elapsed = Math.max(0, now - startsAt);
+  const timeProgression = Math.min(1, elapsed / totalDuration);
+
+  const totalBudget = Number(campaign.total_budget || 0);
+  const spent = Number(campaign.spent || 0);
+  if (totalBudget <= 0 || timeProgression === 0) return 1.0;
+
+  const budgetProgression = spent / totalBudget;
+  const ratio = budgetProgression / timeProgression;
+  return Math.max(0.2, Math.min(3.0, 1 / Math.max(ratio, 0.01)));
+}
+
+function getRemainingBudget(campaign: any): number {
+  const totalBudget = Number(campaign.total_budget || 0);
+  const spent = Number(campaign.spent || 0);
+  if (totalBudget <= 0) {
+    return Math.max(Number(campaign.budget_daily || 0), 1);
+  }
+  return Math.max(0, totalBudget - spent);
+}
+
+function selectPoolWeightedCampaigns(campaigns: any[], page: string): any[] {
+  if (!campaigns || campaigns.length === 0) return [];
+  if (campaigns.length === 1) return campaigns;
+
+  const pool = campaigns.map((c) => ({
+    campaign: c,
+    budgetRestant: getRemainingBudget(c),
+    pacingFactor: computePacingFactor(c),
+  }));
+
+  const sumBudgetRestant = pool.reduce((s, p) => s + p.budgetRestant, 0);
+  if (sumBudgetRestant <= 0) return [];
+
+  const weighted = pool.map((p) => ({
+    ...p,
+    scoreFinal: (p.budgetRestant / sumBudgetRestant) * p.pacingFactor,
+  }));
+
+  const totalScore = weighted.reduce((s, w) => s + w.scoreFinal, 0) || 1;
+
+  const campaignsWithWeight = weighted.map((w) => ({
+    ...w.campaign,
+    __poolWeight: w.scoreFinal / totalScore,
+  }));
+
   const rotationStore = readSponsoredRotationStore();
-  const groupedCampaigns = new Map<string, any[]>();
-  const passthroughCampaigns: any[] = [];
+  const stateKey = `pool:${page}`;
+  const state = rotationStore[stateKey] || { counts: {}, lastShownOrder: {}, sequence: 0 };
 
-  (campaigns || []).forEach((campaign: any) => {
-    const restaurantId = String(campaign?.restaurant_id || campaign?.restaurants?.id || "");
-    if (!restaurantId) {
-      passthroughCampaigns.push(campaign);
-      return;
-    }
-    if (!groupedCampaigns.has(restaurantId)) groupedCampaigns.set(restaurantId, []);
-    groupedCampaigns.get(restaurantId)!.push(campaign);
-  });
+  const activeIds = new Set(campaignsWithWeight.map((c) => String(c.id)));
+  state.counts = Object.fromEntries(
+    Object.entries(state.counts || {}).filter(([id]) => activeIds.has(id))
+  );
+  state.lastShownOrder = Object.fromEntries(
+    Object.entries(state.lastShownOrder || {}).filter(([id]) => activeIds.has(id))
+  );
 
-  const selectedCampaigns: any[] = [];
-
-  groupedCampaigns.forEach((restaurantCampaigns, restaurantId) => {
-    if (restaurantCampaigns.length === 1) {
-      selectedCampaigns.push(restaurantCampaigns[0]);
-      return;
-    }
-
-    const stateKey = `${page}:${restaurantId}`;
-    const cleanedState = rotationStore[stateKey] || { counts: {}, lastShownOrder: {}, sequence: 0 };
-    const activeCampaignIds = new Set(
-      restaurantCampaigns
-        .map((campaign) => campaign?.id)
-        .filter((campaignId): campaignId is string => !!campaignId)
-        .map(String),
-    );
-
-    cleanedState.counts = Object.fromEntries(
-      Object.entries(cleanedState.counts || {}).filter(([campaignId]) => activeCampaignIds.has(campaignId))
-    );
-    cleanedState.lastShownOrder = Object.fromEntries(
-      Object.entries(cleanedState.lastShownOrder || {}).filter(([campaignId]) => activeCampaignIds.has(campaignId))
-    );
-
-    const { campaign, state } = pickWeightedCampaign(restaurantCampaigns, cleanedState);
-    rotationStore[stateKey] = state;
-    if (campaign) selectedCampaigns.push(campaign);
-  });
-
+  const { campaign, state: newState } = pickWeightedCampaign(campaignsWithWeight, state);
+  rotationStore[stateKey] = newState;
   writeSponsoredRotationStore(rotationStore);
-  return [...selectedCampaigns, ...passthroughCampaigns];
+
+  return campaign ? [campaign] : [];
 }
 
 function isInvalidOrderStatus(status: unknown) {
@@ -646,6 +673,13 @@ export async function getActiveSponsoredRestaurants(page: string) {
     }
     if (Number(c.total_budget || 0) > 0 && Number(c.spent || 0) >= Number(c.total_budget || 0)) return false;
 
+    if (Number(c.budget_daily || 0) > 0) {
+      const today = new Date().toISOString().slice(0, 10);
+      const dailySpent = (String(c.daily_spent_date || "") === today)
+        ? Number(c.daily_spent || 0) : 0;
+      if (dailySpent >= Number(c.budget_daily)) return false;
+    }
+
     const pages = c.target_pages;
     if (!pages) return true;
     if (Array.isArray(pages)) return pages.length === 0 || pages.includes(page);
@@ -655,7 +689,7 @@ export async function getActiveSponsoredRestaurants(page: string) {
     return matchesAudienceCriteria(campaign?.target_criteria || DEFAULT_AUDIENCE_CRITERIA, audienceSnapshot, restaurantId);
   });
 
-  return selectBudgetWeightedCampaignsForPage(activeCampaigns, page);
+  return selectPoolWeightedCampaigns(activeCampaigns, page);
 }
 
 export async function createCampaign(campaign: {

@@ -33,6 +33,7 @@ export default function RestaurantDetail() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
+  const [activeTab, setActiveTab] = useState("menu");
   const impressionTracked = useRef(false);
   const deliveryEnabled = activeFeatures.has("livraison");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
@@ -233,7 +234,7 @@ export default function RestaurantDetail() {
                 <div className="text-left"><span className="font-bold text-sm block">Emporter</span><span className="text-[10px] text-miamz-green font-bold">0.00 CHF</span></div>
               </button>
             </div>
-            <Tabs defaultValue="menu" className="space-y-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto gap-0">
                 <TabsTrigger value="apropos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><Info className="h-4 w-4" />À propos</TabsTrigger>
                 <TabsTrigger value="menu" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><UtensilsCrossed className="h-4 w-4" />Menu</TabsTrigger>
@@ -262,6 +263,105 @@ export default function RestaurantDetail() {
                   }
                   return <p className="text-sm text-muted-foreground">Lundi - Dimanche : 11h30 - 22h30</p>;
                 })()}</div></div><div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3"><Info className="h-5 w-5 text-primary mt-0.5" /><div><h3 className="font-semibold mb-2">Détails</h3><ul className="text-sm text-muted-foreground space-y-1"><li>Cuisine : {restaurant.cuisine_type || "Non spécifié"}</li><li>Fourchette de prix : <PriceRangeIcons range={restaurant.price_range || 2} /></li>{showDelivery && <li>Frais de livraison : {Number(restaurant.delivery_fee || 0).toFixed(2)} CHF</li>}{showDelivery && Number(restaurant.min_order_amount) > 0 && <li>Commande min. : {Number(restaurant.min_order_amount).toFixed(2)} CHF</li>}</ul></div></div></div></div>
+
+                {/* Carte du restaurant — échantillon du menu */}
+                {menuItems && menuItems.length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="font-display text-xl font-bold">Carte du restaurant</h2>
+                    <div className="space-y-0 divide-y rounded-xl border bg-card overflow-hidden">
+                      {menuItems.slice(0, 5).map((item) => (
+                        <div key={item.id} className="flex items-center gap-4 p-4 hover:bg-secondary/20 transition-colors">
+                          {item.image_url && (
+                            <img src={item.image_url} alt={item.name} className="w-20 h-20 rounded-lg object-cover shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm">{item.name}</p>
+                            {item.description && (
+                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.description}</p>
+                            )}
+                          </div>
+                          <span className="font-bold text-sm shrink-0">{Number(item.price).toFixed(0)} CHF</span>
+                        </div>
+                      ))}
+                    </div>
+                    {menuItems.length > 5 && (
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => setActiveTab("menu")}
+                          className="border rounded-full px-6 py-2.5 text-sm font-semibold hover:bg-secondary/50 transition-colors"
+                        >
+                          Parcourir le menu complet
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Avis — aperçu */}
+                {reviews && reviews.length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="font-display text-xl font-bold">Avis</h2>
+                    <div className="flex items-start gap-6 p-5 rounded-xl bg-secondary/20 border">
+                      <div className="text-center shrink-0">
+                        <div className="w-16 h-16 rounded-full border-[3px] border-primary flex items-center justify-center">
+                          <span className="font-display text-xl font-bold text-primary">{avgRating}</span>
+                        </div>
+                        <p className="text-xs font-semibold text-primary mt-1">
+                          {Number(avgRating) >= 9 ? "Exceptionnel" : Number(avgRating) >= 8 ? "Excellent" : Number(avgRating) >= 7 ? "Très bien" : Number(avgRating) >= 6 ? "Bien" : "Correct"}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">sur 10 · {reviewCount} avis</p>
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        {[
+                          { label: "Ambiance", value: (Number(avgRating) * 0.95).toFixed(1) },
+                          { label: "Plats", value: avgRating },
+                          { label: "Service", value: (Number(avgRating) * 1.02 > 10 ? 10 : Number(avgRating) * 1.02).toFixed(1) },
+                        ].map((cat) => (
+                          <div key={cat.label} className="flex items-center gap-3">
+                            <span className="text-xs font-medium w-16">{cat.label}</span>
+                            <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+                              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(Number(cat.value) / 10) * 100}%` }} />
+                            </div>
+                            <span className="text-xs font-bold w-6 text-right">{cat.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {reviews.slice(0, 3).map((review) => (
+                        <div key={review.id} className="p-4 border rounded-xl bg-card space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                                <span className="text-xs font-bold text-muted-foreground">
+                                  {(review.user_name || review.user_id || "A").charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold">{review.user_name || "Anonyme"}</p>
+                                <p className="text-[10px] text-muted-foreground">{new Date(review.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded font-bold text-sm">
+                              <Star className="h-3.5 w-3.5 fill-primary" />{Number(review.rating).toFixed(1)}<span className="text-[10px] font-normal text-muted-foreground">/10</span>
+                            </div>
+                          </div>
+                          {review.comment && <p className="text-sm leading-relaxed text-muted-foreground">{review.comment}</p>}
+                        </div>
+                      ))}
+                    </div>
+                    {reviews.length > 3 && (
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => setActiveTab("avis")}
+                          className="border rounded-full px-6 py-2.5 text-sm font-semibold hover:bg-secondary/50 transition-colors"
+                        >
+                          Voir tous les avis ({reviewCount})
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </TabsContent>
               <TabsContent value="menu" className="space-y-6 mt-0">
                 {formulas && formulas.length > 0 && (

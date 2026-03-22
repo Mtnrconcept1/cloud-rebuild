@@ -810,7 +810,12 @@ export default function ZeroAttente() {
               <PaymentMethodSelector
                 paymentMethod={paymentMethod}
                 setPaymentMethod={setPaymentMethod}
-                allowedMethods={["card", "twint", "postfinance_card", "postfinance_efinance"]}
+                allowedMethods={(() => {
+                  const base: PaymentMethodId[] = ["card", "twint", "postfinance_card", "postfinance_efinance"];
+                  const disabled = (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
+                  if (disabled.length === 0) return base;
+                  return base.filter((m) => !disabled.includes(m));
+                })()}
               />
 
               <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-700">

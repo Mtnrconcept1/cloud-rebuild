@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import { Banknote, CheckCircle2, CreditCard, ExternalLink, Loader2, Smartphone, Wallet } from "lucide-react";
 
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -42,6 +42,7 @@ export default function DashboardRestaurant() {
   const [loading, setLoading] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
   const [selectedCuisineIds, setSelectedCuisineIds] = useState<string[]>([]);
+  const [disabledPaymentMethods, setDisabledPaymentMethods] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -116,6 +117,7 @@ export default function DashboardRestaurant() {
       supports_dinein: restaurant.supports_dinein || false,
       supports_reservation: restaurant.supports_reservation || false,
     });
+    setDisabledPaymentMethods((restaurant as Record<string, unknown>).disabled_payment_methods as string[] || []);
   }, [restaurant]);
 
   useEffect(() => {
@@ -178,6 +180,7 @@ export default function DashboardRestaurant() {
       const payload = {
         ...form,
         cuisine_type: cuisineSummary,
+        disabled_payment_methods: disabledPaymentMethods,
       };
 
       let restaurantId = restaurant?.id || null;
@@ -359,6 +362,45 @@ export default function DashboardRestaurant() {
           <Button onClick={handleSave} disabled={loading} className="mt-8 w-full">
             {loading ? "Enregistrement..." : "Sauvegarder"}
           </Button>
+
+          {restaurant && (
+            <div className="mt-6 border-t pt-4">
+              <h3 className="mb-4 flex items-center gap-2 font-semibold">
+                <CreditCard className="h-5 w-5" /> Moyens de paiement acceptes
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Desactivez les moyens de paiement que vous ne souhaitez pas proposer a vos clients.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {([
+                  { id: "card", label: "Carte bancaire", icon: CreditCard, description: "Visa, Mastercard, AMEX" },
+                  { id: "twint", label: "TWINT", icon: Smartphone, description: "Paiement mobile suisse" },
+                  { id: "postfinance_card", label: "PostFinance Card", icon: Wallet, description: "Carte PostFinance" },
+                  { id: "postfinance_efinance", label: "PostFinance E-Finance", icon: Wallet, description: "E-banking PostFinance" },
+                  { id: "cash", label: "Especes", icon: Banknote, description: "Paiement sur place" },
+                ] as const).map((method) => {
+                  const enabled = !disabledPaymentMethods.includes(method.id);
+                  return (
+                    <div key={method.id} className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${enabled ? "border-primary/30 bg-primary/5" : "border-muted bg-muted/30 opacity-60"}`}>
+                      <Switch
+                        checked={enabled}
+                        onCheckedChange={(checked) => {
+                          setDisabledPaymentMethods((prev) =>
+                            checked ? prev.filter((m) => m !== method.id) : [...prev, method.id]
+                          );
+                        }}
+                      />
+                      <method.icon className={`h-5 w-5 shrink-0 ${enabled ? "text-primary" : "text-muted-foreground"}`} />
+                      <div>
+                        <p className="text-sm font-medium">{method.label}</p>
+                        <p className="text-[11px] text-muted-foreground">{method.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {restaurant && (
             <div className="mt-6 border-t pt-4">

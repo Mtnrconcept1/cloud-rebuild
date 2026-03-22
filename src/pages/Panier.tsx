@@ -97,6 +97,26 @@ export default function Panier() {
     enabled: canScheduleDelivery && !!restaurantId,
   });
 
+  const { data: restaurantPaymentConfig } = useQuery({
+    queryKey: ["restaurant-payment-config", restaurantId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("restaurants")
+        .select("disabled_payment_methods")
+        .eq("id", restaurantId!)
+        .single();
+      return data;
+    },
+    enabled: !!restaurantId,
+  });
+
+  const allowedPaymentMethods = useMemo(() => {
+    const allMethods: PaymentMethodId[] = ["card", "twint", "postfinance_card", "postfinance_efinance", "cash"];
+    const disabled = (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
+    if (disabled.length === 0) return undefined; // show all
+    return allMethods.filter((m) => !disabled.includes(m));
+  }, [restaurantPaymentConfig]);
+
   const loyaltyPoints = profile?.loyalty_points || 0;
   const maxPointsDiscount = loyaltyPoints / 100;
 
@@ -730,7 +750,7 @@ export default function Panier() {
         </div>
 
         {orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
-        <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
+        <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} allowedMethods={allowedPaymentMethods} />
 
         <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading}>
           {loading ? (

@@ -21,6 +21,9 @@ export interface WeightedCampaignRotationState {
 }
 
 export function getCampaignBudgetWeight(campaign: WeightedCampaignLike): number {
+  const poolWeight = Number((campaign as Record<string, unknown>).__poolWeight || 0);
+  if (poolWeight > 0) return poolWeight;
+
   const totalBudget = Number(campaign?.total_budget || 0);
   if (totalBudget > 0) return totalBudget;
 

@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
 
     const { data: campaign, error: campaignError } = await adminClient
       .from("ad_campaigns")
-      .select("id, restaurant_id, status, starts_at, ends_at, total_budget, spent")
+      .select("id, restaurant_id, status, starts_at, ends_at, total_budget, spent, budget_daily, daily_spent, daily_spent_date, cpm_rate")
       .eq("id", campaignId)
       .maybeSingle();
 
@@ -152,6 +152,15 @@ Deno.serve(async (req) => {
       }
       if (exhausted) {
         return jsonResponse({ recorded: false, deduped: false, ignored: true, reason: "budget_exhausted" }, 200, corsHeaders);
+      }
+      const budgetDaily = Number(campaign.budget_daily || 0);
+      if (budgetDaily > 0) {
+        const today = new Date().toISOString().slice(0, 10);
+        const dailySpentDate = campaign.daily_spent_date ? String(campaign.daily_spent_date) : null;
+        const dailySpent = (dailySpentDate === today) ? Number(campaign.daily_spent || 0) : 0;
+        if (dailySpent >= budgetDaily) {
+          return jsonResponse({ recorded: false, deduped: false, ignored: true, reason: "daily_budget_exhausted" }, 200, corsHeaders);
+        }
       }
     } else if (["draft", "pending_payment", "cancelled"].includes(String(campaign.status || ""))) {
       return jsonResponse({ recorded: false, deduped: false, ignored: true, reason: "campaign_not_eligible" }, 200, corsHeaders);
