@@ -52,7 +52,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
       { to: "/dashboard/advisor", label: "Assistant IA", icon: Bot },
-      { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingCart },
+      { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingCart, feature: "commandes" },
       { to: "/dashboard/reservations", label: "Reservations", icon: CalendarDays },
       { to: "/dashboard/recommandations", label: "Recommandations", icon: Sparkles },
       { to: "/dashboard/performances", label: "Performances", icon: BarChart3, feature: "performances" },

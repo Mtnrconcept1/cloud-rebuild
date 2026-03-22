@@ -45,6 +45,13 @@ const DEFAULT_FLAGS: FeatureFlagDefinition[] = [
     group: "application",
   },
   {
+    name: "commandes",
+    label: "Mes commandes",
+    description: "Affiche la page Mes commandes pour les clients et le suivi des commandes dans le dashboard restaurateur.",
+    isActive: true,
+    group: "application",
+  },
+  {
     name: "espace-livreur",
     label: "Espace livreur",
     description: "Expose les routes et acces dedies aux livreurs.",
@@ -247,16 +254,29 @@ export function useFeatureFlags() {
       if (!flag) return prev;
 
       const nextActive = !flag.isActive;
-      void upsertFlagsInDb([{
-        name: flag.name,
-        label: flag.label,
-        description: flag.description,
-        isActive: nextActive,
-        group: flag.group,
-      }]).catch(() => undefined);
+
+      // Cascade: disabling "livraison" also disables "commandes"
+      const cascadeOff =
+        flag.name === "livraison" && !nextActive
+          ? prev.filter((item) => item.name === "commandes" && item.isActive)
+          : [];
+
+      const flagsToUpsert = [
+        { name: flag.name, label: flag.label, description: flag.description, isActive: nextActive, group: flag.group },
+        ...cascadeOff.map((item) => ({ name: item.name, label: item.label, description: item.description, isActive: false, group: item.group })),
+      ];
+
+      void upsertFlagsInDb(flagsToUpsert).catch(() => undefined);
       notifyFlagChange();
 
-      return prev.map((item) => (item.id === id ? { ...item, isActive: nextActive } : item));
+      const cascadeIds = new Set(cascadeOff.map((item) => item.id));
+      return prev.map((item) =>
+        item.id === id
+          ? { ...item, isActive: nextActive }
+          : cascadeIds.has(item.id)
+            ? { ...item, isActive: false }
+            : item,
+      );
     });
   }, []);
 

@@ -7,7 +7,10 @@ import {
   jsonResponse,
   writeAuditLog,
 } from "../_shared/auth.ts";
-import { triggerNotificationDispatch } from "../_shared/notifications.ts";
+import {
+  enqueueNotification,
+  triggerNotificationDispatch,
+} from "../_shared/notifications.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -135,7 +138,7 @@ Deno.serve(async (req) => {
 
     const { data: restaurant, error: restaurantError } = await actor.adminClient
       .from("restaurants")
-      .select("name")
+      .select("owner_id, name")
       .eq("id", restaurantId)
       .maybeSingle();
     if (restaurantError) {
@@ -209,6 +212,59 @@ Deno.serve(async (req) => {
         },
       });
     }
+
+    const zaItemCount = preorderItems.reduce((sum: number, item: { quantity: number }) => sum + Number(item.quantity || 0), 0);
+
+    const { data: zaProfile } = await actor.adminClient
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", actor.userId)
+      .maybeSingle();
+
+    if (restaurant?.owner_id) {
+      await enqueueNotification({
+        adminClient: actor.adminClient,
+        userId: restaurant.owner_id,
+        title: "Nouvelle reservation Zero Attente",
+        body: `${zaProfile?.full_name || "Client"} - ${partySize} convive(s) le ${arrivalDate} a ${arrivalTime} - ${zaItemCount} plat(s) - ${total.toFixed(2)} CHF`,
+        type: "reservation",
+        category: "transactional",
+        data: {
+          reservation_id: reservationId,
+          restaurant_id: restaurantId,
+          restaurant_name: restaurant.name,
+          customer_name: zaProfile?.full_name || null,
+          party_size: partySize,
+          arrival_date: arrivalDate,
+          arrival_time: arrivalTime,
+          items_count: zaItemCount,
+          total_amount: total,
+          feature: "zero-attente",
+          url: "/dashboard/reservations",
+        },
+      });
+    }
+
+    await enqueueNotification({
+      adminClient: actor.adminClient,
+      userId: actor.userId,
+      title: "Reservation confirmee et payee",
+      body: `Votre table chez ${restaurant?.name || "le restaurant"} est reservee le ${arrivalDate} a ${arrivalTime} pour ${partySize} convive(s). ${zaItemCount} plat(s) precommande(s) - ${total.toFixed(2)} CHF.`,
+      type: "reservation",
+      category: "transactional",
+      data: {
+        reservation_id: reservationId,
+        restaurant_id: restaurantId,
+        restaurant_name: restaurant?.name || null,
+        party_size: partySize,
+        arrival_date: arrivalDate,
+        arrival_time: arrivalTime,
+        items_count: zaItemCount,
+        total_amount: total,
+        feature: "zero-attente",
+        url: "/reservations",
+      },
+    });
 
     try {
       await triggerNotificationDispatch({

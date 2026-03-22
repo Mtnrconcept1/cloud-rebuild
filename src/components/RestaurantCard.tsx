@@ -99,16 +99,16 @@ const CUISINE_FALLBACKS: Record<string, string> = {
 };
 
 function getImageUrl(imageUrl: string, cuisine: string): string {
-  // Always use local cuisine-based images — no external URLs
+  // If the restaurant has a real uploaded image, use it
+  if (imageUrl && (imageUrl.startsWith("http") || imageUrl.startsWith("/images/"))) {
+    return imageUrl;
+  }
+  // Fallback to cuisine-based images
   if (cuisine) {
     const lower = cuisine.toLowerCase();
     for (const [key, url] of Object.entries(CUISINE_FALLBACKS)) {
       if (key !== "default" && lower.includes(key)) return url;
     }
-  }
-  // If imageUrl is already a local /images/ path, use it
-  if (imageUrl && imageUrl.startsWith("/images/")) {
-    return imageUrl;
   }
   return CUISINE_FALLBACKS.default;
 }

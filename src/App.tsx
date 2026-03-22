@@ -120,6 +120,7 @@ function FeatureSwitch({
 
 function AppShell() {
   const activeFeatures = useActiveFeatures();
+  const commandesEnabled = activeFeatures.has("commandes");
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
@@ -138,7 +139,7 @@ function AppShell() {
           <Route path="/anti-gaspi" element={<FeatureSwitch enabled={antiWasteEnabled}><AntiGaspi /></FeatureSwitch>} />
 
           <Route path="/panier" element={<Panier />} />
-          <Route path="/commandes" element={<ProtectedRoute><Commandes /></ProtectedRoute>} />
+          <Route path="/commandes" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><Commandes /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commande/:id" element={<ProtectedRoute><SuiviCommande /></ProtectedRoute>} />
           <Route path="/reservations" element={<ProtectedRoute><Reservations /></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
@@ -160,7 +161,7 @@ function AppShell() {
           <Route path="/dashboard/advisor" element={<DashboardRoute><DashboardAdvisor /></DashboardRoute>} />
           <Route path="/dashboard/menu" element={<DashboardRoute><DashboardMenu /></DashboardRoute>} />
           <Route path="/dashboard/reservations" element={<DashboardRoute><DashboardReservations /></DashboardRoute>} />
-          <Route path="/dashboard/commandes" element={<DashboardRoute><DashboardCommandes /></DashboardRoute>} />
+          <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={commandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/recommandations" element={<DashboardRoute><DashboardRecommandations /></DashboardRoute>} />
           <Route path="/dashboard/performances" element={<DashboardRoute><FeatureSwitch enabled={performanceEnabled} fallback="/dashboard"><DashboardPerformances /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/comparaison" element={<DashboardRoute><FeatureSwitch enabled={performanceEnabled} fallback="/dashboard"><DashboardComparaison /></FeatureSwitch></DashboardRoute>} />

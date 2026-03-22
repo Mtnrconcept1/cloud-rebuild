@@ -13,6 +13,7 @@ import {
   AlertTriangle, Bike, ShoppingBag,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import CountdownTimer, { getTargetFromMinutes } from "@/components/CountdownTimer";
 
 type Step = "browse" | "confirm";
@@ -27,6 +28,8 @@ export default function VentesFlash() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [expiredIds, setExpiredIds] = useState<Set<string>>(new Set());
   const [selectedOrderMode, setSelectedOrderMode] = useState<"delivery" | "takeaway" | null>(null);
+  const activeFeatures = useActiveFeatures();
+  const deliveryEnabled = activeFeatures.has("livraison");
 
   const { data: allOffers, isLoading } = useQuery({
     queryKey: ["flash-sales-page"],
@@ -110,7 +113,7 @@ export default function VentesFlash() {
   const totalOriginal = selectedOffers.reduce((s: number, o: any) => s + Number(o.original_price), 0);
   const totalDiscounted = selectedOffers.reduce((s: number, o: any) => s + Number(o.discounted_price), 0);
   const totalSaved = totalOriginal - totalDiscounted;
-  const canDeliverAll = selectedOffers.length > 0 && selectedOffers.every((o: any) => !!o.delivery_available);
+  const canDeliverAll = deliveryEnabled && selectedOffers.length > 0 && selectedOffers.every((o: any) => !!o.delivery_available);
   const canTakeawayAll = selectedOffers.length > 0 && selectedOffers.every((o: any) => !!o.takeaway_available);
 
   useEffect(() => {
@@ -141,7 +144,7 @@ export default function VentesFlash() {
     if (!selectedOrderMode) {
       toast({
         title: "Choisissez un mode",
-        description: "Selectionnez livraison ou emporter pour continuer.",
+        description: "Selectionnez un mode de recuperation pour continuer.",
         variant: "destructive",
       });
       return;
@@ -255,7 +258,7 @@ export default function VentesFlash() {
               <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="text-sm text-muted-foreground">
                 <p className="font-semibold text-foreground mb-1">Comment ca marche ?</p>
-                <p>Les ventes flash expirent a l'heure de fin choisie par le restaurateur. Elles peuvent etre disponibles en livraison, en emporter, ou les deux.</p>
+                <p>Les ventes flash expirent a l'heure de fin choisie par le restaurateur.{deliveryEnabled ? " Elles peuvent etre disponibles en livraison, en emporter, ou les deux." : ""}</p>
               </div>
             </div>
 
@@ -369,7 +372,7 @@ export default function VentesFlash() {
 
                         <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
                           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {offer.sale_start} - {offer.sale_end}</span>
-                          {offer.delivery_available && <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-600 px-1.5 py-0.5"><Bike className="h-3 w-3" /> Livraison</span>}
+                          {deliveryEnabled && offer.delivery_available && <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-600 px-1.5 py-0.5"><Bike className="h-3 w-3" /> Livraison</span>}
                           {offer.takeaway_available && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5"><ShoppingBag className="h-3 w-3" /> Emporter</span>}
                           {restaurant?.rating && (
                             <span className="ml-auto flex items-center gap-0.5">
@@ -411,16 +414,18 @@ export default function VentesFlash() {
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mode de recuperation</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      type="button"
-                      variant={selectedOrderMode === "delivery" ? "default" : "outline"}
-                      className="gap-1.5"
-                      disabled={!canDeliverAll}
-                      onClick={() => setSelectedOrderMode("delivery")}
-                    >
-                      <Bike className="h-4 w-4" /> Livraison
-                    </Button>
+                  <div className={`grid gap-2 ${deliveryEnabled ? "grid-cols-2" : "grid-cols-1"}`}>
+                    {deliveryEnabled && (
+                      <Button
+                        type="button"
+                        variant={selectedOrderMode === "delivery" ? "default" : "outline"}
+                        className="gap-1.5"
+                        disabled={!canDeliverAll}
+                        onClick={() => setSelectedOrderMode("delivery")}
+                      >
+                        <Bike className="h-4 w-4" /> Livraison
+                      </Button>
+                    )}
                     <Button
                       type="button"
                       variant={selectedOrderMode === "takeaway" ? "default" : "outline"}
@@ -433,7 +438,7 @@ export default function VentesFlash() {
                   </div>
                   {selectedOrderMode && (
                     <p className="text-[11px] text-muted-foreground">
-                      Mode selectionne: {selectedOrderMode === "delivery" ? "Livraison" : "Emporter"}
+                      Mode selectionne : {selectedOrderMode === "delivery" ? "Livraison" : "Emporter"}
                     </p>
                   )}
                 </div>

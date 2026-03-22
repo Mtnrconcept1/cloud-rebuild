@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, ChevronRight } from "lucide-react";
+import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, ChevronRight, Camera, X, ChevronLeft } from "lucide-react";
 import MenuItemCard from "@/components/MenuItemCard";
 import ReviewForm from "@/components/ReviewForm";
 import ReservationDialog from "@/components/ReservationDialog";
@@ -30,6 +30,8 @@ export default function RestaurantDetail() {
   const navigate = useNavigate();
   const [reservationOpen, setReservationOpen] = useState(false);
   const [showReserveChoice, setShowReserveChoice] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
   const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
   const impressionTracked = useRef(false);
   const deliveryEnabled = activeFeatures.has("livraison");
@@ -48,6 +50,20 @@ export default function RestaurantDetail() {
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", id],
     queryFn: async () => { const { data } = await supabase.from("restaurants").select("*").eq("id", id!).single(); return data; },
+    enabled: !!id,
+  });
+
+  const { data: mediaPhotos } = useQuery({
+    queryKey: ["restaurant-media", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("restaurant_media")
+        .select("id, media_url, alt_text, is_cover, position")
+        .eq("restaurant_id", id!)
+        .eq("media_type", "photo")
+        .order("position", { ascending: true });
+      return (data || []) as { id: string; media_url: string; alt_text: string | null; is_cover: boolean; position: number }[];
+    },
     enabled: !!id,
   });
 
@@ -132,12 +148,16 @@ export default function RestaurantDetail() {
   }, [reviews]);
 
   const avgRating10 = useMemo(() => {
-    if (!reviews || reviews.length === 0) return (Number(restaurant?.rating) || 0) * 2;
+    if (!reviews || reviews.length === 0) return Number(restaurant?.rating) || 0;
     const sum = reviews.reduce((acc, r) => acc + (Number(r.rating) || 0), 0);
     return sum / reviews.length;
   }, [reviews, restaurant?.rating]);
 
   if (!restaurant) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
+
+  const coverPhoto = mediaPhotos?.find((p) => p.is_cover) || mediaPhotos?.[0];
+  const heroImage = coverPhoto?.media_url || restaurant.image_url || "/images/kebab-box-spread.jpeg";
+  const galleryPhotos = mediaPhotos && mediaPhotos.length > 0 ? mediaPhotos : [];
 
   const categories = [...new Set(menuItems?.map((i) => i.category || "Autres"))] as string[];
   const avgRating = avgRating10.toFixed(1);
@@ -154,7 +174,12 @@ export default function RestaurantDetail() {
       <div className="relative h-72 md:h-96">
         <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white border-white/10" onClick={() => navigate('/')}><ArrowLeft className="h-5 w-5" /></Button>
         <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white border-white/10" onClick={toggleFavorite}><Heart className={isFavorite ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5"} /></Button>
-        <img src={restaurant.image_url || "/images/kebab-box-spread.jpeg"} alt={restaurant.name} className="w-full h-full object-cover" />
+        <img src={heroImage} alt={restaurant.name} className="w-full h-full object-cover" />
+        {galleryPhotos.length > 1 && (
+          <Button variant="secondary" size="sm" className="absolute bottom-20 right-4 z-20 gap-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md text-white border-white/10" onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}>
+            <Camera className="h-4 w-4" /> {galleryPhotos.length} photos
+          </Button>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="container">
@@ -213,6 +238,9 @@ export default function RestaurantDetail() {
                 <TabsTrigger value="apropos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><Info className="h-4 w-4" />À propos</TabsTrigger>
                 <TabsTrigger value="menu" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><UtensilsCrossed className="h-4 w-4" />Menu</TabsTrigger>
                 <TabsTrigger value="avis" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><MessageSquare className="h-4 w-4" />Avis ({reviewCount})</TabsTrigger>
+                {galleryPhotos.length > 0 && (
+                  <TabsTrigger value="photos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><Camera className="h-4 w-4" />Photos ({galleryPhotos.length})</TabsTrigger>
+                )}
               </TabsList>
               <TabsContent value="apropos" className="space-y-6 mt-0">
                 {restaurant.description && (
@@ -280,7 +308,7 @@ export default function RestaurantDetail() {
                                   price: Number(sale.discounted_price),
                                   restaurantId: id!,
                                   restaurantName: restaurant.name,
-                                  metadata: { is_flash_sale: true, flash_sale_id: sale.id, delivery_available: !!sale.delivery_available, takeaway_available: !!sale.takeaway_available },
+                                  metadata: { is_flash_sale: true, flash_sale_id: sale.id, delivery_available: deliveryEnabled && !!sale.delivery_available, takeaway_available: !!sale.takeaway_available },
                                 });
                                 toast({ title: "Vente flash ajoutée !", description: `${sale.title} — ${Number(sale.discounted_price).toFixed(2)} CHF` });
                               }}
@@ -370,7 +398,7 @@ export default function RestaurantDetail() {
                       {reviews?.map((review) => (
                         <div key={review.id} className="p-4 border rounded-xl bg-card space-y-3">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-0.5 rounded font-bold text-sm"><Star className="h-3.5 w-3.5 fill-primary" />{(Number(review.rating) * 2).toFixed(1)}/10</div>
+                            <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-0.5 rounded font-bold text-sm"><Star className="h-3.5 w-3.5 fill-primary" />{Number(review.rating).toFixed(1)}/10</div>
                             <span className="text-xs text-muted-foreground">{new Date(review.created_at).toLocaleDateString("fr-FR", { year: "numeric", month: "long" })}</span>
                           </div>
                           {review.comment && <p className="text-sm leading-relaxed">{review.comment}</p>}
@@ -381,6 +409,32 @@ export default function RestaurantDetail() {
                   </div>
                 </div>
               </TabsContent>
+              {galleryPhotos.length > 0 && (
+                <TabsContent value="photos" className="space-y-6 mt-0">
+                  <div className="flex items-center gap-2">
+                    <Camera className="h-5 w-5 text-primary" />
+                    <h2 className="font-display text-xl font-bold">Photos du restaurant</h2>
+                    <Badge variant="secondary" className="text-[10px]">{galleryPhotos.length} photo{galleryPhotos.length > 1 ? "s" : ""}</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {galleryPhotos.map((photo, index) => (
+                      <button
+                        key={photo.id}
+                        onClick={() => { setGalleryIndex(index); setGalleryOpen(true); }}
+                        className="group relative aspect-square rounded-xl overflow-hidden border bg-muted"
+                      >
+                        <img src={photo.media_url} alt={photo.alt_text || restaurant.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+                        {photo.is_cover && (
+                          <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <Star className="h-3 w-3" /> Couverture
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </TabsContent>
+              )}
             </Tabs>
           </div>
           <div className="w-full lg:w-80 shrink-0">
@@ -394,6 +448,23 @@ export default function RestaurantDetail() {
         </div>
       </div>
       <ReservationDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurantId={id!} restaurantName={restaurant.name} initialDate={reservationDefaults?.date} initialTime={reservationDefaults?.time} initialPartySize={reservationDefaults?.partySize} />
+
+      {/* Photo gallery lightbox */}
+      {galleryOpen && galleryPhotos.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setGalleryOpen(false)}>
+          <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:bg-white/20 z-50" onClick={() => setGalleryOpen(false)}><X className="h-6 w-6" /></Button>
+          {galleryPhotos.length > 1 && (
+            <>
+              <Button variant="ghost" size="icon" className="absolute left-4 text-white hover:bg-white/20 z-50" onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev - 1 + galleryPhotos.length) % galleryPhotos.length); }}><ChevronLeft className="h-8 w-8" /></Button>
+              <Button variant="ghost" size="icon" className="absolute right-4 text-white hover:bg-white/20 z-50" onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev + 1) % galleryPhotos.length); }}><ChevronRight className="h-8 w-8" /></Button>
+            </>
+          )}
+          <div className="max-w-4xl max-h-[80vh] px-12" onClick={(e) => e.stopPropagation()}>
+            <img src={galleryPhotos[galleryIndex].media_url} alt={galleryPhotos[galleryIndex].alt_text || restaurant.name} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+            <p className="text-center text-white/70 text-sm mt-3">{galleryIndex + 1} / {galleryPhotos.length}{galleryPhotos[galleryIndex].alt_text ? ` — ${galleryPhotos[galleryIndex].alt_text}` : ""}</p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

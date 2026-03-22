@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { BarChart3, Eye, MousePointerClick, Pause, Play, TrendingUp } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
@@ -27,34 +27,25 @@ type Campaign = {
 
 export default function DashboardCampagneOverview() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { selectedId, restaurants, loading: loadingRestaurants, error: restaurantError } = useDashboardRestaurant();
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
-    if (!selectedId) {
-      setCampaigns([]);
-      setLoading(false);
-      return;
-    }
+  const { data: campaigns = [], isLoading: loading, error: queryError } = useQuery({
+    queryKey: ["dashboard-campaigns-overview", selectedId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("ad_campaigns") as any)
+        .select("id, title, type, status, payment_status, impressions, clicks, conversions, spent, total_budget, starts_at, ends_at, restaurant_id")
+        .eq("restaurant_id", selectedId!)
+        .order("created_at", { ascending: false });
 
-    setLoading(true);
-    const { data, error: queryError } = await (supabase.from("ad_campaigns") as any)
-      .select("id, title, type, status, payment_status, impressions, clicks, conversions, spent, total_budget, starts_at, ends_at, restaurant_id")
-      .eq("restaurant_id", selectedId)
-      .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as Campaign[];
+    },
+    enabled: !!selectedId && !loadingRestaurants,
+  });
 
-    setError(queryError?.message || null);
-    setCampaigns((data || []) as Campaign[]);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (!loadingRestaurants) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadingRestaurants, selectedId]);
+  const error = queryError ? (queryError as Error).message : null;
 
   const totalImpressions = campaigns.reduce((sum, campaign) => sum + (campaign.impressions || 0), 0);
   const totalClicks = campaigns.reduce((sum, campaign) => sum + (campaign.clicks || 0), 0);
@@ -70,7 +61,7 @@ export default function DashboardCampagneOverview() {
       return;
     }
     toast({ title: `Campagne ${newStatus === "active" ? "activee" : "mise en pause"}` });
-    load();
+    queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns-overview", selectedId] });
   };
 
   const statusVariant = (status: string | null) => {

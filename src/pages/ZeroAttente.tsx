@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -28,8 +28,53 @@ type PricingSummary = {
   total: number;
 };
 
+const ZERO_ATTENTE_PENDING_SESSION_KEY = "zero-attente-pending-session-id";
+
+function readPendingZeroAttenteSessionId() {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem(ZERO_ATTENTE_PENDING_SESSION_KEY);
+}
+
+function writePendingZeroAttenteSessionId(sessionId: string | null) {
+  if (typeof window === "undefined") return;
+  if (sessionId) {
+    sessionStorage.setItem(ZERO_ATTENTE_PENDING_SESSION_KEY, sessionId);
+    return;
+  }
+  sessionStorage.removeItem(ZERO_ATTENTE_PENDING_SESSION_KEY);
+}
+
+async function getFreshAccessToken(forceRefresh = false) {
+  const { data: sessionData } = await supabase.auth.getSession();
+  let activeSession = sessionData.session;
+
+  const expiresSoon = Boolean(
+    activeSession?.expires_at && (activeSession.expires_at * 1000) <= (Date.now() + 60_000),
+  );
+
+  if (forceRefresh || !activeSession || expiresSoon) {
+    const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      throw new Error("Session expiree. Reconnectez-vous pour finaliser votre reservation.");
+    }
+    activeSession = refreshedData.session;
+  }
+
+  if (!activeSession?.access_token) {
+    throw new Error("Session expiree. Reconnectez-vous pour finaliser votre reservation.");
+  }
+
+  return activeSession.access_token;
+}
+
+function getFunctionsErrorStatus(error: unknown) {
+  if (!error || typeof error !== "object" || !("status" in error)) return null;
+  const status = (error as { status?: unknown }).status;
+  return typeof status === "number" ? status : null;
+}
+
 export default function ZeroAttente() {
-  const { user } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -45,6 +90,19 @@ export default function ZeroAttente() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
   const [confirmedPricing, setConfirmedPricing] = useState<PricingSummary | null>(null);
+  const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(() => readPendingZeroAttenteSessionId());
+  const attemptedProcessingKeyRef = useRef<string | null>(null);
+  const authPromptKeyRef = useRef<string | null>(null);
+
+  const syncPendingCheckoutSessionId = useCallback((sessionId: string | null) => {
+    writePendingZeroAttenteSessionId(sessionId);
+    setPendingCheckoutSessionId(sessionId);
+
+    if (!sessionId) {
+      attemptedProcessingKeyRef.current = null;
+      authPromptKeyRef.current = null;
+    }
+  }, []);
 
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants-zero-wait", preSelectedRestaurantId],
@@ -212,60 +270,100 @@ export default function ZeroAttente() {
     });
   };
 
-  const completePaidReservation = async (checkoutSessionId: string) => {
+  const completePaidReservation = useCallback(async (checkoutSessionId: string) => {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("create-zero-attente-reservation", {
-      body: { session_id: checkoutSessionId },
-    });
 
-    setLoading(false);
+    try {
+      if (!user?.id) {
+        throw new Error("Reconnectez-vous pour recuperer votre reservation Zero Attente.");
+      }
 
-    if (error || data?.error) {
-      toast({
-        title: "Erreur",
-        description: error?.message || String(data?.error || "Creation de reservation impossible."),
-        variant: "destructive",
-      });
-      return;
-    }
+      let reservationRecord: any = null;
+      const maxAttempts = 12;
 
-    const reservationIdValue = String(data?.reservation_id || "");
-    const restaurantIdValue = String(data?.restaurant_id || selectedRestaurant?.id || "");
-    const restoredQuantities = Array.isArray(data?.preorder_items)
-      ? data.preorder_items.reduce((acc: Record<string, number>, item: any) => {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        const { data, error } = await supabase
+          .from("reservations")
+          .select("*, restaurants(name)")
+          .eq("user_id", user.id)
+          .eq("feature", "zero-attente")
+          .filter("metadata->>checkout_session_id", "eq", checkoutSessionId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          throw new Error(error.message || "Impossible de recuperer la reservation Zero Attente.");
+        }
+
+        if (data) {
+          reservationRecord = data;
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+
+      if (!reservationRecord) {
+        throw new Error("Paiement valide, reservation en cours de finalisation. Rechargez la page dans quelques secondes.");
+      }
+
+      const metadata = reservationRecord.metadata && typeof reservationRecord.metadata === "object" && !Array.isArray(reservationRecord.metadata)
+        ? reservationRecord.metadata as Record<string, any>
+        : {};
+      const preorderItems = Array.isArray(reservationRecord.preorder_items) ? reservationRecord.preorder_items : [];
+      const restaurantRelation = Array.isArray(reservationRecord.restaurants)
+        ? reservationRecord.restaurants[0]
+        : reservationRecord.restaurants;
+      const restaurantName = typeof restaurantRelation?.name === "string" ? restaurantRelation.name : "";
+      const reservationIdValue = String(reservationRecord.id || "");
+      const restaurantIdValue = String(reservationRecord.restaurant_id || selectedRestaurant?.id || "");
+      const restoredQuantities = preorderItems.reduce((acc: Record<string, number>, item: any) => {
         if (item?.menu_item_id) acc[item.menu_item_id] = Number(item.quantity || 0);
         return acc;
-      }, {})
-      : {};
+      }, {});
 
-    setSelectedRestaurant((current) => current || {
-      id: restaurantIdValue,
-      name: data?.restaurant_name || "",
-    });
-    setArrivalDate(String(data?.arrival_date || arrivalDate));
-    setArrivalTime(String(data?.arrival_time || arrivalTime));
-    setPartySize(Number(data?.party_size || partySize));
-    setPaymentMethod((data?.payment_method as PaymentMethodId) || "card");
-    setQuantities(restoredQuantities);
-    setConfirmedPricing({
-      count: Array.isArray(data?.preorder_items)
-        ? data.preorder_items.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0)
-        : 0,
-      subtotal: roundCurrency(Number(data?.pre_discount_subtotal || 0)),
-      formulaDiscount: roundCurrency(Number(data?.formula_discount_amount || 0)),
-      formulaDiscountPercent: roundCurrency(Number(data?.formula_discount_percent || 0)),
-      formulaName: data?.formula_applied || null,
-      total: roundCurrency(Number(data?.total_amount || 0)),
-    });
-    setReservationId(reservationIdValue);
-    setStep("confirm");
-
-    if (restaurantIdValue) {
-      await trackSponsoredConversion(restaurantIdValue, {
-        conversionType: "zero-attente",
-        entityId: reservationIdValue || null,
-        paymentMethod: (data?.payment_method as PaymentMethodId) || paymentMethod,
+      setSelectedRestaurant((current) => current || {
+        id: restaurantIdValue,
+        name: restaurantName,
       });
+      setArrivalDate(String(metadata.arrival_date || reservationRecord.date || arrivalDate));
+      setArrivalTime(String(metadata.arrival_time || reservationRecord.time || arrivalTime));
+      setPartySize(Number(reservationRecord.party_size || partySize));
+      setPaymentMethod((metadata.payment_method as PaymentMethodId) || "card");
+      setQuantities(restoredQuantities);
+      setConfirmedPricing({
+        count: preorderItems.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0),
+        subtotal: roundCurrency(Number(metadata.pre_discount_subtotal || 0)),
+        formulaDiscount: roundCurrency(Number(metadata.formula_discount_amount || 0)),
+        formulaDiscountPercent: roundCurrency(Number(metadata.formula_discount_percent || 0)),
+        formulaName: metadata.formula_applied || null,
+        total: roundCurrency(Number(reservationRecord.total_amount || metadata.total_amount || 0)),
+      });
+      setReservationId(reservationIdValue);
+      setStep("confirm");
+      syncPendingCheckoutSessionId(null);
+
+      if (restaurantIdValue) {
+        try {
+          await trackSponsoredConversion(restaurantIdValue, {
+            conversionType: "zero-attente",
+            entityId: reservationIdValue || null,
+            paymentMethod: (metadata.payment_method as PaymentMethodId) || paymentMethod,
+          });
+        } catch (trackingError) {
+          console.error("Zero-attente conversion tracking failed:", trackingError);
+        }
+      }
+    } catch (error) {
+      attemptedProcessingKeyRef.current = null;
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Creation de reservation impossible.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
 
     /*
@@ -314,7 +412,7 @@ export default function ZeroAttente() {
       setStep("confirm");
     }
     */
-  };
+  }, [arrivalDate, arrivalTime, partySize, paymentMethod, selectedRestaurant?.id, syncPendingCheckoutSessionId, toast, user?.id]);
 
   // Handle return from Stripe
   useEffect(() => {
@@ -323,10 +421,11 @@ export default function ZeroAttente() {
     const sessionId = params.get("session_id");
 
     if (status === "success" && sessionId) {
-      void completePaidReservation(sessionId);
+      syncPendingCheckoutSessionId(sessionId);
       window.history.replaceState({}, "", window.location.pathname);
     } else if (status === "cancelled") {
-      toast({ title: "Paiement annulÃ©", description: "Vous pouvez rÃ©essayer.", variant: "destructive" });
+      syncPendingCheckoutSessionId(null);
+      toast({ title: "Paiement annulé", description: "Vous pouvez réessayer.", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
     }
 
@@ -424,7 +523,29 @@ export default function ZeroAttente() {
       window.history.replaceState({}, "", window.location.pathname);
     }
     */
-  }, []);
+  }, [syncPendingCheckoutSessionId, toast]);
+
+  useEffect(() => {
+    if (!pendingCheckoutSessionId || reservationId || authLoading) return;
+
+    const processingKey = `${user?.id || "guest"}:${pendingCheckoutSessionId}`;
+
+    if (!user || !session?.access_token) {
+      if (authPromptKeyRef.current !== processingKey) {
+        authPromptKeyRef.current = processingKey;
+        toast({
+          title: "Reconnectez-vous",
+          description: "Le paiement a ete valide. Reconnectez-vous pour finaliser la reservation Zero Attente.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    if (attemptedProcessingKeyRef.current === processingKey) return;
+    attemptedProcessingKeyRef.current = processingKey;
+    void completePaidReservation(pendingCheckoutSessionId);
+  }, [authLoading, completePaidReservation, pendingCheckoutSessionId, reservationId, session?.access_token, toast, user]);
 
   const handleGoToReservations = () => {
     setShowDetailModal(true);

@@ -8,6 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { CircleHelp, Mail, MessageSquare, Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { useDashboardRestaurant } from "./DashboardContext";
 
 const FAQ = [
   { q: "Comment modifier mes horaires d'ouverture ?", a: "Rendez-vous dans « Pilotage de service » pour configurer vos horaires par jour de la semaine." },
@@ -22,6 +25,9 @@ const FAQ = [
 
 export default function DashboardSupport() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { selectedId, restaurants } = useDashboardRestaurant();
+  const selectedRestaurant = restaurants.find((r) => r.id === selectedId);
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -37,12 +43,28 @@ export default function DashboardSupport() {
       return toast({ title: "Validation", description: "Veuillez remplir tous les champs.", variant: "destructive" });
     }
     setSending(true);
-    // Simulate sending — in production this would call an edge function
-    await new Promise((r) => setTimeout(r, 800));
+
+    const restaurantLabel = selectedRestaurant?.name || selectedId || "N/A";
+    const userEmail = user?.email || "inconnu";
+
+    const { error } = await supabase.from("email_queue" as any).insert({
+      to_email: "support@deliveroom.ch",
+      subject: `[Support] ${subject}`,
+      body_text: `De: ${userEmail}\nRestaurant: ${restaurantLabel}\n\n${message}`,
+      body_html: `<p><strong>De:</strong> ${userEmail}</p><p><strong>Restaurant:</strong> ${restaurantLabel}</p><hr/><p>${message.replace(/\n/g, "<br/>")}</p>`,
+      status: "queued",
+    });
+
+    setSending(false);
+
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible d'envoyer le message. Réessayez plus tard.", variant: "destructive" });
+      return;
+    }
+
     toast({ title: "Message envoyé", description: "Notre équipe vous répondra sous 24h." });
     setSubject("");
     setMessage("");
-    setSending(false);
   };
 
   return (

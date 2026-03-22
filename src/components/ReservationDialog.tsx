@@ -35,19 +35,13 @@ interface ReservationDialogProps {
 
 type Step = "datetime" | "mode" | "promo" | "confirm";
 type ReservationMode = "classique" | "zero-attente";
-type PromoOfferType = "formula" | "promotion";
-
 interface PromoOffer {
   id: string;
   label: string;
   description: string;
-  offerType: PromoOfferType;
   discountLabel: string;
-  discountPercent: number | null;
-  promotionType: string | null;
-  promotionValue: number | null;
-  formulaName: string | null;
-  sortValue: number;
+  discountPercent: number;
+  formulaName: string;
 }
 
 interface MealFormulaRow {
@@ -56,33 +50,6 @@ interface MealFormulaRow {
   description: string | null;
   discount_percent: number;
   availability?: MealFormulaAvailability;
-}
-
-interface RestaurantPromotionRow {
-  id: string;
-  name: string;
-  promotion_type: string;
-  promotion_value: number;
-  target: string;
-  start_at: string;
-  end_at: string;
-  active: boolean;
-}
-
-function isPromotionEligible(target: string | null | undefined, reservationCount: number) {
-  if (target === "new") return reservationCount === 0;
-  if (target === "returning") return reservationCount > 0;
-  return true;
-}
-
-function buildPromotionDescription(promotion: RestaurantPromotionRow) {
-  if (promotion.promotion_type === "percentage") {
-    return `Promotion de ${Number(promotion.promotion_value) || 0}% sur votre venue.`;
-  }
-  if (promotion.promotion_type === "fixed") {
-    return `Remise de ${Number(promotion.promotion_value || 0).toFixed(2)} CHF associee a votre reservation.`;
-  }
-  return "Offre promotionnelle associee a votre reservation.";
 }
 
 export default function ReservationDialog({
@@ -149,80 +116,28 @@ export default function ReservationDialog({
     queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time, user?.id || null],
     queryFn: async () => {
       const reservationDate = date ? format(date, "yyyy-MM-dd") : undefined;
-      const reservationDateTime = reservationDate ? new Date(`${reservationDate}T${time}`) : null;
 
-      const [formulaResponse, promotionResponse, reservationCountResponse] = await Promise.all([
-        supabase
-          .from("meal_formulas")
-          .select("id, name, description, discount_percent, applies_to, availability")
-          .eq("restaurant_id", restaurantId)
-          .eq("is_active", true)
-          .in("applies_to", ["reservation", "both", "dine_in"] as any)
-          .order("discount_percent", { ascending: false }),
-        supabase
-          .from("restaurant_promotions")
-          .select("id, name, promotion_type, promotion_value, target, start_at, end_at, active")
-          .eq("restaurant_id", restaurantId)
-          .eq("active", true),
-        user?.id
-          ? (supabase.from("reservations").select("id", { count: "exact", head: true }).eq("restaurant_id", restaurantId).eq("user_id", user.id) as any)
-          : Promise.resolve({ count: 0, error: null }),
-      ]);
+      const { data, error } = await supabase
+        .from("meal_formulas")
+        .select("id, name, description, discount_percent, applies_to, availability")
+        .eq("restaurant_id", restaurantId)
+        .eq("is_active", true)
+        .in("applies_to", ["reservation", "both", "dine_in"] as any)
+        .order("discount_percent", { ascending: false });
 
-      if (formulaResponse.error) throw formulaResponse.error;
-      if (promotionResponse.error) throw promotionResponse.error;
-      if ((reservationCountResponse as any).error) throw (reservationCountResponse as any).error;
+      if (error) throw error;
 
-      const reservationCount = Number((reservationCountResponse as any).count || 0);
-
-      const formulaOffers: PromoOffer[] = ((formulaResponse.data || []) as MealFormulaRow[])
+      return ((data || []) as MealFormulaRow[])
         .filter((formula) => isMealFormulaAvailableForSlot(formula.availability || null, reservationDate, time))
         .map((formula) => ({
           id: formula.id,
           label: formula.name,
-          description: formula.description || "Formule promotionnelle liee a votre reservation.",
-          offerType: "formula",
+          description: formula.description || "Formule promotionnelle liée à votre réservation.",
           discountLabel: `-${Number(formula.discount_percent) || 0}%`,
           discountPercent: Number(formula.discount_percent) || 0,
-          promotionType: "percentage",
-          promotionValue: Number(formula.discount_percent) || 0,
           formulaName: formula.name,
-          sortValue: Number(formula.discount_percent) || 0,
-        }));
-
-      const promotionOffers: PromoOffer[] = ((promotionResponse.data || []) as RestaurantPromotionRow[])
-        .filter((promotion) => promotion.promotion_type !== "free_delivery")
-        .filter((promotion) => isPromotionEligible(promotion.target, reservationCount))
-        .filter((promotion) => {
-          if (!reservationDateTime || Number.isNaN(reservationDateTime.getTime())) return true;
-          const startAt = new Date(promotion.start_at);
-          const endAt = new Date(promotion.end_at);
-          if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) return true;
-          return reservationDateTime >= startAt && reservationDateTime <= endAt;
-        })
-        .map((promotion) => {
-          const isPercentage = promotion.promotion_type === "percentage";
-          return {
-            id: promotion.id,
-            label: promotion.name,
-            description: buildPromotionDescription(promotion),
-            offerType: "promotion",
-            discountLabel: isPercentage
-              ? `-${Number(promotion.promotion_value) || 0}%`
-              : `-${Number(promotion.promotion_value || 0).toFixed(2)} CHF`,
-            discountPercent: isPercentage ? Number(promotion.promotion_value) || 0 : null,
-            promotionType: promotion.promotion_type,
-            promotionValue: Number(promotion.promotion_value) || 0,
-            formulaName: null,
-            sortValue: Number(promotion.promotion_value) || 0,
-          };
-        });
-
-      return [...formulaOffers, ...promotionOffers].sort((a, b) => {
-        if (a.sortValue !== b.sortValue) return b.sortValue - a.sortValue;
-        if (a.offerType !== b.offerType) return a.offerType === "formula" ? -1 : 1;
-        return a.label.localeCompare(b.label);
-      });
+        }))
+        .sort((a, b) => b.discountPercent - a.discountPercent);
     },
     enabled: open && !!restaurantId,
   });
@@ -266,27 +181,16 @@ export default function ReservationDialog({
 
     setLoading(true);
 
-    const hasOffer = !!selectedPromo;
-    const isFormulaOffer = selectedPromo?.offerType === "formula";
+    const hasFormula = !!selectedPromo;
     const reservationMetadata = {
-      feature: hasOffer ? (isFormulaOffer ? "promo-formule" : "promo-offre") : "classique",
-      promo_applied: hasOffer,
-      promo_offer_id: selectedPromo?.id ?? null,
-      promo_offer_type: selectedPromo?.offerType ?? null,
-      promo_offer_name: selectedPromo?.label ?? null,
-      promo_discount_percent: selectedPromo?.discountPercent ?? null,
-      promo_discount_value: selectedPromo?.promotionValue ?? null,
-      promotion_name: selectedPromo?.offerType === "promotion" ? selectedPromo.label : null,
-      promotion_type: selectedPromo?.offerType === "promotion" ? selectedPromo.promotionType : null,
-      promotion_value: selectedPromo?.offerType === "promotion" ? selectedPromo.promotionValue : null,
-      formula_applied: isFormulaOffer ? selectedPromo?.formulaName : null,
-      formula_discount_percent: isFormulaOffer ? selectedPromo?.discountPercent : null,
-      formula_discount_amount: null,
+      feature: hasFormula ? "promo-formule" : "classique",
+      formula_applied: selectedPromo?.formulaName ?? null,
+      formula_discount_percent: selectedPromo?.discountPercent ?? null,
       service: servicePeriod,
     };
 
     const offerPrefix = selectedPromo
-      ? `[OFFRE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
+      ? `[FORMULE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
       : "[A la carte] ";
 
     const { data: reservationId, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
@@ -294,7 +198,7 @@ export default function ReservationDialog({
       p_date: format(date, "yyyy-MM-dd"),
       p_time: time,
       p_party_size: partySize,
-      p_feature: hasOffer ? (isFormulaOffer ? "promo-formule" : "promo-offre") : "classique",
+      p_feature: hasFormula ? "promo-formule" : "classique",
       p_metadata: reservationMetadata,
       p_notes: offerPrefix + (notes || ""),
     });
@@ -331,7 +235,7 @@ export default function ReservationDialog({
       time,
       party_size: partySize,
       status: "pending",
-      feature: hasOffer ? (isFormulaOffer ? "promo-formule" : "promo-offre") : "classique",
+      feature: hasFormula ? "promo-formule" : "classique",
       notes: offerPrefix + (notes || ""),
       total_amount: 0,
       created_at: new Date().toISOString(),
@@ -391,7 +295,7 @@ export default function ReservationDialog({
             <div className="text-lg font-semibold leading-none tracking-tight">
               {step === "datetime" && `Reserver chez ${restaurantName}`}
               {step === "mode" && "Type de reservation"}
-              {step === "promo" && "Choisir une offre"}
+              {step === "promo" && "Choisir une formule"}
               {step === "confirm" && "Confirmer la reservation"}
             </div>
           </DialogHeader>
@@ -511,7 +415,7 @@ export default function ReservationDialog({
                 {isPromosLoading ? (
                   <div className="flex items-center justify-center rounded-xl border p-6 text-sm text-muted-foreground">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Chargement des offres...
+                    Chargement des formules...
                   </div>
                 ) : promos.length > 0 ? (
                   promos.map((promo) => (
@@ -526,9 +430,6 @@ export default function ReservationDialog({
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-semibold">{promo.label}</p>
                             <span className="font-semibold text-miamz-green">{promo.discountLabel}</span>
-                            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                              {promo.offerType === "formula" ? "Formule" : "Promotion"}
-                            </span>
                           </div>
                           <p className="text-xs text-muted-foreground">{promo.description}</p>
                         </div>
@@ -537,7 +438,7 @@ export default function ReservationDialog({
                   ))
                 ) : (
                   <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                    Aucune offre n'est disponible pour ce creneau. Vous pouvez continuer en reservation a la carte.
+                    Aucune formule disponible pour ce créneau. Vous pouvez continuer à la carte.
                   </div>
                 )}
 
@@ -562,18 +463,18 @@ export default function ReservationDialog({
                   <div className="flex justify-between"><span className="text-muted-foreground">Convives</span><span className="font-medium">{partySize}</span></div>
                   {selectedPromo && (
                     <div className="flex justify-between border-t pt-2">
-                      <span className="text-muted-foreground">Offre</span>
+                      <span className="text-muted-foreground">Formule</span>
                       <span className="font-semibold text-miamz-green">{selectedPromo.label} {selectedPromo.discountLabel}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between rounded-lg border border-miamz-green/20 bg-miamz-green/5 p-3">
+                <div className="flex items-center justify-between rounded-lg border border-pink-300/40 bg-pink-50 dark:bg-pink-950/20 p-3">
                   <div className="flex items-center gap-3">
-                    <Heart className="h-5 w-5 fill-miamz-green text-miamz-green" />
+                    <Heart className="h-5 w-5 fill-pink-500 text-pink-500" />
                     <div>
-                      <Label className="cursor-pointer text-sm font-semibold">Reverser mes XP</Label>
-                      <p className="text-xs text-muted-foreground">+{earnedXp} XP solidaires</p>
+                      <Label className="cursor-pointer text-sm font-semibold">Reverser mes Miamz</Label>
+                      <p className="text-xs text-muted-foreground">+{earnedXp} Miamz solidaires</p>
                     </div>
                   </div>
                   <Switch checked={donatePoints} onCheckedChange={setDonatePoints} />

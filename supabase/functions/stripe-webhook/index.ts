@@ -45,6 +45,56 @@ async function getCardDetails(stripe: Stripe, session: Stripe.Checkout.Session) 
   return { cardBrand, cardLast4 };
 }
 
+function parseMoney(value: unknown, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function buildReservationNote(input: {
+  count: number;
+  subtotal: number;
+  formulaDiscount: number;
+  total: number;
+  paymentMethod: string;
+}) {
+  return [
+    `[Zero Attente] ${input.count} plat(s) precommande(s)`,
+    `Sous-total: ${input.subtotal.toFixed(2)} CHF`,
+    `Reduction: ${input.formulaDiscount.toFixed(2)} CHF`,
+    `Total: ${input.total.toFixed(2)} CHF`,
+    `Paiement: ${input.paymentMethod} (paye)`,
+  ].join(" - ");
+}
+
+function buildPreorderItems(lineItems: Stripe.ApiList<Stripe.LineItem>) {
+  return lineItems.data
+    .filter((lineItem) => {
+      const name = String(lineItem.description || "").toLowerCase();
+      return name !== "frais de livraison" && name !== "garantie qualite";
+    })
+    .map((lineItem) => {
+      const product = lineItem.price?.product && typeof lineItem.price.product === "object"
+        ? lineItem.price.product
+        : null;
+      const productMetadata = product?.metadata || {};
+      const quantity = Math.max(1, Number(lineItem.quantity || 1));
+      const unitAmount = parseMoney(lineItem.price?.unit_amount, 0) / 100;
+
+      return {
+        menu_item_id: String(productMetadata.menu_item_id || ""),
+        name: lineItem.description || product?.name || "Article",
+        quantity,
+        unit_price: unitAmount,
+        total_price: unitAmount * quantity,
+        source: String(productMetadata.source || "menu_item"),
+        metadata: {
+          anti_waste_offer_id: String(productMetadata.anti_waste_offer_id || ""),
+          flash_sale_id: String(productMetadata.flash_sale_id || ""),
+        },
+      };
+    });
+}
+
 function getOrderJourneyLabel(input: {
   isDelivery: boolean;
   metadata: Record<string, unknown>;
@@ -52,6 +102,10 @@ function getOrderJourneyLabel(input: {
   if (input.isDelivery) return "livraison";
   if (typeof input.metadata.pickup_time === "string" && input.metadata.pickup_time) return "a emporter";
   return "commande";
+}
+
+function isZeroAttenteCheckoutKind(checkoutKind: string | null | undefined) {
+  return checkoutKind === "zero-attente" || checkoutKind === "reservation_zero_attente";
 }
 
 async function findOrdersForSession(
@@ -140,7 +194,7 @@ Deno.serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const checkoutKind = session.metadata?.checkout_kind || "order";
+        const checkoutKind = String(session.metadata?.checkout_kind || "order");
         const userId = session.metadata?.user_id || null;
         const campaignId = session.metadata?.campaign_id || null;
         let shouldDispatchNotifications = false;
@@ -185,6 +239,173 @@ Deno.serve(async (req) => {
                 card_last4: cardLast4,
               },
             });
+          }
+          break;
+        }
+
+        if (isZeroAttenteCheckoutKind(checkoutKind)) {
+          if (!userId) {
+            console.warn(`Missing user_id for zero-attente session ${session.id}`);
+            break;
+          }
+
+          const restaurantId = String(session.metadata?.restaurant_id || "");
+          const arrivalDate = String(session.metadata?.arrival_date || "");
+          const arrivalTime = String(session.metadata?.arrival_time || "");
+          const partySize = Math.max(1, Number(session.metadata?.party_size || 1));
+          const paymentMethod = String(session.metadata?.payment_method_label || "card");
+          const subtotal = parseMoney(session.metadata?.pre_discount_subtotal);
+          const formulaDiscount = parseMoney(session.metadata?.formula_discount_amount);
+          const formulaDiscountPercent = parseMoney(session.metadata?.formula_discount_percent);
+          const total = parseMoney(session.metadata?.authoritative_total, (session.amount_total || 0) / 100);
+          const orderReference = String(session.metadata?.order_reference || `ZA-${Date.now()}`);
+
+          if (!restaurantId || !arrivalDate || !arrivalTime) {
+            console.warn(`Incomplete metadata for zero-attente session ${session.id}`);
+            break;
+          }
+
+          const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+            limit: 100,
+            expand: ["data.price.product"],
+          });
+          const preorderItems = buildPreorderItems(lineItems);
+          const { cardBrand, cardLast4 } = await getCardDetails(stripe, session);
+          const note = buildReservationNote({
+            count: preorderItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+            subtotal,
+            formulaDiscount,
+            total,
+            paymentMethod,
+          });
+
+          const { data: reservationId, error: reservationError } = await supabaseAdmin.rpc(
+            "validate_and_create_reservation",
+            {
+              p_restaurant_id: restaurantId,
+              p_date: arrivalDate,
+              p_time: arrivalTime,
+              p_party_size: partySize,
+              p_feature: "zero-attente",
+              p_metadata: {
+                _internal_user_id: userId,
+                feature: "zero-attente",
+                preorder_items: preorderItems,
+                pre_discount_subtotal: subtotal,
+                formula_applied: String(session.metadata?.formula_applied || "") || null,
+                formula_discount_amount: formulaDiscount,
+                formula_discount_percent: formulaDiscountPercent,
+                total_amount: total,
+                arrival_date: arrivalDate,
+                arrival_time: arrivalTime,
+                payment_method: paymentMethod,
+                checkout_session_id: session.id,
+                paid: true,
+                card_brand: cardBrand,
+                card_last4: cardLast4,
+                order_reference: orderReference,
+              },
+              p_notes: note,
+            },
+          );
+
+          if (reservationError || !reservationId) {
+            throw new Error(reservationError?.message || "Creation de reservation Zero Attente impossible.");
+          }
+
+          const { data: existingTransaction } = await supabaseAdmin
+            .from("payment_transactions")
+            .select("id")
+            .eq("stripe_checkout_session_id", session.id)
+            .eq("type", "charge")
+            .maybeSingle();
+
+          if (!existingTransaction) {
+            await supabaseAdmin.from("payment_transactions").insert({
+              user_id: userId,
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+              amount: total,
+              currency: (session.currency || "chf").toLowerCase(),
+              type: "charge",
+              status: "succeeded",
+              metadata: {
+                reservation_id: reservationId,
+                feature: "zero-attente",
+                restaurant_id: restaurantId,
+                card_brand: cardBrand,
+                card_last4: cardLast4,
+              },
+            });
+          }
+
+          const { data: zaRestaurant } = await supabaseAdmin
+            .from("restaurants")
+            .select("owner_id, name")
+            .eq("id", restaurantId)
+            .maybeSingle();
+
+          const { data: zaProfile } = userId
+            ? await supabaseAdmin
+              .from("profiles")
+              .select("full_name")
+              .eq("user_id", userId)
+              .maybeSingle()
+            : { data: null };
+
+          const zaItemCount = preorderItems.reduce((sum: number, item: { quantity: number }) => sum + Number(item.quantity || 0), 0);
+
+          if (zaRestaurant?.owner_id) {
+            await enqueueNotification({
+              adminClient: supabaseAdmin,
+              userId: zaRestaurant.owner_id,
+              title: "Nouvelle reservation Zero Attente",
+              body: `${zaProfile?.full_name || "Client"} - ${partySize} convive(s) le ${arrivalDate} a ${arrivalTime} - ${zaItemCount} plat(s) - ${total.toFixed(2)} CHF`,
+              type: "reservation",
+              category: "transactional",
+              data: {
+                reservation_id: reservationId,
+                restaurant_id: restaurantId,
+                restaurant_name: zaRestaurant.name,
+                customer_name: zaProfile?.full_name || null,
+                party_size: partySize,
+                arrival_date: arrivalDate,
+                arrival_time: arrivalTime,
+                items_count: zaItemCount,
+                total_amount: total,
+                feature: "zero-attente",
+                url: "/dashboard/reservations",
+              },
+            });
+          }
+
+          if (userId) {
+            await enqueueNotification({
+              adminClient: supabaseAdmin,
+              userId,
+              title: "Reservation confirmee et payee",
+              body: `Votre table chez ${zaRestaurant?.name || "le restaurant"} est reservee le ${arrivalDate} a ${arrivalTime} pour ${partySize} convive(s). ${zaItemCount} plat(s) precommande(s) - ${total.toFixed(2)} CHF.`,
+              type: "reservation",
+              category: "transactional",
+              data: {
+                reservation_id: reservationId,
+                restaurant_id: restaurantId,
+                restaurant_name: zaRestaurant?.name || null,
+                party_size: partySize,
+                arrival_date: arrivalDate,
+                arrival_time: arrivalTime,
+                items_count: zaItemCount,
+                total_amount: total,
+                feature: "zero-attente",
+                url: "/reservations",
+              },
+            });
+          }
+
+          try {
+            await triggerNotificationDispatch({ source: "stripe-webhook-zero-attente", push: true, email: true });
+          } catch (error) {
+            console.error("stripe-webhook zero-attente notification trigger failed:", error);
           }
           break;
         }
