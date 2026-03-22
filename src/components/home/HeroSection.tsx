@@ -57,7 +57,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
   }, []);
 
   return (
-    <section ref={heroRef} className="relative min-h-[85dvh] md:min-h-[100dvh] overflow-hidden border-b dark:border-white/10">
+    <section ref={heroRef} className="relative min-h-[100dvh] md:min-h-[100dvh] overflow-hidden border-b dark:border-white/10">
       {/* Background layers - appear immediately */}
       <motion.div
         className="absolute inset-[0%] bg-[url('/fond4.png')] md:bg-[url('/fond3.png')] bg-cover bg-no-repeat bg-center dark:opacity-22 will-change-transform [--hero-bg-scale:1.05] md:[--hero-bg-scale:1.1]"
@@ -72,13 +72,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
       <div className="absolute inset-0 bg-gradient-to-b from-white/6 via-white/3 to-white/9 dark:from-slate-950/8 dark:via-slate-950/2 dark:to-slate-950/92 pointer-events-none" />
 
-      <motion.div
-        className="absolute top-[10%] left-1/2 -translate-x1/3 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-white/45 dark:bg-primary/10 blur-[22px] pointer-events-none will-change-transform md:h-[600px] md:w-[600px]"
-        style={{ transform: "translate(calc(-50% + var(--scroll-y, 0px) * -0.1), calc(-50% + var(--scroll-y, 0px) * 0.2))" }}
-        initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
-      />
+      
 
       <div className="absolute inset-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.14)] dark:shadow-[inset_0_0_220px_rgba(2,6,23,0.88)] pointer-events-none" />
 
