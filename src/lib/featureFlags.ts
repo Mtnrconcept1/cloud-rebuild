@@ -164,15 +164,6 @@ function toFallbackFlags() {
   return DEFAULT_FLAGS.map((flag) => ({ ...flag, id: flag.name }));
 }
 
-function toDbPayload(flags: FeatureFlagDefinition[]) {
-  return flags.map((flag) => ({
-    name: flag.name,
-    label: flag.label,
-    description: flag.description,
-    is_active: flag.isActive,
-  }));
-}
-
 function mergeFlags(rows: any[]): FeatureFlag[] {
   const rowsByName = new Map(
     (rows || []).map((row) => [String(row.name || ""), row]),
@@ -204,7 +195,7 @@ function mergeFlags(rows: any[]): FeatureFlag[] {
   return [...mergedDefaults, ...customFlags];
 }
 
-async function fetchFlags(): Promise<FeatureFlag[]> {
+async function fetchFlags(isAdmin = false): Promise<FeatureFlag[]> {
   const { data, error } = await supabase
     .from("feature_flags" as any)
     .select("id, name, label, description, is_active")
@@ -218,58 +209,71 @@ async function fetchFlags(): Promise<FeatureFlag[]> {
   const existingNames = new Set((data as any[]).map((row) => String(row.name || "")));
   const missingDefaults = DEFAULT_FLAGS.filter((flag) => !existingNames.has(flag.name));
 
-  if (missingDefaults.length > 0) {
-    await supabase
-      .from("feature_flags" as any)
-      .upsert(toDbPayload(missingDefaults) as any, { onConflict: "name" });
+  // Only admins can seed missing defaults via server RPC
+  if (missingDefaults.length > 0 && isAdmin) {
+    await seedMissingDefaultsViaRpc(missingDefaults);
   }
 
   return mergedFlags;
 }
 
-async function upsertFlagsInDb(flags: FeatureFlagDefinition[]) {
-  await supabase
-    .from("feature_flags" as any)
-    .upsert(toDbPayload(flags) as any, { onConflict: "name" });
+async function toggleFlagViaRpc(flagName: string, isActive: boolean): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase.rpc("admin_toggle_feature_flag" as any, {
+    p_flag_name: flagName,
+    p_is_active: isActive,
+  });
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+async function activateAllViaRpc(): Promise<{ success: boolean; count?: number; error?: string }> {
+  const { data, error } = await supabase.rpc("admin_activate_all_feature_flags" as any);
+  if (error) return { success: false, error: error.message };
+  return { success: true, count: data as number };
+}
+
+async function seedMissingDefaultsViaRpc(flags: FeatureFlagDefinition[]) {
+  const payload = flags.map((f) => ({
+    name: f.name,
+    label: f.label,
+    description: f.description,
+    is_active: f.isActive,
+  }));
+  await supabase.rpc("admin_seed_default_flags" as any, { p_flags: payload });
 }
 
 function notifyFlagChange() {
   window.dispatchEvent(new Event("feature-flags-changed"));
 }
 
-export function useFeatureFlags() {
+export function useFeatureFlags(isAdmin = false) {
   const [flags, setFlags] = useState<FeatureFlag[]>(toFallbackFlags());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchFlags().then((loadedFlags) => {
+    fetchFlags(isAdmin).then((loadedFlags) => {
       setFlags(loadedFlags);
       setLoading(false);
     });
-  }, []);
+  }, [isAdmin]);
 
-  const toggleFlag = useCallback((id: string) => {
+  const toggleFlag = useCallback(async (id: string): Promise<{ success: boolean; error?: string }> => {
+    const flag = flags.find((item) => item.id === id);
+    if (!flag) return { success: false, error: "Flag introuvable" };
+
+    const nextActive = !flag.isActive;
+
+    // Call server RPC (RBAC + audit enforced server-side)
+    const result = await toggleFlagViaRpc(flag.name, nextActive);
+    if (!result.success) return result;
+
+    // Optimistic UI update after server confirmation
     setFlags((prev) => {
-      const flag = prev.find((item) => item.id === id);
-      if (!flag) return prev;
-
-      const nextActive = !flag.isActive;
-
-      // Cascade: disabling "livraison" also disables "commandes"
-      const cascadeOff =
+      const cascadeIds =
         flag.name === "livraison" && !nextActive
-          ? prev.filter((item) => item.name === "commandes" && item.isActive)
-          : [];
+          ? new Set(prev.filter((item) => item.name === "commandes").map((item) => item.id))
+          : new Set<string>();
 
-      const flagsToUpsert = [
-        { name: flag.name, label: flag.label, description: flag.description, isActive: nextActive, group: flag.group },
-        ...cascadeOff.map((item) => ({ name: item.name, label: item.label, description: item.description, isActive: false, group: item.group })),
-      ];
-
-      void upsertFlagsInDb(flagsToUpsert).catch(() => undefined);
-      notifyFlagChange();
-
-      const cascadeIds = new Set(cascadeOff.map((item) => item.id));
       return prev.map((item) =>
         item.id === id
           ? { ...item, isActive: nextActive }
@@ -278,23 +282,18 @@ export function useFeatureFlags() {
             : item,
       );
     });
-  }, []);
-
-  const activateAllFlags = useCallback(async () => {
-    const nextFlags = flags.length > 0
-      ? flags.map((flag) => ({ ...flag, isActive: true }))
-      : toFallbackFlags();
-
-    setFlags(nextFlags);
-    await upsertFlagsInDb(nextFlags.map((flag) => ({
-      name: flag.name,
-      label: flag.label,
-      description: flag.description,
-      isActive: true,
-      group: flag.group,
-    })));
     notifyFlagChange();
+    return { success: true };
   }, [flags]);
+
+  const activateAllFlags = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    const result = await activateAllViaRpc();
+    if (!result.success) return result;
+
+    setFlags((prev) => prev.map((flag) => ({ ...flag, isActive: true })));
+    notifyFlagChange();
+    return { success: true };
+  }, []);
 
   return { flags, toggleFlag, activateAllFlags, loading };
 }

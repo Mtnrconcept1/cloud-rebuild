@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "832799834112",
+    "project_id": "tok-cf95a",
+    "storage_bucket": "tok-cf95a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:832799834112:android:9b5d9ee36df8df371258e5",
+        "android_client_info": {
+          "package_name": "com.tok.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBCJwxJFUYhJFCiE0N_6WtIpgNf1Sk63s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

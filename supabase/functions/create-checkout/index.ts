@@ -54,7 +54,11 @@ Deno.serve(async (req) => {
         paymentMethodTypes.push("twint");
         break;
       case "postfinance_card":
+        paymentMethodTypes.push("postfinance_card");
+        break;
       case "postfinance_efinance":
+        paymentMethodTypes.push("postfinance_efinance");
+        break;
       case "card":
       default:
         paymentMethodTypes.push("card");
@@ -291,12 +295,13 @@ Deno.serve(async (req) => {
     );
     discountCents = Math.min(discountCents, totalBeforeDiscountCents);
 
+    const urlSeparator = return_url.includes("?") ? "&" : "?";
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: paymentMethodTypes,
       line_items: lineItems,
       mode: "payment",
-      success_url: `${return_url}?session_id={CHECKOUT_SESSION_ID}&status=success`,
-      cancel_url: `${return_url}?status=cancelled`,
+      success_url: `${return_url}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
+      cancel_url: `${return_url}${urlSeparator}status=cancelled`,
       customer_email: actor.userClient ? (await actor.userClient.auth.getUser()).data.user?.email : undefined,
       metadata: sessionMetadata,
     };

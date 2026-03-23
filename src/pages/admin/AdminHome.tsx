@@ -30,6 +30,19 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const CRITICAL_FLAGS = new Set(["livraison", "commandes", "espace-livreur"]);
 
 const ADMIN_TOOLS = [
   {
@@ -186,7 +199,36 @@ export default function AdminHome() {
     },
   });
 
-  const { flags, toggleFlag, activateAllFlags, loading: loadingFlags } = useFeatureFlags();
+  const { flags, toggleFlag, activateAllFlags, loading: loadingFlags } = useFeatureFlags(true);
+  const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; label: string; nextActive: boolean } | null>(null);
+  const [toggling, setToggling] = useState(false);
+
+  const handleToggle = async (flagId: string) => {
+    const flag = flags.find((f) => f.id === flagId);
+    if (!flag) return;
+
+    const nextActive = !flag.isActive;
+
+    // Confirmation required for critical flags being disabled
+    if (!nextActive && CRITICAL_FLAGS.has(flag.name)) {
+      setPendingToggle({ id: flagId, name: flag.name, label: flag.label, nextActive });
+      return;
+    }
+
+    await executeToggle(flagId);
+  };
+
+  const executeToggle = async (flagId: string) => {
+    setToggling(true);
+    const result = await toggleFlag(flagId);
+    setToggling(false);
+    setPendingToggle(null);
+
+    if (!result.success) {
+      toast({ title: "Erreur", description: result.error || "Impossible de modifier le flag.", variant: "destructive" });
+    }
+  };
+
   const groupedFlags = FEATURE_FLAG_GROUP_ORDER
     .map((group) => ({
       group,
@@ -210,8 +252,14 @@ export default function AdminHome() {
   };
 
   const handleActivateAll = async () => {
-    await activateAllFlags();
-    toast({ title: "Activation terminee", description: "Tous les outils et feature flags admin connus sont actifs." });
+    setToggling(true);
+    const result = await activateAllFlags();
+    setToggling(false);
+    if (result.success) {
+      toast({ title: "Activation terminee", description: "Tous les outils et feature flags admin connus sont actifs." });
+    } else {
+      toast({ title: "Erreur", description: result.error || "Impossible d'activer tous les flags.", variant: "destructive" });
+    }
   };
 
   return (
@@ -419,7 +467,7 @@ export default function AdminHome() {
                           <p className="text-sm font-semibold">{flag.label}</p>
                           <p className="text-xs text-muted-foreground">{flag.description}</p>
                         </div>
-                        <Switch checked={flag.isActive} onCheckedChange={() => toggleFlag(flag.id)} />
+                        <Switch checked={flag.isActive} disabled={toggling} onCheckedChange={() => handleToggle(flag.id)} />
                       </label>
                     ))}
                   </div>
@@ -429,6 +477,29 @@ export default function AdminHome() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={!!pendingToggle} onOpenChange={(open) => { if (!open) setPendingToggle(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desactiver "{pendingToggle?.label}" ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ce module est critique pour le fonctionnement de l'application.
+              {pendingToggle?.name === "livraison" && " La desactivation de Livraison desactivera aussi Mes commandes."}
+              {" "}Cette action affectera tous les utilisateurs en production.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={toggling}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={toggling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => pendingToggle && executeToggle(pendingToggle.id)}
+            >
+              Confirmer la desactivation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
