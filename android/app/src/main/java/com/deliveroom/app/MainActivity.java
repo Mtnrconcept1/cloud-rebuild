@@ -1,4 +1,4 @@
-package com.deliveroom.app;
+package com.tok.app;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -17,8 +17,8 @@ public class MainActivity extends BridgeActivity {
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                "miamz_orders",
-                "Commandes Deliveroom",
+                "tok_orders",
+                "Commandes Tok",
                 NotificationManager.IMPORTANCE_HIGH
             );
             channel.setDescription("Notifications de commandes et livraisons");

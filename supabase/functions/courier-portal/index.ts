@@ -28,10 +28,10 @@ function toIsoDate(value: Date) {
 }
 
 function courierDisplayName(courier: Record<string, unknown> | null) {
-  if (!courier) return "Livreur Deliveroom";
+  if (!courier) return "Livreur Tok";
   const first = String(courier.first_name || "").trim();
   const last = String(courier.last_name || "").trim();
-  return [first, last].filter(Boolean).join(" ").trim() || "Livreur Deliveroom";
+  return [first, last].filter(Boolean).join(" ").trim() || "Livreur Tok";
 }
 
 async function getCourierForActor(adminClient: ReturnType<typeof createAdminClient>, userId: string) {

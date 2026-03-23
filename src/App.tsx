@@ -29,6 +29,7 @@ import SuiviCommande from "./pages/SuiviCommande";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
 import CGU from "./pages/CGU";
+import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 import APropos from "./pages/APropos";
 import Aide from "./pages/Aide";
 import SupportChat from "./components/SupportChat";
@@ -194,6 +195,7 @@ function AppShell() {
           <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><AdminAuditLogs /></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
+          <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/a-propos" element={<APropos />} />
           <Route path="/aide" element={<Aide />} />
           <Route path="*" element={<NotFound />} />

@@ -1,5 +1,5 @@
 -- Migration: Core Identity & Users
--- This migration sets up the fundamental identity and user-related tables for the Deliveroom architecture.
+-- This migration sets up the fundamental identity and user-related tables for the Tok architecture.
 
 -- 1. user_profiles
 CREATE TABLE IF NOT EXISTS public.user_profiles (

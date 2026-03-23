@@ -32,7 +32,7 @@ export async function sendOrderConfirmationEmail(details: OrderDetails) {
     try {
         const { error } = await supabase.from("email_queue" as any).insert({
             to_email: details.customerEmail,
-            subject: `Confirmation de commande ${details.orderReference} - Deliveroom`,
+            subject: `Confirmation de commande ${details.orderReference} - Tok`,
             body_text: buildEmailText(details),
             metadata: {
                 order_reference: details.orderReference,
@@ -77,7 +77,7 @@ Frais : ${details.deliveryFee.toFixed(2)} CHF
 ${details.pointsDiscount ? `Réduction Fidélité : -${details.pointsDiscount.toFixed(2)} CHF` : ""}
 TOTAL : ${details.finalTotal.toFixed(2)} CHF
 
-Merci d'avoir accordé votre confiance à Deliveroom !
+Merci d'avoir accordé votre confiance à Tok !
     `.trim();
 }
 

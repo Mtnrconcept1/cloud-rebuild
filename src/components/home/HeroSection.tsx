@@ -86,7 +86,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
       >
         <motion.img
           src="/logo.png"
-          alt="Deliveroom"
+          alt="Tok"
           className="h-40 w-auto object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.22)] sm:h-44 md:h-52"
           variants={bounceUp}
         />

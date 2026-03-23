@@ -7,15 +7,15 @@ import { Input } from "@/components/ui/input";
 type Node = { id: string; text: string; options?: { label: string; next: string }[]; final?: boolean; };
 
 const CHAT_TREE: Record<string, Node> = {
-  start: { id: "start", text: "Bonjour ! Comment l'équipe Deliveroom peut-elle vous aider aujourd'hui ?", options: [{ label: "Où est ma commande ?", next: "order_status" }, { label: "Problème de paiement", next: "payment" }, { label: "Deliveroom One", next: "membership" }, { label: "Autre chose", next: "other" }] },
+  start: { id: "start", text: "Bonjour ! Comment l'équipe Tok peut-elle vous aider aujourd'hui ?", options: [{ label: "Où est ma commande ?", next: "order_status" }, { label: "Problème de paiement", next: "payment" }, { label: "Tok One", next: "membership" }, { label: "Autre chose", next: "other" }] },
   order_status: { id: "order_status", text: "Patience ! Vous pouvez suivre le trajet en direct dans l'onglet 'Commandes'. Le livreur respecte-t-il le délai ?", options: [{ label: "Oui, je regarde", next: "end_satisfied" }, { label: "Non, c'est en retard", next: "order_late" }] },
   order_late: { id: "order_late", text: "Nous sommes désolés pour ce retard. Souhaitez-vous contacter le support pour un geste commercial ?", options: [{ label: "Oui", next: "contact_final" }, { label: "Non, j'attends", next: "end_satisfied" }] },
   payment: { id: "payment", text: "Les paiements sont sécurisés. Un bug lors du paiement ? Vérifiez votre plafond ou contactez votre banque.", options: [{ label: "Toujours bloqué", next: "contact_final" }, { label: "C'est résolu", next: "end_satisfied" }] },
-  membership: { id: "membership", text: "Deliveroom One vous offre la livraison illimitée ! Souhaitez-vous gérer votre abonnement ?", options: [{ label: "Oui, comment faire ?", next: "membership_how" }, { label: "Non, simple question", next: "contact_final" }] },
+  membership: { id: "membership", text: "Tok One vous offre la livraison illimitée ! Souhaitez-vous gérer votre abonnement ?", options: [{ label: "Oui, comment faire ?", next: "membership_how" }, { label: "Non, simple question", next: "contact_final" }] },
   membership_how: { id: "membership_how", text: "Rendez-vous dans votre Profil > Abonnement pour gérer vos options.", options: [{ label: "Merci !", next: "end_satisfied" }] },
   other: { id: "other", text: "Dites-m'en plus ou discutez avec un de nos agents.", options: [{ label: "Parler à un agent", next: "contact_final" }] },
   contact_final: { id: "contact_final", text: "Voici les moyens de nous joindre directement :", final: true },
-  end_satisfied: { id: "end_satisfied", text: "Génial ! Bon appétit avec Deliveroom ! 🍔", final: true },
+  end_satisfied: { id: "end_satisfied", text: "Génial ! Bon appétit avec Tok ! 🍔", final: true },
 };
 
 export default function SupportChat() {
@@ -60,7 +60,7 @@ export default function SupportChat() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><User className="h-6 w-6" /></div>
                 <div>
-                  <p className="font-bold text-sm">Assistant Deliveroom</p>
+                  <p className="font-bold text-sm">Assistant Tok</p>
                   <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" /><span className="text-[10px] opacity-80 uppercase tracking-widest font-bold">En ligne</span></div>
                 </div>
               </div>
@@ -81,7 +81,7 @@ export default function SupportChat() {
                     {msg.type === 'bot' && !msg.options && i === history.length - 1 && (
                       <div className="mt-4 space-y-2">
                         <div className="p-3 bg-primary/5 rounded-xl space-y-2 border border-primary/10">
-                          <a href="mailto:support@deliveroom.ch" className="flex items-center gap-2 text-primary font-bold hover:underline"><Mail className="h-4 w-4" /> support@deliveroom.ch</a>
+                          <a href="mailto:support@tok.ch" className="flex items-center gap-2 text-primary font-bold hover:underline"><Mail className="h-4 w-4" /> support@tok.ch</a>
                           <a href="tel:+33123456789" className="flex items-center gap-2 text-primary font-bold hover:underline"><Phone className="h-4 w-4" /> +33 1 23 45 67 89</a>
                         </div>
                         <Button variant="ghost" size="sm" onClick={resetChat} className="w-full text-xs gap-1 opacity-70">Recommencer</Button>

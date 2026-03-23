@@ -14,7 +14,7 @@ declare global {
 const CATEGORIES = [
     { id: "orders", title: "Mes Commandes", icon: ShoppingBag, color: "text-green-600", bg: "bg-green-50" },
     { id: "account", title: "Compte & Paiement", icon: User, icon2: CreditCard, color: "text-blue-600", bg: "bg-blue-50" },
-    { id: "membership", title: "Deliveroom One", icon: ShieldCheck, color: "text-violet-600", bg: "bg-violet-50" },
+    { id: "membership", title: "Tok One", icon: ShieldCheck, color: "text-violet-600", bg: "bg-violet-50" },
     { id: "delivery", title: "Livraison", icon: Truck, color: "text-amber-600", bg: "bg-amber-50" },
 ];
 
@@ -24,10 +24,10 @@ const FAQS = [
         questions: [
             { q: "Où est ma commande ?", a: "Vous pouvez suivre votre commande en temps réel depuis l'onglet 'Commandes' de votre profil. Une fois le livreur en route, vous verrez sa position sur la carte. Vous recevrez aussi des notifications à chaque étape (préparation, en route, arrivée)." },
             { q: "Comment annuler une commande ?", a: "L'annulation est possible tant que le restaurant n'a pas commencé la préparation. Rendez-vous dans les détails de votre commande et appuyez sur 'Annuler la commande'. Si l'option n'apparaît plus, le restaurant a déjà débuté la préparation et l'annulation n'est plus possible." },
-            { q: "Il manque un article dans ma commande", a: "Nous en sommes désolés. Signalez le problème via le chat de support ou contactez-nous directement à support@deliveroom.ch. Après vérification auprès du restaurant, un remboursement partiel ou un crédit Deliveroom sera appliqué sous 48h." },
+            { q: "Il manque un article dans ma commande", a: "Nous en sommes désolés. Signalez le problème via le chat de support ou contactez-nous directement à support@tok.ch. Après vérification auprès du restaurant, un remboursement partiel ou un crédit Tok sera appliqué sous 48h." },
             { q: "Comment modifier ma commande après validation ?", a: "Une modification est possible uniquement dans les premières minutes suivant la validation, avant que le restaurant ne commence la préparation. Accédez aux détails de votre commande pour voir si l'option 'Modifier' est encore disponible." },
             { q: "Comment utiliser un code promo ?", a: "Lors du récapitulatif de commande, appuyez sur 'Ajouter un code promo' et saisissez votre code. La réduction sera appliquée automatiquement au montant total. Les codes promos ne sont pas cumulables sauf mention contraire." },
-            { q: "Je souhaite demander un remboursement", a: "Rendez-vous dans l'historique de vos commandes, sélectionnez la commande concernée, puis appuyez sur 'Signaler un problème'. Décrivez le souci rencontré et notre équipe traitera votre demande sous 48h ouvrées. Le remboursement sera effectué sur votre moyen de paiement d'origine ou en crédit Deliveroom." },
+            { q: "Je souhaite demander un remboursement", a: "Rendez-vous dans l'historique de vos commandes, sélectionnez la commande concernée, puis appuyez sur 'Signaler un problème'. Décrivez le souci rencontré et notre équipe traitera votre demande sous 48h ouvrées. Le remboursement sera effectué sur votre moyen de paiement d'origine ou en crédit Tok." },
             { q: "Puis-je repasser la même commande ?", a: "Oui ! Depuis votre historique de commandes, appuyez sur 'Commander à nouveau' sur n'importe quelle commande passée. Le panier sera pré-rempli avec les mêmes articles (sous réserve de disponibilité au restaurant)." },
         ]
     },
@@ -46,19 +46,19 @@ const FAQS = [
     {
         category: "membership",
         questions: [
-            { q: "Quels sont les avantages de Deliveroom One ?", a: "Deliveroom One vous offre : la livraison gratuite sur tous les restaurants éligibles (sans minimum de commande), des réductions exclusives allant jusqu'à 20%, un accès prioritaire aux Chef's Tables et événements gastronomiques, un support client prioritaire, et des offres surprises régulières." },
-            { q: "Combien coûte l'abonnement Deliveroom One ?", a: "L'abonnement Deliveroom One est disponible à 9.90 CHF/mois ou 89.90 CHF/an (soit 2 mois offerts). Vous pouvez essayer gratuitement pendant 14 jours avant d'être facturé." },
-            { q: "Comment résilier mon abonnement Deliveroom One ?", a: "Rendez-vous dans 'Profil' > 'Mon abonnement' > 'Gérer l'abonnement' > 'Résilier'. La résiliation prend effet à la fin de la période en cours, et vous conservez vos avantages jusqu'à cette date. Aucun remboursement partiel n'est effectué." },
-            { q: "Quels restaurants sont éligibles à la livraison gratuite ?", a: "La grande majorité de nos restaurants partenaires sont éligibles à la livraison gratuite avec Deliveroom One. Les restaurants éligibles sont identifiés par un badge 'Livraison gratuite' sur leur fiche. Quelques exceptions peuvent s'appliquer pour les restaurants très éloignés." },
-            { q: "Puis-je partager mon abonnement Deliveroom One ?", a: "L'abonnement Deliveroom One est personnel et lié à un seul compte. Il ne peut pas être partagé ou transféré. Cependant, chaque membre de votre foyer peut souscrire à son propre abonnement." },
+            { q: "Quels sont les avantages de Tok One ?", a: "Tok One vous offre : la livraison gratuite sur tous les restaurants éligibles (sans minimum de commande), des réductions exclusives allant jusqu'à 20%, un accès prioritaire aux Chef's Tables et événements gastronomiques, un support client prioritaire, et des offres surprises régulières." },
+            { q: "Combien coûte l'abonnement Tok One ?", a: "L'abonnement Tok One est disponible à 9.90 CHF/mois ou 89.90 CHF/an (soit 2 mois offerts). Vous pouvez essayer gratuitement pendant 14 jours avant d'être facturé." },
+            { q: "Comment résilier mon abonnement Tok One ?", a: "Rendez-vous dans 'Profil' > 'Mon abonnement' > 'Gérer l'abonnement' > 'Résilier'. La résiliation prend effet à la fin de la période en cours, et vous conservez vos avantages jusqu'à cette date. Aucun remboursement partiel n'est effectué." },
+            { q: "Quels restaurants sont éligibles à la livraison gratuite ?", a: "La grande majorité de nos restaurants partenaires sont éligibles à la livraison gratuite avec Tok One. Les restaurants éligibles sont identifiés par un badge 'Livraison gratuite' sur leur fiche. Quelques exceptions peuvent s'appliquer pour les restaurants très éloignés." },
+            { q: "Puis-je partager mon abonnement Tok One ?", a: "L'abonnement Tok One est personnel et lié à un seul compte. Il ne peut pas être partagé ou transféré. Cependant, chaque membre de votre foyer peut souscrire à son propre abonnement." },
         ]
     },
     {
         category: "delivery",
         questions: [
             { q: "Quels sont les délais de livraison ?", a: "Les délais de livraison varient en général entre 20 et 45 minutes selon la distance, le restaurant et les conditions de circulation. Le délai estimé est affiché avant la validation de votre commande et mis à jour en temps réel pendant la livraison." },
-            { q: "Quelles sont les zones de livraison ?", a: "Deliveroom livre actuellement dans les principales villes de Suisse romande. La disponibilité est vérifiée automatiquement lorsque vous saisissez votre adresse. Si votre zone n'est pas encore couverte, vous pouvez vous inscrire pour être notifié de son ouverture." },
-            { q: "Les frais de livraison sont-ils fixes ?", a: "Les frais de livraison varient entre 2.90 CHF et 6.90 CHF selon la distance entre le restaurant et votre adresse. Ils sont clairement affichés avant validation. Les abonnés Deliveroom One bénéficient de la livraison gratuite sur les restaurants éligibles." },
+            { q: "Quelles sont les zones de livraison ?", a: "Tok livre actuellement dans les principales villes de Suisse romande. La disponibilité est vérifiée automatiquement lorsque vous saisissez votre adresse. Si votre zone n'est pas encore couverte, vous pouvez vous inscrire pour être notifié de son ouverture." },
+            { q: "Les frais de livraison sont-ils fixes ?", a: "Les frais de livraison varient entre 2.90 CHF et 6.90 CHF selon la distance entre le restaurant et votre adresse. Ils sont clairement affichés avant validation. Les abonnés Tok One bénéficient de la livraison gratuite sur les restaurants éligibles." },
             { q: "Je ne suis pas chez moi, que se passe-t-il ?", a: "Le livreur tentera de vous contacter par téléphone. Si vous êtes injoignable, il attendra 5 minutes maximum sur place. Passé ce délai, la commande sera considérée comme livrée. Pensez à ajouter des instructions de livraison (code d'entrée, étage, etc.) dans votre profil." },
             { q: "Puis-je programmer une livraison à l'avance ?", a: "Oui ! Lors de la commande, sélectionnez l'option 'Programmer' au lieu de 'Dès que possible'. Vous pouvez planifier une livraison jusqu'à 7 jours à l'avance, sous réserve de la disponibilité du restaurant." },
             { q: "Comment fonctionne le click & collect ?", a: "Sélectionnez l'option 'À emporter' lors de votre commande. Choisissez l'heure de retrait souhaitée. Vous recevrez une notification lorsque votre commande sera prête. Présentez-vous au restaurant avec votre numéro de commande pour récupérer votre repas." },
@@ -184,7 +184,7 @@ export default function Aide() {
                                     <Mail className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                                     <div>
                                         <p className="text-sm font-medium">Email</p>
-                                        <p className="text-xs text-muted-foreground">support@deliveroom.ch</p>
+                                        <p className="text-xs text-muted-foreground">support@tok.ch</p>
                                         <p className="text-xs text-muted-foreground">Réponse sous 24h</p>
                                     </div>
                                 </div>
@@ -214,7 +214,7 @@ export default function Aide() {
                                     Conditions générales <ChevronRight className="h-4 w-4" />
                                 </Link>
                                 <Link to="/a-propos" className="flex items-center gap-1 text-sm text-primary font-semibold hover:underline">
-                                    À propos de Deliveroom <ChevronRight className="h-4 w-4" />
+                                    À propos de Tok <ChevronRight className="h-4 w-4" />
                                 </Link>
                             </div>
                         </div>

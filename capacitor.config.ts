@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.deliveroom.app",
-  appName: "Deliveroom",
+  appId: "com.tok.app",
+  appName: "Tok",
   webDir: "dist",
   plugins: {
     PushNotifications: {
@@ -25,7 +25,7 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: "automatic",
     allowsLinkPreview: true,
-    scheme: "deliveroom",
+    scheme: "tok",
   },
   android: {
     allowMixedContent: true,

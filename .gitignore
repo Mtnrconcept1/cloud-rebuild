@@ -22,6 +22,11 @@ android/app/build/
 android/build/
 android/capacitor-cordova-android-plugins/build/
 
+# Android signing
+android/keystore.properties
+*.jks
+*.keystore
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

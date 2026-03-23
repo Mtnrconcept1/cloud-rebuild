@@ -48,7 +48,7 @@ export default function DashboardSupport() {
     const userEmail = user?.email || "inconnu";
 
     const { error } = await supabase.from("email_queue" as any).insert({
-      to_email: "support@deliveroom.ch",
+      to_email: "support@tok.ch",
       subject: `[Support] ${subject}`,
       body_text: `De: ${userEmail}\nRestaurant: ${restaurantLabel}\n\n${message}`,
       body_html: `<p><strong>De:</strong> ${userEmail}</p><p><strong>Restaurant:</strong> ${restaurantLabel}</p><hr/><p>${message.replace(/\n/g, "<br/>")}</p>`,

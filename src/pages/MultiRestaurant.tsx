@@ -398,7 +398,7 @@ export default function MultiRestaurant() {
 
             <div className="rounded-xl bg-pink-500/5 p-4 flex items-start gap-3 text-xs text-pink-700 border border-pink-500/10 italic">
               <Clock className="h-4 w-4 shrink-0 mt-0.5" />
-              <p>Deliveroom gère la logistique : Bien que venant de plusieurs adresses, tous vos plats arriveront dans un seul sac à la même heure.</p>
+              <p>Tok gère la logistique : Bien que venant de plusieurs adresses, tous vos plats arriveront dans un seul sac à la même heure.</p>
             </div>
 
             <WizardNextButton

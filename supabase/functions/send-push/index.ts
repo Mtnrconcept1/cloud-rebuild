@@ -186,7 +186,7 @@ Deno.serve(async (req) => {
               android: {
                 priority: "high" as const,
                 notification: {
-                  channel_id: "miamz_orders",
+                  channel_id: "tok_orders",
                   sound: "default",
                 },
               },

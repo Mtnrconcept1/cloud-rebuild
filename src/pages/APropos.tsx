@@ -17,10 +17,10 @@ const VALUES = [
 ];
 
 const TIMELINE = [
-  { year: "Début 2026", title: "L'annonce qui change tout", desc: "Smood annonce sa fermeture définitive, laissant des milliers de restaurateurs et de clients sans solution. Face à ce vide, l'idée de Deliveroom naît : créer une alternative suisse, locale et durable." },
-  { year: "Mars 2026", title: "Deliveroom voit le jour", desc: "En quelques semaines, une équipe de passionnés de food et de tech se forme pour construire la plateforme. Les premiers restaurants partenaires rejoignent l'aventure, convaincus par notre vision." },
-  { year: "Printemps 2026", title: "Lancement en Suisse romande", desc: "Deliveroom ouvre ses portes avec des centaines de restaurants partenaires. Les anciens utilisateurs de Smood trouvent enfin une alternative fiable, moderne et engagée." },
-  { year: "Été 2026", title: "Deliveroom One & Anti-Gaspi", desc: "Lancement de l'abonnement premium Deliveroom One et du programme anti-gaspillage alimentaire. La communauté grandit à une vitesse folle." },
+  { year: "Début 2026", title: "L'annonce qui change tout", desc: "Smood annonce sa fermeture définitive, laissant des milliers de restaurateurs et de clients sans solution. Face à ce vide, l'idée de Tok naît : créer une alternative suisse, locale et durable." },
+  { year: "Mars 2026", title: "Tok voit le jour", desc: "En quelques semaines, une équipe de passionnés de food et de tech se forme pour construire la plateforme. Les premiers restaurants partenaires rejoignent l'aventure, convaincus par notre vision." },
+  { year: "Printemps 2026", title: "Lancement en Suisse romande", desc: "Tok ouvre ses portes avec des centaines de restaurants partenaires. Les anciens utilisateurs de Smood trouvent enfin une alternative fiable, moderne et engagée." },
+  { year: "Été 2026", title: "Tok One & Anti-Gaspi", desc: "Lancement de l'abonnement premium Tok One et du programme anti-gaspillage alimentaire. La communauté grandit à une vitesse folle." },
   { year: "Aujourd'hui", title: "L'aventure continue", desc: "Plus de 500 restaurants, 150'000 utilisateurs et une mission claire : reprendre le flambeau là où Smood s'est arrêté, en faisant mieux — pour les restaurateurs, les gourmets et la planète." },
 ];
 
@@ -39,7 +39,7 @@ export default function APropos() {
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm">
           <Heart className="h-4 w-4" /> Depuis 2026
         </div>
-        <h1 className="font-display text-4xl md:text-5xl font-bold">À propos de Deliveroom</h1>
+        <h1 className="font-display text-4xl md:text-5xl font-bold">À propos de Tok</h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
           Nous connectons les passionnés de cuisine aux meilleurs restaurateurs locaux, tout en luttant contre le gaspillage alimentaire. Une mission simple, un impact réel.
         </p>
@@ -63,7 +63,7 @@ export default function APropos() {
         <div className="space-y-6">
           <h2 className="text-3xl font-bold">Notre Mission</h2>
           <p className="text-foreground/80 leading-relaxed text-lg">
-            Quand Smood a annoncé sa fermeture début 2026, des milliers de restaurateurs et de gourmets se sont retrouvés sans solution. Deliveroom est né de cette urgence : offrir une alternative suisse, moderne et responsable.
+            Quand Smood a annoncé sa fermeture début 2026, des milliers de restaurateurs et de gourmets se sont retrouvés sans solution. Tok est né de cette urgence : offrir une alternative suisse, moderne et responsable.
           </p>
           <p className="text-foreground/80 leading-relaxed text-lg">
             Notre plateforme valorise le savoir-faire des chefs locaux, optimise la gestion des stocks pour lutter contre le gaspillage alimentaire et offre une expérience utilisateur fluide et personnalisée.
@@ -81,7 +81,7 @@ export default function APropos() {
       <section className="space-y-12">
         <div className="text-center space-y-4">
           <h2 className="text-3xl font-bold">Comment ça marche ?</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">Commander sur Deliveroom, c'est simple comme bonjour.</p>
+          <p className="text-muted-foreground max-w-xl mx-auto">Commander sur Tok, c'est simple comme bonjour.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {HOW_IT_WORKS.map((item, i) => (
@@ -119,7 +119,7 @@ export default function APropos() {
       <section className="space-y-12">
         <div className="text-center space-y-4">
           <h2 className="text-3xl font-bold">Notre Histoire</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">De l'idée à la réalité, retour sur le parcours de Deliveroom.</p>
+          <p className="text-muted-foreground max-w-xl mx-auto">De l'idée à la réalité, retour sur le parcours de Tok.</p>
         </div>
         <div className="relative max-w-3xl mx-auto">
           <div className="absolute left-[22px] top-0 bottom-0 w-0.5 bg-border md:left-1/2 md:-translate-x-px" />

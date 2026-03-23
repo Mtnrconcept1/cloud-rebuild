@@ -26,7 +26,7 @@ export default function FooterSection() {
         <div className="container py-12 md:py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
             <div className="col-span-2 md:col-span-1 space-y-4">
-              <img src="/logo.png" alt="Deliveroom" className="h-10 w-auto object-contain" />
+              <img src="/logo.png" alt="Tok" className="h-10 w-auto object-contain" />
               <p className="text-sm text-muted-foreground leading-relaxed">Le réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.</p>
               <div className="flex gap-3">
                 <a href="#" className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
@@ -56,6 +56,7 @@ export default function FooterSection() {
                 <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
                 <Link to="/aide" className="hover:text-foreground transition-colors">Centre d'aide</Link>
                 <Link to="/cgu" className="hover:text-foreground transition-colors">CGU</Link>
+                <Link to="/politique-confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
               </nav>
             </div>
             <div className="space-y-3">
@@ -80,10 +81,10 @@ export default function FooterSection() {
             </div>
           </div>
           <div className="border-t pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-            <p>&copy; 2026 Deliveroom. Tous droits réservés.</p>
+            <p>&copy; 2026 Tok. Tous droits réservés.</p>
             <div className="flex gap-4">
               <Link to="/cgu" className="hover:text-foreground transition-colors">Conditions</Link>
-              <Link to="/cgu" className="hover:text-foreground transition-colors">Confidentialité</Link>
+              <Link to="/politique-confidentialite" className="hover:text-foreground transition-colors">Confidentialité</Link>
               <Link to="/cgu" className="hover:text-foreground transition-colors">Cookies</Link>
             </div>
           </div>
