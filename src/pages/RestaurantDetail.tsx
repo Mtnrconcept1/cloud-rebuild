@@ -218,7 +218,7 @@ export default function RestaurantDetail() {
                     </button>
                     <button onClick={() => { setShowReserveChoice(false); navigate(`/zero-attente?restaurant=${id}`); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-500/5 transition-all text-left group border-2 border-indigo-500/20">
                       <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0"><Zap className="h-5 w-5 text-indigo-500" /></div>
-                      <div><p className="font-semibold text-sm text-indigo-600">Zéro Attente</p><p className="text-xs text-muted-foreground">Précommandez, tout sera prêt</p></div>
+                      <div><p className="font-semibold text-sm text-indigo-600 dark:text-indigo-400">Zéro Attente</p><p className="text-xs text-muted-foreground">Précommandez, tout sera prêt</p></div>
                     </button>
                   </div>
                 )}
@@ -380,7 +380,7 @@ export default function RestaurantDetail() {
                 )}
                 {flashSalesEnabled && flashSales && flashSales.length > 0 && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500 fill-amber-500" /><h2 className="font-display text-xl font-bold">Ventes Flash</h2><Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 text-[10px]">{flashSales.length} offre{flashSales.length > 1 ? "s" : ""}</Badge></div>
+                    <div className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500 fill-amber-500" /><h2 className="font-display text-xl font-bold">Ventes Flash</h2><Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20 text-[10px]">{flashSales.length} offre{flashSales.length > 1 ? "s" : ""}</Badge></div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {flashSales.map((sale: any) => {
                         const discount = sale.original_price > 0 ? Math.round((1 - Number(sale.discounted_price) / Number(sale.original_price)) * 100) : 0;
@@ -392,9 +392,9 @@ export default function RestaurantDetail() {
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-sm truncate">{sale.title}</p>
                               <div className="flex items-baseline gap-2 mt-0.5">
-                                <span className="text-lg font-black text-amber-600">{Number(sale.discounted_price).toFixed(2)} CHF</span>
+                                <span className="text-lg font-black text-amber-600 dark:text-amber-400">{Number(sale.discounted_price).toFixed(2)} CHF</span>
                                 <span className="text-xs text-muted-foreground line-through">{Number(sale.original_price).toFixed(2)} CHF</span>
-                                <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 text-[10px]">-{discount}%</Badge>
+                                <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20 text-[10px]">-{discount}%</Badge>
                               </div>
                               <p className="text-[10px] text-muted-foreground mt-0.5">{sale.quantity_available} restant(s)</p>
                             </div>
@@ -423,7 +423,7 @@ export default function RestaurantDetail() {
                 )}
                 {antiWasteEnabled && antiWasteOffers && antiWasteOffers.length > 0 && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-600" /><h2 className="font-display text-xl font-bold">Anti-gaspi</h2><Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 text-[10px]">{antiWasteOffers.length} offre{antiWasteOffers.length > 1 ? "s" : ""}</Badge></div>
+                    <div className="flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-600" /><h2 className="font-display text-xl font-bold">Anti-gaspi</h2><Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 text-[10px]">{antiWasteOffers.length} offre{antiWasteOffers.length > 1 ? "s" : ""}</Badge></div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {antiWasteOffers.map((offer: any) => (
                         <AntiWasteCard

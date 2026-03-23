@@ -93,7 +93,7 @@ function CampaignBannerItem({ campaign }: { campaign: any }) {
             {campaign.body && <p className="text-[11px] text-muted-foreground truncate">{campaign.body}</p>}
           </div>
           {restaurant?.name && (
-            <span className="text-[10px] text-amber-600 font-medium shrink-0 flex items-center gap-1">
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium shrink-0 flex items-center gap-1">
               {restaurant.name} <ChevronRight className="h-3 w-3" />
             </span>
           )}

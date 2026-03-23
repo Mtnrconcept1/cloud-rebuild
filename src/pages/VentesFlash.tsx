@@ -376,7 +376,7 @@ export default function VentesFlash() {
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-baseline gap-1.5">
-                              <span className="text-xl font-black text-amber-600">{Number(offer.discounted_price).toFixed(2)}</span>
+                              <span className="text-xl font-black text-amber-600 dark:text-amber-400">{Number(offer.discounted_price).toFixed(2)}</span>
                               <span className="text-xs font-bold text-muted-foreground">CHF</span>
                             </div>
                             <span className="text-xs text-muted-foreground line-through">{Number(offer.original_price).toFixed(2)} CHF</span>
@@ -388,7 +388,7 @@ export default function VentesFlash() {
                               variant={isSelected ? "outline" : "default"}
                               size="sm"
                               className={isSelected
-                                ? "border-amber-500 text-amber-600 gap-1.5"
+                                ? "border-amber-500 text-amber-600 dark:text-amber-400 gap-1.5"
                                 : "bg-amber-500 hover:bg-amber-600 gap-1.5"
                               }
                             >
@@ -403,8 +403,8 @@ export default function VentesFlash() {
 
                         <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
                           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {offer.sale_start} - {offer.sale_end}</span>
-                          {deliveryEnabled && offer.delivery_available && <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-600 px-1.5 py-0.5"><Bike className="h-3 w-3" /> Livraison</span>}
-                          {offer.takeaway_available && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5"><ShoppingBag className="h-3 w-3" /> Emporter</span>}
+                          {deliveryEnabled && offer.delivery_available && <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 px-1.5 py-0.5"><Bike className="h-3 w-3" /> Livraison</span>}
+                          {offer.takeaway_available && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5"><ShoppingBag className="h-3 w-3" /> Emporter</span>}
                           {restaurant?.rating && (
                             <span className="ml-auto flex items-center gap-0.5">
                               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -436,10 +436,10 @@ export default function VentesFlash() {
                   </div>
                   <div className="text-right">
                     <span className="text-xs text-muted-foreground line-through mr-2">{totalOriginal.toFixed(2)} CHF</span>
-                    <span className="text-lg font-black text-amber-600">{totalDiscounted.toFixed(2)} CHF</span>
+                    <span className="text-lg font-black text-amber-600 dark:text-amber-400">{totalDiscounted.toFixed(2)} CHF</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-emerald-600 font-medium">
+                <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                   <TrendingDown className="h-3.5 w-3.5" />
                   Vous economisez {totalSaved.toFixed(2)} CHF ({totalOriginal > 0 ? Math.round((totalSaved / totalOriginal) * 100) : 0}%)
                 </div>
@@ -502,14 +502,14 @@ export default function VentesFlash() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground line-through">{Number(offer.original_price).toFixed(2)}</span>
-                      <span className="font-bold text-amber-600">{Number(offer.discounted_price).toFixed(2)} CHF</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400">{Number(offer.discounted_price).toFixed(2)} CHF</span>
                     </div>
                   </div>
                 );
               })}
               <div className="flex justify-between border-t pt-2">
                 <span className="text-muted-foreground">Economies</span>
-                <span className="font-bold text-emerald-600">-{totalSaved.toFixed(2)} CHF</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">-{totalSaved.toFixed(2)} CHF</span>
               </div>
               <div className="flex justify-between border-t pt-2">
                 <span className="font-semibold">Total</span>

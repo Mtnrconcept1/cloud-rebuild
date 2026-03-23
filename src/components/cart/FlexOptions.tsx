@@ -10,7 +10,7 @@ export default function FlexOptions({ flexOption, setFlexOption }: FlexOptionsPr
   const options = [
     { id: "express" as const, icon: Zap, iconBg: "bg-amber-500/10", iconColor: "text-amber-500", label: "Express (30 min)", desc: "Garantie : 1% rabais / minute de retard", price: "+2.50 CHF", priceClass: "text-primary" },
     { id: "standard" as const, icon: Clock, iconBg: "bg-blue-500/10", iconColor: "text-blue-500", label: "Standard (45 min)", desc: "Garantie : 1% rabais / 2 minute de retard", price: "+1.00 CHF", priceClass: "text-primary" },
-    { id: "flex" as const, icon: Gift, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500", label: "Offres (1h - 1h30)", desc: "Fenêtre flexible : Rabais fixe de 10%", price: "-10%", priceClass: "text-emerald-600" },
+    { id: "flex" as const, icon: Gift, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500", label: "Offres (1h - 1h30)", desc: "Fenêtre flexible : Rabais fixe de 10%", price: "-10%", priceClass: "text-emerald-600 dark:text-emerald-400" },
   ];
 
   return (
@@ -23,7 +23,7 @@ export default function FlexOptions({ flexOption, setFlexOption }: FlexOptionsPr
           const Icon = opt.icon;
           const isSelected = flexOption === opt.id;
           const borderClass = opt.id === "flex" && isSelected
-            ? "border-emerald-500 bg-emerald-500/5 ring-1 ring-emerald-500 text-emerald-900"
+            ? "border-emerald-500 bg-emerald-500/5 ring-1 ring-emerald-500 text-emerald-900 dark:text-emerald-300"
             : isSelected
               ? "border-primary bg-primary/5 ring-1 ring-primary"
               : "border-muted bg-card hover:border-primary/20";
@@ -36,7 +36,7 @@ export default function FlexOptions({ flexOption, setFlexOption }: FlexOptionsPr
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-sm">{opt.label}</p>
-                  <p className={`text-[10px] ${opt.id === "flex" ? "text-emerald-600" : "text-muted-foreground"} uppercase font-bold tracking-tight`}>{opt.desc}</p>
+                  <p className={`text-[10px] ${opt.id === "flex" ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"} uppercase font-bold tracking-tight`}>{opt.desc}</p>
                 </div>
               </div>
               <span className={`font-bold text-sm ${opt.priceClass}`}>{opt.price}</span>

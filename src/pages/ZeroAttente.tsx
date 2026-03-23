@@ -689,10 +689,10 @@ export default function ZeroAttente() {
               </div>
               {count > 0 && matchedFormula && (
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <Sparkles className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-emerald-700">Formule détectée : {matchedFormula.name}</p>
-                    <p className="text-xs text-emerald-700/80">-{matchedFormula.discountPercent}% appliqué, soit -{formulaDiscount.toFixed(2)} CHF</p>
+                    <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Formule détectée : {matchedFormula.name}</p>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300/80">-{matchedFormula.discountPercent}% appliqué, soit -{formulaDiscount.toFixed(2)} CHF</p>
                   </div>
                   <Badge className="bg-emerald-600 text-white">
                     <Percent className="h-3 w-3 mr-1" />-{formulaDiscount.toFixed(2)} CHF
@@ -701,10 +701,10 @@ export default function ZeroAttente() {
               )}
               {count > 0 && !matchedFormula && suggestion && (
                 <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-indigo-600 shrink-0" />
+                  <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-indigo-700">Formule possible : {suggestion.name}</p>
-                    <p className="text-xs text-indigo-700/80">
+                    <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Formule possible : {suggestion.name}</p>
+                    <p className="text-xs text-indigo-700 dark:text-indigo-300/80">
                       Ajoutez {formatMissingCoursesText(suggestion.missingCourses)} pour obtenir -{suggestion.discountPercent}%.
                     </p>
                   </div>
@@ -747,7 +747,7 @@ export default function ZeroAttente() {
                     <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
                   </div>
                   {formulaDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-emerald-600 font-medium">
+                    <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-medium">
                       <span>Réduction formule{formulaName ? ` (${formulaName})` : ""}</span>
                       <span>-{formulaDiscount.toFixed(2)} CHF</span>
                     </div>
@@ -795,7 +795,7 @@ export default function ZeroAttente() {
                   <span className="font-medium">{subtotal.toFixed(2)} CHF</span>
                 </div>
                 {formulaDiscount > 0 && (
-                  <div className="flex justify-between text-sm text-emerald-600 font-medium">
+                  <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-medium">
                     <span>Réduction formule{formulaName ? ` (${formulaName})` : ""}</span>
                     <span>-{formulaDiscount.toFixed(2)} CHF</span>
                   </div>
@@ -818,7 +818,7 @@ export default function ZeroAttente() {
                 })()}
               />
 
-              <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-700">
+              <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-700 dark:text-amber-300">
                 <strong>Paiement à l'avance requis</strong> — Le Zéro Attente nécessite un prépaiement pour garantir la synchronisation avec le chef.
               </div>
 
@@ -859,7 +859,7 @@ export default function ZeroAttente() {
                 {displayPricing.formulaDiscount > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Réduction formule</span>
-                    <span className="font-medium text-emerald-600">-{displayPricing.formulaDiscount.toFixed(2)} CHF</span>
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">-{displayPricing.formulaDiscount.toFixed(2)} CHF</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2">
@@ -867,7 +867,7 @@ export default function ZeroAttente() {
                   <span className="font-bold">{displayPricing.total.toFixed(2)} CHF</span>
                 </div>
               </div>
-              <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm text-indigo-600">
+              <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400">
                 <ChefHat className="h-4 w-4" />
                 <span>Le chef sera synchronisé avec votre arrivée</span>
               </div>

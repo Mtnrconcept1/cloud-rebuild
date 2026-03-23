@@ -9,7 +9,7 @@ export default function SolidaritySection({ donatedMeals, donatedPoints }: Solid
   return (
     <section className="py-12 bg-pink-500/5 border-b border-pink-500/10">
       <div className="container">
-        <div className="max-w-4xl mx-auto rounded-3xl bg-white/40 backdrop-blur-xl p-8 md:p-10 shadow-[0_8px_32px_0_rgba(236,72,153,0.15)] border border-white/60 relative overflow-hidden group">
+        <div className="max-w-4xl mx-auto rounded-3xl bg-white/40 dark:bg-white/5 backdrop-blur-xl p-8 md:p-10 shadow-[0_8px_32px_0_rgba(236,72,153,0.15)] border border-white/60 dark:border-white/10 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-pink-500/20 transition-colors" />
 
           <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-12">

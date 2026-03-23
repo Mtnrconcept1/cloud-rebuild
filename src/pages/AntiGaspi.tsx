@@ -20,9 +20,9 @@ export default function AntiGaspi() {
   });
 
   const specialActions = [
-    { id: "surprise", title: "Paniers Surprise", icon: Gift, color: "text-purple-500", bg: "bg-purple-50", desc: "Contenu mystère à -70%" },
-    { id: "solidarity", title: "Dons Solidaires", icon: Heart, color: "text-rose-500", bg: "bg-rose-50", desc: "Offrez un repas à un démuni" },
-    { id: "eco", title: "Engagement Éco", icon: Leaf, color: "text-green-500", bg: "bg-green-50", desc: "Réduisez le gaspillage alimentaire" },
+    { id: "surprise", title: "Paniers Surprise", icon: Gift, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/20", desc: "Contenu mystère à -70%" },
+    { id: "solidarity", title: "Dons Solidaires", icon: Heart, color: "text-rose-500", bg: "bg-rose-50 dark:bg-rose-900/20", desc: "Offrez un repas à un démuni" },
+    { id: "eco", title: "Engagement Éco", icon: Leaf, color: "text-green-500", bg: "bg-green-50 dark:bg-green-900/20", desc: "Réduisez le gaspillage alimentaire" },
   ];
 
   return (
@@ -32,7 +32,7 @@ export default function AntiGaspi() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center shrink-0">
-              <Leaf className="h-6 w-6 text-green-600" />
+              <Leaf className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
               <h1 className="font-display text-2xl sm:text-3xl font-bold">Zéro Gaspi</h1>
@@ -60,7 +60,7 @@ export default function AntiGaspi() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl font-bold">Offres disponibles</h2>
-            <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">{offers?.length || 0} opportunités</Badge>
+            <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/30">{offers?.length || 0} opportunités</Badge>
           </div>
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

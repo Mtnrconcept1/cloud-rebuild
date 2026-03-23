@@ -418,7 +418,7 @@ export default function SuiviCommande() {
                       <p className="text-[10px] text-muted-foreground">{o.restaurants?.city}</p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="text-[10px] bg-orange-50 text-orange-600 border-orange-200">
+                  <Badge variant="outline" className="text-[10px] bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-700">
                     Préparation...
                   </Badge>
                 </div>

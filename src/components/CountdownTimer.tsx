@@ -36,9 +36,9 @@ export default function CountdownTimer({ targetDate, onExpire, variant = "defaul
   const isCritical = secondsLeft > 0 && secondsLeft <= 60;
 
   const colorMap = {
-    amber: { bg: "bg-amber-500/10", text: "text-amber-600", border: "border-amber-500/20", fill: "bg-amber-500" },
-    red: { bg: "bg-red-500/10", text: "text-red-600", border: "border-red-500/20", fill: "bg-red-500" },
-    emerald: { bg: "bg-emerald-500/10", text: "text-emerald-600", border: "border-emerald-500/20", fill: "bg-emerald-500" },
+    amber: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", border: "border-amber-500/20", fill: "bg-amber-500" },
+    red: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", border: "border-red-500/20", fill: "bg-red-500" },
+    emerald: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/20", fill: "bg-emerald-500" },
     primary: { bg: "bg-primary/10", text: "text-primary", border: "border-primary/20", fill: "bg-primary" },
   };
   const c = isUrgent ? colorMap.red : colorMap[color];
@@ -67,7 +67,7 @@ export default function CountdownTimer({ targetDate, onExpire, variant = "defaul
         <span className={`text-3xl font-black ${c.text} animate-pulse`}>:</span>
         <div className={`rounded-lg ${c.fill} text-white px-3 py-2`}><span className="text-3xl font-mono font-black">{String(seconds).padStart(2, "0")}</span></div>
       </div>
-      {isUrgent && <p className="text-xs font-bold text-red-600">Dépêchez-vous !</p>}
+      {isUrgent && <p className="text-xs font-bold text-red-600 dark:text-red-400">Dépêchez-vous !</p>}
     </div>
   );
 

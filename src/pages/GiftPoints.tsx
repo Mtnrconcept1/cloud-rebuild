@@ -332,7 +332,7 @@ export default function GiftPoints() {
                         <button
                           key={msg}
                           onClick={() => setMessage(msg)}
-                          className={`text-xs rounded-full px-3 py-1 border transition-all ${message === msg ? "border-pink-500 bg-pink-500/10 text-pink-600" : "border-border hover:border-pink-500/30"
+                          className={`text-xs rounded-full px-3 py-1 border transition-all ${message === msg ? "border-pink-500 bg-pink-500/10 text-pink-600 dark:text-pink-400" : "border-border hover:border-pink-500/30"
                             }`}
                         >
                           {msg}
@@ -532,12 +532,12 @@ export default function GiftPoints() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-sm text-pink-600">-{gift.points_amount.toLocaleString()} pts</p>
+                        <p className="font-bold text-sm text-pink-600 dark:text-pink-400">-{gift.points_amount.toLocaleString()} pts</p>
                         <Badge
                           variant="outline"
-                          className={`text-[10px] ${gift.status === "claimed" ? "border-emerald-500 text-emerald-600" :
-                              gift.status === "expired" ? "border-red-500 text-red-600" :
-                                "border-amber-500 text-amber-600"
+                          className={`text-[10px] ${gift.status === "claimed" ? "border-emerald-500 text-emerald-600 dark:text-emerald-400" :
+                              gift.status === "expired" ? "border-red-500 text-red-600 dark:text-red-400" :
+                                "border-amber-500 text-amber-600 dark:text-amber-400"
                             }`}
                         >
                           {gift.status === "claimed" ? "Réclamé" : gift.status === "expired" ? "Expiré" : "En attente"}
@@ -570,7 +570,7 @@ export default function GiftPoints() {
                           </p>
                         </div>
                       </div>
-                      <p className="font-bold text-sm text-emerald-600">+{gift.points_amount.toLocaleString()} pts</p>
+                      <p className="font-bold text-sm text-emerald-600 dark:text-emerald-400">+{gift.points_amount.toLocaleString()} pts</p>
                     </div>
                   ))
                 ) : (
@@ -588,7 +588,7 @@ export default function GiftPoints() {
         {/* Solidarity CTA */}
         <div className="rounded-2xl bg-gradient-to-r from-green-500/5 to-emerald-500/5 border border-green-500/10 p-6 space-y-3">
           <div className="flex items-center gap-3">
-            <Heart className="h-6 w-6 text-green-600 fill-green-600" />
+            <Heart className="h-6 w-6 text-green-600 dark:text-green-400 fill-green-600" />
             <div>
               <h3 className="font-semibold">Don solidaire</h3>
               <p className="text-xs text-muted-foreground">Vos points peuvent aussi nourrir ceux qui en ont besoin</p>
@@ -597,7 +597,7 @@ export default function GiftPoints() {
           <p className="text-sm text-muted-foreground">
             Pour chaque 1000 points donnés, un repas est offert à une personne dans le besoin via notre programme solidaire.
           </p>
-          <Button variant="outline" className="w-full border-green-500 text-green-600 hover:bg-green-500/10 gap-2" onClick={() => navigate("/panier")}>
+          <Button variant="outline" className="w-full border-green-500 text-green-600 dark:text-green-400 hover:bg-green-500/10 gap-2" onClick={() => navigate("/panier")}>
             <Heart className="h-4 w-4" /> Faire un don lors de ma prochaine commande
           </Button>
         </div>
