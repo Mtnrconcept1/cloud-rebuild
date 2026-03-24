@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "npm:stripe@18.5.0";
-import { writeAuditLog } from "../_shared/auth.ts";
+import { getEnv, writeAuditLog } from "../_shared/auth.ts";
 import {
   enrichDeliveryMetadata,
   getEstimatedArrivalTime,
@@ -163,13 +163,18 @@ Deno.serve(async (req) => {
     return new Response("Method not allowed", { status: 405 });
   }
 
-  const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
+  const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
+  if (!stripeSecretKey) {
+    return new Response("STRIPE_SECRET_KEY not configured", { status: 503 });
+  }
+
+  const stripe = new Stripe(stripeSecretKey, {
     apiVersion: "2025-08-27.basil",
   });
 
   const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    getEnv("SUPABASE_URL"),
+    getEnv("SUPABASE_SERVICE_ROLE_KEY"),
   );
 
   const body = await req.text();
@@ -183,7 +188,7 @@ Deno.serve(async (req) => {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      Deno.env.get("STRIPE_WEBHOOK_SECRET")!,
+      getEnv("STRIPE_WEBHOOK_SECRET"),
     );
   } catch (error) {
     console.error("Webhook signature verification failed:", error);

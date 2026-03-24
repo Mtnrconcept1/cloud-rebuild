@@ -60,6 +60,8 @@ type SponsoredTrackResult = {
 let sponsoredAudienceSnapshotCache:
   | { userId: string; fetchedAt: number; snapshot: AudienceSnapshot }
   | null = null;
+let audienceEstimateRpcUnavailable = false;
+let audienceEstimateRpcWarned = false;
 
 function readSponsoredAttributions(): SponsoredAttributionMap {
   if (typeof window === "undefined") return {};
@@ -624,6 +626,7 @@ export async function getAudienceEstimate(
   try {
     const normalized = normalizeAudienceCriteria(criteria);
     if (!normalized.restaurantId) return 0;
+    if (audienceEstimateRpcUnavailable) return 0;
 
     const { data, error } = await (supabase.rpc as any)("estimate_campaign_audience", {
       p_restaurant_id: normalized.restaurantId,
@@ -631,6 +634,29 @@ export async function getAudienceEstimate(
     });
 
     if (error) {
+      const errorText = [
+        error?.code,
+        error?.message,
+        error?.details,
+        error?.hint,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (
+        String(error?.code || "").toUpperCase() === "PGRST202" ||
+        (errorText.includes("estimate_campaign_audience") &&
+          (errorText.includes("schema cache") || errorText.includes("could not find the function")))
+      ) {
+        audienceEstimateRpcUnavailable = true;
+        if (!audienceEstimateRpcWarned) {
+          audienceEstimateRpcWarned = true;
+          console.warn("[analytics] estimate_campaign_audience is unavailable in this Supabase deployment.");
+        }
+        return 0;
+      }
+
       console.warn("[analytics] audience estimate error:", error.message);
       return 0;
     }

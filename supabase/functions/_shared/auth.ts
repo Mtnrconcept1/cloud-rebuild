@@ -40,10 +40,14 @@ type AuditLogInput = {
   metadata?: Record<string, unknown>;
 };
 
+export function getEnv(name: string) {
+  return Deno.env.get(name)?.trim() || "";
+}
+
 export function createAdminClient() {
   return createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    getEnv("SUPABASE_URL"),
+    getEnv("SUPABASE_SERVICE_ROLE_KEY"),
   );
 }
 
@@ -110,7 +114,7 @@ export async function authenticateRequest(
   options: { allowServiceRole?: boolean; allowSchedulerSecret?: boolean } = {},
 ): Promise<RequestActor> {
   const authHeader = req.headers.get("Authorization");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
   const adminClient = createAdminClient();
 
   if (options.allowSchedulerSecret) {
@@ -149,8 +153,8 @@ export async function authenticateRequest(
   }
 
   const userClient = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
+    getEnv("SUPABASE_URL"),
+    getEnv("SUPABASE_ANON_KEY"),
     { global: { headers: { Authorization: authHeader } } },
   );
 

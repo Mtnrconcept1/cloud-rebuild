@@ -37,6 +37,7 @@ import {
   summarizeAudienceCriteria,
   type AudienceCriteria,
 } from "@/lib/campaignTargeting";
+import { SUPABASE_URL } from "@/lib/env";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 const CAMPAIGN_TYPES = [
@@ -446,7 +447,7 @@ function CampaignForm({
       if (!session?.access_token) {
         throw new Error("Session invalide. Reconnectez-vous.");
       }
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-campaign`, {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-campaign`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

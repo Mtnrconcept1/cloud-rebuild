@@ -1,6 +1,15 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getMessaging, getToken, isSupported } from "firebase/messaging";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  FIREBASE_API_KEY,
+  FIREBASE_APP_ID,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET,
+  FIREBASE_VAPID_KEY,
+} from "@/lib/env";
 
 export type WebPushStatus = {
   enabled: boolean;
@@ -11,16 +20,17 @@ export type WebPushStatus = {
 };
 
 function getFirebaseConfig() {
+  const projectId = FIREBASE_PROJECT_ID;
   const config = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: "deliveroom-83bf7.firebaseapp.com",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: "deliveroom-83bf7.firebasestorage.app",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    apiKey: FIREBASE_API_KEY,
+    authDomain: FIREBASE_AUTH_DOMAIN || (projectId ? `${projectId}.firebaseapp.com` : ""),
+    projectId,
+    storageBucket: FIREBASE_STORAGE_BUCKET || (projectId ? `${projectId}.firebasestorage.app` : ""),
+    messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+    appId: FIREBASE_APP_ID,
   };
 
-  const vapidKey = import.meta.env.VITE_FCM_VAPID_KEY;
+  const vapidKey = FIREBASE_VAPID_KEY;
   const isReady = Object.values(config).every((value) => typeof value === "string" && value.length > 0)
     && typeof vapidKey === "string"
     && vapidKey.length > 0;

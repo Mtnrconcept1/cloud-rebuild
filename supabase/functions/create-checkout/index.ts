@@ -4,6 +4,7 @@ import {
   HttpError,
   authenticateRequest,
   createAdminClient,
+  getEnv,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
@@ -42,7 +43,12 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "URL de retour requise");
     }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
+    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
+    if (!stripeSecretKey) {
+      throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2025-08-27.basil",
     });
 

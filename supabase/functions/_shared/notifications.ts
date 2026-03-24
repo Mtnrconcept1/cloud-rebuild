@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getEnv } from "./auth.ts";
 
 type NotificationChannels = {
   in_app?: boolean;
@@ -24,6 +25,16 @@ type TriggerDispatchInput = {
   userId?: string;
 };
 
+type NotificationDispatchFailure = {
+  channel: "push" | "email";
+  message: string;
+};
+
+type NotificationDispatchResult = {
+  attemptedChannels: Array<"push" | "email">;
+  failedChannels: NotificationDispatchFailure[];
+};
+
 export async function enqueueNotification(input: EnqueueNotificationInput) {
   const payload = { ...(input.data || {}) };
   if (input.requestedChannels) {
@@ -47,8 +58,8 @@ async function callDispatcher(
   functionName: "send-push" | "send-email",
   input: { source?: string; userId?: string } = {},
 ) {
-  const baseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const baseUrl = getEnv("SUPABASE_URL");
+  const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!baseUrl || !serviceRoleKey) return;
 
@@ -70,22 +81,47 @@ async function callDispatcher(
   }
 }
 
-export async function triggerNotificationDispatch(input: TriggerDispatchInput = {}) {
-  const tasks: Promise<void>[] = [];
+export async function triggerNotificationDispatch(
+  input: TriggerDispatchInput = {},
+): Promise<NotificationDispatchResult> {
+  const tasks: Array<{ channel: "push" | "email"; promise: Promise<void> }> = [];
 
   if (input.push !== false) {
-    tasks.push(callDispatcher("send-push", {
-      source: input.source,
-      userId: input.userId,
-    }));
+    tasks.push({
+      channel: "push",
+      promise: callDispatcher("send-push", {
+        source: input.source,
+        userId: input.userId,
+      }),
+    });
   }
 
   if (input.email === true) {
-    tasks.push(callDispatcher("send-email", {
-      source: input.source,
-      userId: input.userId,
-    }));
+    tasks.push({
+      channel: "email",
+      promise: callDispatcher("send-email", {
+        source: input.source,
+        userId: input.userId,
+      }),
+    });
   }
 
-  await Promise.all(tasks);
+  const settled = await Promise.allSettled(tasks.map((task) => task.promise));
+  const failedChannels: NotificationDispatchFailure[] = settled.flatMap((result, index) => {
+    if (result.status === "fulfilled") return [];
+
+    return [{
+      channel: tasks[index].channel,
+      message: result.reason instanceof Error ? result.reason.message : "Notification dispatch failed",
+    }];
+  });
+
+  if (failedChannels.length > 0) {
+    console.warn("[notifications] partial dispatch failure:", failedChannels);
+  }
+
+  return {
+    attemptedChannels: tasks.map((task) => task.channel),
+    failedChannels,
+  };
 }

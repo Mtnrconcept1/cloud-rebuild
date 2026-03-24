@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
+import { SUPABASE_URL } from "@/lib/env";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -49,7 +50,7 @@ export default function DashboardAdvisor() {
     if (!accessToken) throw new Error("Vous devez être connecté.");
 
     const resp = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/restaurant-advisor`,
+      `${SUPABASE_URL}/functions/v1/restaurant-advisor`,
       {
         method: "POST",
         headers: {

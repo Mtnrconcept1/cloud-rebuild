@@ -3,6 +3,7 @@ import {
   HttpError,
   authenticateRequest,
   createAdminClient,
+  getEnv,
   jsonResponse,
   requireRole,
   writeAuditLog,
@@ -87,7 +88,7 @@ Deno.serve(async (req) => {
       ? body.user_id.trim()
       : null;
 
-    const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
+    const serviceAccountJson = getEnv("FIREBASE_SERVICE_ACCOUNT");
     if (!serviceAccountJson) {
       return jsonResponse({ error: "FIREBASE_SERVICE_ACCOUNT not configured" }, 500, corsHeaders);
     }

@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
       throw new HttpError(403, "Forbidden");
     }
 
-    await triggerNotificationDispatch({
+    const dispatchResult = await triggerNotificationDispatch({
       source,
       push,
       email,
@@ -60,15 +60,19 @@ Deno.serve(async (req) => {
         email,
         source,
         scoped_user_id: scopedUserId,
+        attempted_channels: dispatchResult.attemptedChannels,
+        failed_channels: dispatchResult.failedChannels,
       },
     });
 
     return jsonResponse({
-      ok: true,
+      ok: dispatchResult.failedChannels.length === 0,
       push,
       email,
       source,
       scoped_user_id: scopedUserId,
+      attempted_channels: dispatchResult.attemptedChannels,
+      channel_errors: dispatchResult.failedChannels,
     }, 200, corsHeaders);
   } catch (error) {
     console.error("notification-dispatch error:", error);

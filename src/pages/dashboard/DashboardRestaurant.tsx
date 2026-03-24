@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useAuth } from "@/lib/auth";
+import { SUPABASE_URL } from "@/lib/env";
 import {
   buildRestaurantCategorySearchTerms,
   formatRestaurantCategorySummary,
@@ -219,7 +220,7 @@ export default function DashboardRestaurant() {
     setConnectLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-connect-onboard`, {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/stripe-connect-onboard`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
