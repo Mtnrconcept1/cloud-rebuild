@@ -15,6 +15,7 @@ function mergeFunctionHeaders(headers: Record<string, string> | undefined, acces
   return {
     ...(headers || {}),
     Authorization: `Bearer ${accessToken}`,
+    apikey: SUPABASE_PUBLISHABLE_KEY,
   };
 }
 
@@ -97,7 +98,6 @@ export async function invokeSupabaseFunction<TData = unknown>(
   options: {
     body?: unknown;
     headers?: Record<string, string>;
-    region?: string;
   } = {},
 ) {
   let accessToken = await getFreshAccessToken();
