@@ -19,15 +19,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
   });
 
-  // Auto-select first restaurant if none selected or selected no longer exists
+  // Auto-select first owned restaurant, or clear stale selection
   useEffect(() => {
-    if (restaurants.length === 0) return;
+    if (loading) return;
+
+    if (restaurants.length === 0) {
+      setSelectedIdState(null);
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      return;
+    }
+
     if (!selectedId || !restaurants.find((r) => r.id === selectedId)) {
       const id = restaurants[0].id;
       setSelectedIdState(id);
       localStorage.setItem(STORAGE_KEY, id);
     }
-  }, [restaurants, selectedId]);
+  }, [loading, restaurants, selectedId]);
 
   const setSelectedId = (id: string) => {
     setSelectedIdState(id);

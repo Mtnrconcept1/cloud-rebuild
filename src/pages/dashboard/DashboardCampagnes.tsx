@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarDays,
+  CheckCircle2,
   Edit2,
   Eye,
   Loader2,
@@ -16,6 +17,15 @@ import {
   Trash2,
 } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import AudienceTargeting from "@/components/AudienceTargeting";
 import DashboardLayout from "@/components/DashboardLayout";
 import ImageUpload from "@/components/ImageUpload";
@@ -99,6 +109,8 @@ export default function DashboardCampagnes() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [periodDays, setPeriodDays] = useState<"7" | "30" | "90">("30");
+  const [paidCampaign, setPaidCampaign] = useState<any>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const conversionWindowStart = useMemo(() => {
     const daysBack = Number(periodDays);
@@ -107,17 +119,49 @@ export default function DashboardCampagnes() {
     return from.toISOString();
   }, [periodDays]);
 
+  const pollCampaignStatus = useCallback(
+    (campaignId: string, attempts = 0) => {
+      if (attempts >= 10) {
+        queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
+        const campaigns = queryClient.getQueryData<any[]>(["dashboard-campaigns", selectedId]);
+        setPaidCampaign(campaigns?.find((c: any) => c.id === campaignId) || { id: campaignId });
+        return;
+      }
+
+      pollTimerRef.current = setTimeout(async () => {
+        await queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
+        const campaigns = queryClient.getQueryData<any[]>(["dashboard-campaigns", selectedId]);
+        const campaign = campaigns?.find((c: any) => c.id === campaignId);
+
+        if (campaign?.payment_status === "paid") {
+          setPaidCampaign(campaign);
+        } else {
+          pollCampaignStatus(campaignId, attempts + 1);
+        }
+      }, 2000);
+    },
+    [queryClient, selectedId],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     const hasCampaignCheckout = searchParams.get("campaign_checkout") === "1";
     const status = searchParams.get("status");
     if (!hasCampaignCheckout || !status) return;
 
     if (status === "success") {
-      toast({
-        title: "Paiement recu",
-        description: "La campagne est en cours d activation. Le statut va se mettre a jour automatiquement.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
+      const campaignId = searchParams.get("campaign_id");
+      if (campaignId) {
+        pollCampaignStatus(campaignId);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
+        setPaidCampaign({});
+      }
     } else if (status === "cancelled") {
       toast({
         title: "Paiement annule",
@@ -132,7 +176,7 @@ export default function DashboardCampagnes() {
     nextParams.delete("session_id");
     nextParams.delete("campaign_id");
     setSearchParams(nextParams, { replace: true });
-  }, [queryClient, searchParams, selectedId, setSearchParams, toast]);
+  }, [pollCampaignStatus, queryClient, searchParams, selectedId, setSearchParams, toast]);
 
   const { data: campaigns, isLoading } = useQuery({
     queryKey: ["dashboard-campaigns", selectedId],
@@ -210,6 +254,55 @@ export default function DashboardCampagnes() {
 
   return (
     <DashboardLayout>
+      <AlertDialog open={!!paidCampaign} onOpenChange={(open) => { if (!open) setPaidCampaign(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+            </div>
+            <AlertDialogTitle className="text-center">Paiement confirme</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-center">
+                <p>Votre campagne a ete payee avec succes et est maintenant active.</p>
+                {paidCampaign?.title && (
+                  <div className="rounded-lg border bg-muted/50 p-3 text-left text-sm space-y-1.5">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Campagne</span>
+                      <span className="font-medium">{paidCampaign.title}</span>
+                    </div>
+                    {paidCampaign.type && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Type</span>
+                        <span className="font-medium capitalize">{paidCampaign.type}</span>
+                      </div>
+                    )}
+                    {(paidCampaign.paid_amount || paidCampaign.total_budget) && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Montant</span>
+                        <span className="font-medium">{Number(paidCampaign.paid_amount || paidCampaign.total_budget).toFixed(2)} CHF</span>
+                      </div>
+                    )}
+                    {paidCampaign.payment_method && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Moyen de paiement</span>
+                        <span className="font-medium capitalize">{paidCampaign.payment_method}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Statut</span>
+                      <Badge variant="default" className="bg-green-600 text-xs">Active</Badge>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogAction>Fermer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
