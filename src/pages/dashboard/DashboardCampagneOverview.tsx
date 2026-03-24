@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { listRestaurantCampaigns, setRestaurantCampaignStatus } from "@/lib/campaigns";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 type Campaign = {
@@ -63,11 +63,7 @@ export default function DashboardCampagneOverview() {
   const { data: campaigns = [], isLoading: loading, error: queryError } = useQuery({
     queryKey: ["dashboard-campaigns-overview", selectedId],
     queryFn: async () => {
-      const { data, error } = await (supabase.from("ad_campaigns") as any)
-        .select("id, title, type, status, payment_status, impressions, clicks, conversions, spent, total_budget, budget_daily, daily_spent, daily_spent_date, cpm_rate, starts_at, ends_at, restaurant_id")
-        .eq("restaurant_id", selectedId!)
-        .order("created_at", { ascending: false });
-
+      const { data, error } = await listRestaurantCampaigns(selectedId!);
       if (error) throw error;
       return (data || []) as Campaign[];
     },
@@ -91,8 +87,9 @@ export default function DashboardCampagneOverview() {
   const moyennePool = activeCampaigns.length > 0 ? poolBudgetRestant / activeCampaigns.length : 0;
 
   const toggleStatus = async (id: string, currentStatus: string | null) => {
+    if (!selectedId) return;
     const newStatus = currentStatus === "active" ? "paused" : "active";
-    const { error: updateError } = await (supabase.from("ad_campaigns") as any).update({ status: newStatus }).eq("id", id);
+    const { error: updateError } = await setRestaurantCampaignStatus(selectedId, id, newStatus);
     if (updateError) {
       toast({ title: "Erreur", description: updateError.message, variant: "destructive" });
       return;

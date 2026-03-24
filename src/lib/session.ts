@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { SUPABASE_PUBLISHABLE_KEY } from "@/lib/env";
 
 const ACCESS_TOKEN_REFRESH_THRESHOLD_MS = 60_000;
 const SESSION_EXPIRED_MESSAGE = "Session expiree. Reconnectez-vous.";
@@ -20,7 +21,46 @@ function mergeFunctionHeaders(headers: Record<string, string> | undefined, acces
 function mergeRequestHeaders(headers: HeadersInit | undefined, accessToken: string) {
   const nextHeaders = new Headers(headers);
   nextHeaders.set("Authorization", `Bearer ${accessToken}`);
+  nextHeaders.set("apikey", SUPABASE_PUBLISHABLE_KEY);
   return nextHeaders;
+}
+
+async function normalizeFunctionError(error: unknown, response?: Response) {
+  const fallbackMessage = error instanceof Error ? error.message : "Erreur lors de l'appel Edge Function.";
+  let message = fallbackMessage;
+
+  if (response) {
+    try {
+      const clonedResponse = response.clone();
+      const contentType = (clonedResponse.headers.get("Content-Type") || "").toLowerCase();
+
+      if (contentType.includes("application/json")) {
+        const payload = await clonedResponse.json();
+        if (typeof payload?.error === "string" && payload.error.trim()) {
+          message = payload.error.trim();
+        } else if (typeof payload?.message === "string" && payload.message.trim()) {
+          message = payload.message.trim();
+        }
+      } else {
+        const payload = await clonedResponse.text();
+        if (payload.trim()) {
+          message = payload.trim();
+        }
+      }
+    } catch {
+      // Keep the original error message when the body cannot be parsed.
+    }
+  }
+
+  const normalizedError = new Error(message) as Error & {
+    status?: number;
+    context?: unknown;
+  };
+
+  normalizedError.name = error instanceof Error ? error.name : "FunctionsHttpError";
+  normalizedError.status = response?.status ?? getFunctionsErrorStatus(error) ?? undefined;
+  normalizedError.context = response ?? (error as { context?: unknown } | null)?.context;
+  return normalizedError;
 }
 
 export async function getFreshAccessToken(forceRefresh = false) {
@@ -68,6 +108,12 @@ export async function invokeSupabaseFunction<TData = unknown>(
   });
 
   if (getFunctionsErrorStatus(result.error) !== 401) {
+    if (result.error) {
+      return {
+        ...result,
+        error: await normalizeFunctionError(result.error, result.response),
+      };
+    }
     return result;
   }
 
@@ -77,6 +123,13 @@ export async function invokeSupabaseFunction<TData = unknown>(
     ...options,
     headers: mergeFunctionHeaders(options.headers, accessToken),
   });
+
+  if (result.error) {
+    return {
+      ...result,
+      error: await normalizeFunctionError(result.error, result.response),
+    };
+  }
 
   return result;
 }

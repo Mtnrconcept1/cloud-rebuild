@@ -37,6 +37,12 @@ import {
   summarizeAudienceCriteria,
   type AudienceCriteria,
 } from "@/lib/campaignTargeting";
+import {
+  deleteRestaurantCampaign,
+  listRestaurantCampaigns,
+  saveRestaurantCampaign,
+  setRestaurantCampaignStatus,
+} from "@/lib/campaigns";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
 import { useDashboardRestaurant } from "./DashboardContext";
@@ -132,10 +138,7 @@ export default function DashboardCampagnes() {
     queryKey: ["dashboard-campaigns", selectedId],
     queryFn: async () => {
       if (!selectedId) return [];
-      const { data, error } = await (supabase.from("ad_campaigns") as any)
-        .select("*")
-        .eq("restaurant_id", selectedId)
-        .order("created_at", { ascending: false });
+      const { data, error } = await listRestaurantCampaigns(selectedId);
       if (error) throw error;
       return data || [];
     },
@@ -184,7 +187,8 @@ export default function DashboardCampagnes() {
   const conversionsByType = conversionsByTypeRaw || EMPTY_CONVERSIONS;
 
   const updateStatus = async (id: string, status: string) => {
-    const { error } = await (supabase.from("ad_campaigns") as any).update({ status }).eq("id", id);
+    if (!selectedId) return;
+    const { error } = await setRestaurantCampaignStatus(selectedId, id, status);
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
@@ -194,7 +198,8 @@ export default function DashboardCampagnes() {
   };
 
   const deleteCampaign = async (id: string) => {
-    const { error } = await supabase.from("ad_campaigns").delete().eq("id", id);
+    if (!selectedId) return;
+    const { error } = await deleteRestaurantCampaign(selectedId, id);
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
@@ -504,23 +509,9 @@ function CampaignForm({
 
     try {
       let campaignRecord: any = null;
-
-      if (initial) {
-        const { data, error } = await (supabase.from("ad_campaigns") as any)
-          .update(payload)
-          .eq("id", initial.id)
-          .select("*")
-          .single();
-        if (error) throw error;
-        campaignRecord = data;
-      } else {
-        const { data, error } = await (supabase.from("ad_campaigns") as any)
-          .insert(payload)
-          .select("*")
-          .single();
-        if (error) throw error;
-        campaignRecord = data;
-      }
+      const { data, error } = await saveRestaurantCampaign(restaurantId, payload, initial?.id);
+      if (error) throw error;
+      campaignRecord = data;
 
       if (requiresCheckout && campaignRecord?.id) {
         const { data: checkoutData, error: checkoutError } = await invokeSupabaseFunction<{ url?: string }>("create-checkout", {

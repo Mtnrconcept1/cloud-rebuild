@@ -6,6 +6,11 @@ import {
   type AudienceCriteria,
   type AudienceSnapshot,
 } from "@/lib/campaignTargeting";
+import {
+  estimateRestaurantCampaignAudience,
+  listRestaurantCampaigns,
+  saveRestaurantCampaign,
+} from "@/lib/campaigns";
 import { pickWeightedCampaign, type WeightedCampaignRotationState } from "@/lib/sponsoredPlacement";
 
 export type AnalyticsEventType =
@@ -628,24 +633,26 @@ export async function getAudienceEstimate(
     if (!normalized.restaurantId) return 0;
     if (audienceEstimateRpcUnavailable) return 0;
 
-    const { data, error } = await (supabase.rpc as any)("estimate_campaign_audience", {
-      p_restaurant_id: normalized.restaurantId,
-      p_criteria: normalized,
-    });
+    const { data, error, unavailable } = await estimateRestaurantCampaignAudience(normalized.restaurantId, normalized);
 
     if (error) {
+      const portalError = error as Error & {
+        code?: string;
+        details?: string;
+        hint?: string;
+      };
       const errorText = [
-        error?.code,
-        error?.message,
-        error?.details,
-        error?.hint,
+        portalError.code,
+        portalError.message,
+        portalError.details,
+        portalError.hint,
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
       if (
-        String(error?.code || "").toUpperCase() === "PGRST202" ||
+        String(portalError.code || "").toUpperCase() === "PGRST202" ||
         (errorText.includes("estimate_campaign_audience") &&
           (errorText.includes("schema cache") || errorText.includes("could not find the function")))
       ) {
@@ -661,6 +668,11 @@ export async function getAudienceEstimate(
       return 0;
     }
 
+    if (unavailable) {
+      audienceEstimateRpcUnavailable = true;
+      return 0;
+    }
+
     return Math.max(Number(data) || 0, 0);
   } catch {
     return 0;
@@ -668,11 +680,7 @@ export async function getAudienceEstimate(
 }
 
 export async function getRestaurantCampaigns(restaurantId: string) {
-  const { data } = await supabase
-    .from("ad_campaigns" as any)
-    .select("*")
-    .eq("restaurant_id", restaurantId)
-    .order("created_at", { ascending: false });
+  const { data } = await listRestaurantCampaigns(restaurantId);
   return (data || []) as any[];
 }
 
@@ -733,17 +741,13 @@ export async function createCampaign(campaign: {
   starts_at?: string;
   ends_at?: string;
 }) {
-  const { data, error } = await supabase.from("ad_campaigns" as any).insert({
+  const { data, error } = await saveRestaurantCampaign(campaign.restaurant_id, {
     ...campaign,
     target_pages: campaign.target_pages || [],
     target_criteria: campaign.target_criteria || {},
     channels: campaign.channels || {},
     status: campaign.scheduled_at ? "scheduled" : "active",
-    impressions: 0,
-    clicks: 0,
-    conversions: 0,
-    spent: 0,
-  }).select().single();
+  });
 
   return { data, error };
 }
