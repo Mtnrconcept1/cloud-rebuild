@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useAuth } from "@/lib/auth";
 import { SUPABASE_URL } from "@/lib/env";
+import { fetchWithFreshAccessToken } from "@/lib/session";
 import {
   buildRestaurantCategorySearchTerms,
   formatRestaurantCategorySummary,
@@ -219,12 +220,10 @@ export default function DashboardRestaurant() {
     if (!restaurant) return;
     setConnectLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/stripe-connect-onboard`, {
+      const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/stripe-connect-onboard`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
           restaurant_id: restaurant.id,

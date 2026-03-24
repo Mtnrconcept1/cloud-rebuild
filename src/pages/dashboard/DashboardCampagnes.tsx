@@ -38,6 +38,7 @@ import {
   type AudienceCriteria,
 } from "@/lib/campaignTargeting";
 import { SUPABASE_URL } from "@/lib/env";
+import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 const CAMPAIGN_TYPES = [
@@ -443,15 +444,10 @@ function CampaignForm({
   const handleAiGenerate = async () => {
     setAiLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        throw new Error("Session invalide. Reconnectez-vous.");
-      }
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-campaign`, {
+      const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/generate-campaign`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ restaurantId }),
       });
@@ -527,7 +523,7 @@ function CampaignForm({
       }
 
       if (requiresCheckout && campaignRecord?.id) {
-        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
+        const { data: checkoutData, error: checkoutError } = await invokeSupabaseFunction<{ url?: string }>("create-checkout", {
           body: {
             checkout_kind: "campaign",
             items: [
