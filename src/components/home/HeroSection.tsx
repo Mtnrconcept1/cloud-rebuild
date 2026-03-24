@@ -96,7 +96,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             className="newspaper-bg font-display flex flex-wrap items-center justify-center gap-x-2 text-3xl font-bold leading-[0.8] tracking-tight text-foreground sm:text-5xl md:text-6xl"
             variants={bounceUp}
           >
-            <span>Commandez malin,</span>
+            <span>Réservez malin,</span>
             <span className="italic text-primary">mangez bien.</span>
           </motion.h1>
           <motion.p
@@ -110,8 +110,8 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
         <motion.div variants={bounceScale} className="flex flex-wrap justify-center gap-2">
           {[
             { icon: Star, label: "4.8/5", mobileOnly: false },
-            { icon: Timer, label: "Des 25 min", mobileOnly: false },
-            { icon: Store, label: "Restaurants partenaires", mobileOnly: false },
+            { icon: Timer, label: "Zéro attente", mobileOnly: false },
+            { icon: Store, label: "Des centaines de restaurants partenaires", mobileOnly: false },
           ].map((badge) => {
             const Icon = badge.icon;
             return (
@@ -122,7 +122,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/14 dark:bg-primary/20">
                   <Icon className="h-4 w-4 text-primary" />
                 </span>
-                <span className="text-sm font-semibold text-foreground/90 dark:text-foreground">{badge.label}</span>
+                <span className="text-sm font-semibold text-foreground/90 dark:text-black">{badge.label}</span>
               </div>
             );
           })}
