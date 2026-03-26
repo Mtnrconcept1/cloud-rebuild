@@ -121,26 +121,38 @@ export default function DashboardCampagnes() {
 
   const pollCampaignStatus = useCallback(
     (campaignId: string, attempts = 0) => {
+      if (!selectedId) {
+        setPaidCampaign({ id: campaignId });
+        return;
+      }
+
       if (attempts >= 10) {
         queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
-        const campaigns = queryClient.getQueryData<any[]>(["dashboard-campaigns", selectedId]);
-        setPaidCampaign(campaigns?.find((c: any) => c.id === campaignId) || { id: campaignId });
+        setPaidCampaign({ id: campaignId });
         return;
       }
 
       pollTimerRef.current = setTimeout(async () => {
-        await queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
-        const campaigns = queryClient.getQueryData<any[]>(["dashboard-campaigns", selectedId]);
-        const campaign = campaigns?.find((c: any) => c.id === campaignId);
+        try {
+          const { data: freshCampaigns } = await listRestaurantCampaigns(selectedId);
+          const campaign = freshCampaigns?.find((c: any) => c.id === campaignId);
 
-        if (campaign?.payment_status === "paid") {
-          setPaidCampaign(campaign);
-        } else {
+          if (campaign?.payment_status === "paid") {
+            queryClient.setQueryData(["dashboard-campaigns", selectedId], freshCampaigns);
+            setPaidCampaign(campaign);
+            toast({
+              title: "Paiement confirme",
+              description: "Votre campagne a ete payee avec succes et est maintenant active.",
+            });
+          } else {
+            pollCampaignStatus(campaignId, attempts + 1);
+          }
+        } catch {
           pollCampaignStatus(campaignId, attempts + 1);
         }
       }, 2000);
     },
-    [queryClient, selectedId],
+    [queryClient, selectedId, toast],
   );
 
   useEffect(() => {
@@ -286,6 +298,28 @@ export default function DashboardCampagnes() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Moyen de paiement</span>
                         <span className="font-medium capitalize">{paidCampaign.payment_method}</span>
+                      </div>
+                    )}
+                    {paidCampaign.budget_daily != null && Number(paidCampaign.budget_daily) > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Budget journalier</span>
+                        <span className="font-medium">{Number(paidCampaign.budget_daily).toFixed(2)} CHF</span>
+                      </div>
+                    )}
+                    {(paidCampaign.start_date || paidCampaign.end_date) && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Periode</span>
+                        <span className="font-medium">
+                          {paidCampaign.start_date ? new Date(paidCampaign.start_date).toLocaleDateString("fr-CH") : "—"}
+                          {" — "}
+                          {paidCampaign.end_date ? new Date(paidCampaign.end_date).toLocaleDateString("fr-CH") : "—"}
+                        </span>
+                      </div>
+                    )}
+                    {Array.isArray(paidCampaign.target_pages) && paidCampaign.target_pages.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Pages cibles</span>
+                        <span className="font-medium capitalize">{paidCampaign.target_pages.join(", ")}</span>
                       </div>
                     )}
                     <div className="flex justify-between">

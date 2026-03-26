@@ -383,7 +383,7 @@ export default function Index() {
           <FeaturesSection activeFeatures={activeFeatures} />
         </motion.div>
         <motion.div variants={sectionBounce}>
-          <FooterSection />
+          <FooterSection deliveryEnabled={deliveryEnabled} />
         </motion.div>
       </motion.div>
     </main>

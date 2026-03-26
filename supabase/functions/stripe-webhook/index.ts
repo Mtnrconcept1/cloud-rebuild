@@ -255,6 +255,40 @@ Deno.serve(async (req) => {
                 card_last4: cardLast4,
               },
             });
+
+            const paidAmount = ((session.amount_total || 0) / 100).toFixed(2);
+            const paymentMethodLabel = session.metadata?.payment_method_label || "carte";
+
+            const { data: campaignRestaurant } = await supabaseAdmin
+              .from("restaurants")
+              .select("owner_id, name")
+              .eq("id", campaign.restaurant_id)
+              .maybeSingle();
+
+            if (campaignRestaurant?.owner_id) {
+              await enqueueNotification({
+                adminClient: supabaseAdmin,
+                userId: campaignRestaurant.owner_id,
+                title: "Paiement de campagne confirme",
+                body: `Votre campagne "${campaign.title}" a ete payee avec succes (${paidAmount} CHF via ${paymentMethodLabel}). Elle est maintenant active.`,
+                type: "campaign",
+                category: "transactional",
+                data: {
+                  campaign_id: campaign.id,
+                  restaurant_id: campaign.restaurant_id,
+                  restaurant_name: campaignRestaurant.name,
+                  paid_amount: paidAmount,
+                  payment_method: paymentMethodLabel,
+                  url: "/dashboard/campagnes",
+                },
+              });
+            }
+
+            try {
+              await triggerNotificationDispatch({ source: "stripe-webhook-campaign-paid", push: true, email: true });
+            } catch (error) {
+              console.error("stripe-webhook campaign payment notification trigger failed:", error);
+            }
           }
           break;
         }

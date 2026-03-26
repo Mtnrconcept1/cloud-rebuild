@@ -2,24 +2,30 @@ import { Link } from "react-router-dom";
 import { Bike } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function FooterSection() {
+interface FooterSectionProps {
+  deliveryEnabled?: boolean;
+}
+
+export default function FooterSection({ deliveryEnabled = true }: FooterSectionProps) {
   return (
     <>
       {/* Livraison CTA */}
-      <section className="py-10 md:py-14">
-        <div className="container">
-          <div className="rounded-2xl bg-primary/5 border border-primary/10 p-8 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Bike className="h-8 w-8 text-primary" />
+      {deliveryEnabled && (
+        <section className="py-10 md:py-14">
+          <div className="container">
+            <div className="rounded-2xl bg-primary/5 border border-primary/10 p-8 md:p-12 flex flex-col md:flex-row items-center gap-6 md:gap-12">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Bike className="h-8 w-8 text-primary" />
+              </div>
+              <div className="flex-1 text-center md:text-left space-y-2">
+                <h2 className="font-display text-2xl font-semibold">Livraison à domicile</h2>
+                <p className="text-muted-foreground">Faites-vous livrer vos plats préférés directement chez vous. Rapide, simple et délicieux.</p>
+              </div>
+              <Button size="lg" asChild><Link to="/recherche">Commander maintenant</Link></Button>
             </div>
-            <div className="flex-1 text-center md:text-left space-y-2">
-              <h2 className="font-display text-2xl font-semibold">Livraison à domicile</h2>
-              <p className="text-muted-foreground">Faites-vous livrer vos plats préférés directement chez vous. Rapide, simple et délicieux.</p>
-            </div>
-            <Button size="lg" asChild><Link to="/recherche">Commander maintenant</Link></Button>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="border-t bg-card">
