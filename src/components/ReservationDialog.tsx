@@ -27,6 +27,7 @@ import {
   normalizeReservationTime,
 } from "@/lib/reservations";
 import { detectServiceFromTime } from "@/lib/serviceSettings";
+import { invokeSupabaseRpc } from "@/lib/session";
 
 interface ReservationDialogProps {
   restaurantId: string;
@@ -218,6 +219,15 @@ export default function ReservationDialog({
       });
     } catch (holdError) {
       setLoading(false);
+      if (holdError instanceof Error && /session expiree|reconnectez-vous/i.test(holdError.message)) {
+        toast({
+          title: "Session expirée",
+          description: "Veuillez vous reconnecter pour réserver ce créneau.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
       toast({
         title: "Erreur",
         description: holdError instanceof Error ? holdError.message : "Impossible de bloquer ce créneau.",
@@ -240,21 +250,32 @@ export default function ReservationDialog({
       return;
     }
 
-    const { data: reservationId, error } = await (supabase.rpc as any)("confirm_reservation", {
-      p_restaurant_id: restaurantId,
-      p_date: format(date, "yyyy-MM-dd"),
-      p_time: time,
-      p_party_size: partySize,
-      p_feature: hasFormula ? "promo-formule" : "classique",
-      p_metadata: reservationMetadata,
-      p_notes: offerPrefix + (notes || ""),
-      p_hold_id: holdId,
-      p_source_channel: "web",
-    });
+    const { data: reservationId, error } = await invokeSupabaseRpc<string | null>(
+      "confirm_reservation",
+      {
+        p_restaurant_id: restaurantId,
+        p_date: format(date, "yyyy-MM-dd"),
+        p_time: time,
+        p_party_size: partySize,
+        p_feature: hasFormula ? "promo-formule" : "classique",
+        p_metadata: reservationMetadata,
+        p_notes: offerPrefix + (notes || ""),
+        p_hold_id: holdId,
+        p_source_channel: "web",
+      },
+      {
+        requireAuth: true,
+      },
+    );
 
     setLoading(false);
 
     if (error) {
+      if (/session expiree|reconnectez-vous/i.test(error.message)) {
+        toast({ title: "Session expirée", description: "Veuillez vous reconnecter pour confirmer la réservation.", variant: "destructive" });
+        navigate("/auth");
+        return;
+      }
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }

@@ -11,6 +11,13 @@ function getFunctionsErrorStatus(error: unknown) {
   return typeof status === "number" ? status : null;
 }
 
+function getRpcErrorCode(error: unknown) {
+  if (!error || typeof error !== "object" || !("code" in error)) return null;
+
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code : null;
+}
+
 function mergeFunctionHeaders(headers: Record<string, string> | undefined, accessToken: string) {
   return {
     ...(headers || {}),
@@ -61,6 +68,31 @@ async function normalizeFunctionError(error: unknown, response?: Response) {
   normalizedError.name = error instanceof Error ? error.name : "FunctionsHttpError";
   normalizedError.status = response?.status ?? getFunctionsErrorStatus(error) ?? undefined;
   normalizedError.context = response ?? (error as { context?: unknown } | null)?.context;
+  return normalizedError;
+}
+
+function normalizeRpcError(error: unknown) {
+  const errorObject =
+    error && typeof error === "object"
+      ? error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown }
+      : null;
+
+  const parts = [
+    typeof errorObject?.message === "string" ? errorObject.message.trim() : "",
+    typeof errorObject?.details === "string" ? errorObject.details.trim() : "",
+    typeof errorObject?.hint === "string" ? errorObject.hint.trim() : "",
+  ].filter(Boolean);
+
+  const normalizedError = new Error(parts[0] || "Erreur lors de l'appel RPC Supabase.") as Error & {
+    code?: string;
+    details?: string;
+    hint?: string;
+  };
+
+  normalizedError.name = "PostgrestError";
+  normalizedError.code = typeof errorObject?.code === "string" ? errorObject.code : undefined;
+  normalizedError.details = typeof errorObject?.details === "string" ? errorObject.details : undefined;
+  normalizedError.hint = typeof errorObject?.hint === "string" ? errorObject.hint : undefined;
   return normalizedError;
 }
 
@@ -132,6 +164,65 @@ export async function invokeSupabaseFunction<TData = unknown>(
   }
 
   return result;
+}
+
+export async function invokeSupabaseRpc<TData = unknown>(
+  functionName: string,
+  params: Record<string, unknown> = {},
+  options: {
+    requireAuth?: boolean;
+  } = {},
+) {
+  if (options.requireAuth) {
+    await getFreshAccessToken();
+  }
+
+  let result = await (supabase.rpc as any)(functionName, params);
+
+  if (!result.error) {
+    return {
+      data: result.data as TData,
+      error: null as null,
+    };
+  }
+
+  const initialError = normalizeRpcError(result.error);
+  const initialMessage = [
+    initialError.message,
+    initialError.details,
+    initialError.hint,
+  ].filter(Boolean).join(" ");
+
+  const shouldRetryWithFreshSession =
+    options.requireAuth
+    && (
+      /authentication required/i.test(initialMessage)
+      || /jwt/i.test(initialMessage)
+      || /session exp/i.test(initialMessage)
+      || getRpcErrorCode(result.error) === "PGRST301"
+    );
+
+  if (!shouldRetryWithFreshSession) {
+    return {
+      data: result.data as TData,
+      error: initialError,
+    };
+  }
+
+  await getFreshAccessToken(true);
+  result = await (supabase.rpc as any)(functionName, params);
+
+  if (!result.error) {
+    return {
+      data: result.data as TData,
+      error: null as null,
+    };
+  }
+
+  return {
+    data: result.data as TData,
+    error: normalizeRpcError(result.error),
+  };
 }
 
 export async function fetchWithFreshAccessToken(input: string, init: RequestInit = {}) {

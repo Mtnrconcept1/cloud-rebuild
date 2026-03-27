@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 
 import { supabase } from "@/integrations/supabase/client";
+import { invokeSupabaseRpc } from "@/lib/session";
 
 export type ReservationAvailabilitySlot = {
   slot_time: string;
@@ -69,7 +70,7 @@ export async function createReservationHold(input: {
   metadata?: Record<string, unknown>;
   sourceChannel?: string;
 }) {
-  const { data, error } = await (supabase.rpc as any)(
+  const { data, error } = await invokeSupabaseRpc<string | null>(
     "create_reservation_hold",
     {
       p_restaurant_id: input.restaurantId,
@@ -79,9 +80,24 @@ export async function createReservationHold(input: {
       p_metadata: input.metadata || {},
       p_source_channel: input.sourceChannel || "web",
     },
+    {
+      requireAuth: true,
+    },
   );
 
-  if (error) throw error;
+  if (error) {
+    const normalizedMessage = `${error.message} ${(error as Error & { details?: string }).details || ""}`.toLowerCase();
+    if (
+      normalizedMessage.includes("creneau")
+      && (
+        normalizedMessage.includes("plus disponible")
+        || normalizedMessage.includes("n'est plus disponible")
+      )
+    ) {
+      return null;
+    }
+    throw error;
+  }
 
   return (data as string | null) || null;
 }
