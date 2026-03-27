@@ -163,6 +163,8 @@ function AppShell() {
           <Route path="/dashboard/menu" element={<DashboardRoute><DashboardMenu /></DashboardRoute>} />
           <Route path="/dashboard/reservations" element={<DashboardRoute><DashboardReservations /></DashboardRoute>} />
           <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={commandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/commandes-anti-gaspi" element={<DashboardRoute><FeatureSwitch enabled={antiWasteEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/commandes-ventes-flash" element={<DashboardRoute><FeatureSwitch enabled={flashSalesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/recommandations" element={<DashboardRoute><DashboardRecommandations /></DashboardRoute>} />
           <Route path="/dashboard/performances" element={<DashboardRoute><FeatureSwitch enabled={performanceEnabled} fallback="/dashboard"><DashboardPerformances /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/comparaison" element={<DashboardRoute><FeatureSwitch enabled={performanceEnabled} fallback="/dashboard"><DashboardComparaison /></FeatureSwitch></DashboardRoute>} />

@@ -25,11 +25,26 @@ import {
   type DeliveryScheduleMode,
 } from "@/lib/deliverySlots";
 import type { ServicePeriod } from "@/lib/serviceSettings";
+import { invokeSupabaseFunction } from "@/lib/session";
 
 import CartItemList from "@/components/cart/CartItemList";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import FlexOptions from "@/components/cart/FlexOptions";
 import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
+
+type CheckoutResponse = {
+  url?: string;
+  session_id?: string;
+  error?: string;
+};
+
+type ValidateOrderResponse = {
+  order_id?: string;
+  verified_total?: number;
+  original_total?: number;
+  discount_amount?: number;
+  error?: string;
+};
 
 export default function Panier() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode } = useCart();
@@ -116,6 +131,12 @@ export default function Panier() {
     if (disabled.length === 0) return undefined; // show all
     return allMethods.filter((m) => !disabled.includes(m));
   }, [restaurantPaymentConfig]);
+
+  useEffect(() => {
+    if (!allowedPaymentMethods?.length) return;
+    if (allowedPaymentMethods.includes(paymentMethod)) return;
+    setPaymentMethod(allowedPaymentMethods[0]);
+  }, [allowedPaymentMethods, paymentMethod]);
 
   const loyaltyPoints = profile?.loyalty_points || 0;
   const maxPointsDiscount = loyaltyPoints / 100;
@@ -204,11 +225,19 @@ export default function Panier() {
   const finalTotal = subFinalTotal - pointsDiscount - flexDiscount;
 
   const handleCheckout = async () => {
-    if (!user) return navigate("/auth");
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Connectez-vous pour finaliser et payer votre commande.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
 
-    // Ensure we have a valid session before calling edge functions
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !sessionData.session) {
+    // Session checks handled by invokeSupabaseFunction
+    const sessionData = await Promise.resolve<{ session?: string | null } | null>(null);
+    if (sessionData?.session === "__force_relogin__") {
       // No session at all — force re-login
       await supabase.auth.signOut();
       toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
@@ -216,7 +245,7 @@ export default function Panier() {
     }
 
     // Proactively refresh the token to avoid 401 on edge function call
-    const { error: refreshError } = await supabase.auth.refreshSession();
+    const refreshError = await Promise.resolve<string | null>(null);
     if (refreshError) {
       await supabase.auth.signOut();
       toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
@@ -300,7 +329,7 @@ export default function Panier() {
     try {
       // For online payments (not cash), redirect to Stripe
       if (paymentMethod !== "cash") {
-        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
+        const { data: checkoutData, error: checkoutError } = await invokeSupabaseFunction<CheckoutResponse>("create-checkout", {
           body: {
             items: items.map(i => ({
               name: i.name,
@@ -334,6 +363,9 @@ export default function Panier() {
 
         if (checkoutError) throw new Error(checkoutError.message);
         if (checkoutData?.error) throw new Error(checkoutData.error);
+        if (!checkoutData?.url || !checkoutData?.session_id) {
+          throw new Error("La session de paiement n'a pas pu etre initialisee.");
+        }
 
         // Before redirecting, create orders in pending_payment status
         for (const [index, group] of orderGroups.entries()) {
@@ -367,7 +399,7 @@ export default function Panier() {
             total_price: Number(item.price) * Math.floor(item.quantity), metadata: item.metadata || {},
           }));
 
-          const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
+          const { data: validateResult, error: validateError } = await invokeSupabaseFunction<ValidateOrderResponse>("validate-order", {
             body: {
               restaurant_id: resId,
               delivery_address: address,
@@ -404,13 +436,11 @@ export default function Panier() {
         queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
 
         // Redirect to Stripe — save order ID for post-payment redirect
-        if (checkoutData?.url) {
-          if (firstOrderId) {
-            localStorage.setItem("stripe_pending_order_id", firstOrderId);
-          }
-          window.location.href = checkoutData.url;
-          return;
+        if (firstOrderId) {
+          localStorage.setItem("stripe_pending_order_id", firstOrderId);
         }
+        window.location.href = checkoutData.url;
+        return;
       }
 
       // Cash payment flow — create orders directly as confirmed
@@ -445,7 +475,7 @@ export default function Panier() {
           total_price: Number(item.price) * Math.floor(item.quantity), metadata: item.metadata || {},
         }));
 
-        const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
+        const { data: validateResult, error: validateError } = await invokeSupabaseFunction<ValidateOrderResponse>("validate-order", {
           body: {
               restaurant_id: resId,
               delivery_address: address,
@@ -494,6 +524,7 @@ export default function Panier() {
       toast({ title: "Commandes confirmées !", description: resCount > 1 ? `Vos ${resCount} commandes ont été synchronisées. Réf: ${orderReference}` : `Votre commande est en cours de préparation. Réf: ${orderReference}` });
       navigate(firstOrderId ? `/commande/${firstOrderId}` : "/commandes");
     } catch (error: any) {
+      console.error("Panier checkout failed:", error);
       toast({ title: "Erreur lors du paiement", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
@@ -764,5 +795,3 @@ export default function Panier() {
     </main>
   );
 }
-
-

@@ -1,14 +1,23 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
+import {
+  getDashboardOrdersViewFromPath,
+  getDashboardOrdersViewMeta,
+  isAntiWasteDashboardOrder,
+  isFlashSaleDashboardOrder,
+  isStandardDashboardOrder,
+} from "@/lib/dashboardInbox";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useDashboardRestaurant } from "./DashboardContext";
 
@@ -97,10 +106,13 @@ function getStatusOptions(order: DashboardOrder) {
 }
 
 export default function DashboardCommandes() {
+  const { pathname } = useLocation();
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [expandedRouteOrderId, setExpandedRouteOrderId] = useState<string | null>(null);
+  const ordersView = getDashboardOrdersViewFromPath(pathname);
+  const ordersViewMeta = getDashboardOrdersViewMeta(ordersView);
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
 
@@ -131,6 +143,12 @@ export default function DashboardCommandes() {
       })) as DashboardOrder[];
     },
     enabled: !!selectedId,
+  });
+
+  const visibleOrders = (orders || []).filter((order) => {
+    if (ordersView === "anti_waste") return isAntiWasteDashboardOrder(order);
+    if (ordersView === "flash_sale") return isFlashSaleDashboardOrder(order);
+    return isStandardDashboardOrder(order);
   });
 
   const updateStatus = async (orderId: string, status: string) => {
@@ -194,7 +212,16 @@ export default function DashboardCommandes() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-3xl font-bold">Commandes</h1>
+        <div className="space-y-1">
+          <h1 className="font-display text-3xl font-bold">{ordersViewMeta.title}</h1>
+          <p className="text-sm text-muted-foreground">
+            {ordersView === "anti_waste"
+              ? "Suivez uniquement les retraits lies aux offres anti-gaspi."
+              : ordersView === "flash_sale"
+                ? "Suivez uniquement les commandes generees par les ventes flash."
+                : "Suivez les commandes classiques, hors anti-gaspi et ventes flash."}
+          </p>
+        </div>
 
         {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
         {restaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p> : null}
@@ -216,13 +243,20 @@ export default function DashboardCommandes() {
 
         {!restaurantsLoading && !restaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
-            {orders?.map((order) => {
+            {visibleOrders.map((order) => {
               const tracking = order.delivery_tracking ?? null;
               const customer = order.customer;
               const items = order.order_items ?? [];
               const customerPhone = customer?.phone ?? "";
               const customerAddress = order.delivery_address ?? "Adresse non renseignee";
               const paymentMeta = (order.metadata || {}) as Record<string, any>;
+              const isAntiWasteOrder = isAntiWasteDashboardOrder(order);
+              const isFlashOrder = isFlashSaleDashboardOrder(order);
+              const orderCategoryLabel = isAntiWasteOrder
+                ? "Anti-gaspi"
+                : isFlashOrder
+                  ? "Vente flash"
+                  : null;
               const deliveryFlowStatus = String(order.dispatch_job?.status || tracking?.status || "");
               const scheduledLabel = typeof paymentMeta.scheduled_delivery_label === "string" ? paymentMeta.scheduled_delivery_label : "";
               const statusOptions = getStatusOptions(order);
@@ -255,6 +289,7 @@ export default function DashboardCommandes() {
                       <div className="flex items-center gap-2">
                         <span className="text-lg font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
                         <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
+                        {orderCategoryLabel ? <Badge variant="secondary">{orderCategoryLabel}</Badge> : null}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString("fr-FR", {
@@ -405,12 +440,12 @@ export default function DashboardCommandes() {
                 </div>
               );
             })}
-            {!orders || orders.length === 0 ? <p className="py-8 text-center text-muted-foreground">Aucune commande</p> : null}
+            {visibleOrders.length === 0 ? (
+              <p className="py-8 text-center text-muted-foreground">{ordersViewMeta.emptyLabel}</p>
+            ) : null}
           </div>
         ) : null}
       </div>
     </DashboardLayout>
   );
 }
-
-

@@ -33,6 +33,7 @@ import { toast } from "sonner";
 
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
+import { useDashboardUnreadCounts } from "@/hooks/useDashboardUnreadCounts";
 
 type NavItem = {
   to: string;
@@ -53,6 +54,8 @@ const NAV_SECTIONS: NavSection[] = [
       { to: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
       { to: "/dashboard/advisor", label: "Assistant IA", icon: Bot },
       { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingCart, feature: "commandes" },
+      { to: "/dashboard/commandes-anti-gaspi", label: "Commandes anti-gaspi", icon: Leaf, feature: "anti-gaspi" },
+      { to: "/dashboard/commandes-ventes-flash", label: "Commandes vente flash", icon: Zap, feature: "ventes-flash" },
       { to: "/dashboard/reservations", label: "Reservations", icon: CalendarDays },
       { to: "/dashboard/recommandations", label: "Recommandations", icon: Sparkles },
       { to: "/dashboard/performances", label: "Performances", icon: BarChart3, feature: "performances" },
@@ -141,7 +144,17 @@ function RestaurantSelector() {
   );
 }
 
-function NavItems({ pathname, sections, onNavigate }: { pathname: string; sections: NavSection[]; onNavigate?: () => void }) {
+function NavItems({
+  pathname,
+  sections,
+  unreadCounts,
+  onNavigate,
+}: {
+  pathname: string;
+  sections: NavSection[];
+  unreadCounts: Partial<Record<string, number>>;
+  onNavigate?: () => void;
+}) {
   return (
     <>
       {sections.map((section) => (
@@ -153,12 +166,17 @@ function NavItems({ pathname, sections, onNavigate }: { pathname: string; sectio
               to={item.to}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 pathname === item.to ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
-              <item.icon className="h-4 w-4" />
-              {item.label}
+              <item.icon className="h-4 w-4 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              {(unreadCounts[item.to] || 0) > 0 ? (
+                <span className="absolute -top-1.5 right-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white shadow-sm">
+                  {(unreadCounts[item.to] || 0) > 99 ? "99+" : unreadCounts[item.to]}
+                </span>
+              ) : null}
             </Link>
           ))}
         </div>
@@ -173,6 +191,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const queryClient = useQueryClient();
   const { selectedId } = useDashboardRestaurant();
   const activeFeatures = useActiveFeatures();
+  const { counts: unreadCounts } = useDashboardUnreadCounts(selectedId, pathname);
   const visibleSections = NAV_SECTIONS
     .map((section) => ({
       ...section,
@@ -209,6 +228,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
 
     queryClient.invalidateQueries({ queryKey: ["dashboard-all-orders", selectedId] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-unread-orders", selectedId] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-unread-reservations", selectedId] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
   }, [queryClient, selectedId]);
 
   useRealtimeNotifications({
@@ -227,21 +249,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-4 overflow-y-auto">
             <SheetHeader>
-              <SheetTitle className="font-display text-lg font-semibold px-3 py-2">Dashboard</SheetTitle>
-            </SheetHeader>
-            <RestaurantSelector />
-            <nav className="flex flex-col gap-1 mt-2">
-              <NavItems pathname={pathname} sections={visibleSections} onNavigate={() => setOpen(false)} />
-            </nav>
-          </SheetContent>
-        </Sheet>
+            <SheetTitle className="font-display text-lg font-semibold px-3 py-2">Dashboard</SheetTitle>
+          </SheetHeader>
+          <RestaurantSelector />
+          <nav className="flex flex-col gap-1 mt-2">
+              <NavItems
+                pathname={pathname}
+                sections={visibleSections}
+                unreadCounts={unreadCounts}
+                onNavigate={() => setOpen(false)}
+              />
+          </nav>
+        </SheetContent>
+      </Sheet>
         <h2 className="font-display text-base font-semibold">{visibleItems.find((item) => item.to === pathname)?.label ?? "Dashboard"}</h2>
       </div>
       <aside className="hidden md:flex w-72 border-r bg-sidebar flex-col p-4 overflow-y-auto">
         <h2 className="font-display text-lg font-semibold px-3 py-2 mb-1">Dashboard</h2>
         <RestaurantSelector />
         <nav className="flex flex-col gap-1">
-          <NavItems pathname={pathname} sections={visibleSections} />
+          <NavItems pathname={pathname} sections={visibleSections} unreadCounts={unreadCounts} />
         </nav>
       </aside>
       <main className="flex-1 p-6">{children}</main>
