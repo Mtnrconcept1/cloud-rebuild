@@ -75,10 +75,18 @@ export default function AntiWasteCard({
       restaurantName: restaurant,
       metadata: {
         is_anti_waste: true,
+        anti_waste_offer_id: offerId,
         offer_id: offerId,
+        available_date: availableDate,
         original_price: originalPrice,
         pickup_start: pickupStart,
         pickup_end: pickupEnd,
+        pickup_date: availableDate,
+        pickup_time: pickupStart,
+        pickup_time_end: pickupEnd,
+        takeaway_available: true,
+        delivery_available: false,
+        type: "pickup",
       },
     });
     toast({

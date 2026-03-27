@@ -56,25 +56,12 @@ const CartContext = createContext<CartContextType>({
 export const useCart = () => useContext(CartContext);
 
 function canItemBeOrderedInMode(item: Omit<CartItem, "quantity">, mode: "delivery" | "takeaway"): boolean {
-  if (item.metadata?.is_anti_waste) {
-    return mode === "takeaway";
-  }
-  if (item.metadata?.is_flash_sale) {
-    const canDelivery = item.metadata?.delivery_available !== false;
-    const canTakeaway = item.metadata?.takeaway_available !== false;
-    return mode === "delivery" ? canDelivery : canTakeaway;
-  }
+  if (item.metadata?.is_anti_waste || item.metadata?.is_flash_sale) return mode === "takeaway";
   return true;
 }
 
 function getRequiredModeForItem(item: Omit<CartItem, "quantity">): "delivery" | "takeaway" | null {
-  if (item.metadata?.is_anti_waste) return "takeaway";
-  if (item.metadata?.is_flash_sale) {
-    const canDelivery = item.metadata?.delivery_available !== false;
-    const canTakeaway = item.metadata?.takeaway_available !== false;
-    if (canDelivery && !canTakeaway) return "delivery";
-    if (!canDelivery && canTakeaway) return "takeaway";
-  }
+  if (item.metadata?.is_anti_waste || item.metadata?.is_flash_sale) return "takeaway";
   return null;
 }
 

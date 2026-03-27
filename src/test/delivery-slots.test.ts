@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildDeliverySlotGroups,
+  buildPickupSlotGroups,
   findFirstAvailableDeliveryDate,
+  findFirstAvailablePickupDate,
   formatScheduledDeliveryLabel,
 } from "@/lib/deliverySlots";
 
@@ -61,6 +63,31 @@ describe("delivery slots helpers", () => {
     const nextDate = findFirstAvailableDeliveryDate({
       openingHours,
       leadMinutes: 30,
+      now: new Date("2026-03-15T10:00:00"),
+    });
+
+    expect(nextDate).toBe("2026-03-16");
+  });
+
+  it("builds pickup slots from the same service settings", () => {
+    const groups = buildPickupSlotGroups({
+      openingHours,
+      dateValue: "2026-03-16",
+      leadMinutes: 20,
+      now: new Date("2026-03-15T10:00:00"),
+    });
+
+    expect(groups).toHaveLength(2);
+    expect(groups[0].service).toBe("lunch");
+    expect(groups[0].slots[0].time).toBe("12:00");
+    expect(groups[1].service).toBe("dinner");
+    expect(groups[1].slots[0].time).toBe("19:00");
+  });
+
+  it("finds the next pickup date with an active service", () => {
+    const nextDate = findFirstAvailablePickupDate({
+      openingHours,
+      leadMinutes: 20,
       now: new Date("2026-03-15T10:00:00"),
     });
 

@@ -203,6 +203,59 @@ export async function resolveScheduledDelivery(
   };
 }
 
+export async function resolveScheduledPickup(
+  adminClient: any,
+  restaurantId: string,
+  metadata: DeliveryMetadata,
+) {
+  const dateValue = String(metadata?.pickup_date || "").trim();
+  const timeValue = String(metadata?.pickup_time || "").trim();
+
+  if (!dateValue || !timeValue) {
+    return null;
+  }
+
+  const { data: restaurant, error } = await adminClient
+    .from("restaurants")
+    .select("opening_hours, avg_prep_time_min")
+    .eq("id", restaurantId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!isRestaurantOpenOnDate(restaurant?.opening_hours, dateValue)) {
+    throw new Error("Le restaurant est ferme a la date choisie pour le retrait.");
+  }
+
+  const settingsMap = getServiceSettings(restaurant?.opening_hours);
+  const matchingService = (Object.entries(settingsMap) as [ServicePeriod, ServiceSettings][])
+    .find(([, settings]) => settings.online_booking_enabled && !settings.service_closed && isTimeWithinService(timeValue, settings));
+
+  if (!matchingService) {
+    throw new Error("Le creneau de retrait choisi n'entre dans aucun service actif du restaurant.");
+  }
+
+  const [service] = matchingService;
+  const scheduledAt = toScheduledUtcIso(dateValue, timeValue);
+
+  if (Number.isNaN(Date.parse(scheduledAt))) {
+    throw new Error("L'horaire de retrait choisi est invalide.");
+  }
+
+  const leadMinutes = Math.max(0, Number(restaurant?.avg_prep_time_min) || 0);
+  if (leadMinutes > 0 && Date.parse(scheduledAt) <= Date.now() + leadMinutes * 60 * 1000) {
+    throw new Error(`Choisissez un retrait au moins ${leadMinutes} minutes dans le futur.`);
+  }
+
+  return {
+    service,
+    dateValue,
+    timeValue,
+    scheduledAt,
+    scheduledLabel: `${dateValue} a ${timeValue}`,
+  };
+}
+
 export function shouldDispatchDeliveryNow(metadata: DeliveryMetadata, scheduledAt?: string | null, now = new Date()) {
   if (!scheduledAt) return true;
   const config = getDeliveryDispatchConfig(metadata);

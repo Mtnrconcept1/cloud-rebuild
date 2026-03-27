@@ -11,6 +11,7 @@ import {
   getEstimatedArrivalTime,
   isDeliveryOrder,
   resolveScheduledDelivery,
+  resolveScheduledPickup,
 } from "../_shared/delivery-dispatch.ts";
 import {
   enqueueNotification,
@@ -124,8 +125,19 @@ Deno.serve(async (req) => {
       orderType: String((baseMetadata as Record<string, unknown>).type || ""),
     });
 
+    const hasManagedPickupWindow = !isDelivery && (
+      baseMetadata.has_anti_gaspi === true
+      || baseMetadata.has_flash_sale === true
+      || baseMetadata.feature === "anti-gaspi"
+      || baseMetadata.feature === "vente-flash"
+    );
+
     const scheduledDelivery = isDelivery
       ? await resolveScheduledDelivery(actor.adminClient, restaurant_id, baseMetadata)
+      : null;
+
+    const scheduledPickup = !isDelivery && !hasManagedPickupWindow
+      ? await resolveScheduledPickup(actor.adminClient, restaurant_id, baseMetadata)
       : null;
 
     const deliveryMetadataBase = scheduledDelivery
@@ -142,7 +154,16 @@ Deno.serve(async (req) => {
 
     const authoritativeMetadata = isDelivery
       ? enrichDeliveryMetadata(deliveryMetadataBase)
-      : baseMetadata;
+      : scheduledPickup
+        ? {
+            ...baseMetadata,
+            pickup_date: scheduledPickup.dateValue,
+            pickup_time: scheduledPickup.timeValue,
+            pickup_service: scheduledPickup.service,
+            scheduled_pickup_at: scheduledPickup.scheduledAt,
+            scheduled_pickup_label: scheduledPickup.scheduledLabel,
+          }
+        : baseMetadata;
 
     const checkoutUuid = checkout_id || crypto.randomUUID();
     const itemsJson = pricing.validatedItems.map((item) => ({

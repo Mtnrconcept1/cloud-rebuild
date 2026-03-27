@@ -400,16 +400,16 @@ export default function ReservationDialog({
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1.5">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    CrÃ©neaux disponibles
+                    Créneaux disponibles
                   </Label>
                   {!date ? (
                     <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                      Choisissez une date pour charger les crÃ©neaux disponibles.
+                      Choisissez une date pour charger les créneaux disponibles.
                     </div>
                   ) : availabilityLoading ? (
                     <div className="flex items-center justify-center rounded-xl border p-4 text-sm text-muted-foreground">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Chargement des crÃ©neaux...
+                      Chargement des créneaux...
                     </div>
                   ) : availability.length > 0 ? (
                     <div className="grid grid-cols-4 gap-2">
@@ -436,7 +436,7 @@ export default function ReservationDialog({
                     </div>
                   ) : (
                     <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                      Aucun crÃ©neau en ligne pour cette date et ce nombre de convives.
+                      Aucun créneau en ligne pour cette date et ce nombre de convives.
                     </div>
                   )}
                 </div>

@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { createSupportTicket, type SupportTicketRow } from "@/lib/support";
+import { createSupportTicket, isSupabaseMissingColumnError, type SupportTicketRow } from "@/lib/support";
 
 import { useDashboardRestaurant } from "./DashboardContext";
 
@@ -38,17 +38,22 @@ export default function DashboardSupport() {
   const { data: tickets = [], refetch } = useQuery({
     queryKey: ["dashboard-support-tickets", selectedId],
     queryFn: async () => {
-      const query = supabase
+      const buildQuery = () =>
+        supabase
         .from("support_tickets")
-        .select("id, subject, category, priority, status, description, created_at, updated_at, restaurant_id")
+        .select("id, subject, category, priority, status, description, created_at, updated_at")
         .order("created_at", { ascending: false });
 
-      const { data, error } = selectedId
-        ? await query.eq("restaurant_id", selectedId)
-        : await query;
+      let response = selectedId
+        ? await buildQuery().eq("restaurant_id", selectedId)
+        : await buildQuery();
 
-      if (error) throw error;
-      return (data || []) as SupportTicketRow[];
+      if (response.error && selectedId && isSupabaseMissingColumnError(response.error, "restaurant_id")) {
+        response = await buildQuery();
+      }
+
+      if (response.error) throw response.error;
+      return (response.data || []) as SupportTicketRow[];
     },
   });
 

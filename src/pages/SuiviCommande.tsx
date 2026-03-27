@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useRealtimeDeliveryTracking, useRealtimeDispatchJob } from "@/hooks/useRealtimeOrder";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
+import { buildCustomerOrdersHref, getCustomerOrdersViewForOrder } from "@/lib/customerOrders";
 
 const STEPS = [
   { key: "preparing", label: "En préparation", icon: ChefHat, description: "Le restaurant prépare votre commande", countdownLabel: "Prêt dans" },
@@ -240,6 +241,10 @@ export default function SuiviCommande() {
   const modeLabel = (order.metadata as any)?.feature === "zero-attente" ? "Zero attente" : pickupTime ? "A emporter" : "Sur place";
   const totalAmount = orders.reduce((sum: number, o: any) => sum + Number(o.total_amount), 0);
   const restaurantLabel = orders.length > 1 ? `${orders.length} restaurants` : (order.restaurants as any)?.name || "Restaurant";
+  const ordersHistoryHref = buildCustomerOrdersHref({
+    view: getCustomerOrdersViewForOrder(order),
+    focusOrderId: order.id,
+  });
 
   if (!isDelivery) {
     return (
@@ -281,7 +286,7 @@ export default function SuiviCommande() {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Button asChild className="flex-1">
-                <Link to="/commandes">Voir mes commandes</Link>
+                <Link to={ordersHistoryHref}>Voir mes commandes</Link>
               </Button>
               <Button asChild variant="outline" className="flex-1">
                 <Link to="/recherche">Commander autre chose</Link>

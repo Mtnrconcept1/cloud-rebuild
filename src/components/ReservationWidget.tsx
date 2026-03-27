@@ -111,7 +111,7 @@ export default function ReservationWidget({
       <div className="bg-primary px-5 py-4">
         <h3 className="flex items-center gap-2 font-display text-lg font-bold text-primary-foreground">
           <CalendarIcon className="h-5 w-5" />
-          RÃ©server une table
+          Réserver une table
         </h3>
         <p className="mt-0.5 text-xs text-primary-foreground/70">{restaurantName}</p>
       </div>
@@ -193,7 +193,7 @@ export default function ReservationWidget({
           ) : availabilityLoading ? (
             <div className="flex items-center gap-2 rounded-xl border px-3 py-4 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Recherche des crÃ©neaux disponibles...
+              Recherche des créneaux disponibles...
             </div>
           ) : availableSlots.length > 0 ? (
             <div className="grid grid-cols-4 gap-1.5">
@@ -222,7 +222,7 @@ export default function ReservationWidget({
             </div>
           ) : (
             <div className="rounded-xl border border-dashed px-3 py-4 text-xs text-muted-foreground">
-              Aucun crÃ©neau en ligne pour cette date et ce nombre de convives.
+              Aucun créneau en ligne pour cette date et ce nombre de convives.
             </div>
           )}
         </div>
@@ -231,18 +231,18 @@ export default function ReservationWidget({
           <div className="space-y-1 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
             <p className="font-semibold text-primary">{format(date, "EEEE d MMMM", { locale: fr })}</p>
             <p className="text-xs text-muted-foreground">
-              {time} Â· {partySize} personne{Number(partySize) > 1 ? "s" : ""}
+              {time} · {partySize} personne{Number(partySize) > 1 ? "s" : ""}
             </p>
             {selectedDiscount > 0 ? (
               <p className="flex items-center gap-1 text-xs font-bold text-miamz-green">
                 <Percent className="h-3 w-3" />
-                Jusqu'Ã  -{selectedDiscount}% de rÃ©duction disponible
+                Jusqu'à -{selectedDiscount}% de réduction disponible
               </p>
             ) : null}
             {selectedSlot?.requires_guarantee ? (
               <p className="flex items-center gap-1 text-xs font-medium text-amber-700">
                 <ShieldCheck className="h-3 w-3" />
-                Garantie demandÃ©e
+                Garantie demandée
                 {selectedSlot.requires_deposit && selectedSlot.deposit_amount > 0
                   ? ` · acompte ${Number(selectedSlot.deposit_amount).toFixed(2)} CHF`
                   : ""}
@@ -257,10 +257,10 @@ export default function ReservationWidget({
           className="h-12 w-full rounded-xl text-base font-bold"
           size="lg"
         >
-          RÃ©server
+          Réserver
         </Button>
         <p className="text-center text-[10px] text-muted-foreground">
-          CrÃ©neaux calculÃ©s en temps rÃ©el selon la disponibilitÃ© du service.
+          Créneaux calculés en temps réel selon la disponibilité du service.
         </p>
       </div>
     </div>

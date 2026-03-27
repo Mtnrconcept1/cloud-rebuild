@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Zap, Flame, Clock, ShoppingCart, ChevronRight,
   CheckCircle2, Star, MapPin, Bell, TrendingDown,
-  AlertTriangle, Bike, ShoppingBag,
+  AlertTriangle, ShoppingBag,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useActiveFeatures } from "@/lib/featureFlags";
@@ -27,9 +27,7 @@ export default function VentesFlash() {
   const [step, setStep] = useState<Step>("browse");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [expiredIds, setExpiredIds] = useState<Set<string>>(new Set());
-  const [selectedOrderMode, setSelectedOrderMode] = useState<"delivery" | "takeaway" | null>(null);
   const activeFeatures = useActiveFeatures();
-  const deliveryEnabled = activeFeatures.has("livraison");
   const multiRestoEnabled = activeFeatures.has("multi-restaurant");
 
   const { data: allOffers, isLoading } = useQuery({
@@ -133,23 +131,6 @@ export default function VentesFlash() {
   const totalOriginal = selectedOffers.reduce((s: number, o: any) => s + Number(o.original_price), 0);
   const totalDiscounted = selectedOffers.reduce((s: number, o: any) => s + Number(o.discounted_price), 0);
   const totalSaved = totalOriginal - totalDiscounted;
-  const canDeliverAll = deliveryEnabled && selectedOffers.length > 0 && selectedOffers.every((o: any) => !!o.delivery_available);
-  const canTakeawayAll = selectedOffers.length > 0 && selectedOffers.every((o: any) => !!o.takeaway_available);
-
-  useEffect(() => {
-    if (selectedOffers.length === 0) {
-      setSelectedOrderMode(null);
-      return;
-    }
-
-    setSelectedOrderMode((current) => {
-      if (current === "delivery" && canDeliverAll) return current;
-      if (current === "takeaway" && canTakeawayAll) return current;
-      if (canDeliverAll) return "delivery";
-      if (canTakeawayAll) return "takeaway";
-      return null;
-    });
-  }, [selectedOffers.length, canDeliverAll, canTakeawayAll]);
 
   const handleCheckout = () => {
     // Block multi-restaurant checkout when feature is disabled
@@ -163,26 +144,8 @@ export default function VentesFlash() {
       return;
     }
 
-    if (!canDeliverAll && !canTakeawayAll) {
-      toast({
-        title: "Offres incompatibles",
-        description: "Certaines ventes flash ne partagent pas le meme mode de recuperation.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!selectedOrderMode) {
-      toast({
-        title: "Choisissez un mode",
-        description: "Selectionnez un mode de recuperation pour continuer.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     clearCart();
-    setOrderMode(selectedOrderMode);
+    setOrderMode("takeaway");
 
     updateCartMetadata({ feature: "ventes-flash", flashCount: selectedOffers.length });
 
@@ -200,8 +163,12 @@ export default function VentesFlash() {
           sale_date: offer.sale_date,
           sale_start: offer.sale_start,
           sale_end: offer.sale_end,
-          delivery_available: deliveryEnabled && !!offer.delivery_available,
-          takeaway_available: !!offer.takeaway_available,
+          pickup_date: offer.sale_date,
+          pickup_time: offer.sale_start,
+          pickup_time_end: offer.sale_end,
+          delivery_available: false,
+          takeaway_available: true,
+          type: "pickup",
         },
       });
     });
@@ -289,7 +256,7 @@ export default function VentesFlash() {
               <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="text-sm text-muted-foreground">
                 <p className="font-semibold text-foreground mb-1">Comment ca marche ?</p>
-                <p>Les ventes flash expirent a l'heure de fin choisie par le restaurateur.{deliveryEnabled ? " Elles peuvent etre disponibles en livraison, en emporter, ou les deux." : ""}</p>
+                <p>Les ventes flash expirent a l'heure de fin choisie par le restaurateur. Elles sont disponibles uniquement a l'emporter, sur le creneau fixe de l'offre.</p>
               </div>
             </div>
 
@@ -403,8 +370,7 @@ export default function VentesFlash() {
 
                         <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
                           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {offer.sale_start} - {offer.sale_end}</span>
-                          {deliveryEnabled && offer.delivery_available && <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 px-1.5 py-0.5"><Bike className="h-3 w-3" /> Livraison</span>}
-                          {offer.takeaway_available && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5"><ShoppingBag className="h-3 w-3" /> Emporter</span>}
+                          <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5"><ShoppingBag className="h-3 w-3" /> Emporter</span>
                           {restaurant?.rating && (
                             <span className="ml-auto flex items-center gap-0.5">
                               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -445,33 +411,10 @@ export default function VentesFlash() {
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mode de recuperation</p>
-                  <div className={`grid gap-2 ${deliveryEnabled ? "grid-cols-2" : "grid-cols-1"}`}>
-                    {deliveryEnabled && (
-                      <Button
-                        type="button"
-                        variant={selectedOrderMode === "delivery" ? "default" : "outline"}
-                        className="gap-1.5"
-                        disabled={!canDeliverAll}
-                        onClick={() => setSelectedOrderMode("delivery")}
-                      >
-                        <Bike className="h-4 w-4" /> Livraison
-                      </Button>
-                    )}
-                    <Button
-                      type="button"
-                      variant={selectedOrderMode === "takeaway" ? "default" : "outline"}
-                      className="gap-1.5"
-                      disabled={!canTakeawayAll}
-                      onClick={() => setSelectedOrderMode("takeaway")}
-                    >
-                      <ShoppingBag className="h-4 w-4" /> Emporter
-                    </Button>
+                  <div className="rounded-xl border bg-secondary/30 p-3 text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">Emporter uniquement</p>
+                    <p className="mt-1">Le retrait est defini par le restaurateur sur chaque vente flash. Aucun horaire de retrait ne sera demande dans le panier.</p>
                   </div>
-                  {selectedOrderMode && (
-                    <p className="text-[11px] text-muted-foreground">
-                      Mode selectionne : {selectedOrderMode === "delivery" ? "Livraison" : "Emporter"}
-                    </p>
-                  )}
                 </div>
                 <Button onClick={handleCheckout} className="w-full bg-amber-500 hover:bg-amber-600 gap-2" size="lg">
                   <ShoppingCart className="h-4 w-4" /> Valider mes ventes flash

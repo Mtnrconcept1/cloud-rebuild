@@ -18,13 +18,16 @@ import AddressAutocomplete, { type AddressSelection } from "@/components/Address
 import { trackSponsoredConversion, trackEvent, trackCheckoutEvent } from "@/lib/analytics";
 import {
   buildDeliverySlotGroups,
+  buildPickupSlotGroups,
   findFirstAvailableDeliveryDate,
+  findFirstAvailablePickupDate,
   formatScheduledDeliveryLabel,
   getMaxScheduledDateValue,
   getTodayDateValue,
   type DeliveryScheduleMode,
+  type PickupSlotGroup,
 } from "@/lib/deliverySlots";
-import type { ServicePeriod } from "@/lib/serviceSettings";
+import { getServicePeriodLabel, type ServicePeriod } from "@/lib/serviceSettings";
 import { invokeSupabaseFunction } from "@/lib/session";
 
 import CartItemList from "@/components/cart/CartItemList";
@@ -44,6 +47,113 @@ type ValidateOrderResponse = {
   original_total?: number;
   discount_amount?: number;
   error?: string;
+};
+
+type PickupSchedulingRestaurant = {
+  id: string;
+  name: string | null;
+  opening_hours: unknown;
+  avg_prep_time_min: number | null;
+  supports_pickup: boolean | null;
+};
+
+const DEFAULT_PICKUP_LEAD_MINUTES = 20;
+
+const getPickupLeadMinutes = (restaurant: PickupSchedulingRestaurant) => {
+  const parsed = Number(restaurant.avg_prep_time_min);
+  if (!Number.isFinite(parsed) || parsed < 0) return DEFAULT_PICKUP_LEAD_MINUTES;
+  return Math.max(0, Math.round(parsed));
+};
+
+const intersectPickupSlotGroups = (groupsCollection: PickupSlotGroup[][]): PickupSlotGroup[] => {
+  if (groupsCollection.length === 0) return [];
+
+  const slotOccurrences = new Map<string, { time: string; service: ServicePeriod; count: number }>();
+
+  groupsCollection.forEach((groups) => {
+    const seenInRestaurant = new Set<string>();
+
+    groups.forEach((group) => {
+      group.slots.forEach((slot) => {
+        const key = `${slot.service}-${slot.time}`;
+        if (seenInRestaurant.has(key)) return;
+        seenInRestaurant.add(key);
+
+        const current = slotOccurrences.get(key);
+        if (current) {
+          current.count += 1;
+          return;
+        }
+
+        slotOccurrences.set(key, {
+          time: slot.time,
+          service: slot.service,
+          count: 1,
+        });
+      });
+    });
+  });
+
+  return (["lunch", "dinner"] as ServicePeriod[]).flatMap((service) => {
+    const slots = Array.from(slotOccurrences.values())
+      .filter((slot) => slot.service === service && slot.count === groupsCollection.length)
+      .sort((a, b) => a.time.localeCompare(b.time))
+      .map((slot) => ({
+        time: slot.time,
+        label: slot.time,
+        service: slot.service,
+      }));
+
+    if (!slots.length) return [];
+
+    return [{
+      service,
+      label: getServicePeriodLabel(service),
+      slots,
+    }];
+  });
+};
+
+const findFirstSharedPickupDate = ({
+  restaurants,
+  maxDaysAhead = 7,
+  now = new Date(),
+}: {
+  restaurants: PickupSchedulingRestaurant[];
+  maxDaysAhead?: number;
+  now?: Date;
+}) => {
+  if (restaurants.length === 0) return getTodayDateValue(now);
+
+  if (restaurants.length === 1) {
+    return findFirstAvailablePickupDate({
+      openingHours: restaurants[0].opening_hours as any,
+      leadMinutes: getPickupLeadMinutes(restaurants[0]),
+      maxDaysAhead,
+      now,
+    });
+  }
+
+  for (let offset = 0; offset <= maxDaysAhead; offset += 1) {
+    const date = new Date(now);
+    date.setDate(now.getDate() + offset);
+    const dateValue = getTodayDateValue(date);
+
+    const commonGroups = intersectPickupSlotGroups(
+      restaurants.map((restaurant) => buildPickupSlotGroups({
+        openingHours: restaurant.opening_hours as any,
+        dateValue,
+        leadMinutes: getPickupLeadMinutes(restaurant),
+        now,
+      })),
+    );
+
+    if (commonGroups.some((group) => group.slots.length > 0)) {
+      return dateValue;
+    }
+  }
+
+  return getTodayDateValue(now);
 };
 
 export default function Panier() {
@@ -68,6 +178,7 @@ export default function Panier() {
   const [flexOption, setFlexOption] = useState<"express" | "standard" | "flex">("standard");
   const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [pickupTime, setPickupTime] = useState("");
+  const [pickupService, setPickupService] = useState<ServicePeriod | null>(null);
   const [deliveryScheduleMode, setDeliveryScheduleMode] = useState<DeliveryScheduleMode>("asap");
   const [deliveryDate, setDeliveryDate] = useState(() => getTodayDateValue());
   const [deliveryTime, setDeliveryTime] = useState("");
@@ -77,17 +188,25 @@ export default function Panier() {
   const hasAntiGaspi = items.some(item => item.metadata?.is_anti_waste);
   const antiGaspiItem = items.find(item => item.metadata?.is_anti_waste);
   const flashItems = items.filter(item => item.metadata?.is_flash_sale);
-  const hasTakeawayFlash = orderMode === "takeaway" && flashItems.length > 0;
+  const hasFlashSale = flashItems.length > 0;
   const flashTakeawayItem = flashItems[0];
-  const flashPickupDate = flashTakeawayItem?.metadata?.sale_date || null;
-  const flashPickupStart = flashTakeawayItem?.metadata?.sale_start || null;
-  const flashPickupEnd = flashTakeawayItem?.metadata?.sale_end || null;
+  const antiGaspiPickupDate = antiGaspiItem?.metadata?.available_date || antiGaspiItem?.metadata?.pickup_date || null;
+  const antiGaspiPickupStart = antiGaspiItem?.metadata?.pickup_start || antiGaspiItem?.metadata?.pickup_time || null;
+  const antiGaspiPickupEnd = antiGaspiItem?.metadata?.pickup_end || antiGaspiItem?.metadata?.pickup_time_end || null;
+  const flashPickupDate = flashTakeawayItem?.metadata?.sale_date || flashTakeawayItem?.metadata?.pickup_date || null;
+  const flashPickupStart = flashTakeawayItem?.metadata?.sale_start || flashTakeawayItem?.metadata?.pickup_time || null;
+  const flashPickupEnd = flashTakeawayItem?.metadata?.sale_end || flashTakeawayItem?.metadata?.pickup_time_end || null;
+  const hasOfferManagedPickup = hasAntiGaspi || hasFlashSale;
+  const fixedPickupDate = hasAntiGaspi ? antiGaspiPickupDate : hasFlashSale ? flashPickupDate : null;
+  const fixedPickupStart = hasAntiGaspi ? antiGaspiPickupStart : hasFlashSale ? flashPickupStart : null;
+  const fixedPickupEnd = hasAntiGaspi ? antiGaspiPickupEnd : hasFlashSale ? flashPickupEnd : null;
 
   const flexFees = { express: 2.50, standard: 1.00, flex: 0 };
   const deliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
   const canScheduleDelivery = orderMode === "delivery" && uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
+  const canSchedulePickup = orderMode === "takeaway" && !hasOfferManagedPickup && uniqueRestaurantIds.length > 0;
 
   const { data: profile } = useQuery({
     queryKey: ["profile-loyalty", user?.id],
@@ -110,6 +229,19 @@ export default function Panier() {
       return data;
     },
     enabled: canScheduleDelivery && !!restaurantId,
+  });
+
+  const { data: pickupRestaurants = [], isLoading: pickupRestaurantsLoading } = useQuery({
+    queryKey: ["cart-pickup-restaurants", [...uniqueRestaurantIds].sort()],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("id, name, opening_hours, avg_prep_time_min, supports_pickup")
+        .in("id", uniqueRestaurantIds);
+      if (error) throw error;
+      return (data || []) as PickupSchedulingRestaurant[];
+    },
+    enabled: canSchedulePickup,
   });
 
   const { data: restaurantPaymentConfig } = useQuery({
@@ -189,6 +321,43 @@ export default function Panier() {
     return formatScheduledDeliveryLabel(deliveryDate, deliveryTime);
   }, [deliveryDate, deliveryScheduleMode, deliveryTime]);
 
+  const firstAvailablePickupDate = useMemo(() => {
+    if (!canSchedulePickup || pickupRestaurants.length === 0) {
+      return getTodayDateValue();
+    }
+
+    return findFirstSharedPickupDate({
+      restaurants: pickupRestaurants,
+    });
+  }, [canSchedulePickup, pickupRestaurants]);
+
+  const pickupSlotGroups = useMemo(() => {
+    if (!canSchedulePickup || pickupRestaurants.length === 0) return [];
+
+    return intersectPickupSlotGroups(
+      pickupRestaurants.map((restaurant) => buildPickupSlotGroups({
+        openingHours: restaurant.opening_hours as any,
+        dateValue: pickupDate,
+        leadMinutes: getPickupLeadMinutes(restaurant),
+      })),
+    );
+  }, [canSchedulePickup, pickupDate, pickupRestaurants]);
+
+  const availablePickupSlots = useMemo(
+    () => pickupSlotGroups.flatMap((group) => group.slots),
+    [pickupSlotGroups],
+  );
+
+  const selectedPickupSlot = useMemo(
+    () => availablePickupSlots.find((slot) => slot.time === pickupTime && slot.service === pickupService) || null,
+    [availablePickupSlots, pickupService, pickupTime],
+  );
+
+  const scheduledPickupLabel = useMemo(() => {
+    if (!pickupDate || !selectedPickupSlot) return null;
+    return formatScheduledDeliveryLabel(pickupDate, selectedPickupSlot.time);
+  }, [pickupDate, selectedPickupSlot]);
+
   useEffect(() => {
     if (!canScheduleDelivery) {
       setDeliveryScheduleMode("asap");
@@ -217,6 +386,38 @@ export default function Panier() {
     deliveryScheduleMode,
     firstAvailableDeliveryDate,
     selectedDeliverySlot,
+  ]);
+
+  useEffect(() => {
+    if (!canSchedulePickup) {
+      if (!hasOfferManagedPickup) {
+        setPickupDate(getTodayDateValue());
+        setPickupTime("");
+        setPickupService(null);
+      }
+      return;
+    }
+
+    if (pickupRestaurantsLoading) return;
+
+    if (availablePickupSlots.length === 0 && pickupDate !== firstAvailablePickupDate) {
+      setPickupDate(firstAvailablePickupDate);
+      return;
+    }
+
+    if (!selectedPickupSlot) {
+      const firstSlot = availablePickupSlots[0];
+      setPickupTime(firstSlot?.time || "");
+      setPickupService(firstSlot?.service || null);
+    }
+  }, [
+    availablePickupSlots,
+    canSchedulePickup,
+    firstAvailablePickupDate,
+    hasOfferManagedPickup,
+    pickupDate,
+    pickupRestaurantsLoading,
+    selectedPickupSlot,
   ]);
 
   const pointsToRedeem = useLoyaltyPoints ? Math.min(pointsToRedeemInput, maxPointsRedeemable) : 0;
@@ -253,14 +454,15 @@ export default function Panier() {
     }
 
     trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
-    if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
-
-    const hasIncompatibleFlashMode = flashItems.some((item) => {
-      const canDelivery = item.metadata?.delivery_available !== false;
-      const canTakeaway = item.metadata?.takeaway_available !== false;
-      return orderMode === "delivery" ? !canDelivery : !canTakeaway;
-    });
-    if (hasIncompatibleFlashMode) return toast({ title: "Mode incompatible", description: "Certaines ventes flash du panier ne sont pas disponibles dans ce mode.", variant: "destructive" });
+    if (hasOfferManagedPickup && orderMode !== "takeaway") {
+      return toast({
+        title: "Mode incompatible",
+        description: hasAntiGaspi
+          ? "Les offres anti-gaspi et vente flash sont uniquement disponibles a l'emporter."
+          : "Les ventes flash sont uniquement disponibles a l'emporter.",
+        variant: "destructive",
+      });
+    }
 
     if (orderMode === "delivery") {
       if (!address.trim()) return toast({ title: "Adresse requise", variant: "destructive" });
@@ -287,8 +489,12 @@ export default function Panier() {
           });
         }
       }
-    } else if (!hasAntiGaspi && !hasTakeawayFlash && (!pickupDate || !pickupTime)) {
-      return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande." });
+    } else if (!hasOfferManagedPickup && (!pickupDate || !selectedPickupSlot)) {
+      return toast({
+        title: "Créneau requis",
+        variant: "destructive",
+        description: "Choisissez un créneau de retrait encore disponible pour ce restaurant.",
+      });
     }
 
     const itemsByRestaurant = items.reduce((acc, item) => {
@@ -347,7 +553,7 @@ export default function Panier() {
               restaurant_id: restaurantId,
               delivery_fee: deliveryFee,
               checkout_group_id: checkoutGroupId,
-              delivery_address: address,
+              delivery_address: orderMode === "delivery" ? address : "",
               delivery_city: deliveryCity || null,
               delivery_lat: deliverySelection?.latitude ?? null,
               delivery_lng: deliverySelection?.longitude ?? null,
@@ -402,7 +608,7 @@ export default function Panier() {
           const { data: validateResult, error: validateError } = await invokeSupabaseFunction<ValidateOrderResponse>("validate-order", {
             body: {
               restaurant_id: resId,
-              delivery_address: address,
+              delivery_address: orderMode === "delivery" ? address : "",
               delivery_fee: deliveryFeePerRestaurant,
               total_amount: resSubtotal - resDiscount - resPromoDiscount - resPointsDiscount - resFlexDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
               notes: notes || null,
@@ -478,7 +684,7 @@ export default function Panier() {
         const { data: validateResult, error: validateError } = await invokeSupabaseFunction<ValidateOrderResponse>("validate-order", {
           body: {
               restaurant_id: resId,
-              delivery_address: address,
+              delivery_address: orderMode === "delivery" ? address : "",
               delivery_fee: deliveryFeePerRestaurant,
               total_amount: resSubtotal - resDiscount - resPromoDiscount - resPointsDiscount - resFlexDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
               notes: notes || null,
@@ -549,8 +755,9 @@ export default function Panier() {
       ...cartMetadata,
       order_reference: orderReference,
       checkout_group_id: checkoutGroupId,
-      feature: hasAntiGaspi ? "anti-gaspi" : cartMetadata?.feature,
-      has_anti_gaspi: hasAntiGaspi, has_flash_sale: flashItems.length > 0,
+      type: orderMode === "takeaway" ? "pickup" : "delivery",
+      feature: hasAntiGaspi ? "anti-gaspi" : hasFlashSale ? "vente-flash" : cartMetadata?.feature,
+      has_anti_gaspi: hasAntiGaspi, has_flash_sale: hasFlashSale,
       quality_guarantee: !!qualityFeeAmount, quality_fee_amount: qualityFeeAmount,
       formula_applied: resDiscount > 0 ? formulaName : null,
       formula_discount_amount: resDiscount > 0 ? Number(resDiscount.toFixed(2)) : 0,
@@ -573,9 +780,11 @@ export default function Panier() {
       delivery_time: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? deliveryTime : null,
       delivery_service: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? deliveryService : null,
       scheduled_delivery_label: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? scheduledDeliveryLabel : null,
-      pickup_date: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupDate : pickupDate) : null,
-      pickup_time: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupStart : pickupTime) : null,
-      pickup_time_end: orderMode === "takeaway" && !hasAntiGaspi && hasTakeawayFlash ? flashPickupEnd : null,
+      pickup_date: orderMode === "takeaway" ? (fixedPickupDate || pickupDate) : null,
+      pickup_time: orderMode === "takeaway" ? (fixedPickupStart || selectedPickupSlot?.time || pickupTime) : null,
+      pickup_time_end: orderMode === "takeaway" ? (fixedPickupEnd || null) : null,
+      pickup_service: orderMode === "takeaway" ? (selectedPickupSlot?.service || null) : null,
+      scheduled_pickup_label: orderMode === "takeaway" && !hasOfferManagedPickup ? scheduledPickupLabel : null,
       flex_option: flexOption,
       flex_guarantee: flexOption === "express" ? "1% discount per minute delay" : flexOption === "standard" ? "1% discount per 2 minute delay" : "10% subtotal discount applied",
     };
@@ -730,7 +939,7 @@ export default function Panier() {
                     <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Créneau :</span><strong>{antiGaspiItem?.metadata?.pickup_start} - {antiGaspiItem?.metadata?.pickup_end}</strong></p>
                   </div>
                 </div>
-              ) : hasTakeawayFlash ? (
+              ) : hasFlashSale ? (
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2">
                   <div className="flex items-center gap-2 text-amber-600 font-bold"><Zap className="h-4 w-4" /><span>Retrait Vente Flash</span></div>
                   <div className="text-sm space-y-1">
@@ -740,16 +949,73 @@ export default function Panier() {
                   </div>
                 </div>
               ) : (
-                <>
-                  <div className="space-y-2">
-                    <Label>Date de retrait</Label>
-                    <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} required min={new Date().toISOString().split('T')[0]} className="w-full sm:w-48" />
+                <div className="space-y-4 rounded-2xl border bg-card/60 p-4">
+                  <div className="space-y-1">
+                    <Label>Retrait de la commande</Label>
+                    <p className="text-xs text-muted-foreground">
+                      {uniqueRestaurantIds.length > 1
+                        ? "Affichage des creneaux communs a tous les restaurants du panier."
+                        : "Les creneaux suivent les services actifs definis par le restaurateur."}
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <Label>Heure de retrait</Label>
-                    <Input type="time" value={pickupTime} onChange={(e) => setPickupTime(e.target.value)} required className="w-full sm:w-48" />
+                    <Label>Date souhaitee</Label>
+                    <Input
+                      type="date"
+                      value={pickupDate}
+                      onChange={(e) => setPickupDate(e.target.value)}
+                      required
+                      min={getTodayDateValue()}
+                      max={getMaxScheduledDateValue()}
+                      className="w-full sm:w-56"
+                    />
                   </div>
-                </>
+
+                  {pickupRestaurantsLoading ? (
+                    <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
+                      Recherche des creneaux de retrait disponibles...
+                    </div>
+                  ) : pickupSlotGroups.length > 0 ? (
+                    <div className="space-y-3">
+                      {pickupSlotGroups.map((group) => (
+                        <div key={group.service} className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Service {group.label}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {group.slots.map((slot) => (
+                              <button
+                                key={`${group.service}-${slot.time}`}
+                                type="button"
+                                onClick={() => {
+                                  setPickupTime(slot.time);
+                                  setPickupService(slot.service);
+                                }}
+                                className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                                  selectedPickupSlot?.time === slot.time && selectedPickupSlot?.service === slot.service
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-background hover:bg-muted/40"
+                                }`}
+                              >
+                                {slot.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
+                      Aucun creneau de retrait disponible a cette date. Essayez un autre jour de service.
+                    </div>
+                  )}
+
+                  {scheduledPickupLabel ? (
+                    <div className="rounded-xl bg-primary/5 p-3 text-sm">
+                      <span className="font-semibold">Retrait prevu :</span> {scheduledPickupLabel}
+                    </div>
+                  ) : null}
+                </div>
               )}
             </div>
           )}
@@ -769,6 +1035,9 @@ export default function Panier() {
           {orderMode === "delivery" && scheduledDeliveryLabel ? (
             <div className="flex justify-between text-sm text-muted-foreground"><span>Livraison planifiee</span><span>{scheduledDeliveryLabel}</span></div>
           ) : null}
+          {orderMode === "takeaway" && !hasOfferManagedPickup && scheduledPickupLabel ? (
+            <div className="flex justify-between text-sm text-muted-foreground"><span>Retrait prevu</span><span>{scheduledPickupLabel}</span></div>
+          ) : null}
           {pointsDiscount > 0 && <div className="flex justify-between text-sm font-medium text-pink-500"><span>Réduction Fidélité ({pointsToRedeem} pts)</span><span>-{pointsDiscount.toFixed(2)} CHF</span></div>}
           {flexDiscount > 0 && <div className="flex justify-between text-sm font-medium text-emerald-600"><span>Réduction Offres (10%)</span><span>-{flexDiscount.toFixed(2)} CHF</span></div>}
           <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span>{finalTotal.toFixed(2)} CHF</span></div>
@@ -783,7 +1052,7 @@ export default function Panier() {
         {orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
         <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} allowedMethods={allowedPaymentMethods} />
 
-        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading}>
+        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading || (canSchedulePickup && (pickupRestaurantsLoading || !selectedPickupSlot))}>
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

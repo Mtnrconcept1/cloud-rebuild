@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
@@ -82,6 +83,8 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: "Annulee",
 };
 
+const PICKUP_COMPLETED_BADGE_CLASS = "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
+
 function isDeliveryDashboardOrder(order: DashboardOrder) {
   const metadata = order.metadata || {};
   const explicitType = typeof metadata.type === "string" ? metadata.type.toLowerCase() : "";
@@ -92,6 +95,48 @@ function isDeliveryDashboardOrder(order: DashboardOrder) {
   if (!order.delivery_address) return false;
   if (feature === "zero-attente") return false;
   return !hasPickupTime;
+}
+
+function isOfferPickupDashboardOrder(order: DashboardOrder) {
+  return isAntiWasteDashboardOrder(order) || isFlashSaleDashboardOrder(order);
+}
+
+function formatPickupScheduleLabel(metadata: Record<string, unknown> | null | undefined) {
+  const safeMetadata = metadata || {};
+  const pickupDate = typeof safeMetadata.available_date === "string"
+    ? safeMetadata.available_date
+    : typeof safeMetadata.sale_date === "string"
+      ? safeMetadata.sale_date
+      : typeof safeMetadata.pickup_date === "string"
+        ? safeMetadata.pickup_date
+        : "";
+  const pickupStart = typeof safeMetadata.pickup_start === "string"
+    ? safeMetadata.pickup_start
+    : typeof safeMetadata.sale_start === "string"
+      ? safeMetadata.sale_start
+      : typeof safeMetadata.pickup_time === "string"
+        ? safeMetadata.pickup_time
+        : "";
+  const pickupEnd = typeof safeMetadata.pickup_end === "string"
+    ? safeMetadata.pickup_end
+    : typeof safeMetadata.sale_end === "string"
+      ? safeMetadata.sale_end
+      : typeof safeMetadata.pickup_time_end === "string"
+        ? safeMetadata.pickup_time_end
+        : "";
+
+  const parts: string[] = [];
+  if (pickupDate) {
+    const parsed = new Date(`${pickupDate}T12:00:00`);
+    parts.push(Number.isNaN(parsed.getTime())
+      ? pickupDate
+      : parsed.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }));
+  }
+  if (pickupStart || pickupEnd) {
+    parts.push(pickupEnd ? `${pickupStart || "--:--"} - ${pickupEnd}` : pickupStart);
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 function getStatusOptions(order: DashboardOrder) {
@@ -151,11 +196,12 @@ export default function DashboardCommandes() {
     return isStandardDashboardOrder(order);
   });
 
-  const updateStatus = async (orderId: string, status: string) => {
+  const updateStatus = async (order: DashboardOrder, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
+    const isOfferPickupOrder = isOfferPickupDashboardOrder(order);
     const { data, error } = await supabase.functions.invoke("restaurant-order-status", {
       body: {
-        order_id: orderId,
+        order_id: order.id,
         status: normalizedStatus,
       },
     });
@@ -204,7 +250,9 @@ export default function DashboardCommandes() {
       ? "Le statut est passe en preparation et les livreurs ont ete alertes."
       : dispatchState === "scheduled"
         ? "Le statut est passe en preparation. La recherche de livreur demarrera au bon creneau."
-        : `La commande est maintenant "${STATUS_LABELS[String(normalizedStatus)] || normalizedStatus}".`;
+        : isOfferPickupOrder && normalizedStatus === "delivered"
+          ? "L'offre a ete marquee comme retiree."
+          : `La commande est maintenant "${STATUS_LABELS[String(normalizedStatus)] || normalizedStatus}".`;
 
     toast({ title: "Statut mis a jour", description });
   };
@@ -248,16 +296,21 @@ export default function DashboardCommandes() {
               const customer = order.customer;
               const items = order.order_items ?? [];
               const customerPhone = customer?.phone ?? "";
-              const customerAddress = order.delivery_address ?? "Adresse non renseignee";
               const paymentMeta = (order.metadata || {}) as Record<string, any>;
               const isAntiWasteOrder = isAntiWasteDashboardOrder(order);
               const isFlashOrder = isFlashSaleDashboardOrder(order);
+              const isOfferPickupOrder = isAntiWasteOrder || isFlashOrder;
+              const normalizedOrderStatus = normalizeOrderStatus(order.status);
+              const customerAddress = isOfferPickupOrder
+                ? "Retrait au restaurant"
+                : order.delivery_address ?? "Adresse non renseignee";
               const orderCategoryLabel = isAntiWasteOrder
                 ? "Anti-gaspi"
                 : isFlashOrder
                   ? "Vente flash"
                   : null;
               const deliveryFlowStatus = String(order.dispatch_job?.status || tracking?.status || "");
+              const pickupScheduleLabel = isOfferPickupOrder ? formatPickupScheduleLabel(paymentMeta) : null;
               const scheduledLabel = typeof paymentMeta.scheduled_delivery_label === "string" ? paymentMeta.scheduled_delivery_label : "";
               const statusOptions = getStatusOptions(order);
               const deliveryLat = paymentMeta.delivery_lat != null && Number.isFinite(Number(paymentMeta.delivery_lat))
@@ -288,7 +341,13 @@ export default function DashboardCommandes() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="text-lg font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
-                        <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
+                        {isOfferPickupOrder && normalizedOrderStatus === "delivered" ? (
+                          <Badge variant="outline" className={`text-xs font-medium ${PICKUP_COMPLETED_BADGE_CLASS}`}>
+                            Offre retiree
+                          </Badge>
+                        ) : (
+                          <OrderStatusBadge status={normalizedOrderStatus} />
+                        )}
                         {orderCategoryLabel ? <Badge variant="secondary">{orderCategoryLabel}</Badge> : null}
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -318,18 +377,34 @@ export default function DashboardCommandes() {
                           ) : null}
                         </div>
                       </div>
-                      <Select value={normalizeOrderStatus(order.status)} onValueChange={(value) => updateStatus(order.id, value)}>
-                        <SelectTrigger className="h-10 w-40 shadow-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {STATUS_LABELS[status] || status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {isOfferPickupOrder ? (
+                        <Button
+                          type="button"
+                          className="h-10 shadow-sm"
+                          variant={normalizedOrderStatus === "delivered" ? "secondary" : "default"}
+                          disabled={normalizedOrderStatus === "delivered" || normalizedOrderStatus === "cancelled"}
+                          onClick={() => updateStatus(order, "delivered")}
+                        >
+                          {normalizedOrderStatus === "delivered"
+                            ? "Offre retiree"
+                            : normalizedOrderStatus === "cancelled"
+                              ? "Commande annulee"
+                              : "Marquer retiree"}
+                        </Button>
+                      ) : (
+                        <Select value={normalizedOrderStatus} onValueChange={(value) => updateStatus(order, value)}>
+                          <SelectTrigger className="h-10 w-40 shadow-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statusOptions.map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {STATUS_LABELS[status] || status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                   </div>
 
@@ -352,6 +427,7 @@ export default function DashboardCommandes() {
                             <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
                             {customerAddress}
                           </div>
+                          {pickupScheduleLabel ? <div className="text-xs text-muted-foreground">Retrait prevu : {pickupScheduleLabel}</div> : null}
                           {scheduledLabel ? <div className="text-xs text-muted-foreground">Livraison planifiee : {scheduledLabel}</div> : null}
                         </div>
                       </div>

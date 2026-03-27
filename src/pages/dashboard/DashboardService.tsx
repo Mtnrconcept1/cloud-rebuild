@@ -31,12 +31,12 @@ const SERVICE_PERIODS: Array<{
   {
     key: "lunch",
     icon: SunMedium,
-    description: "Parametres de reservation et capacite pour le service du midi.",
+    description: "Parametres de reservation, retraits et capacite pour le service du midi.",
   },
   {
     key: "dinner",
     icon: MoonStar,
-    description: "Parametres de reservation et capacite pour le service du soir.",
+    description: "Parametres de reservation, retraits et capacite pour le service du soir.",
   },
 ];
 
@@ -142,7 +142,7 @@ export default function DashboardService() {
             <h1 className="font-display text-3xl font-bold">Pilotage de service</h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Scindez distinctement le service du midi et le service du soir pour les reservations.
+            Scindez distinctement le service du midi et le service du soir pour les reservations et les retraits client.
           </p>
         </div>
 
@@ -289,7 +289,7 @@ export default function DashboardService() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-              La livraison est desactivee par l'administration globale. Le pilotage reste centre sur les services de reservation.
+              La livraison est desactivee par l'administration globale. Le pilotage reste centre sur les services de reservation et de retrait.
             </CardContent>
           </Card>
         )}
@@ -302,8 +302,8 @@ export default function DashboardService() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-1">
-            <p>Le split midi/soir est maintenant partage avec le module de reservation client.</p>
-            <p>La capacite, les plages horaires et l'ouverture en ligne sont gerees separément par service.</p>
+            <p>Le split midi/soir est maintenant partage avec les reservations et les commandes a emporter.</p>
+            <p>La capacite, les plages horaires et l'ouverture en ligne sont gerees separement par service.</p>
           </CardContent>
         </Card>
 

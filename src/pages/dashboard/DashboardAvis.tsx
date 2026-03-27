@@ -32,6 +32,8 @@ type ReviewItem = {
   restaurants?: { name: string } | null;
 };
 
+const EMPTY_REVIEW_ITEMS: ReviewItem[] = [];
+
 export default function DashboardAvis() {
   const { toast } = useToast();
   const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
@@ -39,7 +41,7 @@ export default function DashboardAvis() {
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const {
-    data: items = [],
+    data: items = EMPTY_REVIEW_ITEMS,
     isLoading,
     error,
     refetch,
@@ -65,7 +67,15 @@ export default function DashboardAvis() {
     items.forEach((item) => {
       nextDrafts[item.id] = item.review_replies?.[0]?.reply_text || "";
     });
-    setReplyDrafts(nextDrafts);
+    setReplyDrafts((current) => {
+      const currentKeys = Object.keys(current);
+      const nextKeys = Object.keys(nextDrafts);
+      const hasSameValues =
+        currentKeys.length === nextKeys.length &&
+        nextKeys.every((key) => current[key] === nextDrafts[key]);
+
+      return hasSameValues ? current : nextDrafts;
+    });
   }, [items]);
 
   const handleSaveReply = async (reviewId: string) => {
@@ -76,6 +86,7 @@ export default function DashboardAvis() {
     }
 
     setSavingId(reviewId);
+    setReplyDrafts((current) => ({ ...current, [reviewId]: replyText }));
     const { error: replyError } = await (supabase.rpc as any)("upsert_review_reply", {
       p_review_id: reviewId,
       p_reply_text: replyText,

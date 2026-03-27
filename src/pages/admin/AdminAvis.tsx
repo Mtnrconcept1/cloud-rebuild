@@ -120,20 +120,19 @@ export default function AdminAvis() {
 
     setSavingReplyId(review.id);
     const existingReply = review.review_replies?.[0];
-
-    const response = existingReply
-      ? await supabase.from("review_replies").update({ reply_text: replyText, author_type: "admin" }).eq("id", existingReply.id)
-      : await supabase.from("review_replies").insert({
-          review_id: review.id,
-          author_id: user.id,
-          author_type: "admin",
-          reply_text: replyText,
-        });
+    setReplyDrafts((current) => ({
+      ...current,
+      [review.id]: replyText,
+    }));
+    const { error: responseError } = await (supabase.rpc as any)("upsert_review_reply", {
+      p_review_id: review.id,
+      p_reply_text: replyText,
+    });
 
     setSavingReplyId(null);
 
-    if (response.error) {
-      toast({ title: "Erreur", description: response.error.message, variant: "destructive" });
+    if (responseError) {
+      toast({ title: "Erreur", description: responseError.message, variant: "destructive" });
       return;
     }
 

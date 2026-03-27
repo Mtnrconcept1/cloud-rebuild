@@ -19,6 +19,9 @@ export type DeliverySlotGroup = {
   slots: DeliverySlot[];
 };
 
+export type PickupSlot = DeliverySlot;
+export type PickupSlotGroup = DeliverySlotGroup;
+
 const DAY_KEYS = [
   "dimanche",
   "lundi",
@@ -85,7 +88,7 @@ export const isRestaurantOpenOnDate = (openingHours: Json | null | undefined, da
   return true;
 };
 
-export const buildDeliverySlotGroups = ({
+const buildServiceSlotGroups = ({
   openingHours,
   dateValue,
   leadMinutes,
@@ -152,7 +155,23 @@ export const buildDeliverySlotGroups = ({
     });
 };
 
-export const findFirstAvailableDeliveryDate = ({
+export const buildDeliverySlotGroups = (input: {
+  openingHours: Json | null | undefined;
+  dateValue: string;
+  leadMinutes: number;
+  now?: Date;
+  stepMinutes?: number;
+}) => buildServiceSlotGroups(input);
+
+export const buildPickupSlotGroups = (input: {
+  openingHours: Json | null | undefined;
+  dateValue: string;
+  leadMinutes: number;
+  now?: Date;
+  stepMinutes?: number;
+}) => buildServiceSlotGroups(input);
+
+const findFirstAvailableServiceDate = ({
   openingHours,
   leadMinutes,
   maxDaysAhead = 7,
@@ -167,7 +186,7 @@ export const findFirstAvailableDeliveryDate = ({
     const date = new Date(now);
     date.setDate(now.getDate() + offset);
     const dateValue = toDateInputValue(date);
-    const slots = buildDeliverySlotGroups({
+    const slots = buildServiceSlotGroups({
       openingHours,
       dateValue,
       leadMinutes,
@@ -180,6 +199,20 @@ export const findFirstAvailableDeliveryDate = ({
 
   return getTodayDateValue(now);
 };
+
+export const findFirstAvailableDeliveryDate = (input: {
+  openingHours: Json | null | undefined;
+  leadMinutes: number;
+  maxDaysAhead?: number;
+  now?: Date;
+}) => findFirstAvailableServiceDate(input);
+
+export const findFirstAvailablePickupDate = (input: {
+  openingHours: Json | null | undefined;
+  leadMinutes: number;
+  maxDaysAhead?: number;
+  now?: Date;
+}) => findFirstAvailableServiceDate(input);
 
 export const formatScheduledDeliveryLabel = (dateValue: string, time: string) => {
   const date = new Date(`${dateValue}T12:00:00`);

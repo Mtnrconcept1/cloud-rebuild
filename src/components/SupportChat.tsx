@@ -28,7 +28,7 @@ export default function SupportChat() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")
-        .select("id, subject, category, priority, status, description, created_at, updated_at, support_messages(id, content, created_at, sender_id, sender_role)")
+        .select("id, subject, category, priority, status, description, created_at, updated_at, support_messages(id, content, created_at, sender_id)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;

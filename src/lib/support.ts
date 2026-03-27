@@ -21,6 +21,19 @@ export type SupportMessageRow = {
   sender_role?: string | null;
 };
 
+type SupabaseLikeError = {
+  message?: string;
+  details?: string | null;
+  hint?: string | null;
+};
+
+export function isSupabaseMissingColumnError(error: SupabaseLikeError | null | undefined, column: string) {
+  if (!error) return false;
+
+  const details = `${error.message || ""} ${error.details || ""} ${error.hint || ""}`.toLowerCase();
+  return details.includes(column.toLowerCase()) && (details.includes("column") || details.includes("schema cache"));
+}
+
 export async function createSupportTicket(input: {
   subject: string;
   description: string;
@@ -34,35 +47,50 @@ export async function createSupportTicket(input: {
     throw new Error("Authentification requise");
   }
 
-  const { data: ticket, error: ticketError } = await supabase
+  const ticketPayload: Record<string, unknown> = {
+    user_id: userData.user.id,
+    subject: input.subject,
+    description: input.description,
+    category: input.category,
+    priority: input.priority || "medium",
+  };
+
+  if (input.restaurantId) {
+    ticketPayload.restaurant_id = input.restaurantId;
+  }
+
+  let ticketResponse = await supabase
     .from("support_tickets")
-    .insert({
-      user_id: userData.user.id,
-      subject: input.subject,
-      description: input.description,
-      category: input.category,
-      priority: input.priority || "medium",
-      restaurant_id: input.restaurantId || null,
-      source: input.source || "web",
-    } as any)
+    .insert(ticketPayload as any)
     .select("id")
     .single();
 
-  if (ticketError) throw ticketError;
+  if (
+    ticketResponse.error &&
+    "restaurant_id" in ticketPayload &&
+    isSupabaseMissingColumnError(ticketResponse.error, "restaurant_id")
+  ) {
+    delete ticketPayload.restaurant_id;
+    ticketResponse = await supabase
+      .from("support_tickets")
+      .insert(ticketPayload as any)
+      .select("id")
+      .single();
+  }
+
+  if (ticketResponse.error) throw ticketResponse.error;
 
   const { error: messageError } = await supabase
     .from("support_messages")
     .insert({
-      ticket_id: ticket.id,
+      ticket_id: ticketResponse.data.id,
       sender_id: userData.user.id,
-      sender_role: "customer",
       content: input.description,
-      is_internal: false,
     } as any);
 
   if (messageError) throw messageError;
 
-  return ticket.id as string;
+  return ticketResponse.data.id as string;
 }
 
 export async function appendSupportMessage(ticketId: string, content: string) {
@@ -76,9 +104,7 @@ export async function appendSupportMessage(ticketId: string, content: string) {
     .insert({
       ticket_id: ticketId,
       sender_id: userData.user.id,
-      sender_role: "customer",
       content,
-      is_internal: false,
     } as any);
 
   if (error) throw error;

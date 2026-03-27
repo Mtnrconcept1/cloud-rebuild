@@ -408,7 +408,19 @@ export default function RestaurantDetail() {
                                   price: Number(sale.discounted_price),
                                   restaurantId: id!,
                                   restaurantName: restaurant.name,
-                                  metadata: { is_flash_sale: true, flash_sale_id: sale.id, delivery_available: deliveryEnabled && !!sale.delivery_available, takeaway_available: !!sale.takeaway_available },
+                                  metadata: {
+                                    is_flash_sale: true,
+                                    flash_sale_id: sale.id,
+                                    sale_date: sale.sale_date,
+                                    sale_start: sale.sale_start,
+                                    sale_end: sale.sale_end,
+                                    pickup_date: sale.sale_date,
+                                    pickup_time: sale.sale_start,
+                                    pickup_time_end: sale.sale_end,
+                                    delivery_available: false,
+                                    takeaway_available: true,
+                                    type: "pickup",
+                                  },
                                 });
                                 toast({ title: "Vente flash ajoutée !", description: `${sale.title} — ${Number(sale.discounted_price).toFixed(2)} CHF` });
                               }}

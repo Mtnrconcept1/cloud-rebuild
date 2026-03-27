@@ -25,12 +25,14 @@ import {
   TrendingUp,
   User,
   Users,
+  Zap,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { LOGO_URL } from "@/lib/constants";
+import { buildCustomerOrdersHref, CUSTOMER_ORDERS_VIEWS } from "@/lib/customerOrders";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -368,6 +370,16 @@ export default function Navbar() {
                     <Link to="/commandes">Mes commandes</Link>
                   </DropdownMenuItem>
                 ) : null}
+                {activeFeatures.has("commandes") && antiWasteEnabled ? (
+                  <DropdownMenuItem asChild>
+                    <Link to={buildCustomerOrdersHref({ view: CUSTOMER_ORDERS_VIEWS.antiWaste })}>Mes commandes anti-gaspi</Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {activeFeatures.has("commandes") && flashSalesEnabled ? (
+                  <DropdownMenuItem asChild>
+                    <Link to={buildCustomerOrdersHref({ view: CUSTOMER_ORDERS_VIEWS.flash })}>Mes commandes flash</Link>
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem asChild>
                   <Link to="/reservations">Mes reservations</Link>
                 </DropdownMenuItem>
@@ -493,6 +505,18 @@ export default function Navbar() {
                       <Link to="/commandes" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                         <ShoppingBag className="h-4 w-4" />
                         Mes commandes
+                      </Link>
+                    ) : null}
+                    {activeFeatures.has("commandes") && antiWasteEnabled ? (
+                      <Link to={buildCustomerOrdersHref({ view: CUSTOMER_ORDERS_VIEWS.antiWaste })} className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                        <Leaf className="h-4 w-4" />
+                        Mes commandes anti-gaspi
+                      </Link>
+                    ) : null}
+                    {activeFeatures.has("commandes") && flashSalesEnabled ? (
+                      <Link to={buildCustomerOrdersHref({ view: CUSTOMER_ORDERS_VIEWS.flash })} className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                        <Zap className="h-4 w-4" />
+                        Mes commandes flash
                       </Link>
                     ) : null}
                     {(roles.includes("restaurateur") || roles.includes("admin")) ? (
