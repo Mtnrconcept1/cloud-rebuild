@@ -1,18 +1,30 @@
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useToast } from "@/hooks/use-toast";
 
-interface ReviewFormProps { restaurantId: string; onSuccess: () => void; }
-interface RatingSliderProps { label: string; value: number; onChange: (value: number) => void; }
+interface ReviewFormProps {
+  restaurantId: string;
+  onSuccess: () => void;
+}
+
+interface RatingSliderProps {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}
 
 function RatingSlider({ label, value, onChange }: RatingSliderProps) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between"><span className="text-sm font-medium">{label}</span><span className="text-sm font-bold text-primary">{value}/10</span></div>
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-sm font-bold text-primary">{value}/10</span>
+      </div>
       <Slider min={1} max={10} step={1} value={[value]} onValueChange={(values) => onChange(values[0] || 1)} />
     </div>
   );
@@ -28,29 +40,57 @@ export default function ReviewForm({ restaurantId, onSuccess }: ReviewFormProps)
   const [loading, setLoading] = useState(false);
   const overallRating = Math.round((serviceRating + qualityRating + speedRating) / 3);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!user) return;
+
     setLoading(true);
-    const { error } = await supabase.from("reviews").insert({ restaurant_id: restaurantId, user_id: user.id, rating: overallRating, service_rating: serviceRating, quality_rating: qualityRating, speed_rating: speedRating, comment: comment || null });
+    const { error } = await (supabase.rpc as any)("submit_verified_review", {
+      p_restaurant_id: restaurantId,
+      p_rating: overallRating,
+      p_service_rating: serviceRating,
+      p_quality_rating: qualityRating,
+      p_speed_rating: speedRating,
+      p_comment: comment || null,
+      p_tags: [],
+      p_reservation_id: null,
+    });
     setLoading(false);
-    if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+
     toast({ title: "Avis publié !" });
-    setServiceRating(8); setQualityRating(8); setSpeedRating(8); setComment(""); onSuccess();
+    setServiceRating(8);
+    setQualityRating(8);
+    setSpeedRating(8);
+    setComment("");
+    onSuccess();
   };
 
   if (!user) return null;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 p-4 border rounded-xl bg-card">
-      <h4 className="font-semibold text-sm">Laisser un avis</h4>
-      <div className="rounded-lg border p-3 space-y-3 bg-secondary/20">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border bg-card p-4">
+      <h4 className="text-sm font-semibold">Laisser un avis</h4>
+      <div className="space-y-3 rounded-lg border bg-secondary/20 p-3">
         <RatingSlider label="Service" value={serviceRating} onChange={setServiceRating} />
         <RatingSlider label="Qualité" value={qualityRating} onChange={setQualityRating} />
         <RatingSlider label="Rapidité" value={speedRating} onChange={setSpeedRating} />
       </div>
-      <div className="flex items-center justify-between rounded-lg border px-3 py-2 bg-primary/5"><span className="text-sm font-medium">Note globale</span><span className="font-bold text-primary text-lg">{overallRating}/10</span></div>
-      <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Votre commentaire..." />
-      <Button type="submit" size="sm" disabled={loading}>{loading ? "Envoi..." : "Publier"}</Button>
+      <p className="text-xs text-muted-foreground">
+        Les avis sont réservés aux visites effectivement honorées et vérifiées côté serveur.
+      </p>
+      <div className="flex items-center justify-between rounded-lg border bg-primary/5 px-3 py-2">
+        <span className="text-sm font-medium">Note globale</span>
+        <span className="text-lg font-bold text-primary">{overallRating}/10</span>
+      </div>
+      <Textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Votre commentaire..." />
+      <Button type="submit" size="sm" disabled={loading}>
+        {loading ? "Envoi..." : "Publier"}
+      </Button>
     </form>
   );
 }

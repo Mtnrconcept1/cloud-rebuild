@@ -1,15 +1,21 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
 import DashboardLayout from "@/components/DashboardLayout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
+
+type ReviewReply = {
+  id: string;
+  reply_text: string;
+  created_at: string;
+};
 
 type ReviewItem = {
   id: string;
@@ -20,139 +26,146 @@ type ReviewItem = {
   speed_rating: number;
   created_at: string;
   restaurant_id: string;
-};
-
-const initialForm = {
-  restaurant_id: "",
-  comment: "",
-  rating: "5",
+  verification_status?: string | null;
+  confidence_score?: number | null;
+  review_replies?: ReviewReply[] | null;
+  restaurants?: { name: string } | null;
 };
 
 export default function DashboardAvis() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
-  const [items, setItems] = useState<ReviewItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState(initialForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
 
-  const loadReviews = async () => {
-    if (!restaurantIds.length) {
-      setItems([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    const { data, error: queryError } = await supabase
-      .from("reviews")
-      .select("id, comment, rating, quality_rating, service_rating, speed_rating, created_at, restaurant_id")
-      .in("restaurant_id", restaurantIds)
-      .order("created_at", { ascending: false });
-    if (queryError) setError(queryError.message);
-    else setItems((data || []) as ReviewItem[]);
-    setLoading(false);
-  };
+  const {
+    data: items = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["dashboard-owner-reviews", restaurantIds],
+    queryFn: async () => {
+      if (!restaurantIds.length) return [] as ReviewItem[];
+
+      const { data, error: queryError } = await supabase
+        .from("reviews")
+        .select("id, comment, rating, quality_rating, service_rating, speed_rating, created_at, restaurant_id, verification_status, confidence_score, restaurants(name), review_replies(id, reply_text, created_at)")
+        .in("restaurant_id", restaurantIds)
+        .order("created_at", { ascending: false });
+
+      if (queryError) throw queryError;
+      return (data || []) as ReviewItem[];
+    },
+    enabled: !loadingRestaurants,
+  });
 
   useEffect(() => {
-    if (!loadingRestaurants) {
-      if (!form.restaurant_id && restaurants[0]?.id) {
-        setForm((prev) => ({ ...prev, restaurant_id: restaurants[0].id }));
-      }
-      loadReviews();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadingRestaurants, restaurantIds.join(",")]);
+    const nextDrafts: Record<string, string> = {};
+    items.forEach((item) => {
+      nextDrafts[item.id] = item.review_replies?.[0]?.reply_text || "";
+    });
+    setReplyDrafts(nextDrafts);
+  }, [items]);
 
-  const validate = () => {
-    const rating = Number(form.rating);
-    if (!form.restaurant_id) return "Sélectionnez un restaurant.";
-    if (!form.comment.trim()) return "Le commentaire est requis.";
-    if (!Number.isFinite(rating) || rating < 1 || rating > 5) return "La note doit être comprise entre 1 et 5.";
-    return null;
-  };
-
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    const validationError = validate();
-    if (validationError) {
-      toast({ title: "Validation", description: validationError, variant: "destructive" });
+  const handleSaveReply = async (reviewId: string) => {
+    const replyText = (replyDrafts[reviewId] || "").trim();
+    if (!replyText) {
+      toast({ title: "Validation", description: "La réponse ne peut pas être vide.", variant: "destructive" });
       return;
     }
-    const rating = Number(form.rating);
-    const payload = { restaurant_id: form.restaurant_id, comment: form.comment.trim(), rating, quality_rating: rating, service_rating: rating, speed_rating: rating, user_id: user!.id };
-    const query = editingId ? supabase.from("reviews").update(payload).eq("id", editingId) : supabase.from("reviews").insert(payload);
-    const { error: mutationError } = await query;
-    if (mutationError) { toast({ title: "Erreur", description: mutationError.message, variant: "destructive" }); return; }
-    toast({ title: editingId ? "Avis mis à jour" : "Avis créé" });
-    setForm({ ...initialForm, restaurant_id: restaurants[0]?.id || "" });
-    setEditingId(null);
-    loadReviews();
-  };
 
-  const startEdit = (review: ReviewItem) => {
-    setEditingId(review.id);
-    setForm({ restaurant_id: review.restaurant_id, comment: review.comment || "", rating: String(review.rating) });
-  };
+    setSavingId(reviewId);
+    const { error: replyError } = await (supabase.rpc as any)("upsert_review_reply", {
+      p_review_id: reviewId,
+      p_reply_text: replyText,
+    });
+    setSavingId(null);
 
-  const remove = async (id: string) => {
-    const { error: deleteError } = await supabase.from("reviews").delete().eq("id", id);
-    if (deleteError) { toast({ title: "Erreur", description: deleteError.message, variant: "destructive" }); return; }
-    toast({ title: "Avis supprimé" });
-    loadReviews();
+    if (replyError) {
+      toast({ title: "Erreur", description: replyError.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Réponse enregistrée" });
+    refetch();
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-3xl font-bold">Avis clients</h1>
-        <Card>
-          <CardHeader><CardTitle>{editingId ? "Modifier un avis" : "Créer un avis test"}</CardTitle></CardHeader>
-          <CardContent>
-            <form className="grid gap-3 md:grid-cols-2" onSubmit={onSubmit}>
-              <div className="space-y-1 md:col-span-1">
-                <Label>Restaurant</Label>
-                <select className="w-full rounded-md border bg-background px-3 py-2 text-sm" value={form.restaurant_id} onChange={(e) => setForm((prev) => ({ ...prev, restaurant_id: e.target.value }))}>
-                  <option value="">Sélectionner</option>
-                  {restaurants.map((restaurant) => (<option key={restaurant.id} value={restaurant.id}>{restaurant.name}</option>))}
-                </select>
-              </div>
-              <div className="space-y-1 md:col-span-1">
-                <Label>Note (1-5)</Label>
-                <Input value={form.rating} onChange={(e) => setForm((prev) => ({ ...prev, rating: e.target.value }))} />
-              </div>
-              <div className="space-y-1 md:col-span-2">
-                <Label>Commentaire</Label>
-                <Textarea value={form.comment} onChange={(e) => setForm((prev) => ({ ...prev, comment: e.target.value }))} />
-              </div>
-              <div className="flex gap-2 md:col-span-2">
-                <Button type="submit">{editingId ? "Mettre à jour" : "Créer"}</Button>
-                {editingId && <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm({ ...initialForm, restaurant_id: restaurants[0]?.id || "" }); }}>Annuler</Button>}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-        {loadingRestaurants || loading ? <p>Chargement...</p> : null}
-        {restaurantError || error ? <p className="text-destructive">Erreur: {restaurantError || error}</p> : null}
-        {!loading && !restaurantError && !error && !items.length ? <p>Aucun avis disponible.</p> : null}
+        <div className="space-y-2">
+          <h1 className="font-display text-3xl font-bold">Avis clients</h1>
+          <p className="text-sm text-muted-foreground">
+            Les avis sont désormais rattachés à des visites vérifiées. Cet écran est réservé à la lecture et aux réponses officielles.
+          </p>
+        </div>
+
+        {loadingRestaurants || isLoading ? <p>Chargement...</p> : null}
+        {restaurantError ? <p className="text-destructive">Erreur: {restaurantError}</p> : null}
+        {error ? <p className="text-destructive">Erreur: {(error as Error).message}</p> : null}
+        {!loadingRestaurants && !isLoading && !error && items.length === 0 ? <p>Aucun avis disponible.</p> : null}
+
         <div className="grid gap-3">
-          {items.map((review) => (
-            <Card key={review.id}>
-              <CardContent className="pt-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <Badge>{review.rating}/5</Badge>
-                  <span className="text-xs text-muted-foreground">{new Date(review.created_at).toLocaleString()}</span>
-                </div>
-                <p className="text-sm">{review.comment || "Aucun commentaire"}</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => startEdit(review)}>Éditer</Button>
-                  <Button variant="destructive" size="sm" onClick={() => remove(review.id)}>Supprimer</Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {items.map((review) => {
+            const existingReply = review.review_replies?.[0] || null;
+            const confidence = Number(review.confidence_score || 0);
+
+            return (
+              <Card key={review.id}>
+                <CardHeader className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <CardTitle className="text-base">{review.restaurants?.name || restaurants.find((item) => item.id === review.restaurant_id)?.name || "Restaurant"}</CardTitle>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(review.created_at).toLocaleString("fr-FR")}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge>{review.rating}/5</Badge>
+                      <Badge variant="outline">
+                        {review.verification_status === "verified" ? "Visite vérifiée" : "Non vérifié"}
+                      </Badge>
+                      <Badge variant="secondary">
+                        Confiance {Math.round(confidence * 100)}%
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-2 text-sm sm:grid-cols-3">
+                    <div className="rounded-lg border px-3 py-2">Service: {review.service_rating}/5</div>
+                    <div className="rounded-lg border px-3 py-2">Qualité: {review.quality_rating}/5</div>
+                    <div className="rounded-lg border px-3 py-2">Rapidité: {review.speed_rating}/5</div>
+                  </div>
+
+                  <div className="rounded-lg border bg-secondary/20 px-3 py-3 text-sm">
+                    {review.comment || "Aucun commentaire"}
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Réponse officielle
+                    </p>
+                    <Textarea
+                      value={replyDrafts[review.id] || ""}
+                      onChange={(event) => setReplyDrafts((current) => ({ ...current, [review.id]: event.target.value }))}
+                      placeholder="Répondez à cet avis en tant que restaurant..."
+                      rows={4}
+                    />
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs text-muted-foreground">
+                        {existingReply ? `Dernière réponse le ${new Date(existingReply.created_at).toLocaleString("fr-FR")}` : "Aucune réponse publiée pour l'instant."}
+                      </p>
+                      <Button size="sm" onClick={() => handleSaveReply(review.id)} disabled={savingId === review.id}>
+                        {savingId === review.id ? "Enregistrement..." : existingReply ? "Mettre à jour" : "Publier la réponse"}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </DashboardLayout>

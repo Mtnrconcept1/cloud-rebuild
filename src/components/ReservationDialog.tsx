@@ -21,7 +21,12 @@ import { useAuth } from "@/lib/auth";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
-import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
+import {
+  createReservationHold,
+  fetchReservationAvailability,
+  normalizeReservationTime,
+} from "@/lib/reservations";
+import { detectServiceFromTime } from "@/lib/serviceSettings";
 
 interface ReservationDialogProps {
   restaurantId: string;
@@ -142,15 +147,34 @@ export default function ReservationDialog({
     enabled: open && !!restaurantId,
   });
 
-  const { data: restaurantSettings } = useQuery({
-    queryKey: ["restaurant-service-settings", restaurantId],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("restaurants").select("opening_hours").eq("id", restaurantId).maybeSingle();
-      if (error) throw error;
-      return getServiceSettings(data?.opening_hours);
-    },
-    enabled: open && !!restaurantId,
+  const availabilityDateKey = date ? format(date, "yyyy-MM-dd") : null;
+
+  const { data: availability = [], isLoading: availabilityLoading } = useQuery({
+    queryKey: ["reservation-availability-dialog", restaurantId, availabilityDateKey, partySize],
+    queryFn: async () => fetchReservationAvailability({
+      restaurantId,
+      date: date!,
+      partySize,
+      channel: "web",
+    }),
+    enabled: open && !!restaurantId && !!date,
   });
+
+  const selectedAvailability =
+    availability.find((slot) => normalizeReservationTime(slot.slot_time) === normalizeReservationTime(time)) || null;
+
+  useEffect(() => {
+    if (!availability.length) return;
+    const selectedExists = availability.some(
+      (slot) => normalizeReservationTime(slot.slot_time) === normalizeReservationTime(time) && slot.available,
+    );
+    if (selectedExists) return;
+
+    const firstAvailable = availability.find((slot) => slot.available);
+    if (firstAvailable) {
+      setTime(normalizeReservationTime(firstAvailable.slot_time));
+    }
+  }, [availability, time]);
 
   useEffect(() => {
     if (!selectedPromo) return;
@@ -161,20 +185,8 @@ export default function ReservationDialog({
 
   const handleSubmit = async () => {
     if (!user || !date) return;
-
-    const settingsMap = restaurantSettings || getServiceSettings(null);
     const servicePeriod = detectServiceFromTime(time);
-    const serviceSettings = settingsMap[servicePeriod];
-
-    if (!serviceSettings.online_booking_enabled || serviceSettings.service_closed) {
-      toast({ title: "Reservations indisponibles", variant: "destructive" });
-      return;
-    }
-    if (partySize < serviceSettings.min_party_size || partySize > serviceSettings.max_party_size) {
-      toast({ title: "Nombre de convives invalide", variant: "destructive" });
-      return;
-    }
-    if (!isTimeWithinService(time, serviceSettings)) {
+    if (!selectedAvailability?.available) {
       toast({ title: "Horaire indisponible", variant: "destructive" });
       return;
     }
@@ -193,7 +205,42 @@ export default function ReservationDialog({
       ? `[FORMULE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
       : "[A la carte] ";
 
-    const { data: reservationId, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
+    let holdId: string | null = null;
+
+    try {
+      holdId = await createReservationHold({
+        restaurantId,
+        date,
+        time,
+        partySize,
+        metadata: reservationMetadata,
+        sourceChannel: "web",
+      });
+    } catch (holdError) {
+      setLoading(false);
+      toast({
+        title: "Erreur",
+        description: holdError instanceof Error ? holdError.message : "Impossible de bloquer ce créneau.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!holdId) {
+      await queryClient.invalidateQueries({
+        queryKey: ["reservation-availability-dialog", restaurantId, availabilityDateKey, partySize],
+      });
+      setLoading(false);
+      toast({
+        title: "Créneau mis à jour",
+        description: "Ce créneau vient d'être pris. Les disponibilités en temps réel ont été rechargées.",
+        variant: "destructive",
+      });
+      setStep("datetime");
+      return;
+    }
+
+    const { data: reservationId, error } = await (supabase.rpc as any)("confirm_reservation", {
       p_restaurant_id: restaurantId,
       p_date: format(date, "yyyy-MM-dd"),
       p_time: time,
@@ -201,6 +248,8 @@ export default function ReservationDialog({
       p_feature: hasFormula ? "promo-formule" : "classique",
       p_metadata: reservationMetadata,
       p_notes: offerPrefix + (notes || ""),
+      p_hold_id: holdId,
+      p_source_channel: "web",
     });
 
     setLoading(false);
@@ -239,7 +288,15 @@ export default function ReservationDialog({
       notes: offerPrefix + (notes || ""),
       total_amount: 0,
       created_at: new Date().toISOString(),
-      metadata: reservationMetadata,
+      metadata: {
+        ...reservationMetadata,
+        guarantee_policy: {
+          requires_guarantee: selectedAvailability?.requires_guarantee || false,
+          requires_deposit: selectedAvailability?.requires_deposit || false,
+          deposit_amount: selectedAvailability?.deposit_amount || 0,
+          no_show_fee: selectedAvailability?.no_show_fee || 0,
+        },
+      },
       preorder_items: [],
       restaurant_name: restaurantName,
     });
@@ -324,21 +381,71 @@ export default function ReservationDialog({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1.5">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      Heure
-                    </Label>
-                    <Input type="time" value={time} onChange={(event) => setTime(event.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       Convives
                     </Label>
                     <Input type="number" min={1} max={20} value={partySize} onChange={(event) => setPartySize(Number(event.target.value))} />
                   </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      Heure
+                    </Label>
+                    <div className="rounded-lg border px-3 py-2 text-sm font-medium">
+                      {normalizeReservationTime(time) || "--:--"}
+                    </div>
+                  </div>
                 </div>
 
-                <Button onClick={() => setStep(zeroWaitEnabled ? "mode" : "promo")} disabled={!date} className="w-full gap-2">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    CrÃ©neaux disponibles
+                  </Label>
+                  {!date ? (
+                    <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                      Choisissez une date pour charger les crÃ©neaux disponibles.
+                    </div>
+                  ) : availabilityLoading ? (
+                    <div className="flex items-center justify-center rounded-xl border p-4 text-sm text-muted-foreground">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Chargement des crÃ©neaux...
+                    </div>
+                  ) : availability.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {availability.map((slot) => {
+                        const slotTime = normalizeReservationTime(slot.slot_time);
+                        const isSelected = normalizeReservationTime(time) === slotTime;
+                        return (
+                          <button
+                            key={`${slot.service_key}-${slotTime}`}
+                            onClick={() => slot.available && setTime(slotTime)}
+                            disabled={!slot.available}
+                            className={`rounded-lg px-2 py-2 text-xs font-semibold transition-all ${
+                              isSelected
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : slot.available
+                                  ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                                  : "cursor-not-allowed bg-muted text-muted-foreground opacity-60"
+                            }`}
+                          >
+                            {slotTime}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                      Aucun crÃ©neau en ligne pour cette date et ce nombre de convives.
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  onClick={() => setStep(zeroWaitEnabled ? "mode" : "promo")}
+                  disabled={!date || !selectedAvailability?.available}
+                  className="w-full gap-2"
+                >
                   Suivant
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -461,6 +568,16 @@ export default function ReservationDialog({
                   <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{date ? format(date, "EEEE d MMMM", { locale: fr }) : ""}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Heure</span><span className="font-medium">{time}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Convives</span><span className="font-medium">{partySize}</span></div>
+                  {selectedAvailability?.requires_guarantee && (
+                    <div className="flex justify-between border-t pt-2">
+                      <span className="text-muted-foreground">Garantie</span>
+                      <span className="font-medium">
+                        {selectedAvailability.requires_deposit && selectedAvailability.deposit_amount > 0
+                          ? `Acompte ${Number(selectedAvailability.deposit_amount).toFixed(2)} CHF`
+                          : "Requise"}
+                      </span>
+                    </div>
+                  )}
                   {selectedPromo && (
                     <div className="flex justify-between border-t pt-2">
                       <span className="text-muted-foreground">Formule</span>

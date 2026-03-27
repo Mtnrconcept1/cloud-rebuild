@@ -158,6 +158,89 @@ async function findOrdersForSession(
   return Array.from(ordersById.values());
 }
 
+async function beginWebhookEvent(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  event: Stripe.Event,
+) {
+  const now = new Date().toISOString();
+  const { data: existing, error: existingError } = await supabaseAdmin
+    .from("stripe_webhook_events")
+    .select("id, status, attempts")
+    .eq("stripe_event_id", event.id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw existingError;
+  }
+
+  if (existing?.status === "success") {
+    return { skip: true, recordId: existing.id as string };
+  }
+
+  const nextAttempts = Number(existing?.attempts || 0) + 1;
+  const payload = {
+    stripe_event_id: event.id,
+    event_type: event.type,
+    livemode: Boolean(event.livemode),
+    status: "processing",
+    attempts: nextAttempts,
+    payload: event as unknown as Record<string, unknown>,
+    error_message: null,
+    updated_at: now,
+  };
+
+  if (existing?.id) {
+    const { error: updateError } = await supabaseAdmin
+      .from("stripe_webhook_events")
+      .update(payload)
+      .eq("id", existing.id);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return { skip: false, recordId: existing.id as string };
+  }
+
+  const { data: inserted, error: insertError } = await supabaseAdmin
+    .from("stripe_webhook_events")
+    .insert({
+      ...payload,
+      received_at: now,
+    })
+    .select("id")
+    .single();
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return { skip: false, recordId: inserted.id as string };
+}
+
+async function finalizeWebhookEvent(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  recordId: string | null | undefined,
+  status: "success" | "failure",
+  errorMessage?: string | null,
+) {
+  if (!recordId) return;
+
+  const { error } = await supabaseAdmin
+    .from("stripe_webhook_events")
+    .update({
+      status,
+      error_message: errorMessage || null,
+      processed_at: status === "success" ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", recordId);
+
+  if (error) {
+    console.error("Failed to finalize Stripe webhook event record:", error);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
@@ -181,32 +264,38 @@ Deno.serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = getEnv("STRIPE_WEBHOOK_SECRET");
 
-  let event: Stripe.Event;
-  if (signature && webhookSecret) {
-    try {
-      event = await stripe.webhooks.constructEventAsync(
-        body,
-        signature,
-        webhookSecret,
-      );
-    } catch (error) {
-      console.warn("Webhook signature verification failed, falling back to raw parse:", error);
-      // Fallback: parse the body directly (Supabase relay may alter the payload encoding)
-      try {
-        event = JSON.parse(body) as Stripe.Event;
-      } catch {
-        return new Response("Invalid webhook payload", { status: 400 });
-      }
-    }
-  } else {
-    try {
-      event = JSON.parse(body) as Stripe.Event;
-    } catch {
-      return new Response("Invalid webhook payload", { status: 400 });
-    }
+  if (!webhookSecret) {
+    return new Response("STRIPE_WEBHOOK_SECRET not configured", { status: 503 });
   }
 
+  if (!signature) {
+    return new Response("Missing Stripe signature", { status: 400 });
+  }
+
+  let event: Stripe.Event;
   try {
+    event = await stripe.webhooks.constructEventAsync(
+      body,
+      signature,
+      webhookSecret,
+    );
+  } catch (error) {
+    console.error("Webhook signature verification failed:", error);
+    return new Response("Invalid Stripe signature", { status: 400 });
+  }
+
+  let webhookRecordId: string | null = null;
+  try {
+    const lock = await beginWebhookEvent(supabaseAdmin, event);
+    webhookRecordId = lock.recordId;
+
+    if (lock.skip) {
+      return new Response(JSON.stringify({ received: true, duplicate: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -784,8 +873,15 @@ Deno.serve(async (req) => {
         type: event.type,
       },
     });
+    await finalizeWebhookEvent(supabaseAdmin, webhookRecordId, "success");
   } catch (error) {
     console.error(`Error processing event ${event.type}:`, error);
+    await finalizeWebhookEvent(
+      supabaseAdmin,
+      webhookRecordId,
+      "failure",
+      error instanceof Error ? error.message : "Erreur interne",
+    );
     await writeAuditLog({
       adminClient: supabaseAdmin,
       actor: { roles: ["service_role"], isServiceRole: true },
@@ -800,6 +896,10 @@ Deno.serve(async (req) => {
         livemode: event.livemode,
         type: event.type,
       },
+    });
+    return new Response(JSON.stringify({ received: false }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
     });
   }
 

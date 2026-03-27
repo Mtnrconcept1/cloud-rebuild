@@ -33,7 +33,7 @@ export default function Auth() {
   const [showRolePicker, setShowRolePicker] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, roles, switchRole } = useAuth();
+  const { user, roles, role, switchRole } = useAuth();
 
   // After login, if user has multiple roles, show role picker
   useEffect(() => {
@@ -41,6 +41,11 @@ export default function Auth() {
       setShowRolePicker(true);
     }
   }, [user, roles]);
+
+  useEffect(() => {
+    if (!user || roles.length !== 1 || !role || showRolePicker) return;
+    navigate(ROLE_CONFIG[role].to, { replace: true });
+  }, [navigate, role, roles.length, showRolePicker, user]);
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     switchRole(selectedRole);
@@ -126,9 +131,7 @@ export default function Auth() {
     );
   }
 
-  // If already logged in with single role, redirect
   if (user && roles.length === 1) {
-    navigate("/");
     return null;
   }
 

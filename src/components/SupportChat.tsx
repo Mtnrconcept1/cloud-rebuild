@@ -1,108 +1,249 @@
-import { useState, useEffect, useRef } from "react";
-import { X, Send, User, Phone, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { Mail, MessageSquare, Send, User, X } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-type Node = { id: string; text: string; options?: { label: string; next: string }[]; final?: boolean; };
-
-const CHAT_TREE: Record<string, Node> = {
-  start: { id: "start", text: "Bonjour ! Comment l'équipe Tok peut-elle vous aider aujourd'hui ?", options: [{ label: "Où est ma commande ?", next: "order_status" }, { label: "Problème de paiement", next: "payment" }, { label: "Tok One", next: "membership" }, { label: "Autre chose", next: "other" }] },
-  order_status: { id: "order_status", text: "Patience ! Vous pouvez suivre le trajet en direct dans l'onglet 'Commandes'. Le livreur respecte-t-il le délai ?", options: [{ label: "Oui, je regarde", next: "end_satisfied" }, { label: "Non, c'est en retard", next: "order_late" }] },
-  order_late: { id: "order_late", text: "Nous sommes désolés pour ce retard. Souhaitez-vous contacter le support pour un geste commercial ?", options: [{ label: "Oui", next: "contact_final" }, { label: "Non, j'attends", next: "end_satisfied" }] },
-  payment: { id: "payment", text: "Les paiements sont sécurisés. Un bug lors du paiement ? Vérifiez votre plafond ou contactez votre banque.", options: [{ label: "Toujours bloqué", next: "contact_final" }, { label: "C'est résolu", next: "end_satisfied" }] },
-  membership: { id: "membership", text: "Tok One vous offre la livraison illimitée ! Souhaitez-vous gérer votre abonnement ?", options: [{ label: "Oui, comment faire ?", next: "membership_how" }, { label: "Non, simple question", next: "contact_final" }] },
-  membership_how: { id: "membership_how", text: "Rendez-vous dans votre Profil > Abonnement pour gérer vos options.", options: [{ label: "Merci !", next: "end_satisfied" }] },
-  other: { id: "other", text: "Dites-m'en plus ou discutez avec un de nos agents.", options: [{ label: "Parler à un agent", next: "contact_final" }] },
-  contact_final: { id: "contact_final", text: "Voici les moyens de nous joindre directement :", final: true },
-  end_satisfied: { id: "end_satisfied", text: "Génial ! Bon appétit avec Tok ! 🍔", final: true },
-};
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { appendSupportMessage, createSupportTicket, type SupportTicketRow } from "@/lib/support";
 
 export default function SupportChat() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [history, setHistory] = useState<{ type: 'bot' | 'user'; text: string; options?: Node['options'] }[]>([
-    { type: 'bot', text: CHAT_TREE.start.text, options: CHAT_TREE.start.options }
-  ]);
-  const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [newSubject, setNewSubject] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [reply, setReply] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [history]);
-  useEffect(() => { (window as any).openChat = () => setIsOpen(true); return () => { (window as any).openChat = undefined; }; }, []);
+  const { data: tickets = [], refetch } = useQuery({
+    queryKey: ["support-chat-tickets", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("support_tickets")
+        .select("id, subject, category, priority, status, description, created_at, updated_at, support_messages(id, content, created_at, sender_id, sender_role)")
+        .order("created_at", { ascending: false });
 
-  const handleOption = (option: { label: string; next: string }) => {
-    const nextNode = CHAT_TREE[option.next];
-    setHistory(prev => [...prev, { type: 'user', text: option.label }, { type: 'bot', text: nextNode.text, options: nextNode.options }]);
+      if (error) throw error;
+      return (data || []) as SupportTicketRow[];
+    },
+    enabled: !!user,
+  });
+
+  useEffect(() => {
+    if ((window as any).openChat) return;
+    (window as any).openChat = () => setIsOpen(true);
+    return () => {
+      (window as any).openChat = undefined;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (selectedTicketId || tickets.length === 0) return;
+    setSelectedTicketId(tickets[0].id);
+  }, [selectedTicketId, tickets]);
+
+  const selectedTicket = useMemo(
+    () => tickets.find((ticket) => ticket.id === selectedTicketId) || null,
+    [selectedTicketId, tickets],
+  );
+
+  const sortedMessages = useMemo(
+    () =>
+      [...(selectedTicket?.support_messages || [])].sort(
+        (left, right) => new Date(left.created_at).getTime() - new Date(right.created_at).getTime(),
+      ),
+    [selectedTicket],
+  );
+
+  const handleCreateTicket = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!newSubject.trim() || !newMessage.trim()) {
+      toast({ title: "Validation", description: "Sujet et message requis.", variant: "destructive" });
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const ticketId = await createSupportTicket({
+        subject: newSubject.trim(),
+        description: newMessage.trim(),
+        category: "general",
+        source: "support_chat",
+      });
+      setNewSubject("");
+      setNewMessage("");
+      await refetch();
+      setSelectedTicketId(ticketId);
+      toast({ title: "Ticket créé" });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible de créer le ticket.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreating(false);
+    }
   };
 
-  const resetChat = () => { setHistory([{ type: 'bot', text: CHAT_TREE.start.text, options: CHAT_TREE.start.options }]); setInputValue(""); setIsTyping(false); };
+  const handleSendReply = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedTicket || !reply.trim()) return;
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim() || isTyping) return;
-    const userMsg = inputValue.trim();
-    setInputValue("");
-    setHistory(prev => [...prev, { type: 'user', text: userMsg }]);
-    setIsTyping(true);
-    setTimeout(() => {
-      setHistory(prev => [...prev, { type: 'bot', text: "Merci pour votre message. Un opérateur va prendre le relais et vous répondra dans les plus brefs délais.", options: [{ label: "Consulter la FAQ", next: "contact_final" }] }]);
-      setIsTyping(false);
-    }, 1500);
+    setSending(true);
+    try {
+      await appendSupportMessage(selectedTicket.id, reply.trim());
+      setReply("");
+      await refetch();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible d'envoyer le message.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={() => setIsOpen(false)} />}
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-4">
-        {isOpen && (
-          <div className="w-[min(350px,calc(100vw-2rem))] md:w-[400px] h-[min(500px,calc(100vh-6rem))] bg-card border rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5">
-            <div className="bg-primary p-4 text-primary-foreground flex items-center justify-between">
+      {isOpen ? <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={() => setIsOpen(false)} /> : null}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-4 sm:bottom-6 sm:right-6">
+        <Button className="rounded-full shadow-xl" onClick={() => setIsOpen((current) => !current)}>
+          <MessageSquare className="mr-2 h-4 w-4" />
+          Support
+        </Button>
+
+        {isOpen ? (
+          <div className="flex h-[min(560px,calc(100vh-6rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border bg-card shadow-2xl">
+            <div className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><User className="h-6 w-6" /></div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
+                  <User className="h-6 w-6" />
+                </div>
                 <div>
-                  <p className="font-bold text-sm">Assistant Tok</p>
-                  <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" /><span className="text-[10px] opacity-80 uppercase tracking-widest font-bold">En ligne</span></div>
+                  <p className="text-sm font-bold">Support Tok</p>
+                  <p className="text-[10px] uppercase tracking-widest text-primary-foreground/80">
+                    Tickets suivis
+                  </p>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1.5 rounded-full transition-colors"><X className="h-5 w-5" /></button>
+              <button onClick={() => setIsOpen(false)} className="rounded-full p-1.5 transition-colors hover:bg-white/10">
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/20">
-              {history.map((msg, i) => (
-                <div key={i} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-300`}>
-                  <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${msg.type === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'}`}>
-                    {msg.text}
-                    {msg.options && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {msg.options.map((opt, j) => (
-                          <Button key={j} variant="outline" size="sm" onClick={() => handleOption(opt)} className="text-xs rounded-full">{opt.label}</Button>
-                        ))}
-                      </div>
-                    )}
-                    {msg.type === 'bot' && !msg.options && i === history.length - 1 && (
-                      <div className="mt-4 space-y-2">
-                        <div className="p-3 bg-primary/5 rounded-xl space-y-2 border border-primary/10">
-                          <a href="mailto:support@tok.ch" className="flex items-center gap-2 text-primary font-bold hover:underline"><Mail className="h-4 w-4" /> support@tok.ch</a>
-                          <a href="tel:+33123456789" className="flex items-center gap-2 text-primary font-bold hover:underline"><Phone className="h-4 w-4" /> +33 1 23 45 67 89</a>
+
+            {!user ? (
+              <div className="flex flex-1 flex-col justify-between p-4">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Connectez-vous pour ouvrir un ticket suivi et échanger avec le support.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Les demandes support sont maintenant tracées dans votre compte au lieu d'utiliser un chat simulé.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <Button asChild className="w-full">
+                    <Link to="/auth">Se connecter</Link>
+                  </Button>
+                  <a href="mailto:support@tok.ch" className="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline">
+                    <Mail className="h-4 w-4" />
+                    support@tok.ch
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="border-b p-4">
+                  <form onSubmit={handleCreateTicket} className="space-y-3">
+                    <Input value={newSubject} onChange={(event) => setNewSubject(event.target.value)} placeholder="Sujet de votre demande" />
+                    <Textarea value={newMessage} onChange={(event) => setNewMessage(event.target.value)} placeholder="Décrivez précisément votre problème..." rows={3} />
+                    <Button type="submit" className="w-full" disabled={creating}>
+                      {creating ? "Création..." : "Ouvrir un ticket"}
+                    </Button>
+                  </form>
+                </div>
+
+                <div className="grid flex-1 grid-cols-[150px,1fr] overflow-hidden">
+                  <div className="overflow-y-auto border-r bg-muted/20 p-3">
+                    <div className="space-y-2">
+                      {tickets.map((ticket) => (
+                        <button
+                          key={ticket.id}
+                          onClick={() => setSelectedTicketId(ticket.id)}
+                          className={`w-full rounded-xl border p-3 text-left transition-colors ${
+                            selectedTicketId === ticket.id ? "border-primary bg-primary/5" : "bg-card hover:border-primary/30"
+                          }`}
+                        >
+                          <p className="line-clamp-2 text-sm font-semibold">{ticket.subject}</p>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            <Badge variant="outline" className="text-[10px]">{ticket.status}</Badge>
+                            <Badge variant="secondary" className="text-[10px]">{ticket.priority}</Badge>
+                          </div>
+                        </button>
+                      ))}
+                      {tickets.length === 0 ? <p className="text-xs text-muted-foreground">Aucun ticket pour le moment.</p> : null}
+                    </div>
+                  </div>
+
+                  <div className="flex min-h-0 flex-col">
+                    {selectedTicket ? (
+                      <>
+                        <div className="border-b px-4 py-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold">{selectedTicket.subject}</p>
+                              <p className="text-xs text-muted-foreground">{selectedTicket.category}</p>
+                            </div>
+                            <Badge>{selectedTicket.status}</Badge>
+                          </div>
                         </div>
-                        <Button variant="ghost" size="sm" onClick={resetChat} className="w-full text-xs gap-1 opacity-70">Recommencer</Button>
+
+                        <div className="flex-1 space-y-3 overflow-y-auto bg-muted/10 p-4">
+                          {sortedMessages.map((message) => {
+                            const ownMessage = message.sender_id === user.id;
+                            return (
+                              <div key={message.id} className={`flex ${ownMessage ? "justify-end" : "justify-start"}`}>
+                                <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${ownMessage ? "rounded-br-none bg-primary text-primary-foreground" : "rounded-bl-none border bg-card"}`}>
+                                  <p>{message.content}</p>
+                                  <p className={`mt-2 text-[10px] ${ownMessage ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                                    {new Date(message.created_at).toLocaleString("fr-FR")}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {sortedMessages.length === 0 ? <p className="text-sm text-muted-foreground">Aucun message dans ce ticket.</p> : null}
+                        </div>
+
+                        <div className="border-t p-4">
+                          <form onSubmit={handleSendReply} className="flex gap-2">
+                            <Input value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Ajouter un message..." disabled={sending} />
+                            <Button type="submit" size="icon" disabled={!reply.trim() || sending}>
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </form>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
+                        Sélectionnez un ticket pour afficher l'historique.
                       </div>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="p-4 bg-card border-t">
-              {!history[history.length - 1].options && !isTyping && (
-                <div className="text-center mb-2"><Badge variant="outline" className="text-[10px] opacity-50 uppercase tracking-tighter">Support direct activé</Badge></div>
-              )}
-              {isTyping && <div className="flex gap-1 mb-4 animate-pulse"><div className="w-1.5 h-1.5 bg-primary rounded-full"></div><div className="w-1.5 h-1.5 bg-primary rounded-full"></div><div className="w-1.5 h-1.5 bg-primary rounded-full"></div></div>}
-              <form onSubmit={handleSendMessage} className="flex gap-2">
-                <Input value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Écrivez votre message..." className="rounded-full bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary/30 h-10 text-xs" disabled={isTyping} />
-                <Button type="submit" size="icon" className="rounded-full shrink-0 h-10 w-10" disabled={!inputValue.trim() || isTyping}><Send className="h-4 w-4" /></Button>
-              </form>
-            </div>
+              </>
+            )}
           </div>
-        )}
+        ) : null}
       </div>
     </>
   );

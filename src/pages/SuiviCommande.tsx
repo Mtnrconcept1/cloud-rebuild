@@ -215,9 +215,9 @@ export default function SuiviCommande() {
   const progress = ((currentPhase + 1) / STEPS.length) * 100;
   const currentDriverPos = hasLiveCourierFlow && liveTracking?.current_lat && liveTracking?.current_lng
     ? { lat: Number(liveTracking.current_lat), lng: Number(liveTracking.current_lng) }
-    : simDriverPos;
-  const driverName = liveTracking?.driver_name || "Mohamed B.";
-  const driverPhone = liveTracking?.driver_phone || "0612345678";
+    : null;
+  const driverName = liveTracking?.driver_name || null;
+  const driverPhone = liveTracking?.driver_phone || null;
 
   // Countdown display
   const formatCountdown = (s: number) => {
@@ -293,11 +293,10 @@ export default function SuiviCommande() {
     );
   }
 
-  const showMap = hasLiveCourierFlow
-    ? Boolean(currentDriverPos?.lat && currentDriverPos?.lng && currentPhase >= 2)
-    : currentPhase >= 2;
-  const showDriver = hasLiveCourierFlow ? Boolean(driverName) : currentPhase >= 1;
+  const showMap = Boolean(hasLiveCourierFlow && currentDriverPos?.lat && currentDriverPos?.lng && currentPhase >= 2);
+  const showDriver = Boolean(hasLiveCourierFlow && driverName);
   const isDelivered = currentPhase >= 3;
+  const showLegacyTransitProgress = false;
   const orderMeta = (order.metadata || {}) as any;
   const scheduledDeliveryLabel = typeof orderMeta.scheduled_delivery_label === "string" ? orderMeta.scheduled_delivery_label : "";
   const deliveryProofCode = String(orderMeta.delivery_proof_code || "");
@@ -355,7 +354,7 @@ export default function SuiviCommande() {
         )}
 
         {/* Transit progress */}
-        {!hasLiveCourierFlow && currentPhase === 2 && (
+        {showLegacyTransitProgress && !hasLiveCourierFlow && currentPhase === 2 && (
           <div className="glass-morphism rounded-3xl p-8 text-center space-y-6 shadow-xl border-primary/10 animate-fade-in relative">
             <div className="flex items-center justify-between px-2">
               <div className="flex flex-col items-start">
@@ -390,6 +389,12 @@ export default function SuiviCommande() {
             <p className="text-base font-bold text-foreground">
               Le livreur est à <span className="text-primary italic">{Math.round((routeIndex / (routePoints.length - 1)) * 100)}%</span> de sa destination
             </p>
+          </div>
+        )}
+
+        {!hasLiveCourierFlow && currentPhase >= 1 && !isDelivered && (
+          <div className="rounded-2xl border border-dashed bg-card p-5 text-sm text-muted-foreground">
+            Le suivi détaillé, la carte et les coordonnées du livreur ne sont affichés que lorsqu'un flux de livraison temps réel est disponible.
           </div>
         )}
 
@@ -528,4 +533,3 @@ export default function SuiviCommande() {
     </main>
   );
 }
-
