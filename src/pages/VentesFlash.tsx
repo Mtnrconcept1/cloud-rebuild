@@ -152,6 +152,23 @@ export default function VentesFlash() {
   }, [selectedOffers.length, canDeliverAll, canTakeawayAll]);
 
   const handleCheckout = () => {
+    // Re-check for expired offers at checkout time
+    const now = new Date();
+    const newlyExpired = selectedOffers.filter((offer: any) => {
+      if (!offer.sale_end || !offer.sale_date) return false;
+      const end = new Date(`${offer.sale_date}T${offer.sale_end}`);
+      return end.getTime() <= now.getTime();
+    });
+    if (newlyExpired.length > 0) {
+      newlyExpired.forEach((offer: any) => handleExpire(offer.id));
+      toast({
+        title: "Offres expirees",
+        description: `${newlyExpired.length} offre(s) ont expire depuis votre selection. Elles ont ete retirees.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Block multi-restaurant checkout when feature is disabled
     const uniqueResIds = new Set(selectedOffers.map((o: any) => o.restaurants?.id || o.restaurant_id));
     if (!multiRestoEnabled && uniqueResIds.size > 1) {

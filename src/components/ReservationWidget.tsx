@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DayPicker, DayContentProps } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Users, Clock, CalendarIcon, Percent, ChevronLeft, ChevronRight } from "lucide-react";
@@ -9,16 +9,78 @@ import { buttonVariants } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
+import { getServiceSettings, type ServicePeriod } from "@/lib/serviceSettings";
 
 interface ReservationWidgetProps { restaurantId: string; restaurantName: string; onReserve: (date: Date, time: string, partySize: number) => void; }
 
-const TIME_SLOTS = ["11:30", "12:00", "12:30", "13:00", "13:30", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"];
-const PARTY_SIZES = [1, 2, 3, 4, 5, 6, 7, 8];
+const FALLBACK_TIME_SLOTS = ["11:30", "12:00", "12:30", "13:00", "13:30", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"];
+const FALLBACK_PARTY_SIZES = [1, 2, 3, 4, 5, 6, 7, 8];
+
+function buildTimeSlotsFromSettings(settings: ReturnType<typeof getServiceSettings>, stepMinutes = 30): { slots: string[]; grouped: { service: ServicePeriod; label: string; slots: string[] }[] } {
+  const grouped: { service: ServicePeriod; label: string; slots: string[] }[] = [];
+  const allSlots: string[] = [];
+  const periodLabels: Record<ServicePeriod, string> = { lunch: "Midi", dinner: "Soir" };
+
+  for (const period of ["lunch", "dinner"] as ServicePeriod[]) {
+    const s = settings[period];
+    if (!s.online_booking_enabled || s.service_closed) continue;
+
+    const startMatch = /^(\d{2}):(\d{2})$/.exec(s.start_time);
+    const lastMatch = /^(\d{2}):(\d{2})$/.exec(s.last_reservation_time);
+    if (!startMatch || !lastMatch) continue;
+
+    const start = Number(startMatch[1]) * 60 + Number(startMatch[2]);
+    const last = Number(lastMatch[1]) * 60 + Number(lastMatch[2]);
+    if (start > last) continue;
+
+    const periodSlots: string[] = [];
+    for (let m = start; m <= last; m += stepMinutes) {
+      const hh = String(Math.floor(m / 60)).padStart(2, "0");
+      const mm = String(m % 60).padStart(2, "0");
+      periodSlots.push(`${hh}:${mm}`);
+    }
+    if (periodSlots.length > 0) {
+      grouped.push({ service: period, label: periodLabels[period], slots: periodSlots });
+      allSlots.push(...periodSlots);
+    }
+  }
+
+  return { slots: allSlots, grouped };
+}
+
+function buildPartySizes(settings: ReturnType<typeof getServiceSettings>): number[] {
+  const min = Math.min(settings.lunch.min_party_size, settings.dinner.min_party_size);
+  const max = Math.max(settings.lunch.max_party_size, settings.dinner.max_party_size);
+  const sizes: number[] = [];
+  for (let i = min; i <= max; i++) sizes.push(i);
+  return sizes.length > 0 ? sizes : FALLBACK_PARTY_SIZES;
+}
 
 export default function ReservationWidget({ restaurantId, restaurantName, onReserve }: ReservationWidgetProps) {
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("19:00");
   const [partySize, setPartySize] = useState("2");
+
+  const { data: serviceSettingsData } = useQuery({
+    queryKey: ["reservation-widget-settings", restaurantId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("restaurants").select("opening_hours").eq("id", restaurantId).maybeSingle();
+      if (error) throw error;
+      return getServiceSettings(data?.opening_hours);
+    },
+    enabled: !!restaurantId,
+  });
+
+  const { slots: TIME_SLOTS, grouped: groupedTimeSlots } = useMemo(() => {
+    if (!serviceSettingsData) return { slots: FALLBACK_TIME_SLOTS, grouped: [] };
+    const result = buildTimeSlotsFromSettings(serviceSettingsData);
+    return result.slots.length > 0 ? result : { slots: FALLBACK_TIME_SLOTS, grouped: [] };
+  }, [serviceSettingsData]);
+
+  const PARTY_SIZES = useMemo(() => {
+    if (!serviceSettingsData) return FALLBACK_PARTY_SIZES;
+    return buildPartySizes(serviceSettingsData);
+  }, [serviceSettingsData]);
 
   const { data: reservationDiscounts = [] } = useQuery({
     queryKey: ["reservation-widget-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time],
@@ -69,11 +131,26 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Heure</label>
-          <div className="grid grid-cols-4 gap-1.5">{TIME_SLOTS.map((slot) => <button key={slot} onClick={() => setTime(slot)} className={`px-2 py-2 rounded-lg text-xs font-semibold transition-all ${time === slot ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"}`}>{slot}</button>)}</div>
+          {groupedTimeSlots.length > 0 ? (
+            <div className="space-y-2">
+              {groupedTimeSlots.map((group) => (
+                <div key={group.service} className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">{group.label}</p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {group.slots.map((slot) => (
+                      <button key={slot} onClick={() => setTime(slot)} className={`px-2 py-2 rounded-lg text-xs font-semibold transition-all ${time === slot ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"}`}>{slot}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-1.5">{TIME_SLOTS.map((slot) => <button key={slot} onClick={() => setTime(slot)} className={`px-2 py-2 rounded-lg text-xs font-semibold transition-all ${time === slot ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"}`}>{slot}</button>)}</div>
+          )}
         </div>
         {date && (
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-sm space-y-1">
-            <p className="font-semibold text-primary">{format(date, "EEEE d MMMM", { locale: fr })}</p>
+            <p className="font-semibold text-primary">{format(date, "EEEE d MMMM yyyy", { locale: fr })}</p>
             <p className="text-muted-foreground text-xs">{time} · {partySize} personne{Number(partySize) > 1 ? "s" : ""}</p>
             {selectedDiscount > 0 && <p className="text-miamz-green text-xs font-bold flex items-center gap-1"><Percent className="h-3 w-3" />Jusqu'à -{selectedDiscount}% de réduction disponible</p>}
           </div>

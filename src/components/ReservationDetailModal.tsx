@@ -64,7 +64,13 @@ const getFeatureLabel = (feature: string) => {
 
 const canCancel = (reservation: ReservationDetail) => {
   if (reservation.status === "cancelled" || reservation.status === "no_show") return false;
-  const reservationDateTime = new Date(`${reservation.date}T${reservation.time}`);
+  // For zero-attente, use arrival_time from metadata if available
+  let effectiveTime = reservation.time;
+  if (reservation.feature === "zero-attente" && isJsonRecord(reservation.metadata)) {
+    const arrivalTime = reservation.metadata.arrival_time ?? reservation.metadata.arrivalTime;
+    if (typeof arrivalTime === "string" && arrivalTime) effectiveTime = arrivalTime;
+  }
+  const reservationDateTime = new Date(`${reservation.date}T${effectiveTime}`);
   const now = new Date();
   const hoursUntil = (reservationDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
   return hoursUntil >= 2;
@@ -80,6 +86,14 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
 
   const featureInfo = getFeatureLabel(reservation.feature);
   const FeatureIcon = featureInfo.icon;
+
+  // For zero-attente, prefer arrival_time from metadata over the raw time column
+  const displayTime = (() => {
+    if (reservation.feature !== "zero-attente") return reservation.time;
+    if (!isJsonRecord(reservation.metadata)) return reservation.time;
+    const arrivalTime = reservation.metadata.arrival_time ?? reservation.metadata.arrivalTime;
+    return typeof arrivalTime === "string" && arrivalTime ? arrivalTime : reservation.time;
+  })();
 
   const preorderItems: PreorderItem[] = (() => {
     const fromColumn = Array.isArray(reservation.preorder_items) ? reservation.preorder_items : [];
@@ -199,7 +213,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
             </div>
             <div className="flex items-center gap-3">
               <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="text-sm">{reservation.time}</span>
+              <span className="text-sm">{displayTime}</span>
             </div>
             <div className="flex items-center gap-3">
               <Users className="h-4 w-4 text-muted-foreground shrink-0" />

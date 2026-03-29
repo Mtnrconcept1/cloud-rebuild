@@ -72,7 +72,9 @@ export default function Panier() {
   const deliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
-  const canScheduleDelivery = orderMode === "delivery" && uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
+  const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
+  const canScheduleDelivery = orderMode === "delivery" && isSingleRestaurant;
+  const needsTakeawaySlots = orderMode === "takeaway" && isSingleRestaurant && !hasAntiGaspi && !hasTakeawayFlash;
 
   const { data: profile } = useQuery({
     queryKey: ["profile-loyalty", user?.id],
@@ -84,7 +86,7 @@ export default function Panier() {
   });
 
   const { data: deliveryRestaurant } = useQuery({
-    queryKey: ["cart-delivery-restaurant", restaurantId],
+    queryKey: ["cart-restaurant-hours", restaurantId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
@@ -94,7 +96,7 @@ export default function Panier() {
       if (error) throw error;
       return data;
     },
-    enabled: canScheduleDelivery && !!restaurantId,
+    enabled: (canScheduleDelivery || needsTakeawaySlots) && !!restaurantId,
   });
 
   const { data: restaurantPaymentConfig } = useQuery({
@@ -198,6 +200,53 @@ export default function Panier() {
     selectedDeliverySlot,
   ]);
 
+  // --- Takeaway service-hours slot groups ---
+  const takeawayLeadMinutes = 15;
+
+  const firstAvailablePickupDate = useMemo(() => {
+    if (!needsTakeawaySlots) return getTodayDateValue();
+    return findFirstAvailableDeliveryDate({
+      openingHours: deliveryRestaurant?.opening_hours,
+      leadMinutes: takeawayLeadMinutes,
+    });
+  }, [needsTakeawaySlots, deliveryRestaurant?.opening_hours]);
+
+  const takeawaySlotGroups = useMemo(() => {
+    if (!needsTakeawaySlots) return [];
+    return buildDeliverySlotGroups({
+      openingHours: deliveryRestaurant?.opening_hours,
+      dateValue: pickupDate,
+      leadMinutes: takeawayLeadMinutes,
+    });
+  }, [needsTakeawaySlots, pickupDate, deliveryRestaurant?.opening_hours]);
+
+  const availableTakeawaySlots = useMemo(
+    () => takeawaySlotGroups.flatMap((group) => group.slots),
+    [takeawaySlotGroups],
+  );
+
+  const [pickupService, setPickupService] = useState<ServicePeriod | null>(null);
+
+  const selectedPickupSlot = useMemo(
+    () => availableTakeawaySlots.find((slot) => slot.time === pickupTime && slot.service === pickupService) || null,
+    [availableTakeawaySlots, pickupService, pickupTime],
+  );
+
+  useEffect(() => {
+    if (!needsTakeawaySlots) return;
+
+    if (availableTakeawaySlots.length === 0 && pickupDate !== firstAvailablePickupDate) {
+      setPickupDate(firstAvailablePickupDate);
+      return;
+    }
+
+    if (!selectedPickupSlot && availableTakeawaySlots.length > 0) {
+      const firstSlot = availableTakeawaySlots[0];
+      setPickupTime(firstSlot?.time || "");
+      setPickupService(firstSlot?.service || null);
+    }
+  }, [availableTakeawaySlots, needsTakeawaySlots, pickupDate, firstAvailablePickupDate, selectedPickupSlot]);
+
   const pointsToRedeem = useLoyaltyPoints ? Math.min(pointsToRedeemInput, maxPointsRedeemable) : 0;
   const pointsDiscount = pointsToRedeem / 100;
   const earnedXp = Math.floor(subFinalTotal * 10);
@@ -258,8 +307,13 @@ export default function Panier() {
           });
         }
       }
-    } else if (!hasAntiGaspi && !hasTakeawayFlash && (!pickupDate || !pickupTime)) {
-      return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande." });
+    } else if (!hasAntiGaspi && !hasTakeawayFlash) {
+      if (!pickupDate || !pickupTime) {
+        return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande." });
+      }
+      if (needsTakeawaySlots && !selectedPickupSlot) {
+        return toast({ title: "Horaire invalide", variant: "destructive", description: "Veuillez choisir un créneau de retrait pendant les heures de service du restaurant." });
+      }
     }
 
     const itemsByRestaurant = items.reduce((acc, item) => {
@@ -712,6 +766,65 @@ export default function Panier() {
                     <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Creneau fixe :</span><strong>{flashPickupStart || "--:--"} - {flashPickupEnd || "--:--"}</strong></p>
                     <p className="text-xs text-muted-foreground pl-5">Le creneau de retrait est impose par la vente flash et ne peut pas etre modifie.</p>
                   </div>
+                </div>
+              ) : needsTakeawaySlots ? (
+                <div className="space-y-4 rounded-2xl border bg-card/60 p-4">
+                  <div className="space-y-1">
+                    <Label>Retrait a emporter</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Les creneaux respectent les heures de service du restaurant.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Date de retrait</Label>
+                    <Input
+                      type="date"
+                      value={pickupDate}
+                      onChange={(e) => setPickupDate(e.target.value)}
+                      min={getTodayDateValue()}
+                      max={getMaxScheduledDateValue()}
+                      className="w-full sm:w-56"
+                    />
+                  </div>
+                  {takeawaySlotGroups.length > 0 ? (
+                    <div className="space-y-3">
+                      {takeawaySlotGroups.map((group) => (
+                        <div key={group.service} className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Service {group.label}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {group.slots.map((slot) => (
+                              <button
+                                key={`${group.service}-${slot.time}`}
+                                type="button"
+                                onClick={() => {
+                                  setPickupTime(slot.time);
+                                  setPickupService(slot.service);
+                                }}
+                                className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                                  selectedPickupSlot?.time === slot.time && selectedPickupSlot?.service === slot.service
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-background hover:bg-muted/40"
+                                }`}
+                              >
+                                {slot.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
+                      Aucun creneau disponible a cette date. Essayez un autre jour de service.
+                    </div>
+                  )}
+                  {pickupTime && (
+                    <div className="rounded-xl bg-primary/5 p-3 text-sm">
+                      <span className="font-semibold">Retrait prevu :</span> {formatScheduledDeliveryLabel(pickupDate, pickupTime)}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>

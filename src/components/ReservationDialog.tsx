@@ -472,7 +472,7 @@ export default function ReservationDialog({
               <>
                 <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">Restaurant</span><span className="font-medium">{restaurantName}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{date ? format(date, "EEEE d MMMM", { locale: fr }) : ""}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{date ? format(date, "EEEE d MMMM yyyy", { locale: fr }) : ""}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Heure</span><span className="font-medium">{time}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Convives</span><span className="font-medium">{partySize}</span></div>
                   {selectedPromo && (

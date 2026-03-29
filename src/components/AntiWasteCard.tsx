@@ -79,6 +79,7 @@ export default function AntiWasteCard({
         original_price: originalPrice,
         pickup_start: pickupStart,
         pickup_end: pickupEnd,
+        available_date: availableDate || null,
       },
     });
     toast({

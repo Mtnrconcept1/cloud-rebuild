@@ -190,12 +190,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const resolveConflict = (action: "clear" | "checkout") => {
     if (action === "clear") {
       const { pendingItem, pendingMode } = conflict || {};
-      clearCart();
-      if (pendingItem) {
-        addItem(pendingItem);
-      }
+      // Reset items and metadata directly via setters so the pending addItem
+      // sees the empty cart through the functional updater.
+      setItems([]);
+      setCartMetadata({});
       if (pendingMode) {
         setOrderModeState(pendingMode);
+      }
+      if (pendingItem) {
+        // Use setItems directly with functional updater to avoid stale closure
+        // where addItem would still see the old items array.
+        const requiredMode = getRequiredModeForItem(pendingItem);
+        if (requiredMode) {
+          setOrderModeState(requiredMode);
+        }
+        trackEvent({
+          eventType: "add_to_cart",
+          eventData: { item_name: pendingItem.name, price: pendingItem.price },
+          restaurantId: pendingItem.restaurantId,
+        });
+        setItems([{ ...pendingItem, quantity: 1 }]);
       }
     }
     setConflict(null);

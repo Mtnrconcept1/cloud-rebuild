@@ -89,7 +89,15 @@ const DropsManagement = lazy(() => import("./pages/admin/DropsManagement"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function NativeIntegration() {
   const navigate = useNavigate();

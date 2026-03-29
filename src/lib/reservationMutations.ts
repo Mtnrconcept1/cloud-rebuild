@@ -35,20 +35,12 @@ const getFirstRow = <T>(data: T[] | T | null | undefined): T | null => {
   return data ?? null;
 };
 
-type RpcResult<T> = {
-  data: T[] | T | null;
-  error: Error | null;
-};
-
-const rpcUntyped = supabase.rpc as unknown as <T>(
-  fn: string,
-  args: Record<string, unknown>,
-) => Promise<RpcResult<T>>;
-
 export async function createReservationWithValidation(
   input: CreateReservationInput,
 ): Promise<ReservationCreateResult> {
-  const { data, error } = await rpcUntyped<SafeReservationCreateRow>("validate_and_create_reservation_safe", {
+  // Call supabase.rpc as a method (not detached) to preserve `this` context.
+  // Supabase internally accesses `this.rest` which breaks if `this` is lost.
+  const { data, error } = await (supabase.rpc as any)("validate_and_create_reservation_safe", {
     p_restaurant_id: input.restaurantId,
     p_date: input.date,
     p_time: input.time,
@@ -87,7 +79,7 @@ export async function updateRestaurantReservationStatus(
   reservationId: string,
   status: string,
 ): Promise<ReservationStatusResult> {
-  const { data, error } = await rpcUntyped<SafeReservationStatusRow>("update_restaurant_reservation_status_safe", {
+  const { data, error } = await (supabase.rpc as any)("update_restaurant_reservation_status_safe", {
     p_reservation_id: reservationId,
     p_status: status,
   });
