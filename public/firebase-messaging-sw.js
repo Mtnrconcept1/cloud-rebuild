@@ -16,17 +16,30 @@ function readFirebaseConfig(search) {
   return isReady ? config : null;
 }
 
-function normalizeNotificationUrl(rawUrl) {
-  if (!rawUrl || typeof rawUrl !== "string") return "/";
-  if (/^https?:\/\//.test(rawUrl)) return rawUrl;
-  return `${self.location.origin}${rawUrl.startsWith("/") ? rawUrl : `/${rawUrl}`}`;
+function normalizeNotificationUrl(rawUrl, fallbackPath) {
+  const fallbackUrl = new URL(fallbackPath || "/", self.location.origin).toString();
+
+  if (!rawUrl || typeof rawUrl !== "string") {
+    return fallbackUrl;
+  }
+
+  try {
+    const url = new URL(rawUrl, self.location.origin);
+    if (url.origin !== self.location.origin) {
+      return fallbackUrl;
+    }
+
+    return url.toString();
+  } catch {
+    return fallbackUrl;
+  }
 }
 
 function showNotificationFromPayload(payload) {
   const title = payload?.notification?.title || payload?.data?.title || "Nouvelle alerte";
   const body = payload?.notification?.body || payload?.data?.body || "";
   const data = payload?.data && typeof payload.data === "object" ? payload.data : {};
-  const targetUrl = normalizeNotificationUrl(data.url || "/courier/jobs");
+  const targetUrl = normalizeNotificationUrl(data.url, "/courier/jobs");
 
   self.registration.showNotification(title, {
     body,
@@ -68,7 +81,7 @@ self.addEventListener("message", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const targetUrl = normalizeNotificationUrl(event.notification?.data?.url || "/courier/jobs");
+  const targetUrl = normalizeNotificationUrl(event.notification?.data?.url, "/courier/jobs");
 
   event.waitUntil((async () => {
     const windowClients = await clients.matchAll({

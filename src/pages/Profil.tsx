@@ -15,6 +15,51 @@ import LoyaltyStatus from "@/components/LoyaltyStatus";
 import ImageUpload from "@/components/ImageUpload";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { enablePush, disablePush } from "@/lib/push-unified";
+import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
+import { useSignupApplication } from "@/hooks/useSignupApplication";
+
+type FavoriteRestaurant = {
+  id: string;
+  name: string;
+  city: string | null;
+  cuisine_type: string | null;
+  rating: number | null;
+  image_url: string | null;
+};
+
+type FavoriteRow = {
+  id: string;
+  restaurants: FavoriteRestaurant | null;
+};
+
+type NotificationChannels = {
+  in_app: boolean;
+  email: boolean;
+  push: boolean;
+};
+
+type NotificationCategories = {
+  transactional: boolean;
+  product: boolean;
+  marketing: boolean;
+  system: boolean;
+};
+
+type NotificationPreferences = {
+  channels: NotificationChannels;
+  categories: NotificationCategories;
+};
+
+type NotificationSubscription = {
+  topic: string;
+};
+
+type LoyaltyTransaction = {
+  id: string;
+  description: string | null;
+  amount: number;
+  created_at: string;
+};
 
 export default function Profil() {
   const { user } = useAuth();
@@ -26,6 +71,7 @@ export default function Profil() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const { data: signupApplication } = useSignupApplication("client");
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -66,7 +112,7 @@ export default function Profil() {
     queryKey: ["my-favorites", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("favorites").select("*, restaurants(id, name, city, cuisine_type, rating, image_url)").eq("user_id", user!.id);
-      return data || [];
+      return (data || []) as FavoriteRow[];
     },
     enabled: !!user,
   });
@@ -75,11 +121,11 @@ export default function Profil() {
     queryKey: ["notification-preferences", user?.id],
     queryFn: async () => {
       const { data } = await supabase
-        .from("notification_preferences" as any)
+        .from("notification_preferences")
         .select("*")
         .eq("user_id", user!.id)
         .maybeSingle();
-      return data;
+      return (data as NotificationPreferences | null) || null;
     },
     enabled: !!user,
   });
@@ -88,20 +134,20 @@ export default function Profil() {
     queryKey: ["notification-subscriptions", user?.id],
     queryFn: async () => {
       const { data } = await supabase
-        .from("notification_subscriptions" as any)
+        .from("notification_subscriptions")
         .select("*")
         .eq("user_id", user!.id);
-      return data || [];
+      return (data || []) as NotificationSubscription[];
     },
     enabled: !!user,
   });
 
-  const prefs = (notificationPrefs as any) || {
+  const prefs: NotificationPreferences = notificationPrefs || {
     channels: { in_app: true, email: true, push: true },
     categories: { transactional: true, product: true, marketing: false, system: true },
   };
 
-  const updatePreferences = async (next: { channels?: any; categories?: any }) => {
+  const updatePreferences = async (next: Partial<NotificationPreferences>) => {
     if (!user) return;
     const payload = {
       user_id: user.id,
@@ -109,7 +155,7 @@ export default function Profil() {
       categories: next.categories ?? prefs.categories,
     };
     const { error } = await supabase
-      .from("notification_preferences" as any)
+      .from("notification_preferences")
       .upsert(payload, { onConflict: "user_id" });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -133,16 +179,17 @@ export default function Profil() {
 
   const toggleTopic = async (topic: string) => {
     if (!user) return;
-    const isSubscribed = (notificationSubscriptions || []).some((s: any) => s.topic === topic);
+    const subscriptions = notificationSubscriptions || [];
+    const isSubscribed = subscriptions.some((subscription) => subscription.topic === topic);
     if (isSubscribed) {
       await supabase
-        .from("notification_subscriptions" as any)
+        .from("notification_subscriptions")
         .delete()
         .eq("user_id", user.id)
         .eq("topic", topic);
     } else {
       await supabase
-        .from("notification_subscriptions" as any)
+        .from("notification_subscriptions")
         .upsert({ user_id: user.id, topic, filters: {} }, { onConflict: "user_id,topic" });
     }
     queryClient.invalidateQueries({ queryKey: ["notification-subscriptions", user.id] });
@@ -173,6 +220,12 @@ export default function Profil() {
           </TabsList>
 
           <TabsContent value="infos" className="space-y-6 pt-4">
+            <SignupApplicationStatusCard
+              application={signupApplication}
+              title="Verification du compte client"
+              emptyDescription="Aucun dossier documentaire client n'a encore ete soumis."
+            />
+
             <div className="flex flex-col items-center gap-4 mb-6">
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/10 bg-muted">
@@ -233,7 +286,7 @@ export default function Profil() {
           <TabsContent value="favoris" className="space-y-4 pt-4">
             {favorites && favorites.length > 0 ? (
               favorites.map((f) => {
-                const r = f.restaurants as any;
+                const r = f.restaurants;
                 return (
                   <Link key={f.id} to={`/restaurant/${r?.id}`} className="flex items-center gap-4 p-3 border rounded-xl bg-card hover:bg-accent transition-colors">
                     <img src={r?.image_url || "/images/kebab-box-spread.jpeg"} alt={r?.name} className="w-12 h-12 rounded-lg object-cover" />
@@ -334,7 +387,7 @@ export default function Profil() {
               <h3 className="font-semibold text-sm">Alertes thématiques</h3>
               <div className="space-y-2">
                 {topics.map((topic) => {
-                  const isSubscribed = (notificationSubscriptions || []).some((s: any) => s.topic === topic.id);
+                  const isSubscribed = (notificationSubscriptions || []).some((subscription) => subscription.topic === topic.id);
                   return (
                     <div key={topic.id} className="flex items-center justify-between">
                       <div>
@@ -383,12 +436,12 @@ function LoyaltyHistory({ userId }: { userId?: string }) {
     queryKey: ["loyalty-transactions", userId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("loyalty_transactions" as any)
+        .from("loyalty_transactions")
         .select("*")
         .eq("user_id", userId!)
         .order("created_at", { ascending: false })
         .limit(20);
-      return data || [];
+      return (data || []) as LoyaltyTransaction[];
     },
     enabled: !!userId,
   });
@@ -400,14 +453,14 @@ function LoyaltyHistory({ userId }: { userId?: string }) {
 
   return (
     <div className="space-y-3">
-      {transactions.map((t: any) => (
-        <div key={t.id} className="flex items-center justify-between p-3 border rounded-xl bg-card">
+      {transactions.map((transaction) => (
+        <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-xl bg-card">
           <div>
-            <p className="font-semibold text-sm">{t.description || "Mouvement de points"}</p>
-            <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</p>
+            <p className="font-semibold text-sm">{transaction.description || "Mouvement de points"}</p>
+            <p className="text-xs text-muted-foreground">{new Date(transaction.created_at).toLocaleDateString()}</p>
           </div>
-          <div className={`font-bold ${t.amount > 0 ? "text-green-600" : "text-destructive"}`}>
-            {t.amount > 0 ? "+" : ""}{t.amount} pts
+          <div className={`font-bold ${transaction.amount > 0 ? "text-green-600" : "text-destructive"}`}>
+            {transaction.amount > 0 ? "+" : ""}{transaction.amount} pts
           </div>
         </div>
       ))}

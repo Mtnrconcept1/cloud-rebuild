@@ -1,25 +1,40 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowDownLeft, ArrowUpRight, CreditCard, Download, Eye, FileText, ReceiptText, RefreshCcw, Settings, Wallet } from "lucide-react";
+
 import DashboardLayout from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useOwnerRestaurants } from "./useOwnerRestaurants";
-import { Download, FileText, Euro, Settings, RefreshCcw, Eye } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import {
+  buildRestaurantPaymentSummary,
+  filterRestaurantPaymentEvents,
+  formatRestaurantPaymentMethod,
+  getRestaurantPaymentDirectionMeta,
+  getRestaurantPaymentSignedAmount,
+  getRestaurantPaymentStatusMeta,
+  type RestaurantPaymentDirectionFilter,
+  type RestaurantPaymentEvent,
+  type RestaurantPaymentStatusFilter,
+} from "@/lib/dashboardPayments";
+import { supabase } from "@/integrations/supabase/client";
+import { useDashboardRestaurant } from "./DashboardContext";
 
 type Invoice = {
   id: string;
   invoice_number: string | null;
   period_start: string;
   period_end: string;
-  amount_ht: number;
-  amount_tva: number;
-  amount_ttc: number;
-  status: string;
+  amount_ht: number | string | null;
+  amount_tva: number | string | null;
+  amount_ttc: number | string | null;
+  status: string | null;
   due_at: string | null;
   paid_at: string | null;
   pdf_url: string | null;
@@ -43,218 +58,553 @@ type InvoiceSettings = {
   phone: string | null;
 };
 
-const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const INVOICE_STATUS_META: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
   pending: { label: "En attente", variant: "secondary" },
-  paid: { label: "Payée", variant: "default" },
+  paid: { label: "Payee", variant: "default" },
   overdue: { label: "En retard", variant: "destructive" },
 };
 
+function toAmount(value: number | string | null | undefined) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatAmount(value: number | string | null | undefined, currency: string | null | undefined = "CHF") {
+  return `${toAmount(value).toFixed(2)} ${String(currency || "CHF").toUpperCase()}`;
+}
+
+function formatSignedAmount(value: number, currency: string | null | undefined = "CHF") {
+  const prefix = value > 0 ? "+" : value < 0 ? "-" : "";
+  return `${prefix}${Math.abs(value).toFixed(2)} ${String(currency || "CHF").toUpperCase()}`;
+}
+
+function formatDate(value: string | null | undefined, options?: Intl.DateTimeFormatOptions) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    ...options,
+  });
+}
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getErrorMessage(error: unknown) {
+  if (!error) return null;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return String((error as { message?: unknown }).message || "");
+  }
+  return String(error);
+}
+
 export default function DashboardFactures() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { roles } = useAuth();
-  const { restaurants, restaurantIds, loading: loadingRestaurants, error: restaurantError } = useOwnerRestaurants();
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [settings, setSettings] = useState<Record<string, InvoiceSettings>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
+  const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [paymentDirectionFilter, setPaymentDirectionFilter] = useState<RestaurantPaymentDirectionFilter>("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<RestaurantPaymentStatusFilter>("all");
   const isAdmin = roles.includes("admin");
 
-  const load = async () => {
-    if (!restaurantIds.length) return setLoading(false);
-    setLoading(true);
+  const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
 
-    const [invoiceRes, settingsRes] = await Promise.all([
-      supabase.from("restaurant_invoices").select("*").in("restaurant_id", restaurantIds).order("period_end", { ascending: false }),
-      supabase.from("restaurant_invoice_settings").select("*").in("restaurant_id", restaurantIds),
+  const {
+    data: invoices = [],
+    isLoading: invoicesLoading,
+    error: invoicesError,
+  } = useQuery({
+    queryKey: ["dashboard-invoices", selectedId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurant_invoices")
+        .select("*")
+        .eq("restaurant_id", selectedId!)
+        .order("period_end", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as Invoice[];
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
+  const {
+    data: invoiceSettings = null,
+    isLoading: settingsLoading,
+    error: settingsError,
+  } = useQuery({
+    queryKey: ["dashboard-invoice-settings", selectedId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurant_invoice_settings")
+        .select("*")
+        .eq("restaurant_id", selectedId!)
+        .maybeSingle();
+
+      if (error) throw error;
+      return (data || null) as InvoiceSettings | null;
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
+  const {
+    data: paymentHistory = [],
+    isLoading: paymentsLoading,
+    error: paymentsError,
+  } = useQuery({
+    queryKey: ["dashboard-payment-history", selectedId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_restaurant_payment_history" as never, {
+        p_restaurant_id: selectedId!,
+        p_limit: 500,
+        p_before: null,
+      } as never);
+
+      if (error) throw error;
+      return (data || []) as RestaurantPaymentEvent[];
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
+  const totalHT = useMemo(
+    () => invoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ht), 0),
+    [invoices],
+  );
+  const totalTTC = useMemo(
+    () => invoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ttc), 0),
+    [invoices],
+  );
+  const unpaidInvoices = useMemo(
+    () => invoices.filter((invoice) => String(invoice.status || "").toLowerCase() !== "paid").length,
+    [invoices],
+  );
+
+  const paymentSummary = useMemo(
+    () => buildRestaurantPaymentSummary(paymentHistory),
+    [paymentHistory],
+  );
+  const filteredPaymentHistory = useMemo(
+    () => filterRestaurantPaymentEvents(paymentHistory, paymentDirectionFilter, paymentStatusFilter),
+    [paymentDirectionFilter, paymentHistory, paymentStatusFilter],
+  );
+
+  const billingError = restaurantsError || getErrorMessage(invoicesError) || getErrorMessage(settingsError);
+  const paymentError = getErrorMessage(paymentsError);
+
+  const refreshBillingQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["dashboard-invoices", selectedId] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard-invoice-settings", selectedId] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard-payment-history", selectedId] }),
     ]);
-
-    setError(invoiceRes.error?.message || null);
-    setInvoices((invoiceRes.data || []) as Invoice[]);
-
-    const sMap: Record<string, InvoiceSettings> = {};
-    (settingsRes.data || []).forEach((s: any) => { sMap[s.restaurant_id] = s; });
-    setSettings(sMap);
-    setLoading(false);
   };
-
-  useEffect(() => {
-    if (!loadingRestaurants) load();
-  }, [loadingRestaurants, restaurantIds.join(",")]);
 
   const generateInvoices = async () => {
     setGenerating(true);
+
     const { data, error } = await supabase.functions.invoke("generate-invoices", { body: {} });
+
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: `${Number(data?.generated || 0)} facture(s) generee(s)` });
-      load();
+      setGenerating(false);
+      return;
     }
+
+    toast({ title: `${Number(data?.generated || 0)} facture(s) generee(s)` });
+    await refreshBillingQueries();
     setGenerating(false);
   };
 
-  const totalHT = invoices.reduce((s, i) => s + Number(i.amount_ht), 0);
-  const totalTTC = invoices.reduce((s, i) => s + Number(i.amount_ttc), 0);
-  const unpaid = invoices.filter((i) => i.status !== "paid");
+  const markInvoicePaid = async (invoiceId: string) => {
+    const { error } = await supabase
+      .from("restaurant_invoices")
+      .update({ status: "paid", paid_at: new Date().toISOString() })
+      .eq("id", invoiceId);
 
-  const restaurantName = (id: string) => restaurants.find((r) => r.id === id)?.name || "—";
-  const fmt = (d: string) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
 
-  const getInvoiceSettings = (restaurantId: string) => settings[restaurantId] || null;
+    toast({ title: "Facture marquee comme payee" });
+    await refreshBillingQueries();
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="font-display text-3xl font-bold">Factures</h1>
-          <div className="flex gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold">Factures</h1>
+            <p className="text-sm text-muted-foreground">
+              {selectedRestaurant ? `Suivi de ${selectedRestaurant.name}` : "Selectionnez un restaurant dans la barre laterale."}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link to="/dashboard/factures/parametres"><Settings className="h-4 w-4 mr-1" /> Personnaliser</Link>
+              <Link to="/dashboard/factures/parametres">
+                <Settings className="mr-1 h-4 w-4" />
+                Personnaliser
+              </Link>
             </Button>
             {isAdmin ? (
               <Button size="sm" onClick={generateInvoices} disabled={generating}>
-                <RefreshCcw className={`h-4 w-4 mr-1 ${generating ? "animate-spin" : ""}`} />
+                <RefreshCcw className={`mr-1 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
                 Generer factures
               </Button>
             ) : null}
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
+        {restaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p> : null}
+        {!restaurantsLoading && !restaurantsError && restaurants.length === 0 ? (
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total HT</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalHT.toFixed(2)} CHF</p></CardContent>
+            <CardContent className="py-10 text-center text-muted-foreground">
+              <FileText className="mx-auto mb-3 h-10 w-10 opacity-40" />
+              <p>Aucun restaurant lie a votre compte.</p>
+            </CardContent>
           </Card>
+        ) : null}
+        {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total TTC</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalTTC.toFixed(2)} CHF</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Impayées</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{unpaid.length}</p></CardContent>
-          </Card>
-        </div>
-
-        {loadingRestaurants || loading ? <p>Chargement...</p> : null}
-        {restaurantError || error ? <p className="text-destructive">Erreur : {restaurantError || error}</p> : null}
-        {!loading && !error && !invoices.length ? (
-          <Card>
-            <CardContent className="pt-6 text-center text-muted-foreground">
-              <FileText className="mx-auto h-10 w-10 mb-2 opacity-40" />
-              <p>Aucune facture pour le moment.</p>
-              <p className="text-xs mt-1">Cliquez sur « Générer factures » pour créer les factures du mois précédent.</p>
+            <CardContent className="py-10 text-center text-muted-foreground">
+              <ReceiptText className="mx-auto mb-3 h-10 w-10 opacity-40" />
+              <p>Selectionnez un restaurant depuis la barre laterale pour afficher les factures.</p>
             </CardContent>
           </Card>
         ) : null}
 
-        <div className="space-y-3">
-          {invoices.map((inv) => {
-            const s = STATUS_MAP[inv.status] || STATUS_MAP.draft;
-            const hasBranding = !!getInvoiceSettings(inv.restaurant_id);
-            return (
-              <Card key={inv.id}>
-                <CardContent className="pt-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Euro className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">{Number(inv.amount_ttc).toFixed(2)} CHF TTC</span>
-                      <Badge variant={s.variant}>{s.label}</Badge>
-                      {inv.invoice_number && <span className="text-xs text-muted-foreground font-mono">{inv.invoice_number}</span>}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {restaurantName(inv.restaurant_id)} · Période : {fmt(inv.period_start)} → {fmt(inv.period_end)}
-                    </p>
-                    {inv.due_at && !inv.paid_at && (
-                      <p className="text-xs text-muted-foreground">Échéance : {fmt(inv.due_at)}</p>
-                    )}
-                    {inv.paid_at && (
-                      <p className="text-xs text-muted-foreground">Payée le {fmt(inv.paid_at)}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button size="sm" variant="outline" onClick={() => setPreviewInvoice(inv)}>
-                      <Eye className="h-4 w-4 mr-1" /> Aperçu
-                    </Button>
-                    {inv.pdf_url && (
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={inv.pdf_url} target="_blank" rel="noreferrer"><Download className="h-4 w-4 mr-1" />PDF</a>
-                      </Button>
-                    )}
-                    {isAdmin && inv.status !== "paid" && (
-                      <Button size="sm" onClick={async () => {
-                        const { error } = await supabase
-                          .from("restaurant_invoices")
-                          .update({ status: "paid", paid_at: new Date().toISOString() })
-                          .eq("id", inv.id);
-                        if (error) {
-                          toast({ title: "Erreur", description: error.message, variant: "destructive" });
-                        } else {
-                          toast({ title: "Facture marquee comme payee" });
-                          load();
-                        }
-                      }}>
-                        Marquer payée
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        {selectedRestaurant ? (
+          <>
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Restaurant actif</p>
+              <p className="text-sm font-semibold">{selectedRestaurant.name}</p>
+            </div>
 
-        {/* Invoice Preview Dialog */}
-        <Dialog open={!!previewInvoice} onOpenChange={() => setPreviewInvoice(null)}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Aperçu de la facture</DialogTitle></DialogHeader>
-            {previewInvoice && <InvoicePreview invoice={previewInvoice} settings={getInvoiceSettings(previewInvoice.restaurant_id)} restaurantName={restaurantName(previewInvoice.restaurant_id)} />}
-          </DialogContent>
-        </Dialog>
+            <Tabs defaultValue="invoices" className="space-y-6">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="invoices">Factures</TabsTrigger>
+                <TabsTrigger value="payments">Paiements</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="invoices" className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Total HT</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">{formatAmount(totalHT)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Total TTC</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">{formatAmount(totalTTC)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Impayees</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">{unpaidInvoices}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {invoicesLoading || settingsLoading ? <p className="text-muted-foreground">Chargement des factures...</p> : null}
+                {billingError ? <p className="text-destructive">Erreur lors du chargement : {billingError}</p> : null}
+
+                {!invoicesLoading && !billingError && invoices.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-10 text-center text-muted-foreground">
+                      <FileText className="mx-auto mb-3 h-10 w-10 opacity-40" />
+                      <p>Aucune facture pour ce restaurant.</p>
+                      <p className="mt-1 text-xs">Les factures apparaitront ici des qu elles sont generees.</p>
+                    </CardContent>
+                  </Card>
+                ) : null}
+
+                {!invoicesLoading && !billingError ? (
+                  <div className="space-y-3">
+                    {invoices.map((invoice) => {
+                      const statusKey = String(invoice.status || "draft").toLowerCase();
+                      const statusMeta = INVOICE_STATUS_META[statusKey] || {
+                        label: statusKey || "Inconnu",
+                        variant: "outline" as const,
+                      };
+
+                      return (
+                        <Card key={invoice.id}>
+                          <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-4">
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-semibold">{formatAmount(invoice.amount_ttc)}</span>
+                                <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
+                                {invoice.invoice_number ? (
+                                  <span className="font-mono text-xs text-muted-foreground">{invoice.invoice_number}</span>
+                                ) : null}
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Periode : {formatDate(invoice.period_start)} {"->"} {formatDate(invoice.period_end)}
+                              </p>
+                              {invoice.due_at && !invoice.paid_at ? (
+                                <p className="text-xs text-muted-foreground">Echeance : {formatDate(invoice.due_at)}</p>
+                              ) : null}
+                              {invoice.paid_at ? (
+                                <p className="text-xs text-muted-foreground">Payee le {formatDate(invoice.paid_at)}</p>
+                              ) : null}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              <Button size="sm" variant="outline" onClick={() => setPreviewInvoice(invoice)}>
+                                <Eye className="mr-1 h-4 w-4" />
+                                Apercu
+                              </Button>
+                              {invoice.pdf_url ? (
+                                <Button size="sm" variant="outline" asChild>
+                                  <a href={invoice.pdf_url} target="_blank" rel="noreferrer">
+                                    <Download className="mr-1 h-4 w-4" />
+                                    PDF
+                                  </a>
+                                </Button>
+                              ) : null}
+                              {isAdmin && String(invoice.status || "").toLowerCase() !== "paid" ? (
+                                <Button size="sm" onClick={() => markInvoicePaid(invoice.id)}>
+                                  Marquer payee
+                                </Button>
+                              ) : null}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </TabsContent>
+
+              <TabsContent value="payments" className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <Card>
+                    <CardContent className="flex items-center justify-between py-5">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Encaissements recus</p>
+                        <p className="text-2xl font-bold">{formatAmount(paymentSummary.receivedCharges)}</p>
+                      </div>
+                      <ArrowDownLeft className="h-5 w-5 text-emerald-600" />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="flex items-center justify-between py-5">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Remboursements</p>
+                        <p className="text-2xl font-bold">{formatAmount(paymentSummary.refunds)}</p>
+                      </div>
+                      <ArrowUpRight className="h-5 w-5 text-amber-600" />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="flex items-center justify-between py-5">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Paiements effectues</p>
+                        <p className="text-2xl font-bold">{formatAmount(paymentSummary.issuedPayments)}</p>
+                      </div>
+                      <Wallet className="h-5 w-5 text-primary" />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="flex items-center justify-between py-5">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Net plateforme</p>
+                        <p className="text-2xl font-bold">{formatSignedAmount(paymentSummary.netPlatform)}</p>
+                      </div>
+                      <CreditCard className="h-5 w-5 text-muted-foreground" />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardContent className="space-y-2 pt-5">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Type</p>
+                      <Select
+                        value={paymentDirectionFilter}
+                        onValueChange={(value) => setPaymentDirectionFilter(value as RestaurantPaymentDirectionFilter)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Tous les paiements" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tous</SelectItem>
+                          <SelectItem value="received">Recus</SelectItem>
+                          <SelectItem value="issued">Effectues</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="space-y-2 pt-5">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Statut</p>
+                      <Select
+                        value={paymentStatusFilter}
+                        onValueChange={(value) => setPaymentStatusFilter(value as RestaurantPaymentStatusFilter)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Tous les statuts" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tous</SelectItem>
+                          <SelectItem value="succeeded">Reussis</SelectItem>
+                          <SelectItem value="pending">En attente</SelectItem>
+                          <SelectItem value="failed">Echoues</SelectItem>
+                          <SelectItem value="cancelled">Annules</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {paymentsLoading ? <p className="text-muted-foreground">Chargement des paiements...</p> : null}
+                {paymentError ? <p className="text-destructive">Erreur lors du chargement des paiements : {paymentError}</p> : null}
+
+                {!paymentsLoading && !paymentError && filteredPaymentHistory.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-10 text-center text-muted-foreground">
+                      <Wallet className="mx-auto mb-3 h-10 w-10 opacity-40" />
+                      <p>Aucun paiement pour ce restaurant.</p>
+                    </CardContent>
+                  </Card>
+                ) : null}
+
+                {!paymentsLoading && !paymentError && filteredPaymentHistory.length > 0 ? (
+                  <div className="space-y-3">
+                    {filteredPaymentHistory.map((event) => {
+                      const directionMeta = getRestaurantPaymentDirectionMeta(event.direction);
+                      const statusMeta = getRestaurantPaymentStatusMeta(event.status);
+                      const amount = getRestaurantPaymentSignedAmount(event);
+                      const paymentMethod = formatRestaurantPaymentMethod(event.payment_method);
+                      return (
+                        <Card key={`${event.event_kind}-${event.event_id}`}>
+                          <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-4">
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-semibold">{event.title}</span>
+                                <Badge variant={directionMeta.variant}>{directionMeta.label}</Badge>
+                                <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
+                              </div>
+                              {event.subtitle ? (
+                                <p className="text-sm text-muted-foreground">{event.subtitle}</p>
+                              ) : null}
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                <span>{formatDateTime(event.occurred_at) || event.occurred_at}</span>
+                                {paymentMethod ? <span>Methode : {paymentMethod}</span> : null}
+                              </div>
+                            </div>
+
+                            <div className="text-right">
+                              <p className={`text-lg font-bold ${amount >= 0 ? "text-emerald-600" : "text-foreground"}`}>
+                                {formatSignedAmount(amount, event.currency)}
+                              </p>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">{event.event_kind}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </TabsContent>
+            </Tabs>
+
+            <Dialog open={!!previewInvoice} onOpenChange={(open) => { if (!open) setPreviewInvoice(null); }}>
+              <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Apercu de la facture</DialogTitle>
+                </DialogHeader>
+                {previewInvoice ? (
+                  <InvoicePreview
+                    invoice={previewInvoice}
+                    settings={invoiceSettings}
+                    restaurantName={selectedRestaurant.name}
+                  />
+                ) : null}
+              </DialogContent>
+            </Dialog>
+          </>
+        ) : null}
       </div>
     </DashboardLayout>
   );
 }
 
-function InvoicePreview({ invoice, settings, restaurantName }: { invoice: Invoice; settings: InvoiceSettings | null; restaurantName: string }) {
-  const fmt = (d: string) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+function InvoicePreview({
+  invoice,
+  settings,
+  restaurantName,
+}: {
+  invoice: Invoice;
+  settings: InvoiceSettings | null;
+  restaurantName: string;
+}) {
+  const invoiceDate = formatDate(invoice.created_at, { month: "long" });
+  const dueDate = formatDate(invoice.due_at, { month: "long" });
+  const periodStart = formatDate(invoice.period_start, { month: "long" });
+  const periodEnd = formatDate(invoice.period_end, { month: "long" });
+  const invoiceStatus = String(invoice.status || "").toLowerCase();
 
   return (
-    <div className="border rounded-lg p-8 bg-white text-black space-y-6 text-sm print:border-0">
-      {/* Header */}
-      <div className="flex justify-between items-start">
+    <div className="space-y-6 rounded-lg border bg-white p-8 text-sm text-black">
+      <div className="flex items-start justify-between">
         <div>
           {settings?.logo_url ? (
-            <img src={settings.logo_url} alt="Logo" className="h-16 object-contain mb-2" />
+            <img src={settings.logo_url} alt="Logo" className="mb-2 h-16 object-contain" />
           ) : (
-            <div className="h-12 w-28 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400 mb-2">Logo</div>
+            <div className="mb-2 flex h-12 w-28 items-center justify-center rounded bg-gray-100 text-xs text-gray-400">Logo</div>
           )}
-          <p className="font-bold text-base">{settings?.company_name || restaurantName}</p>
-          {settings?.company_address && <p>{settings.company_address}</p>}
-          {(settings?.company_postal_code || settings?.company_city) && (
+          <p className="text-base font-bold">{settings?.company_name || restaurantName}</p>
+          {settings?.company_address ? <p>{settings.company_address}</p> : null}
+          {(settings?.company_postal_code || settings?.company_city) ? (
             <p>{settings?.company_postal_code} {settings?.company_city}</p>
-          )}
-          {settings?.vat_number && <p className="text-xs mt-1">N° TVA : {settings.vat_number}</p>}
-          {settings?.email && <p className="text-xs">{settings.email}</p>}
-          {settings?.phone && <p className="text-xs">{settings.phone}</p>}
+          ) : null}
+          {settings?.vat_number ? <p className="mt-1 text-xs">N TVA : {settings.vat_number}</p> : null}
+          {settings?.email ? <p className="text-xs">{settings.email}</p> : null}
+          {settings?.phone ? <p className="text-xs">{settings.phone}</p> : null}
         </div>
+
         <div className="text-right">
-          <p className="font-bold text-2xl text-gray-800">FACTURE</p>
-          {invoice.invoice_number && <p className="font-mono text-sm mt-1">{invoice.invoice_number}</p>}
-          <p className="text-xs text-gray-500 mt-2">Date d'émission : {fmt(invoice.created_at)}</p>
-          {invoice.due_at && <p className="text-xs text-gray-500">Échéance : {fmt(invoice.due_at)}</p>}
+          <p className="text-2xl font-bold text-gray-800">FACTURE</p>
+          {invoice.invoice_number ? <p className="mt-1 font-mono text-sm">{invoice.invoice_number}</p> : null}
+          {invoiceDate ? <p className="mt-2 text-xs text-gray-500">Date d emission : {invoiceDate}</p> : null}
+          {dueDate ? <p className="text-xs text-gray-500">Echeance : {dueDate}</p> : null}
         </div>
       </div>
 
-      {/* Period */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Période de facturation</p>
-        <p className="font-medium">{fmt(invoice.period_start)} — {fmt(invoice.period_end)}</p>
+      <div className="rounded-lg bg-gray-50 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Periode de facturation</p>
+        <p className="font-medium">{periodStart} - {periodEnd}</p>
       </div>
 
-      {/* Items */}
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b-2 border-gray-200">
@@ -264,36 +614,52 @@ function InvoicePreview({ invoice, settings, restaurantName }: { invoice: Invoic
         </thead>
         <tbody>
           <tr className="border-b">
-            <td className="py-3">Commissions plateforme — {restaurantName}</td>
-            <td className="py-3 text-right">{Number(invoice.amount_ht).toFixed(2)} CHF</td>
+            <td className="py-3">Commissions plateforme - {restaurantName}</td>
+            <td className="py-3 text-right">{formatAmount(invoice.amount_ht)}</td>
           </tr>
         </tbody>
         <tfoot>
-          <tr><td className="py-2 font-semibold">Sous-total HT</td><td className="py-2 text-right">{Number(invoice.amount_ht).toFixed(2)} CHF</td></tr>
-          <tr><td className="py-2">TVA (7.7%)</td><td className="py-2 text-right">{Number(invoice.amount_tva).toFixed(2)} CHF</td></tr>
-          <tr className="border-t-2 border-gray-800"><td className="py-3 font-bold text-lg">Total TTC</td><td className="py-3 text-right font-bold text-lg">{Number(invoice.amount_ttc).toFixed(2)} CHF</td></tr>
+          <tr>
+            <td className="py-2 font-semibold">Sous-total HT</td>
+            <td className="py-2 text-right">{formatAmount(invoice.amount_ht)}</td>
+          </tr>
+          <tr>
+            <td className="py-2">TVA (7.7%)</td>
+            <td className="py-2 text-right">{formatAmount(invoice.amount_tva)}</td>
+          </tr>
+          <tr className="border-t-2 border-gray-800">
+            <td className="py-3 text-lg font-bold">Total TTC</td>
+            <td className="py-3 text-right text-lg font-bold">{formatAmount(invoice.amount_ttc)}</td>
+          </tr>
         </tfoot>
       </table>
 
-      {/* Bank info */}
-      {settings?.iban && (
-        <div className="bg-gray-50 rounded-lg p-4 space-y-1">
-          <p className="font-semibold text-xs uppercase tracking-wider text-gray-500">Coordonnées bancaires</p>
+      {settings?.iban ? (
+        <div className="space-y-1 rounded-lg bg-gray-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Coordonnees bancaires</p>
           <p>IBAN : {settings.iban}</p>
-          {settings.bic && <p>BIC : {settings.bic}</p>}
-          {settings.bank_name && <p>Banque : {settings.bank_name}</p>}
+          {settings.bic ? <p>BIC : {settings.bic}</p> : null}
+          {settings.bank_name ? <p>Banque : {settings.bank_name}</p> : null}
         </div>
-      )}
+      ) : null}
 
-      {settings?.payment_terms && <p className="text-xs text-gray-500">{settings.payment_terms}</p>}
+      {settings?.payment_terms ? <p className="text-xs text-gray-500">{settings.payment_terms}</p> : null}
 
-      {/* Status */}
-      <div className={`text-center py-3 rounded-lg font-bold text-lg ${invoice.status === "paid" ? "bg-green-50 text-green-700" : invoice.status === "overdue" ? "bg-red-50 text-red-700" : "bg-yellow-50 text-yellow-700"}`}>
-        {invoice.status === "paid" ? "✓ PAYÉE" : invoice.status === "overdue" ? "⚠ EN RETARD" : "EN ATTENTE DE PAIEMENT"}
+      <div
+        className={`rounded-lg py-3 text-center text-lg font-bold ${
+          invoiceStatus === "paid"
+            ? "bg-green-50 text-green-700"
+            : invoiceStatus === "overdue"
+              ? "bg-red-50 text-red-700"
+              : "bg-yellow-50 text-yellow-700"
+        }`}
+      >
+        {invoiceStatus === "paid" ? "PAYEE" : invoiceStatus === "overdue" ? "EN RETARD" : "EN ATTENTE DE PAIEMENT"}
       </div>
 
-      {settings?.footer_note && <p className="text-xs text-gray-400 border-t pt-4 text-center">{settings.footer_note}</p>}
+      {settings?.footer_note ? (
+        <p className="border-t pt-4 text-center text-xs text-gray-400">{settings.footer_note}</p>
+      ) : null}
     </div>
   );
 }
-

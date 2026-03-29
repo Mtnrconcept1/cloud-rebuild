@@ -12,7 +12,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { setupDeepLinks } from "@/lib/deep-links";
-import { useActiveFeatures } from "@/lib/featureFlags";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 // Client-facing pages (eagerly loaded for instant first paint)
 import Index from "./pages/Index";
@@ -112,21 +112,32 @@ function FeatureSwitch({
   fallback = "/",
   children,
 }: {
-  enabled: boolean;
+  enabled: boolean | null;
   fallback?: string;
   children: React.ReactNode;
 }) {
+  if (enabled === null) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
   return enabled ? <>{children}</> : <Navigate to={fallback} replace />;
 }
 
 function AppShell() {
-  const activeFeatures = useActiveFeatures();
-  const commandesEnabled = activeFeatures.has("commandes");
-  const antiWasteEnabled = activeFeatures.has("anti-gaspi");
-  const flashSalesEnabled = activeFeatures.has("ventes-flash");
-  const campaignsEnabled = activeFeatures.has("campagnes-pub");
-  const performanceEnabled = activeFeatures.has("performances");
-  const courierEnabled = activeFeatures.has("espace-livreur");
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
+  const hasFeature = (flagName: string) => (
+    featureFlagsLoading ? null : activeFeatures.has(flagName)
+  );
+  const commandesEnabled = hasFeature("commandes");
+  const antiWasteEnabled = hasFeature("anti-gaspi");
+  const flashSalesEnabled = hasFeature("ventes-flash");
+  const campaignsEnabled = hasFeature("campagnes-pub");
+  const performanceEnabled = hasFeature("performances");
+  const courierEnabled = hasFeature("espace-livreur");
 
   return (
     <>
@@ -145,16 +156,16 @@ function AppShell() {
           <Route path="/reservations" element={<ProtectedRoute><Reservations /></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-          <Route path="/creneaux-garantis" element={<FeatureSwitch enabled={activeFeatures.has("creneaux-garantis")}><CreneauxGarantis /></FeatureSwitch>} />
-          <Route path="/flex-prix-bas" element={<FeatureSwitch enabled={activeFeatures.has("flex-prix-bas")}><FlexPrixBas /></FeatureSwitch>} />
-          <Route path="/match-groupes" element={<FeatureSwitch enabled={activeFeatures.has("match-groupes")}><MatchGroupes /></FeatureSwitch>} />
-          <Route path="/multi-stop" element={<FeatureSwitch enabled={activeFeatures.has("multi-stop")}><MultiStop /></FeatureSwitch>} />
-          <Route path="/multi-restaurant" element={<FeatureSwitch enabled={activeFeatures.has("multi-restaurant")}><MultiRestaurant /></FeatureSwitch>} />
-          <Route path="/chefs-table" element={<FeatureSwitch enabled={activeFeatures.has("chefs-table")}><ChefsTable /></FeatureSwitch>} />
-          <Route path="/zero-attente" element={<FeatureSwitch enabled={activeFeatures.has("zero-attente")}><ZeroAttente /></FeatureSwitch>} />
-          <Route path="/garantie-qualite" element={<FeatureSwitch enabled={activeFeatures.has("garantie-qualite")}><GarantieQualite /></FeatureSwitch>} />
-          <Route path="/budget-auto" element={<FeatureSwitch enabled={activeFeatures.has("budget-auto")}><BudgetAuto /></FeatureSwitch>} />
-          <Route path="/abonnement" element={<FeatureSwitch enabled={activeFeatures.has("abonnement")}><Abonnement /></FeatureSwitch>} />
+          <Route path="/creneaux-garantis" element={<FeatureSwitch enabled={hasFeature("creneaux-garantis")}><CreneauxGarantis /></FeatureSwitch>} />
+          <Route path="/flex-prix-bas" element={<FeatureSwitch enabled={hasFeature("flex-prix-bas")}><FlexPrixBas /></FeatureSwitch>} />
+          <Route path="/match-groupes" element={<FeatureSwitch enabled={hasFeature("match-groupes")}><MatchGroupes /></FeatureSwitch>} />
+          <Route path="/multi-stop" element={<FeatureSwitch enabled={hasFeature("multi-stop")}><MultiStop /></FeatureSwitch>} />
+          <Route path="/multi-restaurant" element={<FeatureSwitch enabled={hasFeature("multi-restaurant")}><MultiRestaurant /></FeatureSwitch>} />
+          <Route path="/chefs-table" element={<FeatureSwitch enabled={hasFeature("chefs-table")}><ChefsTable /></FeatureSwitch>} />
+          <Route path="/zero-attente" element={<FeatureSwitch enabled={hasFeature("zero-attente")}><ZeroAttente /></FeatureSwitch>} />
+          <Route path="/garantie-qualite" element={<FeatureSwitch enabled={hasFeature("garantie-qualite")}><GarantieQualite /></FeatureSwitch>} />
+          <Route path="/budget-auto" element={<FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch>} />
+          <Route path="/abonnement" element={<FeatureSwitch enabled={hasFeature("abonnement")}><Abonnement /></FeatureSwitch>} />
           <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />
           <Route path="/dashboard" element={<DashboardRoute><DashboardHome /></DashboardRoute>} />
@@ -167,7 +178,18 @@ function AppShell() {
           <Route path="/dashboard/performances" element={<DashboardRoute><FeatureSwitch enabled={performanceEnabled} fallback="/dashboard"><DashboardPerformances /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/comparaison" element={<DashboardRoute><FeatureSwitch enabled={performanceEnabled} fallback="/dashboard"><DashboardComparaison /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/avis" element={<DashboardRoute><DashboardAvis /></DashboardRoute>} />
-          <Route path="/dashboard/compta" element={<Navigate to={performanceEnabled ? "/dashboard/performances" : "/dashboard"} replace />} />
+          <Route
+            path="/dashboard/compta"
+            element={
+              performanceEnabled === null
+                ? (
+                  <div className="flex items-center justify-center min-h-screen">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                  </div>
+                )
+                : <Navigate to={performanceEnabled ? "/dashboard/performances" : "/dashboard"} replace />
+            }
+          />
           <Route path="/dashboard/factures" element={<DashboardRoute><DashboardFactures /></DashboardRoute>} />
           <Route path="/dashboard/factures/parametres" element={<DashboardRoute><DashboardInvoiceSettings /></DashboardRoute>} />
           <Route path="/dashboard/offres" element={<DashboardRoute><FeatureSwitch enabled={antiWasteEnabled} fallback="/dashboard"><DashboardOffres /></FeatureSwitch></DashboardRoute>} />

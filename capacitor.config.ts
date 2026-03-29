@@ -28,7 +28,7 @@ const config: CapacitorConfig = {
     scheme: "tok",
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
     backgroundColor: "#ffffff",
   },
 };

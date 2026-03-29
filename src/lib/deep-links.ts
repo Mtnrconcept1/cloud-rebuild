@@ -1,12 +1,12 @@
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
 import { isNative } from "@/lib/platform";
+import { getNavigationTargetFromAppUrl } from "@/lib/navigation";
 
 export function setupDeepLinks(navigateFn: (path: string) => void) {
   if (!isNative()) return;
 
   App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-    const url = new URL(event.url);
-    const path = url.pathname || "/";
+    const path = getNavigationTargetFromAppUrl(event.url, "/");
     navigateFn(path);
   });
 

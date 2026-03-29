@@ -11,6 +11,43 @@ import {
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
 
+type JsonRecord = Record<string, unknown>;
+
+type OrderLookupRow = {
+  id: string;
+  status: string | null;
+  user_id: string | null;
+  restaurant_id: string;
+  delivery_address: string | null;
+  total_amount: number | null;
+  order_number: string | null;
+  metadata: JsonRecord | null;
+  scheduled_at: string | null;
+  notes: string | null;
+};
+
+type ReservationLookupRow = {
+  id: string;
+  metadata: JsonRecord | null;
+};
+
+type PaymentTransactionRow = {
+  order_id: string | null;
+  user_id: string | null;
+  metadata?: JsonRecord | null;
+  amount?: number | null;
+};
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function getCampaignId(metadata: unknown) {
+  return isJsonRecord(metadata) && typeof metadata.campaign_id === "string"
+    ? metadata.campaign_id
+    : null;
+}
+
 function allocateAmounts(totalAmount: number, rows: Array<{ amount: number }>) {
   const totalBase = rows.reduce((sum, row) => sum + Math.max(0, Number(row.amount || 0)), 0);
   let remaining = Math.round(totalAmount * 100) / 100;
@@ -33,8 +70,8 @@ async function getCardDetails(stripe: Stripe, session: Stripe.Checkout.Session) 
       const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent, {
         expand: ["payment_method"],
       });
-      const paymentMethod = paymentIntent.payment_method as any;
-      if (paymentMethod?.card) {
+      const paymentMethod = paymentIntent.payment_method;
+      if (paymentMethod && typeof paymentMethod !== "string" && paymentMethod.card) {
         cardBrand = paymentMethod.card.brand;
         cardLast4 = paymentMethod.card.last4;
       }
@@ -111,13 +148,13 @@ function isZeroAttenteCheckoutKind(checkoutKind: string | null | undefined) {
 async function findOrdersForSession(
   supabaseAdmin: ReturnType<typeof createClient>,
   session: Stripe.Checkout.Session,
-) {
+) : Promise<OrderLookupRow[]> {
   const orderRef = session.metadata?.order_reference || null;
   const checkoutId = session.metadata?.checkout_id || null;
   const checkoutGroupId = session.metadata?.checkout_group_id || null;
-  const ordersById = new Map<string, any>();
+  const ordersById = new Map<string, OrderLookupRow>();
 
-  const appendOrders = (rows: any[] | null | undefined) => {
+  const appendOrders = (rows: OrderLookupRow[] | null | undefined) => {
     for (const row of rows || []) {
       if (row?.id) ordersById.set(String(row.id), row);
     }
@@ -129,14 +166,14 @@ async function findOrdersForSession(
     .from("orders")
     .select(baseSelect)
     .filter("metadata->>stripe_session_id", "eq", session.id);
-  appendOrders(sessionOrders);
+  appendOrders(sessionOrders as OrderLookupRow[] | null | undefined);
 
   if (checkoutGroupId) {
     const { data: groupOrders } = await supabaseAdmin
       .from("orders")
       .select(baseSelect)
       .filter("metadata->>checkout_group_id", "eq", checkoutGroupId);
-    appendOrders(groupOrders);
+    appendOrders(groupOrders as OrderLookupRow[] | null | undefined);
   }
 
   if (checkoutId) {
@@ -144,7 +181,7 @@ async function findOrdersForSession(
       .from("orders")
       .select(baseSelect)
       .eq("checkout_id", checkoutId);
-    appendOrders(checkoutOrders);
+    appendOrders(checkoutOrders as OrderLookupRow[] | null | undefined);
   }
 
   if (orderRef) {
@@ -152,7 +189,7 @@ async function findOrdersForSession(
       .from("orders")
       .select(baseSelect)
       .eq("order_number", orderRef);
-    appendOrders(refOrders);
+    appendOrders(refOrders as OrderLookupRow[] | null | undefined);
   }
 
   return Array.from(ordersById.values());
@@ -181,29 +218,54 @@ Deno.serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = getEnv("STRIPE_WEBHOOK_SECRET");
 
+  if (!webhookSecret) {
+    await writeAuditLog({
+      adminClient: supabaseAdmin,
+      actor: { roles: ["service_role"], isServiceRole: true },
+      request: req,
+      functionName: "stripe-webhook",
+      action: "verify_signature",
+      status: "failure",
+      targetEntityType: "stripe_event",
+      errorMessage: "STRIPE_WEBHOOK_SECRET not configured",
+    });
+    return new Response("STRIPE_WEBHOOK_SECRET not configured", { status: 503 });
+  }
+
+  if (!signature) {
+    await writeAuditLog({
+      adminClient: supabaseAdmin,
+      actor: { roles: ["service_role"], isServiceRole: true },
+      request: req,
+      functionName: "stripe-webhook",
+      action: "verify_signature",
+      status: "failure",
+      targetEntityType: "stripe_event",
+      errorMessage: "Missing stripe-signature header",
+    });
+    return new Response("Missing stripe signature", { status: 400 });
+  }
+
   let event: Stripe.Event;
-  if (signature && webhookSecret) {
-    try {
-      event = await stripe.webhooks.constructEventAsync(
-        body,
-        signature,
-        webhookSecret,
-      );
-    } catch (error) {
-      console.warn("Webhook signature verification failed, falling back to raw parse:", error);
-      // Fallback: parse the body directly (Supabase relay may alter the payload encoding)
-      try {
-        event = JSON.parse(body) as Stripe.Event;
-      } catch {
-        return new Response("Invalid webhook payload", { status: 400 });
-      }
-    }
-  } else {
-    try {
-      event = JSON.parse(body) as Stripe.Event;
-    } catch {
-      return new Response("Invalid webhook payload", { status: 400 });
-    }
+  try {
+    event = await stripe.webhooks.constructEventAsync(
+      body,
+      signature,
+      webhookSecret,
+    );
+  } catch (error) {
+    console.warn("Webhook signature verification failed:", error);
+    await writeAuditLog({
+      adminClient: supabaseAdmin,
+      actor: { roles: ["service_role"], isServiceRole: true },
+      request: req,
+      functionName: "stripe-webhook",
+      action: "verify_signature",
+      status: "failure",
+      targetEntityType: "stripe_event",
+      errorMessage: error instanceof Error ? error.message : "Invalid webhook signature",
+    });
+    return new Response("Invalid webhook signature", { status: 400 });
   }
 
   try {
@@ -235,7 +297,7 @@ Deno.serve(async (req) => {
                 stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
                 paid_at: new Date().toISOString(),
                 activated_at: new Date().toISOString(),
-              } as any)
+              })
               .eq("id", campaign.id);
 
             await supabaseAdmin.from("payment_transactions").insert({
@@ -466,11 +528,12 @@ Deno.serve(async (req) => {
           .select("id, metadata")
           .filter("metadata->>checkout_session_id", "eq", session.id)
           .maybeSingle();
+        const reservationRecord = reservation as ReservationLookupRow | null;
 
         const { cardBrand, cardLast4 } = await getCardDetails(stripe, session);
 
         for (const order of orders) {
-          const existingMeta = typeof order.metadata === "object" && !Array.isArray(order.metadata) ? order.metadata : {};
+          const existingMeta = isJsonRecord(order.metadata) ? order.metadata : {};
           const isDelivery = isDeliveryOrder({
             deliveryAddress: order.delivery_address,
             metadata: existingMeta,
@@ -499,12 +562,12 @@ Deno.serve(async (req) => {
                 card_last4: cardLast4,
               },
               updated_at: new Date().toISOString(),
-            } as any)
+            })
             .eq("id", order.id);
         }
 
-        if (reservation) {
-          const existingMeta = typeof reservation.metadata === "object" && !Array.isArray(reservation.metadata) ? reservation.metadata : {};
+        if (reservationRecord) {
+          const existingMeta = isJsonRecord(reservationRecord.metadata) ? reservationRecord.metadata : {};
           await supabaseAdmin
             .from("reservations")
             .update({
@@ -517,17 +580,17 @@ Deno.serve(async (req) => {
                 paid: true,
               },
             })
-            .eq("id", reservation.id);
+            .eq("id", reservationRecord.id);
           shouldDispatchNotifications = true;
         }
 
         const allocations = allocateAmounts(
           (session.amount_total || 0) / 100,
-          orders.map((order: any) => ({ amount: Number(order.total_amount || 0) })),
+          orders.map((order) => ({ amount: Number(order.total_amount || 0) })),
         );
 
         for (const [index, order] of orders.entries()) {
-          const existingMeta = typeof order.metadata === "object" && !Array.isArray(order.metadata) ? order.metadata : {};
+          const existingMeta = isJsonRecord(order.metadata) ? order.metadata : {};
           const isDelivery = isDeliveryOrder({
             deliveryAddress: order.delivery_address,
             metadata: existingMeta,
@@ -554,7 +617,7 @@ Deno.serve(async (req) => {
               card_brand: cardBrand,
               card_last4: cardLast4,
               order_reference: order.order_number || session.metadata?.order_reference || null,
-              reservation_id: reservation?.id || null,
+              reservation_id: reservationRecord?.id || null,
             },
           });
 
@@ -636,12 +699,13 @@ Deno.serve(async (req) => {
           .select("order_id, user_id, metadata")
           .eq("stripe_payment_intent_id", paymentIntent.id)
           .eq("type", "charge");
+        const paymentTransactions = (transactions || []) as PaymentTransactionRow[];
 
-        for (const transaction of transactions || []) {
+        for (const transaction of paymentTransactions) {
           if (transaction.order_id) {
             await supabaseAdmin
               .from("orders")
-              .update({ status: "payment_failed", payment_status: "failed", updated_at: new Date().toISOString() } as any)
+              .update({ status: "payment_failed", payment_status: "failed", updated_at: new Date().toISOString() })
               .eq("id", transaction.order_id);
           }
 
@@ -659,19 +723,17 @@ Deno.serve(async (req) => {
             },
           });
 
-          const campaignId = transaction.metadata && typeof transaction.metadata === "object" && !Array.isArray(transaction.metadata)
-            ? (transaction.metadata as any).campaign_id
-            : null;
+          const campaignId = getCampaignId(transaction.metadata);
 
           if (campaignId) {
             await supabaseAdmin
               .from("ad_campaigns")
-              .update({ payment_status: "failed" } as any)
+              .update({ payment_status: "failed" })
               .eq("id", campaignId);
           }
         }
 
-        if ((transactions || []).some((transaction) => transaction.order_id)) {
+        if (paymentTransactions.some((transaction) => transaction.order_id)) {
           try {
             await triggerNotificationDispatch({ source: "stripe-webhook-payment-failed", push: true, email: true });
           } catch (error) {
@@ -692,16 +754,17 @@ Deno.serve(async (req) => {
           .eq("stripe_payment_intent_id", paymentIntentId)
           .eq("type", "charge")
           .eq("status", "succeeded");
+        const successfulChargeTransactions = (chargeTransactions || []) as PaymentTransactionRow[];
 
         const refundAmount = (charge.amount_refunded || 0) / 100;
         const allocations = allocateAmounts(
           refundAmount,
-          (chargeTransactions || []).map((transaction: any) => ({ amount: Number(transaction.amount || 0) })),
+          successfulChargeTransactions.map((transaction) => ({ amount: Number(transaction.amount || 0) })),
         );
 
         const creditedUsers = new Set<string>();
 
-        for (const [index, transaction] of (chargeTransactions || []).entries()) {
+        for (const [index, transaction] of successfulChargeTransactions.entries()) {
           await supabaseAdmin.from("payment_transactions").insert({
             order_id: transaction.order_id,
             user_id: transaction.user_id,

@@ -25,6 +25,20 @@ import { useCourierProfile } from "@/hooks/useCourierProfile";
 import { useCourierPushStatus } from "@/hooks/useCourierPushStatus";
 import { useCourierPresenceSync } from "@/hooks/useCourierPresenceSync";
 
+type CourierEarningRow = {
+  created_at: string;
+  amount: number | null;
+};
+
+type CourierActiveJobOrder = {
+  order_number?: string | null;
+  delivery_address?: string | null;
+  restaurants?: {
+    name?: string | null;
+    address?: string | null;
+  } | null;
+};
+
 export default function CourierHome() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -54,6 +68,8 @@ export default function CourierHome() {
   });
 
   const activeJob = activeJobs[0] || null;
+  const earningRows = earnings as CourierEarningRow[];
+  const activeOrder = (activeJob?.orders || null) as CourierActiveJobOrder | null;
 
   const { position, locationError, isWatching } = useCourierPresenceSync({
     enabled: Boolean(profile?.is_online || activeJobs.some((job) => COURIER_ACTIVE_JOB_STATUSES.includes(job.status))),
@@ -67,13 +83,13 @@ export default function CourierHome() {
     weekStart.setHours(0, 0, 0, 0);
     weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
 
-    const todayEarnings = earnings
-      .filter((entry: any) => String(entry.created_at || "").slice(0, 10) === todayKey)
-      .reduce((sum: number, entry: any) => sum + Number(entry.amount || 0), 0);
+    const todayEarnings = earningRows
+      .filter((entry) => String(entry.created_at || "").slice(0, 10) === todayKey)
+      .reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
 
-    const weekEarnings = earnings
-      .filter((entry: any) => Date.parse(entry.created_at) >= weekStart.getTime())
-      .reduce((sum: number, entry: any) => sum + Number(entry.amount || 0), 0);
+    const weekEarnings = earningRows
+      .filter((entry) => Date.parse(entry.created_at) >= weekStart.getTime())
+      .reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
 
     return {
       todayEarnings,
@@ -81,7 +97,7 @@ export default function CourierHome() {
       activeJobs: activeJobs.length,
       pendingOffers: offers.length,
     };
-  }, [activeJobs.length, earnings, offers.length]);
+  }, [activeJobs.length, earningRows, offers.length]);
 
   const onlineMutation = useMutation({
     mutationFn: async (nextOnline: boolean) => {
@@ -118,8 +134,8 @@ export default function CourierHome() {
 
   const handleToggleOnline = async () => {
     if (!profile) return;
-    if (!profile.is_online && ["suspended", "rejected"].includes(String(profile.status || ""))) {
-      toast.error("Le compte coursier ne peut pas passer en ligne dans son etat actuel.");
+    if (!profile.is_online && String(profile.status || "") !== "approved") {
+      toast.error("Le compte coursier doit etre approuve avant de passer en ligne.");
       return;
     }
 
@@ -182,7 +198,7 @@ export default function CourierHome() {
               <div className="space-y-1">
                 <p className="font-semibold">Profil en attente de validation</p>
                 <p className="text-sm text-muted-foreground">
-                  Completez votre profil coursier pour accelerer l'approbation et la mise en ligne.
+                  Completez votre profil et vos documents pour accelerer l'approbation avant la mise en ligne.
                 </p>
               </div>
               <Button asChild variant="outline">
@@ -268,10 +284,10 @@ export default function CourierHome() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <p className="text-lg font-semibold">
-                        {(activeJob.orders as any)?.restaurants?.name || "Restaurant"}
+                        {activeOrder?.restaurants?.name || "Restaurant"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Commande {(activeJob.orders as any)?.order_number || activeJob.order_id}
+                        Commande {activeOrder?.order_number || activeJob.order_id}
                       </p>
                     </div>
                     <Badge className="bg-primary/10 text-primary">{activeJob.status}</Badge>
@@ -282,14 +298,14 @@ export default function CourierHome() {
                         <MapPin className="h-3.5 w-3.5" />
                         Retrait
                       </p>
-                      <p className="text-sm font-medium">{(activeJob.orders as any)?.restaurants?.address || "-"}</p>
+                      <p className="text-sm font-medium">{activeOrder?.restaurants?.address || "-"}</p>
                     </div>
                     <div className="rounded-xl border p-3">
                       <p className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         <Bike className="h-3.5 w-3.5" />
                         Livraison
                       </p>
-                      <p className="text-sm font-medium">{(activeJob.orders as any)?.delivery_address || "-"}</p>
+                      <p className="text-sm font-medium">{activeOrder?.delivery_address || "-"}</p>
                     </div>
                   </div>
                   <Button asChild>

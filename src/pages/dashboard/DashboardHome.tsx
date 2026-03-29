@@ -1,19 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { CalendarDays, ShoppingCart, SunMedium, MoonStar, TrendingUp } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+import { useSignupApplication } from "@/hooks/useSignupApplication";
 import { useDashboardRestaurant } from "./DashboardContext";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 
 const INVALID_ORDER_STATUS_FILTER = "(cancelled,refused,payment_failed)";
 const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show)";
 
+type UpcomingReservationRow = {
+  id: string;
+  date: string;
+  time: string;
+  party_size: number;
+  status: string;
+  metadata: unknown;
+};
+
 export default function Dashboard() {
   const { selectedId } = useDashboardRestaurant();
+  const { data: signupApplication } = useSignupApplication("restaurateur");
   const today = new Date().toISOString().split("T")[0];
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
@@ -98,8 +110,10 @@ export default function Dashboard() {
     enabled: !!restaurant,
   });
 
-  const todayServiceCounts = upcomingReservations.reduce(
-    (acc, reservation: any) => {
+  const typedUpcomingReservations = upcomingReservations as UpcomingReservationRow[];
+
+  const todayServiceCounts = typedUpcomingReservations.reduce(
+    (acc, reservation) => {
       if (reservation.date !== today) return acc;
       const period = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
       acc[period] += 1;
@@ -111,9 +125,16 @@ export default function Dashboard() {
   if (!restaurant) {
     return (
       <DashboardLayout>
-        <div className="space-y-4 py-12 text-center">
-          <h2 className="font-display text-2xl font-bold">Aucun restaurant</h2>
-          <p className="text-muted-foreground">Creez votre restaurant depuis l'onglet "Mon restaurant".</p>
+        <div className="space-y-6">
+          <SignupApplicationStatusCard
+            application={signupApplication}
+            title="Dossier de verification restaurateur"
+            emptyDescription="Aucun dossier restaurateur n'a encore ete soumis."
+          />
+          <div className="space-y-4 py-12 text-center">
+            <h2 className="font-display text-2xl font-bold">Aucun restaurant</h2>
+            <p className="text-muted-foreground">Creez votre restaurant depuis l'onglet "Mon restaurant".</p>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -123,6 +144,12 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-6">
         <h1 className="font-display text-3xl font-bold">Bonjour, {restaurant.name}</h1>
+
+        <SignupApplicationStatusCard
+          application={signupApplication}
+          title="Dossier de verification restaurateur"
+          emptyDescription="Aucun dossier restaurateur n'a encore ete soumis."
+        />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
           <Card>
@@ -179,7 +206,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader><CardTitle className="text-lg">Reservations a venir</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {upcomingReservations?.map((reservation: any) => {
+              {typedUpcomingReservations.map((reservation) => {
                 const period = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
                 return (
                   <div key={reservation.id} className="flex items-center justify-between gap-3 text-sm">

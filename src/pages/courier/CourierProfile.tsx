@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import CourierPushStatusCard from "@/components/courier/CourierPushStatusCard";
 import CourierDashboardLayout from "@/components/CourierDashboardLayout";
+import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCourierProfile } from "@/hooks/useCourierProfile";
+import { useSignupApplication } from "@/hooks/useSignupApplication";
 import {
   COURIER_APPROVAL_STATUS_META,
   COURIER_VEHICLE_OPTIONS,
@@ -88,6 +90,7 @@ export default function CourierProfile() {
   const queryClient = useQueryClient();
   const { signOut, user } = useAuth();
   const { data: profile, isLoading: profileLoading } = useCourierProfile();
+  const { data: signupApplication } = useSignupApplication("courier");
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -202,6 +205,12 @@ export default function CourierProfile() {
             Sauvegarder
           </Button>
         </div>
+
+        <SignupApplicationStatusCard
+          application={signupApplication}
+          title="Dossier de verification livreur"
+          emptyDescription="Aucun dossier livreur n'a encore ete soumis."
+        />
 
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <Card>

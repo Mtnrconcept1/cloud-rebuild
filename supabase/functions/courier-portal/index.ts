@@ -56,7 +56,16 @@ async function createCourierForActor(
     .eq("user_id", userId)
     .maybeSingle();
 
-  const rawFullName = String(profile?.full_name || "");
+  const { data: signupApplication } = await adminClient
+    .from("signup_applications")
+    .select("full_name, phone, vehicle_type, license_plate, iban, status")
+    .eq("user_id", userId)
+    .eq("requested_role", "courier")
+    .order("submitted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const rawFullName = String(signupApplication?.full_name || profile?.full_name || "");
   const [firstName, ...rest] = rawFullName.split(" ").filter(Boolean);
   const lastName = rest.join(" ");
 
@@ -66,9 +75,11 @@ async function createCourierForActor(
       user_id: userId,
       first_name: firstName || null,
       last_name: lastName || null,
-      phone: profile?.phone || null,
-      status: "approved",
-      vehicle_type: "bicycle",
+      phone: signupApplication?.phone || profile?.phone || null,
+      status: signupApplication?.status === "approved" ? "approved" : "pending_approval",
+      vehicle_type: signupApplication?.vehicle_type || "bicycle",
+      license_plate: signupApplication?.license_plate || null,
+      iban: signupApplication?.iban || null,
       is_online: false,
       updated_at: toIsoDate(now),
     })
@@ -87,21 +98,6 @@ async function ensureCourierForActor(
   const existingCourier = await getCourierForActor(adminClient, userId);
   if (!existingCourier) {
     return createCourierForActor(adminClient, userId, now);
-  }
-
-  if (existingCourier.status === "pending_approval") {
-    const { data: updatedCourier, error } = await adminClient
-      .from("couriers")
-      .update({
-        status: "approved",
-        updated_at: toIsoDate(now),
-      })
-      .eq("id", existingCourier.id)
-      .select("*")
-      .single();
-
-    if (error) throw new HttpError(500, error.message);
-    return updatedCourier;
   }
 
   return existingCourier;
@@ -383,8 +379,8 @@ Deno.serve(async (req) => {
         ? payload.active_dispatch_job_id
         : null;
 
-      if (requestedOnline === true && ["rejected", "suspended"].includes(String(courier.status || ""))) {
-        throw new HttpError(403, "Le compte coursier ne peut pas passer en ligne dans son etat actuel");
+      if (requestedOnline === true && String(courier.status || "") !== "approved") {
+        throw new HttpError(403, "Le compte coursier doit etre approuve avant de passer en ligne");
       }
 
       const updatePayload: Record<string, unknown> = {
@@ -518,7 +514,6 @@ Deno.serve(async (req) => {
           vehicle_type: vehicleType,
           license_plate: String(payload?.license_plate || "").trim() || null,
           iban: String(payload?.iban || "").trim() || null,
-          status: courier.status === "pending_approval" ? "approved" : courier.status,
           updated_at: toIsoDate(now),
         })
         .eq("id", courier.id)

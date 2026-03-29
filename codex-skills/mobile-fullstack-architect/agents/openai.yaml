@@ -1,0 +1,7 @@
+interface:
+  display_name: "Mobile Fullstack Architect"
+  short_description: "Deep mobile, full-stack, and security review"
+  default_prompt: "Use $mobile-fullstack-architect to analyze this repo end-to-end, identify missing pieces, and propose prioritized improvements across mobile, frontend, backend, and security."
+
+policy:
+  allow_implicit_invocation: true

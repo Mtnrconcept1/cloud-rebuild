@@ -15,6 +15,14 @@ export interface FeatureFlag extends FeatureFlagDefinition {
   id: string;
 }
 
+type FeatureFlagRow = {
+  id?: string | null;
+  name?: string | null;
+  label?: string | null;
+  description?: string | null;
+  is_active?: boolean | null;
+};
+
 export const FEATURE_FLAG_GROUP_LABELS: Record<FeatureFlagGroup, string> = {
   application: "Modules applicatifs",
   growth: "Acquisition et pilotage",
@@ -160,11 +168,11 @@ const DEFAULT_FLAGS: FeatureFlagDefinition[] = [
 
 const DEFAULT_FLAG_MAP = new Map(DEFAULT_FLAGS.map((flag) => [flag.name, flag]));
 
-function toFallbackFlags() {
-  return DEFAULT_FLAGS.map((flag) => ({ ...flag, id: flag.name }));
+function toSafeFallbackFlags() {
+  return DEFAULT_FLAGS.map((flag) => ({ ...flag, id: flag.name, isActive: false }));
 }
 
-function mergeFlags(rows: any[]): FeatureFlag[] {
+function mergeFlags(rows: FeatureFlagRow[]): FeatureFlag[] {
   const rowsByName = new Map(
     (rows || []).map((row) => [String(row.name || ""), row]),
   );
@@ -196,29 +204,34 @@ function mergeFlags(rows: any[]): FeatureFlag[] {
 }
 
 async function fetchFlags(isAdmin = false): Promise<FeatureFlag[]> {
-  const { data, error } = await supabase
-    .from("feature_flags" as any)
-    .select("id, name, label, description, is_active")
-    .order("created_at", { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from("feature_flags")
+      .select("id, name, label, description, is_active")
+      .order("created_at", { ascending: true });
 
-  if (error || !data) {
-    return toFallbackFlags();
+    if (error || !Array.isArray(data)) {
+      return toSafeFallbackFlags();
+    }
+
+    const rows = data as FeatureFlagRow[];
+    const mergedFlags = mergeFlags(rows);
+    const existingNames = new Set(rows.map((row) => String(row.name || "")));
+    const missingDefaults = DEFAULT_FLAGS.filter((flag) => !existingNames.has(flag.name));
+
+    // Only admins can seed missing defaults via server RPC
+    if (missingDefaults.length > 0 && isAdmin) {
+      await seedMissingDefaultsViaRpc(missingDefaults);
+    }
+
+    return mergedFlags;
+  } catch {
+    return toSafeFallbackFlags();
   }
-
-  const mergedFlags = mergeFlags(data as any[]);
-  const existingNames = new Set((data as any[]).map((row) => String(row.name || "")));
-  const missingDefaults = DEFAULT_FLAGS.filter((flag) => !existingNames.has(flag.name));
-
-  // Only admins can seed missing defaults via server RPC
-  if (missingDefaults.length > 0 && isAdmin) {
-    await seedMissingDefaultsViaRpc(missingDefaults);
-  }
-
-  return mergedFlags;
 }
 
 async function toggleFlagViaRpc(flagName: string, isActive: boolean): Promise<{ success: boolean; error?: string }> {
-  const { error } = await supabase.rpc("admin_toggle_feature_flag" as any, {
+  const { error } = await supabase.rpc("admin_toggle_feature_flag", {
     p_flag_name: flagName,
     p_is_active: isActive,
   });
@@ -227,7 +240,7 @@ async function toggleFlagViaRpc(flagName: string, isActive: boolean): Promise<{ 
 }
 
 async function activateAllViaRpc(): Promise<{ success: boolean; count?: number; error?: string }> {
-  const { data, error } = await supabase.rpc("admin_activate_all_feature_flags" as any);
+  const { data, error } = await supabase.rpc("admin_activate_all_feature_flags");
   if (error) return { success: false, error: error.message };
   return { success: true, count: data as number };
 }
@@ -239,7 +252,7 @@ async function seedMissingDefaultsViaRpc(flags: FeatureFlagDefinition[]) {
     description: f.description,
     is_active: f.isActive,
   }));
-  await supabase.rpc("admin_seed_default_flags" as any, { p_flags: payload });
+  await supabase.rpc("admin_seed_default_flags", { p_flags: payload });
 }
 
 function notifyFlagChange() {
@@ -247,7 +260,7 @@ function notifyFlagChange() {
 }
 
 export function useFeatureFlags(isAdmin = false) {
-  const [flags, setFlags] = useState<FeatureFlag[]>(toFallbackFlags());
+  const [flags, setFlags] = useState<FeatureFlag[]>(toSafeFallbackFlags());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -299,18 +312,26 @@ export function useFeatureFlags(isAdmin = false) {
 }
 
 export function useActiveFeatures(): Set<string> {
+  const { activeFeatures } = useFeatureFlagSnapshot();
+  return activeFeatures;
+}
+
+export function useFeatureFlagSnapshot(): { activeFeatures: Set<string>; loading: boolean } {
   const [activeIds, setActiveIds] = useState<Set<string>>(
-    new Set(toFallbackFlags().filter((flag) => flag.isActive).map((flag) => flag.name)),
+    new Set(),
   );
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchFlags().then((loadedFlags) => {
       setActiveIds(new Set(loadedFlags.filter((flag) => flag.isActive).map((flag) => flag.name)));
+      setLoading(false);
     });
 
     const handler = () => {
       fetchFlags().then((loadedFlags) => {
         setActiveIds(new Set(loadedFlags.filter((flag) => flag.isActive).map((flag) => flag.name)));
+        setLoading(false);
       });
     };
 
@@ -318,7 +339,10 @@ export function useActiveFeatures(): Set<string> {
     return () => window.removeEventListener("feature-flags-changed", handler);
   }, []);
 
-  return activeIds;
+  return {
+    activeFeatures: activeIds,
+    loading,
+  };
 }
 
 export const FEATURE_ROUTE_MAP: Record<string, string> = {
