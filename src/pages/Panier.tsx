@@ -581,6 +581,11 @@ export default function Panier() {
                 <Label>Adresse de livraison</Label>
                 <AddressAutocomplete
                   value={address}
+                  onValueChange={(value) => {
+                    setAddress(value);
+                    setDeliveryCity("");
+                    setDeliverySelection(null);
+                  }}
                   onAddressSelect={(addr, city, selection) => {
                     setAddress(selection?.fullAddress || addr);
                     setDeliveryCity(city || "");
@@ -764,5 +769,3 @@ export default function Panier() {
     </main>
   );
 }
-
-

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
+import { updateRestaurantReservationStatus } from "@/lib/reservationMutations";
 import { AlertTriangle, Check, CreditCard, Dot, MoonStar, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 
@@ -125,8 +126,10 @@ export default function DashboardReservations() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("reservations").update({ status }).eq("id", id);
-      if (error) throw error;
+      const result = await updateRestaurantReservationStatus(id, status);
+      if (!result.ok) {
+        throw new Error(result.errorMessage);
+      }
 
       try {
         await dispatchQueuedNotifications("dashboard-reservation-status");

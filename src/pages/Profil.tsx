@@ -14,6 +14,7 @@ import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import ImageUpload from "@/components/ImageUpload";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import CityAutocomplete from "@/components/CityAutocomplete";
 import { enablePush, disablePush } from "@/lib/push-unified";
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
@@ -263,13 +264,20 @@ export default function Profil() {
                 </div>
                 <div className="space-y-2">
                   <Label>Ville</Label>
-                  <Input value={city} onChange={(e) => setCity(e.target.value)} />
+                  <CityAutocomplete
+                    value={city}
+                    onValueChange={setCity}
+                    onCitySelect={setCity}
+                    placeholder="Votre ville"
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Adresse</Label>
                 <AddressAutocomplete
+                  id="address"
                   value={address}
+                  onValueChange={setAddress}
                   onAddressSelect={(addr, c) => {
                     setAddress(addr);
                     if (c) setCity(c);

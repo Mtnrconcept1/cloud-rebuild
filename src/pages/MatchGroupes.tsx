@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 import {
   Users, Leaf, TrendingDown, MapPin, Clock,
   ChevronRight, ChevronLeft, CheckCircle2, Sparkles, Truck,
@@ -225,9 +226,14 @@ export default function MatchGroupes() {
             </div>
 
             <div className="rounded-xl border bg-card p-4">
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground shrink-0" />
-                <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Votre adresse pour trouver des groupes proches..." className="border-0 shadow-none focus-visible:ring-0" />
+              <div>
+                <AddressAutocomplete
+                  value={address}
+                  onValueChange={setAddress}
+                  onAddressSelect={(selectedAddress) => setAddress(selectedAddress)}
+                  placeholder="Votre adresse pour trouver des groupes proches..."
+                  inputClassName="border-0 shadow-none focus-visible:ring-0"
+                />
               </div>
             </div>
 

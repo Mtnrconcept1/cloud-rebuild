@@ -293,6 +293,14 @@ export default function DashboardRestaurant() {
             <Label>Adresse</Label>
             <AddressAutocomplete
               value={form.address}
+              onValueChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  address: value,
+                  latitude: null,
+                  longitude: null,
+                }));
+              }}
               onAddressSelect={(address, city, selection) => {
                 setForm((current) => ({
                   ...current,

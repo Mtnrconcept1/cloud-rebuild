@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MapPin, ShoppingCart, Clock, Heart, Users, UtensilsCrossed, Route, SunMedium } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import CityMultiSelect from "@/components/CityMultiSelect";
 import { Toggle } from "@/components/ui/toggle";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -196,17 +196,11 @@ export default function AudienceTargeting({ criteria, onChange, restaurantId }: 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Input
-            placeholder="Geneve, Lausanne, Zurich..."
-            value={normalizedCriteria.cities.join(", ")}
-            onChange={(event) =>
-              update({
-                cities: event.target.value
-                  .split(",")
-                  .map((city) => city.trim().toLowerCase())
-                  .filter(Boolean),
-              })
-            }
+          <CityMultiSelect
+            value={normalizedCriteria.cities}
+            onChange={(cities) => update({ cities })}
+            placeholder="Ajoutez une ville cible..."
+            emptyLabel="Toutes les villes"
           />
         </CardContent>
       </Card>

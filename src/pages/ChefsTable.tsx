@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
+import { createReservationWithValidation } from "@/lib/reservationMutations";
 
 interface FlashDrop {
   id: string;
@@ -127,23 +128,34 @@ export default function ChefsTable() {
 
       const total = dropsForRestaurant.reduce((s, d) => s + d.price, 0);
 
-      const { error } = await (supabase.rpc as any)("validate_and_create_reservation", {
-        p_restaurant_id: restaurantId,
-        p_date: dateStr,
-        p_time: timeStr,
-        p_party_size: 1,
-        p_feature: "chefs_table",
-        p_metadata: {
+      let reservationResult: Awaited<ReturnType<typeof createReservationWithValidation>>;
+      try {
+        reservationResult = await createReservationWithValidation({
+          restaurantId,
+          date: dateStr,
+          time: timeStr,
+          partySize: 1,
           feature: "chefs_table",
-          drops: preorderItems,
-          total_amount: total,
-          is_exclusive: true,
-        },
-        p_notes: `[Chef's Table] ${dropsForRestaurant.map((d) => d.dish).join(", ")}`,
-      });
+          metadata: {
+            feature: "chefs_table",
+            drops: preorderItems,
+            total_amount: total,
+            is_exclusive: true,
+          },
+          notes: `[Chef's Table] ${dropsForRestaurant.map((d) => d.dish).join(", ")}`,
+        });
+      } catch (reservationError) {
+        toast({
+          title: "Erreur",
+          description: reservationError instanceof Error ? reservationError.message : "Creation de reservation impossible.",
+          variant: "destructive",
+        });
+        success = false;
+        break;
+      }
 
-      if (error) {
-        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      if (!reservationResult.ok) {
+        toast({ title: "Erreur", description: reservationResult.errorMessage, variant: "destructive" });
         success = false;
         break;
       }

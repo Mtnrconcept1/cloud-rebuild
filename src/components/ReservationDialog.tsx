@@ -21,6 +21,7 @@ import { useAuth } from "@/lib/auth";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
+import { createReservationWithValidation } from "@/lib/reservationMutations";
 import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
 
 interface ReservationDialogProps {
@@ -193,22 +194,35 @@ export default function ReservationDialog({
       ? `[FORMULE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
       : "[A la carte] ";
 
-    const { data: reservationId, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
-      p_restaurant_id: restaurantId,
-      p_date: format(date, "yyyy-MM-dd"),
-      p_time: time,
-      p_party_size: partySize,
-      p_feature: hasFormula ? "promo-formule" : "classique",
-      p_metadata: reservationMetadata,
-      p_notes: offerPrefix + (notes || ""),
-    });
+    let reservationResult: Awaited<ReturnType<typeof createReservationWithValidation>>;
+    try {
+      reservationResult = await createReservationWithValidation({
+        restaurantId,
+        date: format(date, "yyyy-MM-dd"),
+        time,
+        partySize,
+        feature: hasFormula ? "promo-formule" : "classique",
+        metadata: reservationMetadata,
+        notes: offerPrefix + (notes || ""),
+      });
+    } catch (reservationError) {
+      setLoading(false);
+      toast({
+        title: "Erreur",
+        description: reservationError instanceof Error ? reservationError.message : "Creation de reservation impossible.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(false);
 
-    if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    if (!reservationResult.ok) {
+      toast({ title: "Erreur", description: reservationResult.errorMessage, variant: "destructive" });
       return;
     }
+
+    const reservationId = reservationResult.reservationId;
 
     await trackSponsoredConversion(restaurantId, {
       conversionType: "reservation",

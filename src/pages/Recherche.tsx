@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import CityAutocomplete from "@/components/CityAutocomplete";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -306,7 +307,14 @@ export default function Recherche() {
           <div className="flex items-center gap-2 mr-2 py-1.5 px-3 rounded-lg bg-secondary/50 border border-secondary text-xs font-bold uppercase tracking-tight text-muted-foreground shrink-0">
             <SlidersHorizontal className="h-3 w-3" /> Filtres
           </div>
-          <Input placeholder="Ville..." value={city} onChange={(e) => updateFilter("city", e.target.value)} className="w-32 h-9 text-xs" />
+          <CityAutocomplete
+            value={city}
+            onValueChange={(value) => updateFilter("city", value)}
+            onCitySelect={(selectedCity) => updateFilter("city", selectedCity)}
+            placeholder="Ville..."
+            className="w-40"
+            inputClassName="h-9 text-xs"
+          />
           <Select value={cuisine} onValueChange={(v) => updateFilter("cuisine", v)}>
             <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
             <SelectContent>{[...cuisineOptions].sort((a: any, b: any) => String(a.name).localeCompare(String(b.name))).map((c: any) => (<SelectItem key={c.id || c.slug || c.name} value={String(c.slug || c.name).toLowerCase()}>{c.name}</SelectItem>))}</SelectContent>

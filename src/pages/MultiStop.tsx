@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 import {
   MapPin, Plus, Minus, Trash2, Route, Coins, Clock,
   ChevronRight, ChevronLeft, CheckCircle2, Navigation, Share2,
@@ -129,7 +130,15 @@ export default function MultiStop() {
                   </div>
                   {stops.length > 1 && <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeStop(stop.id)}><Trash2 className="h-3.5 w-3.5" /></Button>}
                 </div>
-                <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground shrink-0" /><Input value={stop.address} onChange={(e) => updateStop(stop.id, "address", e.target.value)} placeholder="Adresse de livraison..." className="text-sm" /></div>
+                <div>
+                  <AddressAutocomplete
+                    value={stop.address}
+                    onValueChange={(value) => updateStop(stop.id, "address", value)}
+                    onAddressSelect={(address) => updateStop(stop.id, "address", address)}
+                    placeholder="Adresse de livraison..."
+                    inputClassName="text-sm"
+                  />
+                </div>
                 <Input value={stop.recipient} onChange={(e) => updateStop(stop.id, "recipient", e.target.value)} placeholder="Destinataire..." className="text-sm" />
               </div>
             ))}

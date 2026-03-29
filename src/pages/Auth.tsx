@@ -17,10 +17,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
+import CityAutocomplete from "@/components/CityAutocomplete";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { LOGO_URL } from "@/lib/constants";
+import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 
 type SignupFormState = {
   fullName: string;
@@ -500,22 +504,25 @@ export default function Auth() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="city">Ville</Label>
-                      <Input
+                      <CityAutocomplete
                         id="city"
                         value={signupForm.city}
-                        onChange={(event) => updateSignupField("city", event.target.value)}
-                        placeholder="Geneve"
-                        required
+                        onValueChange={(value) => updateSignupField("city", value)}
+                        onCitySelect={(city) => updateSignupField("city", city)}
+                        placeholder="Ville de rattachement"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="address">Adresse</Label>
-                      <Input
+                      <AddressAutocomplete
                         id="address"
                         value={signupForm.address}
-                        onChange={(event) => updateSignupField("address", event.target.value)}
+                        onValueChange={(value) => updateSignupField("address", value)}
+                        onAddressSelect={(address, city) => {
+                          updateSignupField("address", address);
+                          if (city) updateSignupField("city", city);
+                        }}
                         placeholder="Rue, numero, code postal"
-                        required
                       />
                     </div>
                   </>
@@ -598,17 +605,21 @@ export default function Auth() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="vehicleType">Vehicule</Label>
-                    <select
-                      id="vehicleType"
+                    <Select
                       value={signupForm.vehicleType}
-                      onChange={(event) => updateSignupField("vehicleType", event.target.value)}
-                      className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                      onValueChange={(value) => updateSignupField("vehicleType", value)}
                     >
-                      <option value="bicycle">Velo</option>
-                      <option value="scooter">Scooter</option>
-                      <option value="car">Voiture</option>
-                      <option value="walk">A pied</option>
-                    </select>
+                      <SelectTrigger id="vehicleType">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COURIER_VEHICLE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="iban-courier">IBAN de versement</Label>
