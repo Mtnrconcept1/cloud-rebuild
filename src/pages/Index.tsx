@@ -10,7 +10,6 @@ import CampaignBanner from "@/components/CampaignBanner";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import NearbyRestaurantsMap from "@/components/NearbyRestaurantsMap";
 import HeroSection from "@/components/home/HeroSection";
-import SearchAndCategories from "@/components/home/SearchAndCategories";
 import SolidaritySection from "@/components/home/SolidaritySection";
 import RestaurantSection from "@/components/home/RestaurantSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
@@ -89,7 +88,7 @@ export default function Index() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 2000);
+    const timer = setTimeout(() => setIsVisible(true), 400);
     return () => clearTimeout(timer);
   }, []);
 
@@ -276,10 +275,6 @@ export default function Index() {
               <PromoCarousel />
             </div>
           </section>
-        </motion.div>
-
-        <motion.div variants={sectionBounce}>
-          <SearchAndCategories />
         </motion.div>
 
         {user ? (

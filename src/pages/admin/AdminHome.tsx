@@ -1,48 +1,28 @@
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Bell,
+  Crown,
+  DollarSign,
+  Layers,
+  MessageSquareText,
+  Rocket,
+  Settings2,
+  Shield,
+  ShoppingCart,
+  Store,
+  TrendingDown,
   Users,
   UtensilsCrossed,
-  ShoppingCart,
   CalendarDays,
-  Sparkles,
-  Bell,
-  DollarSign,
-  TrendingDown,
-  Shield,
-  Layers,
-  Crown,
-  MessageSquareText,
-  Store,
-  Settings,
-  Rocket,
 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { useNavigate } from "react-router-dom";
-import {
-  FEATURE_FLAG_GROUP_DESCRIPTIONS,
-  FEATURE_FLAG_GROUP_LABELS,
-  FEATURE_FLAG_GROUP_ORDER,
-  useFeatureFlags,
-} from "@/lib/featureFlags";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
-const CRITICAL_FLAGS = new Set(["livraison", "commandes", "espace-livreur"]);
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { useActiveFeatures } from "@/lib/featureFlags";
 
 const ADMIN_TOOLS = [
   {
@@ -50,6 +30,7 @@ const ADMIN_TOOLS = [
     description: "Gerer les restaurants, activations et statuts.",
     icon: Store,
     href: "/admin/restaurants",
+    feature: "admin-restaurants",
     color: "text-primary",
   },
   {
@@ -57,6 +38,7 @@ const ADMIN_TOOLS = [
     description: "Administrer les comptes et les roles.",
     icon: Users,
     href: "/admin/utilisateurs",
+    feature: "admin-utilisateurs",
     color: "text-sky-500",
   },
   {
@@ -64,6 +46,7 @@ const ADMIN_TOOLS = [
     description: "Moderation et suivi des avis clients.",
     icon: MessageSquareText,
     href: "/admin/avis",
+    feature: "admin-avis",
     color: "text-emerald-500",
   },
   {
@@ -71,6 +54,7 @@ const ADMIN_TOOLS = [
     description: "Cuisines, collections et structure globale.",
     icon: Layers,
     href: "/admin/catalog",
+    feature: "admin-catalog",
     color: "text-indigo-500",
   },
   {
@@ -78,6 +62,7 @@ const ADMIN_TOOLS = [
     description: "Configurer Miamz+ et les avantages.",
     icon: Crown,
     href: "/admin/loyalty",
+    feature: "admin-loyalty",
     color: "text-amber-500",
   },
   {
@@ -85,6 +70,7 @@ const ADMIN_TOOLS = [
     description: "Creer et gerer les ventes flash Chef's Table.",
     icon: UtensilsCrossed,
     href: "/admin/drops",
+    feature: "admin-drops",
     color: "text-pink-500",
   },
   {
@@ -92,6 +78,7 @@ const ADMIN_TOOLS = [
     description: "Piloter les campagnes et alertes ciblees.",
     icon: Bell,
     href: "/admin/notifications",
+    feature: "admin-notifications",
     color: "text-orange-500",
   },
   {
@@ -99,13 +86,31 @@ const ADMIN_TOOLS = [
     description: "Surveiller les executions edge et les mutations sensibles.",
     icon: Shield,
     href: "/admin/audit",
+    feature: "admin-audit",
     color: "text-amber-500",
   },
 ];
 
+function statusColor(status: string) {
+  switch (status) {
+    case "pending":
+      return "bg-amber-100 text-amber-800";
+    case "confirmed":
+      return "bg-blue-100 text-blue-800";
+    case "delivered":
+      return "bg-emerald-100 text-emerald-800";
+    case "cancelled":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-secondary text-secondary-foreground";
+  }
+}
+
 export default function AdminHome() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const activeFeatures = useActiveFeatures();
+  const visibleTools = ADMIN_TOOLS.filter((tool) => activeFeatures.has(tool.feature));
+
   const { data: stats } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
@@ -151,7 +156,7 @@ export default function AdminHome() {
     queryFn: async () => {
       const { data } = await supabase
         .from("orders")
-        .select("id, total_amount, status, created_at, restaurant_id")
+        .select("id, total_amount, status, created_at")
         .order("created_at", { ascending: false })
         .limit(10);
       return data || [];
@@ -199,83 +204,22 @@ export default function AdminHome() {
     },
   });
 
-  const { flags, toggleFlag, activateAllFlags, loading: loadingFlags } = useFeatureFlags(true);
-  const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; label: string; nextActive: boolean } | null>(null);
-  const [toggling, setToggling] = useState(false);
-
-  const handleToggle = async (flagId: string) => {
-    const flag = flags.find((f) => f.id === flagId);
-    if (!flag) return;
-
-    const nextActive = !flag.isActive;
-
-    // Confirmation required for critical flags being disabled
-    if (!nextActive && CRITICAL_FLAGS.has(flag.name)) {
-      setPendingToggle({ id: flagId, name: flag.name, label: flag.label, nextActive });
-      return;
-    }
-
-    await executeToggle(flagId);
-  };
-
-  const executeToggle = async (flagId: string) => {
-    setToggling(true);
-    const result = await toggleFlag(flagId);
-    setToggling(false);
-    setPendingToggle(null);
-
-    if (!result.success) {
-      toast({ title: "Erreur", description: result.error || "Impossible de modifier le flag.", variant: "destructive" });
-    }
-  };
-
-  const groupedFlags = FEATURE_FLAG_GROUP_ORDER
-    .map((group) => ({
-      group,
-      flags: flags.filter((flag) => flag.group === group),
-    }))
-    .filter((section) => section.flags.length > 0);
-
-  const statusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-amber-100 text-amber-800";
-      case "confirmed":
-        return "bg-blue-100 text-blue-800";
-      case "delivered":
-        return "bg-emerald-100 text-emerald-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-secondary text-secondary-foreground";
-    }
-  };
-
-  const handleActivateAll = async () => {
-    setToggling(true);
-    const result = await activateAllFlags();
-    setToggling(false);
-    if (result.success) {
-      toast({ title: "Activation terminee", description: "Tous les outils et feature flags admin connus sont actifs." });
-    } else {
-      toast({ title: "Erreur", description: result.error || "Impossible d'activer tous les flags.", variant: "destructive" });
-    }
-  };
-
   return (
-    <div className="container py-8 space-y-6">
+    <div className="container space-y-6 py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">Administration</h1>
-          <p className="text-sm text-muted-foreground">Tous les modules admin sont exposes depuis cet ecran.</p>
+          <p className="text-sm text-muted-foreground">
+            Tableau de bord global et acces aux modules admin actifs.
+          </p>
         </div>
-        <Button onClick={handleActivateAll} className="gap-2" disabled={loadingFlags}>
-          <Rocket className="h-4 w-4" />
-          Activer tous les outils
+        <Button onClick={() => navigate("/admin/platform")} className="gap-2">
+          <Settings2 className="h-4 w-4" />
+          Configuration plateforme
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Restaurants</CardTitle>
@@ -320,23 +264,40 @@ export default function AdminHome() {
         </Card>
       </div>
 
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="flex flex-col gap-4 py-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Rocket className="h-5 w-5 text-primary" />
+              <p className="font-semibold">Configuration globale des fonctionnalites</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Activez ou coupez les paiements, parcours client, onglets restaurateur, modules coursier et outils admin.
+            </p>
+          </div>
+          <Button variant="secondary" onClick={() => navigate("/admin/platform")}>
+            Ouvrir la configuration
+          </Button>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-primary" />
+            <Shield className="h-5 w-5 text-primary" />
             <CardTitle>Outils admin</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {ADMIN_TOOLS.map((tool) => (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {visibleTools.map((tool) => (
               <button
                 key={tool.href}
                 onClick={() => navigate(tool.href)}
-                className="text-left rounded-xl border p-4 transition-colors hover:border-primary/50 hover:bg-muted/30"
+                className="rounded-xl border p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted/30"
               >
                 <div className="flex items-start gap-3">
-                  <tool.icon className={`h-5 w-5 mt-0.5 ${tool.color}`} />
+                  <tool.icon className={`mt-0.5 h-5 w-5 ${tool.color}`} />
                   <div className="space-y-1">
                     <p className="font-semibold">{tool.title}</p>
                     <p className="text-sm text-muted-foreground">{tool.description}</p>
@@ -348,7 +309,7 @@ export default function AdminHome() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -360,7 +321,7 @@ export default function AdminHome() {
             <ScrollArea className="h-64">
               <div className="space-y-2">
                 {recentOrders?.map((order: any) => (
-                  <div key={order.id} className="flex items-center justify-between p-2 rounded-lg border text-sm">
+                  <div key={order.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
                     <div>
                       <p className="font-medium">{order.total_amount?.toFixed(2)} CHF</p>
                       <p className="text-xs text-muted-foreground">
@@ -378,7 +339,7 @@ export default function AdminHome() {
                   </div>
                 ))}
                 {(!recentOrders || recentOrders.length === 0) ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">Aucune commande recente</p>
+                  <p className="py-4 text-center text-sm text-muted-foreground">Aucune commande recente</p>
                 ) : null}
               </div>
             </ScrollArea>
@@ -401,9 +362,11 @@ export default function AdminHome() {
             <ScrollArea className="h-64">
               <div className="space-y-2">
                 {auditLogs?.map((log: any) => (
-                  <div key={log.id} className="flex items-center justify-between p-2 rounded-lg border text-sm">
+                  <div key={log.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
                     <div>
-                      <p className="font-medium">{log.action} - <span className="text-muted-foreground">{log.entity_type}</span></p>
+                      <p className="font-medium">
+                        {log.action} - <span className="text-muted-foreground">{log.entity_type}</span>
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(log.created_at).toLocaleDateString("fr-CH", {
                           day: "2-digit",
@@ -428,78 +391,13 @@ export default function AdminHome() {
                   </div>
                 ))}
                 {(!auditLogs || auditLogs.length === 0) ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">Aucun log d'audit</p>
+                  <p className="py-4 text-center text-sm text-muted-foreground">Aucun log d'audit</p>
                 ) : null}
               </div>
             </ScrollArea>
           </CardContent>
         </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <CardTitle>Modules et feature flags</CardTitle>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Activez ou desactivez les briques visibles de l'application depuis cet ecran.
-                </p>
-              </div>
-              <Button variant="outline" onClick={handleActivateAll} disabled={loadingFlags}>
-                Tout activer
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {groupedFlags.map((section) => (
-                <div key={section.group} className="space-y-3">
-                  <div>
-                    <p className="text-sm font-semibold">{FEATURE_FLAG_GROUP_LABELS[section.group]}</p>
-                    <p className="text-xs text-muted-foreground">{FEATURE_FLAG_GROUP_DESCRIPTIONS[section.group]}</p>
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {section.flags.map((flag) => (
-                      <label key={flag.name} className="flex items-center justify-between gap-4 rounded-xl border p-4">
-                        <div className="space-y-0.5">
-                          <p className="text-sm font-semibold">{flag.label}</p>
-                          <p className="text-xs text-muted-foreground">{flag.description}</p>
-                        </div>
-                        <Switch checked={flag.isActive} disabled={toggling} onCheckedChange={() => handleToggle(flag.id)} />
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
-
-      <AlertDialog open={!!pendingToggle} onOpenChange={(open) => { if (!open) setPendingToggle(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Desactiver "{pendingToggle?.label}" ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ce module est critique pour le fonctionnement de l'application.
-              {pendingToggle?.name === "livraison" && " La desactivation de Livraison desactivera aussi Mes commandes."}
-              {" "}Cette action affectera tous les utilisateurs en production.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={toggling}>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={toggling}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => pendingToggle && executeToggle(pendingToggle.id)}
-            >
-              Confirmer la desactivation
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

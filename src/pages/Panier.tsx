@@ -29,14 +29,23 @@ import type { ServicePeriod } from "@/lib/serviceSettings";
 import CartItemList from "@/components/cart/CartItemList";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import FlexOptions from "@/components/cart/FlexOptions";
-import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
+import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import { useActiveFeatures } from "@/lib/featureFlags";
+import {
+  getAllowedPaymentMethods,
+  getFirstAvailablePaymentMethod,
+  type PaymentMethodId,
+} from "@/lib/paymentMethods";
 
 export default function Panier() {
-  const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const activeFeatures = useActiveFeatures();
+  const deliveryFeatureEnabled = activeFeatures.has("livraison");
+  const takeawayFeatureEnabled = activeFeatures.has("emporter");
   const [address, setAddress] = useState("");
   const [deliverySelection, setDeliverySelection] = useState<AddressSelection | null>(null);
   const [deliveryCity, setDeliveryCity] = useState("");
@@ -73,8 +82,8 @@ export default function Panier() {
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
   const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
-  const canScheduleDelivery = orderMode === "delivery" && isSingleRestaurant;
-  const needsTakeawaySlots = orderMode === "takeaway" && isSingleRestaurant && !hasAntiGaspi && !hasTakeawayFlash;
+  const canScheduleDelivery = orderMode === "delivery" && isSingleRestaurant && deliveryFeatureEnabled;
+  const needsTakeawaySlots = orderMode === "takeaway" && isSingleRestaurant && takeawayFeatureEnabled && !hasAntiGaspi && !hasTakeawayFlash;
 
   const { data: profile } = useQuery({
     queryKey: ["profile-loyalty", user?.id],
@@ -104,7 +113,7 @@ export default function Panier() {
     queryFn: async () => {
       const { data } = await supabase
         .from("restaurants")
-        .select("disabled_payment_methods")
+        .select("disabled_payment_methods, delivery_available, supports_pickup")
         .eq("id", restaurantId!)
         .single();
       return data;
@@ -112,12 +121,33 @@ export default function Panier() {
     enabled: !!restaurantId,
   });
 
+  const deliveryAvailable = deliveryFeatureEnabled && !!restaurantPaymentConfig?.delivery_available;
+  const takeawayAvailable = takeawayFeatureEnabled && !!restaurantPaymentConfig?.supports_pickup;
   const allowedPaymentMethods = useMemo(() => {
-    const allMethods: PaymentMethodId[] = ["card", "twint", "postfinance_card", "postfinance_efinance", "cash"];
     const disabled = (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
-    if (disabled.length === 0) return undefined; // show all
-    return allMethods.filter((m) => !disabled.includes(m));
-  }, [restaurantPaymentConfig]);
+    return getAllowedPaymentMethods(activeFeatures, disabled);
+  }, [activeFeatures, restaurantPaymentConfig]);
+
+  useEffect(() => {
+    if (orderMode === "delivery" && !deliveryAvailable && takeawayAvailable) {
+      setOrderMode("takeaway", { force: true });
+      return;
+    }
+
+    if (orderMode === "takeaway" && !takeawayAvailable && deliveryAvailable) {
+      setOrderMode("delivery", { force: true });
+    }
+  }, [deliveryAvailable, orderMode, setOrderMode, takeawayAvailable]);
+
+  useEffect(() => {
+    if (allowedPaymentMethods.includes(paymentMethod)) return;
+    const nextMethod = getFirstAvailablePaymentMethod(
+      activeFeatures,
+      (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
+      "card",
+    );
+    if (nextMethod) setPaymentMethod(nextMethod);
+  }, [activeFeatures, allowedPaymentMethods, paymentMethod, restaurantPaymentConfig]);
 
   const loyaltyPoints = profile?.loyalty_points || 0;
   const maxPointsDiscount = loyaltyPoints / 100;
@@ -251,6 +281,11 @@ export default function Panier() {
   const pointsDiscount = pointsToRedeem / 100;
   const earnedXp = Math.floor(subFinalTotal * 10);
   const finalTotal = subFinalTotal - pointsDiscount - flexDiscount;
+  const hasJourneyAvailable = deliveryAvailable || takeawayAvailable;
+  const checkoutDeliveryAddress = orderMode === "delivery" ? address : "";
+  const checkoutDeliveryCity = orderMode === "delivery" ? (deliveryCity || null) : null;
+  const checkoutDeliveryLat = orderMode === "delivery" ? (deliverySelection?.latitude ?? null) : null;
+  const checkoutDeliveryLng = orderMode === "delivery" ? (deliverySelection?.longitude ?? null) : null;
 
   const handleCheckout = async () => {
     if (!user) return navigate("/auth");
@@ -274,6 +309,51 @@ export default function Panier() {
     }
 
     trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
+    if (!hasJourneyAvailable) {
+      return toast({
+        title: "Parcours indisponible",
+        description: "Livraison et emporter sont desactives pour ce restaurant.",
+        variant: "destructive",
+      });
+    }
+    if (allowedPaymentMethods.length === 0) {
+      return toast({
+        title: "Paiement indisponible",
+        description: "Aucun moyen de paiement n'est actuellement disponible.",
+        variant: "destructive",
+      });
+    }
+    if (!allowedPaymentMethods.includes(paymentMethod)) {
+      const fallbackPaymentMethod = getFirstAvailablePaymentMethod(
+        activeFeatures,
+        (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
+        "card",
+      );
+      if (fallbackPaymentMethod) {
+        setPaymentMethod(fallbackPaymentMethod);
+      }
+      return toast({
+        title: "Moyen de paiement indisponible",
+        description: "Selectionnez un moyen de paiement encore actif.",
+        variant: "destructive",
+      });
+    }
+    if (orderMode === "delivery" && !deliveryAvailable) {
+      if (takeawayAvailable) setOrderMode("takeaway", { force: true });
+      return toast({
+        title: "Livraison indisponible",
+        description: "Ce restaurant n'accepte plus la livraison actuellement.",
+        variant: "destructive",
+      });
+    }
+    if (orderMode === "takeaway" && !takeawayAvailable) {
+      if (deliveryAvailable) setOrderMode("delivery", { force: true });
+      return toast({
+        title: "Emporter indisponible",
+        description: "Ce restaurant n'accepte plus l'emporter actuellement.",
+        variant: "destructive",
+      });
+    }
     if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
 
     const hasIncompatibleFlashMode = flashItems.some((item) => {
@@ -370,10 +450,10 @@ export default function Panier() {
               restaurant_id: restaurantId,
               delivery_fee: deliveryFee,
               checkout_group_id: checkoutGroupId,
-              delivery_address: address,
-              delivery_city: deliveryCity || null,
-              delivery_lat: deliverySelection?.latitude ?? null,
-              delivery_lng: deliverySelection?.longitude ?? null,
+              delivery_address: checkoutDeliveryAddress,
+              delivery_city: checkoutDeliveryCity,
+              delivery_lat: checkoutDeliveryLat,
+              delivery_lng: checkoutDeliveryLng,
               formula_discount: formulaDiscount,
               points_discount: pointsDiscount,
               points_discount_amount: pointsDiscount,
@@ -386,6 +466,9 @@ export default function Panier() {
 
         if (checkoutError) throw new Error(checkoutError.message);
         if (checkoutData?.error) throw new Error(checkoutData.error);
+        if (!checkoutData?.url || !checkoutData?.session_id) {
+          throw new Error("Impossible de lancer le paiement Stripe pour cette commande.");
+        }
 
         // Before redirecting, create orders in pending_payment status
         for (const [index, group] of orderGroups.entries()) {
@@ -422,7 +505,7 @@ export default function Panier() {
           const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
             body: {
               restaurant_id: resId,
-              delivery_address: address,
+              delivery_address: checkoutDeliveryAddress,
               delivery_fee: deliveryFeePerRestaurant,
               total_amount: resSubtotal - resDiscount - resPromoDiscount - resPointsDiscount - resFlexDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
               notes: notes || null,
@@ -456,13 +539,11 @@ export default function Panier() {
         queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
 
         // Redirect to Stripe — save order ID for post-payment redirect
-        if (checkoutData?.url) {
-          if (firstOrderId) {
-            localStorage.setItem("stripe_pending_order_id", firstOrderId);
-          }
-          window.location.href = checkoutData.url;
-          return;
+        if (firstOrderId) {
+          localStorage.setItem("stripe_pending_order_id", firstOrderId);
         }
+        window.location.assign(checkoutData.url);
+        return;
       }
 
       // Cash payment flow — create orders directly as confirmed
@@ -500,7 +581,7 @@ export default function Panier() {
         const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
           body: {
               restaurant_id: resId,
-              delivery_address: address,
+              delivery_address: checkoutDeliveryAddress,
               delivery_fee: deliveryFeePerRestaurant,
               total_amount: resSubtotal - resDiscount - resPromoDiscount - resPointsDiscount - resFlexDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
               notes: notes || null,
@@ -866,9 +947,14 @@ export default function Panier() {
         </div>
 
         {orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
+        {!hasJourneyAvailable ? (
+          <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+            Livraison et emporter sont actuellement indisponibles pour ce restaurant.
+          </div>
+        ) : null}
         <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} allowedMethods={allowedPaymentMethods} />
 
-        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading}>
+        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading || !hasJourneyAvailable || allowedPaymentMethods.length === 0}>
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

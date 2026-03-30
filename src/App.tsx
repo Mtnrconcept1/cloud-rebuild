@@ -70,6 +70,7 @@ const DashboardInvoiceSettings = lazy(() => import("./pages/dashboard/DashboardI
 const DashboardPhotos = lazy(() => import("./pages/dashboard/DashboardPhotos"));
 const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport"));
 const DashboardService = lazy(() => import("./pages/dashboard/DashboardService"));
+const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
 
 // ── Lazy-loaded chunks: Courier App ──
@@ -88,6 +89,7 @@ const AdminLoyalty = lazy(() => import("./pages/admin/AdminLoyalty"));
 const DropsManagement = lazy(() => import("./pages/admin/DropsManagement"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
+const AdminPlatformConfig = lazy(() => import("./pages/admin/AdminPlatformConfig"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -143,9 +145,42 @@ function AppShell() {
   const commandesEnabled = hasFeature("commandes");
   const antiWasteEnabled = hasFeature("anti-gaspi");
   const flashSalesEnabled = hasFeature("ventes-flash");
-  const campaignsEnabled = hasFeature("campagnes-pub");
-  const performanceEnabled = hasFeature("performances");
-  const courierEnabled = hasFeature("espace-livreur");
+  const reservationEnabled = hasFeature("reservation");
+  const dashboardOverviewEnabled = hasFeature("dashboard-overview");
+  const dashboardAdvisorEnabled = hasFeature("dashboard-advisor");
+  const dashboardRestaurantEnabled = hasFeature("dashboard-restaurant");
+  const dashboardMenuEnabled = hasFeature("dashboard-menu");
+  const dashboardReservationsEnabled = hasFeature("dashboard-reservations");
+  const dashboardCommandesEnabled = hasFeature("dashboard-commandes");
+  const dashboardRecommandationsEnabled = hasFeature("dashboard-recommandations");
+  const dashboardPerformancesEnabled = hasFeature("dashboard-performances");
+  const dashboardComparaisonEnabled = hasFeature("dashboard-comparaison");
+  const dashboardAvisEnabled = hasFeature("dashboard-avis");
+  const dashboardFacturesEnabled = hasFeature("dashboard-factures");
+  const dashboardFacturesParametresEnabled = hasFeature("dashboard-factures-parametres");
+  const dashboardOffresEnabled = hasFeature("dashboard-offres");
+  const dashboardVentesFlashEnabled = hasFeature("dashboard-ventes-flash");
+  const dashboardFormulesEnabled = hasFeature("dashboard-formules");
+  const dashboardPhotosEnabled = hasFeature("dashboard-photos");
+  const dashboardPromotionsEnabled = hasFeature("dashboard-promotions");
+  const dashboardCampagneOverviewEnabled = hasFeature("dashboard-campagne-overview");
+  const dashboardReseauxSociauxEnabled = hasFeature("dashboard-reseaux-sociaux");
+  const dashboardCampagnesEnabled = hasFeature("dashboard-campagnes");
+  const dashboardSupportEnabled = hasFeature("dashboard-support");
+  const dashboardServiceEnabled = hasFeature("dashboard-service");
+  const dashboardPlanSalleEnabled = hasFeature("dashboard-plan-salle");
+  const courierHomeEnabled = hasFeature("courier-home");
+  const courierJobsEnabled = hasFeature("courier-jobs");
+  const courierEarningsEnabled = hasFeature("courier-earnings");
+  const courierProfileEnabled = hasFeature("courier-profile");
+  const adminRestaurantsEnabled = hasFeature("admin-restaurants");
+  const adminUtilisateursEnabled = hasFeature("admin-utilisateurs");
+  const adminAvisEnabled = hasFeature("admin-avis");
+  const adminCatalogEnabled = hasFeature("admin-catalog");
+  const adminLoyaltyEnabled = hasFeature("admin-loyalty");
+  const adminDropsEnabled = hasFeature("admin-drops");
+  const adminNotificationsEnabled = hasFeature("admin-notifications");
+  const adminAuditEnabled = hasFeature("admin-audit");
 
   return (
     <>
@@ -160,8 +195,8 @@ function AppShell() {
 
           <Route path="/panier" element={<Panier />} />
           <Route path="/commandes" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><Commandes /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/commande/:id" element={<ProtectedRoute><SuiviCommande /></ProtectedRoute>} />
-          <Route path="/reservations" element={<ProtectedRoute><Reservations /></ProtectedRoute>} />
+          <Route path="/commande/:id" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><SuiviCommande /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/reservations" element={<ProtectedRoute><FeatureSwitch enabled={reservationEnabled} fallback="/"><Reservations /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/creneaux-garantis" element={<FeatureSwitch enabled={hasFeature("creneaux-garantis")}><CreneauxGarantis /></FeatureSwitch>} />
@@ -176,53 +211,55 @@ function AppShell() {
           <Route path="/abonnement" element={<FeatureSwitch enabled={hasFeature("abonnement")}><Abonnement /></FeatureSwitch>} />
           <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />
-          <Route path="/dashboard" element={<DashboardRoute><DashboardHome /></DashboardRoute>} />
-          <Route path="/dashboard/restaurant" element={<DashboardRoute><DashboardRestaurant /></DashboardRoute>} />
-          <Route path="/dashboard/advisor" element={<DashboardRoute><DashboardAdvisor /></DashboardRoute>} />
-          <Route path="/dashboard/menu" element={<DashboardRoute><DashboardMenu /></DashboardRoute>} />
-          <Route path="/dashboard/reservations" element={<DashboardRoute><DashboardReservations /></DashboardRoute>} />
-          <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={commandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/recommandations" element={<DashboardRoute><DashboardRecommandations /></DashboardRoute>} />
-          <Route path="/dashboard/performances" element={<DashboardRoute><FeatureSwitch enabled={performanceEnabled} fallback="/dashboard"><DashboardPerformances /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/comparaison" element={<DashboardRoute><FeatureSwitch enabled={performanceEnabled} fallback="/dashboard"><DashboardComparaison /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/avis" element={<DashboardRoute><DashboardAvis /></DashboardRoute>} />
+          <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><DashboardAdvisor /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/menu" element={<DashboardRoute><FeatureSwitch enabled={dashboardMenuEnabled} fallback="/dashboard"><DashboardMenu /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/reservations" element={<DashboardRoute><FeatureSwitch enabled={dashboardReservationsEnabled} fallback="/dashboard"><DashboardReservations /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCommandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/recommandations" element={<DashboardRoute><FeatureSwitch enabled={dashboardRecommandationsEnabled} fallback="/dashboard"><DashboardRecommandations /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/performances" element={<DashboardRoute><FeatureSwitch enabled={dashboardPerformancesEnabled} fallback="/dashboard"><DashboardPerformances /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/comparaison" element={<DashboardRoute><FeatureSwitch enabled={dashboardComparaisonEnabled} fallback="/dashboard"><DashboardComparaison /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/avis" element={<DashboardRoute><FeatureSwitch enabled={dashboardAvisEnabled} fallback="/dashboard"><DashboardAvis /></FeatureSwitch></DashboardRoute>} />
           <Route
             path="/dashboard/compta"
             element={
-              performanceEnabled === null
+              dashboardPerformancesEnabled === null
                 ? (
                   <div className="flex items-center justify-center min-h-screen">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                   </div>
                 )
-                : <Navigate to={performanceEnabled ? "/dashboard/performances" : "/dashboard"} replace />
+                : <Navigate to={dashboardPerformancesEnabled ? "/dashboard/performances" : "/dashboard"} replace />
             }
           />
-          <Route path="/dashboard/factures" element={<DashboardRoute><DashboardFactures /></DashboardRoute>} />
-          <Route path="/dashboard/factures/parametres" element={<DashboardRoute><DashboardInvoiceSettings /></DashboardRoute>} />
-          <Route path="/dashboard/offres" element={<DashboardRoute><FeatureSwitch enabled={antiWasteEnabled} fallback="/dashboard"><DashboardOffres /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/ventes-flash" element={<DashboardRoute><FeatureSwitch enabled={flashSalesEnabled} fallback="/dashboard"><DashboardVentesFlash /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/formules" element={<DashboardRoute><DashboardFormules /></DashboardRoute>} />
-          <Route path="/dashboard/photos" element={<DashboardRoute><DashboardPhotos /></DashboardRoute>} />
-          <Route path="/dashboard/promotions" element={<DashboardRoute><DashboardPromotions /></DashboardRoute>} />
-          <Route path="/dashboard/campagne-overview" element={<DashboardRoute><FeatureSwitch enabled={campaignsEnabled} fallback="/dashboard"><DashboardCampagneOverview /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={campaignsEnabled} fallback="/dashboard"><DashboardReseauxSociaux /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={campaignsEnabled} fallback="/dashboard"><DashboardCampagnes /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/support" element={<DashboardRoute><DashboardSupport /></DashboardRoute>} />
-          <Route path="/dashboard/service" element={<DashboardRoute><DashboardService /></DashboardRoute>} />
-          <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEnabled}><CourierJobs /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEnabled}><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEnabled}><CourierProfile /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/dashboard/factures" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard"><DashboardFactures /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/factures/parametres" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesParametresEnabled} fallback="/dashboard/factures"><DashboardInvoiceSettings /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/offres" element={<DashboardRoute><FeatureSwitch enabled={dashboardOffresEnabled} fallback="/dashboard"><DashboardOffres /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/ventes-flash" element={<DashboardRoute><FeatureSwitch enabled={dashboardVentesFlashEnabled} fallback="/dashboard"><DashboardVentesFlash /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/formules" element={<DashboardRoute><FeatureSwitch enabled={dashboardFormulesEnabled} fallback="/dashboard"><DashboardFormules /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/photos" element={<DashboardRoute><FeatureSwitch enabled={dashboardPhotosEnabled} fallback="/dashboard"><DashboardPhotos /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/promotions" element={<DashboardRoute><FeatureSwitch enabled={dashboardPromotionsEnabled} fallback="/dashboard"><DashboardPromotions /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/campagne-overview" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagneOverviewEnabled} fallback="/dashboard"><DashboardCampagneOverview /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><DashboardReseauxSociaux /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><DashboardCampagnes /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><DashboardSupport /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierJobsEnabled} fallback="/courier"><CourierJobs /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEarningsEnabled} fallback="/courier"><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierProfileEnabled} fallback="/courier"><CourierProfile /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminHome /></ProtectedRoute>} />
-          <Route path="/admin/restaurants" element={<ProtectedRoute requiredRole="admin"><AdminRestaurants /></ProtectedRoute>} />
-          <Route path="/admin/utilisateurs" element={<ProtectedRoute requiredRole="admin"><AdminUtilisateurs /></ProtectedRoute>} />
-          <Route path="/admin/avis" element={<ProtectedRoute requiredRole="admin"><AdminAvis /></ProtectedRoute>} />
-          <Route path="/admin/catalog" element={<ProtectedRoute requiredRole="admin"><AdminCatalog /></ProtectedRoute>} />
-          <Route path="/admin/loyalty" element={<ProtectedRoute requiredRole="admin"><AdminLoyalty /></ProtectedRoute>} />
-          <Route path="/admin/drops" element={<ProtectedRoute requiredRole="admin"><DropsManagement /></ProtectedRoute>} />
-          <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><AdminNotifications /></ProtectedRoute>} />
-          <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><AdminAuditLogs /></ProtectedRoute>} />
+          <Route path="/admin/platform" element={<ProtectedRoute requiredRole="admin"><AdminPlatformConfig /></ProtectedRoute>} />
+          <Route path="/admin/restaurants" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/utilisateurs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminUtilisateursEnabled} fallback="/admin"><AdminUtilisateurs /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/avis" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAvisEnabled} fallback="/admin"><AdminAvis /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/catalog" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminCatalogEnabled} fallback="/admin"><AdminCatalog /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/loyalty" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminLoyaltyEnabled} fallback="/admin"><AdminLoyalty /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/drops" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminDropsEnabled} fallback="/admin"><DropsManagement /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminNotificationsEnabled} fallback="/admin"><AdminNotifications /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />

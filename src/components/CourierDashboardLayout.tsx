@@ -12,21 +12,24 @@ import {
   buildCourierMissionFromNotification,
   type CourierMissionPreview,
 } from "@/lib/courierMission";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { to: "/courier", label: "Vue d'ensemble", icon: LayoutDashboard },
-  { to: "/courier/jobs", label: "Missions", icon: Bike },
-  { to: "/courier/earnings", label: "Gains", icon: Coins },
-  { to: "/courier/profile", label: "Profil", icon: UserRound },
+  { to: "/courier", label: "Vue d'ensemble", icon: LayoutDashboard, feature: "courier-home" },
+  { to: "/courier/jobs", label: "Missions", icon: Bike, feature: "courier-jobs" },
+  { to: "/courier/earnings", label: "Gains", icon: Coins, feature: "courier-earnings" },
+  { to: "/courier/profile", label: "Profil", icon: UserRound, feature: "courier-profile" },
 ];
 
 export default function CourierDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const { signOut, roles } = useAuth();
+  const activeFeatures = useActiveFeatures();
   const queryClient = useQueryClient();
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
   const [missionPreview, setMissionPreview] = useState<CourierMissionPreview | null>(null);
+  const visibleNavItems = NAV_ITEMS.filter((item) => activeFeatures.has(item.feature));
 
   const refreshCourierQueries = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["courier-offers"] });
@@ -101,7 +104,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               <h2 className="font-display text-lg font-semibold">Espace Livreur</h2>
             </div>
 
-            {NAV_ITEMS.map((item) => (
+            {visibleNavItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -119,7 +122,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
 
             {(roles.includes("restaurateur") || roles.includes("admin")) ? (
               <div className="mt-3 space-y-1 border-t pt-3">
-                {roles.includes("restaurateur") ? (
+                {roles.includes("restaurateur") && activeFeatures.has("dashboard-restaurateur") ? (
                   <Link
                     to="/dashboard"
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"

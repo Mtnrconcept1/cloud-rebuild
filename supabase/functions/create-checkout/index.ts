@@ -9,6 +9,10 @@ import {
   requireRestaurantAccess,
   writeAuditLog,
 } from "../_shared/auth.ts";
+import {
+  assertPaymentMethodAllowed,
+  getEffectiveFeatureFlagSet,
+} from "../_shared/feature-flags.ts";
 import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
 
 const corsHeaders = {
@@ -54,6 +58,13 @@ Deno.serve(async (req) => {
 
     const effectiveKind = checkout_kind || order_metadata?.checkout_kind || "order";
     auditKind = effectiveKind;
+    const activeFlags = await getEffectiveFeatureFlagSet(actor.adminClient);
+    assertPaymentMethodAllowed({
+      activeFlags,
+      paymentMethod: payment_method,
+      cashAllowed: effectiveKind === "campaign",
+    });
+
     const paymentMethodTypes: string[] = [];
     switch (payment_method) {
       case "twint":
@@ -211,6 +222,7 @@ Deno.serve(async (req) => {
         const deliveryFeeShare = restaurantIds.length > 0 ? totalDeliveryFee / restaurantIds.length : totalDeliveryFee;
         const groupMetadata = {
           ...(order_metadata || {}),
+          payment_method,
           delivery_fee: deliveryFeeShare,
           points_discount_amount: pointsByRestaurant.get(restaurantId) || 0,
           flex_discount_amount: flexByRestaurant.get(restaurantId) || 0,
@@ -227,7 +239,7 @@ Deno.serve(async (req) => {
           items: restaurantItems,
           deliveryFee: deliveryFeeShare,
           metadata: groupMetadata,
-          context: "cart",
+          context: effectiveKind === "zero-attente" ? "zero-attente" : "cart",
         });
 
         lineItems.push(...pricing.validatedItems.map((item) => ({

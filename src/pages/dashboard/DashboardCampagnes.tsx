@@ -29,7 +29,7 @@ import {
 import AudienceTargeting from "@/components/AudienceTargeting";
 import DashboardLayout from "@/components/DashboardLayout";
 import ImageUpload from "@/components/ImageUpload";
-import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
+import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,6 +55,12 @@ import {
 } from "@/lib/campaigns";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
+import { useActiveFeatures } from "@/lib/featureFlags";
+import {
+  getAllowedPaymentMethods,
+  getFirstAvailablePaymentMethod,
+  type PaymentMethodId,
+} from "@/lib/paymentMethods";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 const CAMPAIGN_TYPES = [
@@ -545,6 +551,7 @@ function CampaignForm({
   onSaved: () => void;
 }) {
   const { toast } = useToast();
+  const activeFeatures = useActiveFeatures();
   const [title, setTitle] = useState(initial?.title || "");
   const [body, setBody] = useState(initial?.body || "");
   const [type, setType] = useState(initial?.type || "boost");
@@ -565,7 +572,14 @@ function CampaignForm({
 
   const isPaidCampaign = (initial?.payment_status || "unpaid") === "paid";
   const totalBudgetValue = Math.max(0, Number(totalBudget) || 0);
+  const allowedPaymentMethods = useMemo(() => getAllowedPaymentMethods(activeFeatures, []), [activeFeatures]);
   const requiresCheckout = totalBudgetValue > 0 && !isPaidCampaign && paymentMethod !== "cash";
+
+  useEffect(() => {
+    if (allowedPaymentMethods.includes(paymentMethod)) return;
+    const nextMethod = getFirstAvailablePaymentMethod(activeFeatures, [], "card");
+    if (nextMethod) setPaymentMethod(nextMethod);
+  }, [activeFeatures, allowedPaymentMethods, paymentMethod]);
 
   const togglePage = (page: string) => {
     setTargetPages((previous) =>
@@ -613,6 +627,10 @@ function CampaignForm({
     event.preventDefault();
     if (!restaurantId) {
       toast({ title: "Restaurant requis", description: "Aucun restaurant selectionne.", variant: "destructive" });
+      return;
+    }
+    if (allowedPaymentMethods.length === 0) {
+      toast({ title: "Paiement indisponible", description: "Aucun moyen de paiement global n'est actif.", variant: "destructive" });
       return;
     }
 
@@ -789,6 +807,7 @@ function CampaignForm({
         <PaymentMethodSelector
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
+          allowedMethods={allowedPaymentMethods}
           cashDescription="Le reglement manuel n active pas la campagne tant qu il n est pas valide."
           secureDescription="Paiement securise via Stripe. La campagne est activee apres confirmation."
         />
