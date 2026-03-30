@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, ChevronRight, Camera, X, ChevronLeft } from "lucide-react";
+import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, ChevronRight, Camera, X, ChevronLeft, LogIn } from "lucide-react";
 import MenuItemCard from "@/components/MenuItemCard";
 import ReviewForm from "@/components/ReviewForm";
 import ReservationDialog from "@/components/ReservationDialog";
@@ -228,37 +228,45 @@ export default function RestaurantDetail() {
               <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" />{restaurant.address}, {restaurant.city}</span>
               {restaurant.phone && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" />{restaurant.phone}</span>}
             </div>
-            <div className={`grid grid-cols-1 gap-3 ${(reservationAvailable && showDelivery && takeawayAvailable) ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-              <div className={reservationAvailable ? "relative" : "hidden"}>
-                <button onClick={() => zeroWaitAvailable ? setShowReserveChoice(!showReserveChoice) : setReservationOpen(true)} className="group flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border-2 border-transparent hover:border-primary/50 hover:bg-secondary/50 transition-all w-full">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
-                  <div className="text-left"><span className="font-bold text-sm block">Réserver une table</span><span className="text-[10px] text-muted-foreground">Garantie de place</span></div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+            {user ? (
+              <div className={`grid grid-cols-1 gap-3 ${(reservationAvailable && showDelivery && takeawayAvailable) ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                <div className={reservationAvailable ? "relative" : "hidden"}>
+                  <button onClick={() => zeroWaitAvailable ? setShowReserveChoice(!showReserveChoice) : setReservationOpen(true)} className="group flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border-2 border-transparent hover:border-primary/50 hover:bg-secondary/50 transition-all w-full">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
+                    <div className="text-left"><span className="font-bold text-sm block">Réserver une table</span><span className="text-[10px] text-muted-foreground">Garantie de place</span></div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                  </button>
+                  {zeroWaitAvailable && showReserveChoice && (
+                    <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-background border-2 border-primary/20 rounded-2xl shadow-xl p-3 space-y-2">
+                      <button onClick={() => { setShowReserveChoice(false); setReservationOpen(true); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-all text-left group">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
+                        <div><p className="font-semibold text-sm">Réservation classique</p><p className="text-xs text-muted-foreground">Réserver avec promos</p></div>
+                      </button>
+                      <button onClick={() => { setShowReserveChoice(false); navigate(`/zero-attente?restaurant=${id}`); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-500/5 transition-all text-left group border-2 border-indigo-500/20">
+                        <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0"><Zap className="h-5 w-5 text-indigo-500" /></div>
+                        <div><p className="font-semibold text-sm text-indigo-600 dark:text-indigo-400">Zéro Attente</p><p className="text-xs text-muted-foreground">Précommandez, tout sera prêt</p></div>
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {showDelivery ? (
+                  <button onClick={() => setOrderMode('delivery')} disabled={!showDelivery} className={`group flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${showDelivery ? orderMode === 'delivery' ? 'bg-blue-50 border-blue-200' : 'bg-secondary/30 border-transparent hover:border-primary/50 hover:bg-secondary/50' : 'bg-secondary/10 opacity-50 cursor-not-allowed'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 ${orderMode === 'delivery' ? 'bg-blue-500/20' : 'bg-blue-500/10'}`}><Bike className="h-5 w-5 text-blue-500" /></div>
+                    <div className="text-left"><span className="font-bold text-sm block">Livraison</span><span className="text-[10px] text-muted-foreground">{Number(restaurant.delivery_fee || 2.99).toFixed(2)} CHF</span></div>
+                  </button>
+                ) : null}
+                <button onClick={() => setOrderMode('takeaway')} disabled={!takeawayAvailable} className={`${takeawayAvailable ? "group flex" : "hidden"} items-center gap-3 p-3 rounded-xl border-2 transition-all ${orderMode === 'takeaway' ? 'bg-miamz-green/10 border-miamz-green/30' : 'bg-secondary/30 border-transparent hover:border-miamz-green/50 hover:bg-secondary/50'}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 ${orderMode === 'takeaway' ? 'bg-miamz-green/20' : 'bg-miamz-green/10'}`}><ShoppingBag className="h-5 w-5 text-miamz-green" /></div>
+                  <div className="text-left"><span className="font-bold text-sm block">Emporter</span><span className="text-[10px] text-miamz-green font-bold">0.00 CHF</span></div>
                 </button>
-                {zeroWaitAvailable && showReserveChoice && (
-                  <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-background border-2 border-primary/20 rounded-2xl shadow-xl p-3 space-y-2">
-                    <button onClick={() => { setShowReserveChoice(false); setReservationOpen(true); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-all text-left group">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
-                      <div><p className="font-semibold text-sm">Réservation classique</p><p className="text-xs text-muted-foreground">Réserver avec promos</p></div>
-                    </button>
-                    <button onClick={() => { setShowReserveChoice(false); navigate(`/zero-attente?restaurant=${id}`); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-500/5 transition-all text-left group border-2 border-indigo-500/20">
-                      <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0"><Zap className="h-5 w-5 text-indigo-500" /></div>
-                      <div><p className="font-semibold text-sm text-indigo-600 dark:text-indigo-400">Zéro Attente</p><p className="text-xs text-muted-foreground">Précommandez, tout sera prêt</p></div>
-                    </button>
-                  </div>
-                )}
               </div>
-              {showDelivery ? (
-                <button onClick={() => setOrderMode('delivery')} disabled={!showDelivery} className={`group flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${showDelivery ? orderMode === 'delivery' ? 'bg-blue-50 border-blue-200' : 'bg-secondary/30 border-transparent hover:border-primary/50 hover:bg-secondary/50' : 'bg-secondary/10 opacity-50 cursor-not-allowed'}`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 ${orderMode === 'delivery' ? 'bg-blue-500/20' : 'bg-blue-500/10'}`}><Bike className="h-5 w-5 text-blue-500" /></div>
-                  <div className="text-left"><span className="font-bold text-sm block">Livraison</span><span className="text-[10px] text-muted-foreground">{Number(restaurant.delivery_fee || 2.99).toFixed(2)} CHF</span></div>
-                </button>
-              ) : null}
-              <button onClick={() => setOrderMode('takeaway')} disabled={!takeawayAvailable} className={`${takeawayAvailable ? "group flex" : "hidden"} items-center gap-3 p-3 rounded-xl border-2 transition-all ${orderMode === 'takeaway' ? 'bg-miamz-green/10 border-miamz-green/30' : 'bg-secondary/30 border-transparent hover:border-miamz-green/50 hover:bg-secondary/50'}`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 ${orderMode === 'takeaway' ? 'bg-miamz-green/20' : 'bg-miamz-green/10'}`}><ShoppingBag className="h-5 w-5 text-miamz-green" /></div>
-                <div className="text-left"><span className="font-bold text-sm block">Emporter</span><span className="text-[10px] text-miamz-green font-bold">0.00 CHF</span></div>
+            ) : (
+              <button onClick={() => navigate("/auth")} className="flex items-center gap-3 w-full p-4 rounded-xl bg-primary/5 border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/10 transition-all group">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"><LogIn className="h-5 w-5 text-primary" /></div>
+                <div className="text-left"><span className="font-bold text-sm block">Connectez-vous pour reserver ou commander</span><span className="text-[10px] text-muted-foreground">Reservation, livraison et emporter</span></div>
+                <ChevronRight className="h-4 w-4 text-primary ml-auto" />
               </button>
-            </div>
+            )}
             {!reservationAvailable && !showDelivery && !takeawayAvailable ? (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
                 Les parcours reservation, livraison et emporter sont actuellement indisponibles pour ce restaurant.

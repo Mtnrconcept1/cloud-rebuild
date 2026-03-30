@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { DayPicker, DayContentProps } from "react-day-picker";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, Clock, CalendarIcon, Percent, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Clock, CalendarIcon, Percent, ChevronLeft, ChevronRight, LogIn } from "lucide-react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 import { getServiceSettings, type ServicePeriod } from "@/lib/serviceSettings";
 
@@ -57,6 +59,8 @@ function buildPartySizes(settings: ReturnType<typeof getServiceSettings>): numbe
 }
 
 export default function ReservationWidget({ restaurantId, restaurantName, onReserve }: ReservationWidgetProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("19:00");
   const [partySize, setPartySize] = useState("2");
@@ -155,7 +159,14 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
             {selectedDiscount > 0 && <p className="text-miamz-green text-xs font-bold flex items-center gap-1"><Percent className="h-3 w-3" />Jusqu'à -{selectedDiscount}% de réduction disponible</p>}
           </div>
         )}
-        <Button onClick={() => date && onReserve(date, time, Number(partySize))} disabled={!date} className="w-full h-12 text-base font-bold rounded-xl" size="lg">Réserver</Button>
+        {user ? (
+          <Button onClick={() => date && onReserve(date, time, Number(partySize))} disabled={!date} className="w-full h-12 text-base font-bold rounded-xl" size="lg">Réserver</Button>
+        ) : (
+          <Button onClick={() => navigate("/auth")} className="w-full h-12 text-base font-bold rounded-xl gap-2" size="lg">
+            <LogIn className="h-5 w-5" />
+            Connexion pour réserver
+          </Button>
+        )}
         <p className="text-[10px] text-muted-foreground text-center">Confirmation immédiate · Annulation gratuite</p>
       </div>
     </div>
