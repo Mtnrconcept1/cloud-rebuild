@@ -1,163 +1,284 @@
-import type { FloorPlanItemKind, FloorPlanTableShape } from "@/lib/floorPlan";
+import type { FloorPlanItemKind, FloorPlanSeatType, FloorPlanTableShape } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
+import DynamicTableSvg from "./DynamicTableSvg";
 
 type FloorPlanItemIllustrationProps = {
   kind: FloorPlanItemKind;
   shape?: FloorPlanTableShape;
   className?: string;
   decorative?: boolean;
+  capacity?: number;
+  seatType?: FloorPlanSeatType;
 };
 
-const stroke = "#87623f";
-const strokeSoft = "#b6906b";
-const fill = "#fff7ed";
-const fillSoft = "#f4dfc4";
-const fillDeep = "#edd0a8";
-const accent = "#f1b65d";
-const plant = "#b7d7b0";
-const plantDeep = "#7ba86f";
+// ─── Architectural top-down palette (warm browns / tans) ───
+const stroke = "#7a5a3a";
+const strokeSoft = "#a07850";
+const fill = "#c4a67a";
+const fillLight = "#faf3e8";
+const fillDeep = "#d4956a";
+const accent = "#e8a44a";
+const plant = "#8db580";
+const plantDeep = "#5e8c52";
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  Top-down furniture — no perspective, no 3D, no blocks
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/** Chair: half-circle (arch) — the iconic top-down chair shape */
 function ChairSvg() {
   return (
     <>
-      <rect x="52" y="26" width="96" height="42" rx="18" fill={fillSoft} stroke={stroke} strokeWidth="6" />
-      <rect x="62" y="74" width="76" height="42" rx="18" fill={fill} stroke={stroke} strokeWidth="6" />
-      <path d="M74 116v22M126 116v22M60 52V22M140 52V22" stroke={stroke} strokeWidth="6" strokeLinecap="round" />
-      <path d="M76 26h48" stroke={strokeSoft} strokeWidth="4" strokeLinecap="round" />
+      <path
+        d="M60,95 A40,40 0 0,1 140,95 Z"
+        fill={fillLight}
+        stroke={stroke}
+        strokeWidth="4"
+      />
+      <line x1="60" y1="95" x2="140" y2="95" stroke={stroke} strokeWidth="3" />
+      {/* Small backrest thickness line */}
+      <path
+        d="M65,90 A36,36 0 0,1 135,90"
+        fill="none"
+        stroke={strokeSoft}
+        strokeWidth="2"
+      />
     </>
   );
 }
 
+/** Stool: simple circle seen from above */
 function StoolSvg() {
   return (
     <>
-      <circle cx="100" cy="52" r="34" fill={fillSoft} stroke={stroke} strokeWidth="6" />
-      <path d="M78 84l-16 34M122 84l16 34M88 86v38M112 86v38" stroke={stroke} strokeWidth="6" strokeLinecap="round" />
-      <path d="M66 118h68" stroke={strokeSoft} strokeWidth="4" strokeLinecap="round" />
+      <circle cx="100" cy="70" r="36" fill={fillLight} stroke={stroke} strokeWidth="4" />
+      <circle cx="100" cy="70" r="18" fill="none" stroke={strokeSoft} strokeWidth="2" />
     </>
   );
 }
 
+/** Round table preset: table + 4 half-circle chairs */
 function RoundTableSvg() {
+  const cx = 100;
+  const cy = 70;
+  const r = 30;
+  const orbit = 50;
+  const chairR = 12;
+
+  const chairs = [0, 90, 180, 270].map((deg) => {
+    const a = (deg * Math.PI) / 180;
+    const px = cx + orbit * Math.cos(a);
+    const py = cy + orbit * Math.sin(a);
+    const a1x = px + chairR * Math.cos(a - Math.PI / 2);
+    const a1y = py + chairR * Math.sin(a - Math.PI / 2);
+    const a2x = px + chairR * Math.cos(a + Math.PI / 2);
+    const a2y = py + chairR * Math.sin(a + Math.PI / 2);
+    return (
+      <path
+        key={deg}
+        d={`M${a1x},${a1y} A${chairR},${chairR} 0 0,1 ${a2x},${a2y} Z`}
+        fill={fillLight}
+        stroke={stroke}
+        strokeWidth="3"
+      />
+    );
+  });
+
   return (
     <>
-      <circle cx="100" cy="70" r="46" fill={fill} stroke={stroke} strokeWidth="6" />
-      <circle cx="100" cy="70" r="28" fill="#fffdfa" stroke={strokeSoft} strokeWidth="4" />
-      <circle cx="100" cy="12" r="15" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <circle cx="100" cy="128" r="15" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <circle cx="42" cy="70" r="15" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <circle cx="158" cy="70" r="15" fill={fillSoft} stroke={stroke} strokeWidth="5" />
+      {chairs}
+      <circle cx={cx} cy={cy} r={r} fill={fill} stroke={stroke} strokeWidth="4" />
     </>
   );
 }
 
+/** Rect table preset: table + 6 half-circle chairs */
 function RectTableSvg() {
+  const tx = 34;
+  const ty = 32;
+  const tw = 132;
+  const th = 76;
+  const cx = tx + tw / 2;
+  const chairR = 11;
+
+  const positions = [
+    // top
+    { x: cx - 28, y: ty - chairR - 2, angle: -90 },
+    { x: cx + 28, y: ty - chairR - 2, angle: -90 },
+    // bottom
+    { x: cx - 28, y: ty + th + chairR + 2, angle: 90 },
+    { x: cx + 28, y: ty + th + chairR + 2, angle: 90 },
+    // left
+    { x: tx - chairR - 2, y: ty + th / 2, angle: 180 },
+    // right
+    { x: tx + tw + chairR + 2, y: ty + th / 2, angle: 0 },
+  ];
+
   return (
     <>
-      <rect x="34" y="28" width="132" height="84" rx="22" fill={fill} stroke={stroke} strokeWidth="6" />
-      <rect x="56" y="42" width="88" height="56" rx="16" fill="#fffdfa" stroke={strokeSoft} strokeWidth="4" />
-      <rect x="56" y="6" width="30" height="24" rx="10" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <rect x="114" y="6" width="30" height="24" rx="10" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <rect x="56" y="110" width="30" height="24" rx="10" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <rect x="114" y="110" width="30" height="24" rx="10" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <rect x="8" y="44" width="24" height="30" rx="10" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <rect x="168" y="44" width="24" height="30" rx="10" fill={fillSoft} stroke={stroke} strokeWidth="5" />
+      {positions.map((p, i) => {
+        const a = (p.angle * Math.PI) / 180;
+        const a1x = p.x + chairR * Math.cos(a - Math.PI / 2);
+        const a1y = p.y + chairR * Math.sin(a - Math.PI / 2);
+        const a2x = p.x + chairR * Math.cos(a + Math.PI / 2);
+        const a2y = p.y + chairR * Math.sin(a + Math.PI / 2);
+        return (
+          <path
+            key={i}
+            d={`M${a1x},${a1y} A${chairR},${chairR} 0 0,1 ${a2x},${a2y} Z`}
+            fill={fillLight}
+            stroke={stroke}
+            strokeWidth="3"
+          />
+        );
+      })}
+      <rect x={tx} y={ty} width={tw} height={th} rx="6" fill={fill} stroke={stroke} strokeWidth="4" />
     </>
   );
 }
 
+/** Bar counter: long rounded rect with stools on one side */
 function BarSvg() {
   return (
     <>
-      <path d="M22 58c0-18 14-32 32-32h94c16 0 30 10 34 25l8 29c3 12-6 24-18 24H52c-17 0-30-14-30-30V58Z" fill={fill} stroke={stroke} strokeWidth="6" />
-      <path d="M46 48h112" stroke={strokeSoft} strokeWidth="5" strokeLinecap="round" />
-      <path d="M44 68h120" stroke={strokeSoft} strokeWidth="5" strokeLinecap="round" />
-      <circle cx="48" cy="114" r="12" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <circle cx="86" cy="124" r="10" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <circle cx="124" cy="124" r="10" fill={fillSoft} stroke={stroke} strokeWidth="5" />
-      <circle cx="162" cy="114" r="12" fill={fillSoft} stroke={stroke} strokeWidth="5" />
+      {/* Stools along bottom */}
+      {[48, 86, 124, 162].map((sx) => (
+        <circle key={sx} cx={sx} cy="112" r="10" fill={fillLight} stroke={stroke} strokeWidth="3" />
+      ))}
+      {/* Counter surface */}
+      <rect x="22" y="30" width="156" height="58" rx="8" fill={fill} stroke={stroke} strokeWidth="4" />
+      <line x1="30" y1="58" x2="170" y2="58" stroke={strokeSoft} strokeWidth="2" />
     </>
   );
 }
 
+/** Corner bench: L-shaped top-down banquette */
 function CornerBenchSvg() {
   return (
-    <>
-      <path d="M28 26h126c10 0 18 8 18 18v24H78v74H46c-10 0-18-8-18-18V26Z" fill={fill} stroke={stroke} strokeWidth="6" />
-      <path d="M28 26h126c10 0 18 8 18 18v10H36c-4 0-8 4-8 8V26Z" fill={fillDeep} stroke={stroke} strokeWidth="6" />
-      <path d="M46 88v54M78 68h94M114 68v74M146 68v74" stroke={strokeSoft} strokeWidth="4" strokeLinecap="round" />
-      <path d="M52 56h28M86 56h28M120 56h28" stroke={strokeSoft} strokeWidth="4" strokeLinecap="round" />
-    </>
+    <path
+      d="M28,24 L172,24 L172,52 L80,52 L80,120 L28,120 Z"
+      fill={fillDeep}
+      stroke={stroke}
+      strokeWidth="4"
+      strokeLinejoin="round"
+    />
   );
 }
 
+/** Banquette: long padded wall seat */
 function BanquetteSvg() {
   return (
     <>
-      <rect x="20" y="34" width="160" height="42" rx="18" fill={fillDeep} stroke={stroke} strokeWidth="6" />
-      <rect x="20" y="74" width="160" height="42" rx="18" fill={fill} stroke={stroke} strokeWidth="6" />
-      <path d="M36 76v40M72 76v40M108 76v40M144 76v40" stroke={strokeSoft} strokeWidth="4" strokeLinecap="round" />
+      <rect x="20" y="40" width="160" height="28" rx="4" fill={fillDeep} stroke={stroke} strokeWidth="4" />
+      <rect x="20" y="68" width="160" height="36" rx="4" fill={fillLight} stroke={stroke} strokeWidth="3" />
+      {/* Seat dividers */}
+      <line x1="60" y1="68" x2="60" y2="104" stroke={strokeSoft} strokeWidth="1.5" />
+      <line x1="100" y1="68" x2="100" y2="104" stroke={strokeSoft} strokeWidth="1.5" />
+      <line x1="140" y1="68" x2="140" y2="104" stroke={strokeSoft} strokeWidth="1.5" />
     </>
   );
 }
 
+/** Booth: enclosed seating with table in center */
 function BoothSvg() {
   return (
     <>
-      <rect x="18" y="24" width="164" height="92" rx="26" fill={fill} stroke={stroke} strokeWidth="6" />
-      <rect x="34" y="36" width="42" height="68" rx="18" fill={fillDeep} stroke={stroke} strokeWidth="5" />
-      <rect x="124" y="36" width="42" height="68" rx="18" fill={fillDeep} stroke={stroke} strokeWidth="5" />
-      <rect x="82" y="42" width="36" height="56" rx="12" fill="#fffdfa" stroke={strokeSoft} strokeWidth="4" />
-      <path d="M84 62h32M84 78h32" stroke={strokeSoft} strokeWidth="4" strokeLinecap="round" />
+      {/* Left bench */}
+      <rect x="22" y="28" width="28" height="84" rx="4" fill={fillDeep} stroke={stroke} strokeWidth="3" />
+      {/* Right bench */}
+      <rect x="150" y="28" width="28" height="84" rx="4" fill={fillDeep} stroke={stroke} strokeWidth="3" />
+      {/* Table surface */}
+      <rect x="58" y="36" width="84" height="68" rx="4" fill={fill} stroke={stroke} strokeWidth="3" />
     </>
   );
 }
 
+/** Host stand: small podium from above */
 function HostStandSvg() {
   return (
     <>
-      <path d="M58 22h84v84l-42 20-42-20V22Z" fill={fill} stroke={stroke} strokeWidth="6" />
-      <path d="M58 48h84" stroke={strokeSoft} strokeWidth="4" />
-      <path d="M74 102h52" stroke={strokeSoft} strokeWidth="4" strokeLinecap="round" />
-      <rect x="82" y="4" width="36" height="24" rx="10" fill={accent} stroke={stroke} strokeWidth="5" />
+      <rect x="56" y="28" width="88" height="84" rx="6" fill={fillLight} stroke={stroke} strokeWidth="4" />
+      <rect x="66" y="36" width="68" height="32" rx="4" fill={fill} stroke={strokeSoft} strokeWidth="2" />
+      <circle cx="100" cy="92" r="8" fill={accent} stroke={stroke} strokeWidth="2" />
     </>
   );
 }
 
+/** Divider / screen: thin line with posts */
 function DividerSvg() {
   return (
     <>
-      <rect x="18" y="46" width="164" height="22" rx="11" fill={fillDeep} stroke={stroke} strokeWidth="6" />
-      <path d="M34 46V22M66 46V16M98 46V24M130 46V16M162 46V22" stroke={stroke} strokeWidth="5" strokeLinecap="round" />
-      <path d="M34 68v44M66 68v50M98 68v42M130 68v50M162 68v44" stroke={strokeSoft} strokeWidth="4" strokeLinecap="round" />
+      <rect x="18" y="58" width="164" height="12" rx="3" fill={fill} stroke={stroke} strokeWidth="3" />
+      {[34, 66, 100, 134, 166].map((px) => (
+        <circle key={px} cx={px} cy="64" r="5" fill={strokeSoft} stroke={stroke} strokeWidth="2" />
+      ))}
     </>
   );
 }
 
+/** Plant pot from above */
 function PlantSvg() {
   return (
     <>
-      <circle cx="100" cy="84" r="44" fill={plant} stroke={plantDeep} strokeWidth="6" />
-      <path d="M100 34c10 10 12 24 2 34-12-6-18-18-2-34ZM74 48c14 2 24 12 26 24-14 4-28-4-26-24ZM126 48c-14 2-24 12-26 24 14 4 28-4 26-24ZM72 88c16 0 26 10 28 24-14 6-32-2-28-24ZM128 88c-16 0-26 10-28 24 14 6 32-2 28-24Z" fill="#d7efd2" stroke={plantDeep} strokeWidth="3.5" strokeLinejoin="round" />
-      <path d="M82 118h36l-8 18H90l-8-18Z" fill={fillDeep} stroke={stroke} strokeWidth="5" strokeLinejoin="round" />
+      <circle cx="100" cy="70" r="40" fill={plant} stroke={plantDeep} strokeWidth="4" />
+      {/* Leaf shapes */}
+      {[0, 72, 144, 216, 288].map((deg) => {
+        const a = (deg * Math.PI) / 180;
+        const lx = 100 + 20 * Math.cos(a);
+        const ly = 70 + 20 * Math.sin(a);
+        const ex = 100 + 38 * Math.cos(a);
+        const ey = 70 + 38 * Math.sin(a);
+        const cx1 = 100 + 32 * Math.cos(a - 0.3);
+        const cy1 = 70 + 32 * Math.sin(a - 0.3);
+        const cx2 = 100 + 32 * Math.cos(a + 0.3);
+        const cy2 = 70 + 32 * Math.sin(a + 0.3);
+        return (
+          <path
+            key={deg}
+            d={`M${lx},${ly} Q${cx1},${cy1} ${ex},${ey} Q${cx2},${cy2} ${lx},${ly}`}
+            fill={plantDeep}
+            opacity="0.4"
+            stroke="none"
+          />
+        );
+      })}
+      <circle cx="100" cy="70" r="12" fill={plantDeep} stroke={stroke} strokeWidth="2" opacity="0.5" />
     </>
   );
 }
 
+/** Service station: small cabinet from above */
 function ServiceStationSvg() {
   return (
     <>
-      <rect x="34" y="28" width="132" height="82" rx="18" fill={fill} stroke={stroke} strokeWidth="6" />
-      <path d="M34 56h132M100 28v82" stroke={strokeSoft} strokeWidth="4" />
-      <rect x="56" y="116" width="88" height="16" rx="8" fill={fillDeep} stroke={stroke} strokeWidth="5" />
-      <circle cx="66" cy="74" r="10" fill={accent} stroke={stroke} strokeWidth="4" />
-      <circle cx="134" cy="74" r="10" fill={accent} stroke={stroke} strokeWidth="4" />
+      <rect x="34" y="32" width="132" height="76" rx="6" fill={fillLight} stroke={stroke} strokeWidth="4" />
+      <line x1="100" y1="32" x2="100" y2="108" stroke={strokeSoft} strokeWidth="2" />
+      <line x1="34" y1="70" x2="166" y2="70" stroke={strokeSoft} strokeWidth="2" />
+      <circle cx="67" cy="51" r="6" fill={accent} stroke={stroke} strokeWidth="2" />
+      <circle cx="133" cy="51" r="6" fill={accent} stroke={stroke} strokeWidth="2" />
     </>
   );
 }
 
-function ItemSvg({ kind, shape }: { kind: FloorPlanItemKind; shape?: FloorPlanTableShape }) {
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  Dispatcher
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function ItemSvg({
+  kind,
+  shape,
+  capacity,
+  seatType,
+}: {
+  kind: FloorPlanItemKind;
+  shape?: FloorPlanTableShape;
+  capacity?: number;
+  seatType?: FloorPlanSeatType;
+}) {
   if (kind === "table") {
+    if (capacity && capacity > 0) {
+      return <DynamicTableSvg shape={shape || "rect"} capacity={capacity} seatType={seatType} />;
+    }
     return shape === "round" ? <RoundTableSvg /> : <RectTableSvg />;
   }
 
@@ -192,6 +313,8 @@ export function FloorPlanItemIllustration({
   shape = "rect",
   className,
   decorative = true,
+  capacity,
+  seatType,
 }: FloorPlanItemIllustrationProps) {
   return (
     <svg
@@ -200,9 +323,9 @@ export function FloorPlanItemIllustration({
       fill="none"
       role={decorative ? "presentation" : "img"}
       aria-hidden={decorative}
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMidYMid meet"
     >
-      <ItemSvg kind={kind} shape={shape} />
+      <ItemSvg kind={kind} shape={shape} capacity={capacity} seatType={seatType} />
     </svg>
   );
 }

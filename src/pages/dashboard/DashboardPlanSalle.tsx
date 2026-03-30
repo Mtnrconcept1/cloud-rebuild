@@ -4,7 +4,9 @@ import {
   Armchair,
   CalendarClock,
   Clock3,
+  Copy,
   Grip,
+  RotateCw,
   LayoutPanelTop,
   Minus,
   Plus,
@@ -19,6 +21,7 @@ import {
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { FloorPlanItemIllustration, FloorPlanPresetIcon } from "@/components/floor-plan/FloorPlanItemIllustration";
+import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +46,7 @@ import {
   normalizeFloorPlanLayout,
   reservationsOverlap,
   type FloorPlanItemKind,
+  type FloorPlanSeatType,
   type FloorPlanTableLayout,
   type FloorPlanTablePreset,
   type FloorPlanTableShape,
@@ -389,6 +393,7 @@ function layoutToRecord(layout: FloorPlanTableLayout) {
     shape: layout.shape,
     kind: layout.kind,
     seat_labels: layout.seatLabels,
+    seat_type: layout.seatType || "chair",
   };
 }
 
@@ -628,8 +633,16 @@ export default function DashboardPlanSalle() {
   } | null>(null);
   const [draggedReservationId, setDraggedReservationId] = useState<string | null>(null);
   const [dragOverTableId, setDragOverTableId] = useState<string | null>(null);
+  const [rotateState, setRotateState] = useState<{
+    tableId: string;
+    startAngle: number;
+    startRotation: number;
+  } | null>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [canvasWidth, setCanvasWidth] = useState(CANVAS_WIDTH);
+  const [tableConfigDialogOpen, setTableConfigDialogOpen] = useState(false);
+  const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
+  const [editingSeatingTableId, setEditingSeatingTableId] = useState<string | null>(null);
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
 
@@ -1016,11 +1029,27 @@ export default function DashboardPlanSalle() {
   };
 
   useEffect(() => {
-    if (!dragState && !resizeState) return undefined;
+    if (!dragState && !resizeState && !rotateState) return undefined;
 
     const handlePointerMove = (event: PointerEvent) => {
       const point = getCanvasPointFromClient(event.clientX, event.clientY);
       if (!point) return;
+
+      if (rotateState) {
+        const table = tableMap.get(rotateState.tableId);
+        if (table) {
+          const frame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+          const cx = frame.x + frame.w / 2;
+          const cy = frame.y + frame.h / 2;
+          const currentAngle = Math.atan2(point.y - cy, point.x - cx) * (180 / Math.PI);
+          const delta = currentAngle - rotateState.startAngle;
+          const snapped = Math.round((rotateState.startRotation + delta) / 15) * 15;
+          const normalized = ((snapped % 360) + 360) % 360;
+          setDraftTables((current) => current.map((t) =>
+            t.id !== rotateState.tableId ? t : { ...t, layout: { ...t.layout, rotation: normalized } },
+          ));
+        }
+      }
 
       if (dragState) {
         const nextRenderedX = point.x - dragState.offsetX;
@@ -1099,6 +1128,7 @@ export default function DashboardPlanSalle() {
     const handlePointerUp = () => {
       setDragState(null);
       setResizeState(null);
+      setRotateState(null);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -1108,7 +1138,7 @@ export default function DashboardPlanSalle() {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [canvasWidth, canvasZoom, dragState, resizeState]);
+  }, [canvasWidth, canvasZoom, dragState, resizeState, rotateState, tableMap]);
 
   useEffect(() => {
     if (selectedReservationId && !reservationsById.has(selectedReservationId)) {
@@ -1456,6 +1486,12 @@ export default function DashboardPlanSalle() {
     const preset = FLOOR_PLAN_PRESETS.find((item) => item.id === presetId);
     if (!preset) return;
 
+    if (preset.category === "table") {
+      setPendingPresetId(presetId);
+      setTableConfigDialogOpen(true);
+      return;
+    }
+
     const tableId = `draft-${crypto.randomUUID()}`;
     setDraftTables((current) => [
       ...current,
@@ -1473,9 +1509,82 @@ export default function DashboardPlanSalle() {
     setSelectedTableId(tableId);
   };
 
-  const startDraggingTable = (event: React.PointerEvent<HTMLButtonElement>, tableId: string) => {
+  const confirmTableConfig = (config: { capacity: number; shape: FloorPlanTableShape; seatType: FloorPlanSeatType }) => {
+    if (editingSeatingTableId) {
+      updateDraftTable(editingSeatingTableId, (table) => ({
+        ...table,
+        capacity: config.capacity,
+        layout: ensureFloorPlanLayoutFitsCapacity(
+          { ...table.layout, shape: config.shape, seatType: config.seatType },
+          config.capacity,
+          config.shape,
+          table.layout.kind,
+        ),
+      }));
+      setEditingSeatingTableId(null);
+    } else if (pendingPresetId) {
+      const preset = FLOOR_PLAN_PRESETS.find((item) => item.id === pendingPresetId);
+      if (preset && selectedBranchId) {
+        const tableId = `draft-${crypto.randomUUID()}`;
+        setDraftTables((current) => [
+          ...current,
+          {
+            id: tableId,
+            persisted: false,
+            branch_id: selectedBranchId,
+            table_number: getNextPresetLabel(current, { ...preset, capacity: config.capacity, shape: config.shape }),
+            capacity: config.capacity,
+            is_active: true,
+            sector: selectedSector,
+            layout: {
+              ...buildDraftFloorPlanLayout(current.length, { ...preset, capacity: config.capacity, shape: config.shape }),
+              seatType: config.seatType,
+            },
+          },
+        ]);
+        setSelectedTableId(tableId);
+      }
+      setPendingPresetId(null);
+    }
+    setTableConfigDialogOpen(false);
+  };
+
+  const duplicateTable = (sourceTableId: string) => {
+    const source = draftTables.find((t) => t.id === sourceTableId);
+    if (!source || !isTemplateMode) return;
+
+    const tableId = `draft-${crypto.randomUUID()}`;
+    setDraftTables((current) => [
+      ...current,
+      {
+        ...source,
+        id: tableId,
+        persisted: false,
+        table_number: getNextPresetLabel(current, {
+          id: "",
+          label: "",
+          description: "",
+          category: isReservableFloorPlanItem(source.layout.kind) ? "table" : "furniture",
+          kind: source.layout.kind,
+          capacity: source.capacity,
+          shape: source.layout.shape,
+          w: source.layout.w,
+          h: source.layout.h,
+        }),
+        layout: clampFloorPlanLayout({
+          ...source.layout,
+          x: source.layout.x + 24,
+          y: source.layout.y + 24,
+        }),
+      },
+    ]);
+    setSelectedTableId(tableId);
+  };
+
+  const startDraggingTable = (event: React.PointerEvent<HTMLElement>, tableId: string) => {
     event.preventDefault();
     setResizeState(null);
+    setRotateState(null);
 
     const table = tableMap.get(tableId);
     const point = getCanvasPointFromClient(event.clientX, event.clientY);
@@ -1487,6 +1596,29 @@ export default function DashboardPlanSalle() {
       offsetX: point.x - renderedFrame.x,
       offsetY: point.y - renderedFrame.y,
     });
+    setSelectedTableId(tableId);
+  };
+
+  const startRotatingTable = (event: React.PointerEvent<HTMLElement>, tableId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragState(null);
+    setResizeState(null);
+
+    const table = tableMap.get(tableId);
+    const point = getCanvasPointFromClient(event.clientX, event.clientY);
+    if (!table || !point) return;
+    const frame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+    const cx = frame.x + frame.w / 2;
+    const cy = frame.y + frame.h / 2;
+    const startAngle = Math.atan2(point.y - cy, point.x - cx) * (180 / Math.PI);
+
+    setRotateState({
+      tableId,
+      startAngle,
+      startRotation: table.layout.rotation,
+    });
+    setSelectedTableId(tableId);
   };
 
   const startResizingTable = (
@@ -2211,7 +2343,6 @@ export default function DashboardPlanSalle() {
                             const isReservable = isReservableDraftTable(table);
                             const isSelected = table.id === selectedTableId;
                             const isZeroAttentePrimary = primaryAssignment ? isZeroAttenteReservation(primaryAssignment) : false;
-                            const shapeClass = table.layout.shape === "round" ? "rounded-full" : "rounded-[1.75rem]";
                             const activeDraggedReservationId = draggedReservationId;
                             const dropState = activeDraggedReservationId && isReservable
                               ? getReservationDropState(activeDraggedReservationId, table.id)
@@ -2221,53 +2352,40 @@ export default function DashboardPlanSalle() {
                             const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
                             const density = getTableDensity(renderedFrame);
                             const isTight = density === "tight";
-                            const contentPadding = getTableContentPadding({
+                            const contentPadding = isReservable ? getTableContentPadding({
                               ...table.layout,
                               w: renderedFrame.w,
                               h: renderedFrame.h,
-                            });
-                            const coverLabel = density === "regular" ? `${table.capacity} couverts` : `${table.capacity} couv.`;
+                            }) : { top: 0, right: 0, bottom: 0, left: 0 };
+                            const coverLabel = density === "regular" ? `${table.capacity} couv.` : `${table.capacity}`;
                             const reservationCustomerLabel = primaryAssignment
                               ? getCompactReservationCustomerLabel(primaryAssignment, density)
                               : null;
-                            const reservationMetaLabel = primaryAssignment
-                              ? density === "tight"
-                                ? `${primaryAssignment.party_size}p · ${getShortDateLabel(primaryAssignment.date)}`
-                                : `${primaryAssignment.party_size} pers. · ${getShortDateLabel(primaryAssignment.date)}`
-                              : null;
-
-                            void reservationMetaLabel;
-
                             const reservationDetailLabel = primaryAssignment
                               ? density === "tight"
-                                ? `${primaryAssignment.party_size}p - ${getShortDateLabel(primaryAssignment.date)}`
-                                : `${primaryAssignment.party_size} pers. - ${getShortDateLabel(primaryAssignment.date)}`
+                                ? `${primaryAssignment.party_size}p`
+                                : `${primaryAssignment.party_size} pers.`
                               : null;
-                            const itemTypeLabel = getFloorPlanItemTypeLabel(table.layout.kind, table.layout.shape);
 
                             return (
                               <div
                                 key={table.id}
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => {
-                                  setSelectedTableId(table.id);
-                                }}
-                                onKeyDown={(event) => {
-                                  if (event.key === "Enter" || event.key === " ") {
-                                    event.preventDefault();
-                                    setSelectedTableId(table.id);
-                                  }
-                                }}
-                                className="absolute text-left focus:outline-none"
+                                className="absolute select-none focus:outline-none"
                                 style={{
                                   left: renderedFrame.x,
                                   top: renderedFrame.y,
                                   width: renderedFrame.w,
                                   height: renderedFrame.h,
                                   zIndex: isSelected ? 40 : isReservable && assignments.length > 0 ? 24 : 12,
+                                  cursor: dragState?.tableId === table.id ? "grabbing" : "grab",
                                 }}
+                                onPointerDown={(event) => {
+                                  if ((event.target as HTMLElement).closest("[data-rotate-handle]") || (event.target as HTMLElement).closest("[data-resize-handle]")) return;
+                                  startDraggingTable(event, table.id);
+                                }}
+                                onClick={() => setSelectedTableId(table.id)}
                               >
+                                {/* Rotated wrapper */}
                                 <div
                                   className="relative h-full w-full"
                                   style={{
@@ -2275,281 +2393,153 @@ export default function DashboardPlanSalle() {
                                     transformOrigin: "center center",
                                   }}
                                 >
-                                  <div
-                                    className={cn(
-                                      "absolute inset-0 border bg-[#fff8ef] shadow-[0_18px_35px_-24px_rgba(120,53,15,0.55)] transition-all",
-                                      shapeClass,
-                                      !isReservable && "bg-white/85",
-                                      isSelected ? "border-primary ring-2 ring-primary/30" : "border-[#ddb78f] hover:border-primary/60",
-                                      isDragTarget && canDropHere && "border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-200",
-                                      isDragTarget && !canDropHere && "border-rose-500 bg-rose-50/80 ring-2 ring-rose-200",
-                                    )}
-                                  />
-                                  <div className={cn("absolute inset-[4px] overflow-hidden", shapeClass)}>
-                                    <FloorPlanItemIllustration kind={table.layout.kind} shape={table.layout.shape} className="h-full w-full" />
+                                  {/* SVG illustration — no background block for furniture */}
+                                  <div className="absolute inset-0">
+                                    <FloorPlanItemIllustration kind={table.layout.kind} shape={table.layout.shape} capacity={table.capacity} seatType={table.layout.seatType} className="h-full w-full" />
                                   </div>
 
-                                  <div className={cn("absolute inset-0 overflow-hidden", shapeClass)}>
-                                    {isReservable ? (
-                                      <>
-                                        <div
-                                          className={cn(
-                                            "relative flex h-full min-h-0 flex-col",
-                                            density === "regular" ? "gap-3" : density === "compact" ? "gap-2" : "gap-1.5",
-                                          )}
-                                          style={{
-                                            paddingTop: contentPadding.top,
-                                            paddingRight: contentPadding.right,
-                                            paddingBottom: contentPadding.bottom,
-                                            paddingLeft: contentPadding.left,
-                                          }}
-                                        >
-                                          <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
-                                              <p className={cn(
-                                                "break-words font-semibold text-foreground",
-                                                density === "regular"
-                                                  ? "text-base leading-none"
-                                                  : density === "compact"
-                                                    ? "text-[11px] leading-tight"
-                                                    : "text-[9px] leading-tight",
-                                              )}
-                                              >
-                                                {table.table_number}
-                                              </p>
-                                              <p className={cn(
-                                                "mt-1 break-words uppercase text-muted-foreground",
-                                                density === "regular"
-                                                  ? "text-[10px] tracking-[0.18em]"
-                                                  : density === "compact"
-                                                    ? "text-[8px] tracking-[0.12em]"
-                                                    : "text-[7px] tracking-[0.08em]",
-                                              )}
-                                              >
-                                                {coverLabel}
-                                              </p>
-                                            </div>
-                                            <button
-                                              type="button"
-                                              className={cn(
-                                                "shrink-0 rounded-full border bg-background/90 text-muted-foreground shadow-sm",
-                                                density === "regular"
-                                                  ? "p-1"
-                                                  : density === "compact"
-                                                    ? "p-0.5"
-                                                    : "p-0.5",
-                                              )}
-                                              onPointerDown={(event) => {
-                                                event.stopPropagation();
-                                                startDraggingTable(event, table.id);
-                                              }}
-                                            >
-                                              <Grip className={cn(
-                                                density === "regular"
-                                                  ? "h-4 w-4"
-                                                  : density === "compact"
-                                                    ? "h-3.5 w-3.5"
-                                                    : "h-3 w-3",
-                                              )}
-                                              />
-                                            </button>
-                                          </div>
+                                  {/* Selection ring */}
+                                  {isSelected && (
+                                    <div className="pointer-events-none absolute inset-[-2px] rounded-lg border-2 border-primary/50" />
+                                  )}
 
-                                          <div className={cn(
-                                            "flex min-h-0 flex-1 flex-col items-center justify-center",
-                                            density === "regular" ? "gap-2" : density === "compact" ? "gap-1.5" : "gap-1",
+                                  {/* Drop target feedback */}
+                                  {isDragTarget && (
+                                    <div className={cn(
+                                      "pointer-events-none absolute inset-[-2px] rounded-lg border-2",
+                                      canDropHere ? "border-emerald-500 bg-emerald-50/30" : "border-rose-500 bg-rose-50/30",
+                                    )} />
+                                  )}
+
+                                  {/* ── TABLE OVERLAY (name + reservation info) ── */}
+                                  {isReservable && (
+                                    <div
+                                      className="absolute inset-0 flex flex-col overflow-hidden"
+                                      style={{
+                                        paddingTop: contentPadding.top,
+                                        paddingRight: contentPadding.right,
+                                        paddingBottom: contentPadding.bottom,
+                                        paddingLeft: contentPadding.left,
+                                      }}
+                                    >
+                                      {/* Table name + capacity */}
+                                      <div className="flex items-start justify-between gap-1">
+                                        <div className="min-w-0">
+                                          <p className={cn(
+                                            "break-words font-bold text-foreground drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]",
+                                            density === "regular" ? "text-sm" : density === "compact" ? "text-[10px]" : "text-[8px]",
                                           )}>
-                                            {primaryAssignment ? (
-                                              <button
-                                                type="button"
-                                                onClick={(event) => {
-                                                  event.stopPropagation();
-                                                  setSelectedReservationId(primaryAssignment.id);
-                                                  setSelectedTableId(table.id);
-                                                }}
-                                                className={cn(
-                                                  "w-full max-w-full border text-left shadow-[0_12px_28px_-20px_rgba(15,23,42,0.45)] transition-colors",
-                                                  isZeroAttentePrimary
-                                                    ? "border-teal-200 bg-teal-50/95 hover:bg-teal-100/90"
-                                                    : "border-[#ebd4bb] bg-white/96 hover:bg-white",
-                                                  density === "regular"
-                                                    ? "rounded-[1.25rem] px-3 py-2"
-                                                    : density === "compact"
-                                                      ? "rounded-xl px-2 py-1.5"
-                                                      : "rounded-lg px-1.5 py-1",
-                                                )}
-                                              >
-                                                <div className="flex items-start justify-between gap-1.5">
-                                                  <p className={cn(
-                                                    "min-w-0 break-words font-semibold leading-tight text-foreground",
-                                                    density === "regular"
-                                                      ? "text-[13px]"
-                                                      : density === "compact"
-                                                        ? "text-[10px]"
-                                                        : "text-[8px]",
-                                                  )}>
-                                                    {reservationCustomerLabel}
-                                                  </p>
-                                                  <span className={cn(
-                                                    "shrink-0 rounded-full font-semibold",
-                                                    isZeroAttentePrimary ? "bg-teal-100 text-teal-800" : "bg-orange-100 text-orange-800",
-                                                    density === "regular"
-                                                      ? "px-2 py-0.5 text-[11px]"
-                                                      : density === "compact"
-                                                        ? "px-1.5 py-0.5 text-[9px]"
-                                                        : "px-1 py-0.5 text-[7px]",
-                                                  )}>
-                                                    {getSafeTime(primaryAssignment.time)}
-                                                  </span>
-                                                </div>
-                                                {isZeroAttentePrimary ? (
-                                                  <div className={cn("mt-1", isTight && "mt-0.5")}>
-                                                    <span className={cn(
-                                                      "inline-flex rounded-full border border-teal-200 bg-teal-100 font-semibold text-teal-800",
-                                                      density === "regular"
-                                                        ? "px-2 py-0.5 text-[10px]"
-                                                        : density === "compact"
-                                                          ? "px-1.5 py-0.5 text-[8px]"
-                                                          : "px-1 py-0.5 text-[7px]",
-                                                    )}>
-                                                      Zero Attente
-                                                    </span>
-                                                  </div>
-                                                ) : null}
-                                                <p className={cn(
-                                                  "mt-1 break-words text-muted-foreground",
-                                                  density === "regular"
-                                                    ? "text-[11px]"
-                                                    : density === "compact"
-                                                      ? "text-[9px]"
-                                                      : "text-[7px]",
-                                                )}>
-                                                  {reservationDetailLabel}
-                                                </p>
-                                                <div className={cn("mt-1", isTight && "mt-0.5")}>
-                                                  <span className={cn(
-                                                    "inline-flex max-w-full break-words rounded-full border font-semibold",
-                                                    getReservationStatusTone(primaryAssignment.status),
-                                                    density === "regular"
-                                                      ? "px-2 py-0.5 text-[10px]"
-                                                      : density === "compact"
-                                                        ? "px-1.5 py-0.5 text-[8px]"
-                                                        : "px-1 py-0.5 text-[7px]",
-                                                  )}>
-                                                    {primaryAssignment.status || "pending"}
-                                                  </span>
-                                                </div>
-                                              </button>
-                                            ) : (
-                                              <div className={cn(
-                                                "mx-auto inline-flex max-w-full items-center justify-center rounded-full border border-dashed border-[#d8b894] bg-white/55 text-center font-medium uppercase text-[#8f5d32]",
-                                                density === "regular"
-                                                  ? "px-4 py-2 text-[11px] tracking-[0.22em]"
-                                                  : density === "compact"
-                                                    ? "px-3 py-1.5 text-[9px] tracking-[0.14em]"
-                                                    : "px-2 py-1 text-[7px] tracking-[0.08em]",
-                                              )}>
-                                                {isTight ? "Libre" : "Disponible"}
-                                              </div>
-                                            )}
-
-                                            {assignments.length > 1 ? (
-                                              <div className={cn(
-                                                "max-w-full break-words text-center font-medium text-muted-foreground",
-                                                density === "regular"
-                                                  ? "text-[11px]"
-                                                  : density === "compact"
-                                                    ? "text-[9px]"
-                                                    : "text-[7px]",
-                                              )}>
-                                                +{assignments.length - 1} autre(s) reservation(s)
-                                              </div>
-                                            ) : null}
-                                          </div>
-                                        </div>
-
-                                        {isDragTarget && activeDraggedReservationId ? (
-                                          <div
-                                            className="pointer-events-none absolute z-20"
-                                            style={{
-                                              left: contentPadding.left,
-                                              right: contentPadding.right,
-                                              bottom: contentPadding.bottom,
-                                            }}
-                                          >
-                                            <div
-                                              className={cn(
-                                                "rounded-2xl border px-3 py-2 text-xs font-semibold shadow-sm backdrop-blur-sm",
-                                                canDropHere
-                                                  ? "border-emerald-200 bg-emerald-100/95 text-emerald-800"
-                                                  : "border-rose-200 bg-rose-100/95 text-rose-800",
-                                              )}
-                                            >
-                                              {canDropHere ? "Lacher pour affecter ici" : dropState?.reason}
-                                            </div>
-                                          </div>
-                                        ) : null}
-                                      </>
-                                    ) : (
-                                      <div
-                                        className="relative flex h-full min-h-0 flex-col justify-between"
-                                        style={{
-                                          paddingTop: contentPadding.top,
-                                          paddingRight: contentPadding.right,
-                                          paddingBottom: contentPadding.bottom,
-                                          paddingLeft: contentPadding.left,
-                                        }}
-                                      >
-                                        <div className="flex items-start justify-between gap-2">
-                                          <div className="max-w-[72%] rounded-full border border-white/80 bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground shadow-sm">
-                                            {itemTypeLabel}
-                                          </div>
-                                          <button
-                                            type="button"
-                                            className="shrink-0 rounded-full border bg-background/90 p-1 text-muted-foreground shadow-sm"
-                                            onPointerDown={(event) => {
-                                              event.stopPropagation();
-                                              startDraggingTable(event, table.id);
-                                            }}
-                                          >
-                                            <Grip className="h-3.5 w-3.5" />
-                                          </button>
-                                        </div>
-                                        <div className="pointer-events-none flex min-h-0 flex-1 items-end justify-center">
-                                          <div className="max-w-[88%] rounded-full border border-white/80 bg-white/92 px-3 py-1.5 text-center shadow-sm">
+                                            {table.table_number}
+                                          </p>
+                                          {!isTight && (
                                             <p className={cn(
-                                              "break-words font-semibold text-foreground",
-                                              density === "regular"
-                                                ? "text-sm"
-                                                : density === "compact"
-                                                  ? "text-[11px]"
-                                                  : "text-[9px]",
+                                              "uppercase text-muted-foreground drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]",
+                                              density === "regular" ? "text-[9px] tracking-[0.14em]" : "text-[7px] tracking-[0.1em]",
                                             )}>
-                                              {table.table_number}
+                                              {coverLabel}
                                             </p>
-                                          </div>
+                                          )}
                                         </div>
                                       </div>
-                                    )}
-                                  </div>
 
-                                  {isSelected ? (
+                                      {/* Reservation card */}
+                                      <div className={cn(
+                                        "flex min-h-0 flex-1 flex-col items-center justify-center",
+                                        density === "regular" ? "gap-1.5" : "gap-0.5",
+                                      )}>
+                                        {primaryAssignment ? (
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              setSelectedReservationId(primaryAssignment.id);
+                                              setSelectedTableId(table.id);
+                                            }}
+                                            className={cn(
+                                              "max-w-full border text-left shadow-sm backdrop-blur-sm transition-colors",
+                                              isZeroAttentePrimary
+                                                ? "border-teal-200 bg-teal-50/90 hover:bg-teal-100/90"
+                                                : "border-[#ebd4bb] bg-white/90 hover:bg-white",
+                                              density === "regular"
+                                                ? "rounded-xl px-2.5 py-1.5"
+                                                : density === "compact"
+                                                  ? "rounded-lg px-1.5 py-1"
+                                                  : "rounded-md px-1 py-0.5",
+                                            )}
+                                          >
+                                            <p className={cn(
+                                              "truncate font-semibold text-foreground",
+                                              density === "regular" ? "text-[11px]" : density === "compact" ? "text-[9px]" : "text-[7px]",
+                                            )}>
+                                              {reservationCustomerLabel}
+                                            </p>
+                                            <div className="flex items-center gap-1">
+                                              <span className={cn(
+                                                "font-medium text-muted-foreground",
+                                                density === "regular" ? "text-[10px]" : "text-[7px]",
+                                              )}>
+                                                {getSafeTime(primaryAssignment.time)} {reservationDetailLabel}
+                                              </span>
+                                            </div>
+                                          </button>
+                                        ) : null}
+                                        {assignments.length > 1 && !isTight ? (
+                                          <span className={cn(
+                                            "font-medium text-muted-foreground drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]",
+                                            density === "regular" ? "text-[10px]" : "text-[8px]",
+                                          )}>
+                                            +{assignments.length - 1}
+                                          </span>
+                                        ) : null}
+                                      </div>
+
+                                      {/* Drop feedback */}
+                                      {isDragTarget && activeDraggedReservationId ? (
+                                        <div className={cn(
+                                          "absolute bottom-1 left-1 right-1 rounded-lg border px-2 py-1 text-center text-[9px] font-semibold backdrop-blur-sm",
+                                          canDropHere
+                                            ? "border-emerald-200 bg-emerald-100/90 text-emerald-800"
+                                            : "border-rose-200 bg-rose-100/90 text-rose-800",
+                                        )}>
+                                          {canDropHere ? "Affecter" : dropState?.reason}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  )}
+
+                                  {/* Resize handle (bottom-right, selected only) */}
+                                  {isSelected && (
                                     <button
                                       type="button"
+                                      data-resize-handle
                                       aria-label={`Redimensionner ${table.table_number}`}
-                                      className={cn(
-                                        "absolute h-4 w-4 rounded-full border border-primary/50 bg-white shadow-sm",
-                                        PRIMARY_RESIZE_HANDLE.className,
-                                      )}
-                                      style={{
-                                        cursor: PRIMARY_RESIZE_HANDLE.cursor,
-                                        bottom: Math.max(8, contentPadding.bottom - 6),
-                                        right: Math.max(8, contentPadding.right - 6),
-                                      }}
+                                      className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border border-primary/50 bg-white shadow-sm"
+                                      style={{ cursor: "nwse-resize" }}
                                       onPointerDown={(event) => startResizingTable(event, table.id, PRIMARY_RESIZE_HANDLE.key)}
                                     />
-                                  ) : null}
+                                  )}
                                 </div>
+
+                                {/* Rotate handle — outside the rotated wrapper so it stays upright */}
+                                {isSelected && (
+                                  <div
+                                    data-rotate-handle
+                                    className="absolute flex items-center justify-center"
+                                    style={{
+                                      top: -28,
+                                      left: "50%",
+                                      transform: "translateX(-50%)",
+                                      cursor: "grab",
+                                    }}
+                                    onPointerDown={(event) => startRotatingTable(event, table.id)}
+                                  >
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/50 bg-white shadow-md">
+                                      <RotateCw className="h-3.5 w-3.5 text-primary" />
+                                    </div>
+                                    {/* Connecting line from handle to element */}
+                                    <div className="absolute top-6 h-2 w-px bg-primary/30" />
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -2843,6 +2833,41 @@ export default function DashboardPlanSalle() {
                             </Select>
                           </div>
 
+                          <div className="space-y-2">
+                            <Label>Rotation</Label>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min={0}
+                                max={359}
+                                step={15}
+                                value={Math.round(selectedTable.layout.rotation)}
+                                onChange={(event) => {
+                                  const deg = Math.round(Number(event.target.value) || 0) % 360;
+                                  updateDraftTable(selectedTable.id, (table) => ({
+                                    ...table,
+                                    layout: { ...table.layout, rotation: deg < 0 ? deg + 360 : deg },
+                                  }));
+                                }}
+                                className="w-20"
+                              />
+                              <span className="text-xs text-muted-foreground">deg</span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 shrink-0"
+                                onClick={() => {
+                                  updateDraftTable(selectedTable.id, (table) => ({
+                                    ...table,
+                                    layout: { ...table.layout, rotation: (table.layout.rotation + 45) % 360 },
+                                  }));
+                                }}
+                              >
+                                <RotateCw className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+
                           <div className="flex items-center justify-between rounded-2xl border px-4 py-3">
                             <div>
                               <p className="font-medium">Element actif</p>
@@ -2857,6 +2882,31 @@ export default function DashboardPlanSalle() {
                               }))}
                             />
                           </div>
+
+                          {selectedTableIsReservable && isTemplateMode ? (
+                            <Button
+                              variant="outline"
+                              className="justify-start"
+                              onClick={() => {
+                                setEditingSeatingTableId(selectedTable.id);
+                                setTableConfigDialogOpen(true);
+                              }}
+                            >
+                              <Armchair className="mr-2 h-4 w-4" />
+                              Modifier l'assise
+                            </Button>
+                          ) : null}
+
+                          {isTemplateMode ? (
+                            <Button
+                              variant="outline"
+                              className="justify-start"
+                              onClick={() => duplicateTable(selectedTable.id)}
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              Dupliquer
+                            </Button>
+                          ) : null}
 
                           <Button
                             variant="outline"
@@ -2927,6 +2977,22 @@ export default function DashboardPlanSalle() {
           </>
         ) : null}
       </div>
+      <TableConfigDialog
+        open={tableConfigDialogOpen}
+        onOpenChange={(next) => {
+          setTableConfigDialogOpen(next);
+          if (!next) {
+            setPendingPresetId(null);
+            setEditingSeatingTableId(null);
+          }
+        }}
+        initialConfig={editingSeatingTableId ? (() => {
+          const t = draftTables.find((d) => d.id === editingSeatingTableId);
+          return t ? { capacity: t.capacity, shape: t.layout.shape, seatType: (t.layout.seatType || "chair") as FloorPlanSeatType } : null;
+        })() : null}
+        preset={pendingPresetId ? FLOOR_PLAN_PRESETS.find((p) => p.id === pendingPresetId) || null : null}
+        onConfirm={confirmTableConfig}
+      />
     </DashboardLayout>
   );
 }

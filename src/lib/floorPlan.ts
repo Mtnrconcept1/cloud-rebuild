@@ -1,5 +1,6 @@
 export type FloorPlanTableShape = "round" | "rect";
 export type FloorPlanItemCategory = "table" | "furniture";
+export type FloorPlanSeatType = "chair" | "stool" | "bench" | "corner-bench";
 export type FloorPlanItemKind =
   | "table"
   | "chair"
@@ -22,6 +23,7 @@ export type FloorPlanTableLayout = {
   shape: FloorPlanTableShape;
   seatLabels: number[];
   kind: FloorPlanItemKind;
+  seatType?: FloorPlanSeatType;
 };
 
 export type FloorPlanTablePreset = {
@@ -47,6 +49,15 @@ type FloorPlanReservationSchedule = {
 const DEFAULT_PADDING = 16;
 const DEFAULT_CANVAS_WIDTH = 1040;
 const DEFAULT_CANVAS_HEIGHT = 680;
+
+const VALID_SEAT_TYPES = new Set<FloorPlanSeatType>(["chair", "stool", "bench", "corner-bench"]);
+
+export const SEAT_TYPE_LABELS: Record<FloorPlanSeatType, string> = {
+  chair: "Chaises",
+  stool: "Tabourets",
+  bench: "Banquettes",
+  "corner-bench": "Bancs d'angle",
+};
 
 const ITEM_BASE_NAMES: Record<FloorPlanItemKind, string> = {
   table: "Table",
@@ -210,6 +221,13 @@ export function normalizeFloorPlanLayout(
       })
       : [];
 
+  const rawSeatType = typeof source.seat_type === "string" ? source.seat_type
+    : typeof source.seatType === "string" ? source.seatType
+    : undefined;
+  const seatType: FloorPlanSeatType | undefined = rawSeatType && VALID_SEAT_TYPES.has(rawSeatType as FloorPlanSeatType)
+    ? rawSeatType as FloorPlanSeatType
+    : undefined;
+
   const x = parseNumber(source.x) ?? (24 + (fallbackIndex % 4) * 220);
   const y = parseNumber(source.y) ?? (24 + Math.floor(fallbackIndex / 4) * 176);
   const w = parseNumber(source.w) ?? minimum.w;
@@ -224,6 +242,7 @@ export function normalizeFloorPlanLayout(
     rotation,
     shape: normalizedShape,
     kind,
+    seatType,
     seatLabels: isReservableFloorPlanItem(kind)
       ? (seatLabels.length ? seatLabels : buildSeatLabels(capacity, normalizedShape))
       : [],
