@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { FloorPlanItemIllustration, FloorPlanPresetIcon } from "@/components/floor-plan/FloorPlanItemIllustration";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,10 +36,15 @@ import {
   buildDraftFloorPlanLayout,
   clampFloorPlanLayout,
   ensureFloorPlanLayoutFitsCapacity,
+  getFloorPlanItemBaseName,
+  getFloorPlanItemTypeLabel,
   getMinimumTableSize,
+  isReservableFloorPlanItem,
   normalizeFloorPlanLayout,
   reservationsOverlap,
+  type FloorPlanItemKind,
   type FloorPlanTableLayout,
+  type FloorPlanTablePreset,
   type FloorPlanTableShape,
 } from "@/lib/floorPlan";
 import {
@@ -48,6 +54,7 @@ import {
   isDateInDashboardTimeRange,
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
+import { formatRestaurantPaymentMethod } from "@/lib/dashboardPayments";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +64,15 @@ type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ReservationWithCustomer = ReservationRow & {
   customer: Pick<ProfileRow, "full_name" | "phone"> | null;
+};
+type ReservationPreorderItem = {
+  menuItemId: string | null;
+  name: string;
+  quantity: number;
+  unitPrice: number | null;
+  totalPrice: number | null;
+  source: string | null;
+  metadata: Record<string, Json>;
 };
 
 type BranchRow = {
@@ -113,6 +129,11 @@ type ServiceFilter = "all" | "lunch" | "dinner";
 type SortBy = "time" | "party_size" | "status";
 type ResizeHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 type FloorPlanEditMode = "service" | "template";
+type SaveMutationOptions = {
+  silent?: boolean;
+  source?: "manual" | "auto-layout";
+  layoutSignature?: string | null;
+};
 type RenderedTableFrame = { x: number; y: number; w: number; h: number };
 type TableDensity = "tight" | "compact" | "regular";
 
@@ -147,6 +168,132 @@ function getReservationBranchId(reservation: ReservationRow) {
 
 function getReservationCustomerLabel(reservation: ReservationWithCustomer) {
   return reservation.customer?.full_name || "Client sans nom";
+}
+
+function normalizeReservationFeature(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, "-");
+}
+
+function getReservationMetadataRecord(reservation: ReservationRow) {
+  return isJsonRecord(reservation.metadata) ? reservation.metadata : {};
+}
+
+function getReservationFeature(reservation: ReservationRow) {
+  const explicitFeature = normalizeReservationFeature(reservation.feature);
+  const metadataFeature = normalizeReservationFeature(getReservationMetadataRecord(reservation).feature);
+
+  if (metadataFeature) return metadataFeature;
+  if (explicitFeature) return explicitFeature;
+  return "standard";
+}
+
+function isZeroAttenteReservation(reservation: ReservationRow) {
+  return getReservationFeature(reservation) === "zero-attente";
+}
+
+function parseReservationNumber(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatReservationCurrency(value: number | null | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return null;
+  return new Intl.NumberFormat("fr-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function getReservationPreorderItems(reservation: ReservationRow): ReservationPreorderItem[] {
+  const metadata = getReservationMetadataRecord(reservation);
+  const rawItems = Array.isArray(reservation.preorder_items)
+    ? reservation.preorder_items
+    : Array.isArray(metadata.preorder_items)
+      ? metadata.preorder_items
+      : Array.isArray(metadata.drops)
+        ? metadata.drops
+        : [];
+
+  return rawItems.flatMap((item) => {
+    if (!isJsonRecord(item as Json)) return [];
+
+    const itemMetadata = isJsonRecord(item.metadata as Json) ? item.metadata as Record<string, Json> : {};
+    return [{
+      menuItemId: typeof item.menu_item_id === "string" && item.menu_item_id.trim() ? item.menu_item_id : null,
+      name: typeof item.name === "string" && item.name.trim() ? item.name : "Article",
+      quantity: Math.max(1, Math.round(parseReservationNumber(item.quantity) || 1)),
+      unitPrice: parseReservationNumber(item.unit_price),
+      totalPrice: parseReservationNumber(item.total_price),
+      source: typeof item.source === "string" && item.source.trim() ? item.source : null,
+      metadata: itemMetadata,
+    }];
+  });
+}
+
+function getReservationPaymentMethodLabel(reservation: ReservationRow) {
+  const metadata = getReservationMetadataRecord(reservation);
+  const rawMethod = typeof reservation.payment_method === "string" && reservation.payment_method.trim()
+    ? reservation.payment_method
+    : typeof metadata.payment_method === "string" && metadata.payment_method.trim()
+      ? metadata.payment_method
+      : null;
+
+  return formatRestaurantPaymentMethod(rawMethod);
+}
+
+function getReservationTotalAmount(reservation: ReservationRow) {
+  const metadata = getReservationMetadataRecord(reservation);
+  const reservationAmount = parseReservationNumber(reservation.total_amount);
+  if (reservationAmount && reservationAmount > 0) return reservationAmount;
+
+  return parseReservationNumber(metadata.total_amount)
+    ?? parseReservationNumber(metadata.pre_discount_subtotal)
+    ?? 0;
+}
+
+function getReservationPaymentDetails(reservation: ReservationRow) {
+  const metadata = getReservationMetadataRecord(reservation);
+  const paidMetadata = metadata.paid;
+  const isPaid = typeof paidMetadata === "boolean"
+    ? paidMetadata
+    : typeof paidMetadata === "string"
+      ? ["true", "1", "yes", "paid"].includes(paidMetadata.trim().toLowerCase())
+      : isZeroAttenteReservation(reservation) && getReservationTotalAmount(reservation) > 0;
+
+  const cardBrand = typeof metadata.card_brand === "string" ? metadata.card_brand.trim() : "";
+  const cardLast4 = typeof metadata.card_last4 === "string" ? metadata.card_last4.trim() : "";
+
+  return {
+    isPaid,
+    totalAmount: getReservationTotalAmount(reservation),
+    paymentMethod: getReservationPaymentMethodLabel(reservation),
+    cardLabel: cardBrand && cardLast4
+      ? `${formatRestaurantPaymentMethod(cardBrand) || cardBrand} **** ${cardLast4}`
+      : (formatRestaurantPaymentMethod(cardBrand) || null),
+    orderReference: typeof reservation.order_reference === "string" && reservation.order_reference.trim()
+      ? reservation.order_reference
+      : typeof metadata.order_reference === "string" && metadata.order_reference.trim()
+        ? metadata.order_reference
+        : null,
+    checkoutSessionId: typeof metadata.checkout_session_id === "string" && metadata.checkout_session_id.trim()
+      ? metadata.checkout_session_id
+      : null,
+  };
+}
+
+function getReservationSpecialRequest(reservation: ReservationRow) {
+  const specialRequests = (reservation as Record<string, unknown>).special_requests;
+  if (typeof specialRequests === "string" && specialRequests.trim()) {
+    return specialRequests.trim();
+  }
+  return typeof reservation.notes === "string" && reservation.notes.trim()
+    ? reservation.notes.trim()
+    : null;
 }
 
 function getTableDensity(frame: RenderedTableFrame): TableDensity {
@@ -240,6 +387,7 @@ function layoutToRecord(layout: FloorPlanTableLayout) {
     h: Math.round(layout.h),
     rotation: layout.rotation,
     shape: layout.shape,
+    kind: layout.kind,
     seat_labels: layout.seatLabels,
   };
 }
@@ -249,9 +397,12 @@ function areLayoutsEquivalent(left: FloorPlanTableLayout, right: FloorPlanTableL
 }
 
 function buildTemplateLayout(rawLayout: unknown, fallbackIndex: number, capacity: number) {
+  const normalizedLayout = normalizeFloorPlanLayout(rawLayout, fallbackIndex, capacity);
   return ensureFloorPlanLayoutFitsCapacity(
-    normalizeFloorPlanLayout(rawLayout, fallbackIndex, capacity),
+    normalizedLayout,
     capacity,
+    normalizedLayout.shape,
+    normalizedLayout.kind,
   );
 }
 
@@ -269,11 +420,13 @@ function buildServiceLayout(
     {
       ...overrideRecord,
       shape: templateLayout.shape,
+      kind: templateLayout.kind,
       seat_labels: templateLayout.seatLabels,
     },
     fallbackIndex,
     capacity,
     templateLayout.shape,
+    templateLayout.kind,
   );
 
   return ensureFloorPlanLayoutFitsCapacity(
@@ -285,16 +438,20 @@ function buildServiceLayout(
       h: normalizedOverride.h,
       rotation: normalizedOverride.rotation,
       shape: templateLayout.shape,
+      kind: templateLayout.kind,
       seatLabels: templateLayout.seatLabels,
     },
     capacity,
     templateLayout.shape,
+    templateLayout.kind,
   );
 }
 
-function getNextTableNumber(tables: DraftTable[]) {
+function getNextPresetLabel(tables: DraftTable[], preset: FloorPlanTablePreset) {
+  const baseLabel = getFloorPlanItemBaseName(preset.kind);
   const usedNumbers = new Set(
     tables
+      .filter((table) => table.table_number.startsWith(baseLabel))
       .map((table) => Number.parseInt(String(table.table_number).replace(/[^\d]/g, ""), 10))
       .filter((value) => Number.isFinite(value)),
   );
@@ -304,7 +461,7 @@ function getNextTableNumber(tables: DraftTable[]) {
     candidate += 1;
   }
 
-  return `Table ${candidate}`;
+  return `${baseLabel} ${candidate}`;
 }
 
 function clampCanvasZoom(value: number) {
@@ -346,6 +503,17 @@ function resizeRenderedTableFrame(
 }
 
 function getTableContentPadding(layout: FloorPlanTableLayout) {
+  if (!isReservableFloorPlanItem(layout.kind)) {
+    const horizontal = Math.max(6, Math.min(layout.w * 0.08, 20));
+    const vertical = Math.max(6, Math.min(layout.h * 0.08, 20));
+    return {
+      top: vertical,
+      right: horizontal,
+      bottom: vertical,
+      left: horizontal,
+    };
+  }
+
   if (layout.shape === "round") {
     const horizontal = Math.max(4, Math.min(layout.w * 0.14, 28));
     const vertical = Math.max(4, Math.min(layout.h * 0.12, 24));
@@ -365,6 +533,16 @@ function getTableContentPadding(layout: FloorPlanTableLayout) {
     bottom: vertical,
     left: horizontal,
   };
+}
+
+function isReservableDraftTable(table: DraftTable | null | undefined) {
+  return !!table && isReservableFloorPlanItem(table.layout.kind);
+}
+
+function getPersistableCapacity(table: DraftTable) {
+  return isReservableDraftTable(table)
+    ? Math.max(1, Math.round(table.capacity || 1))
+    : 0;
 }
 
 function getRenderedTableFrame(
@@ -421,6 +599,9 @@ export default function DashboardPlanSalle() {
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const canvasViewportRef = useRef<HTMLDivElement | null>(null);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastAutoSavedLayoutSignatureRef = useRef<string | null>(null);
+  const scheduledAutoSaveLayoutSignatureRef = useRef<string | null>(null);
 
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedSector, setSelectedSector] = useState(DEFAULT_SECTOR);
@@ -565,6 +746,21 @@ export default function DashboardPlanSalle() {
     () => new Map(layoutOverrides.map((row) => [row.reservation_table_id, row])),
     [layoutOverrides],
   );
+  const resolvedLayoutsByTableId = useMemo(() => new Map(
+    persistedTables.map((table, index) => {
+      const rawCapacity = Number(table.capacity);
+      const fallbackCapacity = Number.isFinite(rawCapacity) ? rawCapacity : 2;
+      const templateLayout = buildTemplateLayout(table.layout, index, fallbackCapacity);
+      const capacity = isReservableFloorPlanItem(templateLayout.kind)
+        ? Math.max(1, Math.round(fallbackCapacity || 2))
+        : 0;
+      const overrideLayout = layoutOverridesByTableId.get(table.id)?.layout;
+
+      return [table.id, editMode === "service" && overrideLayout
+        ? buildServiceLayout(templateLayout, overrideLayout, index, capacity)
+        : templateLayout];
+    }),
+  ), [editMode, layoutOverridesByTableId, persistedTables]);
 
   const { data: reservationSlotsData, error: slotsError } = useQuery({
     queryKey: ["floor-plan-slots", selectedBranchId, persistedTableIds.join(",")],
@@ -604,27 +800,28 @@ export default function DashboardPlanSalle() {
       return;
     }
     setDraftTables(
-      persistedTables.map((table, index) => ({
-        const capacity = Number(table.capacity || 2);
-        const templateLayout = buildTemplateLayout(table.layout, index, capacity);
-        const overrideLayout = layoutOverridesByTableId.get(table.id)?.layout;
+      persistedTables.map((table, index) => {
+        const rawCapacity = Number(table.capacity);
+        const fallbackCapacity = Number.isFinite(rawCapacity) ? rawCapacity : 2;
+        const layout = resolvedLayoutsByTableId.get(table.id) || buildTemplateLayout(table.layout, index, fallbackCapacity);
+        const capacity = isReservableFloorPlanItem(layout.kind)
+          ? Math.max(1, Math.round(fallbackCapacity || 2))
+          : 0;
 
         return {
-        id: table.id,
-        persisted: true,
-        branch_id: table.branch_id,
-        table_number: table.table_number,
-        capacity,
-        is_active: table.is_active ?? true,
-        sector: table.sector?.trim() || DEFAULT_SECTOR,
-        layout: editMode === "service" && overrideLayout
-          ? buildServiceLayout(templateLayout, overrideLayout, index, capacity)
-          : templateLayout,
-      };
-      })),
+          id: table.id,
+          persisted: true,
+          branch_id: table.branch_id,
+          table_number: table.table_number,
+          capacity,
+          is_active: table.is_active ?? true,
+          sector: table.sector?.trim() || DEFAULT_SECTOR,
+          layout,
+        };
+      }),
     );
     setExtraSectors([]);
-  }, [editMode, layoutOverridesByTableId, persistedTables, selectedBranchId]);
+  }, [persistedTables, resolvedLayoutsByTableId, selectedBranchId]);
 
   useEffect(() => {
     const nextAssignments = Object.fromEntries(
@@ -681,6 +878,11 @@ export default function DashboardPlanSalle() {
       .filter((table) => table.sector === selectedSector)
       .sort((left, right) => left.table_number.localeCompare(right.table_number, "fr"))
   ), [draftTables, selectedSector]);
+  const visibleReservableTables = useMemo(
+    () => visibleTables.filter((table) => isReservableDraftTable(table)),
+    [visibleTables],
+  );
+  const visibleFurnitureCount = visibleTables.length - visibleReservableTables.length;
 
   const tableMap = useMemo(
     () => new Map(draftTables.map((table) => [table.id, table])),
@@ -691,12 +893,16 @@ export default function DashboardPlanSalle() {
     () => new Set(visibleTables.map((table) => table.id)),
     [visibleTables],
   );
+  const visibleReservableTableIdSet = useMemo(
+    () => new Set(visibleReservableTables.map((table) => table.id)),
+    [visibleReservableTables],
+  );
 
   const visibleAssignmentsByTable = useMemo(() => {
     const grouped = new Map<string, ReservationWithCustomer[]>();
     filteredReservations.forEach((reservation) => {
       const tableId = draftAssignments[reservation.id];
-      if (!tableId || !visibleTableIdSet.has(tableId)) return;
+      if (!tableId || !visibleReservableTableIdSet.has(tableId)) return;
       grouped.set(tableId, [...(grouped.get(tableId) || []), reservation]);
     });
 
@@ -705,34 +911,83 @@ export default function DashboardPlanSalle() {
     });
 
     return grouped;
-  }, [draftAssignments, filteredReservations, visibleTableIdSet]);
+  }, [draftAssignments, filteredReservations, visibleReservableTableIdSet]);
 
   const selectedReservation = selectedReservationId ? reservationsById.get(selectedReservationId) || null : null;
+  const selectedReservationPreorderItems = useMemo(
+    () => (selectedReservation ? getReservationPreorderItems(selectedReservation) : []),
+    [selectedReservation],
+  );
+  const selectedReservationPaymentDetails = useMemo(
+    () => (selectedReservation ? getReservationPaymentDetails(selectedReservation) : null),
+    [selectedReservation],
+  );
+  const selectedReservationSpecialRequest = useMemo(
+    () => (selectedReservation ? getReservationSpecialRequest(selectedReservation) : null),
+    [selectedReservation],
+  );
   const selectedTable = selectedTableId ? tableMap.get(selectedTableId) || null : null;
+  const selectedTableIsReservable = isReservableDraftTable(selectedTable);
   const selectedTableAssignments = useMemo(() => {
-    if (!selectedTableId) return [];
+    if (!selectedTableId || !selectedTableIsReservable) return [];
     return (visibleAssignmentsByTable.get(selectedTableId) || []).slice(0, 6);
-  }, [selectedTableId, visibleAssignmentsByTable]);
+  }, [selectedTableId, selectedTableIsReservable, visibleAssignmentsByTable]);
 
   const assignedVisibleTableIds = useMemo(() => {
     const values = new Set<string>();
     filteredReservations.forEach((reservation) => {
       const tableId = draftAssignments[reservation.id];
-      if (tableId && visibleTableIdSet.has(tableId)) {
+      if (tableId && visibleReservableTableIdSet.has(tableId)) {
         values.add(tableId);
       }
     });
     return values;
-  }, [draftAssignments, filteredReservations, visibleTableIdSet]);
+  }, [draftAssignments, filteredReservations, visibleReservableTableIdSet]);
 
   const unassignedVisibleReservations = useMemo(
     () => filteredReservations.filter((reservation) => !draftAssignments[reservation.id]),
     [draftAssignments, filteredReservations],
   );
+  const presetGroups = useMemo(() => ([
+    {
+      id: "tables",
+      label: "Tables reservables",
+      description: "Ces elements peuvent recevoir des reservations.",
+      items: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "table"),
+    },
+    {
+      id: "furniture",
+      label: "Mobilier",
+      description: "Elements decoratifs et structurels pour coller a la vraie salle.",
+      items: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "furniture"),
+    },
+  ]), []);
 
-  const availableTables = visibleTables.filter((table) => !assignedVisibleTableIds.has(table.id));
+  const isTemplateMode = editMode === "template";
+  const hasUnpersistedDraftTables = draftTables.some((table) => !table.persisted);
+  const serviceLayoutSignature = useMemo(() => JSON.stringify(
+    draftTables
+      .filter((table) => table.persisted)
+      .map((table) => ({
+        id: table.id,
+        layout: layoutToRecord(table.layout),
+      }))
+      .sort((left, right) => left.id.localeCompare(right.id, "fr")),
+  ), [draftTables]);
+  const serviceLayoutDirty = useMemo(() => {
+    if (isTemplateMode) return false;
+    if (hasUnpersistedDraftTables) return false;
+
+    return draftTables.some((table) => {
+      if (!table.persisted) return false;
+      const resolvedLayout = resolvedLayoutsByTableId.get(table.id);
+      if (!resolvedLayout) return false;
+      return !areLayoutsEquivalent(table.layout, resolvedLayout);
+    });
+  }, [draftTables, hasUnpersistedDraftTables, isTemplateMode, resolvedLayoutsByTableId]);
+  const availableTables = visibleReservableTables.filter((table) => !assignedVisibleTableIds.has(table.id));
   const availableCovers = availableTables.reduce((sum, table) => sum + table.capacity, 0);
-  const canPersist = !!selectedBranchId;
+  const canPersist = !!selectedBranchId && (isTemplateMode || !hasUnpersistedDraftTables);
   const canvasZoomLabel = `${Math.round(canvasZoom * 100)}%`;
 
   const getCanvasPointFromClient = (clientX: number, clientY: number) => {
@@ -747,8 +1002,8 @@ export default function DashboardPlanSalle() {
   };
 
   const getVisibleTableAtPoint = (x: number, y: number) => {
-    for (let index = visibleTables.length - 1; index >= 0; index -= 1) {
-      const table = visibleTables[index];
+    for (let index = visibleReservableTables.length - 1; index >= 0; index -= 1) {
+      const table = visibleReservableTables[index];
       const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
       const withinX = x >= renderedFrame.x && x <= renderedFrame.x + renderedFrame.w;
       const withinY = y >= renderedFrame.y && y <= renderedFrame.y + renderedFrame.h;
@@ -798,7 +1053,11 @@ export default function DashboardPlanSalle() {
 
         setDraftTables((current) => current.map((table) => {
           if (table.id !== resizeState.tableId) return table;
-          const minimumSize = getMinimumTableSize(table.capacity, resizeState.startLayout.shape);
+          const minimumSize = getMinimumTableSize(
+            table.capacity,
+            resizeState.startLayout.shape,
+            resizeState.startLayout.kind,
+          );
           const resizedFrame = resizeRenderedTableFrame(
             resizeState.startFrame,
             resizeState.handle,
@@ -814,6 +1073,8 @@ export default function DashboardPlanSalle() {
               h: resizedFrame.h / canvasZoom,
             },
             table.capacity,
+            resizeState.startLayout.shape,
+            resizeState.startLayout.kind,
           );
           const nextPosition = getLogicalPositionFromRenderedFrame(
             resizedLayout,
@@ -860,6 +1121,15 @@ export default function DashboardPlanSalle() {
       setSelectedTableId(null);
     }
   }, [selectedTableId, tableMap]);
+
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = null;
+    }
+    lastAutoSavedLayoutSignatureRef.current = null;
+    scheduledAutoSaveLayoutSignatureRef.current = null;
+  }, [editMode, referenceDate, selectedBranchId]);
 
   const createDefaultBranchMutation = useMutation({
     mutationFn: async () => {
@@ -910,105 +1180,231 @@ export default function DashboardPlanSalle() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (options?: SaveMutationOptions) => {
+      void options;
       if (!selectedBranchId) throw new Error("Selectionnez d'abord une salle.");
 
-      const tempIdToPersistedId = new Map<string, string>();
+      const persistAssignments = async (tempIdToPersistedId: Map<string, string>) => {
+        const normalizedAssignments = Object.fromEntries(
+          Object.entries(draftAssignments).map(([reservationId, tableId]) => [
+            reservationId,
+            tableId ? tempIdToPersistedId.get(tableId) || tableId : null,
+          ]),
+        ) as Record<string, string | null>;
+        const persistedAssignments = Object.fromEntries(
+          reservationSlots.map((slot) => [slot.reservation_id, slot.table_id]),
+        ) as Record<string, string | null>;
+        const changedReservationIds = Array.from(
+          new Set([...Object.keys(normalizedAssignments), ...Object.keys(persistedAssignments)]),
+        ).filter((reservationId) => (
+          (normalizedAssignments[reservationId] || null) !== (persistedAssignments[reservationId] || null)
+        ));
 
-      for (const table of draftTables) {
-        const payload = {
-          branch_id: selectedBranchId,
-          table_number: table.table_number.trim() || getNextTableNumber(draftTables),
-          capacity: Math.max(1, Math.round(table.capacity || 1)),
-          is_active: table.is_active,
-          sector: table.sector.trim() || DEFAULT_SECTOR,
-          layout: layoutToRecord(table.layout),
-        };
+        for (const reservationId of changedReservationIds) {
+          const { error: deleteError } = await (supabase.from("reservation_slots" as any))
+            .delete()
+            .eq("reservation_id", reservationId);
+          if (deleteError) throw deleteError;
 
-        if (table.persisted) {
-          const { error } = await (supabase.from("reservation_tables" as any))
-            .update(payload)
-            .eq("id", table.id);
-          if (error) throw error;
-          tempIdToPersistedId.set(table.id, table.id);
-        } else {
-          const { data, error } = await (supabase.from("reservation_tables" as any))
-            .insert(payload)
-            .select("id")
-            .single();
-          if (error) throw error;
-          tempIdToPersistedId.set(table.id, String(data.id));
+          const nextTableId = normalizedAssignments[reservationId];
+          if (!nextTableId) continue;
+
+          const { error: slotError } = await (supabase.from("reservation_slots" as any))
+            .insert({
+              reservation_id: reservationId,
+              table_id: nextTableId,
+            });
+          if (slotError) throw slotError;
+
+          const { error: reservationError } = await supabase
+            .from("reservations")
+            .update({ branch_id: selectedBranchId })
+            .eq("id", reservationId);
+          if (reservationError) throw reservationError;
         }
+
+        return normalizedAssignments;
+      };
+
+      if (isTemplateMode) {
+        const tempIdToPersistedId = new Map<string, string>();
+
+        for (const table of draftTables) {
+          const payload = {
+            branch_id: selectedBranchId,
+            table_number: table.table_number.trim() || `${getFloorPlanItemBaseName(table.layout.kind)} ${draftTables.length + 1}`,
+            capacity: getPersistableCapacity(table),
+            is_active: table.is_active,
+            sector: table.sector.trim() || DEFAULT_SECTOR,
+            layout: layoutToRecord(table.layout),
+          };
+
+          if (table.persisted) {
+            const { error } = await (supabase.from("reservation_tables" as any))
+              .update(payload)
+              .eq("id", table.id);
+            if (error) throw error;
+            tempIdToPersistedId.set(table.id, table.id);
+          } else {
+            const { data, error } = await (supabase.from("reservation_tables" as any))
+              .insert(payload)
+              .select("id")
+              .single();
+            if (error) throw error;
+            tempIdToPersistedId.set(table.id, String(data.id));
+          }
+        }
+
+        const nextPersistedIds = draftTables.filter((table) => table.persisted).map((table) => table.id);
+        const removedIds = persistedTables
+          .map((table) => table.id)
+          .filter((tableId) => !nextPersistedIds.includes(tableId));
+
+        if (removedIds.length > 0) {
+          const { error } = await (supabase.from("reservation_tables" as any))
+            .delete()
+            .in("id", removedIds);
+          if (error) throw error;
+        }
+
+        return persistAssignments(tempIdToPersistedId);
       }
 
-      const nextPersistedIds = draftTables.filter((table) => table.persisted).map((table) => table.id);
-      const removedIds = persistedTables
-        .map((table) => table.id)
-        .filter((tableId) => !nextPersistedIds.includes(tableId));
+      if (hasUnpersistedDraftTables) {
+        throw new Error("Sauvegardez d'abord le template avant de modifier un plan de jour.");
+      }
 
-      if (removedIds.length > 0) {
-        const { error } = await (supabase.from("reservation_tables" as any))
+      const templateLayoutsByTableId = new Map(
+        persistedTables.map((table, index) => [
+          table.id,
+          buildTemplateLayout(table.layout, index, Number.isFinite(Number(table.capacity)) ? Number(table.capacity) : 2),
+        ]),
+      );
+      const overridesToUpsert = draftTables.flatMap((table) => {
+        const templateLayout = templateLayoutsByTableId.get(table.id);
+        if (!templateLayout || areLayoutsEquivalent(table.layout, templateLayout)) {
+          return [];
+        }
+
+        return [{
+          reservation_table_id: table.id,
+          branch_id: selectedBranchId,
+          service_date: referenceDate,
+          layout: layoutToRecord(table.layout),
+          updated_at: new Date().toISOString(),
+        }];
+      });
+      const overrideIdsToDelete = draftTables.flatMap((table) => {
+        const templateLayout = templateLayoutsByTableId.get(table.id);
+        const existingOverride = layoutOverridesByTableId.get(table.id);
+        if (!templateLayout || !existingOverride) return [];
+        return areLayoutsEquivalent(table.layout, templateLayout) ? [existingOverride.id] : [];
+      });
+
+      if (overrideIdsToDelete.length > 0) {
+        const { error } = await (supabase.from("reservation_table_layout_overrides" as any))
           .delete()
-          .in("id", removedIds);
+          .in("id", overrideIdsToDelete);
         if (error) throw error;
       }
 
-      const normalizedAssignments = Object.fromEntries(
-        Object.entries(draftAssignments).map(([reservationId, tableId]) => [
-          reservationId,
-          tableId ? tempIdToPersistedId.get(tableId) || tableId : null,
-        ]),
-      ) as Record<string, string | null>;
-      const persistedAssignments = Object.fromEntries(
-        reservationSlots.map((slot) => [slot.reservation_id, slot.table_id]),
-      ) as Record<string, string | null>;
-      const changedReservationIds = Array.from(
-        new Set([...Object.keys(normalizedAssignments), ...Object.keys(persistedAssignments)]),
-      ).filter((reservationId) => (
-        (normalizedAssignments[reservationId] || null) !== (persistedAssignments[reservationId] || null)
-      ));
-
-      for (const reservationId of changedReservationIds) {
-        const { error: deleteError } = await (supabase.from("reservation_slots" as any))
-          .delete()
-          .eq("reservation_id", reservationId);
-        if (deleteError) throw deleteError;
-
-        const nextTableId = normalizedAssignments[reservationId];
-        if (!nextTableId) continue;
-
-        const { error: slotError } = await (supabase.from("reservation_slots" as any))
-          .insert({
-            reservation_id: reservationId,
-            table_id: nextTableId,
-          });
-        if (slotError) throw slotError;
-
-        const { error: reservationError } = await supabase
-          .from("reservations")
-          .update({ branch_id: selectedBranchId })
-          .eq("id", reservationId);
-        if (reservationError) throw reservationError;
+      if (overridesToUpsert.length > 0) {
+        const { error } = await (supabase.from("reservation_table_layout_overrides" as any))
+          .upsert(overridesToUpsert, { onConflict: "reservation_table_id,service_date" });
+        if (error) throw error;
       }
 
-      return normalizedAssignments;
+      return persistAssignments(new Map(draftTables.map((table) => [table.id, table.id])));
     },
-    onSuccess: () => {
+    onSuccess: (_data, options) => {
       queryClient.invalidateQueries({ queryKey: ["floor-plan-tables", selectedBranchId] });
+      queryClient.invalidateQueries({ queryKey: ["floor-plan-layout-overrides", selectedBranchId, referenceDate] });
       queryClient.invalidateQueries({ queryKey: ["floor-plan-slots", selectedBranchId] });
       queryClient.invalidateQueries({ queryKey: ["floor-plan-reservations", selectedId] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
-      toast({
-        title: "Plan de salle sauvegarde",
-        description: "Les tables et affectations ont ete enregistrees.",
-      });
+      if (!isTemplateMode && options?.layoutSignature) {
+        lastAutoSavedLayoutSignatureRef.current = options.layoutSignature;
+        scheduledAutoSaveLayoutSignatureRef.current = null;
+      }
+      if (!options?.silent) {
+        toast({
+          title: isTemplateMode ? "Template sauvegarde" : "Plan du jour sauvegarde",
+          description: isTemplateMode
+            ? "Le plan par defaut a ete mis a jour pour les prochains jours."
+            : `Les deplacements du ${formatDashboardDateHeading(referenceDate)} ont ete enregistres.`,
+        });
+      }
     },
-    onError: (error: Error) => {
-      toast({ title: "Erreur de sauvegarde", description: error.message, variant: "destructive" });
+    onError: (error: Error, options) => {
+      if (options?.source === "auto-layout") {
+        scheduledAutoSaveLayoutSignatureRef.current = null;
+        lastAutoSavedLayoutSignatureRef.current = null;
+      }
+      toast({
+        title: options?.source === "auto-layout" ? "Erreur de sauvegarde auto" : "Erreur de sauvegarde",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = null;
+    }
+
+    if (isTemplateMode || !selectedBranchId || hasUnpersistedDraftTables || !serviceLayoutDirty) {
+      return undefined;
+    }
+
+    if (dragState || resizeState || saveMutation.isPending) {
+      return undefined;
+    }
+
+    if (
+      lastAutoSavedLayoutSignatureRef.current === serviceLayoutSignature
+      || scheduledAutoSaveLayoutSignatureRef.current === serviceLayoutSignature
+    ) {
+      return undefined;
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      scheduledAutoSaveLayoutSignatureRef.current = serviceLayoutSignature;
+      saveMutation.mutate({
+        silent: true,
+        source: "auto-layout",
+        layoutSignature: serviceLayoutSignature,
+      });
+    }, 900);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+        autoSaveTimeoutRef.current = null;
+      }
+    };
+  }, [
+    dragState,
+    hasUnpersistedDraftTables,
+    isTemplateMode,
+    referenceDate,
+    resizeState,
+    saveMutation,
+    selectedBranchId,
+    serviceLayoutDirty,
+    serviceLayoutSignature,
+  ]);
+
   const addSector = () => {
+    if (!isTemplateMode) {
+      toast({
+        title: "Mode template requis",
+        description: "Ajoutez ou modifiez les secteurs depuis le template global.",
+        variant: "destructive",
+      });
+      return;
+    }
     const normalized = newSectorName.trim();
     if (!normalized) return;
     if (!sectorOptions.includes(normalized)) {
@@ -1023,6 +1419,14 @@ export default function DashboardPlanSalle() {
   };
 
   const removeDraftTable = (tableId: string) => {
+    if (!isTemplateMode) {
+      toast({
+        title: "Mode template requis",
+        description: "Supprimez un element depuis le template global.",
+        variant: "destructive",
+      });
+      return;
+    }
     setDraftTables((current) => current.filter((table) => table.id !== tableId));
     setDraftAssignments((current) => Object.fromEntries(
       Object.entries(current).map(([reservationId, assignedTableId]) => [
@@ -1040,6 +1444,14 @@ export default function DashboardPlanSalle() {
       toast({ title: "Selection requise", description: "Selectionnez d'abord une salle.", variant: "destructive" });
       return;
     }
+    if (!isTemplateMode) {
+      toast({
+        title: "Mode template requis",
+        description: "Ajoutez une table ou un meuble dans le template pour qu'il apparaisse tous les jours.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const preset = FLOOR_PLAN_PRESETS.find((item) => item.id === presetId);
     if (!preset) return;
@@ -1051,7 +1463,7 @@ export default function DashboardPlanSalle() {
         id: tableId,
         persisted: false,
         branch_id: selectedBranchId,
-        table_number: getNextTableNumber(current),
+        table_number: getNextPresetLabel(current, preset),
         capacity: preset.capacity,
         is_active: true,
         sector: selectedSector,
@@ -1108,6 +1520,13 @@ export default function DashboardPlanSalle() {
 
     if (!reservation || !table) {
       return { ok: false, reason: "Reservation ou table introuvable." };
+    }
+
+    if (!isReservableDraftTable(table)) {
+      return {
+        ok: false,
+        reason: `${table.table_number} est un meuble decoratif. Choisissez une vraie table.`,
+      };
     }
 
     if (reservation.party_size > table.capacity) {
@@ -1247,7 +1666,9 @@ export default function DashboardPlanSalle() {
             <div>
               <h1 className="font-display text-3xl font-bold">Plan de salle et placements</h1>
               <p className="text-sm text-muted-foreground">
-                Parametrez votre salle, organisez vos tables et affectez vos reservations par date et horaire.
+                {isTemplateMode
+                  ? "Modifiez le template global pour definir le plan applique par defaut chaque jour."
+                  : "Le plan du jour herite du template. Les deplacements sauvegardes ici n'affectent que la date de reference."}
               </p>
             </div>
             {selectedRestaurant ? (
@@ -1258,6 +1679,26 @@ export default function DashboardPlanSalle() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center rounded-full border bg-card p-1 shadow-sm">
+              <Button
+                type="button"
+                size="sm"
+                variant={editMode === "service" ? "default" : "ghost"}
+                className="rounded-full"
+                onClick={() => setEditMode("service")}
+              >
+                Plan du jour
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={editMode === "template" ? "default" : "ghost"}
+                className="rounded-full"
+                onClick={() => setEditMode("template")}
+              >
+                Modifier le template
+              </Button>
+            </div>
             <Button
               variant="outline"
               onClick={() => createDefaultBranchMutation.mutate()}
@@ -1266,9 +1707,20 @@ export default function DashboardPlanSalle() {
               <Plus className="mr-2 h-4 w-4" />
               {branches.length === 0 ? "Initialiser une salle" : "Ajouter une salle"}
             </Button>
-            <Button onClick={() => saveMutation.mutate()} disabled={!canPersist || saveMutation.isPending}>
+            <Button
+              onClick={() => saveMutation.mutate({
+                silent: false,
+                source: "manual",
+                layoutSignature: isTemplateMode ? null : serviceLayoutSignature,
+              })}
+              disabled={!canPersist || saveMutation.isPending}
+            >
               <Save className="mr-2 h-4 w-4" />
-              {saveMutation.isPending ? "Sauvegarde..." : "Sauvegarder"}
+              {saveMutation.isPending
+                ? "Sauvegarde..."
+                : isTemplateMode
+                  ? "Sauvegarder le template"
+                  : "Sauvegarder le plan du jour"}
             </Button>
           </div>
         </div>
@@ -1277,6 +1729,7 @@ export default function DashboardPlanSalle() {
         {restaurantsError ? <p className="text-destructive">Erreur restaurants : {restaurantsError}</p> : null}
         {branchesError ? <p className="text-destructive">Erreur salles : {(branchesError as Error).message}</p> : null}
         {tablesError ? <p className="text-destructive">Erreur tables : {(tablesError as Error).message}</p> : null}
+        {layoutOverridesError ? <p className="text-destructive">Erreur plan du jour : {(layoutOverridesError as Error).message}</p> : null}
         {reservationsError ? <p className="text-destructive">Erreur reservations : {(reservationsError as Error).message}</p> : null}
         {slotsError ? <p className="text-destructive">Erreur affectations : {(slotsError as Error).message}</p> : null}
 
@@ -1413,9 +1866,11 @@ export default function DashboardPlanSalle() {
               <Card>
                 <CardContent className="flex items-center justify-between py-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Tables visibles</p>
+                    <p className="text-sm font-medium text-muted-foreground">Elements visibles</p>
                     <p className="text-2xl font-bold">{visibleTables.length}</p>
-                    <p className="text-xs text-muted-foreground">{selectedSector}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {visibleReservableTables.length} table(s) · {visibleFurnitureCount} meuble(s)
+                    </p>
                   </div>
                   <Armchair className="h-5 w-5 text-primary" />
                 </CardContent>
@@ -1456,24 +1911,54 @@ export default function DashboardPlanSalle() {
 
             <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
               <div className="space-y-4">
-                <Card>
+                <Card className={cn(!isTemplateMode && "border-dashed bg-muted/10")}>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Palette de tables</CardTitle>
-                    <CardDescription>Ajoutez rapidement des tables puis deplacez-les dans le plan.</CardDescription>
+                    <CardTitle className="text-lg">Tables et mobilier</CardTitle>
+                    <CardDescription>
+                      {isTemplateMode
+                        ? "Composez la salle avec des tables reservables et le mobilier fixe du restaurant."
+                        : "Le template definit la structure permanente. Passez en mode template pour ajouter des tables, des meubles ou des secteurs."}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      {FLOOR_PLAN_PRESETS.map((preset) => (
-                        <Button
-                          key={preset.id}
-                          variant="outline"
-                          className="h-auto flex-col items-start gap-1 px-3 py-3 text-left"
-                          onClick={() => addTableFromPreset(preset.id)}
-                          disabled={tablesLoading}
-                        >
-                          <span className="font-semibold">{preset.label}</span>
-                          <span className="text-xs text-muted-foreground">{preset.capacity} couverts</span>
-                        </Button>
+                    <div className="space-y-4">
+                      {presetGroups.map((group) => (
+                        <div key={group.id} className="space-y-2">
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                              {group.label}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{group.description}</p>
+                          </div>
+                          <div className="space-y-2">
+                            {group.items.map((preset) => (
+                              <Button
+                                key={preset.id}
+                                variant="outline"
+                                className="h-auto w-full justify-start gap-3 rounded-2xl px-3 py-3 text-left"
+                                onClick={() => addTableFromPreset(preset.id)}
+                                disabled={tablesLoading || !isTemplateMode}
+                              >
+                                <FloorPlanPresetIcon kind={preset.kind} shape={preset.shape} className="h-12 w-12 shrink-0" />
+                                <div className="min-w-0 space-y-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="font-semibold">{preset.label}</span>
+                                    {preset.category === "table" ? (
+                                      <Badge variant="outline" className="bg-background">
+                                        {preset.capacity} couverts
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="outline" className="bg-background text-muted-foreground">
+                                        Mobilier
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">{preset.description}</p>
+                                </div>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
 
@@ -1486,6 +1971,7 @@ export default function DashboardPlanSalle() {
                           id="new-sector"
                           value={newSectorName}
                           placeholder="Terrasse, Salon VIP..."
+                          disabled={!isTemplateMode}
                           onChange={(event) => setNewSectorName(event.target.value)}
                           onKeyDown={(event) => {
                             if (event.key === "Enter") {
@@ -1494,7 +1980,7 @@ export default function DashboardPlanSalle() {
                             }
                           }}
                         />
-                        <Button variant="outline" onClick={addSector}>
+                        <Button variant="outline" onClick={addSector} disabled={!isTemplateMode}>
                           <Plus className="mr-2 h-4 w-4" />
                           Ajouter
                         </Button>
@@ -1526,6 +2012,8 @@ export default function DashboardPlanSalle() {
                           const assignedTable = assignedTableId ? tableMap.get(assignedTableId) || null : null;
                           const isSelected = reservation.id === selectedReservationId;
                           const reservationService = getReservationService(reservation);
+                          const isZeroAttente = isZeroAttenteReservation(reservation);
+                          const preorderItems = getReservationPreorderItems(reservation);
 
                           return (
                             <div
@@ -1533,18 +2021,29 @@ export default function DashboardPlanSalle() {
                               role="button"
                               tabIndex={0}
                               draggable
-                              onClick={() => setSelectedReservationId(reservation.id)}
+                              onClick={() => {
+                                setSelectedReservationId(reservation.id);
+                                if (assignedTableId) {
+                                  setSelectedTableId(assignedTableId);
+                                }
+                              }}
                               onDragStart={(event) => handleReservationDragStart(event, reservation.id)}
                               onDragEnd={handleReservationDragEnd}
                               onKeyDown={(event) => {
                                 if (event.key === "Enter" || event.key === " ") {
                                   event.preventDefault();
                                   setSelectedReservationId(reservation.id);
+                                  if (assignedTableId) {
+                                    setSelectedTableId(assignedTableId);
+                                  }
                                 }
                               }}
                               className={cn(
                                 "w-full cursor-grab rounded-2xl border p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing",
-                                isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-background hover:bg-muted/40",
+                                isSelected && isZeroAttente && "border-teal-500 bg-teal-50 shadow-sm ring-2 ring-teal-200",
+                                isSelected && !isZeroAttente && "border-primary bg-primary/5 shadow-sm",
+                                !isSelected && isZeroAttente && "border-teal-200 bg-teal-50/60 hover:bg-teal-50",
+                                !isSelected && !isZeroAttente && "border-border bg-background hover:bg-muted/40",
                                 draggedReservationId === reservation.id && "scale-[0.99] opacity-60",
                               )}
                             >
@@ -1552,6 +2051,11 @@ export default function DashboardPlanSalle() {
                                 <div className="space-y-2">
                                   <div className="flex flex-wrap items-center gap-2">
                                     <span className="font-semibold">{getReservationCustomerLabel(reservation)}</span>
+                                    {isZeroAttente ? (
+                                      <Badge className="border border-teal-200 bg-teal-100 text-teal-800">
+                                        Zero Attente
+                                      </Badge>
+                                    ) : null}
                                     <Badge className={cn("border", getReservationStatusTone(reservation.status))}>
                                       {reservation.status || "pending"}
                                     </Badge>
@@ -1564,6 +2068,9 @@ export default function DashboardPlanSalle() {
                                     <span>{getShortDateLabel(reservation.date)}</span>
                                     <span>{reservation.party_size} pers.</span>
                                     <span>{getServicePeriodLabel(reservationService)}</span>
+                                    {preorderItems.length > 0 ? (
+                                      <span>{preorderItems.length} produit(s)</span>
+                                    ) : null}
                                     <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs">
                                       <Grip className="h-3 w-3" />
                                       Drag & drop
@@ -1611,13 +2118,22 @@ export default function DashboardPlanSalle() {
                     <div>
                       <CardTitle className="text-xl">{selectedSector}</CardTitle>
                       <CardDescription>
-                        {formatDashboardDateHeading(referenceDate)} - {filteredReservations.length} reservation(s) visibles
+                        {isTemplateMode
+                          ? "Template global applique par defaut chaque jour"
+                          : `${formatDashboardDateHeading(referenceDate)} - ${filteredReservations.length} reservation(s) visibles`}
                       </CardDescription>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline" className="bg-background">
-                        Drag reservations sur les tables, poignee pour deplacer la table
+                        {isTemplateMode
+                          ? "Template global - drag pour repositionner et redimensionner"
+                          : "Plan du jour - drag pour ajuster uniquement cette date"}
                       </Badge>
+                      {!isTemplateMode ? (
+                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                          Sauvegarde auto active
+                        </Badge>
+                      ) : null}
                       <div className="flex items-center gap-1 rounded-full border bg-background px-1 py-1 shadow-sm">
                         <Button
                           type="button"
@@ -1683,8 +2199,8 @@ export default function DashboardPlanSalle() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-muted-foreground">
                               <LayoutPanelTop className="h-10 w-10 text-primary/60" />
                               <div className="space-y-1">
-                                <p className="font-medium text-foreground">Aucune table dans ce secteur</p>
-                                <p className="text-sm">Ajoutez une table depuis la palette de gauche pour commencer.</p>
+                                <p className="font-medium text-foreground">Aucun element dans ce secteur</p>
+                                <p className="text-sm">Ajoutez une table ou du mobilier depuis la palette de gauche pour commencer.</p>
                               </div>
                             </div>
                           ) : null}
@@ -1692,13 +2208,15 @@ export default function DashboardPlanSalle() {
                           {visibleTables.map((table) => {
                             const assignments = visibleAssignmentsByTable.get(table.id) || [];
                             const primaryAssignment = assignments[0] || null;
+                            const isReservable = isReservableDraftTable(table);
                             const isSelected = table.id === selectedTableId;
+                            const isZeroAttentePrimary = primaryAssignment ? isZeroAttenteReservation(primaryAssignment) : false;
                             const shapeClass = table.layout.shape === "round" ? "rounded-full" : "rounded-[1.75rem]";
                             const activeDraggedReservationId = draggedReservationId;
-                            const dropState = activeDraggedReservationId
+                            const dropState = activeDraggedReservationId && isReservable
                               ? getReservationDropState(activeDraggedReservationId, table.id)
                               : null;
-                            const isDragTarget = dragOverTableId === table.id && !!activeDraggedReservationId;
+                            const isDragTarget = isReservable && dragOverTableId === table.id && !!activeDraggedReservationId;
                             const canDropHere = !!dropState?.ok;
                             const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
                             const density = getTableDensity(renderedFrame);
@@ -1725,6 +2243,7 @@ export default function DashboardPlanSalle() {
                                 ? `${primaryAssignment.party_size}p - ${getShortDateLabel(primaryAssignment.date)}`
                                 : `${primaryAssignment.party_size} pers. - ${getShortDateLabel(primaryAssignment.date)}`
                               : null;
+                            const itemTypeLabel = getFloorPlanItemTypeLabel(table.layout.kind, table.layout.shape);
 
                             return (
                               <div
@@ -1746,7 +2265,7 @@ export default function DashboardPlanSalle() {
                                   top: renderedFrame.y,
                                   width: renderedFrame.w,
                                   height: renderedFrame.h,
-                                  zIndex: isSelected ? 40 : assignments.length > 0 ? 24 : 12,
+                                  zIndex: isSelected ? 40 : isReservable && assignments.length > 0 ? 24 : 12,
                                 }}
                               >
                                 <div
@@ -1760,184 +2279,258 @@ export default function DashboardPlanSalle() {
                                     className={cn(
                                       "absolute inset-0 border bg-[#fff8ef] shadow-[0_18px_35px_-24px_rgba(120,53,15,0.55)] transition-all",
                                       shapeClass,
+                                      !isReservable && "bg-white/85",
                                       isSelected ? "border-primary ring-2 ring-primary/30" : "border-[#ddb78f] hover:border-primary/60",
                                       isDragTarget && canDropHere && "border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-200",
                                       isDragTarget && !canDropHere && "border-rose-500 bg-rose-50/80 ring-2 ring-rose-200",
                                     )}
                                   />
+                                  <div className={cn("absolute inset-[4px] overflow-hidden", shapeClass)}>
+                                    <FloorPlanItemIllustration kind={table.layout.kind} shape={table.layout.shape} className="h-full w-full" />
+                                  </div>
 
                                   <div className={cn("absolute inset-0 overflow-hidden", shapeClass)}>
-                                    <div
-                                      className={cn(
-                                        "relative flex h-full min-h-0 flex-col",
-                                        density === "regular" ? "gap-3" : density === "compact" ? "gap-2" : "gap-1.5",
-                                      )}
-                                      style={{
-                                        paddingTop: contentPadding.top,
-                                        paddingRight: contentPadding.right,
-                                        paddingBottom: contentPadding.bottom,
-                                        paddingLeft: contentPadding.left,
-                                      }}
-                                    >
-                                      <div className="flex items-start justify-between gap-2">
-                                        <div className="min-w-0">
-                                          <p className={cn(
-                                            "break-words font-semibold text-foreground",
-                                            density === "regular"
-                                              ? "text-base leading-none"
-                                              : density === "compact"
-                                                ? "text-[11px] leading-tight"
-                                                : "text-[9px] leading-tight",
-                                          )}
-                                          >
-                                            {table.table_number}
-                                          </p>
-                                          <p className={cn(
-                                            "mt-1 break-words uppercase text-muted-foreground",
-                                            density === "regular"
-                                              ? "text-[10px] tracking-[0.18em]"
-                                              : density === "compact"
-                                                ? "text-[8px] tracking-[0.12em]"
-                                                : "text-[7px] tracking-[0.08em]",
-                                          )}
-                                          >
-                                            {coverLabel}
-                                          </p>
-                                        </div>
-                                        <button
-                                          type="button"
-                                          className={cn(
-                                            "shrink-0 rounded-full border bg-background/90 text-muted-foreground shadow-sm",
-                                            density === "regular"
-                                              ? "p-1"
-                                              : density === "compact"
-                                                ? "p-0.5"
-                                                : "p-0.5",
-                                          )}
-                                          onPointerDown={(event) => {
-                                            event.stopPropagation();
-                                            startDraggingTable(event, table.id);
-                                          }}
-                                        >
-                                          <Grip className={cn(
-                                            density === "regular"
-                                              ? "h-4 w-4"
-                                              : density === "compact"
-                                                ? "h-3.5 w-3.5"
-                                                : "h-3 w-3",
-                                          )}
-                                          />
-                                        </button>
-                                      </div>
-
-                                      <div className={cn(
-                                        "flex min-h-0 flex-1 flex-col items-center justify-center",
-                                        density === "regular" ? "gap-2" : density === "compact" ? "gap-1.5" : "gap-1",
-                                      )}>
-                                        {primaryAssignment ? (
-                                          <div className={cn(
-                                            "w-full max-w-full border border-[#ebd4bb] bg-white/96 shadow-[0_12px_28px_-20px_rgba(15,23,42,0.45)]",
-                                            density === "regular"
-                                              ? "rounded-[1.25rem] px-3 py-2"
-                                              : density === "compact"
-                                                ? "rounded-xl px-2 py-1.5"
-                                                : "rounded-lg px-1.5 py-1",
-                                          )}>
-                                            <div className="flex items-start justify-between gap-1.5">
-                                              <p className={cn(
-                                                "min-w-0 break-words font-semibold leading-tight text-foreground",
-                                                density === "regular"
-                                                  ? "text-[13px]"
-                                                  : density === "compact"
-                                                    ? "text-[10px]"
-                                                    : "text-[8px]",
-                                              )}>
-                                                {reservationCustomerLabel}
-                                              </p>
-                                              <span className={cn(
-                                                "shrink-0 rounded-full bg-orange-100 font-semibold text-orange-800",
-                                                density === "regular"
-                                                  ? "px-2 py-0.5 text-[11px]"
-                                                  : density === "compact"
-                                                    ? "px-1.5 py-0.5 text-[9px]"
-                                                    : "px-1 py-0.5 text-[7px]",
-                                              )}>
-                                                {getSafeTime(primaryAssignment.time)}
-                                              </span>
-                                            </div>
-                                            <p className={cn(
-                                              "mt-1 break-words text-muted-foreground",
-                                              density === "regular"
-                                                ? "text-[11px]"
-                                                : density === "compact"
-                                                  ? "text-[9px]"
-                                                  : "text-[7px]",
-                                            )}>
-                                              {reservationDetailLabel}
-                                            </p>
-                                            <div className={cn("mt-1", isTight && "mt-0.5")}>
-                                              <span className={cn(
-                                                "inline-flex max-w-full break-words rounded-full border font-semibold",
-                                                getReservationStatusTone(primaryAssignment.status),
-                                                density === "regular"
-                                                  ? "px-2 py-0.5 text-[10px]"
-                                                  : density === "compact"
-                                                    ? "px-1.5 py-0.5 text-[8px]"
-                                                    : "px-1 py-0.5 text-[7px]",
-                                              )}>
-                                                {primaryAssignment.status || "pending"}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div className={cn(
-                                            "mx-auto inline-flex max-w-full items-center justify-center rounded-full border border-dashed border-[#d8b894] bg-white/55 text-center font-medium uppercase text-[#8f5d32]",
-                                            density === "regular"
-                                              ? "px-4 py-2 text-[11px] tracking-[0.22em]"
-                                              : density === "compact"
-                                                ? "px-3 py-1.5 text-[9px] tracking-[0.14em]"
-                                                : "px-2 py-1 text-[7px] tracking-[0.08em]",
-                                          )}>
-                                            {isTight ? "Libre" : "Disponible"}
-                                          </div>
-                                        )}
-
-                                        {assignments.length > 1 ? (
-                                          <div className={cn(
-                                            "max-w-full break-words text-center font-medium text-muted-foreground",
-                                            density === "regular"
-                                              ? "text-[11px]"
-                                              : density === "compact"
-                                                ? "text-[9px]"
-                                                : "text-[7px]",
-                                          )}>
-                                            +{assignments.length - 1} autre(s) reservation(s)
-                                          </div>
-                                        ) : null}
-                                      </div>
-                                    </div>
-
-                                    {isDragTarget && activeDraggedReservationId ? (
-                                      <div
-                                        className="pointer-events-none absolute z-20"
-                                        style={{
-                                          left: contentPadding.left,
-                                          right: contentPadding.right,
-                                          bottom: contentPadding.bottom,
-                                        }}
-                                      >
+                                    {isReservable ? (
+                                      <>
                                         <div
                                           className={cn(
-                                            "rounded-2xl border px-3 py-2 text-xs font-semibold shadow-sm backdrop-blur-sm",
-                                            canDropHere
-                                              ? "border-emerald-200 bg-emerald-100/95 text-emerald-800"
-                                              : "border-rose-200 bg-rose-100/95 text-rose-800",
+                                            "relative flex h-full min-h-0 flex-col",
+                                            density === "regular" ? "gap-3" : density === "compact" ? "gap-2" : "gap-1.5",
                                           )}
+                                          style={{
+                                            paddingTop: contentPadding.top,
+                                            paddingRight: contentPadding.right,
+                                            paddingBottom: contentPadding.bottom,
+                                            paddingLeft: contentPadding.left,
+                                          }}
                                         >
-                                          {canDropHere ? "Lacher pour affecter ici" : dropState?.reason}
+                                          <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                              <p className={cn(
+                                                "break-words font-semibold text-foreground",
+                                                density === "regular"
+                                                  ? "text-base leading-none"
+                                                  : density === "compact"
+                                                    ? "text-[11px] leading-tight"
+                                                    : "text-[9px] leading-tight",
+                                              )}
+                                              >
+                                                {table.table_number}
+                                              </p>
+                                              <p className={cn(
+                                                "mt-1 break-words uppercase text-muted-foreground",
+                                                density === "regular"
+                                                  ? "text-[10px] tracking-[0.18em]"
+                                                  : density === "compact"
+                                                    ? "text-[8px] tracking-[0.12em]"
+                                                    : "text-[7px] tracking-[0.08em]",
+                                              )}
+                                              >
+                                                {coverLabel}
+                                              </p>
+                                            </div>
+                                            <button
+                                              type="button"
+                                              className={cn(
+                                                "shrink-0 rounded-full border bg-background/90 text-muted-foreground shadow-sm",
+                                                density === "regular"
+                                                  ? "p-1"
+                                                  : density === "compact"
+                                                    ? "p-0.5"
+                                                    : "p-0.5",
+                                              )}
+                                              onPointerDown={(event) => {
+                                                event.stopPropagation();
+                                                startDraggingTable(event, table.id);
+                                              }}
+                                            >
+                                              <Grip className={cn(
+                                                density === "regular"
+                                                  ? "h-4 w-4"
+                                                  : density === "compact"
+                                                    ? "h-3.5 w-3.5"
+                                                    : "h-3 w-3",
+                                              )}
+                                              />
+                                            </button>
+                                          </div>
+
+                                          <div className={cn(
+                                            "flex min-h-0 flex-1 flex-col items-center justify-center",
+                                            density === "regular" ? "gap-2" : density === "compact" ? "gap-1.5" : "gap-1",
+                                          )}>
+                                            {primaryAssignment ? (
+                                              <button
+                                                type="button"
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  setSelectedReservationId(primaryAssignment.id);
+                                                  setSelectedTableId(table.id);
+                                                }}
+                                                className={cn(
+                                                  "w-full max-w-full border text-left shadow-[0_12px_28px_-20px_rgba(15,23,42,0.45)] transition-colors",
+                                                  isZeroAttentePrimary
+                                                    ? "border-teal-200 bg-teal-50/95 hover:bg-teal-100/90"
+                                                    : "border-[#ebd4bb] bg-white/96 hover:bg-white",
+                                                  density === "regular"
+                                                    ? "rounded-[1.25rem] px-3 py-2"
+                                                    : density === "compact"
+                                                      ? "rounded-xl px-2 py-1.5"
+                                                      : "rounded-lg px-1.5 py-1",
+                                                )}
+                                              >
+                                                <div className="flex items-start justify-between gap-1.5">
+                                                  <p className={cn(
+                                                    "min-w-0 break-words font-semibold leading-tight text-foreground",
+                                                    density === "regular"
+                                                      ? "text-[13px]"
+                                                      : density === "compact"
+                                                        ? "text-[10px]"
+                                                        : "text-[8px]",
+                                                  )}>
+                                                    {reservationCustomerLabel}
+                                                  </p>
+                                                  <span className={cn(
+                                                    "shrink-0 rounded-full font-semibold",
+                                                    isZeroAttentePrimary ? "bg-teal-100 text-teal-800" : "bg-orange-100 text-orange-800",
+                                                    density === "regular"
+                                                      ? "px-2 py-0.5 text-[11px]"
+                                                      : density === "compact"
+                                                        ? "px-1.5 py-0.5 text-[9px]"
+                                                        : "px-1 py-0.5 text-[7px]",
+                                                  )}>
+                                                    {getSafeTime(primaryAssignment.time)}
+                                                  </span>
+                                                </div>
+                                                {isZeroAttentePrimary ? (
+                                                  <div className={cn("mt-1", isTight && "mt-0.5")}>
+                                                    <span className={cn(
+                                                      "inline-flex rounded-full border border-teal-200 bg-teal-100 font-semibold text-teal-800",
+                                                      density === "regular"
+                                                        ? "px-2 py-0.5 text-[10px]"
+                                                        : density === "compact"
+                                                          ? "px-1.5 py-0.5 text-[8px]"
+                                                          : "px-1 py-0.5 text-[7px]",
+                                                    )}>
+                                                      Zero Attente
+                                                    </span>
+                                                  </div>
+                                                ) : null}
+                                                <p className={cn(
+                                                  "mt-1 break-words text-muted-foreground",
+                                                  density === "regular"
+                                                    ? "text-[11px]"
+                                                    : density === "compact"
+                                                      ? "text-[9px]"
+                                                      : "text-[7px]",
+                                                )}>
+                                                  {reservationDetailLabel}
+                                                </p>
+                                                <div className={cn("mt-1", isTight && "mt-0.5")}>
+                                                  <span className={cn(
+                                                    "inline-flex max-w-full break-words rounded-full border font-semibold",
+                                                    getReservationStatusTone(primaryAssignment.status),
+                                                    density === "regular"
+                                                      ? "px-2 py-0.5 text-[10px]"
+                                                      : density === "compact"
+                                                        ? "px-1.5 py-0.5 text-[8px]"
+                                                        : "px-1 py-0.5 text-[7px]",
+                                                  )}>
+                                                    {primaryAssignment.status || "pending"}
+                                                  </span>
+                                                </div>
+                                              </button>
+                                            ) : (
+                                              <div className={cn(
+                                                "mx-auto inline-flex max-w-full items-center justify-center rounded-full border border-dashed border-[#d8b894] bg-white/55 text-center font-medium uppercase text-[#8f5d32]",
+                                                density === "regular"
+                                                  ? "px-4 py-2 text-[11px] tracking-[0.22em]"
+                                                  : density === "compact"
+                                                    ? "px-3 py-1.5 text-[9px] tracking-[0.14em]"
+                                                    : "px-2 py-1 text-[7px] tracking-[0.08em]",
+                                              )}>
+                                                {isTight ? "Libre" : "Disponible"}
+                                              </div>
+                                            )}
+
+                                            {assignments.length > 1 ? (
+                                              <div className={cn(
+                                                "max-w-full break-words text-center font-medium text-muted-foreground",
+                                                density === "regular"
+                                                  ? "text-[11px]"
+                                                  : density === "compact"
+                                                    ? "text-[9px]"
+                                                    : "text-[7px]",
+                                              )}>
+                                                +{assignments.length - 1} autre(s) reservation(s)
+                                              </div>
+                                            ) : null}
+                                          </div>
+                                        </div>
+
+                                        {isDragTarget && activeDraggedReservationId ? (
+                                          <div
+                                            className="pointer-events-none absolute z-20"
+                                            style={{
+                                              left: contentPadding.left,
+                                              right: contentPadding.right,
+                                              bottom: contentPadding.bottom,
+                                            }}
+                                          >
+                                            <div
+                                              className={cn(
+                                                "rounded-2xl border px-3 py-2 text-xs font-semibold shadow-sm backdrop-blur-sm",
+                                                canDropHere
+                                                  ? "border-emerald-200 bg-emerald-100/95 text-emerald-800"
+                                                  : "border-rose-200 bg-rose-100/95 text-rose-800",
+                                              )}
+                                            >
+                                              {canDropHere ? "Lacher pour affecter ici" : dropState?.reason}
+                                            </div>
+                                          </div>
+                                        ) : null}
+                                      </>
+                                    ) : (
+                                      <div
+                                        className="relative flex h-full min-h-0 flex-col justify-between"
+                                        style={{
+                                          paddingTop: contentPadding.top,
+                                          paddingRight: contentPadding.right,
+                                          paddingBottom: contentPadding.bottom,
+                                          paddingLeft: contentPadding.left,
+                                        }}
+                                      >
+                                        <div className="flex items-start justify-between gap-2">
+                                          <div className="max-w-[72%] rounded-full border border-white/80 bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground shadow-sm">
+                                            {itemTypeLabel}
+                                          </div>
+                                          <button
+                                            type="button"
+                                            className="shrink-0 rounded-full border bg-background/90 p-1 text-muted-foreground shadow-sm"
+                                            onPointerDown={(event) => {
+                                              event.stopPropagation();
+                                              startDraggingTable(event, table.id);
+                                            }}
+                                          >
+                                            <Grip className="h-3.5 w-3.5" />
+                                          </button>
+                                        </div>
+                                        <div className="pointer-events-none flex min-h-0 flex-1 items-end justify-center">
+                                          <div className="max-w-[88%] rounded-full border border-white/80 bg-white/92 px-3 py-1.5 text-center shadow-sm">
+                                            <p className={cn(
+                                              "break-words font-semibold text-foreground",
+                                              density === "regular"
+                                                ? "text-sm"
+                                                : density === "compact"
+                                                  ? "text-[11px]"
+                                                  : "text-[9px]",
+                                            )}>
+                                              {table.table_number}
+                                            </p>
+                                          </div>
                                         </div>
                                       </div>
-                                    ) : null}
+                                    )}
                                   </div>
 
                                   {isSelected ? (
@@ -1971,14 +2564,24 @@ export default function DashboardPlanSalle() {
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg">Inspection</CardTitle>
                     <CardDescription>
-                      Ajustez la table selectionnee ou finalisez le placement de la reservation active.
+                      {isTemplateMode
+                        ? "Ajustez la structure du template ou finalisez le placement de la reservation active."
+                        : "Ajustez le placement du jour ou finalisez le placement de la reservation active."}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {selectedReservation ? (
-                      <div className="rounded-2xl border bg-muted/30 p-4">
+                      <div className={cn(
+                        "rounded-2xl border p-4",
+                        isZeroAttenteReservation(selectedReservation) ? "border-teal-200 bg-teal-50/60" : "bg-muted/30",
+                      )}>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <div className={cn(
+                            "flex h-11 w-11 items-center justify-center rounded-full",
+                            isZeroAttenteReservation(selectedReservation)
+                              ? "bg-teal-100 text-teal-700"
+                              : "bg-primary/10 text-primary",
+                          )}>
                             <UserRound className="h-5 w-5" />
                           </div>
                           <div>
@@ -1991,6 +2594,11 @@ export default function DashboardPlanSalle() {
                         <div className="mt-3 flex flex-wrap gap-2">
                           <Badge variant="outline">{selectedReservation.party_size} pers.</Badge>
                           <Badge variant="outline">{getServicePeriodLabel(getReservationService(selectedReservation))}</Badge>
+                          {isZeroAttenteReservation(selectedReservation) ? (
+                            <Badge className="border border-teal-200 bg-teal-100 text-teal-800">
+                              Zero Attente
+                            </Badge>
+                          ) : null}
                           <Badge className={cn("border", getReservationStatusTone(selectedReservation.status))}>
                             {selectedReservation.status || "pending"}
                           </Badge>
@@ -2005,7 +2613,7 @@ export default function DashboardPlanSalle() {
                               Pas encore placee
                             </Badge>
                           )}
-                          {selectedTable ? (
+                          {selectedTableIsReservable && selectedTable ? (
                             <Button
                               size="sm"
                               onClick={() => assignReservationToTable(selectedReservation.id, selectedTable.id)}
@@ -2023,6 +2631,98 @@ export default function DashboardPlanSalle() {
                             </Button>
                           ) : null}
                         </div>
+                        <div className="mt-4 grid gap-3 md:grid-cols-2">
+                          <div className="rounded-2xl border bg-background/80 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Client</p>
+                            <div className="mt-2 space-y-2 text-sm">
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-muted-foreground">Nom</span>
+                                <span className="text-right font-medium">{getReservationCustomerLabel(selectedReservation)}</span>
+                              </div>
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-muted-foreground">Telephone</span>
+                                <span className="text-right font-medium">{selectedReservation.customer?.phone || "Non renseigne"}</span>
+                              </div>
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-muted-foreground">Convives</span>
+                                <span className="text-right font-medium">{selectedReservation.party_size}</span>
+                              </div>
+                            </div>
+                            {selectedReservationSpecialRequest ? (
+                              <div className="mt-3 rounded-xl border border-dashed bg-muted/30 p-2.5">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</p>
+                                <p className="mt-1 text-sm text-foreground">{selectedReservationSpecialRequest}</p>
+                              </div>
+                            ) : null}
+                          </div>
+                          <div className="rounded-2xl border bg-background/80 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Paiement</p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  selectedReservationPaymentDetails?.isPaid
+                                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                    : "border-amber-200 bg-amber-50 text-amber-700",
+                                )}
+                              >
+                                {selectedReservationPaymentDetails?.isPaid ? "Paye" : "A regler"}
+                              </Badge>
+                              {selectedReservationPaymentDetails?.paymentMethod ? (
+                                <Badge variant="outline">{selectedReservationPaymentDetails.paymentMethod}</Badge>
+                              ) : null}
+                            </div>
+                            <div className="mt-2 space-y-2 text-sm">
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-muted-foreground">Montant</span>
+                                <span className="text-right font-medium">
+                                  {formatReservationCurrency(selectedReservationPaymentDetails?.totalAmount ?? null) || "Non renseigne"}
+                                </span>
+                              </div>
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-muted-foreground">Instrument</span>
+                                <span className="text-right font-medium">
+                                  {selectedReservationPaymentDetails?.cardLabel || "Non renseigne"}
+                                </span>
+                              </div>
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-muted-foreground">Reference</span>
+                                <span className="text-right font-medium">
+                                  {selectedReservationPaymentDetails?.orderReference
+                                    || selectedReservationPaymentDetails?.checkoutSessionId
+                                    || "Non renseignee"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {selectedReservationPreorderItems.length > 0 ? (
+                          <div className="mt-4 rounded-2xl border bg-background/80 p-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Produits choisis</p>
+                              <Badge variant="outline">
+                                {selectedReservationPreorderItems.reduce((sum, item) => sum + item.quantity, 0)} article(s)
+                              </Badge>
+                            </div>
+                            <div className="mt-3 space-y-2">
+                              {selectedReservationPreorderItems.map((item, index) => (
+                                <div key={`${item.menuItemId || item.name}-${index}`} className="rounded-xl border bg-muted/20 px-3 py-2">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <p className="font-medium">{item.name}</p>
+                                      <p className="text-sm text-muted-foreground">
+                                        {item.quantity} x {formatReservationCurrency(item.unitPrice) || "Prix indisponible"}
+                                      </p>
+                                    </div>
+                                    <span className="shrink-0 text-sm font-semibold">
+                                      {formatReservationCurrency(item.totalPrice) || "Prix indisponible"}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     ) : (
                       <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
@@ -2035,15 +2735,25 @@ export default function DashboardPlanSalle() {
                     {selectedTable ? (
                       <div className="space-y-4">
                         <div className="space-y-1">
-                          <p className="text-sm font-semibold">Table selectionnee</p>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">{selectedTable.sector}</p>
+                          <p className="text-sm font-semibold">Element selectionne</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline">{getFloorPlanItemTypeLabel(selectedTable.layout.kind, selectedTable.layout.shape)}</Badge>
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">{selectedTable.sector}</p>
+                          </div>
                         </div>
+
+                        {!isTemplateMode ? (
+                          <div className="rounded-2xl border border-dashed bg-muted/20 p-3 text-sm text-muted-foreground">
+                            Le plan du jour ne modifie que la position et la taille des elements. Pour changer durablement la structure de la salle, passez en mode template.
+                          </div>
+                        ) : null}
 
                         <div className="grid gap-3">
                           <div className="space-y-2">
-                            <Label>Nom de table</Label>
+                            <Label>Nom de l'element</Label>
                             <Input
                               value={selectedTable.table_number}
+                              disabled={!isTemplateMode}
                               onChange={(event) => updateDraftTable(selectedTable.id, (table) => ({
                                 ...table,
                                 table_number: event.target.value,
@@ -2051,51 +2761,70 @@ export default function DashboardPlanSalle() {
                             />
                           </div>
 
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                              <Label>Capacite</Label>
-                              <Input
-                                type="number"
-                                min={1}
-                                value={selectedTable.capacity}
-                                onChange={(event) => {
-                                  const nextCapacity = Math.max(1, Number.parseInt(event.target.value || "1", 10) || 1);
-                                  updateDraftTable(selectedTable.id, (table) => ({
-                                    ...table,
-                                    capacity: nextCapacity,
-                                    layout: ensureFloorPlanLayoutFitsCapacity(table.layout, nextCapacity, table.layout.shape),
-                                  }));
-                                }}
-                              />
-                            </div>
+                          {selectedTableIsReservable ? (
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-2">
+                                <Label>Capacite</Label>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  value={selectedTable.capacity}
+                                  disabled={!isTemplateMode}
+                                  onChange={(event) => {
+                                    const nextCapacity = Math.max(1, Number.parseInt(event.target.value || "1", 10) || 1);
+                                    updateDraftTable(selectedTable.id, (table) => ({
+                                      ...table,
+                                      capacity: nextCapacity,
+                                      layout: ensureFloorPlanLayoutFitsCapacity(
+                                        table.layout,
+                                        nextCapacity,
+                                        table.layout.shape,
+                                        table.layout.kind,
+                                      ),
+                                    }));
+                                  }}
+                                />
+                              </div>
 
-                            <div className="space-y-2">
-                              <Label>Forme</Label>
-                              <Select
-                                value={selectedTable.layout.shape}
-                                onValueChange={(value) => {
-                                  const nextShape = value as FloorPlanTableShape;
-                                  updateDraftTable(selectedTable.id, (table) => ({
-                                    ...table,
-                                    layout: ensureFloorPlanLayoutFitsCapacity(table.layout, table.capacity, nextShape),
-                                  }));
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="rect">Rectangle</SelectItem>
-                                  <SelectItem value="round">Ronde</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <div className="space-y-2">
+                                <Label>Forme</Label>
+                                <Select
+                                  value={selectedTable.layout.shape}
+                                  disabled={!isTemplateMode}
+                                  onValueChange={(value) => {
+                                    const nextShape = value as FloorPlanTableShape;
+                                    updateDraftTable(selectedTable.id, (table) => ({
+                                      ...table,
+                                      layout: ensureFloorPlanLayoutFitsCapacity(
+                                        table.layout,
+                                        table.capacity,
+                                        nextShape,
+                                        table.layout.kind,
+                                      ),
+                                    }));
+                                  }}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="rect">Rectangle</SelectItem>
+                                    <SelectItem value="round">Ronde</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="rounded-2xl border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                              Ce mobilier structure visuellement la salle mais ne peut pas recevoir de reservation.
+                            </div>
+                          )}
 
                           <div className="space-y-2">
                             <Label>Secteur</Label>
                             <Select
                               value={selectedTable.sector}
+                              disabled={!isTemplateMode}
                               onValueChange={(value) => updateDraftTable(selectedTable.id, (table) => ({
                                 ...table,
                                 sector: value,
@@ -2116,11 +2845,12 @@ export default function DashboardPlanSalle() {
 
                           <div className="flex items-center justify-between rounded-2xl border px-4 py-3">
                             <div>
-                              <p className="font-medium">Table active</p>
-                              <p className="text-sm text-muted-foreground">Inactivee = masquee du plan et des placements.</p>
+                              <p className="font-medium">Element actif</p>
+                              <p className="text-sm text-muted-foreground">Inactive = masque du plan et des placements.</p>
                             </div>
                             <Switch
                               checked={selectedTable.is_active}
+                              disabled={!isTemplateMode}
                               onCheckedChange={(checked) => updateDraftTable(selectedTable.id, (table) => ({
                                 ...table,
                                 is_active: checked,
@@ -2128,43 +2858,66 @@ export default function DashboardPlanSalle() {
                             />
                           </div>
 
-                          <Button variant="outline" className="justify-start text-destructive" onClick={() => removeDraftTable(selectedTable.id)}>
+                          <Button
+                            variant="outline"
+                            className="justify-start text-destructive"
+                            onClick={() => removeDraftTable(selectedTable.id)}
+                            disabled={!isTemplateMode}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer la table
+                            Supprimer l'element
                           </Button>
                         </div>
 
-                        <Separator />
+                        {selectedTableIsReservable ? (
+                          <>
+                            <Separator />
 
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold">Planning sur cette table</p>
-                            <Badge variant="outline">{selectedTableAssignments.length}</Badge>
-                          </div>
-                          {selectedTableAssignments.length > 0 ? (
-                            <div className="space-y-2">
-                              {selectedTableAssignments.map((reservation) => (
-                                <div key={reservation.id} className="rounded-2xl border bg-muted/20 px-3 py-2">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="font-medium">{getReservationCustomerLabel(reservation)}</span>
-                                    <span className="text-sm text-muted-foreground">{getSafeTime(reservation.time)}</span>
-                                  </div>
-                                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                    <span>{getShortDateLabel(reservation.date)}</span>
-                                    <span>{reservation.party_size} pers.</span>
-                                    <span>{reservation.status || "pending"}</span>
-                                  </div>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-semibold">Planning sur cette table</p>
+                                <Badge variant="outline">{selectedTableAssignments.length}</Badge>
+                              </div>
+                              {selectedTableAssignments.length > 0 ? (
+                                <div className="space-y-2">
+                                  {selectedTableAssignments.map((reservation) => (
+                                    <button
+                                      key={reservation.id}
+                                      type="button"
+                                      className={cn(
+                                        "w-full rounded-2xl border px-3 py-2 text-left transition-colors",
+                                        isZeroAttenteReservation(reservation)
+                                          ? "border-teal-200 bg-teal-50/70 hover:bg-teal-100/70"
+                                          : "bg-muted/20 hover:bg-muted/35",
+                                      )}
+                                      onClick={() => {
+                                        setSelectedReservationId(reservation.id);
+                                        setSelectedTableId(selectedTable.id);
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="font-medium">{getReservationCustomerLabel(reservation)}</span>
+                                        <span className="text-sm text-muted-foreground">{getSafeTime(reservation.time)}</span>
+                                      </div>
+                                      <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                        <span>{getShortDateLabel(reservation.date)}</span>
+                                        <span>{reservation.party_size} pers.</span>
+                                        {isZeroAttenteReservation(reservation) ? <span>Zero Attente</span> : null}
+                                        <span>{reservation.status || "pending"}</span>
+                                      </div>
+                                    </button>
+                                  ))}
                                 </div>
-                              ))}
+                              ) : (
+                                <p className="text-sm text-muted-foreground">Aucune reservation visible n'est actuellement affectee a cette table.</p>
+                              )}
                             </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">Aucune reservation visible n'est actuellement affectee a cette table.</p>
-                          )}
-                        </div>
+                          </>
+                        ) : null}
                       </div>
                     ) : (
                       <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                        Selectionnez une table dans le plan pour modifier ses proprietes.
+                        Selectionnez un element dans le plan pour modifier ses proprietes.
                       </div>
                     )}
                   </CardContent>

@@ -6,6 +6,7 @@ import {
   clampFloorPlanLayout,
   ensureFloorPlanLayoutFitsCapacity,
   getMinimumTableSize,
+  isReservableFloorPlanItem,
   reservationsOverlap,
 } from "@/lib/floorPlan";
 
@@ -19,6 +20,8 @@ describe("floor plan helpers", () => {
     const layout = buildDraftFloorPlanLayout(2, {
       id: "rect-4",
       label: "4 pers. rectangle",
+      category: "table",
+      kind: "table",
       capacity: 4,
       shape: "rect",
       w: 160,
@@ -51,6 +54,20 @@ describe("floor plan helpers", () => {
     expect(fitted.w).toBeGreaterThanOrEqual(getMinimumTableSize(10, "rect").w);
     expect(fitted.h).toBeGreaterThanOrEqual(getMinimumTableSize(10, "rect").h);
     expect(fitted.seatLabels.length).toBeGreaterThan(2);
+  });
+
+  it("keeps furniture non reservable with zero inner seats", () => {
+    const plantLayout = ensureFloorPlanLayoutFitsCapacity(
+      { x: 40, y: 40, w: 20, h: 20, rotation: 0, shape: "round", seatLabels: [1], kind: "plant" },
+      0,
+      "round",
+      "plant",
+    );
+
+    expect(isReservableFloorPlanItem(plantLayout.kind)).toBe(false);
+    expect(plantLayout.seatLabels).toEqual([]);
+    expect(plantLayout.w).toBeGreaterThanOrEqual(getMinimumTableSize(0, "round", "plant").w);
+    expect(plantLayout.h).toBeGreaterThanOrEqual(getMinimumTableSize(0, "round", "plant").h);
   });
 
   it("detects overlapping reservations on the same service window", () => {
