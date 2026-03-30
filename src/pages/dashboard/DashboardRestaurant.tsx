@@ -23,6 +23,7 @@ import {
   normalizeRestaurantCategoryText,
   PREDEFINED_RESTAURANT_CATEGORIES,
 } from "@/lib/restaurantCategories";
+import { getGloballyEnabledPaymentMethods } from "@/lib/paymentMethods";
 
 import { useDashboardRestaurant } from "./DashboardContext";
 
@@ -40,6 +41,13 @@ export default function DashboardRestaurant() {
   const queryClient = useQueryClient();
   const activeFeatures = useActiveFeatures();
   const deliveryEnabled = activeFeatures.has("livraison");
+  const takeawayEnabled = activeFeatures.has("emporter");
+  const dineInEnabled = activeFeatures.has("sur-place");
+  const reservationEnabled = activeFeatures.has("reservation");
+  const globallyEnabledPaymentMethods = useMemo(
+    () => new Set(getGloballyEnabledPaymentMethods(activeFeatures)),
+    [activeFeatures],
+  );
 
   const [loading, setLoading] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
@@ -353,18 +361,23 @@ export default function DashboardRestaurant() {
             <h3 className="mb-4 font-semibold">Modes de consommation alternatifs</h3>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="flex items-center gap-2">
-                <Switch checked={form.supports_pickup} onCheckedChange={(checked) => setForm({ ...form, supports_pickup: checked })} />
+                <Switch checked={takeawayEnabled && form.supports_pickup} disabled={!takeawayEnabled} onCheckedChange={(checked) => setForm({ ...form, supports_pickup: checked })} />
                 <Label>A emporter (Click & Collect)</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Switch checked={form.supports_dinein} onCheckedChange={(checked) => setForm({ ...form, supports_dinein: checked })} />
+                <Switch checked={dineInEnabled && form.supports_dinein} disabled={!dineInEnabled} onCheckedChange={(checked) => setForm({ ...form, supports_dinein: checked })} />
                 <Label>Sur place (Dine-in)</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Switch checked={form.supports_reservation} onCheckedChange={(checked) => setForm({ ...form, supports_reservation: checked })} />
+                <Switch checked={reservationEnabled && form.supports_reservation} disabled={!reservationEnabled} onCheckedChange={(checked) => setForm({ ...form, supports_reservation: checked })} />
                 <Label>Reservation de table</Label>
               </div>
             </div>
+            {(!takeawayEnabled || !dineInEnabled || !reservationEnabled) ? (
+              <p className="pt-2 text-xs text-muted-foreground">
+                Les options coupees globalement par l'administration restent forcees a off ici.
+              </p>
+            ) : null}
           </div>
 
           <Button onClick={handleSave} disabled={loading} className="mt-8 w-full">
@@ -388,20 +401,24 @@ export default function DashboardRestaurant() {
                   { id: "cash", label: "Especes", icon: Banknote, description: "Paiement sur place" },
                 ] as const).map((method) => {
                   const enabled = !disabledPaymentMethods.includes(method.id);
+                  const globallyEnabled = globallyEnabledPaymentMethods.has(method.id);
                   return (
-                    <div key={method.id} className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${enabled ? "border-primary/30 bg-primary/5" : "border-muted bg-muted/30 opacity-60"}`}>
+                    <div key={method.id} className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${enabled && globallyEnabled ? "border-primary/30 bg-primary/5" : "border-muted bg-muted/30 opacity-60"}`}>
                       <Switch
-                        checked={enabled}
+                        checked={enabled && globallyEnabled}
+                        disabled={!globallyEnabled}
                         onCheckedChange={(checked) => {
                           setDisabledPaymentMethods((prev) =>
                             checked ? prev.filter((m) => m !== method.id) : [...prev, method.id]
                           );
                         }}
                       />
-                      <method.icon className={`h-5 w-5 shrink-0 ${enabled ? "text-primary" : "text-muted-foreground"}`} />
+                      <method.icon className={`h-5 w-5 shrink-0 ${enabled && globallyEnabled ? "text-primary" : "text-muted-foreground"}`} />
                       <div>
                         <p className="text-sm font-medium">{method.label}</p>
-                        <p className="text-[11px] text-muted-foreground">{method.description}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {globallyEnabled ? method.description : "Desactive globalement par l'administration"}
+                        </p>
                       </div>
                     </div>
                   );

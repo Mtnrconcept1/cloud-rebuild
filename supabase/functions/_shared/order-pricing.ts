@@ -1,3 +1,8 @@
+import {
+  assertPaymentMethodAllowed,
+  getEffectiveFeatureFlagSet,
+} from "./feature-flags.ts";
+
 const QUALITY_GUARANTEE_FEE = 1.5;
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -294,6 +299,9 @@ export async function buildVerifiedOrderPricing(input: {
     ? input.metadata
     : {};
   const context = input.context || "cart";
+  const paymentMethod = String(metadata.payment_method || "card");
+  const deliveryAddress = String(metadata.delivery_address || "").trim();
+  const isDeliveryJourney = context === "cart" && deliveryAddress.length > 0;
 
   const items = (input.items || []).map((item) => ({
     menu_item_id: String(item?.menu_item_id || ""),
@@ -321,7 +329,13 @@ export async function buildVerifiedOrderPricing(input: {
       .filter(Boolean),
   ));
 
-  const [menuItemsRes, antiWasteRes, flashSalesRes, formulasRes, promotionsRes, profileRes] = await Promise.all([
+  const [restaurantRes, activeFlags, menuItemsRes, antiWasteRes, flashSalesRes, formulasRes, promotionsRes, profileRes] = await Promise.all([
+    input.adminClient
+      .from("restaurants")
+      .select("id, delivery_available, supports_pickup, supports_reservation, supports_dinein, disabled_payment_methods")
+      .eq("id", input.restaurantId)
+      .maybeSingle(),
+    getEffectiveFeatureFlagSet(input.adminClient),
     regularItemIds.length
       ? input.adminClient
         .from("menu_items")
@@ -360,12 +374,46 @@ export async function buildVerifiedOrderPricing(input: {
       .maybeSingle(),
   ]);
 
+  if (restaurantRes.error) throw new Error(restaurantRes.error.message);
   if (menuItemsRes.error) throw new Error(menuItemsRes.error.message);
   if (antiWasteRes.error) throw new Error(antiWasteRes.error.message);
   if (flashSalesRes.error) throw new Error(flashSalesRes.error.message);
   if (formulasRes.error) throw new Error(formulasRes.error.message);
   if (promotionsRes.error) throw new Error(promotionsRes.error.message);
   if (profileRes.error) throw new Error(profileRes.error.message);
+
+  const restaurantConfig = restaurantRes.data;
+  if (!restaurantConfig) throw new Error("Restaurant introuvable.");
+
+  assertPaymentMethodAllowed({
+    activeFlags,
+    paymentMethod,
+    disabledPaymentMethods: restaurantConfig.disabled_payment_methods,
+    cashAllowed: context !== "zero-attente",
+  });
+
+  if (context === "zero-attente") {
+    if (!activeFlags.has("zero-attente") || !activeFlags.has("reservation") || !activeFlags.has("sur-place")) {
+      throw new Error("Zero Attente est desactive globalement.");
+    }
+    if (!restaurantConfig.supports_reservation || !restaurantConfig.supports_dinein) {
+      throw new Error("Ce restaurant ne propose pas Zero Attente.");
+    }
+  } else if (isDeliveryJourney) {
+    if (!activeFlags.has("livraison")) {
+      throw new Error("La livraison est desactivee globalement.");
+    }
+    if (!restaurantConfig.delivery_available) {
+      throw new Error("La livraison est indisponible pour ce restaurant.");
+    }
+  } else {
+    if (!activeFlags.has("emporter")) {
+      throw new Error("L'emporter est desactive globalement.");
+    }
+    if (!restaurantConfig.supports_pickup) {
+      throw new Error("L'emporter est indisponible pour ce restaurant.");
+    }
+  }
 
   const menuMap = new Map((menuItemsRes.data || []).map((row: any) => [row.id, row]));
   const antiWasteMap = new Map((antiWasteRes.data || []).map((row: any) => [row.id, row]));
@@ -429,6 +477,19 @@ export async function buildVerifiedOrderPricing(input: {
     }
 
     throw new Error("Article invalide detecte.");
+  }
+
+  if (validatedItems.some((item) => item.source === "anti_waste")) {
+    if (!activeFlags.has("anti-gaspi")) {
+      throw new Error("L'anti-gaspi est desactive globalement.");
+    }
+    if (isDeliveryJourney) {
+      throw new Error("Les offres anti-gaspi sont uniquement disponibles a l'emporter.");
+    }
+  }
+
+  if (validatedItems.some((item) => item.source === "flash_sale") && !activeFlags.has("ventes-flash")) {
+    throw new Error("Les ventes flash sont desactivees globalement.");
   }
 
   const subtotal = roundCurrency(

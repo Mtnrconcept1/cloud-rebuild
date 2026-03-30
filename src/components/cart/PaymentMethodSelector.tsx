@@ -1,8 +1,7 @@
 import { Banknote, CreditCard, Smartphone, Wallet } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
-
-export type PaymentMethodId = "card" | "twint" | "postfinance_card" | "postfinance_efinance" | "cash";
+import type { PaymentMethodId } from "@/lib/paymentMethods";
 
 interface PaymentMethodSelectorProps {
   paymentMethod: PaymentMethodId;
@@ -30,6 +29,19 @@ export default function PaymentMethodSelector({
   const visibleMethods = allowedMethods?.length
     ? METHODS.filter((method) => allowedMethods.includes(method.id))
     : METHODS;
+
+  if (allowedMethods && visibleMethods.length === 0) {
+    return (
+      <div className="space-y-3 border-t pt-4">
+        <Label className="font-bold flex items-center gap-2">
+          <CreditCard className="h-4 w-4" /> Mode de paiement
+        </Label>
+        <div className="rounded-xl border border-dashed bg-muted/30 p-4 text-sm text-muted-foreground">
+          Aucun moyen de paiement n'est actuellement disponible pour ce parcours.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 pt-4 border-t">

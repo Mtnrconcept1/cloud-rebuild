@@ -29,7 +29,7 @@ interface CartContextType {
   cartMetadata: Record<string, any>;
   updateCartMetadata: (metadata: Record<string, any>) => void;
   orderMode: "delivery" | "takeaway";
-  setOrderMode: (mode: "delivery" | "takeaway") => boolean;
+  setOrderMode: (mode: "delivery" | "takeaway", options?: { force?: boolean }) => boolean;
   conflict: CartConflict | null;
   setConflict: (conflict: CartConflict | null) => void;
   resolveConflict: (action: "clear" | "checkout") => void;
@@ -120,7 +120,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("miamz-order-mode", orderMode);
   }, [orderMode]);
 
-  const setOrderMode = (mode: "delivery" | "takeaway") => {
+  const setOrderMode = (mode: "delivery" | "takeaway", options?: { force?: boolean }) => {
+    if (options?.force) {
+      setOrderModeState(mode);
+      return false;
+    }
     if (items.length > 0 && orderMode !== mode) {
       setConflict({ type: "mode", pendingMode: mode });
       return true;

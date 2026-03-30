@@ -56,16 +56,16 @@ import {
 } from "@/components/ui/sheet";
 
 const FEATURES = [
-  { icon: Shield, label: "Creneaux garantis", desc: "Livraison ponctuelle ou remboursee", to: "/creneaux-garantis", color: "text-blue-500", bg: "bg-blue-500/10", hoverBg: "group-hover:bg-blue-500/20" },
-  { icon: Gift, label: "Offres", desc: "Fenetre flexible, prix reduit", to: "/flex-prix-bas", color: "text-emerald-500", bg: "bg-emerald-500/10", hoverBg: "group-hover:bg-emerald-500/20" },
-  { icon: Users, label: "Match groupes", desc: "Commandez ensemble, payez moins", to: "/match-groupes", color: "text-violet-500", bg: "bg-violet-500/10", hoverBg: "group-hover:bg-violet-500/20" },
-  { icon: Route, label: "Multi-stop", desc: "Un trajet, plusieurs adresses", to: "/multi-stop", color: "text-orange-500", bg: "bg-orange-500/10", hoverBg: "group-hover:bg-orange-500/20" },
-  { icon: Layers, label: "Multi-restos", desc: "Plats de differents restos", to: "/multi-restaurant", color: "text-pink-500", bg: "bg-pink-500/10", hoverBg: "group-hover:bg-pink-500/20" },
-  { icon: ChefHat, label: "Chef's Table", desc: "Plats off-menu exclusifs", to: "/chefs-table", color: "text-amber-500", bg: "bg-amber-500/10", hoverBg: "group-hover:bg-amber-500/20" },
-  { icon: Timer, label: "Zero attente", desc: "Precommande synchronisee", to: "/zero-attente", color: "text-indigo-500", bg: "bg-indigo-500/10", hoverBg: "group-hover:bg-indigo-500/20" },
-  { icon: ShieldCheck, label: "Garantie qualite", desc: "Chaud garanti ou rembourse", to: "/garantie-qualite", color: "text-teal-500", bg: "bg-teal-500/10", hoverBg: "group-hover:bg-teal-500/20" },
-  { icon: Calculator, label: "Budget auto", desc: "Menus optimises par objectifs", to: "/budget-auto", color: "text-cyan-500", bg: "bg-cyan-500/10", hoverBg: "group-hover:bg-cyan-500/20" },
-  { icon: Repeat, label: "Abonnement", desc: "Repas recurrents planifies", to: "/abonnement", color: "text-purple-500", bg: "bg-purple-500/10", hoverBg: "group-hover:bg-purple-500/20" },
+  { icon: Shield, label: "Creneaux garantis", desc: "Livraison ponctuelle ou remboursee", to: "/creneaux-garantis", feature: "creneaux-garantis", color: "text-blue-500", bg: "bg-blue-500/10", hoverBg: "group-hover:bg-blue-500/20" },
+  { icon: Gift, label: "Offres", desc: "Fenetre flexible, prix reduit", to: "/flex-prix-bas", feature: "flex-prix-bas", color: "text-emerald-500", bg: "bg-emerald-500/10", hoverBg: "group-hover:bg-emerald-500/20" },
+  { icon: Users, label: "Match groupes", desc: "Commandez ensemble, payez moins", to: "/match-groupes", feature: "match-groupes", color: "text-violet-500", bg: "bg-violet-500/10", hoverBg: "group-hover:bg-violet-500/20" },
+  { icon: Route, label: "Multi-stop", desc: "Un trajet, plusieurs adresses", to: "/multi-stop", feature: "multi-stop", color: "text-orange-500", bg: "bg-orange-500/10", hoverBg: "group-hover:bg-orange-500/20" },
+  { icon: Layers, label: "Multi-restos", desc: "Plats de differents restos", to: "/multi-restaurant", feature: "multi-restaurant", color: "text-pink-500", bg: "bg-pink-500/10", hoverBg: "group-hover:bg-pink-500/20" },
+  { icon: ChefHat, label: "Chef's Table", desc: "Plats off-menu exclusifs", to: "/chefs-table", feature: "chefs-table", color: "text-amber-500", bg: "bg-amber-500/10", hoverBg: "group-hover:bg-amber-500/20" },
+  { icon: Timer, label: "Zero attente", desc: "Precommande synchronisee", to: "/zero-attente", feature: "zero-attente", color: "text-indigo-500", bg: "bg-indigo-500/10", hoverBg: "group-hover:bg-indigo-500/20" },
+  { icon: ShieldCheck, label: "Garantie qualite", desc: "Chaud garanti ou rembourse", to: "/garantie-qualite", feature: "garantie-qualite", color: "text-teal-500", bg: "bg-teal-500/10", hoverBg: "group-hover:bg-teal-500/20" },
+  { icon: Calculator, label: "Budget auto", desc: "Menus optimises par objectifs", to: "/budget-auto", feature: "budget-auto", color: "text-cyan-500", bg: "bg-cyan-500/10", hoverBg: "group-hover:bg-cyan-500/20" },
+  { icon: Repeat, label: "Abonnement", desc: "Repas recurrents planifies", to: "/abonnement", feature: "abonnement", color: "text-purple-500", bg: "bg-purple-500/10", hoverBg: "group-hover:bg-purple-500/20" },
 ];
 
 export default function Navbar() {
@@ -79,7 +79,9 @@ export default function Navbar() {
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
   const courierEnabled = activeFeatures.has("espace-livreur");
-  const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.to.replace("/", "")));
+  const reservationEnabled = activeFeatures.has("reservation");
+  const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
+  const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
 
   const { data: notifications } = useQuery({
     queryKey: ["navbar-notifications", user?.id],
@@ -368,10 +370,12 @@ export default function Navbar() {
                     <Link to="/commandes">Mes commandes</Link>
                   </DropdownMenuItem>
                 ) : null}
-                <DropdownMenuItem asChild>
-                  <Link to="/reservations">Mes reservations</Link>
-                </DropdownMenuItem>
-                {(role === "restaurateur" || role === "admin" || roles.includes("restaurateur")) ? (
+                {reservationEnabled ? (
+                  <DropdownMenuItem asChild>
+                    <Link to="/reservations">Mes reservations</Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {dashboardEnabled && (role === "restaurateur" || role === "admin" || roles.includes("restaurateur")) ? (
                   <DropdownMenuItem asChild>
                     <Link to="/dashboard" className="font-bold text-primary">Dashboard Restaurant</Link>
                   </DropdownMenuItem>
@@ -495,7 +499,7 @@ export default function Navbar() {
                         Mes commandes
                       </Link>
                     ) : null}
-                    {(roles.includes("restaurateur") || roles.includes("admin")) ? (
+                    {dashboardEnabled && (roles.includes("restaurateur") || roles.includes("admin")) ? (
                       <Link to="/dashboard" className="flex items-center gap-2 text-sm font-bold text-primary" onClick={() => setMenuOpen(false)}>
                         <TrendingUp className="h-4 w-4" />
                         Dashboard Restaurant

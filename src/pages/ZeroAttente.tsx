@@ -13,10 +13,16 @@ import {
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
-import PaymentMethodSelector, { type PaymentMethodId } from "@/components/cart/PaymentMethodSelector";
+import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
 import { formatMissingCoursesText, roundCurrency } from "@/lib/meal-formulas";
 import { trackSponsoredConversion } from "@/lib/analytics";
+import {
+  getAllowedPaymentMethods,
+  getFirstAvailablePaymentMethod,
+  type PaymentMethodId,
+} from "@/lib/paymentMethods";
 
 type Step = "info" | "restaurant" | "menu" | "payment" | "confirm";
 type PricingSummary = {
@@ -77,6 +83,7 @@ export default function ZeroAttente() {
   const { user, session, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const activeFeatures = useActiveFeatures();
   const [searchParams] = useSearchParams();
   const preSelectedRestaurantId = searchParams.get("restaurant");
   const [step, setStep] = useState<Step>("info");
@@ -93,6 +100,10 @@ export default function ZeroAttente() {
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(() => readPendingZeroAttenteSessionId());
   const attemptedProcessingKeyRef = useRef<string | null>(null);
   const authPromptKeyRef = useRef<string | null>(null);
+  const allowedPaymentMethods = useMemo(() => {
+    const disabled = (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
+    return getAllowedPaymentMethods(activeFeatures, disabled).filter((method) => method !== "cash");
+  }, [activeFeatures, selectedRestaurant]);
 
   const syncPendingCheckoutSessionId = useCallback((sessionId: string | null) => {
     writePendingZeroAttenteSessionId(sessionId);
@@ -107,13 +118,19 @@ export default function ZeroAttente() {
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants-zero-wait", preSelectedRestaurantId],
     queryFn: async () => {
+      const filterEligible = (rows: any[] | null | undefined) =>
+        (rows || []).filter((restaurant) => restaurant.supports_reservation && restaurant.supports_dinein);
+
       if (preSelectedRestaurantId) {
         const { data: specific } = await supabase.from("restaurants").select("*").eq("id", preSelectedRestaurantId).single();
         const { data: others } = await supabase.from("restaurants").select("*").eq("is_active", true).neq("id", preSelectedRestaurantId).order("rating", { ascending: false }).limit(8);
-        return specific ? [specific, ...(others || [])] : (others || []);
+        const eligibleOthers = filterEligible(others);
+        return (specific && specific.supports_reservation && specific.supports_dinein)
+          ? [specific, ...eligibleOthers]
+          : eligibleOthers;
       }
       const { data } = await supabase.from("restaurants").select("*").eq("is_active", true).order("rating", { ascending: false }).limit(9);
-      return data || [];
+      return filterEligible(data);
     },
   });
 
@@ -123,6 +140,19 @@ export default function ZeroAttente() {
       if (found) setSelectedRestaurant(found);
     }
   }, [preSelectedRestaurantId, restaurants, selectedRestaurant]);
+
+  useEffect(() => {
+    if (!allowedPaymentMethods.includes(paymentMethod)) {
+      const nextMethod = getFirstAvailablePaymentMethod(
+        activeFeatures,
+        (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
+        "card",
+      );
+      if (nextMethod && nextMethod !== "cash") {
+        setPaymentMethod(nextMethod);
+      }
+    }
+  }, [activeFeatures, allowedPaymentMethods, paymentMethod, selectedRestaurant]);
 
   const { data: menuItems } = useQuery({
     queryKey: ["menu-zero-wait", selectedRestaurant?.id],
@@ -198,6 +228,38 @@ export default function ZeroAttente() {
       return;
     }
     if (!selectedRestaurant || !menuItems) return;
+    if (!selectedRestaurant.supports_reservation || !selectedRestaurant.supports_dinein) {
+      toast({
+        title: "Restaurant indisponible",
+        description: "Ce restaurant ne propose plus Zero Attente actuellement.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (allowedPaymentMethods.length === 0) {
+      toast({
+        title: "Paiement indisponible",
+        description: "Aucun moyen de paiement securise n'est actuellement disponible.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!allowedPaymentMethods.includes(paymentMethod)) {
+      const nextMethod = getFirstAvailablePaymentMethod(
+        activeFeatures,
+        (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
+        "card",
+      );
+      if (nextMethod && nextMethod !== "cash") {
+        setPaymentMethod(nextMethod);
+      }
+      toast({
+        title: "Moyen de paiement indisponible",
+        description: "Selectionnez un moyen de paiement securise encore actif.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     const pricingForCheckout: PricingSummary = { ...currentPricing };
@@ -810,12 +872,7 @@ export default function ZeroAttente() {
               <PaymentMethodSelector
                 paymentMethod={paymentMethod}
                 setPaymentMethod={setPaymentMethod}
-                allowedMethods={(() => {
-                  const base: PaymentMethodId[] = ["card", "twint", "postfinance_card", "postfinance_efinance"];
-                  const disabled = (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
-                  if (disabled.length === 0) return base;
-                  return base.filter((m) => !disabled.includes(m));
-                })()}
+                allowedMethods={allowedPaymentMethods}
               />
 
               <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-700 dark:text-amber-300">
@@ -824,7 +881,7 @@ export default function ZeroAttente() {
 
               <Button
                 onClick={handlePayAndReserve}
-                disabled={loading}
+                disabled={loading || allowedPaymentMethods.length === 0}
                 className="w-full bg-indigo-500 hover:opacity-90 gap-2 text-base py-6"
               >
                 {loading ? "Traitement en cours..." : `Payer ${totalAfterDiscount.toFixed(2)} CHF et réserver`}

@@ -46,6 +46,7 @@ export default function DashboardService() {
   const { toast } = useToast();
   const activeFeatures = useActiveFeatures();
   const deliveryEnabled = activeFeatures.has("livraison");
+  const reservationEnabled = activeFeatures.has("reservation");
 
   const { data: restaurant } = useQuery({
     queryKey: ["my-restaurant-service", selectedId],
@@ -144,6 +145,12 @@ export default function DashboardService() {
           <p className="text-sm text-muted-foreground">
             Scindez distinctement le service du midi et le service du soir pour les reservations.
           </p>
+          {!reservationEnabled ? (
+            <p className="text-sm text-muted-foreground">
+              Les reservations sont actuellement coupees globalement. Les reglages ci-dessous restent editables mais ne
+              seront pas exposes cote client tant que le flag global reste desactive.
+            </p>
+          ) : null}
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -226,7 +233,8 @@ export default function DashboardService() {
                     <label className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
                       <span>Reservations en ligne</span>
                       <Switch
-                        checked={settings.online_booking_enabled}
+                        checked={reservationEnabled && settings.online_booking_enabled}
+                        disabled={!reservationEnabled}
                         onCheckedChange={(checked) => updateServiceField(period.key, "online_booking_enabled", checked)}
                       />
                     </label>

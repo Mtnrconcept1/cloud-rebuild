@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +11,12 @@ import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+import {
+  DASHBOARD_TIME_RANGE_OPTIONS,
+  getTodayReferenceDate,
+  isDateInDashboardTimeRange,
+  type DashboardTimeRange,
+} from "@/lib/dashboardTimeRange";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 type DashboardOrderItem = {
@@ -101,6 +108,8 @@ export default function DashboardCommandes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [expandedRouteOrderId, setExpandedRouteOrderId] = useState<string | null>(null);
+  const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
+  const [timeRange, setTimeRange] = useState<DashboardTimeRange>("all");
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
 
@@ -132,6 +141,16 @@ export default function DashboardCommandes() {
     },
     enabled: !!selectedId,
   });
+
+  const filteredOrders = useMemo(() => (
+    (orders || []).filter((order) => (
+      isDateInDashboardTimeRange(order.created_at, timeRange, referenceDate)
+    ))
+  ), [orders, referenceDate, timeRange]);
+
+  const filteredOrdersRevenue = useMemo(() => (
+    filteredOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0)
+  ), [filteredOrders]);
 
   const updateStatus = async (orderId: string, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
@@ -216,7 +235,37 @@ export default function DashboardCommandes() {
 
         {!restaurantsLoading && !restaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
-            {orders?.map((order) => {
+            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Periode</p>
+                <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Toutes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DASHBOARD_TIME_RANGE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de reference</p>
+                <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
+              </div>
+              <div className="rounded-xl bg-muted/30 p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Commandes visibles</p>
+                <p className="text-2xl font-bold">{filteredOrders.length}</p>
+              </div>
+              <div className="rounded-xl bg-muted/30 p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Chiffre visible</p>
+                <p className="text-2xl font-bold text-primary">{filteredOrdersRevenue.toFixed(2)} CHF</p>
+              </div>
+            </div>
+
+            {filteredOrders.map((order) => {
               const tracking = order.delivery_tracking ?? null;
               const customer = order.customer;
               const items = order.order_items ?? [];
@@ -405,12 +454,11 @@ export default function DashboardCommandes() {
                 </div>
               );
             })}
-            {!orders || orders.length === 0 ? <p className="py-8 text-center text-muted-foreground">Aucune commande</p> : null}
+            {filteredOrders.length === 0 ? <p className="py-8 text-center text-muted-foreground">Aucune commande pour la periode selectionnee.</p> : null}
           </div>
         ) : null}
       </div>
     </DashboardLayout>
   );
 }
-
 

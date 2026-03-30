@@ -36,17 +36,20 @@ export default function RestaurantDetail() {
   const [activeTab, setActiveTab] = useState("menu");
   const impressionTracked = useRef(false);
   const deliveryEnabled = activeFeatures.has("livraison");
+  const takeawayEnabled = activeFeatures.has("emporter");
+  const reservationEnabled = activeFeatures.has("reservation");
+  const dineInEnabled = activeFeatures.has("sur-place");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const zeroWaitEnabled = activeFeatures.has("zero-attente");
 
   useEffect(() => {
-    if (searchParams.get("reserve") === "true") {
+    if (searchParams.get("reserve") === "true" && reservationEnabled) {
       const timeParam = searchParams.get("time");
       if (timeParam) setReservationDefaults({ date: new Date(), time: timeParam, partySize: 2 });
       setReservationOpen(true);
     }
-  }, [searchParams]);
+  }, [reservationEnabled, searchParams]);
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", id],
@@ -79,13 +82,6 @@ export default function RestaurantDetail() {
       });
     }
   }, [id, restaurant]);
-
-  useEffect(() => {
-    if (!restaurant) return;
-    if (orderMode === "delivery" && !(deliveryEnabled && restaurant.delivery_available)) {
-      setOrderMode("takeaway");
-    }
-  }, [deliveryEnabled, orderMode, restaurant, setOrderMode]);
 
   const { data: menuItems } = useQuery({
     queryKey: ["menu-items", id],
@@ -154,6 +150,36 @@ export default function RestaurantDetail() {
     return sum / reviews.length;
   }, [reviews, restaurant?.rating]);
 
+  const reservationAvailable = reservationEnabled && !!restaurant?.supports_reservation;
+  const takeawayAvailable = takeawayEnabled && !!restaurant?.supports_pickup;
+  const showDelivery = deliveryEnabled && !!restaurant?.delivery_available;
+  const zeroWaitAvailable =
+    zeroWaitEnabled && dineInEnabled && !!restaurant?.supports_dinein && reservationAvailable;
+  const canOrderItems = showDelivery || takeawayAvailable;
+  const menuUnavailableReason = canOrderItems
+    ? undefined
+    : "Commande indisponible: livraison et emporter sont desactives pour ce restaurant.";
+
+  useEffect(() => {
+    if (!reservationAvailable && reservationOpen) {
+      setReservationOpen(false);
+      setShowReserveChoice(false);
+    }
+  }, [reservationAvailable, reservationOpen]);
+
+  useEffect(() => {
+    if (!restaurant) return;
+
+    if (orderMode === "delivery" && !showDelivery && takeawayAvailable) {
+      setOrderMode("takeaway", { force: true });
+      return;
+    }
+
+    if (orderMode === "takeaway" && !takeawayAvailable && showDelivery) {
+      setOrderMode("delivery", { force: true });
+    }
+  }, [orderMode, restaurant, setOrderMode, showDelivery, takeawayAvailable]);
+
   if (!restaurant) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
   const coverPhoto = mediaPhotos?.find((p) => p.is_cover) || mediaPhotos?.[0];
@@ -163,7 +189,6 @@ export default function RestaurantDetail() {
   const categories = [...new Set(menuItems?.map((i) => i.category || "Autres"))] as string[];
   const avgRating = avgRating10.toFixed(1);
   const reviewCount = restaurant.review_count || reviews?.length || 0;
-  const showDelivery = deliveryEnabled && restaurant.delivery_available;
 
   const handleWidgetReserve = (date: Date, time: string, partySize: number) => {
     setReservationDefaults({ date, time, partySize });
@@ -203,14 +228,14 @@ export default function RestaurantDetail() {
               <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" />{restaurant.address}, {restaurant.city}</span>
               {restaurant.phone && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" />{restaurant.phone}</span>}
             </div>
-            <div className={`grid grid-cols-1 gap-3 ${deliveryEnabled ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-              <div className="relative">
-                <button onClick={() => zeroWaitEnabled ? setShowReserveChoice(!showReserveChoice) : setReservationOpen(true)} className="group flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border-2 border-transparent hover:border-primary/50 hover:bg-secondary/50 transition-all w-full">
+            <div className={`grid grid-cols-1 gap-3 ${(reservationAvailable && showDelivery && takeawayAvailable) ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+              <div className={reservationAvailable ? "relative" : "hidden"}>
+                <button onClick={() => zeroWaitAvailable ? setShowReserveChoice(!showReserveChoice) : setReservationOpen(true)} className="group flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border-2 border-transparent hover:border-primary/50 hover:bg-secondary/50 transition-all w-full">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
                   <div className="text-left"><span className="font-bold text-sm block">Réserver une table</span><span className="text-[10px] text-muted-foreground">Garantie de place</span></div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
                 </button>
-                {zeroWaitEnabled && showReserveChoice && (
+                {zeroWaitAvailable && showReserveChoice && (
                   <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-background border-2 border-primary/20 rounded-2xl shadow-xl p-3 space-y-2">
                     <button onClick={() => { setShowReserveChoice(false); setReservationOpen(true); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-all text-left group">
                       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
@@ -223,17 +248,22 @@ export default function RestaurantDetail() {
                   </div>
                 )}
               </div>
-              {deliveryEnabled ? (
+              {showDelivery ? (
                 <button onClick={() => setOrderMode('delivery')} disabled={!showDelivery} className={`group flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${showDelivery ? orderMode === 'delivery' ? 'bg-blue-50 border-blue-200' : 'bg-secondary/30 border-transparent hover:border-primary/50 hover:bg-secondary/50' : 'bg-secondary/10 opacity-50 cursor-not-allowed'}`}>
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 ${orderMode === 'delivery' ? 'bg-blue-500/20' : 'bg-blue-500/10'}`}><Bike className="h-5 w-5 text-blue-500" /></div>
                   <div className="text-left"><span className="font-bold text-sm block">Livraison</span><span className="text-[10px] text-muted-foreground">{Number(restaurant.delivery_fee || 2.99).toFixed(2)} CHF</span></div>
                 </button>
               ) : null}
-              <button onClick={() => setOrderMode('takeaway')} className={`group flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${orderMode === 'takeaway' ? 'bg-miamz-green/10 border-miamz-green/30' : 'bg-secondary/30 border-transparent hover:border-miamz-green/50 hover:bg-secondary/50'}`}>
+              <button onClick={() => setOrderMode('takeaway')} disabled={!takeawayAvailable} className={`${takeawayAvailable ? "group flex" : "hidden"} items-center gap-3 p-3 rounded-xl border-2 transition-all ${orderMode === 'takeaway' ? 'bg-miamz-green/10 border-miamz-green/30' : 'bg-secondary/30 border-transparent hover:border-miamz-green/50 hover:bg-secondary/50'}`}>
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 ${orderMode === 'takeaway' ? 'bg-miamz-green/20' : 'bg-miamz-green/10'}`}><ShoppingBag className="h-5 w-5 text-miamz-green" /></div>
                 <div className="text-left"><span className="font-bold text-sm block">Emporter</span><span className="text-[10px] text-miamz-green font-bold">0.00 CHF</span></div>
               </button>
             </div>
+            {!reservationAvailable && !showDelivery && !takeawayAvailable ? (
+              <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                Les parcours reservation, livraison et emporter sont actuellement indisponibles pour ce restaurant.
+              </div>
+            ) : null}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="w-full justify-start bg-transparent border-b rounded-none p-0 h-auto gap-0">
                 <TabsTrigger value="apropos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 font-semibold text-sm gap-1.5"><Info className="h-4 w-4" />À propos</TabsTrigger>
@@ -402,13 +432,21 @@ export default function RestaurantDetail() {
                               size="sm"
                               className="bg-amber-500 hover:bg-amber-600 text-white gap-1.5 shrink-0"
                               onClick={() => {
+                                if (!canOrderItems) {
+                                  toast({
+                                    title: "Commande indisponible",
+                                    description: menuUnavailableReason,
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
                                 addItem({
                                   menuItemId: `flash-${sale.id}`,
                                   name: `[Flash] ${sale.title}`,
                                   price: Number(sale.discounted_price),
                                   restaurantId: id!,
                                   restaurantName: restaurant.name,
-                                  metadata: { is_flash_sale: true, flash_sale_id: sale.id, delivery_available: deliveryEnabled && !!sale.delivery_available, takeaway_available: !!sale.takeaway_available },
+                                  metadata: { is_flash_sale: true, flash_sale_id: sale.id, delivery_available: showDelivery && !!sale.delivery_available, takeaway_available: takeawayAvailable && !!sale.takeaway_available },
                                 });
                                 toast({ title: "Vente flash ajoutée !", description: `${sale.title} — ${Number(sale.discounted_price).toFixed(2)} CHF` });
                               }}
@@ -467,7 +505,19 @@ export default function RestaurantDetail() {
                       <h2 className="font-display text-xl font-bold border-b pb-2">{category}</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {menuItems?.filter((item) => (item.category || "Autres") === category).map((item) => (
-                          <MenuItemCard key={item.id} id={item.id} name={item.name} description={item.description} price={item.price} imageUrl={item.image_url} category={item.category} restaurantId={item.restaurant_id} restaurantName={restaurant.name} />
+                          <MenuItemCard
+                            key={item.id}
+                            id={item.id}
+                            name={item.name}
+                            description={item.description}
+                            price={item.price}
+                            imageUrl={item.image_url}
+                            category={item.category}
+                            restaurantId={item.restaurant_id}
+                            restaurantName={restaurant.name}
+                            disabled={!canOrderItems}
+                            disabledReason={menuUnavailableReason}
+                          />
                         ))}
                       </div>
                     </div>
@@ -539,7 +589,13 @@ export default function RestaurantDetail() {
           </div>
           <div className="w-full lg:w-80 shrink-0">
             <div className="sticky top-24 space-y-4">
-              <ReservationWidget restaurantId={id!} restaurantName={restaurant.name} onReserve={handleWidgetReserve} />
+              {reservationAvailable ? (
+                <ReservationWidget restaurantId={id!} restaurantName={restaurant.name} onReserve={handleWidgetReserve} />
+              ) : (
+                <div className="rounded-2xl border border-dashed bg-card p-4 text-sm text-muted-foreground">
+                  Les reservations sont actuellement indisponibles pour ce restaurant.
+                </div>
+              )}
               {cartItems.length > 0 && cartItems[0].restaurantId === id && (
                 <Button className="w-full h-14 text-lg font-bold shadow-xl" onClick={() => navigate("/panier")}><ShoppingCart className="mr-2 h-5 w-5" /> Voir mon panier ({cartItems.reduce((acc, item) => acc + item.quantity, 0)})</Button>
               )}
@@ -547,7 +603,9 @@ export default function RestaurantDetail() {
           </div>
         </div>
       </div>
-      <ReservationDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurantId={id!} restaurantName={restaurant.name} initialDate={reservationDefaults?.date} initialTime={reservationDefaults?.time} initialPartySize={reservationDefaults?.partySize} />
+      {reservationAvailable ? (
+        <ReservationDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurantId={id!} restaurantName={restaurant.name} initialDate={reservationDefaults?.date} initialTime={reservationDefaults?.time} initialPartySize={reservationDefaults?.partySize} />
+      ) : null}
 
       {/* Photo gallery lightbox */}
       {galleryOpen && galleryPhotos.length > 0 && (
