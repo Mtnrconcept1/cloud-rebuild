@@ -307,4 +307,78 @@ AFTER INSERT OR UPDATE ON public.reservations
 FOR EACH ROW
 EXECUTE FUNCTION public.trigger_reservation_notifications();
 
+-- Fix: ensure_guest_profile was reading profiles.newsletter which does not exist.
+-- Replace with notification_preferences.categories->'marketing' lookup.
+CREATE OR REPLACE FUNCTION public.ensure_guest_profile(
+  p_restaurant_id uuid,
+  p_user_id uuid,
+  p_source_channel text DEFAULT NULL
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_guest_profile_id uuid;
+  v_full_name text;
+  v_phone text;
+  v_marketing_consent boolean := false;
+BEGIN
+  IF p_restaurant_id IS NULL OR p_user_id IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT id
+  INTO v_guest_profile_id
+  FROM public.guest_profiles
+  WHERE restaurant_id = p_restaurant_id
+    AND user_id = p_user_id;
+
+  IF v_guest_profile_id IS NOT NULL THEN
+    IF p_source_channel IS NOT NULL THEN
+      UPDATE public.guest_profiles
+      SET last_source_channel = p_source_channel,
+          updated_at = now()
+      WHERE id = v_guest_profile_id;
+    END IF;
+    RETURN v_guest_profile_id;
+  END IF;
+
+  SELECT full_name, phone
+  INTO v_full_name, v_phone
+  FROM public.profiles
+  WHERE user_id = p_user_id;
+
+  SELECT COALESCE((categories ->> 'marketing')::boolean, false)
+  INTO v_marketing_consent
+  FROM public.notification_preferences
+  WHERE user_id = p_user_id;
+
+  INSERT INTO public.guest_profiles (
+    restaurant_id,
+    user_id,
+    full_name,
+    phone,
+    marketing_consent,
+    last_source_channel
+  )
+  VALUES (
+    p_restaurant_id,
+    p_user_id,
+    v_full_name,
+    v_phone,
+    COALESCE(v_marketing_consent, false),
+    p_source_channel
+  )
+  RETURNING id INTO v_guest_profile_id;
+
+  RETURN v_guest_profile_id;
+END;
+$$;
+
+-- Fix: drop old cancel_reservation(uuid) overload that conflicts with
+-- cancel_reservation(uuid, text). PostgREST cannot disambiguate them (PGRST203).
+DROP FUNCTION IF EXISTS public.cancel_reservation(uuid);
+
 NOTIFY pgrst, 'reload schema';

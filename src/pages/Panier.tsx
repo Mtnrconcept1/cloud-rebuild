@@ -255,10 +255,11 @@ export default function Panier() {
   const handleCheckout = async () => {
     if (!user) return navigate("/auth");
 
+    setLoading(true);
+    try {
     // Ensure we have a valid session before calling edge functions
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData.session) {
-      // No session at all — force re-login
       await supabase.auth.signOut();
       toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
       return navigate("/auth");
@@ -332,8 +333,6 @@ export default function Panier() {
     const checkoutGroupId = crypto.randomUUID();
     let firstOrderId: string | null = null;
     const orderReference = generateOrderReference();
-    setLoading(true);
-
     const allocateAcrossGroups = (totalDiscount: number) => {
       const baseTotal = orderGroups.reduce((sum, group) => sum + group.resSubtotal, 0);
       let remaining = Math.round(totalDiscount * 100) / 100;
@@ -351,7 +350,6 @@ export default function Panier() {
     const pointsDiscountByRestaurant = allocateAcrossGroups(pointsDiscount);
     const flexDiscountByRestaurant = allocateAcrossGroups(flexDiscount);
 
-    try {
       // For online payments (not cash), redirect to Stripe
       if (paymentMethod !== "cash") {
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
