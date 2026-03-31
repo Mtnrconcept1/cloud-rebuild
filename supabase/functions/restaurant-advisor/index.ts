@@ -13,8 +13,9 @@ serve(async (req) => {
   try {
     const { messages, restaurantId } = await req.json();
 
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    if (!OPENAI_API_KEY && !LOVABLE_API_KEY) throw new Error("OPENAI_API_KEY or LOVABLE_API_KEY must be configured");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -294,21 +295,27 @@ DOMAINES D'EXPERTISE :
 7. Stratégie anti-gaspi et ventes flash
 8. Optimisation des photos et de la page restaurant`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+    const useOpenAI = !!OPENAI_API_KEY;
+    const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL") || "gpt-4o";
+
+    const response = await fetch(
+      useOpenAI ? "https://api.openai.com/v1/chat/completions" : "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${useOpenAI ? OPENAI_API_KEY : LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: useOpenAI ? OPENAI_MODEL : "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...messages,
+          ],
+          stream: true,
+        }),
       },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
-        stream: true,
-      }),
-    });
+    );
 
     if (!response.ok) {
       if (response.status === 429) {

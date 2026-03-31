@@ -69,10 +69,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
       />
 
       {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/70 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-white/10 to-black/40 pointer-events-none" />
 
       {/* Warm vignette */}
-      <div className="absolute inset-0 shadow-[inset_0_0_200px_rgba(0,0,0,0.4)] pointer-events-none" />
+      <div className="absolute inset-0 shadow-[inset_0_0_200px_rgba(0,0,0,0.1)] pointer-events-none" />
 
       {/* Content */}
       <motion.div
