@@ -113,10 +113,13 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             <div className="absolute inset-0 bg-gradient-to-r from-orange-600/90 via-orange-500/80 to-orange-400/50" />
 
             {/* Banner content */}
-            <div className="relative z-10 flex items-center pr-0">
+            <div className="relative z-10 flex items-center gap-[5px]">
               {/* Text side */}
-              <div className="flex-1 space-y-1.5 py-5 pl-5 pr-2">
+              <div className="flex-1 min-w-0 space-y-1 py-4 pl-5">
                 <p className="text-xl font-extrabold leading-tight text-white">
+                  Avec <img src="/tok.png" alt="Tok" className="inline-block h-12 align-middle -mt-1" />
+                </p>
+                <p className="text-2xl font-extrabold leading-tight text-white">
                   Obtenez -50%
                 </p>
                 <p className="text-base font-bold leading-tight text-white">
@@ -125,12 +128,14 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <p className="text-xs font-medium text-white/80">
                   Reservez des maintenant !
                 </p>
-                <button
-                  onClick={() => navigate("/recherche?promo=true")}
-                  className="mt-2 inline-block rounded-full bg-primary px-5 py-2 text-xs font-bold text-white shadow-md transition hover:bg-primary/90"
-                >
-                  Reserver
-                </button>
+                <div className="flex justify-center pt-2">
+                  <button
+                    onClick={() => navigate("/recherche?promo=true")}
+                    className="rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-primary/90"
+                  >
+                    Reserver
+                  </button>
+                </div>
               </div>
 
               {/* Chef mascot – overflows the card */}
