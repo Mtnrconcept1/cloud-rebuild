@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Bot, Loader2, LayoutGrid, Lightbulb, Sofa, Wand2, Send, AlertTriangle, CheckCircle2 } from "lucide-react";
+import {
+  Bot,
+  Loader2,
+  LayoutGrid,
+  Lightbulb,
+  Sofa,
+  Wand2,
+  Send,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -78,50 +88,48 @@ export default function FloorPlanAIPanel({
   const [customPrompt, setCustomPrompt] = useState("");
 
   const callAI = async (action: string, prompt?: string) => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
+  setLoading(true);
+  setError(null);
+  setResult(null);
 
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      if (!token) throw new Error("Non connecte");
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/floorplan-ai`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            action,
-            restaurantId,
-            currentLayout,
-            canvasWidth,
-            canvasHeight,
-            prompt,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({ error: "Erreur inconnue" }));
-        throw new Error(body.error || `Erreur ${response.status}`);
-      }
-
-      const data: AIFloorPlanResult = await response.json();
-      if (!data.tables || !Array.isArray(data.tables)) {
-        throw new Error("Reponse IA invalide");
-      }
-      setResult(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur inconnue");
-    } finally {
-      setLoading(false);
+    if (userError || !user) {
+      throw new Error("Non connecte");
     }
-  };
+
+    const { data, error } = await supabase.functions.invoke("floorplan-ai", {
+      body: {
+        action,
+        restaurantId,
+        currentLayout,
+        canvasWidth,
+        canvasHeight,
+        prompt,
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message || "Erreur lors de l'appel a la fonction");
+    }
+
+    const aiData = data as AIFloorPlanResult;
+
+    if (!aiData?.tables || !Array.isArray(aiData.tables)) {
+      throw new Error("Reponse IA invalide");
+    }
+
+    setResult(aiData);
+  } catch (e) {
+    setError(e instanceof Error ? e.message : "Erreur inconnue");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +139,6 @@ export default function FloorPlanAIPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Header */}
       <div className="flex items-center gap-2">
         <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10">
           <Bot className="h-4 w-4 text-primary" />
@@ -142,7 +149,6 @@ export default function FloorPlanAIPanel({
         </div>
       </div>
 
-      {/* Quick actions */}
       <div className="space-y-1.5">
         {SUGGESTED_ACTIONS.map((action) => (
           <button
@@ -160,7 +166,6 @@ export default function FloorPlanAIPanel({
         ))}
       </div>
 
-      {/* Custom prompt */}
       <form onSubmit={handleCustomSubmit} className="flex gap-1.5">
         <Input
           value={customPrompt}
@@ -180,7 +185,6 @@ export default function FloorPlanAIPanel({
         </Button>
       </form>
 
-      {/* Loading state */}
       {loading && (
         <div className="flex items-center gap-2 rounded-xl bg-primary/5 p-3">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -188,15 +192,13 @@ export default function FloorPlanAIPanel({
         </div>
       )}
 
-      {/* Error */}
       {error && (
-        <div className="flex items-start gap-2 rounded-xl bg-destructive/5 border border-destructive/20 p-3">
-          <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/5 p-3">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
           <p className="text-xs text-destructive">{error}</p>
         </div>
       )}
 
-      {/* Result */}
       {result && (
         <div className="space-y-2 rounded-xl border bg-card p-3">
           <div className="flex items-center gap-2">
@@ -205,7 +207,7 @@ export default function FloorPlanAIPanel({
           </div>
 
           <ScrollArea className="max-h-32">
-            <p className="text-[11px] text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            <p className="whitespace-pre-wrap text-[11px] leading-relaxed text-muted-foreground">
               {result.explanation}
             </p>
           </ScrollArea>
