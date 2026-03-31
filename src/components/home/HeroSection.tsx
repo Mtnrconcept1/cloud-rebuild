@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Bell, ChevronDown, MapPin, Mic, Search, Star, X } from "lucide-react";
+import { Bell, MapPin, Mic, Search, Star, X } from "lucide-react";
+import CityAutocomplete from "@/components/CityAutocomplete";
 
 const stagger = {
   hidden: {},
@@ -30,6 +31,27 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
   const [city, setCity] = useState("Geneve");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewsletter, setShowNewsletter] = useState(true);
+  const [isListening, setIsListening] = useState(false);
+
+  const startVoiceSearch = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SR) return;
+    const recognition = new SR();
+    recognition.lang = "fr-FR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchQuery(transcript);
+      setIsListening(false);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    recognition.start();
+  };
 
   useEffect(() => {
     let ticking = false;
@@ -67,15 +89,22 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           className="px-4 pt-3 pb-4 space-y-3"
         >
           {/* Location bar */}
-          <motion.div variants={fadeUp} className="flex items-center justify-between">
-            <button className="flex items-center gap-1.5 text-foreground">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">{city || "Votre ville"}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
+          <motion.div variants={fadeUp} className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <MapPin className="h-4 w-4 shrink-0 text-primary" />
+              <CityAutocomplete
+                value={city}
+                onCitySelect={(selectedCity) => setCity(selectedCity)}
+                onValueChange={(value) => setCity(value)}
+                placeholder="Votre ville..."
+                className="flex-1 min-w-0"
+                inputClassName="h-8 text-sm font-semibold border-none bg-transparent shadow-none px-0 focus-visible:ring-0"
+                hideIcon
+              />
+            </div>
             <button
               onClick={() => navigate("/notifications")}
-              className="grid h-9 w-9 place-items-center rounded-full bg-muted/60"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted/60"
             >
               <Bell className="h-4.5 w-4.5 text-foreground" />
             </button>
@@ -92,7 +121,11 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 placeholder="Rechercher un restaurant..."
                 className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
-              <button type="button" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary">
+              <button
+                type="button"
+                onClick={startVoiceSearch}
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full transition ${isListening ? "bg-red-500 animate-pulse" : "bg-primary"}`}
+              >
                 <Mic className="h-4 w-4 text-white" />
               </button>
             </div>

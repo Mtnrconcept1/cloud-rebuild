@@ -13,6 +13,7 @@ interface CityAutocompleteProps {
   inputClassName?: string;
   id?: string;
   disabled?: boolean;
+  hideIcon?: boolean;
 }
 
 export default function CityAutocomplete({
@@ -24,6 +25,7 @@ export default function CityAutocomplete({
   inputClassName,
   id,
   disabled,
+  hideIcon,
 }: CityAutocompleteProps) {
   return (
     <AddressAutocomplete
@@ -39,6 +41,7 @@ export default function CityAutocomplete({
       className={className}
       inputClassName={inputClassName}
       disabled={disabled}
+      hideIcon={hideIcon}
     />
   );
 }
