@@ -21,6 +21,7 @@ import {
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { FloorPlanItemIllustration, FloorPlanPresetIcon } from "@/components/floor-plan/FloorPlanItemIllustration";
+import FloorPlanAIPanel, { type AIFloorPlanResult } from "@/components/floor-plan/FloorPlanAIPanel";
 import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1581,6 +1582,85 @@ export default function DashboardPlanSalle() {
     setSelectedTableId(tableId);
   };
 
+  const applyAILayout = (result: AIFloorPlanResult) => {
+    if (!selectedBranchId || !isTemplateMode) {
+      toast({
+        title: "Mode template requis",
+        description: "Passez en mode template pour appliquer une disposition IA.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const AI_KIND_MAP: Record<string, { kind: FloorPlanItemKind; category: "table" | "furniture" }> = {
+      "table-round-2": { kind: "table", category: "table" },
+      "table-round-4": { kind: "table", category: "table" },
+      "table-rect-4": { kind: "table", category: "table" },
+      "table-rect-6": { kind: "table", category: "table" },
+      table: { kind: "table", category: "table" },
+      chair: { kind: "chair", category: "furniture" },
+      stool: { kind: "stool", category: "furniture" },
+      bar: { kind: "bar", category: "furniture" },
+      "corner-bench": { kind: "corner-bench", category: "furniture" },
+      banquette: { kind: "banquette", category: "furniture" },
+      booth: { kind: "booth", category: "furniture" },
+      "host-stand": { kind: "host-stand", category: "furniture" },
+      divider: { kind: "divider", category: "furniture" },
+      plant: { kind: "plant", category: "furniture" },
+      "service-station": { kind: "service-station", category: "furniture" },
+    };
+
+    const newTables: DraftTable[] = result.tables.map((aiTable) => {
+      const mapped = AI_KIND_MAP[aiTable.kind] || { kind: "table" as FloorPlanItemKind, category: "table" as const };
+      const isTable = mapped.category === "table";
+      const shape = aiTable.shape === "round" ? "round" : "rect" as FloorPlanTableShape;
+      const capacity = isTable ? Math.max(1, aiTable.capacity || 2) : 0;
+      const seatLabels = isTable
+        ? (aiTable.seatLabels?.length ? aiTable.seatLabels : Array.from({ length: capacity }, (_, i) => i + 1))
+        : [];
+      const seatType = aiTable.seatType && ["chair", "stool", "bench", "corner-bench"].includes(aiTable.seatType)
+        ? aiTable.seatType as FloorPlanSeatType
+        : undefined;
+
+      const layout = clampFloorPlanLayout(
+        ensureFloorPlanLayoutFitsCapacity(
+          {
+            x: aiTable.x || 24,
+            y: aiTable.y || 24,
+            w: Math.max(60, aiTable.w || 140),
+            h: Math.max(60, aiTable.h || 100),
+            rotation: aiTable.rotation || 0,
+            shape,
+            kind: mapped.kind,
+            seatLabels,
+            seatType,
+          },
+          capacity,
+          shape,
+          mapped.kind,
+        ),
+      );
+
+      return {
+        id: `draft-${crypto.randomUUID()}`,
+        persisted: false,
+        branch_id: selectedBranchId,
+        table_number: aiTable.table_number || `AI-${Math.random().toString(36).slice(2, 5)}`,
+        capacity,
+        is_active: true,
+        sector: selectedSector,
+        layout,
+      };
+    });
+
+    setDraftTables(newTables);
+    setSelectedTableId(null);
+    toast({
+      title: "Disposition IA appliquee",
+      description: `${newTables.length} elements places, ${newTables.reduce((s, t) => s + t.capacity, 0)} couverts au total.`,
+    });
+  };
+
   const startDraggingTable = (event: React.PointerEvent<HTMLElement>, tableId: string) => {
     event.preventDefault();
     setResizeState(null);
@@ -2093,6 +2173,24 @@ export default function DashboardPlanSalle() {
                         </div>
                       ))}
                     </div>
+
+                    <Separator />
+
+                    {/* AI Assistant Panel */}
+                    {selectedId && (
+                      <FloorPlanAIPanel
+                        restaurantId={selectedId}
+                        currentLayout={draftTables.map((t) => ({
+                          table_number: t.table_number,
+                          capacity: t.capacity,
+                          layout: { x: t.layout.x, y: t.layout.y, w: t.layout.w, h: t.layout.h, shape: t.layout.shape, kind: t.layout.kind },
+                        }))}
+                        canvasWidth={CANVAS_WIDTH}
+                        canvasHeight={CANVAS_HEIGHT}
+                        onApply={applyAILayout}
+                        disabled={!isTemplateMode}
+                      />
+                    )}
 
                     <Separator />
 
