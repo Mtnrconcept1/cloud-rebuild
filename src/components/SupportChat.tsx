@@ -162,9 +162,9 @@ export default function SupportChat() {
   }, [history, isTyping]);
 
   useEffect(() => {
-    (window as any).openChat = () => setIsOpen(true);
+    (window as unknown as Record<string, unknown>).openChat = () => setIsOpen(true);
     return () => {
-      (window as any).openChat = undefined;
+      (window as unknown as Record<string, unknown>).openChat = undefined;
     };
   }, []);
 

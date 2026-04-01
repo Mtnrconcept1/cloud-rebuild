@@ -55,8 +55,11 @@ function getRelevanceScore(card: any, ctx: SortContext): number {
   const normalizedQuery = ctx.query.trim().toLowerCase();
   const id = String(card?.id || "");
   const name = String(card?.name || "").toLowerCase();
+  const description = String(card?.description || "").toLowerCase();
   const cuisineType = String(card?.cuisine_type || "").toLowerCase();
+  const address = String(card?.address || "").toLowerCase();
   const city = String(card?.city || "").toLowerCase();
+  const categoryBlob = (Array.isArray(card?._categories) ? card._categories.map((c: any) => String(c.name || "")).join(" ") : "").toLowerCase();
   const rating = toNumber(card?.rating);
   const reviews = toNumber(card?.review_count);
   const monthlyReservations = toNumber(ctx.monthlyReservationsByRestaurant[id]);
@@ -64,13 +67,29 @@ function getRelevanceScore(card: any, ctx: SortContext): number {
   const promotion = Math.max(toNumber(ctx.promotionScoreByRestaurant[id]), card?.campaign_id ? 15 : 0);
   let score = 0;
   if (normalizedQuery) {
+    // Full query matching
     if (name === normalizedQuery) score += 220;
-    if (name.startsWith(normalizedQuery)) score += 170;
-    if (name.includes(normalizedQuery)) score += 120;
+    else if (name.startsWith(normalizedQuery)) score += 170;
+    else if (name.includes(normalizedQuery)) score += 120;
     if (cuisineType.includes(normalizedQuery)) score += 80;
+    if (categoryBlob.includes(normalizedQuery)) score += 80;
+    if (description.includes(normalizedQuery)) score += 50;
+    if (address.includes(normalizedQuery)) score += 45;
     if (city.includes(normalizedQuery)) score += 40;
-    // Boost if matched via menu item
-    if (card?._matchedViaMenu) score += 60;
+    if (card?.matched_via_menu || card?._matchedViaMenu) score += 60;
+
+    // Token-level matching for multi-word queries
+    const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+    if (tokens.length > 1) {
+      for (const tk of tokens) {
+        if (name.includes(tk)) score += 40;
+        if (cuisineType.includes(tk)) score += 25;
+        if (categoryBlob.includes(tk)) score += 25;
+        if (description.includes(tk)) score += 15;
+        if (address.includes(tk)) score += 15;
+        if (city.includes(tk)) score += 12;
+      }
+    }
   } else {
     score += rating * 18 + reviews * 0.9;
   }
@@ -251,6 +270,7 @@ export default function Recherche() {
     const name = (restaurant?.name || "").toLowerCase();
     const description = (restaurant?.description || "").toLowerCase();
     const cuisineType = (restaurant?.cuisine_type || "").toLowerCase();
+    const addressValue = (restaurant?.address || "").toLowerCase();
     const cityValue = (restaurant?.city || "").toLowerCase();
     const matchesCategoryText = restaurantMatchesCategoryFilter({
       query: qText || null,
@@ -258,7 +278,12 @@ export default function Recherche() {
       categories: restaurant?._categories || [],
       legacyCuisineType: restaurant?.cuisine_type || null,
     });
-    if (qText && !name.includes(qText) && !description.includes(qText) && !cuisineType.includes(qText) && !matchesCategoryText && !restaurant?._matchedViaMenu) return false;
+    if (qText) {
+      const tokens = qText.split(/\s+/).filter(Boolean);
+      const fullMatch = name.includes(qText) || description.includes(qText) || cuisineType.includes(qText) || addressValue.includes(qText) || cityValue.includes(qText) || matchesCategoryText || restaurant?._matchedViaMenu;
+      const tokenMatch = tokens.length > 1 && tokens.some((tk: string) => name.includes(tk) || description.includes(tk) || cuisineType.includes(tk) || addressValue.includes(tk) || cityValue.includes(tk));
+      if (!fullMatch && !tokenMatch) return false;
+    }
     if (cuisine && !matchesCategoryText) return false;
     if (city && !cityValue.includes(city.toLowerCase())) return false;
     if (price && Number(restaurant?.price_range || 0) !== Number(price)) return false;
@@ -299,7 +324,7 @@ export default function Recherche() {
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom, cuisine, plat..." className="pl-10" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom, cuisine, plat, adresse..." className="pl-10" />
           </div>
           <Button type="submit">Rechercher</Button>
         </form>

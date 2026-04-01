@@ -57,6 +57,7 @@ interface AddressAutocompleteProps {
   id?: string;
   disabled?: boolean;
   mode?: "address" | "city";
+  hideIcon?: boolean;
 }
 
 function normalizeLocationLabel(value: unknown) {
@@ -74,6 +75,7 @@ export default function AddressAutocomplete({
   id,
   disabled = false,
   mode = "address",
+  hideIcon = false,
 }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -216,7 +218,7 @@ export default function AddressAutocomplete({
   return (
     <div className={cn("relative w-full", className)} ref={dropdownRef}>
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {!hideIcon && <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />}
         <Input
           id={id}
           value={inputValue}
@@ -225,7 +227,7 @@ export default function AddressAutocomplete({
             if (suggestions.length > 0) setIsOpen(true);
           }}
           placeholder={placeholder}
-          className={cn("pl-9 pr-9", inputClassName)}
+          className={cn(hideIcon ? "pr-9" : "pl-9 pr-9", inputClassName)}
           disabled={disabled}
         />
         {isLoading ? (
