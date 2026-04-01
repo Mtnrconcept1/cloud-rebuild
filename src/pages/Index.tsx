@@ -10,6 +10,7 @@ import CampaignBanner from "@/components/CampaignBanner";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import NearbyRestaurantsMap from "@/components/NearbyRestaurantsMap";
 import HeroSection from "@/components/home/HeroSection";
+import CuisineCategoryStrip from "@/components/home/CuisineCategoryStrip";
 import SolidaritySection from "@/components/home/SolidaritySection";
 import RestaurantSection from "@/components/home/RestaurantSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
@@ -262,6 +263,7 @@ export default function Index() {
   return (
     <main className="min-h-screen pb-20">
       <HeroSection contentVisible={isVisible} />
+      <CuisineCategoryStrip />
 
       <motion.div
         variants={sectionStagger}
