@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,15 +11,30 @@ type CuisineCategory = {
 
 // We use emojicdn with the 'apple' style which provides very high-quality 
 // 3D-like minimalist PNGs that fit perfectly into modern UI squircles.
-const EmojiIcon = ({ symbol }: { symbol: string }) => (
-  <img 
-    src={`https://emojicdn.elk.sh/${symbol}?style=apple`} 
-    alt="icon"
-    className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] saturate-[1.15]"
-    crossOrigin="anonymous"
-    loading="lazy"
-  />
-);
+const EmojiIcon = ({ symbol, isAnimating }: { symbol: string, isAnimating?: boolean }) => {
+  return (
+    <motion.img 
+      src={`https://emojicdn.elk.sh/${symbol}?style=apple`} 
+      alt="icon"
+      className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] saturate-[1.15]"
+      crossOrigin="anonymous"
+      loading="lazy"
+      animate={isAnimating ? {
+        y: [0, -18, 0],
+        rotate: [0, -10, 10, -5, 5, 0],
+        scale: [1, 1.15, 1]
+      } : {
+        y: 0,
+        rotate: 0,
+        scale: 1
+      }}
+      transition={{
+        duration: 0.8,
+        ease: "easeInOut"
+      }}
+    />
+  );
+};
 
 const CUISINE_CATEGORIES: CuisineCategory[] = [
   { slug: "gastronomique", label: "Gastronomique", emoji: "🛎️" },
@@ -68,6 +83,19 @@ const CUISINE_CATEGORIES: CuisineCategory[] = [
 export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: string }) {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [animatingIndex, setAnimatingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Toutes les 8 secondes, on anime un icône au hasard
+    const interval = setInterval(() => {
+      setAnimatingIndex(Math.floor(Math.random() * CUISINE_CATEGORIES.length));
+      
+      // On retire l'état d'animation après 1 seconde pour que la boucle puisse se refaire
+      setTimeout(() => setAnimatingIndex(null), 90000);
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -133,7 +161,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
                   `}
                 >
                   <div className="w-full h-full relative z-10 p-2.5">
-                    <EmojiIcon symbol={cat.emoji} />
+                    <EmojiIcon symbol={cat.emoji} isAnimating={animatingIndex === i} />
                   </div>
                 </div>
                 <span 
