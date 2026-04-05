@@ -255,6 +255,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/abonnement"],
   },
   {
+    name: "tok-one",
+    label: "Tok One",
+    description: "Active la page d'abonnement premium Tok One.",
+    defaultEnabled: true,
+    group: "client_features",
+    routeTargets: ["/tok-one"],
+  },
+  {
     name: "campagnes-pub",
     label: "Campagnes pub",
     description: "Active les mises en avant sponsorisees et la gestion des campagnes.",
@@ -466,6 +474,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/dashboard/plan-salle"],
   },
   {
+    name: "dashboard-pack",
+    label: "Dashboard: Pack de lancement",
+    description: "Expose la page de gestion du pack de lancement restaurant.",
+    defaultEnabled: true,
+    group: "restaurant_dashboard",
+    dependsOn: ["dashboard-restaurateur"],
+    routeTargets: ["/dashboard/pack"],
+  },
+  {
     name: "dashboard-support",
     label: "Dashboard: Support",
     description: "Expose l'aide et le support restaurateur.",
@@ -590,6 +607,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "admin_tools",
     routeTargets: ["/admin/audit"],
+  },
+  {
+    name: "admin-packs",
+    label: "Admin: Packs de lancement",
+    description: "Expose la gestion admin des packs de lancement restaurateurs et le suivi des services.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    routeTargets: ["/admin/packs"],
   },
 ];
 

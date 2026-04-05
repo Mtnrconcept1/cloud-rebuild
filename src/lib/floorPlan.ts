@@ -1,6 +1,32 @@
 export type FloorPlanTableShape = "round" | "rect";
 export type FloorPlanItemCategory = "table" | "furniture";
 export type FloorPlanSeatType = "chair" | "stool" | "bench" | "corner-bench";
+export type FloorPlanLinearSeatType = Exclude<FloorPlanSeatType, "corner-bench">;
+export type FloorPlanRectSeatZone = "top" | "right" | "bottom" | "left";
+export type FloorPlanRoundSeatZone =
+  | "north"
+  | "north-east"
+  | "east"
+  | "south-east"
+  | "south"
+  | "south-west"
+  | "west"
+  | "north-west";
+export type FloorPlanSeatZone = FloorPlanRectSeatZone | FloorPlanRoundSeatZone;
+export type FloorPlanCornerBenchCorner = "top-left" | "top-right" | "bottom-right" | "bottom-left";
+export type FloorPlanSeatPlacement = {
+  zone: FloorPlanSeatZone;
+  type: FloorPlanLinearSeatType;
+  count: number;
+  benchLength?: number;
+  benchDepth?: number;
+};
+export type FloorPlanCornerBenchConfig = {
+  corner: FloorPlanCornerBenchCorner;
+  horizontal: number;
+  vertical: number;
+  depth: number;
+};
 export type FloorPlanItemKind =
   | "table"
   | "chair"
@@ -24,6 +50,33 @@ export type FloorPlanTableLayout = {
   seatLabels: number[];
   kind: FloorPlanItemKind;
   seatType?: FloorPlanSeatType;
+  seatPlacements?: FloorPlanSeatPlacement[];
+  cornerBenchCorners?: FloorPlanCornerBenchCorner[];
+  cornerBenchConfigs?: FloorPlanCornerBenchConfig[];
+  tableWidth?: number;
+  tableHeight?: number;
+  cornerBenchHorizontal?: number;
+  cornerBenchVertical?: number;
+  cornerBenchDepth?: number;
+};
+
+export type FloorPlanResolvedDimensions = {
+  tableWidth: number;
+  tableHeight: number;
+  footprintWidth: number;
+  footprintHeight: number;
+  paddingTop: number;
+  paddingRight: number;
+  paddingBottom: number;
+  paddingLeft: number;
+  seatType: FloorPlanSeatType;
+  seatPlacements: FloorPlanSeatPlacement[];
+  cornerBenchCorners: FloorPlanCornerBenchCorner[];
+  cornerBenchConfigs: FloorPlanCornerBenchConfig[];
+  capacity: number;
+  cornerBenchHorizontal?: number;
+  cornerBenchVertical?: number;
+  cornerBenchDepth?: number;
 };
 
 export type FloorPlanTablePreset = {
@@ -51,12 +104,50 @@ const DEFAULT_CANVAS_WIDTH = 1040;
 const DEFAULT_CANVAS_HEIGHT = 680;
 
 const VALID_SEAT_TYPES = new Set<FloorPlanSeatType>(["chair", "stool", "bench", "corner-bench"]);
+const VALID_LINEAR_SEAT_TYPES = new Set<FloorPlanLinearSeatType>(["chair", "stool", "bench"]);
+export const RECT_SEAT_ZONES: FloorPlanRectSeatZone[] = ["top", "right", "bottom", "left"];
+export const ROUND_SEAT_ZONES: FloorPlanRoundSeatZone[] = [
+  "north",
+  "north-east",
+  "east",
+  "south-east",
+  "south",
+  "south-west",
+  "west",
+  "north-west",
+];
+export const CORNER_BENCH_CORNERS: FloorPlanCornerBenchCorner[] = ["top-left", "top-right", "bottom-right", "bottom-left"];
 
 export const SEAT_TYPE_LABELS: Record<FloorPlanSeatType, string> = {
   chair: "Chaises",
   stool: "Tabourets",
   bench: "Banquettes",
   "corner-bench": "Bancs d'angle",
+};
+
+export const RECT_SEAT_ZONE_LABELS: Record<FloorPlanRectSeatZone, string> = {
+  top: "Haut",
+  right: "Droite",
+  bottom: "Bas",
+  left: "Gauche",
+};
+
+export const ROUND_SEAT_ZONE_LABELS: Record<FloorPlanRoundSeatZone, string> = {
+  north: "Nord",
+  "north-east": "Nord-est",
+  east: "Est",
+  "south-east": "Sud-est",
+  south: "Sud",
+  "south-west": "Sud-ouest",
+  west: "Ouest",
+  "north-west": "Nord-ouest",
+};
+
+export const CORNER_BENCH_LABELS: Record<FloorPlanCornerBenchCorner, string> = {
+  "top-left": "Haut gauche",
+  "top-right": "Haut droite",
+  "bottom-right": "Bas droite",
+  "bottom-left": "Bas gauche",
 };
 
 const ITEM_BASE_NAMES: Record<FloorPlanItemKind, string> = {
@@ -100,6 +191,27 @@ const MIN_FURNITURE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: numbe
   "service-station": { w: 140, h: 92, shape: "rect" },
 };
 
+const FOOTPRINT_BASE_PADDING = 14;
+const RECT_SIDE_CORNER_GAP = 18;
+const ROUND_SEAT_PADDING: Record<FloorPlanSeatType, number> = {
+  chair: 28,
+  stool: 22,
+  bench: 24,
+  "corner-bench": 24,
+};
+const RECT_SEAT_PADDING: Record<Exclude<FloorPlanSeatType, "corner-bench">, number> = {
+  chair: 30,
+  stool: 22,
+  bench: 26,
+};
+const MIN_CORNER_BENCH_DEPTH = 44;
+const MAX_CORNER_BENCH_DEPTH = 74;
+const MIN_CORNER_BENCH_HORIZONTAL = 92;
+const MIN_CORNER_BENCH_VERTICAL = 86;
+const MIN_BENCH_DEPTH = 22;
+const MAX_BENCH_DEPTH = 52;
+const ROUND_ZONE_SAFE_ARC_RADIANS = (38 * Math.PI) / 180;
+
 const isFiniteNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 
 const parseNumber = (value: unknown) => {
@@ -137,6 +249,684 @@ export function buildSeatLabels(capacity: number, shape: FloorPlanTableShape) {
   return Array.from({ length: seatCount }, () => 1);
 }
 
+function roundDimension(value: number) {
+  return Math.round(value);
+}
+
+function clampDimension(value: number, min: number, max = Number.POSITIVE_INFINITY) {
+  return roundDimension(Math.min(max, Math.max(min, value)));
+}
+
+function distributeSidesRect(capacity: number) {
+  const count = Math.max(1, Math.round(capacity || 1));
+  if (count === 1) return { top: 0, bottom: 1, left: 0, right: 0 };
+  if (count === 2) return { top: 1, bottom: 1, left: 0, right: 0 };
+  if (count === 3) return { top: 1, bottom: 2, left: 0, right: 0 };
+
+  const longSideTotal = count <= 4 ? count : count - 2;
+  const top = Math.floor(longSideTotal / 2);
+  const bottom = Math.ceil(longSideTotal / 2);
+  const remainder = Math.max(0, count - top - bottom);
+  const left = Math.floor(remainder / 2);
+  const right = remainder - left;
+  return { top, bottom, left, right };
+}
+
+function isRectSeatZone(value: string): value is FloorPlanRectSeatZone {
+  return RECT_SEAT_ZONES.includes(value as FloorPlanRectSeatZone);
+}
+
+function isRoundSeatZone(value: string): value is FloorPlanRoundSeatZone {
+  return ROUND_SEAT_ZONES.includes(value as FloorPlanRoundSeatZone);
+}
+
+function isSeatZoneForShape(shape: FloorPlanTableShape, zone: string): zone is FloorPlanSeatZone {
+  return shape === "rect" ? isRectSeatZone(zone) : isRoundSeatZone(zone);
+}
+
+function getRoundZoneCenterAngle(zone: FloorPlanRoundSeatZone) {
+  const angleByZone: Record<FloorPlanRoundSeatZone, number> = {
+    north: -90,
+    "north-east": -45,
+    east: 0,
+    "south-east": 45,
+    south: 90,
+    "south-west": 135,
+    west: 180,
+    "north-west": 225,
+  };
+  return angleByZone[zone];
+}
+
+function getNormalizedLinearSeatType(value: unknown): FloorPlanLinearSeatType | null {
+  return typeof value === "string" && VALID_LINEAR_SEAT_TYPES.has(value as FloorPlanLinearSeatType)
+    ? value as FloorPlanLinearSeatType
+    : null;
+}
+
+function normalizeCornerBenchConfig(source: Record<string, unknown>) {
+  const corner = typeof source.corner === "string" && CORNER_BENCH_CORNERS.includes(source.corner as FloorPlanCornerBenchCorner)
+    ? source.corner as FloorPlanCornerBenchCorner
+    : null;
+  const horizontal = parseNumber(source.horizontal);
+  const vertical = parseNumber(source.vertical);
+  const depth = parseNumber(source.depth);
+
+  if (!corner || !horizontal || !vertical || !depth) return null;
+  return { corner, horizontal, vertical, depth };
+}
+
+function getDefaultLinearSeatType(seatType?: FloorPlanSeatType): FloorPlanLinearSeatType {
+  if (seatType === "stool" || seatType === "bench") return seatType;
+  return "chair";
+}
+
+function getSeatTypeFromPlacements(
+  shape: FloorPlanTableShape,
+  placements: FloorPlanSeatPlacement[],
+  fallback?: FloorPlanSeatType,
+): FloorPlanSeatType {
+  if (placements.length === 0) return getEffectiveSeatType(shape, fallback);
+
+  const weightedTypes = placements.reduce<Record<FloorPlanLinearSeatType, number>>((accumulator, placement) => {
+    accumulator[placement.type] += placement.count;
+    return accumulator;
+  }, { chair: 0, stool: 0, bench: 0 });
+
+  if (weightedTypes.bench >= weightedTypes.chair && weightedTypes.bench >= weightedTypes.stool) return "bench";
+  if (weightedTypes.stool >= weightedTypes.chair && weightedTypes.stool >= weightedTypes.bench) return "stool";
+  return "chair";
+}
+
+function distributeRoundZones(capacity: number) {
+  const safeCapacity = Math.max(0, Math.round(capacity || 0));
+  const counts = new Map<FloorPlanRoundSeatZone, number>();
+  ROUND_SEAT_ZONES.forEach((zone) => counts.set(zone, 0));
+
+  for (let index = 0; index < safeCapacity; index += 1) {
+    const zone = ROUND_SEAT_ZONES[index % ROUND_SEAT_ZONES.length];
+    counts.set(zone, (counts.get(zone) || 0) + 1);
+  }
+
+  return counts;
+}
+
+export function getDefaultBenchDimensions(
+  tableWidth: number,
+  tableHeight: number,
+  zone: FloorPlanSeatZone,
+  count = 2,
+) {
+  const isHorizontal = zone === "top" || zone === "bottom";
+  const relevantSpan = isHorizontal
+    ? Math.max(88, roundDimension(tableWidth || 88))
+    : zone === "left" || zone === "right"
+      ? Math.max(72, roundDimension(tableHeight || 72))
+      : Math.max(96, roundDimension((Math.max(tableWidth || 88, tableHeight || 72)) * 0.55));
+
+  return {
+    benchLength: clampDimension(
+      Math.max(relevantSpan * 0.56, Math.max(1, count) * 28),
+      Math.max(56, Math.max(1, count) * 22),
+      relevantSpan,
+    ),
+    benchDepth: clampDimension(Math.min(tableWidth || 88, tableHeight || 72) * 0.26, MIN_BENCH_DEPTH, MAX_BENCH_DEPTH),
+  };
+}
+
+function normalizeSeatPlacements(
+  shape: FloorPlanTableShape,
+  rawPlacements: unknown,
+  fallbackCapacity: number,
+  fallbackSeatType?: FloorPlanSeatType,
+  tableWidth?: number,
+  tableHeight?: number,
+) {
+  const parsedPlacements = Array.isArray(rawPlacements)
+    ? rawPlacements.flatMap((entry) => {
+      if (typeof entry !== "object" || entry === null) return [];
+      const source = entry as Record<string, unknown>;
+      const zone = typeof source.zone === "string" && isSeatZoneForShape(shape, source.zone)
+        ? source.zone as FloorPlanSeatZone
+        : null;
+      const type = getNormalizedLinearSeatType(source.type);
+      const count = parseNumber(source.count);
+      if (!zone || !type || !count || count <= 0) return [];
+      const safeCount = Math.max(1, Math.round(count));
+      if (type !== "bench") {
+        return [{ zone, type, count: safeCount }];
+      }
+
+      const defaults = getDefaultBenchDimensions(tableWidth || 88, tableHeight || 72, zone, safeCount);
+      const benchLength = clampDimension(
+        parseNumber(source.bench_length) ?? parseNumber(source.benchLength) ?? defaults.benchLength,
+        Math.max(48, safeCount * 20),
+      );
+      const benchDepth = clampDimension(
+        parseNumber(source.bench_depth) ?? parseNumber(source.benchDepth) ?? defaults.benchDepth,
+        MIN_BENCH_DEPTH,
+        MAX_BENCH_DEPTH,
+      );
+
+      return [{ zone, type, count: safeCount, benchLength, benchDepth }];
+    })
+    : [];
+
+  if (parsedPlacements.length > 0) {
+    const deduped = new Map<string, FloorPlanSeatPlacement>();
+    parsedPlacements.forEach((placement) => {
+      deduped.set(placement.zone, placement);
+    });
+    return Array.from(deduped.values());
+  }
+
+  if ((Array.isArray(rawPlacements) && rawPlacements.length === 0) || fallbackSeatType === "corner-bench") {
+    return [];
+  }
+
+  const defaultType = getDefaultLinearSeatType(fallbackSeatType);
+  const safeCapacity = Math.max(0, Math.round(fallbackCapacity || 0));
+  if (safeCapacity <= 0) return [];
+
+  if (shape === "round") {
+    const distribution = distributeRoundZones(safeCapacity);
+    return ROUND_SEAT_ZONES.flatMap((zone) => {
+      const count = distribution.get(zone) || 0;
+      if (count <= 0) return [];
+      if (defaultType !== "bench") return [{ zone, type: defaultType, count }];
+      const defaults = getDefaultBenchDimensions(tableWidth || 88, tableHeight || 72, zone, count);
+      return [{ zone, type: defaultType, count, benchLength: defaults.benchLength, benchDepth: defaults.benchDepth }];
+    });
+  }
+
+  const distribution = distributeSidesRect(safeCapacity);
+  return RECT_SEAT_ZONES.flatMap((zone) => {
+    const count = distribution[zone];
+    if (count <= 0) return [];
+    if (defaultType !== "bench") return [{ zone, type: defaultType, count }];
+    const defaults = getDefaultBenchDimensions(tableWidth || 88, tableHeight || 72, zone, count);
+    return [{ zone, type: defaultType, count, benchLength: defaults.benchLength, benchDepth: defaults.benchDepth }];
+  });
+}
+
+function normalizeCornerBenchCorners(shape: FloorPlanTableShape, rawCorners: unknown, fallbackSeatType?: FloorPlanSeatType) {
+  if (shape !== "rect") return [] as FloorPlanCornerBenchCorner[];
+
+  const parsedCorners = Array.isArray(rawCorners)
+    ? rawCorners.flatMap((entry) => {
+      if (typeof entry !== "string") return [];
+      return CORNER_BENCH_CORNERS.includes(entry as FloorPlanCornerBenchCorner)
+        ? [entry as FloorPlanCornerBenchCorner]
+        : [];
+    })
+    : [];
+
+  if (parsedCorners.length > 0) {
+    return Array.from(new Set(parsedCorners));
+  }
+
+  return fallbackSeatType === "corner-bench" ? ["top-left"] : [];
+}
+
+function normalizeCornerBenchConfigs(
+  shape: FloorPlanTableShape,
+  rawConfigs: unknown,
+  legacyCorners: FloorPlanCornerBenchCorner[],
+  legacyHorizontal: number | undefined,
+  legacyVertical: number | undefined,
+  legacyDepth: number | undefined,
+  tableWidth: number,
+  tableHeight: number,
+) {
+  if (shape !== "rect") return [] as FloorPlanCornerBenchConfig[];
+
+  const defaults = getDefaultCornerBenchDimensions(tableWidth, tableHeight);
+  const parsedConfigs = Array.isArray(rawConfigs)
+    ? rawConfigs.flatMap((entry) => {
+      if (typeof entry !== "object" || entry === null) return [];
+      const parsed = normalizeCornerBenchConfig(entry as Record<string, unknown>);
+      return parsed ? [parsed] : [];
+    })
+    : [];
+
+  if (parsedConfigs.length > 0) {
+    const deduped = new Map<FloorPlanCornerBenchCorner, FloorPlanCornerBenchConfig>();
+    parsedConfigs.forEach((config) => {
+      deduped.set(config.corner, {
+        corner: config.corner,
+        horizontal: clampDimension(config.horizontal, MIN_CORNER_BENCH_HORIZONTAL, tableWidth),
+        vertical: clampDimension(config.vertical, MIN_CORNER_BENCH_VERTICAL, tableHeight),
+        depth: clampDimension(config.depth, MIN_CORNER_BENCH_DEPTH, MAX_CORNER_BENCH_DEPTH),
+      });
+    });
+    return Array.from(deduped.values());
+  }
+
+  return legacyCorners.map((corner) => ({
+    corner,
+    horizontal: clampDimension(legacyHorizontal ?? defaults.cornerBenchHorizontal, MIN_CORNER_BENCH_HORIZONTAL, tableWidth),
+    vertical: clampDimension(legacyVertical ?? defaults.cornerBenchVertical, MIN_CORNER_BENCH_VERTICAL, tableHeight),
+    depth: clampDimension(legacyDepth ?? defaults.cornerBenchDepth, MIN_CORNER_BENCH_DEPTH, MAX_CORNER_BENCH_DEPTH),
+  }));
+}
+
+export function getSeatPlacementsCapacity(placements: FloorPlanSeatPlacement[]) {
+  return placements.reduce((total, placement) => total + Math.max(0, Math.round(placement.count || 0)), 0);
+}
+
+function getEffectiveSeatType(shape: FloorPlanTableShape, seatType?: FloorPlanSeatType): FloorPlanSeatType {
+  const normalizedSeatType = seatType && VALID_SEAT_TYPES.has(seatType) ? seatType : "chair";
+  if (shape === "round" && normalizedSeatType === "corner-bench") {
+    return "bench";
+  }
+  return normalizedSeatType;
+}
+
+function getMinimumTableTopSize(capacity: number, shape: FloorPlanTableShape) {
+  const safeCapacity = Math.max(1, Math.round(capacity || 1));
+  if (shape === "round") {
+    const diameter = 78 + Math.max(0, safeCapacity - 2) * 10;
+    return { w: diameter, h: diameter };
+  }
+
+  const distribution = distributeSidesRect(safeCapacity);
+  const longSideSeats = Math.max(1, distribution.top, distribution.bottom);
+  const shortSideSeats = Math.max(0, distribution.left, distribution.right);
+
+  return {
+    w: 84 + longSideSeats * 28 + Math.max(0, safeCapacity - 8) * 3,
+    h: 60 + Math.max(1, shortSideSeats) * 18 + Math.max(0, safeCapacity - 10) * 2,
+  };
+}
+
+function getSeatDemandSpan(placement: FloorPlanSeatPlacement, orientation: "horizontal" | "vertical" | "radial") {
+  if (placement.type === "bench") {
+    return Math.max(48, roundDimension(placement.benchLength || (placement.count * 28)));
+  }
+  const unit = orientation === "radial" ? 22 : 28;
+  return Math.max(unit, placement.count * unit + Math.max(0, placement.count - 1) * 6);
+}
+
+function getMinimumTableTopSizeFromConfiguration(
+  shape: FloorPlanTableShape,
+  capacity: number,
+  placements: FloorPlanSeatPlacement[],
+  cornerBenchConfigs: FloorPlanCornerBenchConfig[],
+) {
+  if (shape === "round") {
+    const base = getMinimumTableTopSize(Math.max(1, capacity), shape);
+    const padding = getRoundPaddingFromPlacements(placements);
+    const requiredOrbitRadius = placements.reduce((maximum, placement) => (
+      Math.max(maximum, getSeatDemandSpan(placement, "radial") / ROUND_ZONE_SAFE_ARC_RADIANS)
+    ), (base.w / 2) + padding * 0.56);
+    const diameterFromArc = roundDimension(Math.max(base.w, (requiredOrbitRadius - padding * 0.56) * 2));
+    return { w: diameterFromArc, h: diameterFromArc };
+  }
+
+  const topPlacement = placements.find((placement) => placement.zone === "top");
+  const bottomPlacement = placements.find((placement) => placement.zone === "bottom");
+  const leftPlacement = placements.find((placement) => placement.zone === "left");
+  const rightPlacement = placements.find((placement) => placement.zone === "right");
+
+  const topLeftCorner = cornerBenchConfigs.find((config) => config.corner === "top-left");
+  const topRightCorner = cornerBenchConfigs.find((config) => config.corner === "top-right");
+  const bottomLeftCorner = cornerBenchConfigs.find((config) => config.corner === "bottom-left");
+  const bottomRightCorner = cornerBenchConfigs.find((config) => config.corner === "bottom-right");
+
+  const width = Math.max(
+    84,
+    (topLeftCorner?.horizontal || 0) + (topRightCorner?.horizontal || 0) + getSeatDemandSpan(topPlacement || { zone: "top", type: "chair", count: 0 }, "horizontal") + RECT_SIDE_CORNER_GAP * 2,
+    (bottomLeftCorner?.horizontal || 0) + (bottomRightCorner?.horizontal || 0) + getSeatDemandSpan(bottomPlacement || { zone: "bottom", type: "chair", count: 0 }, "horizontal") + RECT_SIDE_CORNER_GAP * 2,
+    Math.max(topLeftCorner?.horizontal || 0, bottomLeftCorner?.horizontal || 0, topRightCorner?.horizontal || 0, bottomRightCorner?.horizontal || 0, 84),
+  );
+
+  const height = Math.max(
+    60,
+    (topLeftCorner?.vertical || 0) + (bottomLeftCorner?.vertical || 0) + getSeatDemandSpan(leftPlacement || { zone: "left", type: "chair", count: 0 }, "vertical") + RECT_SIDE_CORNER_GAP * 2,
+    (topRightCorner?.vertical || 0) + (bottomRightCorner?.vertical || 0) + getSeatDemandSpan(rightPlacement || { zone: "right", type: "chair", count: 0 }, "vertical") + RECT_SIDE_CORNER_GAP * 2,
+    Math.max(topLeftCorner?.vertical || 0, topRightCorner?.vertical || 0, bottomLeftCorner?.vertical || 0, bottomRightCorner?.vertical || 0, 60),
+  );
+
+  return {
+    w: roundDimension(width),
+    h: roundDimension(height),
+  };
+}
+
+function getRectSideAvailableSpan(
+  zone: FloorPlanRectSeatZone,
+  tableWidth: number,
+  tableHeight: number,
+  cornerBenchConfigs: FloorPlanCornerBenchConfig[],
+) {
+  if (zone === "top") {
+    const left = cornerBenchConfigs.find((config) => config.corner === "top-left")?.horizontal || 0;
+    const right = cornerBenchConfigs.find((config) => config.corner === "top-right")?.horizontal || 0;
+    return Math.max(48, tableWidth - left - right - RECT_SIDE_CORNER_GAP * 2);
+  }
+  if (zone === "bottom") {
+    const left = cornerBenchConfigs.find((config) => config.corner === "bottom-left")?.horizontal || 0;
+    const right = cornerBenchConfigs.find((config) => config.corner === "bottom-right")?.horizontal || 0;
+    return Math.max(48, tableWidth - left - right - RECT_SIDE_CORNER_GAP * 2);
+  }
+  if (zone === "left") {
+    const top = cornerBenchConfigs.find((config) => config.corner === "top-left")?.vertical || 0;
+    const bottom = cornerBenchConfigs.find((config) => config.corner === "bottom-left")?.vertical || 0;
+    return Math.max(42, tableHeight - top - bottom - RECT_SIDE_CORNER_GAP * 2);
+  }
+
+  const top = cornerBenchConfigs.find((config) => config.corner === "top-right")?.vertical || 0;
+  const bottom = cornerBenchConfigs.find((config) => config.corner === "bottom-right")?.vertical || 0;
+  return Math.max(42, tableHeight - top - bottom - RECT_SIDE_CORNER_GAP * 2);
+}
+
+function normalizeResolvedSeatPlacements(
+  shape: FloorPlanTableShape,
+  placements: FloorPlanSeatPlacement[],
+  tableWidth: number,
+  tableHeight: number,
+  cornerBenchConfigs: FloorPlanCornerBenchConfig[],
+) {
+  return placements.map((placement) => {
+    if (placement.type !== "bench") return placement;
+
+    if (shape === "round") {
+      const defaults = getDefaultBenchDimensions(tableWidth, tableHeight, placement.zone, placement.count);
+      const maxArcLength = Math.PI * Math.max(tableWidth, tableHeight) * 0.2;
+      return {
+        ...placement,
+        benchLength: clampDimension(placement.benchLength ?? defaults.benchLength, 48, maxArcLength),
+        benchDepth: clampDimension(placement.benchDepth ?? defaults.benchDepth, MIN_BENCH_DEPTH, MAX_BENCH_DEPTH),
+      };
+    }
+
+    const zone = placement.zone as FloorPlanRectSeatZone;
+    const defaults = getDefaultBenchDimensions(tableWidth, tableHeight, zone, placement.count);
+    return {
+      ...placement,
+      benchLength: clampDimension(
+        placement.benchLength ?? defaults.benchLength,
+        Math.max(48, placement.count * 20),
+        getRectSideAvailableSpan(zone, tableWidth, tableHeight, cornerBenchConfigs),
+      ),
+      benchDepth: clampDimension(placement.benchDepth ?? defaults.benchDepth, MIN_BENCH_DEPTH, MAX_BENCH_DEPTH),
+    };
+  });
+}
+
+function getRectSidePaddingFromPlacements(placements: FloorPlanSeatPlacement[]) {
+  return placements.reduce<Record<FloorPlanRectSeatZone, number>>((accumulator, placement) => {
+    const zone = placement.zone as FloorPlanRectSeatZone;
+    const depth = placement.type === "bench"
+      ? placement.benchDepth ?? RECT_SEAT_PADDING.bench
+      : RECT_SEAT_PADDING[placement.type];
+    accumulator[zone] = Math.max(accumulator[zone], FOOTPRINT_BASE_PADDING + depth);
+    return accumulator;
+  }, { top: FOOTPRINT_BASE_PADDING, right: FOOTPRINT_BASE_PADDING, bottom: FOOTPRINT_BASE_PADDING, left: FOOTPRINT_BASE_PADDING });
+}
+
+function getRoundPaddingFromPlacements(placements: FloorPlanSeatPlacement[]) {
+  if (placements.length === 0) return FOOTPRINT_BASE_PADDING;
+  return Math.max(
+    ...placements.map((placement) => FOOTPRINT_BASE_PADDING + (
+      placement.type === "bench"
+        ? placement.benchDepth ?? ROUND_SEAT_PADDING.bench
+        : ROUND_SEAT_PADDING[placement.type]
+    )),
+  );
+}
+
+export function getDefaultCornerBenchDimensions(tableWidth: number, tableHeight: number) {
+  const safeWidth = Math.max(88, roundDimension(tableWidth || 88));
+  const safeHeight = Math.max(72, roundDimension(tableHeight || 72));
+
+  return {
+    cornerBenchHorizontal: clampDimension(safeWidth * 0.38, Math.min(MIN_CORNER_BENCH_HORIZONTAL, safeWidth), safeWidth),
+    cornerBenchVertical: clampDimension(safeHeight * 0.44, Math.min(MIN_CORNER_BENCH_VERTICAL, safeHeight), safeHeight),
+    cornerBenchDepth: clampDimension(Math.min(safeWidth, safeHeight) * 0.45, MIN_CORNER_BENCH_DEPTH, MAX_CORNER_BENCH_DEPTH),
+  };
+}
+
+function estimateCornerBenchCapacity(horizontal: number, vertical: number) {
+  const horizontalSeats = Math.max(1, Math.round((horizontal - 24) / 52));
+  const verticalSeats = Math.max(1, Math.round((vertical - 24) / 52));
+  return Math.max(2, horizontalSeats + verticalSeats - 1);
+}
+
+export function getCornerBenchCapacity(configs: FloorPlanCornerBenchConfig[]) {
+  return configs.reduce(
+    (total, config) => total + estimateCornerBenchCapacity(config.horizontal, config.vertical),
+    0,
+  );
+}
+
+export function getConfiguredTableCapacity({
+  shape,
+  seatPlacements,
+  cornerBenchConfigs,
+}: {
+  shape: FloorPlanTableShape;
+  seatPlacements: FloorPlanSeatPlacement[];
+  cornerBenchConfigs?: FloorPlanCornerBenchConfig[];
+}) {
+  const linearCapacity = getSeatPlacementsCapacity(seatPlacements);
+  if (shape !== "rect" || !cornerBenchConfigs?.length) return linearCapacity;
+
+  return linearCapacity + getCornerBenchCapacity(cornerBenchConfigs);
+}
+
+function getCornerBenchSidePadding(
+  configs: FloorPlanCornerBenchConfig[],
+) {
+  return {
+    top: FOOTPRINT_BASE_PADDING + Math.max(0, ...configs.filter((config) => config.corner.startsWith("top")).map((config) => config.depth)),
+    right: FOOTPRINT_BASE_PADDING + Math.max(0, ...configs.filter((config) => config.corner.endsWith("right")).map((config) => config.depth)),
+    bottom: FOOTPRINT_BASE_PADDING + Math.max(0, ...configs.filter((config) => config.corner.startsWith("bottom")).map((config) => config.depth)),
+    left: FOOTPRINT_BASE_PADDING + Math.max(0, ...configs.filter((config) => config.corner.endsWith("left")).map((config) => config.depth)),
+  };
+}
+
+type ResolveFloorPlanDimensionsInput = {
+  capacity: number;
+  shape: FloorPlanTableShape;
+  kind?: FloorPlanItemKind;
+  seatType?: FloorPlanSeatType;
+  seatPlacements?: FloorPlanSeatPlacement[];
+  cornerBenchCorners?: FloorPlanCornerBenchCorner[];
+  cornerBenchConfigs?: FloorPlanCornerBenchConfig[];
+  tableWidth?: number;
+  tableHeight?: number;
+  footprintWidth?: number;
+  footprintHeight?: number;
+  cornerBenchHorizontal?: number;
+  cornerBenchVertical?: number;
+  cornerBenchDepth?: number;
+};
+
+export function getResolvedFloorPlanDimensions({
+  capacity,
+  shape,
+  kind = "table",
+  seatType = "chair",
+  seatPlacements,
+  cornerBenchCorners,
+  cornerBenchConfigs,
+  tableWidth,
+  tableHeight,
+  footprintWidth,
+  footprintHeight,
+  cornerBenchHorizontal,
+  cornerBenchVertical,
+  cornerBenchDepth,
+}: ResolveFloorPlanDimensionsInput): FloorPlanResolvedDimensions {
+  if (!isReservableFloorPlanItem(kind)) {
+    const furnitureSize = MIN_FURNITURE_SIZE[kind];
+    return {
+      tableWidth: furnitureSize.w,
+      tableHeight: furnitureSize.h,
+      footprintWidth: furnitureSize.w,
+      footprintHeight: furnitureSize.h,
+      paddingTop: 0,
+      paddingRight: 0,
+      paddingBottom: 0,
+      paddingLeft: 0,
+      seatType: "chair",
+      seatPlacements: [],
+      cornerBenchCorners: [],
+      cornerBenchConfigs: [],
+      capacity: 0,
+    };
+  }
+
+  const preliminaryTableWidth = Math.max(88, roundDimension(parseNumber(tableWidth) ?? Math.max(88, (parseNumber(footprintWidth) ?? 176) - 88)));
+  const preliminaryTableHeight = Math.max(72, roundDimension(parseNumber(tableHeight) ?? Math.max(72, (parseNumber(footprintHeight) ?? 116) - 88)));
+  const normalizedSeatPlacements = normalizeSeatPlacements(
+    shape,
+    seatPlacements,
+    capacity,
+    seatType,
+    preliminaryTableWidth,
+    preliminaryTableHeight,
+  );
+  const normalizedCornerBenchCorners = normalizeCornerBenchCorners(shape, cornerBenchCorners, seatType);
+  const normalizedCornerBenchConfigs = normalizeCornerBenchConfigs(
+    shape,
+    cornerBenchConfigs,
+    normalizedCornerBenchCorners,
+    parseNumber(cornerBenchHorizontal) ?? undefined,
+    parseNumber(cornerBenchVertical) ?? undefined,
+    parseNumber(cornerBenchDepth) ?? undefined,
+    preliminaryTableWidth,
+    preliminaryTableHeight,
+  );
+  const effectiveSeatType = shape === "rect" && normalizedCornerBenchConfigs.length > 0
+    ? "corner-bench"
+    : getSeatTypeFromPlacements(shape, normalizedSeatPlacements, seatType);
+  const fallbackCapacity = Math.max(1, Math.round(capacity || 1));
+  const seatCapacity = Math.max(
+    fallbackCapacity,
+    getConfiguredTableCapacity({
+      shape,
+      seatPlacements: normalizedSeatPlacements,
+      cornerBenchConfigs: normalizedCornerBenchConfigs,
+    }),
+  );
+  const minimumTable = getMinimumTableTopSizeFromConfiguration(
+    shape,
+    seatCapacity,
+    normalizedSeatPlacements,
+    normalizedCornerBenchConfigs,
+  );
+
+  if (shape === "round") {
+    const roundPlacements = normalizeResolvedSeatPlacements(
+      shape,
+      normalizedSeatPlacements.filter((placement) => isRoundSeatZone(placement.zone)),
+      minimumTable.w,
+      minimumTable.h,
+      [],
+    );
+    const padding = getRoundPaddingFromPlacements(roundPlacements);
+    const inferredDiameter = [parseNumber(footprintWidth), parseNumber(footprintHeight)]
+      .filter((value): value is number => value !== null)
+      .map((value) => value - padding * 2)
+      .filter((value) => value > 0);
+    const diameter = clampDimension(
+      parseNumber(tableWidth)
+        ?? parseNumber(tableHeight)
+        ?? (inferredDiameter.length ? Math.min(...inferredDiameter) : minimumTable.w),
+      minimumTable.w,
+    );
+    const footprint = diameter + padding * 2;
+
+    return {
+      tableWidth: diameter,
+      tableHeight: diameter,
+      footprintWidth: footprint,
+      footprintHeight: footprint,
+      paddingTop: padding,
+      paddingRight: padding,
+      paddingBottom: padding,
+      paddingLeft: padding,
+      seatType: effectiveSeatType,
+      seatPlacements: roundPlacements,
+      cornerBenchCorners: [],
+      cornerBenchConfigs: [],
+      capacity: getSeatPlacementsCapacity(roundPlacements),
+    };
+  }
+
+  const fallbackWidth = parseNumber(footprintWidth) !== null
+    ? Math.max(minimumTable.w, (parseNumber(footprintWidth) || minimumTable.w) - 88)
+    : minimumTable.w;
+  const fallbackHeight = parseNumber(footprintHeight) !== null
+    ? Math.max(minimumTable.h, (parseNumber(footprintHeight) || minimumTable.h) - 88)
+    : minimumTable.h;
+
+  let resolvedTableWidth = clampDimension(parseNumber(tableWidth) ?? fallbackWidth, minimumTable.w);
+  let resolvedTableHeight = clampDimension(parseNumber(tableHeight) ?? fallbackHeight, minimumTable.h);
+  const resolvedCornerBenchConfigs = normalizeCornerBenchConfigs(
+    shape,
+    normalizedCornerBenchConfigs,
+    normalizedCornerBenchCorners,
+    undefined,
+    undefined,
+    undefined,
+    resolvedTableWidth,
+    resolvedTableHeight,
+  );
+  const rectPlacements = normalizeResolvedSeatPlacements(
+    shape,
+    normalizedSeatPlacements.filter((placement) => isRectSeatZone(placement.zone)),
+    resolvedTableWidth,
+    resolvedTableHeight,
+    resolvedCornerBenchConfigs,
+  );
+  const sidePadding = getRectSidePaddingFromPlacements(rectPlacements);
+  const cornerPadding = getCornerBenchSidePadding(resolvedCornerBenchConfigs);
+  const padding = {
+    top: Math.max(sidePadding.top, cornerPadding.top),
+    right: Math.max(sidePadding.right, cornerPadding.right),
+    bottom: Math.max(sidePadding.bottom, cornerPadding.bottom),
+    left: Math.max(sidePadding.left, cornerPadding.left),
+  };
+  if (parseNumber(tableWidth) === null && parseNumber(footprintWidth) !== null) {
+    resolvedTableWidth = clampDimension(
+      (parseNumber(footprintWidth) || minimumTable.w) - padding.left - padding.right,
+      minimumTable.w,
+    );
+  }
+  if (parseNumber(tableHeight) === null && parseNumber(footprintHeight) !== null) {
+    resolvedTableHeight = clampDimension(
+      (parseNumber(footprintHeight) || minimumTable.h) - padding.top - padding.bottom,
+      minimumTable.h,
+    );
+  }
+
+  return {
+    tableWidth: resolvedTableWidth,
+    tableHeight: resolvedTableHeight,
+    footprintWidth: resolvedTableWidth + padding.left + padding.right,
+    footprintHeight: resolvedTableHeight + padding.top + padding.bottom,
+    paddingTop: padding.top,
+    paddingRight: padding.right,
+    paddingBottom: padding.bottom,
+    paddingLeft: padding.left,
+    seatType: effectiveSeatType,
+    seatPlacements: rectPlacements,
+    cornerBenchCorners: resolvedCornerBenchConfigs.map((config) => config.corner),
+    cornerBenchConfigs: resolvedCornerBenchConfigs,
+    capacity: getConfiguredTableCapacity({
+      shape,
+      seatPlacements: rectPlacements,
+      cornerBenchConfigs: resolvedCornerBenchConfigs,
+    }),
+    cornerBenchHorizontal: resolvedCornerBenchConfigs[0]?.horizontal,
+    cornerBenchVertical: resolvedCornerBenchConfigs[0]?.vertical,
+    cornerBenchDepth: resolvedCornerBenchConfigs[0]?.depth,
+  };
+}
+
 export function getMinimumTableSize(
   capacity: number,
   shape: FloorPlanTableShape,
@@ -147,15 +937,92 @@ export function getMinimumTableSize(
     return { w: furnitureSize.w, h: furnitureSize.h };
   }
 
-  const safeCapacity = Math.max(1, Math.round(capacity || 1));
-  if (shape === "round") {
-    const diameter = 116 + Math.max(0, safeCapacity - 2) * 12;
-    return { w: diameter, h: diameter };
+  const resolved = getResolvedFloorPlanDimensions({
+    capacity,
+    shape,
+    kind,
+  });
+
+  return {
+    w: resolved.footprintWidth,
+    h: resolved.footprintHeight,
+  };
+}
+
+export function getFloorPlanContentPadding(
+  layout: FloorPlanTableLayout,
+  capacity: number,
+  zoom = 1,
+) {
+  if (!isReservableFloorPlanItem(layout.kind)) {
+    const horizontal = Math.max(6, Math.min(layout.w * 0.08, 20)) * zoom;
+    const vertical = Math.max(6, Math.min(layout.h * 0.08, 20)) * zoom;
+    return {
+      top: vertical,
+      right: horizontal,
+      bottom: vertical,
+      left: horizontal,
+    };
   }
 
-  const width = 132 + Math.max(0, safeCapacity - 2) * 18;
-  const height = 88 + Math.max(0, Math.ceil((safeCapacity - 4) / 4)) * 10;
-  return { w: width, h: Math.max(88, height) };
+  const resolved = getResolvedFloorPlanDimensions({
+    capacity,
+    shape: layout.shape,
+    kind: layout.kind,
+    seatType: layout.seatType,
+    seatPlacements: layout.seatPlacements,
+    cornerBenchCorners: layout.cornerBenchCorners,
+    cornerBenchConfigs: layout.cornerBenchConfigs,
+    tableWidth: layout.tableWidth,
+    tableHeight: layout.tableHeight,
+    footprintWidth: layout.w,
+    footprintHeight: layout.h,
+    cornerBenchHorizontal: layout.cornerBenchHorizontal,
+    cornerBenchVertical: layout.cornerBenchVertical,
+    cornerBenchDepth: layout.cornerBenchDepth,
+  });
+
+  return {
+    top: resolved.paddingTop * zoom,
+    right: resolved.paddingRight * zoom,
+    bottom: resolved.paddingBottom * zoom,
+    left: resolved.paddingLeft * zoom,
+  };
+}
+
+export function resizeFloorPlanLayoutToFootprint(
+  layout: FloorPlanTableLayout,
+  capacity: number,
+  footprintWidth: number,
+  footprintHeight: number,
+  shape: FloorPlanTableShape = layout.shape,
+  kind: FloorPlanItemKind = layout.kind || "table",
+) {
+  if (!isReservableFloorPlanItem(kind)) {
+    return ensureFloorPlanLayoutFitsCapacity(
+      {
+        ...layout,
+        w: footprintWidth,
+        h: footprintHeight,
+      },
+      capacity,
+      shape,
+      kind,
+    );
+  }
+
+  return ensureFloorPlanLayoutFitsCapacity(
+    {
+      ...layout,
+      w: footprintWidth,
+      h: footprintHeight,
+      tableWidth: undefined,
+      tableHeight: undefined,
+    },
+    capacity,
+    shape,
+    kind,
+  );
 }
 
 export function ensureFloorPlanLayoutFitsCapacity(
@@ -168,14 +1035,39 @@ export function ensureFloorPlanLayoutFitsCapacity(
   const nextShape = !isReservableFloorPlanItem(kind)
     ? MIN_FURNITURE_SIZE[kind].shape
     : shape;
+  const resolved = getResolvedFloorPlanDimensions({
+    capacity,
+    shape: nextShape,
+    kind,
+    seatType: layout.seatType,
+    seatPlacements: layout.seatPlacements,
+    cornerBenchCorners: layout.cornerBenchCorners,
+    cornerBenchConfigs: layout.cornerBenchConfigs,
+    tableWidth: layout.tableWidth,
+    tableHeight: layout.tableHeight,
+    footprintWidth: layout.w,
+    footprintHeight: layout.h,
+    cornerBenchHorizontal: layout.cornerBenchHorizontal,
+    cornerBenchVertical: layout.cornerBenchVertical,
+    cornerBenchDepth: layout.cornerBenchDepth,
+  });
 
   return {
     ...layout,
     kind,
     shape: nextShape,
-    w: Math.max(minimum.w, Math.round(layout.w || minimum.w)),
-    h: Math.max(minimum.h, Math.round(layout.h || minimum.h)),
-    seatLabels: isReservableFloorPlanItem(kind) ? buildSeatLabels(capacity, nextShape) : [],
+    seatType: resolved.seatType,
+    seatPlacements: resolved.seatPlacements,
+    cornerBenchCorners: resolved.cornerBenchCorners,
+    cornerBenchConfigs: resolved.cornerBenchConfigs,
+    tableWidth: resolved.tableWidth,
+    tableHeight: resolved.tableHeight,
+    cornerBenchHorizontal: resolved.cornerBenchHorizontal,
+    cornerBenchVertical: resolved.cornerBenchVertical,
+    cornerBenchDepth: resolved.cornerBenchDepth,
+    w: Math.max(minimum.w, resolved.footprintWidth),
+    h: Math.max(minimum.h, resolved.footprintHeight),
+    seatLabels: isReservableFloorPlanItem(kind) ? buildSeatLabels(Math.max(1, resolved.capacity || capacity), nextShape) : [],
   };
 }
 
@@ -227,6 +1119,28 @@ export function normalizeFloorPlanLayout(
   const seatType: FloorPlanSeatType | undefined = rawSeatType && VALID_SEAT_TYPES.has(rawSeatType as FloorPlanSeatType)
     ? rawSeatType as FloorPlanSeatType
     : undefined;
+  const rawSeatPlacements = Array.isArray(source.seat_placements)
+    ? source.seat_placements
+    : Array.isArray(source.seatPlacements)
+      ? source.seatPlacements
+      : [];
+  const rawCornerBenchCorners = Array.isArray(source.corner_bench_corners)
+    ? source.corner_bench_corners
+    : Array.isArray(source.cornerBenchCorners)
+      ? source.cornerBenchCorners
+      : [];
+  const rawCornerBenchConfigs = Array.isArray(source.corner_bench_configs)
+    ? source.corner_bench_configs
+    : Array.isArray(source.cornerBenchConfigs)
+      ? source.cornerBenchConfigs
+      : [];
+  const tableWidth = parseNumber(source.table_width) ?? parseNumber(source.tableWidth);
+  const tableHeight = parseNumber(source.table_height) ?? parseNumber(source.tableHeight);
+  const legacyBenchWidth = parseNumber(source.bench_width) ?? parseNumber(source.benchWidth);
+  const legacyBenchDepth = parseNumber(source.bench_depth) ?? parseNumber(source.benchDepth);
+  const cornerBenchHorizontal = parseNumber(source.corner_bench_horizontal) ?? parseNumber(source.cornerBenchHorizontal) ?? legacyBenchWidth;
+  const cornerBenchVertical = parseNumber(source.corner_bench_vertical) ?? parseNumber(source.cornerBenchVertical) ?? legacyBenchWidth;
+  const cornerBenchDepth = parseNumber(source.corner_bench_depth) ?? parseNumber(source.cornerBenchDepth) ?? legacyBenchDepth;
 
   const x = parseNumber(source.x) ?? (24 + (fallbackIndex % 4) * 220);
   const y = parseNumber(source.y) ?? (24 + Math.floor(fallbackIndex / 4) * 176);
@@ -242,6 +1156,23 @@ export function normalizeFloorPlanLayout(
     rotation,
     shape: normalizedShape,
     kind,
+    seatPlacements: normalizeSeatPlacements(normalizedShape, rawSeatPlacements, capacity, seatType, tableWidth ?? minimum.w, tableHeight ?? minimum.h),
+    cornerBenchCorners: normalizeCornerBenchCorners(normalizedShape, rawCornerBenchCorners, seatType),
+    cornerBenchConfigs: normalizeCornerBenchConfigs(
+      normalizedShape,
+      rawCornerBenchConfigs,
+      normalizeCornerBenchCorners(normalizedShape, rawCornerBenchCorners, seatType),
+      cornerBenchHorizontal ?? undefined,
+      cornerBenchVertical ?? undefined,
+      cornerBenchDepth ?? undefined,
+      tableWidth ?? minimum.w,
+      tableHeight ?? minimum.h,
+    ),
+    tableWidth: tableWidth ?? undefined,
+    tableHeight: tableHeight ?? undefined,
+    cornerBenchHorizontal: cornerBenchHorizontal ?? undefined,
+    cornerBenchVertical: cornerBenchVertical ?? undefined,
+    cornerBenchDepth: cornerBenchDepth ?? undefined,
     seatType,
     seatLabels: isReservableFloorPlanItem(kind)
       ? (seatLabels.length ? seatLabels : buildSeatLabels(capacity, normalizedShape))

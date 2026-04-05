@@ -1,15 +1,26 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, MapPin, CreditCard, Banknote, Percent, Truck, Sparkles, Gift, Package } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ShoppingCart, MapPin, CreditCard, Banknote, Percent, Truck, Sparkles, Gift, Package, RefreshCcw, XCircle, Crown } from "lucide-react";
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/lib/cart";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
   card: { label: "Carte bancaire", icon: CreditCard },
@@ -26,6 +37,8 @@ function PaymentBreakdown({ order }: { order: any }) {
   const deliveryFee = Number(order.delivery_fee || 0);
   const qualityFee = Number(meta.quality_fee_amount || 0);
   const total = Number(order.total_amount);
+  const tokOneMember = !!meta.tok_one_member;
+  const tokOneDeliverySaved = Number(meta.tok_one_delivery_saved || 0);
   const paymentMethod = meta.payment_method || "card";
   const formulaName = meta.formula_applied;
   const flexOption = meta.flex_option;
@@ -60,7 +73,12 @@ function PaymentBreakdown({ order }: { order: any }) {
           <span>-{pointsDiscount.toFixed(2)} CHF</span>
         </div>
       ) : null}
-      {deliveryFee > 0 ? (
+      {tokOneMember && tokOneDeliverySaved > 0 ? (
+        <div className="flex justify-between text-violet-600">
+          <span className="flex items-center gap-1"><Crown className="h-3 w-3" />Livraison offerte (Tok One)</span>
+          <span className="line-through text-muted-foreground">{tokOneDeliverySaved.toFixed(2)} CHF</span>
+        </div>
+      ) : deliveryFee > 0 ? (
         <div className="flex justify-between text-muted-foreground">
           <span className="flex items-center gap-1"><Truck className="h-3 w-3" />Livraison{flexOption ? ` (${flexOption})` : ""}</span>
           <span>+{deliveryFee.toFixed(2)} CHF</span>
@@ -97,6 +115,46 @@ export default function Commandes() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { addItem, clearCart } = useCart();
+  const queryClient = useQueryClient();
+
+  const handleReorder = (order: any) => {
+    clearCart();
+    const items = (order.order_items as any[]) || [];
+    for (const item of items) {
+      const unitPrice = Number(item.total_price) / Math.max(item.quantity, 1);
+      for (let i = 0; i < item.quantity; i++) {
+        addItem({
+          menuItemId: item.menu_item_id,
+          name: item.name || "Article",
+          price: unitPrice,
+          restaurantId: order.restaurant_id,
+          restaurantName: order.restaurant?.name || "Restaurant",
+        });
+      }
+    }
+    toast({ title: "Panier rempli", description: "Vos articles ont ete ajoutes au panier." });
+    navigate("/panier");
+  };
+
+  const cancelMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "cancelled" })
+        .eq("id", orderId)
+        .eq("user_id", user!.id)
+        .eq("status", "confirmed");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Commande annulee" });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    },
+  });
 
   // Handle Stripe payment return — redirect to real-time order tracking
   useEffect(() => {
@@ -220,11 +278,44 @@ export default function Commandes() {
                           </div>
                           <PaymentBreakdown order={order} />
                           {(order.metadata as any)?.scheduled_delivery_label ? <p className="text-xs text-muted-foreground">Livraison planifiee : {(order.metadata as any).scheduled_delivery_label}</p> : null}
-                          {displayStatus !== "delivered" && displayStatus !== "cancelled" && isTrackableDelivery ? (
-                            <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
-                              <Link to={`/commande/${order.id}`}><MapPin className="mr-1 h-3 w-3" />Suivi temps réel</Link>
-                            </Button>
-                          ) : null}
+                          <div className="flex flex-wrap gap-2">
+                            {displayStatus !== "delivered" && displayStatus !== "cancelled" && isTrackableDelivery ? (
+                              <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
+                                <Link to={`/commande/${order.id}`}><MapPin className="mr-1 h-3 w-3" />Suivi temps réel</Link>
+                              </Button>
+                            ) : null}
+                            {displayStatus === "confirmed" ? (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:text-destructive">
+                                    <XCircle className="mr-1 h-3 w-3" />Annuler
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Annuler la commande ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Cette action est irreversible. Vous serez rembourse sous 5 a 10 jours ouvrables.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Non, garder</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      onClick={() => cancelMutation.mutate(order.id)}
+                                    >
+                                      Oui, annuler
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            ) : null}
+                            {(displayStatus === "delivered" || displayStatus === "cancelled") ? (
+                              <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => handleReorder(order)}>
+                                <RefreshCcw className="mr-1 h-3 w-3" />Commander a nouveau
+                              </Button>
+                            ) : null}
+                          </div>
                         </div>
                       );
                     })}

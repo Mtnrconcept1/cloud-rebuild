@@ -89,6 +89,14 @@ const ADMIN_TOOLS = [
     feature: "admin-audit",
     color: "text-amber-500",
   },
+  {
+    title: "Packs de lancement",
+    description: "Gerer les packs achetes et le suivi des services.",
+    icon: Rocket,
+    href: "/admin/packs",
+    feature: "admin-packs",
+    color: "text-violet-500",
+  },
 ];
 
 function statusColor(status: string) {

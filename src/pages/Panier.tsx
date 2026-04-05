@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift } from "lucide-react";
+import { ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import FormulaDetector from "@/components/FormulaDetector";
 import PromotionDetector from "@/components/PromotionDetector";
+import PromoCodeInput from "@/components/PromoCodeInput";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { generateOrderReference } from "@/lib/email-service";
 import AddressAutocomplete, { type AddressSelection } from "@/components/AddressAutocomplete";
@@ -36,6 +37,7 @@ import {
   getFirstAvailablePaymentMethod,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
+import { useIsTokOneMember } from "@/hooks/useTokOne";
 
 export default function Panier() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode } = useCart();
@@ -55,6 +57,9 @@ export default function Panier() {
   const [formulaName, setFormulaName] = useState<string | null>(null);
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoName, setPromoName] = useState<string | null>(null);
+  const [promoCodeDiscount, setPromoCodeDiscount] = useState(0);
+  const [promoCodeName, setPromoCodeName] = useState<string | null>(null);
+  const [promoCodeId, setPromoCodeId] = useState<string | null>(null);
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
   const [pointsToRedeemInput, setPointsToRedeemInput] = useState(0);
   const [donateEarnedXp, setDonateEarnedXp] = useState(false);
@@ -68,6 +73,8 @@ export default function Panier() {
   const [deliveryService, setDeliveryService] = useState<ServicePeriod | null>(null);
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
 
+  const { isMember: isTokOneMember } = useIsTokOneMember();
+
   const hasAntiGaspi = items.some(item => item.metadata?.is_anti_waste);
   const antiGaspiItem = items.find(item => item.metadata?.is_anti_waste);
   const flashItems = items.filter(item => item.metadata?.is_flash_sale);
@@ -78,7 +85,8 @@ export default function Panier() {
   const flashPickupEnd = flashTakeawayItem?.metadata?.sale_end || null;
 
   const flexFees = { express: 2.50, standard: 1.00, flex: 0 };
-  const deliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
+  const baseDeliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
+  const deliveryFee = isTokOneMember ? 0 : baseDeliveryFee;
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
   const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
@@ -165,7 +173,15 @@ export default function Panier() {
     setPromoName(name);
   }, []);
 
-  const subFinalTotal = total - formulaDiscount - promoDiscount + deliveryFee;
+  const handlePromoCodeApplied = useCallback((discount: number, name: string | null, codeId: string | null) => {
+    setPromoCodeDiscount(discount);
+    setPromoCodeName(name);
+    setPromoCodeId(codeId);
+  }, []);
+
+  const effectivePromoDiscount = Math.max(promoDiscount, promoCodeDiscount);
+  const effectivePromoName = promoCodeDiscount >= promoDiscount && promoCodeName ? promoCodeName : promoName;
+  const subFinalTotal = total - formulaDiscount - effectivePromoDiscount + deliveryFee;
   const flexDiscount = flexOption === "flex" ? total * 0.1 : 0;
   const maxPointsRedeemable = Math.min(loyaltyPoints, Math.floor(Math.max(subFinalTotal - flexDiscount, 0) * 100));
 
@@ -474,7 +490,7 @@ export default function Panier() {
         for (const [index, group] of orderGroups.entries()) {
           const { resId, realItems, qualityFeeItem, resSubtotal } = group;
           const resDiscount = restaurantId === resId ? formulaDiscount : 0;
-          const resPromoDiscount = restaurantId === resId ? promoDiscount : 0;
+          const resPromoDiscount = restaurantId === resId ? effectivePromoDiscount : 0;
           const qualityFeeAmount = qualityFeeItem?.price || 0;
           const deliveryFeePerRestaurant = deliveryFee / resCount;
           const resPointsDiscount = pointsDiscountByRestaurant.get(resId) || 0;
@@ -535,6 +551,12 @@ export default function Panier() {
           if (rpcError) throw rpcError;
         }
 
+        // Record promo code usage (Stripe flow)
+        if (promoCodeId && user?.id && firstOrderId) {
+          await supabase.from("promo_code_uses").insert({ promo_code_id: promoCodeId, user_id: user.id, order_id: firstOrderId });
+          await supabase.from("promo_codes").update({ current_uses: (await supabase.from("promo_codes").select("current_uses").eq("id", promoCodeId).single()).data?.current_uses + 1 }).eq("id", promoCodeId);
+        }
+
         clearCart();
         queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
 
@@ -550,7 +572,7 @@ export default function Panier() {
         for (const [index, group] of orderGroups.entries()) {
           const { resId, realItems, qualityFeeItem, resSubtotal } = group;
           const resDiscount = restaurantId === resId ? formulaDiscount : 0;
-          const resPromoDiscount = restaurantId === resId ? promoDiscount : 0;
+          const resPromoDiscount = restaurantId === resId ? effectivePromoDiscount : 0;
           const qualityFeeAmount = qualityFeeItem?.price || 0;
           const deliveryFeePerRestaurant = deliveryFee / resCount;
           const resPointsDiscount = pointsDiscountByRestaurant.get(resId) || 0;
@@ -615,6 +637,12 @@ export default function Panier() {
         if (rpcError) throw rpcError;
       }
 
+      // Record promo code usage
+      if (promoCodeId && user?.id && firstOrderId) {
+        await supabase.from("promo_code_uses").insert({ promo_code_id: promoCodeId, user_id: user.id, order_id: firstOrderId });
+        await supabase.from("promo_codes").update({ current_uses: (await supabase.from("promo_codes").select("current_uses").eq("id", promoCodeId).single()).data?.current_uses + 1 }).eq("id", promoCodeId);
+      }
+
       await new Promise(resolve => setTimeout(resolve, 1500));
       clearCart();
       queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
@@ -657,7 +685,7 @@ export default function Panier() {
       formula_applied: resDiscount > 0 ? formulaName : null,
       formula_discount_amount: resDiscount > 0 ? Number(resDiscount.toFixed(2)) : 0,
       formula_discount_percent: resFormulaDiscountPercent > 0 ? Number(resFormulaDiscountPercent.toFixed(2)) : 0,
-      promotion_applied: resPromoDiscount > 0 ? promoName : null,
+      promotion_applied: resPromoDiscount > 0 ? effectivePromoName : null,
       promotion_discount_amount: resPromoDiscount > 0 ? Number(resPromoDiscount.toFixed(2)) : 0,
       points_discount_amount: pointsDiscountAmount > 0 ? Number(pointsDiscountAmount.toFixed(2)) : 0,
       flex_discount_amount: flexDiscountAmount > 0 ? Number(flexDiscountAmount.toFixed(2)) : 0,
@@ -680,6 +708,8 @@ export default function Panier() {
       pickup_time_end: orderMode === "takeaway" && !hasAntiGaspi && hasTakeawayFlash ? flashPickupEnd : null,
       flex_option: flexOption,
       flex_guarantee: flexOption === "express" ? "1% discount per minute delay" : flexOption === "standard" ? "1% discount per 2 minute delay" : "10% subtotal discount applied",
+      tok_one_member: isTokOneMember,
+      tok_one_delivery_saved: isTokOneMember && orderMode === "delivery" ? baseDeliveryFee : 0,
     };
   };
 
@@ -706,6 +736,7 @@ export default function Panier() {
 
         <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
         <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
+        <PromoCodeInput restaurantId={restaurantId} userId={user?.id} subtotal={total} onApplied={handlePromoCodeApplied} />
 
         <div className="space-y-4 pt-4 border-t">
           {orderMode === "delivery" ? (
@@ -930,8 +961,15 @@ export default function Panier() {
 
           <div className="flex justify-between text-sm"><span>Sous-total</span><span>{total.toFixed(2)} CHF</span></div>
           {formulaDiscount > 0 && <div className="flex justify-between text-sm text-accent font-medium"><span>Réduction formule ({formulaName})</span><span>-{formulaDiscount.toFixed(2)} CHF</span></div>}
-          {promoDiscount > 0 && <div className="flex justify-between text-sm text-primary font-medium"><span>Promotion ({promoName})</span><span>-{promoDiscount.toFixed(2)} CHF</span></div>}
-          <div className="flex justify-between text-sm"><span>{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span><span>{deliveryFee.toFixed(2)} CHF</span></div>
+          {effectivePromoDiscount > 0 && <div className="flex justify-between text-sm text-primary font-medium"><span>Promotion ({effectivePromoName})</span><span>-{effectivePromoDiscount.toFixed(2)} CHF</span></div>}
+          {isTokOneMember && orderMode === "delivery" && baseDeliveryFee > 0 ? (
+            <div className="flex justify-between text-sm text-violet-600 font-medium">
+              <span className="flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />Livraison offerte (Tok One)</span>
+              <span className="line-through text-muted-foreground mr-1">{baseDeliveryFee.toFixed(2)} CHF</span>
+            </div>
+          ) : (
+            <div className="flex justify-between text-sm"><span>{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span><span>{deliveryFee.toFixed(2)} CHF</span></div>
+          )}
           {orderMode === "delivery" && scheduledDeliveryLabel ? (
             <div className="flex justify-between text-sm text-muted-foreground"><span>Livraison planifiee</span><span>{scheduledDeliveryLabel}</span></div>
           ) : null}
@@ -945,6 +983,17 @@ export default function Panier() {
             </div>
           )}
         </div>
+
+        {!isTokOneMember && orderMode === "delivery" && baseDeliveryFee > 0 && (
+          <Link to="/tok-one" className="flex items-center gap-3 p-3 rounded-xl bg-violet-50 border border-violet-200 hover:bg-violet-100 transition-colors">
+            <Crown className="h-5 w-5 text-violet-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-violet-900">Economisez {baseDeliveryFee.toFixed(2)} CHF avec Tok One</p>
+              <p className="text-xs text-violet-600">Livraison gratuite sur toutes vos commandes</p>
+            </div>
+            <span className="text-xs font-semibold text-violet-600 shrink-0">Decouvrir →</span>
+          </Link>
+        )}
 
         {orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
         {!hasJourneyAvailable ? (

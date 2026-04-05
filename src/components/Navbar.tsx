@@ -5,6 +5,7 @@ import {
   Bell,
   Calculator,
   ChefHat,
+  Crown,
   Gift,
   Layers,
   Leaf,
@@ -232,6 +233,12 @@ export default function Navbar() {
                   </Link>
                 </NavigationMenuItem>
               ) : null}
+              <NavigationMenuItem>
+                <Link to="/tok-one" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-violet-600 transition-colors hover:text-violet-500">
+                  <Crown className="h-4 w-4" />
+                  Tok One
+                </Link>
+              </NavigationMenuItem>
               {visibleFeatures.length > 0 ? (
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="bg-transparent text-sm font-medium">
@@ -442,6 +449,10 @@ export default function Navbar() {
                   ) : null}
                   <Link to="/recherche" className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                     Recherche
+                  </Link>
+                  <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-violet-600" onClick={() => setMenuOpen(false)}>
+                    <Crown className="h-4 w-4" />
+                    Tok One
                   </Link>
 
                   <div className="mt-2 border-t pt-4">

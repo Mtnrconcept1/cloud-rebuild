@@ -99,13 +99,25 @@ export default function Dashboard() {
   const { data: monthlyRevenue = 0 } = useQuery({
     queryKey: ["dashboard-monthly-revenue", restaurant?.id, monthStart],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select("total_amount")
-        .eq("restaurant_id", restaurant!.id)
-        .gte("created_at", monthStart)
-        .not("status", "in", INVALID_ORDER_STATUS_FILTER);
-      return (data || []).reduce((sum, order) => sum + Number(order.total_amount), 0);
+      const [ordersRes, reservationsRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("total_amount")
+          .eq("restaurant_id", restaurant!.id)
+          .gte("created_at", monthStart)
+          .not("status", "in", INVALID_ORDER_STATUS_FILTER),
+        supabase
+          .from("reservations")
+          .select("total_amount")
+          .eq("restaurant_id", restaurant!.id)
+          .eq("feature", "zero-attente")
+          .gte("date", monthStart.slice(0, 10))
+          .not("status", "in", "(cancelled,no_show)")
+          .gt("total_amount", 0),
+      ]);
+      const orderRevenue = (ordersRes.data || []).reduce((sum, row) => sum + Number(row.total_amount), 0);
+      const zaRevenue = (reservationsRes.data || []).reduce((sum, row) => sum + Number(row.total_amount), 0);
+      return orderRevenue + zaRevenue;
     },
     enabled: !!restaurant,
   });

@@ -1,4 +1,11 @@
-import type { FloorPlanItemKind, FloorPlanSeatType, FloorPlanTableShape } from "@/lib/floorPlan";
+import type {
+  FloorPlanCornerBenchConfig,
+  FloorPlanCornerBenchCorner,
+  FloorPlanItemKind,
+  FloorPlanSeatPlacement,
+  FloorPlanSeatType,
+  FloorPlanTableShape,
+} from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 import DynamicTableSvg from "./DynamicTableSvg";
 
@@ -9,6 +16,14 @@ type FloorPlanItemIllustrationProps = {
   decorative?: boolean;
   capacity?: number;
   seatType?: FloorPlanSeatType;
+  seatPlacements?: FloorPlanSeatPlacement[];
+  cornerBenchCorners?: FloorPlanCornerBenchCorner[];
+  cornerBenchConfigs?: FloorPlanCornerBenchConfig[];
+  tableWidth?: number;
+  tableHeight?: number;
+  cornerBenchHorizontal?: number;
+  cornerBenchVertical?: number;
+  cornerBenchDepth?: number;
 };
 
 // ─── Architectural top-down palette (warm browns / tans) ───
@@ -269,15 +284,45 @@ function ItemSvg({
   shape,
   capacity,
   seatType,
+  seatPlacements,
+  cornerBenchCorners,
+  cornerBenchConfigs,
+  tableWidth,
+  tableHeight,
+  cornerBenchHorizontal,
+  cornerBenchVertical,
+  cornerBenchDepth,
 }: {
   kind: FloorPlanItemKind;
   shape?: FloorPlanTableShape;
   capacity?: number;
   seatType?: FloorPlanSeatType;
+  seatPlacements?: FloorPlanSeatPlacement[];
+  cornerBenchCorners?: FloorPlanCornerBenchCorner[];
+  cornerBenchConfigs?: FloorPlanCornerBenchConfig[];
+  tableWidth?: number;
+  tableHeight?: number;
+  cornerBenchHorizontal?: number;
+  cornerBenchVertical?: number;
+  cornerBenchDepth?: number;
 }) {
   if (kind === "table") {
     if (capacity && capacity > 0) {
-      return <DynamicTableSvg shape={shape || "rect"} capacity={capacity} seatType={seatType} />;
+      return (
+        <DynamicTableSvg
+          shape={shape || "rect"}
+          capacity={capacity}
+          seatType={seatType}
+          seatPlacements={seatPlacements}
+          cornerBenchCorners={cornerBenchCorners}
+          cornerBenchConfigs={cornerBenchConfigs}
+          tableWidth={tableWidth}
+          tableHeight={tableHeight}
+          cornerBenchHorizontal={cornerBenchHorizontal}
+          cornerBenchVertical={cornerBenchVertical}
+          cornerBenchDepth={cornerBenchDepth}
+        />
+      );
     }
     return shape === "round" ? <RoundTableSvg /> : <RectTableSvg />;
   }
@@ -315,6 +360,14 @@ export function FloorPlanItemIllustration({
   decorative = true,
   capacity,
   seatType,
+  seatPlacements,
+  cornerBenchCorners,
+  cornerBenchConfigs,
+  tableWidth,
+  tableHeight,
+  cornerBenchHorizontal,
+  cornerBenchVertical,
+  cornerBenchDepth,
 }: FloorPlanItemIllustrationProps) {
   return (
     <svg
@@ -325,7 +378,20 @@ export function FloorPlanItemIllustration({
       aria-hidden={decorative}
       preserveAspectRatio="xMidYMid meet"
     >
-      <ItemSvg kind={kind} shape={shape} capacity={capacity} seatType={seatType} />
+      <ItemSvg
+        kind={kind}
+        shape={shape}
+        capacity={capacity}
+        seatType={seatType}
+        seatPlacements={seatPlacements}
+        cornerBenchCorners={cornerBenchCorners}
+        cornerBenchConfigs={cornerBenchConfigs}
+        tableWidth={tableWidth}
+        tableHeight={tableHeight}
+        cornerBenchHorizontal={cornerBenchHorizontal}
+        cornerBenchVertical={cornerBenchVertical}
+        cornerBenchDepth={cornerBenchDepth}
+      />
     </svg>
   );
 }

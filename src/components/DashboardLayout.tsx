@@ -7,6 +7,8 @@ import {
   CalendarDays,
   Camera,
   CircleHelp,
+  PanelLeftClose,
+  PanelLeftOpen,
   LayoutDashboard,
   Menu,
   MessageSquareText,
@@ -24,10 +26,12 @@ import {
   Map,
   ChevronDown,
   Store,
+  Package,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -40,6 +44,7 @@ type NavItem = {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   feature?: string;
+  roles?: string[];
 };
 
 type NavSection = {
@@ -76,6 +81,12 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    title: "Mon offre",
+    items: [
+      { to: "/dashboard/pack", label: "Pack de lancement", icon: Package, feature: "dashboard-pack" },
+    ],
+  },
+  {
     title: "Page du restaurant",
     items: [
       { to: "/dashboard/restaurant", label: "Mon restaurant", icon: UtensilsCrossed, feature: "dashboard-restaurant" },
@@ -90,79 +101,121 @@ const NAV_SECTIONS: NavSection[] = [
   },
   {
     title: "Support",
-    items: [{ to: "/dashboard/support", label: "Aide et support", icon: CircleHelp, feature: "dashboard-support" }],
+    items: [
+      { to: "/dashboard/support", label: "Aide et support", icon: CircleHelp, feature: "dashboard-support" },
+    ],
   },
 ];
 
-function RestaurantSelector() {
+function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
   const { restaurants, selectedId, setSelectedId } = useDashboardRestaurant();
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-  if (restaurants.length <= 1) {
-    const name = restaurants[0]?.name || "Mon restaurant";
-    return (
-      <div className="px-3 py-2 mb-2 flex items-center gap-2 text-sm font-semibold text-sidebar-foreground">
-        <Store className="h-4 w-4 text-primary" />
-        <span className="truncate">{name}</span>
-      </div>
-    );
-  }
+  // ✅ close on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    if (open) window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [open]);
 
-  const selected = restaurants.find((restaurant) => restaurant.id === selectedId);
+  const selected = restaurants.find((r) => r.id === selectedId);
 
   return (
-    <div className="px-2 mb-2 relative">
+    <div ref={ref} className="relative mb-2">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors text-sm font-semibold"
+        className={cn(
+          "flex w-full items-center rounded-xl border bg-sidebar-accent/50 text-sm font-semibold",
+          collapsed ? "justify-center px-2 py-2" : "px-3 py-2"
+        )}
       >
-        <Store className="h-4 w-4 text-primary shrink-0" />
-        <span className="truncate flex-1 text-left">{selected?.name || "Choisir..."}</span>
-        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+        <Store className="h-4 w-4 text-primary" />
+        {!collapsed && (
+          <>
+            <span className="ml-2 flex-1 text-left truncate">{selected?.name}</span>
+            <ChevronDown className={cn("h-4 w-4", open && "rotate-180")} />
+          </>
+        )}
       </button>
-      {open ? (
-        <div className="absolute z-50 left-2 right-2 mt-1 rounded-xl border bg-card shadow-lg py-1 max-h-60 overflow-y-auto">
-          {restaurants.map((restaurant) => (
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-xl border bg-white shadow-lg">
+          {restaurants.map((r) => (
             <button
-              key={restaurant.id}
+              key={r.id}
               onClick={() => {
-                setSelectedId(restaurant.id);
+                setSelectedId(r.id);
                 setOpen(false);
               }}
-              className={cn(
-                "w-full text-left px-3 py-2 text-sm hover:bg-sidebar-accent/50 transition-colors",
-                restaurant.id === selectedId && "bg-primary/10 text-primary font-semibold"
-              )}
+              className="block w-full px-3 py-2 text-left hover:bg-muted"
             >
-              {restaurant.name}
+              {r.name}
             </button>
           ))}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
 
-function NavItems({ pathname, sections, onNavigate }: { pathname: string; sections: NavSection[]; onNavigate?: () => void }) {
+function NavItems({
+  pathname,
+  sections,
+  collapsed = false,
+  disabledFeatures,
+}: {
+  pathname: string;
+  sections: NavSection[];
+  collapsed?: boolean;
+  disabledFeatures?: Set<string>;
+}) {
   return (
     <>
       {sections.map((section) => (
-        <div key={section.title} className="space-y-1">
-          <p className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{section.title}</p>
-          {section.items.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={onNavigate}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                pathname === item.to ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          ))}
+        <div key={section.title}>
+          {!collapsed && <p className="px-3 text-xs text-muted-foreground">{section.title}</p>}
+          {section.items.map((item) => {
+            const isLocked = !!(item.feature && disabledFeatures?.has(item.feature));
+
+            if (isLocked) {
+              return (
+                <div
+                  key={item.to}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed select-none"
+                  title="Non inclus dans votre pack"
+                >
+                  <item.icon className="h-4 w-4" />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1">{item.label}</span>
+                      <Lock className="h-3 w-3" />
+                    </>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg",
+                  pathname.startsWith(item.to)
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-muted"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {!collapsed && item.label}
+              </Link>
+            );
+          })}
         </div>
       ))}
     </>
@@ -171,81 +224,106 @@ function NavItems({ pathname, sections, onNavigate }: { pathname: string; sectio
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { selectedId } = useDashboardRestaurant();
+  const { selectedId, disabledFeatures } = useDashboardRestaurant();
   const activeFeatures = useActiveFeatures();
-  const visibleSections = NAV_SECTIONS
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => !item.feature || activeFeatures.has(item.feature)),
-    }))
-    .filter((section) => section.items.length > 0);
-  const visibleItems = visibleSections.flatMap((section) => section.items);
 
-  const handleRealtimeNotification = useCallback((notification: RealtimeNotification) => {
-    const data = notification.data && typeof notification.data === "object" && !Array.isArray(notification.data)
-      ? notification.data
-      : {};
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
-    const restaurantId = typeof data.restaurant_id === "string" ? data.restaurant_id : null;
-    if (restaurantId && selectedId && restaurantId !== selectedId) {
-      return;
+  // ✅ safe localStorage
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem("sidebar") === "1";
+    } catch {
+      return false;
     }
+  });
 
-    const itemsSummary = typeof data.items_summary === "string" ? data.items_summary : "";
-    const deliveryAddress = typeof data.delivery_address === "string" ? data.delivery_address : "";
-    const scheduledLabel = typeof data.scheduled_delivery_label === "string" ? data.scheduled_delivery_label : "";
-    const detailParts = [itemsSummary, deliveryAddress, scheduledLabel].filter(Boolean);
+  useEffect(() => {
+    localStorage.setItem("sidebar", collapsed ? "1" : "0");
+  }, [collapsed]);
 
-    toast(notification.title, {
-      description: detailParts.join(" • ") || notification.body,
-      action: typeof data.url === "string"
-        ? {
-            label: "Voir",
-            onClick: () => {
-              window.location.href = data.url as string;
-            },
-          }
-        : undefined,
-    });
+  // ✅ scroll reset
+  useEffect(() => {
+    sidebarRef.current?.scrollTo({ top: 0 });
+  }, [pathname]);
 
-    queryClient.invalidateQueries({ queryKey: ["dashboard-all-orders", selectedId] });
-  }, [queryClient, selectedId]);
+  // ✅ memo nav
+  const sections = useMemo(() => {
+    return NAV_SECTIONS.map((section) => ({
+      ...section,
+      items: section.items.filter(
+        (i) => !i.feature || activeFeatures.has(i.feature)
+      ),
+    }));
+  }, [activeFeatures]);
+
+  // ✅ realtime notifications
+  const handleNotification = useCallback(
+    (n: RealtimeNotification) => {
+      const data = n.data as any;
+
+      if (data?.restaurant_id && data.restaurant_id !== selectedId) {
+        console.debug("ignored notif", data.restaurant_id);
+        return;
+      }
+
+      toast(n.title, { description: n.body });
+
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    [selectedId]
+  );
 
   useRealtimeNotifications({
-    enabled: Boolean(selectedId),
-    onInsert: handleRealtimeNotification,
+    enabled: !!selectedId,
+    onInsert: handleNotification,
   });
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      <div className="md:hidden flex items-center gap-3 border-b px-4 py-3 bg-sidebar">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-4 overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle className="font-display text-lg font-semibold px-3 py-2">Dashboard</SheetTitle>
-            </SheetHeader>
-            <RestaurantSelector />
-            <nav className="flex flex-col gap-1 mt-2">
-              <NavItems pathname={pathname} sections={visibleSections} onNavigate={() => setOpen(false)} />
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <h2 className="font-display text-base font-semibold">{visibleItems.find((item) => item.to === pathname)?.label ?? "Dashboard"}</h2>
-      </div>
-      <aside className="hidden md:flex w-72 border-r bg-sidebar flex-col p-4 overflow-y-auto">
-        <h2 className="font-display text-lg font-semibold px-3 py-2 mb-1">Dashboard</h2>
-        <RestaurantSelector />
+    <div className="flex min-h-screen">
+      {/* SIDEBAR */}
+      <aside
+        ref={sidebarRef}
+        className={cn(
+          "hidden md:flex flex-col border-r bg-sidebar transition-all",
+          collapsed ? "w-[80px]" : "w-72"
+        )}
+      >
+        <div className="flex items-center justify-between p-3">
+          {!collapsed && <h2 className="font-semibold">Dashboard</h2>}
+          <Button size="icon" variant="ghost" onClick={() => setCollapsed(!collapsed)}>
+            {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+          </Button>
+        </div>
+
+        <RestaurantSelector collapsed={collapsed} />
+
         <nav className="flex flex-col gap-1">
-          <NavItems pathname={pathname} sections={visibleSections} />
+          <NavItems pathname={pathname} sections={sections} collapsed={collapsed} disabledFeatures={disabledFeatures} />
         </nav>
       </aside>
+
+      {/* MOBILE */}
+      <div className="md:hidden p-3 border-b flex items-center gap-3">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button size="icon" variant="ghost">
+              <Menu />
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Dashboard</SheetTitle>
+            </SheetHeader>
+            <RestaurantSelector />
+            <NavItems pathname={pathname} sections={sections} disabledFeatures={disabledFeatures} />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* MAIN */}
       <main className="flex-1 p-6">{children}</main>
     </div>
   );

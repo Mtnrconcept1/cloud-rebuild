@@ -406,8 +406,16 @@ export default function DashboardReservations() {
                         const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
                         const compactBase = isCompactMode ? "p-3" : "p-4";
 
+                        const isZeroAttente = reservation.feature === "zero-attente";
+                        const isChefTable = reservation.feature === "chefs_table";
+                        const articleClass = isZeroAttente
+                          ? `rounded-xl border-2 border-indigo-300 bg-indigo-50/40 ${compactBase}`
+                          : isChefTable
+                          ? `rounded-xl border-2 border-amber-300 bg-amber-50/40 ${compactBase}`
+                          : `rounded-xl border bg-card ${compactBase}`;
+
                             return (
-                              <article key={reservation.id} className={`rounded-xl border bg-card ${compactBase}`}>
+                              <article key={reservation.id} className={articleClass}>
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                   <div className="space-y-2">
                                     <div className="flex flex-wrap items-center gap-2">
@@ -415,11 +423,11 @@ export default function DashboardReservations() {
                                       <OrderStatusBadge status={reservation.status} />
                                       <Badge variant="secondary">{reservation.party_size} pers.</Badge>
                                       <Badge variant="outline">{getServicePeriodLabel(servicePeriod)}</Badge>
-                                      {reservation.feature === "zero-attente" && (
-                                        <Badge variant="outline" className="text-[10px] uppercase tracking-widest border-indigo-200 text-indigo-600 bg-indigo-50">Zero Attente</Badge>
+                                      {isZeroAttente && (
+                                        <Badge className="text-[10px] uppercase tracking-widest border-indigo-300 text-white bg-indigo-500">Zero Attente</Badge>
                                       )}
-                                      {reservation.feature === "chefs_table" && (
-                                        <Badge variant="outline" className="text-[10px] uppercase tracking-widest border-amber-200 text-amber-600 bg-amber-50">Chef's Table</Badge>
+                                      {isChefTable && (
+                                        <Badge className="text-[10px] uppercase tracking-widest border-amber-300 text-white bg-amber-500">Chef's Table</Badge>
                                       )}
                                     </div>
                                     {!isCompactMode ? (

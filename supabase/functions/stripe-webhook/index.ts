@@ -355,6 +355,213 @@ Deno.serve(async (req) => {
           break;
         }
 
+        if (checkoutKind === "tok-one") {
+          const userId = session.metadata?.user_id || null;
+          const planId = session.metadata?.plan_id || null;
+          const billingPeriod = session.metadata?.billing_period || "monthly";
+
+          if (!userId || !planId) {
+            console.warn(`Missing tok-one metadata for session ${session.id}`);
+            break;
+          }
+
+          const now = new Date();
+          const periodEnd = new Date(now);
+          if (billingPeriod === "yearly") {
+            periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+          } else {
+            periodEnd.setMonth(periodEnd.getMonth() + 1);
+          }
+
+          // Create subscription record
+          const { error: subError } = await supabaseAdmin
+            .from("user_subscriptions")
+            .insert({
+              user_id: userId,
+              plan_id: planId,
+              status: "active",
+              current_period_start: now.toISOString(),
+              current_period_end: periodEnd.toISOString(),
+              stripe_subscription_id: session.id,
+            });
+
+          if (subError) {
+            console.error("Failed to create Tok One subscription:", subError);
+          } else {
+            console.log(`Tok One subscription created for user ${userId}, plan ${planId}, period ${billingPeriod}`);
+          }
+
+          // Record payment transaction
+          const tokOnePaidAmount = ((session.amount_total || 0) / 100).toFixed(2);
+          await supabaseAdmin
+            .from("payment_transactions")
+            .insert({
+              order_id: null,
+              user_id: userId,
+              stripe_session_id: session.id,
+              amount: tokOnePaidAmount,
+              currency: "chf",
+              status: "paid",
+              metadata: {
+                checkout_kind: "tok-one",
+                plan_id: planId,
+                billing_period: billingPeriod,
+              },
+            });
+
+          // Notify user
+          try {
+            await enqueueNotification({
+              adminClient: supabaseAdmin,
+              userId,
+              title: "Bienvenue dans Tok One !",
+              body: `Votre abonnement Tok One (${billingPeriod === "yearly" ? "annuel" : "mensuel"}) est maintenant actif. Profitez de la livraison gratuite et de tous vos avantages premium.`,
+              type: "subscription",
+              category: "transactional",
+              data: { plan_id: planId, billing_period: billingPeriod },
+            });
+            await triggerNotificationDispatch({ source: "stripe-webhook-tok-one", push: true, email: true });
+          } catch (error) {
+            console.error("stripe-webhook tok-one notification trigger failed:", error);
+          }
+
+          break;
+        }
+
+        if (checkoutKind === "launch-pack") {
+          const restaurantLaunchPackId = session.metadata?.restaurant_launch_pack_id || null;
+          const packId = session.metadata?.pack_id || null;
+
+          if (!restaurantLaunchPackId || !packId) {
+            console.warn(`Missing launch-pack metadata for session ${session.id}`);
+            break;
+          }
+
+          const { cardBrand, cardLast4 } = await getCardDetails(stripe, session);
+
+          // Update purchase record to paid
+          await supabaseAdmin
+            .from("restaurant_launch_packs")
+            .update({
+              status: "paid",
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+              paid_at: new Date().toISOString(),
+            })
+            .eq("id", restaurantLaunchPackId);
+
+          // Fetch pack services to create fulfillment records
+          const { data: pack } = await supabaseAdmin
+            .from("launch_packs")
+            .select("services")
+            .eq("id", packId)
+            .maybeSingle();
+
+          if (pack?.services && Array.isArray(pack.services)) {
+            const fulfillments = (pack.services as Array<{ service: string; label: string }>).map((svc) => ({
+              restaurant_pack_id: restaurantLaunchPackId,
+              service_slug: svc.service,
+              service_label: svc.label,
+              status: "pending",
+            }));
+
+            if (fulfillments.length > 0) {
+              await supabaseAdmin
+                .from("launch_pack_service_fulfillments")
+                .insert(fulfillments);
+            }
+
+            // Auto-configure dashboard feature gating based on pack services
+            const SERVICE_FEATURES: Record<string, string[]> = {
+              mise_en_place: ["dashboard-overview","dashboard-restaurant","dashboard-menu","dashboard-commandes","dashboard-reservations","dashboard-service","dashboard-formules","dashboard-offres","dashboard-ventes-flash","dashboard-avis","dashboard-factures","dashboard-support","dashboard-pack"],
+              menu_creation: ["dashboard-menu"],
+              product_photography: ["dashboard-photos"],
+              social_media_setup: ["dashboard-reseaux-sociaux"],
+              advertising_campaign: ["dashboard-campagne-overview","dashboard-campagnes"],
+              floor_plan_design: ["dashboard-plan-salle"],
+              account_manager: ["dashboard-advisor","dashboard-recommandations","dashboard-performances","dashboard-comparaison"],
+            };
+            const ALL_FEATURES = ["dashboard-overview","dashboard-advisor","dashboard-restaurant","dashboard-menu","dashboard-photos","dashboard-commandes","dashboard-reservations","dashboard-recommandations","dashboard-performances","dashboard-comparaison","dashboard-avis","dashboard-campagne-overview","dashboard-reseaux-sociaux","dashboard-campagnes","dashboard-factures","dashboard-offres","dashboard-ventes-flash","dashboard-formules","dashboard-service","dashboard-plan-salle","dashboard-support","dashboard-pack"];
+            const ALWAYS_ENABLED = new Set(["dashboard-overview","dashboard-pack","dashboard-support"]);
+
+            const enabledByPack = new Set<string>(ALWAYS_ENABLED);
+            for (const svc of pack.services as Array<{ service: string }>) {
+              for (const f of (SERVICE_FEATURES[svc.service] || [])) enabledByPack.add(f);
+            }
+            const disabledFeatures = ALL_FEATURES.filter((f) => !enabledByPack.has(f));
+
+            const restaurantId = session.metadata?.restaurant_id || null;
+            if (restaurantId) {
+              await supabaseAdmin
+                .from("restaurants")
+                .update({ disabled_dashboard_features: disabledFeatures })
+                .eq("id", restaurantId);
+            }
+          }
+
+          // Record payment transaction
+          await supabaseAdmin.from("payment_transactions").insert({
+            user_id: userId,
+            stripe_checkout_session_id: session.id,
+            stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+            amount: (session.amount_total || 0) / 100,
+            currency: (session.currency || "chf").toLowerCase(),
+            type: "charge",
+            status: "succeeded",
+            metadata: {
+              checkout_kind: "launch-pack",
+              pack_id: packId,
+              restaurant_launch_pack_id: restaurantLaunchPackId,
+              restaurant_id: session.metadata?.restaurant_id || null,
+              card_brand: cardBrand,
+              card_last4: cardLast4,
+            },
+          });
+
+          // Notify restaurant owner
+          const restaurantId = session.metadata?.restaurant_id || null;
+          if (restaurantId) {
+            const { data: restaurant } = await supabaseAdmin
+              .from("restaurants")
+              .select("owner_id, name")
+              .eq("id", restaurantId)
+              .maybeSingle();
+
+            const { data: packInfo } = await supabaseAdmin
+              .from("launch_packs")
+              .select("name")
+              .eq("id", packId)
+              .maybeSingle();
+
+            if (restaurant?.owner_id) {
+              const paidAmount = ((session.amount_total || 0) / 100).toFixed(2);
+              await enqueueNotification({
+                adminClient: supabaseAdmin,
+                userId: restaurant.owner_id,
+                title: "Pack de lancement active",
+                body: `Votre ${packInfo?.name || "pack"} a ete paye avec succes (${paidAmount} CHF). Notre equipe va vous contacter sous 48h pour planifier les services.`,
+                type: "payment",
+                category: "transactional",
+                data: {
+                  restaurant_launch_pack_id: restaurantLaunchPackId,
+                  pack_id: packId,
+                  restaurant_id: restaurantId,
+                  restaurant_name: restaurant.name,
+                  paid_amount: paidAmount,
+                  url: "/dashboard/pack",
+                },
+              });
+
+              try {
+                await triggerNotificationDispatch({ source: "stripe-webhook-launch-pack", push: true, email: true });
+              } catch (error) {
+                console.error("stripe-webhook launch-pack notification trigger failed:", error);
+              }
+            }
+          }
+          break;
+        }
+
         if (isZeroAttenteCheckoutKind(checkoutKind)) {
           if (!userId) {
             console.warn(`Missing user_id for zero-attente session ${session.id}`);

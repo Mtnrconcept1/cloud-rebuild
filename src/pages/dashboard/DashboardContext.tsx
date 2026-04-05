@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from "react";
 import { useOwnerRestaurants, type OwnedRestaurant } from "./useOwnerRestaurants";
 
 interface DashboardContextValue {
@@ -7,6 +7,7 @@ interface DashboardContextValue {
   setSelectedId: (id: string) => void;
   loading: boolean;
   error: string | null;
+  disabledFeatures: Set<string>;
 }
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -41,8 +42,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, id);
   };
 
+  const disabledFeatures = useMemo(() => {
+    const selected = restaurants.find((r) => r.id === selectedId);
+    return new Set<string>(selected?.disabled_dashboard_features || []);
+  }, [restaurants, selectedId]);
+
   return (
-    <DashboardContext.Provider value={{ restaurants, selectedId, setSelectedId, loading, error }}>
+    <DashboardContext.Provider value={{ restaurants, selectedId, setSelectedId, loading, error, disabledFeatures }}>
       {children}
     </DashboardContext.Provider>
   );

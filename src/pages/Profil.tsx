@@ -8,8 +8,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { User, Trophy, Gift, Camera, Mail, Phone, MapPin, Heart, Settings, Shield, Bell } from "lucide-react";
-import { Link } from "react-router-dom";
+import { User, Trophy, Gift, Camera, Mail, Phone, MapPin, Heart, Settings, Shield, Bell, Trash2, AlertTriangle, Crown, CalendarCheck, Truck, Percent, Headphones, Zap } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import ImageUpload from "@/components/ImageUpload";
@@ -18,6 +29,8 @@ import CityAutocomplete from "@/components/CityAutocomplete";
 import { enablePush, disablePush } from "@/lib/push-unified";
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
+import { useTokOneSubscription, useTokOnePlans } from "@/hooks/useTokOne";
+import { Badge } from "@/components/ui/badge";
 
 type FavoriteRestaurant = {
   id: string;
@@ -66,13 +79,21 @@ export default function Profil() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "infos";
   const [loading, setLoading] = useState(false);
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const { data: signupApplication } = useSignupApplication("client");
+  const { data: tokOneSub } = useTokOneSubscription();
+  const { data: tokOnePlans } = useTokOnePlans();
+  const tokOneIsActive = !!tokOneSub && tokOneSub.status === "active" && new Date(tokOneSub.current_period_end) > new Date();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -212,12 +233,14 @@ export default function Profil() {
           <h1 className="font-display text-3xl font-bold">Mon profil</h1>
         </div>
 
-        <Tabs defaultValue="infos">
-          <TabsList className="w-full">
+        <Tabs defaultValue={defaultTab}>
+          <TabsList className="w-full flex-wrap">
             <TabsTrigger value="infos" className="text-xs sm:text-sm">Informations</TabsTrigger>
             <TabsTrigger value="favoris" className="text-xs sm:text-sm">Favoris ({favorites?.length || 0})</TabsTrigger>
+            <TabsTrigger value="abonnement" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Crown className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Abonnement</span><span className="sm:hidden">Abo.</span></TabsTrigger>
             <TabsTrigger value="notifications" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Bell className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Notifications</span><span className="sm:hidden">Notifs</span></TabsTrigger>
             <TabsTrigger value="fidelite" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Trophy className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Fidélité</span><span className="sm:hidden">Points</span></TabsTrigger>
+            <TabsTrigger value="parametres" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Settings className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Parametres</span><span className="sm:hidden">Param.</span></TabsTrigger>
           </TabsList>
 
           <TabsContent value="infos" className="space-y-6 pt-4">
@@ -307,6 +330,165 @@ export default function Profil() {
               })
             ) : (
               <p className="text-muted-foreground text-center py-8">Aucun favori</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="abonnement" className="space-y-6 pt-4">
+            {tokOneIsActive && tokOneSub ? (
+              <div className="space-y-6">
+                {/* Active subscription card */}
+                <div className="rounded-2xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-6 space-y-5">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
+                        <Crown className="h-6 w-6 text-violet-600" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-lg text-violet-900">Tok One</h3>
+                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Actif</Badge>
+                        </div>
+                        <p className="text-sm text-violet-600">
+                          {tokOneSub.user_subscription_plans?.name || "Premium"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="rounded-xl bg-white/60 border p-4 space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium">Debut de la periode</p>
+                      <p className="font-semibold text-sm">
+                        <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
+                        {new Date(tokOneSub.current_period_start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/60 border p-4 space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium">
+                        {tokOneSub.cancel_at_period_end ? "Expire le" : "Prochain renouvellement"}
+                      </p>
+                      <p className="font-semibold text-sm">
+                        <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
+                        {new Date(tokOneSub.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {tokOneSub.cancel_at_period_end && (
+                    <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+                      <p className="text-sm text-amber-800">
+                        Votre abonnement ne sera pas renouvele. Vous conservez vos avantages jusqu'a la fin de la periode en cours.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Active benefits */}
+                <div className="space-y-3">
+                  <h3 className="font-bold text-lg">Vos avantages actifs</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { icon: Truck, label: "Livraison gratuite", desc: "Appliquee automatiquement dans le panier", color: "text-blue-600", bg: "bg-blue-50" },
+                      { icon: Percent, label: "Reductions exclusives", desc: "Jusqu'a -20% chez nos partenaires", color: "text-emerald-600", bg: "bg-emerald-50" },
+                      { icon: Zap, label: "Acces anticipe", desc: "Ventes flash et Chef's Table en avance", color: "text-amber-600", bg: "bg-amber-50" },
+                      { icon: Headphones, label: "Support prioritaire", desc: "Reponse en moins de 2 heures", color: "text-purple-600", bg: "bg-purple-50" },
+                    ].map((benefit) => (
+                      <div key={benefit.label} className={`flex items-start gap-3 p-3 rounded-xl ${benefit.bg} border`}>
+                        <benefit.icon className={`h-5 w-5 ${benefit.color} shrink-0 mt-0.5`} />
+                        <div>
+                          <p className="font-medium text-sm">{benefit.label}</p>
+                          <p className="text-xs text-muted-foreground">{benefit.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/tok-one">Voir tous les avantages</Link>
+                  </Button>
+                  {!tokOneSub.cancel_at_period_end && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                          Resilier l'abonnement
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Resilier Tok One ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Vous conserverez vos avantages jusqu'au {new Date(tokOneSub.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Apres cette date, les frais de livraison et reductions exclusives ne s'appliqueront plus.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Conserver</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={async () => {
+                              const { error } = await supabase
+                                .from("user_subscriptions")
+                                .update({ status: "cancelled", cancel_at_period_end: true })
+                                .eq("id", tokOneSub.id);
+                              if (error) {
+                                toast({ title: "Erreur", description: error.message, variant: "destructive" });
+                              } else {
+                                toast({ title: "Abonnement resilie", description: "Vos avantages restent actifs jusqu'a la fin de la periode." });
+                                queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
+                              }
+                            }}
+                          >
+                            Confirmer la resiliation
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* No active subscription */}
+                <div className="rounded-2xl border-2 border-dashed border-violet-200 p-8 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto">
+                    <Crown className="h-8 w-8 text-violet-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-xl">Aucun abonnement actif</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Rejoignez Tok One pour beneficier de la livraison gratuite, de reductions exclusives et d'un acces VIP aux evenements culinaires.
+                    </p>
+                  </div>
+                  {tokOnePlans && tokOnePlans.length > 0 && (
+                    <p className="text-sm text-violet-600 font-medium">
+                      A partir de {Number(tokOnePlans[0].price_monthly).toFixed(2)} CHF/mois
+                    </p>
+                  )}
+                  <Button className="bg-violet-600 hover:bg-violet-700 text-white" asChild>
+                    <Link to="/tok-one">
+                      <Crown className="mr-2 h-4 w-4" />
+                      Decouvrir Tok One
+                    </Link>
+                  </Button>
+                </div>
+
+                {/* Quick benefits preview */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { icon: Truck, label: "Livraison gratuite", color: "text-blue-600" },
+                    { icon: Percent, label: "Jusqu'a -20%", color: "text-emerald-600" },
+                    { icon: Zap, label: "Acces anticipe", color: "text-amber-600" },
+                    { icon: Headphones, label: "Support VIP", color: "text-purple-600" },
+                  ].map((b) => (
+                    <div key={b.label} className="flex items-center gap-2 p-3 rounded-xl border text-sm">
+                      <b.icon className={`h-4 w-4 ${b.color}`} />
+                      <span className="text-muted-foreground">{b.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </TabsContent>
 
@@ -431,6 +613,74 @@ export default function Profil() {
             <div className="space-y-4">
               <h2 className="font-display text-xl font-bold">Historique</h2>
               <LoyaltyHistory userId={user?.id} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="parametres" className="space-y-6 pt-4">
+            <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-destructive">Zone de danger</h3>
+                  <p className="text-xs text-muted-foreground">Actions irreversibles</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  La suppression de votre compte est definitive et entraine la perte de vos points de fidelite, credits, historique de commandes et reservations.
+                </p>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Supprimer mon compte
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer definitivement votre compte ?</AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-3">
+                        <span className="block">Cette action est irreversible. Toutes vos donnees seront supprimees.</span>
+                        <span className="block">Pour confirmer, saisissez votre email : <strong>{user?.email}</strong></span>
+                        <Input
+                          value={deleteConfirmEmail}
+                          onChange={(e) => setDeleteConfirmEmail(e.target.value)}
+                          placeholder="Votre email"
+                          className="mt-2"
+                        />
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => setDeleteConfirmEmail("")}>Annuler</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        disabled={deleteConfirmEmail !== user?.email || deleting}
+                        onClick={async () => {
+                          setDeleting(true);
+                          try {
+                            const { error } = await supabase.functions.invoke("delete-account");
+                            if (error) throw error;
+                            await supabase.auth.signOut();
+                            toast({ title: "Compte supprime", description: "Votre compte a ete supprime avec succes." });
+                            navigate("/");
+                          } catch (err: any) {
+                            toast({ title: "Erreur", description: err.message || "Impossible de supprimer le compte.", variant: "destructive" });
+                          } finally {
+                            setDeleting(false);
+                            setDeleteConfirmEmail("");
+                          }
+                        }}
+                      >
+                        {deleting ? "Suppression..." : "Supprimer definitivement"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
