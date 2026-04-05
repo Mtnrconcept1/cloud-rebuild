@@ -98,7 +98,7 @@ export default function DashboardPerformances() {
           .lt("created_at", toTimestampExclusive),
         supabase
           .from("reservations")
-          .select("date, time, status, party_size, metadata")
+          .select("date, time, status, party_size, feature, total_amount, metadata")
           .eq("restaurant_id", selectedId)
           .gte("date", fromDay)
           .lte("date", toDay),

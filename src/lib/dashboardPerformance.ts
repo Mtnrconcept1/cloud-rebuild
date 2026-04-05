@@ -12,6 +12,8 @@ export type ReservationPerformanceRow = {
   time?: string | null;
   status: string | null;
   party_size?: number | null;
+  feature?: string | null;
+  total_amount?: number | string | null;
   metadata?: unknown;
 };
 
@@ -218,6 +220,20 @@ export function buildPerformanceSummary({
     const bucket = byDay.get(dayKey) || createDailyAccumulator();
     bucket.reservationsCount += 1;
     totalReservations += 1;
+
+    // Include zero-attente paid reservation revenue
+    const feature = String(reservation.feature || "").toLowerCase();
+    if (feature === "zero-attente") {
+      const amount = toNumber(reservation.total_amount);
+      if (amount > 0) {
+        bucket.revenue += amount;
+        totalRevenue += amount;
+        // Extract discounts from zero-attente metadata
+        const metadata = isRecord(reservation.metadata) ? reservation.metadata : {};
+        const formulaValue = toNumber(metadata.formula_discount_amount) || toNumber(metadata.formula_discount);
+        formulaDiscount += formulaValue;
+      }
+    }
 
     const periodKey = getServicePeriodFromMetadata(reservation.metadata, reservation.time || null);
     reservationServiceBreakdown[periodKey].count += 1;

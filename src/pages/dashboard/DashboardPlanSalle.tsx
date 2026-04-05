@@ -1,18 +1,30 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Armchair,
   CalendarClock,
+  ChevronDown,
+  ChevronUp,
   Clock3,
   Copy,
   Grip,
+  HelpCircle,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
   RotateCw,
   LayoutPanelTop,
   Minus,
   Plus,
+  Printer,
+  Redo2,
+  Search,
   Save,
   Sparkles,
+  Store,
   Trash2,
+  Undo2,
   UserRound,
   Users,
   ZoomIn,
@@ -26,12 +38,14 @@ import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database, Json } from "@/integrations/supabase/types";
@@ -40,13 +54,17 @@ import {
   buildDraftFloorPlanLayout,
   clampFloorPlanLayout,
   ensureFloorPlanLayoutFitsCapacity,
+  getFloorPlanContentPadding as resolveFloorPlanContentPadding,
   getFloorPlanItemBaseName,
   getFloorPlanItemTypeLabel,
-  getMinimumTableSize,
+  getResolvedFloorPlanDimensions,
   isReservableFloorPlanItem,
   normalizeFloorPlanLayout,
   reservationsOverlap,
+  resizeFloorPlanLayoutToFootprint,
+  type FloorPlanCornerBenchConfig,
   type FloorPlanItemKind,
+  type FloorPlanSeatPlacement,
   type FloorPlanSeatType,
   type FloorPlanTableLayout,
   type FloorPlanTablePreset,
@@ -90,6 +108,16 @@ type BranchRow = {
   country: string;
   is_active: boolean | null;
   created_at?: string | null;
+};
+
+type TableConfig = {
+  capacity: number;
+  shape: FloorPlanTableShape;
+  seatType: FloorPlanSeatType;
+  seatPlacements: FloorPlanSeatPlacement[];
+  cornerBenchConfigs: FloorPlanCornerBenchConfig[];
+  tableWidth: number;
+  tableHeight: number;
 };
 
 type TableRow = {
@@ -160,6 +188,9 @@ const PRIMARY_RESIZE_HANDLE: { key: ResizeHandle; className: string; cursor: str
   className: "bottom-2 right-2",
   cursor: "nwse-resize",
 };
+const SIDE_PANEL_TAB_LIST_CLASS = "grid h-auto min-h-12 w-full gap-1 rounded-2xl bg-slate-100 p-1";
+const SIDE_PANEL_TAB_TRIGGER_CLASS = "min-w-0 whitespace-normal rounded-xl px-2 py-2 text-[10px] leading-tight uppercase tracking-[0.14em] sm:text-[11px]";
+const SIDE_PANEL_PRESET_GRID_CLASS = "grid [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))] gap-3";
 
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -301,6 +332,14 @@ function getReservationSpecialRequest(reservation: ReservationRow) {
     : null;
 }
 
+function normalizeSearchText(value: string | null | undefined) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
 function getTableDensity(frame: RenderedTableFrame): TableDensity {
   if (frame.w < 120 || frame.h < 120) return "tight";
   if (frame.w < 190 || frame.h < 155) return "compact";
@@ -395,6 +434,14 @@ function layoutToRecord(layout: FloorPlanTableLayout) {
     kind: layout.kind,
     seat_labels: layout.seatLabels,
     seat_type: layout.seatType || "chair",
+    seat_placements: layout.seatPlacements || [],
+    corner_bench_corners: layout.cornerBenchCorners || [],
+    corner_bench_configs: layout.cornerBenchConfigs || [],
+    table_width: layout.tableWidth ? Math.round(layout.tableWidth) : undefined,
+    table_height: layout.tableHeight ? Math.round(layout.tableHeight) : undefined,
+    corner_bench_horizontal: layout.cornerBenchHorizontal ? Math.round(layout.cornerBenchHorizontal) : undefined,
+    corner_bench_vertical: layout.cornerBenchVertical ? Math.round(layout.cornerBenchVertical) : undefined,
+    corner_bench_depth: layout.cornerBenchDepth ? Math.round(layout.cornerBenchDepth) : undefined,
   };
 }
 
@@ -446,6 +493,15 @@ function buildServiceLayout(
       shape: templateLayout.shape,
       kind: templateLayout.kind,
       seatLabels: templateLayout.seatLabels,
+      seatType: normalizedOverride.seatType ?? templateLayout.seatType,
+      seatPlacements: normalizedOverride.seatPlacements ?? templateLayout.seatPlacements,
+      cornerBenchCorners: normalizedOverride.cornerBenchCorners ?? templateLayout.cornerBenchCorners,
+      cornerBenchConfigs: normalizedOverride.cornerBenchConfigs ?? templateLayout.cornerBenchConfigs,
+      tableWidth: normalizedOverride.tableWidth ?? templateLayout.tableWidth,
+      tableHeight: normalizedOverride.tableHeight ?? templateLayout.tableHeight,
+      cornerBenchHorizontal: normalizedOverride.cornerBenchHorizontal ?? templateLayout.cornerBenchHorizontal,
+      cornerBenchVertical: normalizedOverride.cornerBenchVertical ?? templateLayout.cornerBenchVertical,
+      cornerBenchDepth: normalizedOverride.cornerBenchDepth ?? templateLayout.cornerBenchDepth,
     },
     capacity,
     templateLayout.shape,
@@ -508,37 +564,12 @@ function resizeRenderedTableFrame(
   };
 }
 
-function getTableContentPadding(layout: FloorPlanTableLayout) {
-  if (!isReservableFloorPlanItem(layout.kind)) {
-    const horizontal = Math.max(6, Math.min(layout.w * 0.08, 20));
-    const vertical = Math.max(6, Math.min(layout.h * 0.08, 20));
-    return {
-      top: vertical,
-      right: horizontal,
-      bottom: vertical,
-      left: horizontal,
-    };
-  }
-
-  if (layout.shape === "round") {
-    const horizontal = Math.max(4, Math.min(layout.w * 0.14, 28));
-    const vertical = Math.max(4, Math.min(layout.h * 0.12, 24));
-    return {
-      top: vertical,
-      right: horizontal,
-      bottom: vertical,
-      left: horizontal,
-    };
-  }
-
-  const horizontal = Math.max(4, Math.min(layout.w * 0.08, 22));
-  const vertical = Math.max(4, Math.min(layout.h * 0.1, 18));
-  return {
-    top: vertical,
-    right: horizontal,
-    bottom: vertical,
-    left: horizontal,
-  };
+function getTableContentPadding(
+  layout: FloorPlanTableLayout,
+  capacity: number,
+  zoom: number,
+) {
+  return resolveFloorPlanContentPadding(layout, capacity, zoom);
 }
 
 function isReservableDraftTable(table: DraftTable | null | undefined) {
@@ -599,6 +630,78 @@ function getLogicalPositionFromRenderedFrame(
   };
 }
 
+function PanelSection({
+  open,
+  onOpenChange,
+  title,
+  description,
+  badge,
+  children,
+  className,
+  contentClassName,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: string;
+  badge?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  contentClassName?: string;
+}) {
+  return (
+    <Collapsible open={open} onOpenChange={onOpenChange} className={cn("min-w-0 rounded-2xl border border-slate-200 bg-white/90", className)}>
+      <div className="flex items-start justify-between gap-3 px-4 py-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{title}</p>
+          {description ? (
+            <p className="mt-1 break-words text-sm leading-5 text-slate-500">{description}</p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {badge}
+          <CollapsibleTrigger asChild>
+            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100">
+              {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+      </div>
+      <CollapsibleContent className={cn("min-w-0 border-t border-slate-200 px-4 py-4", contentClassName)}>
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function PalettePresetButton({
+  preset,
+  disabled,
+  onClick,
+}: {
+  preset: FloorPlanTablePreset;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const meta = preset.capacity ? `${preset.capacity} couverts` : (preset.description || "");
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="h-full min-w-0 whitespace-normal rounded-[22px] border-slate-200 bg-white px-3 py-4 text-center shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      <div className="flex min-w-0 flex-col items-center text-center">
+        <FloorPlanPresetIcon kind={preset.kind} shape={preset.shape} className="mb-3 h-14 w-14 shrink-0" />
+        <span className="block w-full break-words text-sm font-semibold leading-5 text-slate-900">{preset.label}</span>
+        <span className="mt-1 block w-full break-words text-[11px] leading-4 text-slate-500">{meta}</span>
+      </div>
+    </Button>
+  );
+}
+
 export default function DashboardPlanSalle() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const { toast } = useToast();
@@ -619,6 +722,31 @@ export default function DashboardPlanSalle() {
   const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<SortBy>("time");
+  const [reservationQuery, setReservationQuery] = useState("");
+  const [libraryTab, setLibraryTab] = useState<"elements" | "structure" | "decoration">("elements");
+  const [inspectorTab, setInspectorTab] = useState<"properties" | "layers">("properties");
+  const [leftPanelView, setLeftPanelView] = useState<"library" | "reservations">("library");
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
+  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false);
+  const [showWorkspaceStats, setShowWorkspaceStats] = useState(false);
+  const [leftSheetOpen, setLeftSheetOpen] = useState(false);
+  const [panelSections, setPanelSections] = useState({
+    libraryCatalog: true,
+    librarySectors: false,
+    libraryAI: false,
+    reservationSearch: true,
+    reservationList: true,
+    inspectorReservation: true,
+    inspectorReservationClient: true,
+    inspectorReservationPayment: true,
+    inspectorReservationItems: true,
+    inspectorElement: true,
+    inspectorElementDetails: true,
+    inspectorElementActions: true,
+    inspectorPlanning: true,
+    layersElements: true,
+    layersStats: true,
+  });
   const [draftTables, setDraftTables] = useState<DraftTable[]>([]);
   const [draftAssignments, setDraftAssignments] = useState<Record<string, string | null>>({});
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
@@ -646,6 +774,41 @@ export default function DashboardPlanSalle() {
   const [editingSeatingTableId, setEditingSeatingTableId] = useState<string | null>(null);
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
+  const setPanelSectionOpen = (section: keyof typeof panelSections, open: boolean) => {
+    setPanelSections((current) => ({ ...current, [section]: open }));
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const savedLeftSidebar = window.localStorage.getItem("plan-salle-left-collapsed");
+    const savedRightSidebar = window.localStorage.getItem("plan-salle-right-collapsed");
+    const savedStats = window.localStorage.getItem("plan-salle-stats-open");
+
+    if (savedLeftSidebar === "true" || savedLeftSidebar === "false") {
+      setLeftSidebarCollapsed(savedLeftSidebar === "true");
+    }
+    if (savedRightSidebar === "true" || savedRightSidebar === "false") {
+      setRightSidebarCollapsed(savedRightSidebar === "true");
+    }
+    if (savedStats === "true" || savedStats === "false") {
+      setShowWorkspaceStats(savedStats === "true");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("plan-salle-left-collapsed", String(leftSidebarCollapsed));
+  }, [leftSidebarCollapsed]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("plan-salle-right-collapsed", String(rightSidebarCollapsed));
+  }, [rightSidebarCollapsed]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("plan-salle-stats-open", String(showWorkspaceStats));
+  }, [showWorkspaceStats]);
 
   useEffect(() => {
     const viewport = canvasViewportRef.current;
@@ -874,6 +1037,7 @@ export default function DashboardPlanSalle() {
     const statuses = Array.from(new Set(branchScopedReservations.map((reservation) => String(reservation.status || "pending"))));
     return ["all", ...statuses.sort((left, right) => left.localeCompare(right, "fr"))];
   }, [branchScopedReservations]);
+  const normalizedReservationQuery = normalizeSearchText(reservationQuery);
 
   const filteredReservations = useMemo(() => (
     branchScopedReservations
@@ -881,10 +1045,24 @@ export default function DashboardPlanSalle() {
         if (!isDateInDashboardTimeRange(reservation.date, timeRange, referenceDate, { dateOnly: true })) return false;
         if (serviceFilter !== "all" && getReservationService(reservation) !== serviceFilter) return false;
         if (statusFilter !== "all" && String(reservation.status || "pending") !== statusFilter) return false;
+        if (normalizedReservationQuery) {
+          const searchableContent = normalizeSearchText([
+            getReservationCustomerLabel(reservation),
+            reservation.customer?.phone || "",
+            reservation.date,
+            getSafeTime(reservation.time),
+            String(reservation.party_size || ""),
+            String(reservation.status || "pending"),
+            getServicePeriodLabel(getReservationService(reservation)),
+            getReservationSpecialRequest(reservation) || "",
+          ].join(" "));
+
+          if (!searchableContent.includes(normalizedReservationQuery)) return false;
+        }
         return true;
       })
       .sort((left, right) => sortReservations(left, right, sortBy))
-  ), [branchScopedReservations, referenceDate, serviceFilter, sortBy, statusFilter, timeRange]);
+  ), [branchScopedReservations, normalizedReservationQuery, referenceDate, serviceFilter, sortBy, statusFilter, timeRange]);
 
   const visibleTables = useMemo(() => (
     draftTables
@@ -942,6 +1120,25 @@ export default function DashboardPlanSalle() {
   );
   const selectedTable = selectedTableId ? tableMap.get(selectedTableId) || null : null;
   const selectedTableIsReservable = isReservableDraftTable(selectedTable);
+  const selectedTableDimensions = useMemo(() => {
+    if (!selectedTable || !selectedTableIsReservable) return null;
+    return getResolvedFloorPlanDimensions({
+      capacity: selectedTable.capacity,
+      shape: selectedTable.layout.shape,
+      kind: selectedTable.layout.kind,
+      seatType: selectedTable.layout.seatType,
+      seatPlacements: selectedTable.layout.seatPlacements,
+      cornerBenchCorners: selectedTable.layout.cornerBenchCorners,
+      cornerBenchConfigs: selectedTable.layout.cornerBenchConfigs,
+      tableWidth: selectedTable.layout.tableWidth,
+      tableHeight: selectedTable.layout.tableHeight,
+      footprintWidth: selectedTable.layout.w,
+      footprintHeight: selectedTable.layout.h,
+      cornerBenchHorizontal: selectedTable.layout.cornerBenchHorizontal,
+      cornerBenchVertical: selectedTable.layout.cornerBenchVertical,
+      cornerBenchDepth: selectedTable.layout.cornerBenchDepth,
+    });
+  }, [selectedTable, selectedTableIsReservable]);
   const selectedTableAssignments = useMemo(() => {
     if (!selectedTableId || !selectedTableIsReservable) return [];
     return (visibleAssignmentsByTable.get(selectedTableId) || []).slice(0, 6);
@@ -976,6 +1173,19 @@ export default function DashboardPlanSalle() {
       items: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "furniture"),
     },
   ]), []);
+  const libraryPresets = useMemo(() => ({
+    elements: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "table"),
+    structure: FLOOR_PLAN_PRESETS.filter((preset) => [
+      "bar",
+      "corner-bench",
+      "banquette",
+      "booth",
+      "host-stand",
+      "divider",
+      "service-station",
+    ].includes(preset.kind)),
+    decoration: FLOOR_PLAN_PRESETS.filter((preset) => ["chair", "stool", "plant"].includes(preset.kind)),
+  }), []);
 
   const isTemplateMode = editMode === "template";
   const hasUnpersistedDraftTables = draftTables.some((table) => !table.persisted);
@@ -1083,26 +1293,31 @@ export default function DashboardPlanSalle() {
 
         setDraftTables((current) => current.map((table) => {
           if (table.id !== resizeState.tableId) return table;
-          const minimumSize = getMinimumTableSize(
-            table.capacity,
-            resizeState.startLayout.shape,
-            resizeState.startLayout.kind,
-          );
+          const minimumSize = getResolvedFloorPlanDimensions({
+            capacity: table.capacity,
+            shape: resizeState.startLayout.shape,
+            kind: resizeState.startLayout.kind,
+            seatType: resizeState.startLayout.seatType,
+            seatPlacements: resizeState.startLayout.seatPlacements,
+            cornerBenchCorners: resizeState.startLayout.cornerBenchCorners,
+            cornerBenchConfigs: resizeState.startLayout.cornerBenchConfigs,
+            cornerBenchHorizontal: resizeState.startLayout.cornerBenchHorizontal,
+            cornerBenchVertical: resizeState.startLayout.cornerBenchVertical,
+            cornerBenchDepth: resizeState.startLayout.cornerBenchDepth,
+          });
           const resizedFrame = resizeRenderedTableFrame(
             resizeState.startFrame,
             resizeState.handle,
             deltaX,
             deltaY,
-            minimumSize.w * canvasZoom,
-            minimumSize.h * canvasZoom,
+            minimumSize.footprintWidth * canvasZoom,
+            minimumSize.footprintHeight * canvasZoom,
           );
-          const resizedLayout = ensureFloorPlanLayoutFitsCapacity(
-            {
-              ...resizeState.startLayout,
-              w: resizedFrame.w / canvasZoom,
-              h: resizedFrame.h / canvasZoom,
-            },
+          const resizedLayout = resizeFloorPlanLayoutToFootprint(
+            resizeState.startLayout,
             table.capacity,
+            resizedFrame.w / canvasZoom,
+            resizedFrame.h / canvasZoom,
             resizeState.startLayout.shape,
             resizeState.startLayout.kind,
           );
@@ -1152,6 +1367,12 @@ export default function DashboardPlanSalle() {
       setSelectedTableId(null);
     }
   }, [selectedTableId, tableMap]);
+
+  useEffect(() => {
+    if (selectedTableId || selectedReservationId) {
+      setInspectorTab("properties");
+    }
+  }, [selectedReservationId, selectedTableId]);
 
   useEffect(() => {
     if (autoSaveTimeoutRef.current) {
@@ -1510,13 +1731,21 @@ export default function DashboardPlanSalle() {
     setSelectedTableId(tableId);
   };
 
-  const confirmTableConfig = (config: { capacity: number; shape: FloorPlanTableShape; seatType: FloorPlanSeatType }) => {
+  const confirmTableConfig = (config: TableConfig) => {
     if (editingSeatingTableId) {
       updateDraftTable(editingSeatingTableId, (table) => ({
         ...table,
         capacity: config.capacity,
         layout: ensureFloorPlanLayoutFitsCapacity(
-          { ...table.layout, shape: config.shape, seatType: config.seatType },
+          {
+            ...table.layout,
+            shape: config.shape,
+            seatType: config.seatType,
+            seatPlacements: config.seatPlacements,
+            cornerBenchConfigs: config.cornerBenchConfigs,
+            tableWidth: config.tableWidth,
+            tableHeight: config.tableHeight,
+          },
           config.capacity,
           config.shape,
           table.layout.kind,
@@ -1537,10 +1766,19 @@ export default function DashboardPlanSalle() {
             capacity: config.capacity,
             is_active: true,
             sector: selectedSector,
-            layout: {
-              ...buildDraftFloorPlanLayout(current.length, { ...preset, capacity: config.capacity, shape: config.shape }),
-              seatType: config.seatType,
-            },
+            layout: ensureFloorPlanLayoutFitsCapacity(
+              {
+                ...buildDraftFloorPlanLayout(current.length, { ...preset, capacity: config.capacity, shape: config.shape }),
+                seatType: config.seatType,
+                seatPlacements: config.seatPlacements,
+                cornerBenchConfigs: config.cornerBenchConfigs,
+                tableWidth: config.tableWidth,
+                tableHeight: config.tableHeight,
+              },
+              config.capacity,
+              config.shape,
+              preset.kind,
+            ),
           },
         ]);
         setSelectedTableId(tableId);
@@ -1865,75 +2103,265 @@ export default function DashboardPlanSalle() {
   const selectedReservationAssignedTable = selectedReservationAssignedTableId
     ? tableMap.get(selectedReservationAssignedTableId) || null
     : null;
+  const layerItems = useMemo(() => (
+    visibleTables.map((table) => ({
+      id: table.id,
+      label: table.table_number,
+      kindLabel: getFloorPlanItemTypeLabel(table.layout.kind, table.layout.shape),
+      sector: table.sector,
+      capacity: table.capacity,
+    }))
+  ), [visibleTables]);
+  const placedReservationsCount = filteredReservations.length - unassignedVisibleReservations.length;
+  const visibleCapacity = visibleReservableTables.reduce((sum, table) => sum + table.capacity, 0);
+  const placementRate = filteredReservations.length > 0
+    ? Math.round((placedReservationsCount / filteredReservations.length) * 100)
+    : 0;
+  const occupancyRate = visibleReservableTables.length > 0
+    ? Math.round(((visibleReservableTables.length - availableTables.length) / visibleReservableTables.length) * 100)
+    : 0;
+  const selectedReservationService = selectedReservation ? getReservationService(selectedReservation) : null;
+  const saveStatus = (() => {
+    if (saveMutation.isPending) {
+      return {
+        label: "Sauvegarde en cours",
+        detail: "Les derniers ajustements sont en train d'etre synchronises.",
+        tone: "border-amber-200 bg-amber-50 text-amber-800",
+      };
+    }
+
+    if (isTemplateMode) {
+      return hasUnpersistedDraftTables
+        ? {
+            label: "Template a enregistrer",
+            detail: "De nouveaux elements doivent etre sauvegardes avant diffusion.",
+            tone: "border-amber-200 bg-amber-50 text-amber-800",
+          }
+        : {
+            label: "Template synchronise",
+            detail: "La structure de salle est a jour.",
+            tone: "border-emerald-200 bg-emerald-50 text-emerald-800",
+          };
+    }
+
+    return serviceLayoutDirty
+      ? {
+          label: "Plan du jour modifie",
+          detail: "Les derniers deplacements seront sauvegardes automatiquement.",
+          tone: "border-sky-200 bg-sky-50 text-sky-800",
+        }
+      : {
+          label: "Plan du jour synchronise",
+          detail: "Les placements affiches correspondent a la version en base.",
+          tone: "border-emerald-200 bg-emerald-50 text-emerald-800",
+        };
+  })();
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-              <LayoutPanelTop className="h-3.5 w-3.5" />
-              Plan de salle
-            </div>
-            <div>
-              <h1 className="font-display text-3xl font-bold">Plan de salle et placements</h1>
-              <p className="text-sm text-muted-foreground">
-                {isTemplateMode
-                  ? "Modifiez le template global pour definir le plan applique par defaut chaque jour."
-                  : "Le plan du jour herite du template. Les deplacements sauvegardes ici n'affectent que la date de reference."}
-              </p>
-            </div>
-            {selectedRestaurant ? (
-              <p className="text-sm font-medium text-foreground">
-                Restaurateur : <span className="text-primary">{selectedRestaurant.name}</span>
-              </p>
-            ) : null}
-          </div>
+      <div className="flex min-h-[calc(100vh-5.5rem)] flex-col gap-4 xl:overflow-hidden">
+        <div className="space-y-4 shrink-0">
+          <div className="rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,248,252,0.96))] p-4 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.45)]">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+                  <LayoutPanelTop className="h-7 w-7 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="font-display text-[2rem] font-bold tracking-tight text-slate-900">PlanResto</h1>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.22em]",
+                        editMode === "template"
+                          ? "border-amber-200 bg-amber-50 text-amber-800"
+                          : "border-sky-200 bg-sky-50 text-sky-700",
+                      )}
+                    >
+                      {editMode === "template" ? "Mode template" : "Plan du jour"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-slate-500">
+                    {isTemplateMode
+                      ? "Studio de conception pour la structure permanente de la salle."
+                      : "Outil de placement optimise pour le service du jour, tablette ou desktop."}
+                  </p>
+                  {selectedRestaurant ? (
+                    <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700">
+                      <Store className="h-3.5 w-3.5 text-slate-500" />
+                      <span className="truncate">{selectedRestaurant.name}</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center rounded-full border bg-card p-1 shadow-sm">
-              <Button
-                type="button"
-                size="sm"
-                variant={editMode === "service" ? "default" : "ghost"}
-                className="rounded-full"
-                onClick={() => setEditMode("service")}
-              >
-                Plan du jour
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={editMode === "template" ? "default" : "ghost"}
-                className="rounded-full"
-                onClick={() => setEditMode("template")}
-              >
-                Modifier le template
-              </Button>
+              <div className="flex flex-col gap-3 xl:items-end">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-14 min-w-[120px] rounded-2xl border-slate-200 bg-white px-4 text-left shadow-sm"
+                    onClick={() => createDefaultBranchMutation.mutate()}
+                    disabled={!selectedId || createDefaultBranchMutation.isPending}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Plus className="h-4 w-4 text-slate-700" />
+                      <div className="leading-tight">
+                        <span className="block text-sm font-semibold text-slate-900">Nouveau</span>
+                        <span className="block text-[11px] text-slate-500">Salle ou variante</span>
+                      </div>
+                    </div>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-14 min-w-[120px] rounded-2xl border-slate-200 bg-white px-4 text-left shadow-sm"
+                    onClick={() => saveMutation.mutate({
+                      silent: false,
+                      source: "manual",
+                      layoutSignature: isTemplateMode ? null : serviceLayoutSignature,
+                    })}
+                    disabled={!canPersist || saveMutation.isPending}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Save className="h-4 w-4 text-slate-700" />
+                      <div className="leading-tight">
+                        <span className="block text-sm font-semibold text-slate-900">
+                          {saveMutation.isPending ? "Sauvegarde..." : "Enregistrer"}
+                        </span>
+                        <span className="block text-[11px] text-slate-500">
+                          {isTemplateMode ? "Template de salle" : "Plan du service"}
+                        </span>
+                      </div>
+                    </div>
+                  </Button>
+                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+                    <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-xl" disabled>
+                      <Undo2 className="h-4 w-4 text-slate-400" />
+                    </Button>
+                    <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-xl" disabled>
+                      <Redo2 className="h-4 w-4 text-slate-400" />
+                    </Button>
+                  </div>
+                  <div className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:flex">
+                    <Select value={String(canvasZoom)} onValueChange={(value) => updateCanvasZoom(Number(value))}>
+                      <SelectTrigger className="h-10 w-[104px] rounded-xl border-0 bg-transparent px-2 shadow-none focus:ring-0">
+                        <SelectValue placeholder={canvasZoomLabel} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[0.5, 0.75, 1, 1.25, 1.5].map((zoom) => (
+                          <SelectItem key={zoom} value={String(zoom)}>
+                            {Math.round(zoom * 100)}%
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    type="button"
+                    className="h-14 rounded-2xl px-5 text-sm shadow-sm"
+                    onClick={() => window.print()}
+                    disabled={!selectedBranch}
+                  >
+                    <Printer className="mr-2 h-4 w-4" />
+                    Apercu / Impression
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-sm">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={editMode === "service" ? "default" : "ghost"}
+                      className="rounded-xl px-4"
+                      onClick={() => setEditMode("service")}
+                    >
+                      Plan du jour
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={editMode === "template" ? "default" : "ghost"}
+                      className="rounded-xl px-4"
+                      onClick={() => setEditMode("template")}
+                    >
+                      Structure
+                    </Button>
+                  </div>
+                  <div className={cn("rounded-2xl border px-4 py-2 text-sm shadow-sm", saveStatus.tone)}>
+                    <p className="font-semibold">{saveStatus.label}</p>
+                    <p className="text-xs opacity-80">{saveStatus.detail}</p>
+                  </div>
+                  {selectedBranch ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 rounded-2xl border-slate-200 bg-white px-3 shadow-sm xl:hidden"
+                      onClick={() => setLeftSheetOpen(true)}
+                    >
+                      <PanelLeftOpen className="h-4 w-4 text-slate-600" />
+                      <span className="ml-2">Panneaux</span>
+                    </Button>
+                  ) : null}
+                  {selectedBranch ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="hidden h-11 rounded-2xl border-slate-200 bg-white px-3 shadow-sm xl:inline-flex"
+                      onClick={() => setLeftSidebarCollapsed((current) => !current)}
+                    >
+                      {leftSidebarCollapsed ? (
+                        <PanelLeftOpen className="h-4 w-4 text-slate-600" />
+                      ) : (
+                        <PanelLeftClose className="h-4 w-4 text-slate-600" />
+                      )}
+                      <span className="ml-2 hidden xl:inline">
+                        {leftSidebarCollapsed ? "Ouvrir le menu" : "Replier le menu"}
+                      </span>
+                    </Button>
+                  ) : null}
+                  {selectedBranch ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="hidden h-11 rounded-2xl border-slate-200 bg-white px-3 shadow-sm xl:inline-flex"
+                      onClick={() => setRightSidebarCollapsed((current) => !current)}
+                    >
+                      {rightSidebarCollapsed ? (
+                        <PanelRightOpen className="h-4 w-4 text-slate-600" />
+                      ) : (
+                        <PanelRightClose className="h-4 w-4 text-slate-600" />
+                      )}
+                      <span className="ml-2 hidden 2xl:inline">
+                        {rightSidebarCollapsed ? "Ouvrir l'inspecteur" : "Replier l'inspecteur"}
+                      </span>
+                    </Button>
+                  ) : null}
+                  {selectedBranch ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 rounded-2xl border-slate-200 bg-white px-3 shadow-sm"
+                      onClick={() => setShowWorkspaceStats((current) => !current)}
+                    >
+                      {showWorkspaceStats ? (
+                        <ChevronUp className="h-4 w-4 text-slate-600" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-slate-600" />
+                      )}
+                      <span className="ml-2 hidden xl:inline">
+                        {showWorkspaceStats ? "Masquer les stats" : "Afficher les stats"}
+                      </span>
+                    </Button>
+                  ) : null}
+                  <Button type="button" variant="outline" size="icon" className="h-11 w-11 rounded-2xl border-slate-200 bg-white shadow-sm">
+                    <HelpCircle className="h-4 w-4 text-slate-600" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => createDefaultBranchMutation.mutate()}
-              disabled={!selectedId || createDefaultBranchMutation.isPending}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {branches.length === 0 ? "Initialiser une salle" : "Ajouter une salle"}
-            </Button>
-            <Button
-              onClick={() => saveMutation.mutate({
-                silent: false,
-                source: "manual",
-                layoutSignature: isTemplateMode ? null : serviceLayoutSignature,
-              })}
-              disabled={!canPersist || saveMutation.isPending}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {saveMutation.isPending
-                ? "Sauvegarde..."
-                : isTemplateMode
-                  ? "Sauvegarder le template"
-                  : "Sauvegarder le plan du jour"}
-            </Button>
           </div>
         </div>
 
@@ -1974,12 +2402,12 @@ export default function DashboardPlanSalle() {
         ) : null}
 
         {selectedBranch ? (
-          <>
-            <div className="grid grid-cols-1 gap-3 rounded-2xl border bg-card p-4 md:grid-cols-2 xl:grid-cols-7">
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Salle</p>
+          <div className="flex min-h-0 flex-1 flex-col gap-3">
+            <div className="grid gap-3 rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,246,251,0.96))] p-4 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.35)] md:grid-cols-2 xl:grid-cols-7">
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Salle</p>
                 <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
                     <SelectValue placeholder="Choisir" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1992,10 +2420,10 @@ export default function DashboardPlanSalle() {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Secteur</p>
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Secteur</p>
                 <Select value={selectedSector} onValueChange={setSelectedSector}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
                     <SelectValue placeholder="Secteur" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2008,10 +2436,10 @@ export default function DashboardPlanSalle() {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Periode</p>
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Periode</p>
                 <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
                     <SelectValue placeholder="Periode" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2024,15 +2452,15 @@ export default function DashboardPlanSalle() {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de reference</p>
-                <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Date</p>
+                <Input type="date" value={referenceDate} className="h-12 rounded-2xl border-slate-200 bg-white" onChange={(event) => setReferenceDate(event.target.value)} />
               </div>
 
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Service</p>
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Service</p>
                 <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
                     <SelectValue placeholder="Tous" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2043,10 +2471,10 @@ export default function DashboardPlanSalle() {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Statut</p>
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Statut</p>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
                     <SelectValue placeholder="Tous" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2059,10 +2487,10 @@ export default function DashboardPlanSalle() {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Tri</p>
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Tri</p>
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
                     <SelectValue placeholder="Heure" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2074,161 +2502,366 @@ export default function DashboardPlanSalle() {
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
+            {showWorkspaceStats ? (
+            <div className="grid shrink-0 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+                <CardContent className="flex items-start justify-between gap-3 px-5 py-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Elements visibles</p>
-                    <p className="text-2xl font-bold">{visibleTables.length}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {visibleReservableTables.length} table(s) · {visibleFurnitureCount} meuble(s)
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Elements visibles</p>
+                    <p className="mt-2 text-3xl font-bold text-slate-900">{visibleTables.length}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {visibleReservableTables.length} table(s) • {visibleFurnitureCount} mobilier(s)
                     </p>
                   </div>
-                  <Armchair className="h-5 w-5 text-primary" />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Reservations filtrees</p>
-                    <p className="text-2xl font-bold">{filteredReservations.length}</p>
-                    <p className="text-xs text-muted-foreground">{unassignedVisibleReservations.length} sans table</p>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                    <Armchair className="h-5 w-5" />
                   </div>
-                  <CalendarClock className="h-5 w-5 text-amber-500" />
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
+              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+                <CardContent className="flex items-start justify-between gap-3 px-5 py-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Tables disponibles</p>
-                    <p className="text-2xl font-bold">{availableTables.length}</p>
-                    <p className="text-xs text-muted-foreground">{availableCovers} couverts disponibles</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Reservations</p>
+                    <p className="mt-2 text-3xl font-bold text-slate-900">{filteredReservations.length}</p>
+                    <p className="mt-1 text-sm text-slate-500">{placedReservationsCount} placee(s) • {placementRate}% affectees</p>
                   </div>
-                  <Users className="h-5 w-5 text-emerald-500" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                    <CalendarClock className="h-5 w-5" />
+                  </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="flex items-center justify-between py-4">
+              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+                <CardContent className="flex items-start justify-between gap-3 px-5 py-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Salle active</p>
-                    <p className="text-lg font-bold">{selectedBranch.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedBranch.city} - {selectedBranch.address}
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Capacite</p>
+                    <p className="mt-2 text-3xl font-bold text-slate-900">{visibleCapacity}</p>
+                    <p className="mt-1 text-sm text-slate-500">{availableCovers} couvert(s) libres • {occupancyRate}% d'occupation</p>
+                  </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                    <Users className="h-5 w-5" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
+                <CardContent className="flex items-start justify-between gap-3 px-5 py-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Salle active</p>
+                    <p className="mt-2 text-lg font-bold text-slate-900">{selectedBranch.name}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {selectedBranch.city} • {selectedBranch.address}
                     </p>
                   </div>
-                  <LayoutPanelTop className="h-5 w-5 text-sky-500" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
+                    <LayoutPanelTop className="h-5 w-5" />
+                  </div>
                 </CardContent>
               </Card>
             </div>
+            ) : null}
 
-            <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
-              <div className="space-y-4">
-                <Card className={cn(!isTemplateMode && "border-dashed bg-muted/10")}>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Tables et mobilier</CardTitle>
-                    <CardDescription>
-                      {isTemplateMode
-                        ? "Composez la salle avec des tables reservables et le mobilier fixe du restaurant."
-                        : "Le template definit la structure permanente. Passez en mode template pour ajouter des tables, des meubles ou des secteurs."}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="space-y-4">
-                      {presetGroups.map((group) => (
-                        <div key={group.id} className="space-y-2">
-                          <div className="space-y-0.5">
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                              {group.label}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{group.description}</p>
-                          </div>
-                          <div className="space-y-2">
-                            {group.items.map((preset) => (
-                              <Button
-                                key={preset.id}
-                                variant="outline"
-                                className="h-auto w-full justify-start gap-3 rounded-2xl px-3 py-3 text-left"
-                                onClick={() => addTableFromPreset(preset.id)}
-                                disabled={tablesLoading || !isTemplateMode}
-                              >
-                                <FloorPlanPresetIcon kind={preset.kind} shape={preset.shape} className="h-12 w-12 shrink-0" />
-                                <div className="min-w-0 space-y-1">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <span className="font-semibold">{preset.label}</span>
-                                    {preset.category === "table" ? (
-                                      <Badge variant="outline" className="bg-background">
-                                        {preset.capacity} couverts
-                                      </Badge>
-                                    ) : (
-                                      <Badge variant="outline" className="bg-background text-muted-foreground">
-                                        Mobilier
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">{preset.description}</p>
-                                </div>
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Separator />
-
-                    {/* AI Assistant Panel */}
-                    {selectedId && (
-                      <FloorPlanAIPanel
-                        restaurantId={selectedId}
-                        currentLayout={draftTables.map((t) => ({
-                          table_number: t.table_number,
-                          capacity: t.capacity,
-                          layout: { x: t.layout.x, y: t.layout.y, w: t.layout.w, h: t.layout.h, shape: t.layout.shape, kind: t.layout.kind },
-                        }))}
-                        canvasWidth={CANVAS_WIDTH}
-                        canvasHeight={CANVAS_HEIGHT}
-                        onApply={applyAILayout}
-                        disabled={!isTemplateMode}
-                      />
-                    )}
-
-                    <Separator />
-
-                    <div className="space-y-2">
-                      <Label htmlFor="new-sector">Nouveau secteur</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="new-sector"
-                          value={newSectorName}
-                          placeholder="Terrasse, Salon VIP..."
-                          disabled={!isTemplateMode}
-                          onChange={(event) => setNewSectorName(event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                              event.preventDefault();
-                              addSector();
-                            }
+            <div className={cn(
+              "grid min-h-0 flex-1 gap-5 transition-[grid-template-columns] duration-300 lg:grid-cols-[minmax(0,1fr)_320px]",
+              leftSidebarCollapsed
+                ? rightSidebarCollapsed
+                  ? "xl:grid-cols-[92px_minmax(0,1fr)_92px]"
+                  : "xl:grid-cols-[92px_minmax(0,1fr)_320px]"
+                : rightSidebarCollapsed
+                  ? "xl:grid-cols-[320px_minmax(0,1fr)_92px]"
+                  : "xl:grid-cols-[320px_minmax(0,1fr)_320px]",
+            )}>
+              <div className={cn("hidden min-h-0 xl:flex xl:flex-col", leftSidebarCollapsed && "xl:w-[92px]")}>
+                {leftSidebarCollapsed ? (
+                  <div className="space-y-3">
+                    <div className="rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-3 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
+                      <div className="flex flex-col items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                          onClick={() => setLeftSidebarCollapsed(false)}
+                          title="Ouvrir le menu"
+                        >
+                          <PanelLeftOpen className="h-4 w-4 text-slate-700" />
+                        </Button>
+                        <div className="h-px w-full bg-slate-200" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                          onClick={() => {
+                            setLeftPanelView("library");
+                            setLibraryTab("elements");
+                            setLeftSidebarCollapsed(false);
                           }}
-                        />
-                        <Button variant="outline" onClick={addSector} disabled={!isTemplateMode}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Ajouter
+                          title="Ouvrir les elements"
+                        >
+                          <LayoutPanelTop className="h-4 w-4 text-slate-700" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                          onClick={() => {
+                            setLeftPanelView("library");
+                            setLibraryTab("structure");
+                            setLeftSidebarCollapsed(false);
+                          }}
+                          title="Ouvrir la structure"
+                        >
+                          <Armchair className="h-4 w-4 text-slate-700" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                          onClick={() => {
+                            setLeftPanelView("reservations");
+                            setLeftSidebarCollapsed(false);
+                          }}
+                          title="Ouvrir les reservations"
+                        >
+                          <CalendarClock className="h-4 w-4 text-slate-700" />
                         </Button>
                       </div>
                     </div>
+
+                    <div className="rounded-[24px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] px-3 py-4 text-center shadow-[0_24px_80px_-44px_rgba(15,23,42,0.3)]">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Resa</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900">{unassignedVisibleReservations.length}</p>
+                      <p className="mt-1 text-[11px] text-slate-500">sans table</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                <div className="mb-4 grid shrink-0 grid-cols-2 gap-2 rounded-[24px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-2 shadow-[0_18px_60px_-40px_rgba(15,23,42,0.35)]">
+                  <Button
+                    type="button"
+                    variant={leftPanelView === "library" ? "default" : "ghost"}
+                    className="h-11 rounded-2xl"
+                    onClick={() => setLeftPanelView("library")}
+                  >
+                    <LayoutPanelTop className="mr-2 h-4 w-4" />
+                    Bibliotheque
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={leftPanelView === "reservations" ? "default" : "ghost"}
+                    className="h-11 rounded-2xl"
+                    onClick={() => setLeftPanelView("reservations")}
+                  >
+                    <CalendarClock className="mr-2 h-4 w-4" />
+                    Reservations
+                  </Button>
+                </div>
+                {leftPanelView === "library" ? (
+                <Card className={cn("flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]", !isTemplateMode && "border-dashed")}>
+                  <CardHeader className="border-b border-slate-200/80 pb-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-lg text-slate-900">Bibliotheque d'elements</CardTitle>
+                        <CardDescription className="mt-1 text-slate-500">
+                          Palette de conception optimisee pour un usage tactile rapide.
+                        </CardDescription>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
+                          {isTemplateMode ? "Edition" : "Lecture"}
+                        </Badge>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-2xl text-slate-600 hover:bg-white"
+                          onClick={() => setLeftSidebarCollapsed(true)}
+                          title="Replier le panneau"
+                        >
+                          <PanelLeftClose className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex min-h-0 flex-1 flex-col p-4">
+                    {!isTemplateMode ? (
+                      <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-900">
+                        Passez en mode structure pour ajouter ou supprimer des elements.
+                      </div>
+                    ) : null}
+                    <ScrollArea className="min-h-0 flex-1 pr-3">
+                    <div className="space-y-4">
+                    <PanelSection
+                      open={panelSections.libraryCatalog}
+                      onOpenChange={(open) => setPanelSectionOpen("libraryCatalog", open)}
+                      title="Palette"
+                      description="Choisissez la famille d'elements puis ajoutez-les sans encombrer la colonne."
+                    >
+                      <Tabs value={libraryTab} onValueChange={(value) => setLibraryTab(value as "elements" | "structure" | "decoration")}>
+                        <TabsList className={`${SIDE_PANEL_TAB_LIST_CLASS} grid-cols-3`}>
+                          <TabsTrigger value="elements" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Elements</TabsTrigger>
+                          <TabsTrigger value="structure" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Structure</TabsTrigger>
+                          <TabsTrigger value="decoration" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Decoration</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="elements" className="mt-4 space-y-3">
+                          <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
+                            {libraryPresets.elements.map((preset) => (
+                              <PalettePresetButton
+                                key={preset.id}
+                                preset={preset}
+                                onClick={() => addTableFromPreset(preset.id)}
+                                disabled={tablesLoading || !isTemplateMode}
+                              />
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="structure" className="mt-4 space-y-3">
+                          <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
+                            {libraryPresets.structure.map((preset) => (
+                              <PalettePresetButton
+                                key={preset.id}
+                                preset={preset}
+                                onClick={() => addTableFromPreset(preset.id)}
+                                disabled={tablesLoading || !isTemplateMode}
+                              />
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="decoration" className="mt-4 space-y-3">
+                          <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
+                            {libraryPresets.decoration.map((preset) => (
+                              <PalettePresetButton
+                                key={preset.id}
+                                preset={preset}
+                                onClick={() => addTableFromPreset(preset.id)}
+                                disabled={tablesLoading || !isTemplateMode}
+                              />
+                            ))}
+                          </div>
+                        </TabsContent>
+                      </Tabs>
+                    </PanelSection>
+
+                    <PanelSection
+                      open={panelSections.librarySectors}
+                      onOpenChange={(open) => setPanelSectionOpen("librarySectors", open)}
+                      title="Secteurs"
+                      description="Creez rapidement des zones de service sans surcharger le panneau."
+                    >
+                      <div className="space-y-3">
+                        <Label htmlFor="new-sector" className="text-xs uppercase tracking-[0.18em] text-slate-500">Nouveau secteur</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="new-sector"
+                            value={newSectorName}
+                            placeholder="Terrasse, Salon VIP..."
+                            className="h-11 rounded-2xl border-slate-200 bg-slate-50"
+                            disabled={!isTemplateMode}
+                            onChange={(event) => setNewSectorName(event.target.value)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                addSector();
+                              }
+                            }}
+                          />
+                          <Button variant="outline" className="h-11 rounded-2xl border-slate-200 bg-white" onClick={addSector} disabled={!isTemplateMode}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Ajouter
+                          </Button>
+                        </div>
+                      </div>
+                    </PanelSection>
+
+                    {selectedId ? (
+                      <PanelSection
+                        open={panelSections.libraryAI}
+                        onOpenChange={(open) => setPanelSectionOpen("libraryAI", open)}
+                        title="Assistant IA"
+                        description="Utilisez-le uniquement quand vous avez besoin d'un point de depart plus global."
+                        contentClassName="p-1"
+                      >
+                        <FloorPlanAIPanel
+                          restaurantId={selectedId}
+                          currentLayout={draftTables.map((t) => ({
+                            table_number: t.table_number,
+                            capacity: t.capacity,
+                            layout: { x: t.layout.x, y: t.layout.y, w: t.layout.w, h: t.layout.h, shape: t.layout.shape, kind: t.layout.kind },
+                          }))}
+                          canvasWidth={CANVAS_WIDTH}
+                          canvasHeight={CANVAS_HEIGHT}
+                          onApply={applyAILayout}
+                          disabled={!isTemplateMode}
+                        />
+                      </PanelSection>
+                    ) : null}
+                    </div>
+                    </ScrollArea>
                   </CardContent>
                 </Card>
+                ) : null}
 
-                <Card className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Reservations a placer</CardTitle>
-                    <CardDescription>
-                      Glissez une reservation sur une table ou utilisez le bouton Affecter.
-                    </CardDescription>
+                {leftPanelView === "reservations" ? (
+                <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
+                  <CardHeader className="border-b border-slate-200/80 pb-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-lg text-slate-900">Reservations a placer</CardTitle>
+                        <CardDescription className="mt-1 text-slate-500">
+                          Glissez une reservation sur une table ou utilisez l'inspecteur pour l'affecter.
+                        </CardDescription>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
+                          {filteredReservations.length}
+                        </Badge>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-2xl text-slate-600 hover:bg-white"
+                          onClick={() => setLeftSidebarCollapsed(true)}
+                          title="Replier le panneau"
+                        >
+                          <PanelLeftClose className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    <ScrollArea className="h-[620px]">
-                      <div className="space-y-3 p-4">
+                  <CardContent className="min-h-0 flex-1 p-4">
+                    <div className="flex h-full min-h-0 flex-col gap-4">
+                      <PanelSection
+                        open={panelSections.reservationSearch}
+                        onOpenChange={(open) => setPanelSectionOpen("reservationSearch", open)}
+                        title="Recherche"
+                        description="Filtrez rapidement la file des reservations."
+                      >
+                        <div className="relative">
+                          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                          <Input
+                            value={reservationQuery}
+                            onChange={(event) => setReservationQuery(event.target.value)}
+                            placeholder="Rechercher un nom, numero, service..."
+                            className="h-11 rounded-2xl border-slate-200 bg-white pl-9"
+                          />
+                        </div>
+                      </PanelSection>
+
+                      <PanelSection
+                        open={panelSections.reservationList}
+                        onOpenChange={(open) => setPanelSectionOpen("reservationList", open)}
+                        title="Liste"
+                        description="Reservations visibles pour la date, le service et les filtres actifs."
+                        badge={<Badge variant="outline" className="rounded-full bg-white">{unassignedVisibleReservations.length} sans table</Badge>}
+                        className="flex min-h-0 flex-1 flex-col"
+                        contentClassName="min-h-0 flex-1 p-0"
+                      >
+                        <ScrollArea className="h-full">
+                          <div className="space-y-3 p-4">
                         {reservationsLoading ? (
                           <p className="text-sm text-muted-foreground">Chargement des reservations...</p>
                         ) : null}
@@ -2335,41 +2968,46 @@ export default function DashboardPlanSalle() {
                             </div>
                           );
                         })}
-                      </div>
-                    </ScrollArea>
+                          </div>
+                        </ScrollArea>
+                      </PanelSection>
+                    </div>
                   </CardContent>
                 </Card>
+                ) : null}
+                  </>
+                )}
               </div>
 
-              <div className="min-w-0 space-y-4">
-              <Card className="overflow-hidden">
-                <CardHeader className="border-b bg-muted/20 pb-4">
+              <div className="min-w-0 min-h-0 flex flex-col gap-4">
+              <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
+                <CardHeader className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-4">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                      <CardTitle className="text-xl">{selectedSector}</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="text-[1.4rem] text-slate-900">{selectedSector}</CardTitle>
+                      <CardDescription className="mt-1 text-slate-500">
                         {isTemplateMode
                           ? "Template global applique par defaut chaque jour"
                           : `${formatDashboardDateHeading(referenceDate)} - ${filteredReservations.length} reservation(s) visibles`}
                       </CardDescription>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="bg-background">
+                      <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
                         {isTemplateMode
                           ? "Template global - drag pour repositionner et redimensionner"
                           : "Plan du jour - drag pour ajuster uniquement cette date"}
                       </Badge>
                       {!isTemplateMode ? (
-                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                        <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">
                           Sauvegarde auto active
                         </Badge>
                       ) : null}
-                      <div className="flex items-center gap-1 rounded-full border bg-background px-1 py-1 shadow-sm">
+                      <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white px-1 py-1 shadow-sm">
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full"
+                          className="h-9 w-9 rounded-xl"
                           onClick={() => updateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
                           disabled={canvasZoom <= MIN_CANVAS_ZOOM}
                         >
@@ -2380,7 +3018,7 @@ export default function DashboardPlanSalle() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full"
+                          className="h-9 w-9 rounded-xl"
                           onClick={() => updateCanvasZoom(1)}
                           disabled={canvasZoom === 1}
                         >
@@ -2390,7 +3028,7 @@ export default function DashboardPlanSalle() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full"
+                          className="h-9 w-9 rounded-xl"
                           onClick={() => updateCanvasZoom(canvasZoom + CANVAS_ZOOM_STEP)}
                           disabled={canvasZoom >= MAX_CANVAS_ZOOM}
                         >
@@ -2400,12 +3038,25 @@ export default function DashboardPlanSalle() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <div ref={canvasViewportRef} className="w-full">
-                    <ScrollArea className="w-full">
+                <CardContent className="flex min-h-0 flex-1 flex-col p-4">
+                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(251,252,254,1),rgba(243,245,249,1))] p-4">
+                    <div className="flex min-h-0 flex-1 flex-col rounded-[24px] border border-slate-200/80 bg-white/70 p-3 shadow-inner">
+                      <div className="flex items-center justify-between pl-16 pr-5 text-[11px] font-medium text-slate-500">
+                        {Array.from({ length: 9 }, (_, index) => (
+                          <span key={`ruler-x-${index}`}>{index * 2}</span>
+                        ))}
+                      </div>
+                      <div className="mt-2 flex min-h-0 flex-1 gap-3">
+                        <div className="flex w-10 shrink-0 flex-col justify-between py-4 text-[11px] font-medium text-slate-500">
+                          {Array.from({ length: 7 }, (_, index) => (
+                            <span key={`ruler-y-${index}`}>{index * 2}</span>
+                          ))}
+                        </div>
+                        <div ref={canvasViewportRef} className="min-w-0 min-h-0 flex-1">
+                          <ScrollArea className="h-full w-full">
                       <div
                         ref={canvasRef}
-                        className="relative overflow-hidden"
+                        className="relative overflow-hidden rounded-[28px] border border-slate-300/70 shadow-inner"
                         onWheelCapture={handleCanvasWheel}
                         onDragOver={handleCanvasDragOver}
                         onDrop={handleCanvasDrop}
@@ -2413,9 +3064,9 @@ export default function DashboardPlanSalle() {
                         style={{
                           width: canvasWidth,
                           height: CANVAS_HEIGHT,
-                          backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px), radial-gradient(circle at top left, rgba(255,237,213,0.65), transparent 28%), radial-gradient(circle at bottom right, rgba(224,242,254,0.55), transparent 24%)",
-                          backgroundSize: "28px 28px, 28px 28px, 100% 100%, 100% 100%",
-                          backgroundColor: "rgba(248,250,252,0.95)",
+                          backgroundImage: "linear-gradient(rgba(148,163,184,0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.16) 1px, transparent 1px)",
+                          backgroundSize: "32px 32px, 32px 32px",
+                          backgroundColor: "#f7f8fb",
                         }}
                       >
                         <div
@@ -2425,6 +3076,8 @@ export default function DashboardPlanSalle() {
                             height: CANVAS_HEIGHT,
                           }}
                         >
+                          <div className="pointer-events-none absolute inset-[26px] rounded-[34px] border-[14px] border-[#34353a] bg-[linear-gradient(180deg,rgba(201,160,116,0.96),rgba(184,145,104,0.94))] shadow-[0_30px_70px_-35px_rgba(15,23,42,0.55)]" />
+                          <div className="pointer-events-none absolute inset-[44px] rounded-[20px] bg-[linear-gradient(135deg,rgba(221,188,146,0.94),rgba(189,149,108,0.95))]" />
                           {visibleTables.length === 0 ? (
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-muted-foreground">
                               <LayoutPanelTop className="h-10 w-10 text-primary/60" />
@@ -2450,11 +3103,9 @@ export default function DashboardPlanSalle() {
                             const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
                             const density = getTableDensity(renderedFrame);
                             const isTight = density === "tight";
-                            const contentPadding = isReservable ? getTableContentPadding({
-                              ...table.layout,
-                              w: renderedFrame.w,
-                              h: renderedFrame.h,
-                            }) : { top: 0, right: 0, bottom: 0, left: 0 };
+                            const contentPadding = isReservable
+                              ? getTableContentPadding(table.layout, table.capacity, canvasZoom)
+                              : { top: 0, right: 0, bottom: 0, left: 0 };
                             const coverLabel = density === "regular" ? `${table.capacity} couv.` : `${table.capacity}`;
                             const reservationCustomerLabel = primaryAssignment
                               ? getCompactReservationCustomerLabel(primaryAssignment, density)
@@ -2493,7 +3144,21 @@ export default function DashboardPlanSalle() {
                                 >
                                   {/* SVG illustration — no background block for furniture */}
                                   <div className="absolute inset-0">
-                                    <FloorPlanItemIllustration kind={table.layout.kind} shape={table.layout.shape} capacity={table.capacity} seatType={table.layout.seatType} className="h-full w-full" />
+                                    <FloorPlanItemIllustration
+                                      kind={table.layout.kind}
+                                      shape={table.layout.shape}
+                                      capacity={table.capacity}
+                                      seatType={table.layout.seatType}
+                                      seatPlacements={table.layout.seatPlacements}
+                                      cornerBenchCorners={table.layout.cornerBenchCorners}
+                                      cornerBenchConfigs={table.layout.cornerBenchConfigs}
+                                      tableWidth={table.layout.tableWidth}
+                                      tableHeight={table.layout.tableHeight}
+                                      cornerBenchHorizontal={table.layout.cornerBenchHorizontal}
+                                      cornerBenchVertical={table.layout.cornerBenchVertical}
+                                      cornerBenchDepth={table.layout.cornerBenchDepth}
+                                      className="h-full w-full"
+                                    />
                                   </div>
 
                                   {/* Selection ring */}
@@ -2643,26 +3308,117 @@ export default function DashboardPlanSalle() {
                           })}
                         </div>
                       </div>
-                    </ScrollArea>
+                          </ScrollArea>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Inspection</CardTitle>
-                    <CardDescription>
-                      {isTemplateMode
-                        ? "Ajustez la structure du template ou finalisez le placement de la reservation active."
-                        : "Ajustez le placement du jour ou finalisez le placement de la reservation active."}
-                    </CardDescription>
+              <div className="flex justify-center">
+                <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2 text-xs text-slate-500 shadow-sm">
+                  Maintenez Ctrl pour zoomer, glissez un element pour le deplacer, utilisez la molette pour affiner la vue.
+                </div>
+              </div>
+
+              </div>
+
+              {rightSidebarCollapsed ? (
+                <div className="hidden min-h-0 xl:flex xl:flex-col">
+                  <div className="flex h-full flex-col items-center gap-3 rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-3 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.3)]">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                      onClick={() => setRightSidebarCollapsed(false)}
+                      title="Ouvrir l'inspecteur"
+                    >
+                      <PanelRightOpen className="h-4 w-4 text-slate-700" />
+                    </Button>
+                    <div className="h-px w-full bg-slate-200" />
+                    <Button
+                      type="button"
+                      variant={inspectorTab === "properties" ? "default" : "outline"}
+                      size="icon"
+                      className="h-12 w-12 rounded-2xl"
+                      onClick={() => {
+                        setInspectorTab("properties");
+                        setRightSidebarCollapsed(false);
+                      }}
+                      title="Proprietes"
+                    >
+                      <Armchair className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={inspectorTab === "layers" ? "default" : "outline"}
+                      size="icon"
+                      className="h-12 w-12 rounded-2xl"
+                      onClick={() => {
+                        setInspectorTab("layers");
+                        setRightSidebarCollapsed(false);
+                      }}
+                      title="Calques"
+                    >
+                      <LayoutPanelTop className="h-4 w-4" />
+                    </Button>
+                    <div className="mt-auto w-full rounded-[22px] border border-slate-200 bg-white/85 px-3 py-4 text-center">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Sel.</p>
+                      <p className="mt-2 text-xl font-bold text-slate-900">{selectedTable ? 1 : 0}</p>
+                      <p className="mt-1 text-[11px] text-slate-500">element</p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className={cn("hidden min-h-0 lg:flex lg:flex-col", rightSidebarCollapsed && "xl:hidden")}>
+                <Card className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
+                  <CardHeader className="border-b border-slate-200/80 pb-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-lg text-slate-900">Inspecteur</CardTitle>
+                        <CardDescription className="mt-1 text-slate-500">
+                          {isTemplateMode
+                            ? "Ajustez la structure du template ou finalisez le placement de la reservation active."
+                            : "Ajustez le placement du jour ou finalisez le placement de la reservation active."}
+                        </CardDescription>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-2xl text-slate-600 hover:bg-white"
+                        onClick={() => setRightSidebarCollapsed(true)}
+                        title="Replier le panneau"
+                      >
+                        <PanelRightClose className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="min-h-0 flex-1 overflow-hidden p-4">
+                    <Tabs className="flex h-full min-h-0 flex-col" value={inspectorTab} onValueChange={(value) => setInspectorTab(value as "properties" | "layers")}>
+                      <TabsList className={`${SIDE_PANEL_TAB_LIST_CLASS} grid-cols-2`}>
+                        <TabsTrigger value="properties" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Proprietes</TabsTrigger>
+                        <TabsTrigger value="layers" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Calques</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="properties" className="mt-4 min-h-0 flex-1">
+                    <ScrollArea className="h-full pr-3">
+                    <div className="space-y-4">
                     {selectedReservation ? (
-                      <div className={cn(
-                        "rounded-2xl border p-4",
-                        isZeroAttenteReservation(selectedReservation) ? "border-teal-200 bg-teal-50/60" : "bg-muted/30",
-                      )}>
+                      <PanelSection
+                        open={panelSections.inspectorReservation}
+                        onOpenChange={(open) => setPanelSectionOpen("inspectorReservation", open)}
+                        title="Reservation active"
+                        description="Contexte client et affectation en cours."
+                        badge={<Badge variant="outline" className="rounded-full bg-white">{selectedReservation.party_size} pers.</Badge>}
+                        className={cn(
+                          isZeroAttenteReservation(selectedReservation) ? "border-teal-200 bg-teal-50/60" : "bg-white/90",
+                        )}
+                      >
+                        <div className="space-y-4">
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             "flex h-11 w-11 items-center justify-center rounded-full",
@@ -2681,7 +3437,7 @@ export default function DashboardPlanSalle() {
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
                           <Badge variant="outline">{selectedReservation.party_size} pers.</Badge>
-                          <Badge variant="outline">{getServicePeriodLabel(getReservationService(selectedReservation))}</Badge>
+                          <Badge variant="outline">{getServicePeriodLabel(selectedReservationService)}</Badge>
                           {isZeroAttenteReservation(selectedReservation) ? (
                             <Badge className="border border-teal-200 bg-teal-100 text-teal-800">
                               Zero Attente
@@ -2719,17 +3475,17 @@ export default function DashboardPlanSalle() {
                             </Button>
                           ) : null}
                         </div>
-                        <div className="mt-4 grid gap-3 md:grid-cols-2">
-                          <div className="rounded-2xl border bg-background/80 p-3">
+                        <div className="mt-4 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+                          <div className="min-w-0 rounded-2xl border bg-background/80 p-3">
                             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Client</p>
                             <div className="mt-2 space-y-2 text-sm">
                               <div className="flex items-start justify-between gap-3">
                                 <span className="text-muted-foreground">Nom</span>
-                                <span className="text-right font-medium">{getReservationCustomerLabel(selectedReservation)}</span>
+                                <span className="min-w-0 break-words text-right font-medium">{getReservationCustomerLabel(selectedReservation)}</span>
                               </div>
                               <div className="flex items-start justify-between gap-3">
                                 <span className="text-muted-foreground">Telephone</span>
-                                <span className="text-right font-medium">{selectedReservation.customer?.phone || "Non renseigne"}</span>
+                                <span className="min-w-0 break-words text-right font-medium">{selectedReservation.customer?.phone || "Non renseigne"}</span>
                               </div>
                               <div className="flex items-start justify-between gap-3">
                                 <span className="text-muted-foreground">Convives</span>
@@ -2739,11 +3495,11 @@ export default function DashboardPlanSalle() {
                             {selectedReservationSpecialRequest ? (
                               <div className="mt-3 rounded-xl border border-dashed bg-muted/30 p-2.5">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</p>
-                                <p className="mt-1 text-sm text-foreground">{selectedReservationSpecialRequest}</p>
+                                <p className="mt-1 break-words text-sm text-foreground">{selectedReservationSpecialRequest}</p>
                               </div>
                             ) : null}
                           </div>
-                          <div className="rounded-2xl border bg-background/80 p-3">
+                          <div className="min-w-0 rounded-2xl border bg-background/80 p-3">
                             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Paiement</p>
                             <div className="mt-2 flex flex-wrap gap-2">
                               <Badge
@@ -2763,19 +3519,19 @@ export default function DashboardPlanSalle() {
                             <div className="mt-2 space-y-2 text-sm">
                               <div className="flex items-start justify-between gap-3">
                                 <span className="text-muted-foreground">Montant</span>
-                                <span className="text-right font-medium">
+                                <span className="min-w-0 break-words text-right font-medium">
                                   {formatReservationCurrency(selectedReservationPaymentDetails?.totalAmount ?? null) || "Non renseigne"}
                                 </span>
                               </div>
                               <div className="flex items-start justify-between gap-3">
                                 <span className="text-muted-foreground">Instrument</span>
-                                <span className="text-right font-medium">
+                                <span className="min-w-0 break-words text-right font-medium">
                                   {selectedReservationPaymentDetails?.cardLabel || "Non renseigne"}
                                 </span>
                               </div>
                               <div className="flex items-start justify-between gap-3">
                                 <span className="text-muted-foreground">Reference</span>
-                                <span className="text-right font-medium">
+                                <span className="min-w-0 break-words text-right font-medium">
                                   {selectedReservationPaymentDetails?.orderReference
                                     || selectedReservationPaymentDetails?.checkoutSessionId
                                     || "Non renseignee"}
@@ -2811,21 +3567,26 @@ export default function DashboardPlanSalle() {
                             </div>
                           </div>
                         ) : null}
-                      </div>
+                        </div>
+                      </PanelSection>
                     ) : (
                       <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
                         Selectionnez une reservation dans la colonne de gauche pour preparer son placement.
                       </div>
                     )}
 
-                    <Separator />
-
                     {selectedTable ? (
+                      <>
+                      <PanelSection
+                        open={panelSections.inspectorElement}
+                        onOpenChange={(open) => setPanelSectionOpen("inspectorElement", open)}
+                        title="Element selectionne"
+                        description="Reglez le mobilier ou la table selectionnee."
+                        badge={<Badge variant="outline" className="rounded-full bg-white">{getFloorPlanItemTypeLabel(selectedTable.layout.kind, selectedTable.layout.shape)}</Badge>}
+                      >
                       <div className="space-y-4">
                         <div className="space-y-1">
-                          <p className="text-sm font-semibold">Element selectionne</p>
                           <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="outline">{getFloorPlanItemTypeLabel(selectedTable.layout.kind, selectedTable.layout.shape)}</Badge>
                             <p className="text-xs uppercase tracking-wide text-muted-foreground">{selectedTable.sector}</p>
                           </div>
                         </div>
@@ -2850,28 +3611,18 @@ export default function DashboardPlanSalle() {
                           </div>
 
                           {selectedTableIsReservable ? (
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))]">
                               <div className="space-y-2">
-                                <Label>Capacite</Label>
+                                <Label>Couverts configures</Label>
                                 <Input
                                   type="number"
                                   min={1}
                                   value={selectedTable.capacity}
-                                  disabled={!isTemplateMode}
-                                  onChange={(event) => {
-                                    const nextCapacity = Math.max(1, Number.parseInt(event.target.value || "1", 10) || 1);
-                                    updateDraftTable(selectedTable.id, (table) => ({
-                                      ...table,
-                                      capacity: nextCapacity,
-                                      layout: ensureFloorPlanLayoutFitsCapacity(
-                                        table.layout,
-                                        nextCapacity,
-                                        table.layout.shape,
-                                        table.layout.kind,
-                                      ),
-                                    }));
-                                  }}
+                                  disabled
                                 />
+                                <p className="text-xs text-muted-foreground">
+                                  La capacite suit le plan d'assises defini dans le configurateur.
+                                </p>
                               </div>
 
                               <div className="space-y-2">
@@ -2892,7 +3643,7 @@ export default function DashboardPlanSalle() {
                                     }));
                                   }}
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger className="min-w-0">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -2908,6 +3659,23 @@ export default function DashboardPlanSalle() {
                             </div>
                           )}
 
+                          {selectedTableIsReservable && selectedTableDimensions ? (
+                            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))]">
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Plateau</p>
+                                <p className="mt-1 break-words text-sm font-semibold text-slate-900">
+                                  {selectedTableDimensions.tableWidth} x {selectedTableDimensions.tableHeight} cm
+                                </p>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Emprise</p>
+                                <p className="mt-1 break-words text-sm font-semibold text-slate-900">
+                                  {selectedTableDimensions.footprintWidth} x {selectedTableDimensions.footprintHeight} cm
+                                </p>
+                              </div>
+                            </div>
+                          ) : null}
+
                           <div className="space-y-2">
                             <Label>Secteur</Label>
                             <Select
@@ -2918,7 +3686,7 @@ export default function DashboardPlanSalle() {
                                 sector: value,
                               }))}
                             >
-                              <SelectTrigger>
+                              <SelectTrigger className="min-w-0">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -2933,7 +3701,7 @@ export default function DashboardPlanSalle() {
 
                           <div className="space-y-2">
                             <Label>Rotation</Label>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Input
                                 type="number"
                                 min={0}
@@ -2947,7 +3715,7 @@ export default function DashboardPlanSalle() {
                                     layout: { ...table.layout, rotation: deg < 0 ? deg + 360 : deg },
                                   }));
                                 }}
-                                className="w-20"
+                                className="w-[88px] min-w-0"
                               />
                               <span className="text-xs text-muted-foreground">deg</span>
                               <Button
@@ -2966,8 +3734,8 @@ export default function DashboardPlanSalle() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between rounded-2xl border px-4 py-3">
-                            <div>
+                          <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border px-4 py-3">
+                            <div className="min-w-0 flex-1">
                               <p className="font-medium">Element actif</p>
                               <p className="text-sm text-muted-foreground">Inactive = masque du plan et des placements.</p>
                             </div>
@@ -2991,7 +3759,7 @@ export default function DashboardPlanSalle() {
                               }}
                             >
                               <Armchair className="mr-2 h-4 w-4" />
-                              Modifier l'assise
+                              Configurer dimensions et assises
                             </Button>
                           ) : null}
 
@@ -3016,65 +3784,383 @@ export default function DashboardPlanSalle() {
                             Supprimer l'element
                           </Button>
                         </div>
-
-                        {selectedTableIsReservable ? (
-                          <>
-                            <Separator />
-
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm font-semibold">Planning sur cette table</p>
-                                <Badge variant="outline">{selectedTableAssignments.length}</Badge>
-                              </div>
-                              {selectedTableAssignments.length > 0 ? (
-                                <div className="space-y-2">
-                                  {selectedTableAssignments.map((reservation) => (
-                                    <button
-                                      key={reservation.id}
-                                      type="button"
-                                      className={cn(
-                                        "w-full rounded-2xl border px-3 py-2 text-left transition-colors",
-                                        isZeroAttenteReservation(reservation)
-                                          ? "border-teal-200 bg-teal-50/70 hover:bg-teal-100/70"
-                                          : "bg-muted/20 hover:bg-muted/35",
-                                      )}
-                                      onClick={() => {
-                                        setSelectedReservationId(reservation.id);
-                                        setSelectedTableId(selectedTable.id);
-                                      }}
-                                    >
-                                      <div className="flex items-center justify-between gap-2">
-                                        <span className="font-medium">{getReservationCustomerLabel(reservation)}</span>
-                                        <span className="text-sm text-muted-foreground">{getSafeTime(reservation.time)}</span>
-                                      </div>
-                                      <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                        <span>{getShortDateLabel(reservation.date)}</span>
-                                        <span>{reservation.party_size} pers.</span>
-                                        {isZeroAttenteReservation(reservation) ? <span>Zero Attente</span> : null}
-                                        <span>{reservation.status || "pending"}</span>
-                                      </div>
-                                    </button>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-muted-foreground">Aucune reservation visible n'est actuellement affectee a cette table.</p>
-                              )}
-                            </div>
-                          </>
-                        ) : null}
                       </div>
+                      </PanelSection>
+                        {selectedTableIsReservable ? (
+                          <PanelSection
+                            open={panelSections.inspectorPlanning}
+                            onOpenChange={(open) => setPanelSectionOpen("inspectorPlanning", open)}
+                            title="Planning sur cette table"
+                            badge={<Badge variant="outline" className="rounded-full bg-white">{selectedTableAssignments.length}</Badge>}
+                          >
+                            {selectedTableAssignments.length > 0 ? (
+                              <div className="space-y-2">
+                                {selectedTableAssignments.map((reservation) => (
+                                  <button
+                                    key={reservation.id}
+                                    type="button"
+                                    className={cn(
+                                      "w-full rounded-2xl border px-3 py-2 text-left transition-colors",
+                                      isZeroAttenteReservation(reservation)
+                                        ? "border-teal-200 bg-teal-50/70 hover:bg-teal-100/70"
+                                        : "bg-muted/20 hover:bg-muted/35",
+                                    )}
+                                    onClick={() => {
+                                      setSelectedReservationId(reservation.id);
+                                      setSelectedTableId(selectedTable.id);
+                                    }}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="font-medium">{getReservationCustomerLabel(reservation)}</span>
+                                      <span className="text-sm text-muted-foreground">{getSafeTime(reservation.time)}</span>
+                                    </div>
+                                    <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                      <span>{getShortDateLabel(reservation.date)}</span>
+                                      <span>{reservation.party_size} pers.</span>
+                                      {isZeroAttenteReservation(reservation) ? <span>Zero Attente</span> : null}
+                                      <span>{reservation.status || "pending"}</span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">Aucune reservation visible n'est actuellement affectee a cette table.</p>
+                            )}
+                          </PanelSection>
+                        ) : null}
+                      </>
                     ) : (
                       <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
                         Selectionnez un element dans le plan pour modifier ses proprietes.
                       </div>
                     )}
+                    </div>
+                    </ScrollArea>
+                      </TabsContent>
+
+                      <TabsContent value="layers" className="mt-4 min-h-0 flex-1">
+                        <ScrollArea className="h-full pr-3">
+                        <div className="space-y-4">
+                        <PanelSection
+                          open={panelSections.layersElements}
+                          onOpenChange={(open) => setPanelSectionOpen("layersElements", open)}
+                          title="Elements visibles"
+                          description="Liste compacte des elements actifs du secteur."
+                        >
+                          <div className="space-y-2">
+                            {layerItems.length > 0 ? (
+                              layerItems.map((item) => (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  className={cn(
+                                    "flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left transition-colors",
+                                    selectedTableId === item.id
+                                      ? "border-primary bg-primary/5"
+                                      : "border-slate-200 bg-slate-50 hover:bg-slate-100",
+                                  )}
+                                  onClick={() => setSelectedTableId(item.id)}
+                                >
+                                  <div className="min-w-0">
+                                    <p className="truncate font-medium text-slate-900">{item.label}</p>
+                                    <p className="text-xs text-slate-500">{item.kindLabel} • {item.sector}</p>
+                                  </div>
+                                  <Badge variant="outline" className="shrink-0 rounded-full bg-white">
+                                    {item.capacity > 0 ? `${item.capacity} pl.` : "decor"}
+                                  </Badge>
+                                </button>
+                              ))
+                            ) : (
+                              <p className="text-sm text-slate-500">Aucun element actif dans ce secteur.</p>
+                            )}
+                          </div>
+                        </PanelSection>
+
+                        <PanelSection
+                          open={panelSections.layersStats}
+                          onOpenChange={(open) => setPanelSectionOpen("layersStats", open)}
+                          title="Statistiques"
+                          description="Resume rapide de l'etat du secteur."
+                        >
+                          <div className="grid gap-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-500">Capacite totale</span>
+                              <span className="text-lg font-semibold text-slate-900">{visibleCapacity}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-500">Reservations placees</span>
+                              <span className="text-lg font-semibold text-slate-900">{placedReservationsCount}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-500">Tables disponibles</span>
+                              <span className="text-lg font-semibold text-slate-900">{availableTables.length}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-slate-500">Sans table</span>
+                              <span className="text-lg font-semibold text-slate-900">{unassignedVisibleReservations.length}</span>
+                            </div>
+                          </div>
+                        </PanelSection>
+                        </div>
+                        </ScrollArea>
+                      </TabsContent>
+                    </Tabs>
                   </CardContent>
                 </Card>
               </div>
             </div>
-          </>
+          </div>
         ) : null}
       </div>
+      <Sheet open={leftSheetOpen} onOpenChange={setLeftSheetOpen}>
+        <SheetContent side="left" className="flex w-[92vw] flex-col gap-0 overflow-hidden border-r border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(244,246,251,0.98))] p-0 sm:max-w-[430px]">
+          <SheetHeader className="border-b border-slate-200 px-6 py-5">
+            <SheetTitle>Panneaux de travail</SheetTitle>
+            <SheetDescription>
+              Accedez a la bibliotheque et aux reservations sans quitter le plan.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex min-h-0 flex-1 flex-col p-4">
+            <div className="mb-4 grid shrink-0 grid-cols-2 gap-2 rounded-[24px] border border-slate-200 bg-white/90 p-2 shadow-sm">
+              <Button
+                type="button"
+                variant={leftPanelView === "library" ? "default" : "ghost"}
+                className="h-11 rounded-2xl"
+                onClick={() => setLeftPanelView("library")}
+              >
+                <LayoutPanelTop className="mr-2 h-4 w-4" />
+                Bibliotheque
+              </Button>
+              <Button
+                type="button"
+                variant={leftPanelView === "reservations" ? "default" : "ghost"}
+                className="h-11 rounded-2xl"
+                onClick={() => setLeftPanelView("reservations")}
+              >
+                <CalendarClock className="mr-2 h-4 w-4" />
+                Reservations
+              </Button>
+            </div>
+
+            {leftPanelView === "library" ? (
+              <ScrollArea className="min-h-0 flex-1 pr-2">
+                <div className="space-y-4">
+                  {!isTemplateMode ? (
+                    <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-900">
+                      Passez en mode structure pour ajouter ou supprimer des elements.
+                    </div>
+                  ) : null}
+
+                  <Tabs value={libraryTab} onValueChange={(value) => setLibraryTab(value as "elements" | "structure" | "decoration")}>
+                    <TabsList className={`${SIDE_PANEL_TAB_LIST_CLASS} grid-cols-3`}>
+                      <TabsTrigger value="elements" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Elements</TabsTrigger>
+                      <TabsTrigger value="structure" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Structure</TabsTrigger>
+                      <TabsTrigger value="decoration" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Decoration</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="elements" className="mt-4 space-y-3">
+                      <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
+                        {libraryPresets.elements.map((preset) => (
+                          <PalettePresetButton
+                            key={preset.id}
+                            preset={preset}
+                            onClick={() => {
+                              addTableFromPreset(preset.id);
+                              setLeftSheetOpen(false);
+                            }}
+                            disabled={tablesLoading || !isTemplateMode}
+                          />
+                        ))}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="structure" className="mt-4 space-y-3">
+                      <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
+                        {libraryPresets.structure.map((preset) => (
+                          <PalettePresetButton
+                            key={preset.id}
+                            preset={preset}
+                            onClick={() => {
+                              addTableFromPreset(preset.id);
+                              setLeftSheetOpen(false);
+                            }}
+                            disabled={tablesLoading || !isTemplateMode}
+                          />
+                        ))}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="decoration" className="mt-4 space-y-3">
+                      <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
+                        {libraryPresets.decoration.map((preset) => (
+                          <PalettePresetButton
+                            key={preset.id}
+                            preset={preset}
+                            onClick={() => {
+                              addTableFromPreset(preset.id);
+                              setLeftSheetOpen(false);
+                            }}
+                            disabled={tablesLoading || !isTemplateMode}
+                          />
+                        ))}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+
+                  <div className="rounded-2xl border border-slate-200 bg-white/90 p-3">
+                    <Label htmlFor="new-sector-sheet" className="text-xs uppercase tracking-[0.18em] text-slate-500">Nouveau secteur</Label>
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        id="new-sector-sheet"
+                        value={newSectorName}
+                        placeholder="Terrasse, Salon VIP..."
+                        className="h-11 rounded-2xl border-slate-200 bg-slate-50"
+                        disabled={!isTemplateMode}
+                        onChange={(event) => setNewSectorName(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            addSector();
+                          }
+                        }}
+                      />
+                      <Button variant="outline" className="h-11 rounded-2xl border-slate-200 bg-white" onClick={addSector} disabled={!isTemplateMode}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Ajouter
+                      </Button>
+                    </div>
+                  </div>
+
+                  {selectedId ? (
+                    <div className="rounded-[24px] border border-slate-200 bg-white/90 p-1">
+                      <FloorPlanAIPanel
+                        restaurantId={selectedId}
+                        currentLayout={draftTables.map((t) => ({
+                          table_number: t.table_number,
+                          capacity: t.capacity,
+                          layout: { x: t.layout.x, y: t.layout.y, w: t.layout.w, h: t.layout.h, shape: t.layout.shape, kind: t.layout.kind },
+                        }))}
+                        canvasWidth={CANVAS_WIDTH}
+                        canvasHeight={CANVAS_HEIGHT}
+                        onApply={(layout) => {
+                          applyAILayout(layout);
+                          setLeftSheetOpen(false);
+                        }}
+                        disabled={!isTemplateMode}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </ScrollArea>
+            ) : (
+              <>
+                <div className="relative mb-4">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    value={reservationQuery}
+                    onChange={(event) => setReservationQuery(event.target.value)}
+                    placeholder="Rechercher un nom, numero, service..."
+                    className="h-11 rounded-2xl border-slate-200 bg-white pl-9"
+                  />
+                </div>
+                <ScrollArea className="min-h-0 flex-1 pr-2">
+                  <div className="space-y-3">
+                    {reservationsLoading ? (
+                      <p className="text-sm text-muted-foreground">Chargement des reservations...</p>
+                    ) : null}
+
+                    {filteredReservations.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Aucune reservation pour les filtres selectionnes.</p>
+                    ) : null}
+
+                    {filteredReservations.map((reservation) => {
+                      const assignedTableId = draftAssignments[reservation.id];
+                      const assignedTable = assignedTableId ? tableMap.get(assignedTableId) || null : null;
+                      const isSelected = reservation.id === selectedReservationId;
+                      const reservationService = getReservationService(reservation);
+                      const isZeroAttente = isZeroAttenteReservation(reservation);
+                      const preorderItems = getReservationPreorderItems(reservation);
+
+                      return (
+                        <div
+                          key={reservation.id}
+                          role="button"
+                          tabIndex={0}
+                          draggable
+                          onClick={() => {
+                            setSelectedReservationId(reservation.id);
+                            if (assignedTableId) {
+                              setSelectedTableId(assignedTableId);
+                            }
+                            setLeftSheetOpen(false);
+                          }}
+                          onDragStart={(event) => handleReservationDragStart(event, reservation.id)}
+                          onDragEnd={handleReservationDragEnd}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setSelectedReservationId(reservation.id);
+                              if (assignedTableId) {
+                                setSelectedTableId(assignedTableId);
+                              }
+                              setLeftSheetOpen(false);
+                            }
+                          }}
+                          className={cn(
+                            "w-full cursor-grab rounded-2xl border p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing",
+                            isSelected && isZeroAttente && "border-teal-500 bg-teal-50 shadow-sm ring-2 ring-teal-200",
+                            isSelected && !isZeroAttente && "border-primary bg-primary/5 shadow-sm",
+                            !isSelected && isZeroAttente && "border-teal-200 bg-teal-50/60 hover:bg-teal-50",
+                            !isSelected && !isZeroAttente && "border-border bg-background hover:bg-muted/40",
+                            draggedReservationId === reservation.id && "scale-[0.99] opacity-60",
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-semibold">{getReservationCustomerLabel(reservation)}</span>
+                                {isZeroAttente ? (
+                                  <Badge className="border border-teal-200 bg-teal-100 text-teal-800">
+                                    Zero Attente
+                                  </Badge>
+                                ) : null}
+                                <Badge className={cn("border", getReservationStatusTone(reservation.status))}>
+                                  {reservation.status || "pending"}
+                                </Badge>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                                <span className="inline-flex items-center gap-1">
+                                  <Clock3 className="h-3.5 w-3.5" />
+                                  {getSafeTime(reservation.time)}
+                                </span>
+                                <span>{getShortDateLabel(reservation.date)}</span>
+                                <span>{reservation.party_size} pers.</span>
+                                <span>{getServicePeriodLabel(reservationService)}</span>
+                                {preorderItems.length > 0 ? (
+                                  <span>{preorderItems.length} produit(s)</span>
+                                ) : null}
+                              </div>
+                              {assignedTable ? (
+                                <Badge variant="outline" className="bg-background">
+                                  Affectee a {assignedTable.table_number}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-amber-200 bg-background text-amber-700">
+                                  Sans table
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
       <TableConfigDialog
         open={tableConfigDialogOpen}
         onOpenChange={(next) => {
@@ -3086,7 +4172,32 @@ export default function DashboardPlanSalle() {
         }}
         initialConfig={editingSeatingTableId ? (() => {
           const t = draftTables.find((d) => d.id === editingSeatingTableId);
-          return t ? { capacity: t.capacity, shape: t.layout.shape, seatType: (t.layout.seatType || "chair") as FloorPlanSeatType } : null;
+          if (!t) return null;
+          const resolved = getResolvedFloorPlanDimensions({
+            capacity: t.capacity,
+            shape: t.layout.shape,
+            kind: t.layout.kind,
+            seatType: t.layout.seatType,
+            seatPlacements: t.layout.seatPlacements,
+            cornerBenchCorners: t.layout.cornerBenchCorners,
+            cornerBenchConfigs: t.layout.cornerBenchConfigs,
+            tableWidth: t.layout.tableWidth,
+            tableHeight: t.layout.tableHeight,
+            footprintWidth: t.layout.w,
+            footprintHeight: t.layout.h,
+            cornerBenchHorizontal: t.layout.cornerBenchHorizontal,
+            cornerBenchVertical: t.layout.cornerBenchVertical,
+            cornerBenchDepth: t.layout.cornerBenchDepth,
+          });
+          return {
+            capacity: t.capacity,
+            shape: t.layout.shape,
+            seatType: (t.layout.seatType || "chair") as FloorPlanSeatType,
+            seatPlacements: resolved.seatPlacements,
+            cornerBenchConfigs: resolved.cornerBenchConfigs,
+            tableWidth: resolved.tableWidth,
+            tableHeight: resolved.tableHeight,
+          };
         })() : null}
         preset={pendingPresetId ? FLOOR_PLAN_PRESETS.find((p) => p.id === pendingPresetId) || null : null}
         onConfirm={confirmTableConfig}

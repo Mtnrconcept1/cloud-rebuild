@@ -114,7 +114,75 @@ Deno.serve(async (req) => {
       scheduled_delivery_label: String(order_metadata?.scheduled_delivery_label || ""),
     };
 
-    if (effectiveKind === "campaign") {
+    if (effectiveKind === "launch-pack") {
+      const packId = String(order_metadata?.pack_id || "");
+      const restaurantId = String(order_metadata?.restaurant_id || "");
+      if (!packId) throw new HttpError(400, "pack_id requis");
+      if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
+
+      auditTargetEntityType = "launch_packs";
+      auditTargetEntityId = packId;
+
+      await requireRestaurantAccess(actor, restaurantId);
+
+      const { data: pack, error: packError } = await actor.adminClient
+        .from("launch_packs")
+        .select("id, slug, name, price_chf, services, is_active")
+        .eq("id", packId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (packError) throw new HttpError(500, packError.message);
+      if (!pack) throw new HttpError(404, "Pack introuvable ou inactif");
+
+      const packAmount = Number(pack.price_chf);
+      if (packAmount <= 0) throw new HttpError(400, "Prix du pack invalide");
+
+      // Check no existing active pack for this restaurant
+      const { data: existingPack } = await actor.adminClient
+        .from("restaurant_launch_packs")
+        .select("id, status")
+        .eq("restaurant_id", restaurantId)
+        .eq("pack_id", packId)
+        .not("status", "eq", "cancelled")
+        .maybeSingle();
+
+      if (existingPack) throw new HttpError(409, "Ce pack est deja achete pour ce restaurant");
+
+      // Create pending record
+      const { data: purchaseRecord, error: purchaseError } = await actor.adminClient
+        .from("restaurant_launch_packs")
+        .insert({
+          restaurant_id: restaurantId,
+          pack_id: packId,
+          purchased_by: actor.userId,
+          status: "pending_payment",
+        })
+        .select("id")
+        .single();
+
+      if (purchaseError) throw new HttpError(500, purchaseError.message);
+
+      lineItems = [{
+        price_data: {
+          currency: "chf",
+          product_data: {
+            name: `Pack de lancement - ${pack.name}`,
+          },
+          unit_amount: Math.round(packAmount * 100),
+        },
+        quantity: 1,
+      }];
+
+      sessionMetadata = {
+        ...sessionMetadata,
+        restaurant_id: restaurantId,
+        pack_id: pack.id,
+        pack_slug: pack.slug,
+        restaurant_launch_pack_id: purchaseRecord.id,
+        authoritative_total: packAmount.toFixed(2),
+      };
+    } else if (effectiveKind === "campaign") {
       const campaignId = String(order_metadata?.campaign_id || "");
       if (!campaignId) {
         throw new HttpError(400, "campaign_id requis");

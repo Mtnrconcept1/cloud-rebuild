@@ -31,6 +31,7 @@ import Contact from "./pages/Contact";
 import CGU from "./pages/CGU";
 import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 import APropos from "./pages/APropos";
+import PacksRestaurateur from "./pages/PacksRestaurateur";
 import Aide from "./pages/Aide";
 import SupportChat from "./components/SupportChat";
 import OrderConflictDialog from "./components/OrderConflictDialog";
@@ -72,6 +73,7 @@ const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport")
 const DashboardService = lazy(() => import("./pages/dashboard/DashboardService"));
 const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
+const DashboardPack = lazy(() => import("./pages/dashboard/DashboardPack"));
 
 // ── Lazy-loaded chunks: Courier App ──
 const CourierHome = lazy(() => import("./pages/courier/CourierHome"));
@@ -90,6 +92,7 @@ const DropsManagement = lazy(() => import("./pages/admin/DropsManagement"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 const AdminPlatformConfig = lazy(() => import("./pages/admin/AdminPlatformConfig"));
+const AdminLaunchPacks = lazy(() => import("./pages/admin/AdminLaunchPacks"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -169,6 +172,7 @@ function AppShell() {
   const dashboardSupportEnabled = hasFeature("dashboard-support");
   const dashboardServiceEnabled = hasFeature("dashboard-service");
   const dashboardPlanSalleEnabled = hasFeature("dashboard-plan-salle");
+  const dashboardPackEnabled = hasFeature("dashboard-pack");
   const courierHomeEnabled = hasFeature("courier-home");
   const courierJobsEnabled = hasFeature("courier-jobs");
   const courierEarningsEnabled = hasFeature("courier-earnings");
@@ -181,6 +185,7 @@ function AppShell() {
   const adminDropsEnabled = hasFeature("admin-drops");
   const adminNotificationsEnabled = hasFeature("admin-notifications");
   const adminAuditEnabled = hasFeature("admin-audit");
+  const adminPacksEnabled = hasFeature("admin-packs");
 
   return (
     <>
@@ -246,6 +251,7 @@ function AppShell() {
           <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><DashboardSupport /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/pack" element={<DashboardRoute><FeatureSwitch enabled={dashboardPackEnabled} fallback="/dashboard"><DashboardPack /></FeatureSwitch></DashboardRoute>} />
           <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierJobsEnabled} fallback="/courier"><CourierJobs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEarningsEnabled} fallback="/courier"><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
@@ -260,10 +266,12 @@ function AppShell() {
           <Route path="/admin/drops" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminDropsEnabled} fallback="/admin"><DropsManagement /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminNotificationsEnabled} fallback="/admin"><AdminNotifications /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/packs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminPacksEnabled} fallback="/admin"><AdminLaunchPacks /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/a-propos" element={<APropos />} />
+          <Route path="/packs-restaurateur" element={<PacksRestaurateur />} />
           <Route path="/aide" element={<Aide />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
