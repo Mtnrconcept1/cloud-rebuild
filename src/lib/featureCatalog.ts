@@ -255,6 +255,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/abonnement"],
   },
   {
+    name: "tok-one",
+    label: "Tok One",
+    description: "Active la page d'abonnement premium Tok One.",
+    defaultEnabled: true,
+    group: "client_features",
+    routeTargets: ["/tok-one"],
+  },
+  {
     name: "campagnes-pub",
     label: "Campagnes pub",
     description: "Active les mises en avant sponsorisees et la gestion des campagnes.",

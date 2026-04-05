@@ -19,8 +19,8 @@ interface CartItemListProps {
 export default function CartItemList({ items, updateQuantity, removeItem }: CartItemListProps) {
   return (
     <div className="space-y-3">
-      {items.map((item) => (
-        <div key={item.menuItemId} className="flex items-center gap-4 p-4 border rounded-xl bg-card">
+      {items.map((item, index) => (
+        <div key={`${item.menuItemId}-${index}`} className="flex items-center gap-4 p-4 border rounded-xl bg-card">
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm">{item.name}</p>
             <p className="text-sm text-primary font-bold">{(item.price * item.quantity).toFixed(2)} CHF</p>

@@ -48,6 +48,7 @@ import BudgetAuto from "./pages/BudgetAuto";
 import Abonnement from "./pages/Abonnement";
 import GiftPoints from "./pages/GiftPoints";
 import VentesFlash from "./pages/VentesFlash";
+import TokOne from "./pages/TokOne";
 
 // ── Lazy-loaded chunks: Dashboard Restaurateur ──
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
@@ -214,6 +215,7 @@ function AppShell() {
           <Route path="/garantie-qualite" element={<FeatureSwitch enabled={hasFeature("garantie-qualite")}><GarantieQualite /></FeatureSwitch>} />
           <Route path="/budget-auto" element={<FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch>} />
           <Route path="/abonnement" element={<FeatureSwitch enabled={hasFeature("abonnement")}><Abonnement /></FeatureSwitch>} />
+          <Route path="/tok-one" element={<TokOne />} />
           <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />
           <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />

@@ -182,6 +182,60 @@ Deno.serve(async (req) => {
         restaurant_launch_pack_id: purchaseRecord.id,
         authoritative_total: packAmount.toFixed(2),
       };
+    } else if (effectiveKind === "tok-one") {
+      // ── Tok One premium subscription ──
+      const planId = String(order_metadata?.plan_id || "");
+      if (!planId) throw new HttpError(400, "plan_id requis");
+
+      auditKind = "tok-one";
+      auditTargetEntityType = "user_subscription_plans";
+      auditTargetEntityId = planId;
+
+      const { data: plan, error: planError } = await actor.adminClient
+        .from("user_subscription_plans")
+        .select("id, name, price_monthly, price_yearly, stripe_product_id, status")
+        .eq("id", planId)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (planError) throw new HttpError(500, planError.message);
+      if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
+
+      const billingPeriod = String(order_metadata?.billing_period || "monthly");
+      const amount = billingPeriod === "yearly"
+        ? Number(plan.price_yearly)
+        : Number(plan.price_monthly);
+
+      if (amount <= 0) throw new HttpError(400, "Prix du plan invalide");
+
+      // Check no existing active subscription
+      const { data: existingSub } = await actor.adminClient
+        .from("user_subscriptions")
+        .select("id, status")
+        .eq("user_id", actor.userId!)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (existingSub) throw new HttpError(409, "Vous avez deja un abonnement actif");
+
+      lineItems = [{
+        price_data: {
+          currency: "chf",
+          product_data: {
+            name: `Tok One - ${plan.name} (${billingPeriod === "yearly" ? "Annuel" : "Mensuel"})`,
+          },
+          unit_amount: Math.round(amount * 100),
+        },
+        quantity: 1,
+      }];
+
+      sessionMetadata = {
+        ...sessionMetadata,
+        plan_id: plan.id,
+        plan_name: plan.name,
+        billing_period: billingPeriod,
+        authoritative_total: amount.toFixed(2),
+      };
     } else if (effectiveKind === "campaign") {
       const campaignId = String(order_metadata?.campaign_id || "");
       if (!campaignId) {

@@ -53,6 +53,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
                 <Link to="/anti-gaspi" className="hover:text-foreground transition-colors">Anti-gaspi</Link>
                 <Link to="/ventes-flash" className="hover:text-foreground transition-colors">Ventes flash</Link>
                 <Link to="/chefs-table" className="hover:text-foreground transition-colors">Chef's Table</Link>
+                <Link to="/tok-one" className="hover:text-foreground transition-colors">Tok One</Link>
               </nav>
             </div>
             <div className="space-y-3">

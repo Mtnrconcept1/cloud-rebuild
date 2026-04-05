@@ -355,6 +355,79 @@ Deno.serve(async (req) => {
           break;
         }
 
+        if (checkoutKind === "tok-one") {
+          const userId = session.metadata?.user_id || null;
+          const planId = session.metadata?.plan_id || null;
+          const billingPeriod = session.metadata?.billing_period || "monthly";
+
+          if (!userId || !planId) {
+            console.warn(`Missing tok-one metadata for session ${session.id}`);
+            break;
+          }
+
+          const now = new Date();
+          const periodEnd = new Date(now);
+          if (billingPeriod === "yearly") {
+            periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+          } else {
+            periodEnd.setMonth(periodEnd.getMonth() + 1);
+          }
+
+          // Create subscription record
+          const { error: subError } = await supabaseAdmin
+            .from("user_subscriptions")
+            .insert({
+              user_id: userId,
+              plan_id: planId,
+              status: "active",
+              current_period_start: now.toISOString(),
+              current_period_end: periodEnd.toISOString(),
+              stripe_subscription_id: session.id,
+            });
+
+          if (subError) {
+            console.error("Failed to create Tok One subscription:", subError);
+          } else {
+            console.log(`Tok One subscription created for user ${userId}, plan ${planId}, period ${billingPeriod}`);
+          }
+
+          // Record payment transaction
+          const tokOnePaidAmount = ((session.amount_total || 0) / 100).toFixed(2);
+          await supabaseAdmin
+            .from("payment_transactions")
+            .insert({
+              order_id: null,
+              user_id: userId,
+              stripe_session_id: session.id,
+              amount: tokOnePaidAmount,
+              currency: "chf",
+              status: "paid",
+              metadata: {
+                checkout_kind: "tok-one",
+                plan_id: planId,
+                billing_period: billingPeriod,
+              },
+            });
+
+          // Notify user
+          try {
+            await enqueueNotification({
+              adminClient: supabaseAdmin,
+              userId,
+              title: "Bienvenue dans Tok One !",
+              body: `Votre abonnement Tok One (${billingPeriod === "yearly" ? "annuel" : "mensuel"}) est maintenant actif. Profitez de la livraison gratuite et de tous vos avantages premium.`,
+              type: "subscription",
+              category: "transactional",
+              data: { plan_id: planId, billing_period: billingPeriod },
+            });
+            await triggerNotificationDispatch({ source: "stripe-webhook-tok-one", push: true, email: true });
+          } catch (error) {
+            console.error("stripe-webhook tok-one notification trigger failed:", error);
+          }
+
+          break;
+        }
+
         if (checkoutKind === "launch-pack") {
           const restaurantLaunchPackId = session.metadata?.restaurant_launch_pack_id || null;
           const packId = session.metadata?.pack_id || null;

@@ -126,7 +126,7 @@ const FAQS = [
       },
       {
         q: "Comment modifier ma commande apres validation ?",
-        a: "Une modification est possible uniquement dans les premieres minutes suivant la validation, avant que le restaurant ne commence la preparation. Accedez aux details de votre commande pour voir si l'option 'Modifier' est encore disponible. Passe ce delai, vous devrez annuler la commande et en passer une nouvelle.",
+        a: "Pour toute modification apres validation, contactez notre support via le chat en bas de page dans les premieres minutes suivant votre commande. Passe le debut de preparation par le restaurant, la modification n'est plus possible — vous devrez annuler la commande et en passer une nouvelle.",
       },
       {
         q: "Comment utiliser un code promo ?",
