@@ -150,8 +150,8 @@ export default function TokOne() {
 
   const handleCancel = async () => {
     if (!activeSubscription) return;
-    const { error } = await supabase
-      .from("user_subscriptions")
+    const { error } = await (supabase as any)
+      .from("tok_one_subscriptions")
       .update({ status: "cancelled", cancel_at_period_end: true })
       .eq("id", activeSubscription.id);
 

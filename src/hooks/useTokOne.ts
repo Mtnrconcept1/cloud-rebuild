@@ -66,14 +66,14 @@ export function useTokOneSubscription() {
   return useQuery({
     queryKey: ["tok-one-subscription", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("user_subscriptions")
+      const { data, error } = await (supabase as any)
+        .from("tok_one_subscriptions")
         .select("*, user_subscription_plans(*)")
         .eq("user_id", user!.id)
-        .in("status", ["active", "cancelled"])
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (error) throw error;
       return data as TokOneSubscription | null;
     },
     enabled: !!user,

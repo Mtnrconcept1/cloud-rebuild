@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
 
       // Check no existing active subscription
       const { data: existingSub } = await actor.adminClient
-        .from("user_subscriptions")
+        .from("tok_one_subscriptions")
         .select("id, status")
         .eq("user_id", actor.userId!)
         .eq("status", "active")

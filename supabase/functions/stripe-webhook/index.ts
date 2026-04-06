@@ -375,14 +375,15 @@ Deno.serve(async (req) => {
 
           // Create subscription record
           const { error: subError } = await supabaseAdmin
-            .from("user_subscriptions")
+            .from("tok_one_subscriptions")
             .insert({
               user_id: userId,
               plan_id: planId,
               status: "active",
+              billing_period: billingPeriod,
               current_period_start: now.toISOString(),
               current_period_end: periodEnd.toISOString(),
-              stripe_subscription_id: session.id,
+              stripe_session_id: session.id,
             });
 
           if (subError) {
