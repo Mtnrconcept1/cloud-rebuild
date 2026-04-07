@@ -23,7 +23,14 @@ type OfferRecord = {
   discounted_price: number | string;
   quantity_available: number;
   is_active: boolean | null;
+  available_date: string | null;
+  pickup_start: string | null;
+  pickup_end: string | null;
 };
+
+function todayIso() {
+  return new Date().toISOString().split("T")[0];
+}
 
 type MenuOption = {
   id: string;
@@ -172,7 +179,11 @@ export default function DashboardOffres() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{offer.quantity_available} restant(s)</p>
+                      <p className="text-xs text-muted-foreground">
+                        {offer.quantity_available} restant(s)
+                        {offer.available_date ? ` · ${offer.available_date}` : ""}
+                        {offer.pickup_start && offer.pickup_end ? ` · ${offer.pickup_start.slice(0, 5)}-${offer.pickup_end.slice(0, 5)}` : ""}
+                      </p>
                       <p className="text-xs font-semibold text-primary">
                         <span className="mr-1 text-muted-foreground line-through">
                           {Number(offer.original_price).toFixed(2)} CHF
@@ -207,6 +218,9 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
   const [offerType, setOfferType] = useState("regular");
   const [discountPercent, setDiscountPercent] = useState(40);
   const [quantity, setQuantity] = useState(3);
+  const [availableDate, setAvailableDate] = useState(todayIso());
+  const [pickupStart, setPickupStart] = useState("17:00");
+  const [pickupEnd, setPickupEnd] = useState("20:00");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -250,9 +264,17 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
       return;
     }
 
+    if (!availableDate || !pickupStart || !pickupEnd) {
+      toast({ title: "Creneau invalide", description: "Renseignez date et horaires de retrait.", variant: "destructive" });
+      return;
+    }
+    if (pickupStart >= pickupEnd) {
+      toast({ title: "Creneau invalide", description: "L'heure de fin doit etre apres le debut.", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
-    const now = new Date();
     const { error } = await supabase.from("anti_waste_offers").insert({
       restaurant_id: restaurantId,
       title: selectedItem.name,
@@ -261,9 +283,9 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
       original_price: originalPrice,
       discounted_price: discountedPrice,
       quantity_available: quantity,
-      available_date: now.toISOString().split("T")[0],
-      pickup_start: "17:00",
-      pickup_end: "20:00",
+      available_date: availableDate,
+      pickup_start: pickupStart,
+      pickup_end: pickupEnd,
       is_active: true,
     });
 
@@ -344,6 +366,25 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
             <Label>Quantite disponible</Label>
             <Input type="number" min={1} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
           </div>
+
+          <div className="space-y-2">
+            <Label>Date de disponibilite</Label>
+            <Input type="date" value={availableDate} min={todayIso()} onChange={(e) => setAvailableDate(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label>Retrait des</Label>
+              <Input type="time" value={pickupStart} onChange={(e) => setPickupStart(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Jusqu'a</Label>
+              <Input type="time" value={pickupEnd} onChange={(e) => setPickupEnd(e.target.value)} />
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            L'offre apparaitra aux clients pendant ce creneau et disparaitra a la fin.
+          </p>
 
           <Button type="submit" disabled={loading} className="w-full gap-2">
             <Leaf className="h-4 w-4" />

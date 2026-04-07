@@ -22,6 +22,9 @@ type FlashSaleRecord = {
   discounted_price: number | string;
   quantity_available: number;
   is_active: boolean | null;
+  sale_date: string | null;
+  sale_start: string | null;
+  sale_end: string | null;
 };
 
 type MenuOption = {
@@ -162,7 +165,11 @@ export default function DashboardVentesFlash() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{sale.quantity_available} restant(s)</p>
+                      <p className="text-xs text-muted-foreground">
+                        {sale.quantity_available} restant(s)
+                        {sale.sale_date ? ` · ${sale.sale_date}` : ""}
+                        {sale.sale_start && sale.sale_end ? ` · ${sale.sale_start.slice(0, 5)}-${sale.sale_end.slice(0, 5)}` : ""}
+                      </p>
                       <p className="text-xs font-semibold text-primary">
                         <span className="mr-1 text-muted-foreground line-through">
                           {Number(sale.original_price).toFixed(2)} CHF
@@ -192,10 +199,22 @@ export default function DashboardVentesFlash() {
   );
 }
 
+function todayIso() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function nowHHmm(offsetMinutes = 0) {
+  const d = new Date(Date.now() + offsetMinutes * 60_000);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onSaved: () => void }) {
   const [selectedItemId, setSelectedItemId] = useState("");
   const [discountPercent, setDiscountPercent] = useState(30);
   const [quantity, setQuantity] = useState(5);
+  const [saleDate, setSaleDate] = useState(todayIso());
+  const [saleStart, setSaleStart] = useState(nowHHmm());
+  const [saleEnd, setSaleEnd] = useState(nowHHmm(120));
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -239,9 +258,17 @@ function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
       return;
     }
 
+    if (!saleDate || !saleStart || !saleEnd) {
+      toast({ title: "Creneau invalide", description: "Renseignez date, debut et fin.", variant: "destructive" });
+      return;
+    }
+    if (saleStart >= saleEnd) {
+      toast({ title: "Creneau invalide", description: "L'heure de fin doit etre apres le debut.", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
-    const now = new Date();
     const { error } = await supabase.from("flash_sales").insert({
       restaurant_id: restaurantId,
       title: selectedItem.name,
@@ -249,9 +276,9 @@ function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
       original_price: originalPrice,
       discounted_price: discountedPrice,
       quantity_available: quantity,
-      sale_date: now.toISOString().split("T")[0],
-      sale_start: "00:00",
-      sale_end: "23:59",
+      sale_date: saleDate,
+      sale_start: saleStart,
+      sale_end: saleEnd,
       is_active: true,
     });
 
@@ -316,6 +343,25 @@ function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
             <Label>Quantite disponible</Label>
             <Input type="number" min={1} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
           </div>
+
+          <div className="space-y-2">
+            <Label>Date de la vente</Label>
+            <Input type="date" value={saleDate} min={todayIso()} onChange={(e) => setSaleDate(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label>Debut</Label>
+              <Input type="time" value={saleStart} onChange={(e) => setSaleStart(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Fin</Label>
+              <Input type="time" value={saleEnd} onChange={(e) => setSaleEnd(e.target.value)} />
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            L'offre apparaitra automatiquement aux clients au debut du creneau et disparaitra a la fin.
+          </p>
 
           <Button type="submit" disabled={loading} className="w-full gap-2">
             <Zap className="h-4 w-4" />
