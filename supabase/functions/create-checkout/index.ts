@@ -335,6 +335,10 @@ Deno.serve(async (req) => {
       let authoritativeTotal = 0;
       let formulaDiscountTotal = 0;
       let promoDiscountTotal = 0;
+      let tokOneDiscountTotal = 0;
+      let tokOneDeliveryDiscountTotal = 0;
+      let tokOneMemberAny = false;
+      let tokOneDiscountPercentMax = 0;
       let pointsDiscountTotal = 0;
       let flexDiscountTotal = 0;
       const primaryFormulaNames: string[] = [];
@@ -407,6 +411,12 @@ Deno.serve(async (req) => {
         authoritativeTotal += pricing.total;
         formulaDiscountTotal += pricing.formulaDiscount;
         promoDiscountTotal += pricing.promoDiscount;
+        tokOneDiscountTotal += pricing.tokOneDiscount;
+        tokOneDeliveryDiscountTotal += pricing.tokOneDeliveryDiscount;
+        if (pricing.tokOneMember) tokOneMemberAny = true;
+        if (pricing.tokOneDiscountPercent > tokOneDiscountPercentMax) {
+          tokOneDiscountPercentMax = pricing.tokOneDiscountPercent;
+        }
         pointsDiscountTotal += pricing.pointsDiscount;
         flexDiscountTotal += pricing.flexDiscount;
 
@@ -415,7 +425,7 @@ Deno.serve(async (req) => {
       }
 
       stripeAccountId = restaurantIds.length === 1 ? (primaryRestaurant.stripe_account_id || null) : null;
-      discountCents = Math.round((formulaDiscountTotal + promoDiscountTotal + pointsDiscountTotal + flexDiscountTotal) * 100);
+      discountCents = Math.round((formulaDiscountTotal + promoDiscountTotal + tokOneDiscountTotal + tokOneDeliveryDiscountTotal + pointsDiscountTotal + flexDiscountTotal) * 100);
       sessionMetadata = {
         ...sessionMetadata,
         restaurant_id: primaryRestaurantId,
@@ -423,6 +433,11 @@ Deno.serve(async (req) => {
         formula_discount_amount: formulaDiscountTotal.toFixed(2),
         promo_applied: String(primaryPromoNames[0] || ""),
         promo_discount_amount: promoDiscountTotal.toFixed(2),
+        tok_one_member: tokOneMemberAny ? "true" : "false",
+        tok_one_discount_amount: tokOneDiscountTotal.toFixed(2),
+        tok_one_discount_percent: tokOneDiscountPercentMax.toFixed(2),
+        tok_one_delivery_saved: tokOneDeliveryDiscountTotal.toFixed(2),
+        tok_one_total_saved: (tokOneDiscountTotal + tokOneDeliveryDiscountTotal).toFixed(2),
         points_discount_amount: pointsDiscountTotal.toFixed(2),
         flex_discount_amount: flexDiscountTotal.toFixed(2),
         authoritative_total: authoritativeTotal.toFixed(2),
@@ -447,13 +462,18 @@ Deno.serve(async (req) => {
     };
 
     if (discountCents > 0) {
+      const hasTokOneDiscount = toMoney(sessionMetadata.tok_one_discount_amount) > 0
+        || toMoney(sessionMetadata.tok_one_delivery_saved) > 0;
+      const couponName = hasTokOneDiscount
+        ? "Avantage Tok One"
+        : sessionMetadata.formula_applied
+          ? `Reduction ${sessionMetadata.formula_applied}`
+          : "Reduction commande";
       const coupon = await stripe.coupons.create({
         amount_off: discountCents,
         currency: "chf",
         duration: "once",
-        name: sessionMetadata.formula_applied
-          ? `Reduction ${sessionMetadata.formula_applied}`
-          : "Reduction commande",
+        name: couponName,
       });
       sessionParams.discounts = [{ coupon: coupon.id }];
     }

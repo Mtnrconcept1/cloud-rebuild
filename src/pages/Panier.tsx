@@ -37,11 +37,34 @@ import {
   getFirstAvailablePaymentMethod,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
-import { useIsTokOneMember } from "@/hooks/useTokOne";
+import {
+  TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
+  resolveTokOneDiscountPercentageForContext,
+  resolveTokOneFreeDeliveryMinOrderForContext,
+  useIsTokOneMember,
+  useTokOneBenefits,
+} from "@/hooks/useTokOne";
+import { savePendingCheckoutPostActions } from "@/lib/pendingCheckout";
+
+const AUTH_TIMEOUT_MS = 30000;
+const CHECKOUT_TIMEOUT_MS = 15000;
+const ORDER_VALIDATION_TIMEOUT_MS = 15000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), ms);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) clearTimeout(timeoutId);
+  });
+}
 
 export default function Panier() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode } = useCart();
-  const { user } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -73,7 +96,8 @@ export default function Panier() {
   const [deliveryService, setDeliveryService] = useState<ServicePeriod | null>(null);
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
 
-  const { isMember: isTokOneMember } = useIsTokOneMember();
+  const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
+  const { data: tokOneBenefits } = useTokOneBenefits(tokOneSubscription?.plan_id);
 
   const hasAntiGaspi = items.some(item => item.metadata?.is_anti_waste);
   const antiGaspiItem = items.find(item => item.metadata?.is_anti_waste);
@@ -83,10 +107,43 @@ export default function Panier() {
   const flashPickupDate = flashTakeawayItem?.metadata?.sale_date || null;
   const flashPickupStart = flashTakeawayItem?.metadata?.sale_start || null;
   const flashPickupEnd = flashTakeawayItem?.metadata?.sale_end || null;
+  const discountableSubtotal = useMemo(
+    () => items
+      .filter((item) => item.menuItemId !== "garantie-qualite-fee")
+      .reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [items],
+  );
 
+  const roundMoney = useCallback((value: number) => Math.round((value + Number.EPSILON) * 100) / 100, []);
   const flexFees = { express: 2.50, standard: 1.00, flex: 0 };
-  const baseDeliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
-  const deliveryFee = isTokOneMember ? 0 : baseDeliveryFee;
+  const quotedDeliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
+  const tokOneJourney = orderMode === "delivery" ? "delivery" : "takeaway";
+  const tokOneDiscountPercent = useMemo(() => {
+    if (!isTokOneMember) return 0;
+    return resolveTokOneDiscountPercentageForContext(
+      tokOneBenefits,
+      { restaurantId, journey: tokOneJourney },
+      TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
+    );
+  }, [isTokOneMember, restaurantId, tokOneBenefits, tokOneJourney]);
+  const tokOneFreeDeliveryMinOrder = useMemo(
+    () => resolveTokOneFreeDeliveryMinOrderForContext(
+      tokOneSubscription?.user_subscription_plans,
+      tokOneBenefits,
+      { restaurantId, journey: tokOneJourney },
+    ),
+    [restaurantId, tokOneBenefits, tokOneJourney, tokOneSubscription?.user_subscription_plans],
+  );
+  const tokOneFreeDeliveryEligible = orderMode === "delivery"
+    && isTokOneMember
+    && quotedDeliveryFee > 0
+    && discountableSubtotal >= tokOneFreeDeliveryMinOrder;
+  const tokOneDiscount = useMemo(
+    () => (isTokOneMember ? roundMoney((discountableSubtotal * tokOneDiscountPercent) / 100) : 0),
+    [discountableSubtotal, isTokOneMember, roundMoney, tokOneDiscountPercent],
+  );
+  const tokOneDeliverySaved = tokOneFreeDeliveryEligible ? quotedDeliveryFee : 0;
+  const deliveryFee = roundMoney(Math.max(0, quotedDeliveryFee - tokOneDeliverySaved));
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
   const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
@@ -181,7 +238,7 @@ export default function Panier() {
 
   const effectivePromoDiscount = Math.max(promoDiscount, promoCodeDiscount);
   const effectivePromoName = promoCodeDiscount >= promoDiscount && promoCodeName ? promoCodeName : promoName;
-  const subFinalTotal = total - formulaDiscount - effectivePromoDiscount + deliveryFee;
+  const subFinalTotal = total - formulaDiscount - effectivePromoDiscount - tokOneDiscount + deliveryFee;
   const flexDiscount = flexOption === "flex" ? total * 0.1 : 0;
   const maxPointsRedeemable = Math.min(loyaltyPoints, Math.floor(Math.max(subFinalTotal - flexDiscount, 0) * 100));
 
@@ -295,8 +352,9 @@ export default function Panier() {
 
   const pointsToRedeem = useLoyaltyPoints ? Math.min(pointsToRedeemInput, maxPointsRedeemable) : 0;
   const pointsDiscount = pointsToRedeem / 100;
-  const earnedXp = Math.floor(subFinalTotal * 10);
+  const earnedXp = Math.floor(Math.max(subFinalTotal, 0) * 10);
   const finalTotal = subFinalTotal - pointsDiscount - flexDiscount;
+  const requiresStripeCheckout = paymentMethod !== "cash" && finalTotal > 0.01;
   const hasJourneyAvailable = deliveryAvailable || takeawayAvailable;
   const checkoutDeliveryAddress = orderMode === "delivery" ? address : "";
   const checkoutDeliveryCity = orderMode === "delivery" ? (deliveryCity || null) : null;
@@ -304,24 +362,44 @@ export default function Panier() {
   const checkoutDeliveryLng = orderMode === "delivery" ? (deliverySelection?.longitude ?? null) : null;
 
   const handleCheckout = async () => {
+    if (authLoading) {
+      toast({
+        title: "Authentification en cours",
+        description: "Patientez un instant puis relancez le paiement.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!user) return navigate("/auth");
 
     setLoading(true);
     try {
-    // Ensure we have a valid session before calling edge functions
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !sessionData.session) {
+    if (!session?.access_token) {
+    let activeSession = session;
+    if (!activeSession) {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      activeSession = sessionData.session;
+    }
+    if (!activeSession?.access_token) {
       await supabase.auth.signOut();
       toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
       return navigate("/auth");
     }
 
     // Proactively refresh the token to avoid 401 on edge function call
-    const { error: refreshError } = await supabase.auth.refreshSession();
+    const { error: refreshError } = await withTimeout(
+      supabase.auth.refreshSession(),
+      AUTH_TIMEOUT_MS,
+      "Le rafraichissement de session prend trop de temps. Reconnectez-vous puis reessayez.",
+    );
     if (refreshError) {
       await supabase.auth.signOut();
       toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
       return navigate("/auth");
+    }
+
     }
 
     trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
@@ -443,42 +521,106 @@ export default function Panier() {
       }));
     };
 
+    const allocateEvenlyAcrossGroups = (totalAmount: number) => {
+      let remaining = Math.round(totalAmount * 100) / 100;
+      return new Map(orderGroups.map((group, index) => {
+        const allocated = index === orderGroups.length - 1
+          ? Math.max(0, remaining)
+          : Math.round((totalAmount / Math.max(orderGroups.length, 1)) * 100) / 100;
+        remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
+        return [group.resId, allocated];
+      }));
+    };
+
     const pointsDiscountByRestaurant = allocateAcrossGroups(pointsDiscount);
     const flexDiscountByRestaurant = allocateAcrossGroups(flexDiscount);
-
-      // For online payments (not cash), redirect to Stripe
-      if (paymentMethod !== "cash") {
-        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
+    const tokOneDiscountByRestaurant = allocateAcrossGroups(tokOneDiscount);
+    const deliveryFeeByRestaurant = allocateEvenlyAcrossGroups(quotedDeliveryFee);
+    const tokOneDeliverySavedByRestaurant = allocateEvenlyAcrossGroups(tokOneDeliverySaved);
+    const validationPayloads = orderGroups.map((group, index) => buildOrderValidationPayload(
+      group,
+      index,
+      resCount,
+      orderReference,
+      checkoutGroupId,
+      deliveryFeeByRestaurant,
+      tokOneDeliverySavedByRestaurant,
+      tokOneDiscountByRestaurant,
+      pointsDiscountByRestaurant,
+      flexDiscountByRestaurant,
+    ));
+    const previewResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("validate-order", {
           body: {
-            items: items.map(i => ({
-              name: i.name,
-              price: i.price,
-              quantity: i.quantity,
-              restaurant_name: i.restaurantName,
-              restaurant_id: i.restaurantId,
-              menu_item_id: i.menuItemId,
-              metadata: i.metadata || {},
-            })),
-            payment_method: paymentMethod,
-            return_url: `${window.location.origin}/commandes`,
-            order_metadata: {
-              order_reference: orderReference,
-              restaurant_id: restaurantId,
-              delivery_fee: deliveryFee,
-              checkout_group_id: checkoutGroupId,
-              delivery_address: checkoutDeliveryAddress,
-              delivery_city: checkoutDeliveryCity,
-              delivery_lat: checkoutDeliveryLat,
-              delivery_lng: checkoutDeliveryLng,
-              formula_discount: formulaDiscount,
-              points_discount: pointsDiscount,
-              points_discount_amount: pointsDiscount,
-              flex_discount: flexDiscount,
-              flex_discount_amount: flexDiscount,
-              flex_option: flexOption,
-            },
+            ...body,
+            preview_only: true,
           },
-        });
+        }),
+        ORDER_VALIDATION_TIMEOUT_MS,
+        "La verification du montant prend trop de temps. Reessayez dans quelques instants.",
+      );
+
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+
+      return {
+        resId,
+        verifiedTotal: Number(data?.verified_total || 0),
+      };
+    }));
+    const authoritativeTotal = roundMoney(
+      previewResults.reduce((sum, result) => sum + result.verifiedTotal, 0),
+    );
+    const authoritativeRequiresStripeCheckout = paymentMethod !== "cash" && authoritativeTotal > 0.01;
+
+      // For online payments with a remaining balance, redirect to Stripe
+      if (authoritativeRequiresStripeCheckout) {
+        if (!requiresStripeCheckout) {
+          toast({
+            title: "Montant mis a jour",
+            description: `Le total confirme est de ${authoritativeTotal.toFixed(2)} CHF. Redirection vers le paiement.`,
+          });
+        }
+        const { data: checkoutData, error: checkoutError } = await withTimeout(
+          supabase.functions.invoke("create-checkout", {
+            body: {
+              items: items.map(i => ({
+                name: i.name,
+                price: i.price,
+                quantity: i.quantity,
+                restaurant_name: i.restaurantName,
+                restaurant_id: i.restaurantId,
+                menu_item_id: i.menuItemId,
+                metadata: i.metadata || {},
+              })),
+              payment_method: paymentMethod,
+              return_url: `${window.location.origin}/commandes`,
+              order_metadata: {
+                order_reference: orderReference,
+                restaurant_id: restaurantId,
+                delivery_fee: quotedDeliveryFee,
+                checkout_group_id: checkoutGroupId,
+                delivery_address: checkoutDeliveryAddress,
+                delivery_city: checkoutDeliveryCity,
+                delivery_lat: checkoutDeliveryLat,
+                delivery_lng: checkoutDeliveryLng,
+                formula_discount: formulaDiscount,
+                points_discount: pointsDiscount,
+                points_discount_amount: pointsDiscount,
+                flex_discount: flexDiscount,
+                flex_discount_amount: flexDiscount,
+                tok_one_discount_amount: tokOneDiscount,
+                tok_one_discount_percent: tokOneDiscountPercent,
+                tok_one_member: isTokOneMember,
+                tok_one_delivery_saved: tokOneDeliverySaved,
+                flex_option: flexOption,
+              },
+            },
+          }),
+          CHECKOUT_TIMEOUT_MS,
+          "La creation de la session Stripe prend trop de temps. Reessayez dans quelques instants.",
+        );
 
         if (checkoutError) throw new Error(checkoutError.message);
         if (checkoutData?.error) throw new Error(checkoutData.error);
@@ -486,75 +628,43 @@ export default function Panier() {
           throw new Error("Impossible de lancer le paiement Stripe pour cette commande.");
         }
 
-        // Before redirecting, create orders in pending_payment status
-        for (const [index, group] of orderGroups.entries()) {
-          const { resId, realItems, qualityFeeItem, resSubtotal } = group;
-          const resDiscount = restaurantId === resId ? formulaDiscount : 0;
-          const resPromoDiscount = restaurantId === resId ? effectivePromoDiscount : 0;
-          const qualityFeeAmount = qualityFeeItem?.price || 0;
-          const deliveryFeePerRestaurant = deliveryFee / resCount;
-          const resPointsDiscount = pointsDiscountByRestaurant.get(resId) || 0;
-          const resFlexDiscount = flexDiscountByRestaurant.get(resId) || 0;
-          const orderCheckoutId = crypto.randomUUID();
-          const orderRefForRestaurant = resCount > 1 ? `${orderReference}-${index + 1}` : orderReference;
-
-          const finalMetadata = buildOrderMetadata(
-            resId,
-            resSubtotal,
-            resDiscount,
-            resPromoDiscount,
-            qualityFeeAmount,
-            deliveryFeePerRestaurant,
-            resCount,
-            orderRefForRestaurant,
-            checkoutGroupId,
-            resPointsDiscount,
-            resFlexDiscount,
+        const orderResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
+          const { data: validateResult, error: validateError } = await withTimeout(
+            supabase.functions.invoke("validate-order", {
+              body: {
+                ...body,
+                metadata: { ...(body.metadata || {}), stripe_session_id: checkoutData.session_id },
+              }
+            }),
+            ORDER_VALIDATION_TIMEOUT_MS,
+            "La preparation de votre commande prend trop de temps. Reessayez dans quelques instants.",
           );
-
-          const orderItemsJson = realItems.map((item) => ({
-            menu_item_id: item.menuItemId, restaurant_id: item.restaurantId,
-            quantity: Math.floor(item.quantity), unit_price: Number(item.price),
-            total_price: Number(item.price) * Math.floor(item.quantity), metadata: item.metadata || {},
-          }));
-
-          const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
-            body: {
-              restaurant_id: resId,
-              delivery_address: checkoutDeliveryAddress,
-              delivery_fee: deliveryFeePerRestaurant,
-              total_amount: resSubtotal - resDiscount - resPromoDiscount - resPointsDiscount - resFlexDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
-              notes: notes || null,
-              items: orderItemsJson,
-              metadata: { ...finalMetadata, stripe_session_id: checkoutData.session_id },
-              checkout_id: orderCheckoutId
-            },
-          });
 
           if (validateError) throw new Error(validateError.message);
           if (validateResult?.error) throw new Error(validateResult.error);
-          if (!firstOrderId) firstOrderId = validateResult?.order_id;
+          const orderId = validateResult?.order_id || null;
 
-          if (validateResult?.order_id) {
-            await trackCheckoutEvent(validateResult.order_id, "checkout_online_pending", { stripe_session_id: checkoutData.session_id });
+          if (orderId) {
+            void trackCheckoutEvent(orderId, "checkout_online_pending", { stripe_session_id: checkoutData.session_id });
           }
-          await trackSponsoredConversion(resId, {
+          void trackSponsoredConversion(resId, {
             conversionType: "order",
-            entityId: validateResult?.order_id || null,
+            entityId: orderId,
             paymentMethod,
           });
-        }
+          return { orderId };
+        }));
 
-        // Handle loyalty points
-        if (useLoyaltyPoints && pointsToRedeem > 0) {
-          const { error: rpcError } = await (supabase.rpc as any)("redeem_loyalty_points", { user_id_param: user.id, points_to_redeem: pointsToRedeem, description_param: `Paiement pour commande du ${new Date().toLocaleDateString()}` });
-          if (rpcError) throw rpcError;
-        }
+        firstOrderId = orderResults.find((result) => result.orderId)?.orderId || null;
 
-        // Record promo code usage (Stripe flow)
-        if (promoCodeId && user?.id && firstOrderId) {
-          await supabase.from("promo_code_uses").insert({ promo_code_id: promoCodeId, user_id: user.id, order_id: firstOrderId });
-          await supabase.from("promo_codes").update({ current_uses: (await supabase.from("promo_codes").select("current_uses").eq("id", promoCodeId).single()).data?.current_uses + 1 }).eq("id", promoCodeId);
+        if (user?.id && checkoutData.session_id && (pointsToRedeem > 0 || promoCodeId)) {
+          savePendingCheckoutPostActions({
+            sessionId: checkoutData.session_id,
+            userId: user.id,
+            orderId: firstOrderId,
+            pointsToRedeem,
+            promoCodeId,
+          });
         }
 
         clearCart();
@@ -568,50 +678,19 @@ export default function Panier() {
         return;
       }
 
-      // Cash payment flow — create orders directly as confirmed
-        for (const [index, group] of orderGroups.entries()) {
-          const { resId, realItems, qualityFeeItem, resSubtotal } = group;
-          const resDiscount = restaurantId === resId ? formulaDiscount : 0;
-          const resPromoDiscount = restaurantId === resId ? effectivePromoDiscount : 0;
-          const qualityFeeAmount = qualityFeeItem?.price || 0;
-          const deliveryFeePerRestaurant = deliveryFee / resCount;
-          const resPointsDiscount = pointsDiscountByRestaurant.get(resId) || 0;
-          const resFlexDiscount = flexDiscountByRestaurant.get(resId) || 0;
-          const orderCheckoutId = crypto.randomUUID();
-          const orderRefForRestaurant = resCount > 1 ? `${orderReference}-${index + 1}` : orderReference;
+      if (paymentMethod !== "cash" && !authoritativeRequiresStripeCheckout) {
+        toast({
+          title: "Aucun paiement requis",
+          description: "Votre total est entierement couvert par vos avantages. La commande est confirmee sans passage Stripe.",
+        });
+      }
 
-          const finalMetadata = buildOrderMetadata(
-            resId,
-            resSubtotal,
-            resDiscount,
-            resPromoDiscount,
-            qualityFeeAmount,
-            deliveryFeePerRestaurant,
-            resCount,
-            orderRefForRestaurant,
-            checkoutGroupId,
-            resPointsDiscount,
-            resFlexDiscount,
-          );
-
-          const orderItemsJson = realItems.map((item) => ({
-            menu_item_id: item.menuItemId, restaurant_id: item.restaurantId,
-            quantity: Math.floor(item.quantity), unit_price: Number(item.price),
-          total_price: Number(item.price) * Math.floor(item.quantity), metadata: item.metadata || {},
-        }));
+      // Cash payment flow or zero-balance online flow — create orders directly as confirmed
+        for (const { resId, body } of validationPayloads) {
 
         const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
-          body: {
-              restaurant_id: resId,
-              delivery_address: checkoutDeliveryAddress,
-              delivery_fee: deliveryFeePerRestaurant,
-              total_amount: resSubtotal - resDiscount - resPromoDiscount - resPointsDiscount - resFlexDiscount + deliveryFeePerRestaurant + qualityFeeAmount,
-              notes: notes || null,
-              items: orderItemsJson,
-              metadata: finalMetadata,
-              checkout_id: orderCheckoutId
-            },
-          });
+          body,
+        });
 
         if (validateError) throw new Error(validateError.message);
         if (validateResult?.error) throw new Error(validateResult.error);
@@ -619,7 +698,9 @@ export default function Panier() {
         if (!firstOrderId) firstOrderId = orderId;
 
         if (orderId) {
-          await trackCheckoutEvent(orderId, "checkout_cash_confirmed", { total: resSubtotal - resDiscount + deliveryFeePerRestaurant + qualityFeeAmount });
+          await trackCheckoutEvent(orderId, paymentMethod === "cash" ? "checkout_cash_confirmed" : "checkout_zero_balance_confirmed", {
+            total: Number(validateResult?.verified_total || body.total_amount || 0),
+          });
         }
 
         if (cartMetadata.groupId) {
@@ -666,8 +747,10 @@ export default function Panier() {
     resSubtotal: number,
     resDiscount: number,
     resPromoDiscount: number,
+    tokOneDiscountAmount: number,
     qualityFeeAmount: number,
     deliveryFeePerRestaurant: number,
+    tokOneDeliverySavedAmount: number,
     resCount: number,
     orderReference: string,
     checkoutGroupId: string,
@@ -675,6 +758,7 @@ export default function Panier() {
     flexDiscountAmount: number,
   ) => {
     const resFormulaDiscountPercent = resSubtotal > 0 && resDiscount > 0 ? (resDiscount / resSubtotal) * 100 : 0;
+    const resTokOneDiscountPercent = resSubtotal > 0 && tokOneDiscountAmount > 0 ? (tokOneDiscountAmount / resSubtotal) * 100 : 0;
     return {
       ...cartMetadata,
       order_reference: orderReference,
@@ -687,6 +771,8 @@ export default function Panier() {
       formula_discount_percent: resFormulaDiscountPercent > 0 ? Number(resFormulaDiscountPercent.toFixed(2)) : 0,
       promotion_applied: resPromoDiscount > 0 ? effectivePromoName : null,
       promotion_discount_amount: resPromoDiscount > 0 ? Number(resPromoDiscount.toFixed(2)) : 0,
+      tok_one_discount_amount: tokOneDiscountAmount > 0 ? Number(tokOneDiscountAmount.toFixed(2)) : 0,
+      tok_one_discount_percent: resTokOneDiscountPercent > 0 ? Number(resTokOneDiscountPercent.toFixed(2)) : 0,
       points_discount_amount: pointsDiscountAmount > 0 ? Number(pointsDiscountAmount.toFixed(2)) : 0,
       flex_discount_amount: flexDiscountAmount > 0 ? Number(flexDiscountAmount.toFixed(2)) : 0,
       pre_discount_subtotal: Number(resSubtotal.toFixed(2)),
@@ -709,7 +795,82 @@ export default function Panier() {
       flex_option: flexOption,
       flex_guarantee: flexOption === "express" ? "1% discount per minute delay" : flexOption === "standard" ? "1% discount per 2 minute delay" : "10% subtotal discount applied",
       tok_one_member: isTokOneMember,
-      tok_one_delivery_saved: isTokOneMember && orderMode === "delivery" ? baseDeliveryFee : 0,
+      tok_one_delivery_saved: tokOneDeliverySavedAmount > 0 ? Number(tokOneDeliverySavedAmount.toFixed(2)) : 0,
+      tok_one_total_saved: Number((Math.max(0, tokOneDiscountAmount) + Math.max(0, tokOneDeliverySavedAmount)).toFixed(2)),
+    };
+  };
+
+  const buildOrderValidationPayload = (
+    group: { resId: string; realItems: any[]; qualityFeeItem: any; resSubtotal: number },
+    index: number,
+    resCount: number,
+    orderReference: string,
+    checkoutGroupId: string,
+    deliveryFeeByRestaurant: Map<string, number>,
+    tokOneDeliverySavedByRestaurant: Map<string, number>,
+    tokOneDiscountByRestaurant: Map<string, number>,
+    pointsDiscountByRestaurant: Map<string, number>,
+    flexDiscountByRestaurant: Map<string, number>,
+  ) => {
+    const { resId, realItems, qualityFeeItem, resSubtotal } = group;
+    const resDiscount = restaurantId === resId ? formulaDiscount : 0;
+    const resPromoDiscount = restaurantId === resId ? effectivePromoDiscount : 0;
+    const resTokOneDiscount = tokOneDiscountByRestaurant.get(resId) || 0;
+    const qualityFeeAmount = qualityFeeItem?.price || 0;
+    const deliveryFeePerRestaurant = deliveryFeeByRestaurant.get(resId) || 0;
+    const resTokOneDeliverySaved = tokOneDeliverySavedByRestaurant.get(resId) || 0;
+    const resPointsDiscount = pointsDiscountByRestaurant.get(resId) || 0;
+    const resFlexDiscount = flexDiscountByRestaurant.get(resId) || 0;
+    const orderCheckoutId = crypto.randomUUID();
+    const orderRefForRestaurant = resCount > 1 ? `${orderReference}-${index + 1}` : orderReference;
+    const clientTotal = resSubtotal
+      - resDiscount
+      - resPromoDiscount
+      - resTokOneDiscount
+      - resPointsDiscount
+      - resFlexDiscount
+      - resTokOneDeliverySaved
+      + deliveryFeePerRestaurant
+      + qualityFeeAmount;
+
+    const finalMetadata = buildOrderMetadata(
+      resId,
+      resSubtotal,
+      resDiscount,
+      resPromoDiscount,
+      resTokOneDiscount,
+      qualityFeeAmount,
+      deliveryFeePerRestaurant,
+      resTokOneDeliverySaved,
+      resCount,
+      orderRefForRestaurant,
+      checkoutGroupId,
+      resPointsDiscount,
+      resFlexDiscount,
+    );
+
+    const orderItemsJson = realItems.map((item) => ({
+      menu_item_id: item.menuItemId,
+      restaurant_id: item.restaurantId,
+      quantity: Math.floor(item.quantity),
+      unit_price: Number(item.price),
+      total_price: Number(item.price) * Math.floor(item.quantity),
+      metadata: item.metadata || {},
+    }));
+
+    return {
+      resId,
+      clientTotal,
+      body: {
+        restaurant_id: resId,
+        delivery_address: checkoutDeliveryAddress,
+        delivery_fee: deliveryFeePerRestaurant,
+        total_amount: clientTotal,
+        notes: notes || null,
+        items: orderItemsJson,
+        metadata: finalMetadata,
+        checkout_id: orderCheckoutId,
+      },
     };
   };
 
@@ -962,10 +1123,16 @@ export default function Panier() {
           <div className="flex justify-between text-sm"><span>Sous-total</span><span>{total.toFixed(2)} CHF</span></div>
           {formulaDiscount > 0 && <div className="flex justify-between text-sm text-accent font-medium"><span>Réduction formule ({formulaName})</span><span>-{formulaDiscount.toFixed(2)} CHF</span></div>}
           {effectivePromoDiscount > 0 && <div className="flex justify-between text-sm text-primary font-medium"><span>Promotion ({effectivePromoName})</span><span>-{effectivePromoDiscount.toFixed(2)} CHF</span></div>}
-          {isTokOneMember && orderMode === "delivery" && baseDeliveryFee > 0 ? (
+          {tokOneDiscount > 0 && (
+            <div className="flex justify-between text-sm text-violet-600 font-medium">
+              <span className="flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />Reduction Tok One ({tokOneDiscountPercent.toFixed(0)}%)</span>
+              <span>-{tokOneDiscount.toFixed(2)} CHF</span>
+            </div>
+          )}
+          {tokOneDeliverySaved > 0 ? (
             <div className="flex justify-between text-sm text-violet-600 font-medium">
               <span className="flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />Livraison offerte (Tok One)</span>
-              <span className="line-through text-muted-foreground mr-1">{baseDeliveryFee.toFixed(2)} CHF</span>
+              <span><span className="mr-2 line-through text-muted-foreground">{quotedDeliveryFee.toFixed(2)} CHF</span>Gratuit</span>
             </div>
           ) : (
             <div className="flex justify-between text-sm"><span>{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span><span>{deliveryFee.toFixed(2)} CHF</span></div>
@@ -984,12 +1151,12 @@ export default function Panier() {
           )}
         </div>
 
-        {!isTokOneMember && orderMode === "delivery" && baseDeliveryFee > 0 && (
+        {!isTokOneMember && orderMode === "delivery" && quotedDeliveryFee > 0 && (
           <Link to="/tok-one" className="flex items-center gap-3 p-3 rounded-xl bg-violet-50 border border-violet-200 hover:bg-violet-100 transition-colors">
             <Crown className="h-5 w-5 text-violet-600 shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-violet-900">Economisez {baseDeliveryFee.toFixed(2)} CHF avec Tok One</p>
-              <p className="text-xs text-violet-600">Livraison gratuite sur toutes vos commandes</p>
+              <p className="text-sm font-medium text-violet-900">Economisez jusqu'a {(quotedDeliveryFee + roundMoney((discountableSubtotal * TOK_ONE_DEFAULT_DISCOUNT_PERCENT) / 100)).toFixed(2)} CHF avec Tok One</p>
+              <p className="text-xs text-violet-600">Livraison offerte et jusqu'a {TOK_ONE_DEFAULT_DISCOUNT_PERCENT}% de remise sur vos plats</p>
             </div>
             <span className="text-xs font-semibold text-violet-600 shrink-0">Decouvrir →</span>
           </Link>
@@ -1007,9 +1174,9 @@ export default function Panier() {
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Traitement sécurisé...
+              {requiresStripeCheckout ? "Traitement sécurisé..." : "Confirmation de la commande..."}
             </div>
-          ) : `Commander · ${finalTotal.toFixed(2)} CHF`}
+          ) : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
         </Button>
       </div>
     </main>

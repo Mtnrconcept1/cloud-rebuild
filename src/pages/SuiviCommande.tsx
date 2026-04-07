@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import DeliveryMap from "@/components/DeliveryMap";
 import DeliveryProofCard from "@/components/orders/DeliveryProofCard";
+import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
 import { Progress } from "@/components/ui/progress";
 import { Package, ChefHat, Bike, MapPin, CheckCircle2, Phone, Timer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -240,6 +241,10 @@ export default function SuiviCommande() {
   const modeLabel = (order.metadata as any)?.feature === "zero-attente" ? "Zero attente" : pickupTime ? "A emporter" : "Sur place";
   const totalAmount = orders.reduce((sum: number, o: any) => sum + Number(o.total_amount), 0);
   const restaurantLabel = orders.length > 1 ? `${orders.length} restaurants` : (order.restaurants as any)?.name || "Restaurant";
+  const ordersWithPricing = orders.filter((entry: any) => {
+    const breakdown = getOrderPaymentBreakdown(entry);
+    return breakdown.total > 0 || breakdown.subtotal > 0 || breakdown.tokOneTotalSaved > 0;
+  });
 
   if (!isDelivery) {
     return (
@@ -278,6 +283,20 @@ export default function SuiviCommande() {
                 </div>
               )}
             </div>
+
+            {ordersWithPricing.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Detail du paiement</p>
+                {ordersWithPricing.map((entry: any) => (
+                  <div key={entry.id} className="rounded-xl border p-4">
+                    {ordersWithPricing.length > 1 ? (
+                      <p className="mb-3 text-sm font-semibold">{entry.restaurants?.name || "Restaurant"}</p>
+                    ) : null}
+                    <OrderPaymentBreakdown order={entry} showDivider={false} alwaysShowTotal />
+                  </div>
+                ))}
+              </div>
+            ) : null}
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Button asChild className="flex-1">
@@ -524,8 +543,21 @@ export default function SuiviCommande() {
             <p className="text-xs text-muted-foreground">Livraison planifiee : {scheduledDeliveryLabel}</p>
           ) : null}
         </div>
+
+        {ordersWithPricing.length > 0 ? (
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold">Detail du paiement</h2>
+            {ordersWithPricing.map((entry: any) => (
+              <div key={entry.id} className="rounded-xl border bg-card p-4">
+                {ordersWithPricing.length > 1 ? (
+                  <p className="mb-3 text-sm font-semibold">{entry.restaurants?.name || "Restaurant"}</p>
+                ) : null}
+                <OrderPaymentBreakdown order={entry} showDivider={false} alwaysShowTotal />
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </main>
   );
 }
-

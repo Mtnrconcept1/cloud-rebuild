@@ -549,14 +549,27 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
   const { data: tokOneOrders, isLoading: ordersLoading } = useQuery({
     queryKey: ["tok-one-orders", userId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select("id, order_reference, total_amount, delivery_fee, created_at, metadata, restaurants(name)")
-        .eq("user_id", userId!)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      // Filter client-side for tok_one_member metadata
-      return (data || []).filter((o: any) => (o.metadata as any)?.tok_one_member === true);
+      const { data, error } = await supabase.rpc("get_customer_orders_dashboard" as any);
+      if (error) throw error;
+
+      return ((data || []) as any[])
+        .map((order) => {
+          const metadata = order.metadata && typeof order.metadata === "object" && !Array.isArray(order.metadata)
+            ? order.metadata
+            : {};
+          const restaurant = order.restaurant && typeof order.restaurant === "object" && !Array.isArray(order.restaurant)
+            ? order.restaurant
+            : null;
+
+          return {
+            ...order,
+            metadata,
+            order_reference: order.order_reference || order.order_number || metadata.order_reference || null,
+            restaurants: restaurant ? { name: restaurant.name || "Restaurant" } : null,
+          };
+        })
+        .filter((order) => (order.metadata as any)?.tok_one_member === true)
+        .slice(0, 50);
     },
     enabled: !!userId,
   });
@@ -569,17 +582,20 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
         .from("payment_transactions")
         .select("id, amount, created_at, metadata, status")
         .eq("user_id", userId!)
-        .eq("status", "paid")
         .order("created_at", { ascending: false })
         .limit(20);
-      return (data || []).filter((p: any) => (p.metadata as any)?.checkout_kind === "tok-one");
+      return (data || []).filter((p: any) => {
+        const status = String((p as any)?.status || "");
+        return (p.metadata as any)?.checkout_kind === "tok-one" && ["paid", "succeeded"].includes(status);
+      });
     },
     enabled: !!userId,
   });
 
   // Computed stats
-  const totalDeliverySaved = (tokOneOrders || []).reduce((sum: number, o: any) => {
-    return sum + Number((o.metadata as any)?.tok_one_delivery_saved || 0);
+  const totalTokOneSaved = (tokOneOrders || []).reduce((sum: number, o: any) => {
+    const metadata = (o.metadata || {}) as any;
+    return sum + Number(metadata.tok_one_total_saved || (Number(metadata.tok_one_delivery_saved || 0) + Number(metadata.tok_one_discount_amount || 0)));
   }, 0);
   const totalOrders = (tokOneOrders || []).length;
   const totalPaid = (payments || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
@@ -701,8 +717,8 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
             <p className="text-xs text-muted-foreground">Commandes Tok One</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center space-y-1">
-            <p className="text-2xl font-bold text-emerald-600">{totalDeliverySaved.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">CHF livraison economises</p>
+            <p className="text-2xl font-bold text-emerald-600">{totalTokOneSaved.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">CHF economises</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center space-y-1">
             <p className="text-2xl font-bold text-blue-600">{(payments || []).length}</p>
@@ -727,7 +743,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           <div className="space-y-2">
             {tokOneOrders.map((order: any) => {
               const meta = (order.metadata || {}) as any;
-              const saved = Number(meta.tok_one_delivery_saved || 0);
+              const saved = Number(meta.tok_one_total_saved || (Number(meta.tok_one_delivery_saved || 0) + Number(meta.tok_one_discount_amount || 0)));
               const restaurantName = (order.restaurants as any)?.name || "Restaurant";
               return (
                 <div key={order.id} className="flex items-center justify-between p-3 rounded-xl border bg-card">
@@ -746,7 +762,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                   <div className="text-right shrink-0 ml-2">
                     <p className="text-sm font-bold">{Number(order.total_amount).toFixed(2)} CHF</p>
                     {saved > 0 && (
-                      <p className="text-xs text-emerald-600 font-medium">-{saved.toFixed(2)} CHF livraison</p>
+                      <p className="text-xs text-emerald-600 font-medium">-{saved.toFixed(2)} CHF avantages</p>
                     )}
                   </div>
                 </div>

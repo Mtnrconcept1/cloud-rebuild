@@ -166,9 +166,9 @@ export default function TokOne() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white">
         <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-5" />
-        <div className="relative container max-w-5xl py-20 px-6 text-center space-y-6">
+        <div className="relative container max-w-5xl px-6 pb-24 pt-20 text-center space-y-6 md:pb-28">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-2 text-sm font-medium">
             <Crown className="h-4 w-4 text-yellow-300" />
             Abonnement Premium
@@ -186,13 +186,17 @@ export default function TokOne() {
         </div>
       </div>
 
-      <div className="container max-w-5xl px-6 -mt-10 space-y-16 pb-20">
+      <div
+        className={`relative z-10 container max-w-5xl px-6 pb-20 ${
+          isActive ? "-mt-6 space-y-14 md:-mt-8" : "-mt-10 space-y-16"
+        }`}
+      >
         {/* Active subscription banner */}
         {isActive && activeSubscription && (
-          <div className="rounded-2xl border-2 border-violet-200 bg-violet-50 p-6 space-y-4">
+          <div className="rounded-[28px] border border-violet-200/80 bg-white/96 p-6 shadow-[0_22px_60px_-28px_rgba(109,40,217,0.42)] backdrop-blur md:p-7 space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100">
                   <Crown className="h-6 w-6 text-violet-600" />
                 </div>
                 <div>
@@ -206,7 +210,7 @@ export default function TokOne() {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/profil?tab=abonnement">Gerer</Link>
                 </Button>
@@ -217,15 +221,15 @@ export default function TokOne() {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
               {[
                 { icon: Truck, label: "Livraison gratuite", active: true },
                 { icon: Percent, label: "Reductions actives", active: true },
                 { icon: ShieldCheck, label: "Support prioritaire", active: true },
               ].map((perk) => (
-                <div key={perk.label} className="flex items-center gap-2 text-sm text-violet-700">
+                <div key={perk.label} className="flex min-w-0 items-center gap-2 rounded-2xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
                   <perk.icon className="h-4 w-4" />
-                  <span>{perk.label}</span>
+                  <span className="truncate">{perk.label}</span>
                   <Check className="h-3.5 w-3.5 text-emerald-500 ml-auto" />
                 </div>
               ))}

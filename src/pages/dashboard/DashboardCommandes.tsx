@@ -11,6 +11,7 @@ import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
   getTodayReferenceDate,
@@ -272,6 +273,7 @@ export default function DashboardCommandes() {
               const customerPhone = customer?.phone ?? "";
               const customerAddress = order.delivery_address ?? "Adresse non renseignee";
               const paymentMeta = (order.metadata || {}) as Record<string, any>;
+              const paymentBreakdown = getOrderPaymentBreakdown(order);
               const deliveryFlowStatus = String(order.dispatch_job?.status || tracking?.status || "");
               const scheduledLabel = typeof paymentMeta.scheduled_delivery_label === "string" ? paymentMeta.scheduled_delivery_label : "";
               const statusOptions = getStatusOptions(order);
@@ -317,6 +319,11 @@ export default function DashboardCommandes() {
                     <div className="flex items-center gap-3">
                       <div className="mr-4 text-right">
                         <p className="text-lg font-bold text-primary">{Number(order.total_amount).toFixed(2)} CHF</p>
+                        {paymentBreakdown.tokOneTotalSaved > 0 ? (
+                          <p className="mt-1 text-[11px] font-medium text-violet-600">
+                            -{paymentBreakdown.tokOneTotalSaved.toFixed(2)} CHF Tok One
+                          </p>
+                        ) : null}
                         <div className="flex flex-col items-end">
                           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Paiement recu</p>
                           {paymentMeta.payment_method ? (
@@ -396,6 +403,7 @@ export default function DashboardCommandes() {
                             </span>
                           </div>
                         ) : null}
+                        <OrderPaymentBreakdown order={order} className="mt-3" />
                       </div>
                     </div>
                   </div>
@@ -461,4 +469,3 @@ export default function DashboardCommandes() {
     </DashboardLayout>
   );
 }
-
