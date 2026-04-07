@@ -11,6 +11,10 @@ import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/lib/cart";
 import {
+  clearPendingCheckoutPostActions,
+  getPendingCheckoutPostActions,
+} from "@/lib/pendingCheckout";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -30,19 +34,38 @@ const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }>
 
 function PaymentBreakdown({ order }: { order: any }) {
   const meta = (order.metadata || {}) as any;
-  const subtotal = Number(meta.pre_discount_subtotal || 0);
+  const subtotalFromItems = Array.isArray(order.order_items)
+    ? order.order_items.reduce((sum: number, item: any) => sum + Number(item.total_price || 0), 0)
+    : 0;
   const formulaDiscount = Number(meta.formula_discount_amount || 0);
+  const promotionDiscount = Number(meta.promotion_discount_amount || 0);
+  const tokOneDiscount = Number(meta.tok_one_discount_amount || 0);
+  const tokOneDiscountPercent = Number(meta.tok_one_discount_percent || 0);
   const flexDiscount = Number(meta.flex_discount || meta.flex_discount_amount || 0);
   const pointsDiscount = Number(meta.points_discount || meta.points_discount_amount || 0);
   const deliveryFee = Number(order.delivery_fee || 0);
   const qualityFee = Number(meta.quality_fee_amount || 0);
   const total = Number(order.total_amount);
+  const subtotal = Number(
+    meta.pre_discount_subtotal
+    || subtotalFromItems
+    || Math.max(0, total - deliveryFee - qualityFee + formulaDiscount + promotionDiscount + tokOneDiscount + flexDiscount + pointsDiscount),
+  );
   const tokOneMember = !!meta.tok_one_member;
   const tokOneDeliverySaved = Number(meta.tok_one_delivery_saved || 0);
   const paymentMethod = meta.payment_method || "card";
   const formulaName = meta.formula_applied;
+  const promotionName = meta.promotion_applied;
   const flexOption = meta.flex_option;
-  const hasBreakdown = subtotal > 0;
+  const hasBreakdown = subtotal > 0
+    || formulaDiscount > 0
+    || promotionDiscount > 0
+    || tokOneDiscount > 0
+    || tokOneDeliverySaved > 0
+    || flexDiscount > 0
+    || pointsDiscount > 0
+    || deliveryFee > 0
+    || qualityFee > 0;
 
   if (!hasBreakdown) return null;
 
@@ -61,6 +84,18 @@ function PaymentBreakdown({ order }: { order: any }) {
           <span>-{formulaDiscount.toFixed(2)} CHF</span>
         </div>
       ) : null}
+      {promotionDiscount > 0 ? (
+        <div className="flex justify-between text-emerald-600">
+          <span className="flex items-center gap-1"><Percent className="h-3 w-3" />{promotionName || "Promotion"}</span>
+          <span>-{promotionDiscount.toFixed(2)} CHF</span>
+        </div>
+      ) : null}
+      {tokOneDiscount > 0 ? (
+        <div className="flex justify-between text-violet-600">
+          <span className="flex items-center gap-1"><Crown className="h-3 w-3" />Tok One{tokOneDiscountPercent > 0 ? ` (-${tokOneDiscountPercent.toFixed(0)}%)` : ""}</span>
+          <span>-{tokOneDiscount.toFixed(2)} CHF</span>
+        </div>
+      ) : null}
       {flexDiscount > 0 ? (
         <div className="flex justify-between text-emerald-600">
           <span className="flex items-center gap-1"><Sparkles className="h-3 w-3" />Remise Flex</span>
@@ -76,7 +111,7 @@ function PaymentBreakdown({ order }: { order: any }) {
       {tokOneMember && tokOneDeliverySaved > 0 ? (
         <div className="flex justify-between text-violet-600">
           <span className="flex items-center gap-1"><Crown className="h-3 w-3" />Livraison offerte (Tok One)</span>
-          <span className="line-through text-muted-foreground">{tokOneDeliverySaved.toFixed(2)} CHF</span>
+          <span>-{tokOneDeliverySaved.toFixed(2)} CHF</span>
         </div>
       ) : deliveryFee > 0 ? (
         <div className="flex justify-between text-muted-foreground">
@@ -158,25 +193,96 @@ export default function Commandes() {
 
   // Handle Stripe payment return — redirect to real-time order tracking
   useEffect(() => {
+    let isCancelled = false;
+
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
     const sessionId = params.get("session_id");
 
-    if (status === "success" && sessionId) {
+    const finalizeSuccessfulCheckout = async () => {
       const pendingOrderId = localStorage.getItem("stripe_pending_order_id");
+      const pendingPostActions = getPendingCheckoutPostActions(sessionId);
+      const targetOrderId = pendingOrderId || pendingPostActions?.orderId || null;
+
+      if (pendingPostActions && pendingPostActions.userId === user?.id) {
+        try {
+          if (pendingPostActions.pointsToRedeem > 0) {
+            const { error: rpcError } = await (supabase.rpc as any)("redeem_loyalty_points", {
+              user_id_param: pendingPostActions.userId,
+              points_to_redeem: pendingPostActions.pointsToRedeem,
+              description_param: `Paiement pour commande du ${new Date().toLocaleDateString()}`,
+            });
+            if (rpcError) throw rpcError;
+          }
+
+          const appliedOrderId = pendingPostActions.orderId || pendingOrderId;
+          if (pendingPostActions.promoCodeId && appliedOrderId) {
+            const { data: existingUse, error: existingUseError } = await supabase
+              .from("promo_code_uses")
+              .select("id")
+              .eq("promo_code_id", pendingPostActions.promoCodeId)
+              .eq("user_id", pendingPostActions.userId)
+              .eq("order_id", appliedOrderId)
+              .maybeSingle();
+
+            if (existingUseError) throw existingUseError;
+
+            if (!existingUse) {
+              const { error: insertUseError } = await supabase
+                .from("promo_code_uses")
+                .insert({
+                  promo_code_id: pendingPostActions.promoCodeId,
+                  user_id: pendingPostActions.userId,
+                  order_id: appliedOrderId,
+                });
+              if (insertUseError) throw insertUseError;
+
+              const { data: promoCodeRow, error: promoCodeError } = await supabase
+                .from("promo_codes")
+                .select("current_uses")
+                .eq("id", pendingPostActions.promoCodeId)
+                .single();
+              if (promoCodeError) throw promoCodeError;
+
+              const currentUses = Number(promoCodeRow?.current_uses || 0);
+              const { error: updatePromoError } = await supabase
+                .from("promo_codes")
+                .update({ current_uses: currentUses + 1 })
+                .eq("id", pendingPostActions.promoCodeId);
+              if (updatePromoError) throw updatePromoError;
+            }
+          }
+
+          clearPendingCheckoutPostActions(sessionId);
+          queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
+          queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
+        } catch (error) {
+          console.error("Failed to apply pending checkout post-actions:", error);
+        }
+      }
+
+      if (isCancelled) return;
+
       localStorage.removeItem("stripe_pending_order_id");
       window.history.replaceState({}, "", window.location.pathname);
 
-      if (pendingOrderId) {
+      if (targetOrderId) {
         toast({ title: "Paiement confirmé", description: "Suivez votre commande en temps réel." });
-        navigate(`/commande/${pendingOrderId}`, { replace: true });
-        return;
+        navigate(`/commande/${targetOrderId}`, { replace: true });
       }
+    };
+
+    if (status === "success" && sessionId) {
+      void finalizeSuccessfulCheckout();
     } else if (status === "cancelled") {
       toast({ title: "Paiement annulé", description: "Vous pouvez réessayer depuis votre panier.", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [navigate, toast]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [navigate, queryClient, toast, user?.id]);
 
   const { data: ordersData, isLoading, error } = useQuery({
     queryKey: ["my-orders", user?.id],
@@ -334,5 +440,3 @@ export default function Commandes() {
     </CustomerDashboardLayout>
   );
 }
-
-

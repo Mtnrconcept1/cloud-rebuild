@@ -41,6 +41,7 @@ interface ValidateOrderPayload {
   items: OrderItem[];
   metadata?: Record<string, unknown>;
   checkout_id?: string;
+  preview_only?: boolean;
 }
 
 function buildItemsSummary(items: Array<{ quantity: number; name: string }>) {
@@ -78,6 +79,7 @@ Deno.serve(async (req) => {
       items,
       metadata,
       checkout_id,
+      preview_only,
     } = payload;
     auditRestaurantId = restaurant_id;
 
@@ -108,6 +110,11 @@ Deno.serve(async (req) => {
       formula_discount_percent: pricing.formulaDiscountPercent,
       promotion_applied: pricing.promoName,
       promotion_discount_amount: pricing.promoDiscount,
+      tok_one_member: pricing.tokOneMember,
+      tok_one_discount_amount: pricing.tokOneDiscount,
+      tok_one_discount_percent: pricing.tokOneDiscountPercent,
+      tok_one_delivery_saved: pricing.tokOneDeliveryDiscount,
+      tok_one_total_saved: pricing.tokOneTotalSaved,
       points_discount_amount: pricing.pointsDiscount,
       flex_discount_amount: pricing.flexDiscount,
       pre_discount_subtotal: pricing.subtotal,
@@ -144,6 +151,36 @@ Deno.serve(async (req) => {
       ? enrichDeliveryMetadata(deliveryMetadataBase)
       : baseMetadata;
 
+    if (preview_only) {
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "validate-order",
+        action: "preview_order_pricing",
+        status: "success",
+        targetEntityType: "restaurants",
+        targetEntityId: restaurant_id,
+        metadata: {
+          verified_total: pricing.total,
+          original_total: pricing.originalTotal,
+          discount_amount: pricing.discountAmount,
+        },
+      });
+
+      return jsonResponse(
+        {
+          preview_only: true,
+          verified_total: pricing.total,
+          original_total: pricing.originalTotal,
+          discount_amount: pricing.discountAmount,
+          metadata: authoritativeMetadata,
+        },
+        200,
+        corsHeaders,
+      );
+    }
+
     const checkoutUuid = checkout_id || crypto.randomUUID();
     const itemsJson = pricing.validatedItems.map((item) => ({
       menu_item_id: /^[0-9a-f-]{36}$/i.test(item.menuItemId) ? item.menuItemId : null,
@@ -178,6 +215,7 @@ Deno.serve(async (req) => {
     const orderReference = String(authoritativeMetadata.order_reference || "");
     const hasStripeSession = Boolean((authoritativeMetadata as Record<string, unknown>).stripe_session_id);
     const paymentMethod = String((authoritativeMetadata as Record<string, unknown>).payment_method || "cash");
+    const isSettledWithoutStripe = !hasStripeSession && paymentMethod !== "cash" && pricing.total <= 0.01;
 
     const finalMetadata = isDelivery
       ? enrichDeliveryMetadata(authoritativeMetadata)
@@ -195,7 +233,9 @@ Deno.serve(async (req) => {
         discount_amount: pricing.discountAmount,
         scheduled_at: scheduledDelivery?.scheduledAt || null,
         estimated_delivery_at: estimatedDeliveryAt,
-        payment_status: hasStripeSession ? "pending" : (paymentMethod === "cash" ? "pending" : "authorized"),
+        payment_status: hasStripeSession
+          ? "pending"
+          : (paymentMethod === "cash" ? "pending" : (isSettledWithoutStripe ? "captured" : "authorized")),
         status: hasStripeSession ? "pending_payment" : "confirmed",
         metadata: finalMetadata,
         updated_at: new Date().toISOString(),

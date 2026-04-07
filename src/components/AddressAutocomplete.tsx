@@ -198,7 +198,6 @@ export default function AddressAutocomplete({
       const citySelection = { ...selection, city: cityLabel, label: cityLabel };
       onLocationSelect?.(citySelection);
       onAddressSelect?.(cityLabel, cityLabel, citySelection);
-      onValueChange?.(cityLabel);
       setInputValue(cityLabel);
       setIsOpen(false);
       return;
@@ -210,7 +209,6 @@ export default function AddressAutocomplete({
 
     onAddressSelect?.(mainAddress, suggestion.city || "", selection);
     onLocationSelect?.({ ...selection, label: suggestion.full_address });
-    onValueChange?.(suggestion.full_address);
     setInputValue(suggestion.full_address);
     setIsOpen(false);
   };

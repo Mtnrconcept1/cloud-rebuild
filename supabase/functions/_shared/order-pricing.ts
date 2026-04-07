@@ -56,6 +56,30 @@ type RestaurantPromotionRow = {
   promotion_value: number;
 };
 
+type TokOneSubscriptionRow = {
+  id: string;
+  plan_id: string | null;
+  status: string;
+  current_period_end: string | null;
+};
+
+type TokOnePaymentRecoveryRow = {
+  id: string;
+  created_at: string;
+  status: string;
+  metadata: Record<string, unknown> | null;
+};
+
+type TokOnePlanRow = {
+  id: string;
+  free_delivery_min_order: number | null;
+};
+
+type TokOneBenefitRow = {
+  benefit_type: string;
+  value: Record<string, unknown> | null;
+};
+
 export type VerifiedOrderPricing = {
   validatedItems: ValidatedOrderItem[];
   subtotal: number;
@@ -66,12 +90,19 @@ export type VerifiedOrderPricing = {
   formulaName: string | null;
   promoDiscount: number;
   promoName: string | null;
+  tokOneMember: boolean;
+  tokOneDiscount: number;
+  tokOneDiscountPercent: number;
+  tokOneDeliveryDiscount: number;
+  tokOneTotalSaved: number;
   pointsDiscount: number;
   flexDiscount: number;
   originalTotal: number;
   discountAmount: number;
   total: number;
 };
+
+const TOK_ONE_DEFAULT_DISCOUNT_PERCENT = 20;
 
 function roundCurrency(value: number) {
   return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
@@ -281,6 +312,256 @@ function computePromotionDiscount(
     amount: bestPromo?.discount || 0,
     name: bestPromo?.name || null,
   };
+}
+
+function asRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function parseConfigNumber(value: unknown, keys: string[]) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  const record = asRecord(value);
+  if (!record) return 0;
+  for (const key of keys) {
+    const parsed = Number(record[key]);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
+function normalizeBenefitList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => String(entry || "").trim())
+      .filter(Boolean);
+  }
+  if (typeof value === "string" && value.trim()) {
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function addBillingPeriod(start: Date, billingPeriod: string) {
+  const periodEnd = new Date(start);
+  if (billingPeriod === "yearly") {
+    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+  } else {
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
+  }
+  return periodEnd;
+}
+
+function isTokOneBenefitApplicable(
+  benefit: TokOneBenefitRow,
+  restaurantId: string,
+  journey: "delivery" | "takeaway",
+) {
+  const value = asRecord(benefit.value);
+  if (!value) return true;
+
+  const restaurantIds = [
+    ...normalizeBenefitList(value.restaurant_ids),
+    ...normalizeBenefitList(value.restaurantIds),
+    ...normalizeBenefitList(value.restaurants),
+  ];
+  if (restaurantIds.length > 0 && !restaurantIds.includes(restaurantId)) {
+    return false;
+  }
+
+  const contexts = [
+    ...normalizeBenefitList(value.contexts),
+    ...normalizeBenefitList(value.journeys),
+    ...normalizeBenefitList(value.order_modes),
+    ...normalizeBenefitList(value.applies_to),
+    ...normalizeBenefitList(value.apply_to),
+  ].map((entry) => normalizeText(entry));
+
+  if (contexts.length === 0) return true;
+  return contexts.some((entry) => (
+    entry === "all" ||
+    entry === "both" ||
+    entry === "cart" ||
+    entry === journey
+  ));
+}
+
+function resolveTokOneDiscountPercent(
+  benefits: TokOneBenefitRow[],
+  restaurantId: string,
+  journey: "delivery" | "takeaway",
+) {
+  const discountBenefits = benefits.filter((benefit) => benefit.benefit_type === "discount_percentage");
+  const restaurantScopedBenefits = discountBenefits
+    .filter((benefit) => {
+      const value = asRecord(benefit.value);
+      if (!value) return true;
+
+      const restaurantIds = [
+        ...normalizeBenefitList(value.restaurant_ids),
+        ...normalizeBenefitList(value.restaurantIds),
+        ...normalizeBenefitList(value.restaurants),
+      ];
+      return restaurantIds.length === 0 || restaurantIds.includes(restaurantId);
+    });
+  const configured = restaurantScopedBenefits
+    .filter((benefit) => isTokOneBenefitApplicable(benefit, restaurantId, journey))
+    .reduce((best, benefit) => {
+      const value = parseConfigNumber(benefit.value, ["percentage", "discount_percent", "percent", "value"]);
+      return value > best ? value : best;
+    }, 0);
+
+  if (configured > 0) return configured;
+  if (journey === "takeaway") {
+    const takeawayFallback = restaurantScopedBenefits
+      .reduce((best, benefit) => {
+        const value = parseConfigNumber(benefit.value, ["percentage", "discount_percent", "percent", "value"]);
+        return value > best ? value : best;
+      }, 0);
+    if (takeawayFallback > 0) return takeawayFallback;
+  }
+  return discountBenefits.length === 0 ? TOK_ONE_DEFAULT_DISCOUNT_PERCENT : 0;
+}
+
+function resolveTokOneFreeDeliveryThreshold(
+  plan: TokOnePlanRow | null,
+  benefits: TokOneBenefitRow[],
+  restaurantId: string,
+  journey: "delivery" | "takeaway",
+) {
+  const freeDeliveryBenefits = benefits.filter((benefit) => benefit.benefit_type === "free_delivery");
+  const configured = freeDeliveryBenefits
+    .filter((benefit) => isTokOneBenefitApplicable(benefit, restaurantId, journey))
+    .reduce((best, benefit) => {
+      const value = parseConfigNumber(benefit.value, ["min_order", "minimum_order", "free_delivery_min_order", "threshold", "value"]);
+      return value > best ? value : best;
+    }, 0);
+
+  if (configured > 0) return configured;
+  if (freeDeliveryBenefits.length > 0) return Number.POSITIVE_INFINITY;
+  return Math.max(0, toNumber(plan?.free_delivery_min_order));
+}
+
+async function resolveTokOnePricing(input: {
+  adminClient: any;
+  userId: string;
+  restaurantId: string;
+  context: "cart" | "zero-attente";
+  isDeliveryJourney: boolean;
+  subtotal: number;
+  deliveryFee: number;
+}) {
+  const defaults = {
+    tokOneMember: false,
+    tokOneDiscountPercent: 0,
+    tokOneDiscount: 0,
+    tokOneDeliveryDiscount: 0,
+    tokOneTotalSaved: 0,
+  };
+
+  if (input.context !== "cart") return defaults;
+
+  try {
+    const now = new Date();
+    const { data: subscription, error: subscriptionError } = await input.adminClient
+      .from("tok_one_subscriptions")
+      .select("id, plan_id, status, current_period_end")
+      .eq("user_id", input.userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (subscriptionError) throw subscriptionError;
+
+    const activeSubscription = subscription as TokOneSubscriptionRow | null;
+    let resolvedPlanId = activeSubscription?.plan_id || null;
+    let hasActiveTokOne = Boolean(
+      activeSubscription &&
+      activeSubscription.status === "active" &&
+      (!activeSubscription.current_period_end || new Date(activeSubscription.current_period_end) > now),
+    );
+
+    if (!hasActiveTokOne) {
+      const { data: transactions, error: transactionsError } = await input.adminClient
+        .from("payment_transactions")
+        .select("id, created_at, metadata, status")
+        .eq("user_id", input.userId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (transactionsError) throw transactionsError;
+
+      const latestTokOnePayment = ((transactions || []) as TokOnePaymentRecoveryRow[]).find((transaction) => {
+        const metadata = transaction?.metadata;
+        return (
+          metadata &&
+          typeof metadata === "object" &&
+          !Array.isArray(metadata) &&
+          metadata.checkout_kind === "tok-one" &&
+          metadata.plan_id &&
+          ["paid", "succeeded"].includes(String(transaction?.status || ""))
+        );
+      });
+
+      if (!latestTokOnePayment) return defaults;
+
+      const paymentMetadata = latestTokOnePayment.metadata as Record<string, unknown>;
+      const billingPeriod = paymentMetadata.billing_period === "yearly" ? "yearly" : "monthly";
+      const periodStart = new Date(latestTokOnePayment.created_at);
+      const periodEnd = addBillingPeriod(periodStart, billingPeriod);
+
+      if (periodEnd <= now) return defaults;
+
+      resolvedPlanId = String(paymentMetadata.plan_id || "");
+      hasActiveTokOne = Boolean(resolvedPlanId);
+    }
+
+    if (!hasActiveTokOne || !resolvedPlanId) return defaults;
+
+    const [planRes, benefitsRes] = await Promise.all([
+      resolvedPlanId
+        ? input.adminClient
+          .from("user_subscription_plans")
+          .select("id, free_delivery_min_order")
+          .eq("id", resolvedPlanId)
+          .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      resolvedPlanId
+        ? input.adminClient
+          .from("subscription_benefits")
+          .select("benefit_type, value")
+          .eq("plan_id", resolvedPlanId)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (planRes.error) throw planRes.error;
+    if (benefitsRes.error) throw benefitsRes.error;
+
+    const plan = (planRes.data || null) as TokOnePlanRow | null;
+    const benefits = (benefitsRes.data || []) as TokOneBenefitRow[];
+    const journey = input.isDeliveryJourney ? "delivery" as const : "takeaway" as const;
+    const tokOneDiscountPercent = resolveTokOneDiscountPercent(benefits, input.restaurantId, journey);
+    const tokOneDiscount = roundCurrency((input.subtotal * tokOneDiscountPercent) / 100);
+    const freeDeliveryThreshold = resolveTokOneFreeDeliveryThreshold(plan, benefits, input.restaurantId, journey);
+    const tokOneDeliveryDiscount = input.isDeliveryJourney && input.deliveryFee > 0 && input.subtotal >= freeDeliveryThreshold
+      ? roundCurrency(input.deliveryFee)
+      : 0;
+
+    return {
+      tokOneMember: true,
+      tokOneDiscountPercent,
+      tokOneDiscount,
+      tokOneDeliveryDiscount,
+      tokOneTotalSaved: roundCurrency(tokOneDiscount + tokOneDeliveryDiscount),
+    };
+  } catch (error) {
+    console.error("Tok One pricing resolution failed:", error);
+    return defaults;
+  }
 }
 
 export async function buildVerifiedOrderPricing(input: {
@@ -496,6 +777,16 @@ export async function buildVerifiedOrderPricing(input: {
     validatedItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0),
   );
 
+  const tokOnePricing = await resolveTokOnePricing({
+    adminClient: input.adminClient,
+    userId: input.userId,
+    restaurantId: input.restaurantId,
+    context,
+    isDeliveryJourney,
+    subtotal,
+    deliveryFee,
+  });
+
   const hasQualityGuarantee = Boolean(metadata.quality_guarantee) || items.some((item) => item.menu_item_id === "garantie-qualite-fee");
   const qualityFee = hasQualityGuarantee ? QUALITY_GUARANTEE_FEE : 0;
 
@@ -527,7 +818,7 @@ export async function buildVerifiedOrderPricing(input: {
   const discountAmount = roundCurrency(
     Math.min(
       originalTotal,
-      formula.amount + promotion.amount + pointsDiscount + flexDiscount,
+      formula.amount + promotion.amount + tokOnePricing.tokOneDiscount + tokOnePricing.tokOneDeliveryDiscount + pointsDiscount + flexDiscount,
     ),
   );
 
@@ -541,6 +832,11 @@ export async function buildVerifiedOrderPricing(input: {
     formulaName: formula.name,
     promoDiscount: promotion.amount,
     promoName: promotion.name,
+    tokOneMember: tokOnePricing.tokOneMember,
+    tokOneDiscount: tokOnePricing.tokOneDiscount,
+    tokOneDiscountPercent: tokOnePricing.tokOneDiscountPercent,
+    tokOneDeliveryDiscount: tokOnePricing.tokOneDeliveryDiscount,
+    tokOneTotalSaved: tokOnePricing.tokOneTotalSaved,
     pointsDiscount,
     flexDiscount,
     originalTotal,

@@ -203,7 +203,9 @@ export function buildPerformanceSummary({
     const metadata = isRecord(order.metadata) ? order.metadata : {};
     const formulaValue = toNumber(metadata.formula_discount_amount) || toNumber(metadata.formula_discount);
     formulaDiscount += formulaValue;
-    promoDiscount += toNumber(metadata.promotion_discount_amount) || toNumber(metadata.promo_discount_amount);
+    const tokOneValue = toNumber(metadata.tok_one_total_saved)
+      || (toNumber(metadata.tok_one_discount_amount) + toNumber(metadata.tok_one_delivery_saved));
+    promoDiscount += (toNumber(metadata.promotion_discount_amount) || toNumber(metadata.promo_discount_amount)) + tokOneValue;
     loyaltyDiscount += toNumber(metadata.points_discount);
     flexDiscount += toNumber(metadata.flex_discount);
 

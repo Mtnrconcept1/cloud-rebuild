@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { User, Trophy, Gift, Camera, Mail, Phone, MapPin, Heart, Settings, Shield, Bell, Trash2, AlertTriangle, Crown, CalendarCheck, Truck, Percent, Headphones, Zap } from "lucide-react";
+import { User, Trophy, Gift, Camera, Mail, Phone, MapPin, Heart, Settings, Shield, Bell, Trash2, AlertTriangle, Crown, CalendarCheck, Truck, Percent, Headphones, Zap, CreditCard } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertDialog,
@@ -334,162 +334,7 @@ export default function Profil() {
           </TabsContent>
 
           <TabsContent value="abonnement" className="space-y-6 pt-4">
-            {tokOneIsActive && tokOneSub ? (
-              <div className="space-y-6">
-                {/* Active subscription card */}
-                <div className="rounded-2xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-6 space-y-5">
-                  <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
-                        <Crown className="h-6 w-6 text-violet-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-lg text-violet-900">Tok One</h3>
-                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Actif</Badge>
-                        </div>
-                        <p className="text-sm text-violet-600">
-                          {tokOneSub.user_subscription_plans?.name || "Premium"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="rounded-xl bg-white/60 border p-4 space-y-1">
-                      <p className="text-xs text-muted-foreground font-medium">Debut de la periode</p>
-                      <p className="font-semibold text-sm">
-                        <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
-                        {new Date(tokOneSub.current_period_start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-white/60 border p-4 space-y-1">
-                      <p className="text-xs text-muted-foreground font-medium">
-                        {tokOneSub.cancel_at_period_end ? "Expire le" : "Prochain renouvellement"}
-                      </p>
-                      <p className="font-semibold text-sm">
-                        <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
-                        {new Date(tokOneSub.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                      </p>
-                    </div>
-                  </div>
-
-                  {tokOneSub.cancel_at_period_end && (
-                    <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
-                      <p className="text-sm text-amber-800">
-                        Votre abonnement ne sera pas renouvele. Vous conservez vos avantages jusqu'a la fin de la periode en cours.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Active benefits */}
-                <div className="space-y-3">
-                  <h3 className="font-bold text-lg">Vos avantages actifs</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { icon: Truck, label: "Livraison gratuite", desc: "Appliquee automatiquement dans le panier", color: "text-blue-600", bg: "bg-blue-50" },
-                      { icon: Percent, label: "Reductions exclusives", desc: "Jusqu'a -20% chez nos partenaires", color: "text-emerald-600", bg: "bg-emerald-50" },
-                      { icon: Zap, label: "Acces anticipe", desc: "Ventes flash et Chef's Table en avance", color: "text-amber-600", bg: "bg-amber-50" },
-                      { icon: Headphones, label: "Support prioritaire", desc: "Reponse en moins de 2 heures", color: "text-purple-600", bg: "bg-purple-50" },
-                    ].map((benefit) => (
-                      <div key={benefit.label} className={`flex items-start gap-3 p-3 rounded-xl ${benefit.bg} border`}>
-                        <benefit.icon className={`h-5 w-5 ${benefit.color} shrink-0 mt-0.5`} />
-                        <div>
-                          <p className="font-medium text-sm">{benefit.label}</p>
-                          <p className="text-xs text-muted-foreground">{benefit.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/tok-one">Voir tous les avantages</Link>
-                  </Button>
-                  {!tokOneSub.cancel_at_period_end && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                          Resilier l'abonnement
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Resilier Tok One ?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Vous conserverez vos avantages jusqu'au {new Date(tokOneSub.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Apres cette date, les frais de livraison et reductions exclusives ne s'appliqueront plus.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Conserver</AlertDialogCancel>
-                          <AlertDialogAction
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            onClick={async () => {
-                              const { error } = await supabase
-                                .from("user_subscriptions")
-                                .update({ status: "cancelled", cancel_at_period_end: true })
-                                .eq("id", tokOneSub.id);
-                              if (error) {
-                                toast({ title: "Erreur", description: error.message, variant: "destructive" });
-                              } else {
-                                toast({ title: "Abonnement resilie", description: "Vos avantages restent actifs jusqu'a la fin de la periode." });
-                                queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
-                              }
-                            }}
-                          >
-                            Confirmer la resiliation
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* No active subscription */}
-                <div className="rounded-2xl border-2 border-dashed border-violet-200 p-8 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto">
-                    <Crown className="h-8 w-8 text-violet-400" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-bold text-xl">Aucun abonnement actif</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto">
-                      Rejoignez Tok One pour beneficier de la livraison gratuite, de reductions exclusives et d'un acces VIP aux evenements culinaires.
-                    </p>
-                  </div>
-                  {tokOnePlans && tokOnePlans.length > 0 && (
-                    <p className="text-sm text-violet-600 font-medium">
-                      A partir de {Number(tokOnePlans[0].price_monthly).toFixed(2)} CHF/mois
-                    </p>
-                  )}
-                  <Button className="bg-violet-600 hover:bg-violet-700 text-white" asChild>
-                    <Link to="/tok-one">
-                      <Crown className="mr-2 h-4 w-4" />
-                      Decouvrir Tok One
-                    </Link>
-                  </Button>
-                </div>
-
-                {/* Quick benefits preview */}
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { icon: Truck, label: "Livraison gratuite", color: "text-blue-600" },
-                    { icon: Percent, label: "Jusqu'a -20%", color: "text-emerald-600" },
-                    { icon: Zap, label: "Acces anticipe", color: "text-amber-600" },
-                    { icon: Headphones, label: "Support VIP", color: "text-purple-600" },
-                  ].map((b) => (
-                    <div key={b.label} className="flex items-center gap-2 p-3 rounded-xl border text-sm">
-                      <b.icon className={`h-4 w-4 ${b.color}`} />
-                      <span className="text-muted-foreground">{b.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <TokOneTab userId={user?.id} subscription={tokOneSub} isActive={tokOneIsActive} plans={tokOnePlans} />
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6 pt-4">
@@ -686,6 +531,282 @@ export default function Profil() {
         </Tabs>
       </div>
     </CustomerDashboardLayout>
+  );
+}
+
+type TokOneTabProps = {
+  userId?: string;
+  subscription: any;
+  isActive: boolean;
+  plans: any[] | undefined;
+};
+
+function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch orders where tok_one_member was true (usage history)
+  const { data: tokOneOrders, isLoading: ordersLoading } = useQuery({
+    queryKey: ["tok-one-orders", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_customer_orders_dashboard" as any);
+      if (error) throw error;
+
+      return ((data || []) as any[])
+        .map((order) => {
+          const metadata = order.metadata && typeof order.metadata === "object" && !Array.isArray(order.metadata)
+            ? order.metadata
+            : {};
+          const restaurant = order.restaurant && typeof order.restaurant === "object" && !Array.isArray(order.restaurant)
+            ? order.restaurant
+            : null;
+
+          return {
+            ...order,
+            metadata,
+            order_reference: order.order_reference || order.order_number || metadata.order_reference || null,
+            restaurants: restaurant ? { name: restaurant.name || "Restaurant" } : null,
+          };
+        })
+        .filter((order) => (order.metadata as any)?.tok_one_member === true)
+        .slice(0, 50);
+    },
+    enabled: !!userId,
+  });
+
+  // Fetch Tok One payment transactions
+  const { data: payments, isLoading: paymentsLoading } = useQuery({
+    queryKey: ["tok-one-payments", userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("payment_transactions")
+        .select("id, amount, created_at, metadata, status")
+        .eq("user_id", userId!)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return (data || []).filter((p: any) => {
+        const status = String((p as any)?.status || "");
+        return (p.metadata as any)?.checkout_kind === "tok-one" && ["paid", "succeeded"].includes(status);
+      });
+    },
+    enabled: !!userId,
+  });
+
+  // Computed stats
+  const totalTokOneSaved = (tokOneOrders || []).reduce((sum: number, o: any) => {
+    const metadata = (o.metadata || {}) as any;
+    return sum + Number(metadata.tok_one_total_saved || (Number(metadata.tok_one_delivery_saved || 0) + Number(metadata.tok_one_discount_amount || 0)));
+  }, 0);
+  const totalOrders = (tokOneOrders || []).length;
+  const totalPaid = (payments || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Subscription status card */}
+      {isActive && subscription ? (
+        <div className="rounded-2xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-6 space-y-5">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
+                <Crown className="h-6 w-6 text-violet-600" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-lg text-violet-900">Tok One</h3>
+                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Actif</Badge>
+                </div>
+                <p className="text-sm text-violet-600">
+                  {subscription.user_subscription_plans?.name || "Premium"}
+                </p>
+              </div>
+            </div>
+            {!subscription.cancel_at_period_end && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                    Resilier
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Resilier Tok One ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Vous conserverez vos avantages jusqu'au {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Apres cette date, les frais de livraison et reductions exclusives ne s'appliqueront plus.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Conserver</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={async () => {
+                        const { error } = await (supabase as any)
+                          .from("tok_one_subscriptions")
+                          .update({ status: "cancelled", cancel_at_period_end: true })
+                          .eq("id", subscription.id);
+                        if (error) {
+                          toast({ title: "Erreur", description: error.message, variant: "destructive" });
+                        } else {
+                          toast({ title: "Abonnement resilie", description: "Vos avantages restent actifs jusqu'a la fin de la periode." });
+                          queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
+                        }
+                      }}
+                    >
+                      Confirmer la resiliation
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="rounded-xl bg-white/60 border p-4 space-y-1">
+              <p className="text-xs text-muted-foreground font-medium">Debut de la periode</p>
+              <p className="font-semibold text-sm">
+                <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
+                {new Date(subscription.current_period_start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            </div>
+            <div className="rounded-xl bg-white/60 border p-4 space-y-1">
+              <p className="text-xs text-muted-foreground font-medium">
+                {subscription.cancel_at_period_end ? "Expire le" : "Prochain renouvellement"}
+              </p>
+              <p className="font-semibold text-sm">
+                <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
+                {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            </div>
+          </div>
+
+          {subscription.cancel_at_period_end && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+              <p className="text-sm text-amber-800">
+                Votre abonnement ne sera pas renouvele. Vous conservez vos avantages jusqu'a la fin de la periode en cours.
+              </p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-2xl border-2 border-dashed border-violet-200 p-8 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto">
+            <Crown className="h-8 w-8 text-violet-400" />
+          </div>
+          <h3 className="font-bold text-xl">Aucun abonnement actif</h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Rejoignez Tok One pour beneficier de la livraison gratuite, de reductions exclusives et d'un acces VIP.
+          </p>
+          {plans && plans.length > 0 && (
+            <p className="text-sm text-violet-600 font-medium">
+              A partir de {Number(plans[0].price_monthly).toFixed(2)} CHF/mois
+            </p>
+          )}
+          <Button className="bg-violet-600 hover:bg-violet-700 text-white" asChild>
+            <Link to="/tok-one">
+              <Crown className="mr-2 h-4 w-4" />
+              Decouvrir Tok One
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {/* Stats summary */}
+      {(totalOrders > 0 || totalPaid > 0) && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="rounded-xl border bg-card p-4 text-center space-y-1">
+            <p className="text-2xl font-bold text-violet-600">{totalOrders}</p>
+            <p className="text-xs text-muted-foreground">Commandes Tok One</p>
+          </div>
+          <div className="rounded-xl border bg-card p-4 text-center space-y-1">
+            <p className="text-2xl font-bold text-emerald-600">{totalTokOneSaved.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">CHF economises</p>
+          </div>
+          <div className="rounded-xl border bg-card p-4 text-center space-y-1">
+            <p className="text-2xl font-bold text-blue-600">{(payments || []).length}</p>
+            <p className="text-xs text-muted-foreground">Paiements abonnement</p>
+          </div>
+          <div className="rounded-xl border bg-card p-4 text-center space-y-1">
+            <p className="text-2xl font-bold text-amber-600">{totalPaid.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">CHF total abonnement</p>
+          </div>
+        </div>
+      )}
+
+      {/* Usage history: orders with Tok One benefits */}
+      <div className="space-y-3">
+        <h3 className="font-bold text-lg flex items-center gap-2">
+          <Truck className="h-5 w-5 text-violet-500" />
+          Historique des avantages utilises
+        </h3>
+        {ordersLoading ? (
+          <div className="text-center py-6 text-muted-foreground text-sm">Chargement...</div>
+        ) : tokOneOrders && tokOneOrders.length > 0 ? (
+          <div className="space-y-2">
+            {tokOneOrders.map((order: any) => {
+              const meta = (order.metadata || {}) as any;
+              const saved = Number(meta.tok_one_total_saved || (Number(meta.tok_one_delivery_saved || 0) + Number(meta.tok_one_discount_amount || 0)));
+              const restaurantName = (order.restaurants as any)?.name || "Restaurant";
+              return (
+                <div key={order.id} className="flex items-center justify-between p-3 rounded-xl border bg-card">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
+                      <Crown className="h-4 w-4 text-violet-500" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{restaurantName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(order.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                        {order.order_reference ? ` · #${order.order_reference}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 ml-2">
+                    <p className="text-sm font-bold">{Number(order.total_amount).toFixed(2)} CHF</p>
+                    {saved > 0 && (
+                      <p className="text-xs text-emerald-600 font-medium">-{saved.toFixed(2)} CHF avantages</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              {isActive
+                ? "Aucune commande avec Tok One pour l'instant. Passez votre premiere commande pour voir vos economies ici."
+                : "Abonnez-vous a Tok One pour commencer a profiter de la livraison gratuite et voir vos economies ici."}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Payment history */}
+      {payments && payments.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-violet-500" />
+            Historique des paiements
+          </h3>
+          <div className="space-y-2">
+            {payments.map((payment: any) => {
+              const meta = (payment.metadata || {}) as any;
+              const period = meta.billing_period === "yearly" ? "Annuel" : "Mensuel";
+              return (
+                <div key={payment.id} className="flex items-center justify-between p-3 rounded-xl border bg-card">
+                  <div>
+                    <p className="font-medium text-sm">Abonnement Tok One — {period}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(payment.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  </div>
+                  <p className="text-sm font-bold">{Number(payment.amount).toFixed(2)} CHF</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

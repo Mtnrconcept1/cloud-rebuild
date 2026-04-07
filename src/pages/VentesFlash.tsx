@@ -65,15 +65,13 @@ export default function VentesFlash() {
     if (!allOffers) return [];
     const now = new Date();
 
-    const imminent = allOffers.filter((offer: any) => {
-      if (!offer.sale_end) return false;
+    // Only show offers within their active window: sale_start <= now <= sale_end
+    return allOffers.filter((offer: any) => {
+      if (!offer.sale_date || !offer.sale_start || !offer.sale_end) return false;
+      const start = new Date(`${offer.sale_date}T${offer.sale_start}`);
       const end = new Date(`${offer.sale_date}T${offer.sale_end}`);
-      const diffMinutes = (end.getTime() - now.getTime()) / (1000 * 60);
-      return diffMinutes > 0 && diffMinutes <= 120;
+      return start.getTime() <= now.getTime() && end.getTime() > now.getTime();
     });
-
-    if (imminent.length > 0) return imminent;
-    return allOffers.slice(0, 10);
   }, [allOffers]);
 
   const targetDates = useMemo(() => {

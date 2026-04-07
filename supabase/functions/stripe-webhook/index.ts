@@ -374,16 +374,37 @@ Deno.serve(async (req) => {
           }
 
           // Create subscription record
-          const { error: subError } = await supabaseAdmin
-            .from("user_subscriptions")
-            .insert({
-              user_id: userId,
-              plan_id: planId,
-              status: "active",
-              current_period_start: now.toISOString(),
-              current_period_end: periodEnd.toISOString(),
-              stripe_subscription_id: session.id,
-            });
+          const { data: existingSubscription, error: existingSubscriptionError } = await supabaseAdmin
+            .from("tok_one_subscriptions")
+            .select("id, status, cancel_at_period_end")
+            .eq("user_id", userId)
+            .eq("plan_id", planId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (existingSubscriptionError) {
+            console.error("Failed to fetch existing Tok One subscription:", existingSubscriptionError);
+          }
+
+          const subscriptionPayload = {
+            user_id: userId,
+            plan_id: planId,
+            status: "active",
+            current_period_start: now.toISOString(),
+            current_period_end: periodEnd.toISOString(),
+            cancel_at_period_end: false,
+            stripe_subscription_id: typeof session.subscription === "string" ? session.subscription : null,
+          };
+
+          const { error: subError } = existingSubscription?.id
+            ? await supabaseAdmin
+              .from("tok_one_subscriptions")
+              .update(subscriptionPayload)
+              .eq("id", existingSubscription.id)
+            : await supabaseAdmin
+              .from("tok_one_subscriptions")
+              .insert(subscriptionPayload);
 
           if (subError) {
             console.error("Failed to create Tok One subscription:", subError);
@@ -398,10 +419,12 @@ Deno.serve(async (req) => {
             .insert({
               order_id: null,
               user_id: userId,
-              stripe_session_id: session.id,
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
               amount: tokOnePaidAmount,
               currency: "chf",
-              status: "paid",
+              type: "subscription",
+              status: "succeeded",
               metadata: {
                 checkout_kind: "tok-one",
                 plan_id: planId,
