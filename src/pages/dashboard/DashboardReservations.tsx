@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./DashboardContext";
 import type { Database, Json } from "@/integrations/supabase/types";
@@ -81,6 +82,14 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
   };
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: "en attente",
+  confirmed: "confirmée",
+  arrived: "arrivée",
+  cancelled: "annulée",
+  no_show: "no-show",
+};
+
 export default function DashboardReservations() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const { toast } = useToast();
@@ -160,7 +169,8 @@ export default function DashboardReservations() {
       toast({ title: "Erreur de mise a jour", description: error.message, variant: "destructive" });
     },
     onSuccess: ({ status }) => {
-      toast({ title: "Statut mis a jour", description: `La reservation est maintenant "${status}".` });
+      const label = STATUS_LABELS[status] || status;
+      toast({ title: "Statut mis à jour", description: `La réservation est maintenant ${label}.` });
     },
     onSettled: (_data, _error, _variables, context) => {
       if (context?.queryKey) queryClient.invalidateQueries({ queryKey: context.queryKey });
@@ -406,13 +416,22 @@ export default function DashboardReservations() {
                         const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
                         const compactBase = isCompactMode ? "p-3" : "p-4";
 
+                        const isPending = reservation.status === "pending";
+                        const isConfirmed = reservation.status === "confirmed";
+                        const isFinalState = ["arrived", "no_show", "cancelled", "refused"].includes(reservation.status);
+
                         const isZeroAttente = reservation.feature === "zero-attente";
                         const isChefTable = reservation.feature === "chefs_table";
-                        const articleClass = isZeroAttente
-                          ? `rounded-xl border-2 border-indigo-300 bg-indigo-50/40 ${compactBase}`
-                          : isChefTable
-                          ? `rounded-xl border-2 border-amber-300 bg-amber-50/40 ${compactBase}`
-                          : `rounded-xl border bg-card ${compactBase}`;
+
+                        const articleClass = cn(
+                          isZeroAttente
+                            ? "rounded-xl border-2 border-indigo-300 bg-indigo-50/40"
+                            : isChefTable
+                            ? "rounded-xl border-2 border-amber-300 bg-amber-50/40"
+                            : "rounded-xl border bg-card",
+                          compactBase,
+                          isFinalState && "opacity-60 grayscale-[0.3] pointer-events-none select-none"
+                        );
 
                             return (
                               <article key={reservation.id} className={articleClass}>
@@ -508,38 +527,61 @@ export default function DashboardReservations() {
                                   </div>
 
                                   <div className="flex flex-wrap gap-2 sm:justify-end">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
-                                      disabled={updateStatusMutation.isPending}
-                                    >
-                                      <UserCheck className="mr-1 h-4 w-4" />
-                                      Arrivee
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "no_show" })}
-                                      disabled={updateStatusMutation.isPending}
-                                      className="text-destructive"
-                                    >
-                                      <X className="mr-1 h-4 w-4" />
-                                      No-show
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      onClick={() =>
-                                        updateStatusMutation.mutate({
-                                          id: reservation.id,
-                                          status: reservation.status === "confirmed" ? "pending" : "confirmed",
-                                        })
-                                      }
-                                      disabled={updateStatusMutation.isPending}
-                                    >
-                                      <Check className="mr-1 h-4 w-4" />
-                                      {reservation.status === "confirmed" ? "Reservee" : "Confirmee"}
-                                    </Button>
+                                    {isPending && (
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="text-destructive"
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "cancelled" })}
+                                          disabled={updateStatusMutation.isPending}
+                                        >
+                                          <X className="mr-1 h-4 w-4" />
+                                          Annuler
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "confirmed" })}
+                                          disabled={updateStatusMutation.isPending}
+                                        >
+                                          <Check className="mr-1 h-4 w-4" />
+                                          Confirmer
+                                        </Button>
+                                      </>
+                                    )}
+
+                                    {isConfirmed && (
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="text-destructive"
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "cancelled" })}
+                                          disabled={updateStatusMutation.isPending}
+                                        >
+                                          <X className="mr-1 h-4 w-4" />
+                                          Annuler
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="text-destructive"
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "no_show" })}
+                                          disabled={updateStatusMutation.isPending}
+                                        >
+                                          <X className="mr-1 h-4 w-4" />
+                                          No-show
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
+                                          disabled={updateStatusMutation.isPending}
+                                        >
+                                          <UserCheck className="mr-1 h-4 w-4" />
+                                          Arrivée
+                                        </Button>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
                               </article>

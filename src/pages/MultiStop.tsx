@@ -37,7 +37,7 @@ export default function MultiStop() {
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants-multistop"],
     queryFn: async () => {
-      const { data } = await supabase.from("restaurants").select("*").eq("is_active", true).eq("delivery_available", true).order("rating", { ascending: false }).limit(9);
+      const { data } = await supabase.from("restaurants").select("id, name, cuisine_type, city, rating, image_url, delivery_available, is_active").eq("is_active", true).eq("delivery_available", true).order("rating", { ascending: false }).limit(9);
       return data || [];
     },
   });
@@ -45,7 +45,7 @@ export default function MultiStop() {
   const { data: menuItems } = useQuery({
     queryKey: ["menu-multistop", selectedRestaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category");
+      const { data } = await supabase.from("menu_items").select("id, name, price, category, description, image_url").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category");
       return data || [];
     },
     enabled: !!selectedRestaurant,

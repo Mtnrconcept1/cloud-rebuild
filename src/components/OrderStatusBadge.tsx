@@ -11,8 +11,10 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
   delivering: { label: "En livraison", className: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700" },
   on_the_way: { label: "En livraison", className: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700" },
   delivered: { label: "Livrée", className: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700" },
+  arrived: { label: "Arrivée", className: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700" },
   cancelled: { label: "Annulée", className: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700" },
   refused: { label: "Refusée", className: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700" },
+  no_show: { label: "No-show", className: "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-700" },
 };
 
 export default function OrderStatusBadge({ status }: { status: string }) {

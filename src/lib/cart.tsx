@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface CartItem {
   menuItemId: string;
@@ -19,8 +20,8 @@ export type CartConflict = {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (menuItemId: string) => void;
+  addItem: (item: Omit<CartItem, "quantity">) => Promise<boolean>;
+  removeItem: (menuItemId: string) => Promise<void>;
   updateQuantity: (menuItemId: string, quantity: number) => void;
   clearCart: () => void;
   total: number;
@@ -37,10 +38,10 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType>({
   items: [],
-  addItem: () => { },
-  removeItem: () => { },
-  updateQuantity: () => { },
-  clearCart: () => { },
+  addItem: async () => false,
+  removeItem: async () => { },
+  updateQuantity: async () => { },
+  clearCart: async () => { },
   total: 0,
   itemCount: 0,
   restaurantId: null,
@@ -135,10 +136,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const restaurantId = items.length > 0 ? items[0].restaurantId : null;
 
-  const addItem = (item: Omit<CartItem, "quantity">) => {
+  const addItem = async (item: Omit<CartItem, "quantity">) => {
     if (items.length > 0 && cartMetadata.feature !== "multi-restaurant" && items[0].restaurantId !== item.restaurantId) {
       setConflict({ type: "restaurant", pendingItem: item });
-      return;
+      return false;
     }
 
     if (!canItemBeOrderedInMode(item, orderMode)) {
@@ -151,7 +152,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
           pendingItem: item,
           pendingMode: requiredMode || (orderMode === "delivery" ? "takeaway" : "delivery"),
         });
-        return;
+        return false;
+      }
+    }
+
+    // --- REAL-TIME STOCK DEDUCTION ---
+    const isLimitedStock = item.metadata?.is_anti_waste || item.metadata?.is_flash_sale;
+    if (isLimitedStock) {
+      const table = item.metadata?.is_anti_waste ? 'anti_waste_offers' : 'flash_sales';
+      const { data: success, error } = await supabase.rpc('decrement_stock', {
+        p_table: table,
+        p_id: item.menuItemId,
+        p_qty: 1
+      });
+
+      if (error || !success) {
+        toast.error("Stock insuffisant ou offre plus disponible.");
+        return false;
       }
     }
 
@@ -170,50 +187,93 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...item, quantity: 1 }];
     });
+    
+    return true;
   };
 
-  const removeItem = (menuItemId: string) => {
+  const removeItem = async (menuItemId: string) => {
+    const item = items.find(i => i.menuItemId === menuItemId);
+    if (item && (item.metadata?.is_anti_waste || item.metadata?.is_flash_sale)) {
+      const table = item.metadata?.is_anti_waste ? 'anti_waste_offers' : 'flash_sales';
+      await supabase.rpc('increment_stock', {
+        p_table: table,
+        p_id: item.menuItemId,
+        p_qty: item.quantity
+      });
+    }
     setItems((prev) => prev.filter((i) => i.menuItemId !== menuItemId));
   };
 
-  const updateQuantity = (menuItemId: string, quantity: number) => {
+  const updateQuantity = async (menuItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(menuItemId);
+      await removeItem(menuItemId);
       return;
     }
+
+    const item = items.find(i => i.menuItemId === menuItemId);
+    if (item && (item.metadata?.is_anti_waste || item.metadata?.is_flash_sale)) {
+      const table = item.metadata?.is_anti_waste ? 'anti_waste_offers' : 'flash_sales';
+      const delta = quantity - item.quantity;
+      
+      if (delta > 0) {
+        const { data: success } = await supabase.rpc('decrement_stock', {
+          p_table: table,
+          p_id: item.menuItemId,
+          p_qty: delta
+        });
+        if (!success) {
+          toast.error("Plus de stock disponible.");
+          return;
+        }
+      } else if (delta < 0) {
+        await supabase.rpc('increment_stock', {
+          p_table: table,
+          p_id: item.menuItemId,
+          p_qty: Math.abs(delta)
+        });
+      }
+    }
+
     setItems((prev) =>
       prev.map((i) => (i.menuItemId === menuItemId ? { ...i, quantity } : i))
     );
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
+    // Release stock for all items
+    for (const item of items) {
+      if (item.metadata?.is_anti_waste || item.metadata?.is_flash_sale) {
+        const table = item.metadata?.is_anti_waste ? 'anti_waste_offers' : 'flash_sales';
+        await supabase.rpc('increment_stock', {
+          p_table: table,
+          p_id: item.menuItemId,
+          p_qty: item.quantity
+        });
+      }
+    }
     setItems([]);
     setCartMetadata({});
   };
 
-  const resolveConflict = (action: "clear" | "checkout") => {
+  const resolveConflict = async (action: "clear" | "checkout") => {
     if (action === "clear") {
       const { pendingItem, pendingMode } = conflict || {};
-      // Reset items and metadata directly via setters so the pending addItem
-      // sees the empty cart through the functional updater.
-      setItems([]);
-      setCartMetadata({});
+      
+      // Release all stock and clear cart
+      await clearCart();
+      
       if (pendingMode) {
         setOrderModeState(pendingMode);
       }
+      
       if (pendingItem) {
-        // Use setItems directly with functional updater to avoid stale closure
-        // where addItem would still see the old items array.
         const requiredMode = getRequiredModeForItem(pendingItem);
         if (requiredMode) {
           setOrderModeState(requiredMode);
         }
-        trackEvent({
-          eventType: "add_to_cart",
-          eventData: { item_name: pendingItem.name, price: pendingItem.price },
-          restaurantId: pendingItem.restaurantId,
-        });
-        setItems([{ ...pendingItem, quantity: 1 }]);
+        
+        // Use the new async addItem which handles stock reservation properly
+        await addItem(pendingItem);
       }
     }
     setConflict(null);

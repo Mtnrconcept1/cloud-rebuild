@@ -42,7 +42,7 @@ export default function MenuItemCard({
     trackImpression("dish", id, "restaurant_detail");
   }, [id]);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (disabled) {
       toast({
         title: "Indisponible",
@@ -53,8 +53,10 @@ export default function MenuItemCard({
     }
 
     trackClick("dish", id);
-    addItem({ menuItemId: id, name, price, restaurantId, restaurantName });
-    toast({ title: "Ajoute au panier", description: `${name} ajoute` });
+    const success = await addItem({ menuItemId: id, name, price, restaurantId, restaurantName });
+    if (success) {
+      toast({ title: "Ajoute au panier", description: `${name} ajoute` });
+    }
   };
 
   const finalImageUrl = resolveMenuItemImageUrl({ name, description, category, imageUrl });

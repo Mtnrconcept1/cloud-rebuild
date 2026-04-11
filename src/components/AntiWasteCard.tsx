@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Leaf, Clock, MapPin, Star, Gift, Heart, Zap, ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,31 +62,41 @@ export default function AntiWasteCard({
   const flashTarget = (isFlash && availableDate && pickupEnd) ? new Date(`${availableDate}T${pickupEnd}`) : null;
   const showCountdown = flashTarget && flashTarget.getTime() > Date.now();
   const { addItem } = useCart();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
+  const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!restaurantId) return;
-    addItem({
-      menuItemId: `antigaspi-${offerId || title}`,
-      name: `[Anti-gaspi] ${title}`,
-      price: discountedPrice,
-      restaurantId,
-      restaurantName: restaurant,
-      metadata: {
-        is_anti_waste: true,
-        offer_id: offerId,
-        original_price: originalPrice,
-        pickup_start: pickupStart,
-        pickup_end: pickupEnd,
-        available_date: availableDate || null,
-      },
-    });
-    toast({
-      title: "Ajouté au panier !",
-      description: `${title} — ${discountedPrice.toFixed(2)} CHF (à emporter)`,
-    });
+    if (!restaurantId || isAdding) return;
+    
+    setIsAdding(true);
+    try {
+      const success = await addItem({
+        menuItemId: `antigaspi-${offerId || title}`,
+        name: `[Anti-gaspi] ${title}`,
+        price: discountedPrice,
+        restaurantId,
+        restaurantName: restaurant,
+        metadata: {
+          is_anti_waste: true,
+          offer_id: offerId,
+          original_price: originalPrice,
+          pickup_start: pickupStart,
+          pickup_end: pickupEnd,
+          available_date: availableDate || null,
+        },
+      });
+      
+      if (success) {
+        uiToast({
+          title: "Ajouté au panier !",
+          description: `${title} — ${discountedPrice.toFixed(2)} CHF (à emporter)`,
+        });
+      }
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const content = (
@@ -142,16 +153,15 @@ export default function AntiWasteCard({
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Retrait {pickupStart} - {pickupEnd}</span>
             </div>
           )}
-          {restaurantId && (
             <Button
               onClick={handleAddToCart}
               size="sm"
+              disabled={isAdding || quantityAvailable <= 0}
               className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <ShoppingCart className="h-4 w-4" />
-              Ajouter au panier · À emporter
+              {isAdding ? "Réservation..." : "Réserver maintenant"}
             </Button>
-          )}
         </div>
       </div>
     </div>

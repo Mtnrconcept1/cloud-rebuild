@@ -601,7 +601,7 @@ export async function buildVerifiedOrderPricing(input: {
   ));
   const antiWasteOfferIds = Array.from(new Set(
     items
-      .map((item) => String(item.metadata?.anti_waste_offer_id || ""))
+      .map((item) => String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || ""))
       .filter(Boolean),
   ));
   const flashSaleIds = Array.from(new Set(
@@ -626,13 +626,13 @@ export async function buildVerifiedOrderPricing(input: {
     antiWasteOfferIds.length
       ? input.adminClient
         .from("anti_waste_offers")
-        .select("id, restaurant_id, title, discounted_price, is_active")
+        .select("id, restaurant_id, title, discounted_price, is_active, quantity_available, available_date")
         .in("id", antiWasteOfferIds)
       : Promise.resolve({ data: [], error: null }),
     flashSaleIds.length
       ? input.adminClient
         .from("flash_sales")
-        .select("id, restaurant_id, title, discounted_price, is_active")
+        .select("id, restaurant_id, title, discounted_price, is_active, quantity_available, sale_date")
         .in("id", flashSaleIds)
       : Promise.resolve({ data: [], error: null }),
     input.adminClient
@@ -723,10 +723,19 @@ export async function buildVerifiedOrderPricing(input: {
       continue;
     }
 
-    const antiWasteOfferId = String(item.metadata?.anti_waste_offer_id || "");
+    const antiWasteOfferId = String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || "");
     if (antiWasteOfferId) {
       const offer = antiWasteMap.get(antiWasteOfferId);
-      if (!offer || !offer.is_active) throw new Error("Offre anti-gaspi invalide ou expiree.");
+      if (!offer) throw new Error("Offre anti-gaspi introuvable.");
+      if (!offer.is_active || offer.quantity_available <= 0) {
+        throw new Error("L'offre anti-gaspi n'est plus disponible (stock epuise ou inactive).");
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      if (offer.available_date < today) {
+        throw new Error("L'offre anti-gaspi est expiree.");
+      }
+
       if (offer.restaurant_id !== input.restaurantId) throw new Error("Offre anti-gaspi invalide pour ce restaurant.");
       validatedItems.push({
         menuItemId: item.menu_item_id,
@@ -743,7 +752,16 @@ export async function buildVerifiedOrderPricing(input: {
     const flashSaleId = String(item.metadata?.flash_sale_id || "");
     if (flashSaleId) {
       const sale = flashMap.get(flashSaleId);
-      if (!sale || !sale.is_active) throw new Error("Vente flash invalide ou expiree.");
+      if (!sale) throw new Error("Vente flash introuvable.");
+      if (!sale.is_active || sale.quantity_available <= 0) {
+        throw new Error("La vente flash n'est plus disponible (stock epuise ou inactive).");
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      if (sale.sale_date < today) {
+        throw new Error("La vente flash est expiree.");
+      }
+
       if (sale.restaurant_id !== input.restaurantId) throw new Error("Vente flash invalide pour ce restaurant.");
       validatedItems.push({
         menuItemId: item.menu_item_id,

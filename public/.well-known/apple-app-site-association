@@ -1,0 +1,71 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["TEAM_ID_PLACEHOLDER.com.tok.app"],
+        "components": [
+          {
+            "/": "/commande/*",
+            "comment": "Suivi de commande"
+          },
+          {
+            "/": "/commandes",
+            "comment": "Liste des commandes"
+          },
+          {
+            "/": "/reservations",
+            "comment": "Réservations client"
+          },
+          {
+            "/": "/restaurant/*",
+            "comment": "Page restaurant"
+          },
+          {
+            "/": "/notifications",
+            "comment": "Notifications"
+          },
+          {
+            "/": "/profil",
+            "comment": "Profil utilisateur"
+          },
+          {
+            "/": "/courier/*",
+            "comment": "Espace livreur"
+          },
+          {
+            "/": "/dashboard/*",
+            "comment": "Dashboard restaurateur"
+          },
+          {
+            "/": "/zero-attente",
+            "comment": "Zéro Attente"
+          },
+          {
+            "/": "/tok-one",
+            "comment": "Tok One"
+          },
+          {
+            "/": "/ventes-flash",
+            "comment": "Ventes flash"
+          },
+          {
+            "/": "/anti-gaspi",
+            "comment": "Anti-gaspi"
+          },
+          {
+            "/": "/panier",
+            "comment": "Panier"
+          },
+          {
+            "/": "/recherche",
+            "comment": "Recherche"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAM_ID_PLACEHOLDER.com.tok.app"]
+  }
+}

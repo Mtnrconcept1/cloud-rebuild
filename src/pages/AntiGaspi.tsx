@@ -9,10 +9,13 @@ export default function AntiGaspi() {
   const { data: rawOffers, isLoading } = useQuery({
     queryKey: ["anti-waste-offers"],
     queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
       const { data } = await supabase
         .from("anti_waste_offers" as any)
         .select("*, restaurants(id, name, city, image_url, rating)")
         .eq("is_active", true)
+        .gt("quantity_available", 0)
+        .gte("available_date", today)
         .in("offer_type", ["regular", "surprise_bag", "solidarity"] as any)
         .order("available_date");
       return data || [];
@@ -21,7 +24,9 @@ export default function AntiGaspi() {
   });
 
   // Only show offers in their active window: available_date == today AND pickup_start <= now <= pickup_end
+  // AND quantity_available > 0
   const offers = (rawOffers || []).filter((offer: any) => {
+    if (offer.quantity_available <= 0) return false;
     if (!offer.available_date) return false;
     const now = new Date();
     if (offer.pickup_end) {

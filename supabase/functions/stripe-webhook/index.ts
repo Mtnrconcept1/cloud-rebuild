@@ -138,6 +138,8 @@ function getOrderJourneyLabel(input: {
 }) {
   if (input.isDelivery) return "livraison";
   if (typeof input.metadata.pickup_time === "string" && input.metadata.pickup_time) return "a emporter";
+  if (typeof input.metadata.anti_gaspi_pickup_start === "string" && input.metadata.anti_gaspi_pickup_start) return "a emporter";
+  if (typeof input.metadata.pickup_time_start === "string" && input.metadata.pickup_time_start) return "a emporter";
   return "commande";
 }
 

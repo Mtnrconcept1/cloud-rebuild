@@ -149,7 +149,7 @@ export default function VentesFlash() {
     });
   }, [selectedOffers.length, canDeliverAll, canTakeawayAll]);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     // Re-check for expired offers at checkout time
     const now = new Date();
     const newlyExpired = selectedOffers.filter((offer: any) => {
@@ -196,14 +196,15 @@ export default function VentesFlash() {
       return;
     }
 
-    clearCart();
+    await clearCart();
     setOrderMode(selectedOrderMode);
 
     updateCartMetadata({ feature: "ventes-flash", flashCount: selectedOffers.length });
 
-    selectedOffers.forEach((offer: any) => {
+    // Deduct stock for each selected offer sequentially
+    for (const offer of selectedOffers) {
       const restaurant = offer.restaurants;
-      addItem({
+      const success = await addItem({
         menuItemId: `flash-${offer.id}`,
         name: `[Flash] ${offer.title}`,
         price: Number(offer.discounted_price),
@@ -219,7 +220,18 @@ export default function VentesFlash() {
           takeaway_available: !!offer.takeaway_available,
         },
       });
-    });
+
+      if (!success) {
+        toast({
+          title: "Offre plus disponible",
+          description: `L'offre "${offer.title}" n'a pas pu être réservée (plus de stock).`,
+          variant: "destructive",
+        });
+        // We might want to stop or continue. Given the multi-select nature, 
+        // it's better to notify and stop if critical, or just let them proceed with what's left.
+        // For now, we continue but notify.
+      }
+    }
 
     setStep("confirm");
   };

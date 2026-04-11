@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -299,8 +300,16 @@ export default function DashboardCommandes() {
               const canPreviewRoute = isDeliveryDashboardOrder(order) && routeMapStops.length >= 2;
               const isRouteExpanded = expandedRouteOrderId === order.id;
 
+              const isCancelled = normalizeOrderStatus(order.status) === "cancelled";
+
               return (
-                <div key={order.id} className="space-y-4 rounded-2xl border bg-card p-5 shadow-sm">
+                <div 
+                  key={order.id} 
+                  className={cn(
+                    "space-y-4 rounded-2xl border bg-card p-5 shadow-sm",
+                    isCancelled && "opacity-60 grayscale-[0.3] pointer-events-none select-none"
+                  )}
+                >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -339,7 +348,11 @@ export default function DashboardCommandes() {
                           ) : null}
                         </div>
                       </div>
-                      <Select value={normalizeOrderStatus(order.status)} onValueChange={(value) => updateStatus(order.id, value)}>
+                      <Select 
+                        value={normalizeOrderStatus(order.status)} 
+                        onValueChange={(value) => updateStatus(order.id, value)}
+                        disabled={isCancelled}
+                      >
                         <SelectTrigger className="h-10 w-40 shadow-sm">
                           <SelectValue />
                         </SelectTrigger>

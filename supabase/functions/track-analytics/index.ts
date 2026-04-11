@@ -1,11 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-import {
-  HttpError,
-  createAdminClient,
-  jsonResponse,
-} from "../_shared/auth.ts";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -29,6 +23,38 @@ type AnalyticsPayload = {
   source?: string | null;
   impressionId?: string | null;
 };
+
+class HttpError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+  }
+}
+
+function getEnv(name: string) {
+  return Deno.env.get(name)?.trim() || "";
+}
+
+function createAdminClient() {
+  return createClient(
+    getEnv("SUPABASE_URL"),
+    getEnv("SUPABASE_SERVICE_ROLE_KEY"),
+  );
+}
+
+function jsonResponse(
+  payload: Record<string, unknown>,
+  status: number,
+  extraHeaders: Record<string, string> = {},
+) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { "Content-Type": "application/json", ...extraHeaders },
+  });
+}
 
 function normalizeText(value: unknown) {
   return String(value || "").trim();
@@ -96,7 +122,8 @@ Deno.serve(async (req) => {
         const eventName = normalizeText(input.eventName);
 
         if (!isUuid(entityId)) {
-          throw new HttpError(400, "entityId invalide");
+          console.error("[Analytics] Invalid entityId:", entityId, "Kind:", kind, "input:", JSON.stringify(input));
+          throw new HttpError(400, `entityId invalide (UUID requis): ${entityId}`);
         }
         if (!entityType) {
           throw new HttpError(400, "entityType requis");
@@ -190,6 +217,79 @@ Deno.serve(async (req) => {
         if (error) {
           throw new HttpError(500, error.message);
         }
+
+        return jsonResponse({ recorded: true }, 200, corsHeaders);
+      }
+
+      case "batch": {
+        const items = asObject(input.payload)?.items;
+        if (!Array.isArray(items)) {
+          throw new HttpError(400, "Items array requis");
+        }
+
+        const events = [];
+        const impressions = [];
+        const clicks = [];
+        const searches = [];
+
+        for (const item of items) {
+          const k = normalizeKind(item.kind);
+          if (k === "event") {
+            const eType = normalizeText(item.entityType);
+            const eName = normalizeText(item.eventName);
+            const eId = normalizeText(item.entityId);
+            if (isUuid(eId) && eType && eName) {
+              events.push({
+                entity_id: eId,
+                entity_type: eType,
+                event_name: eName,
+                payload: { ...asObject(item.payload), user_id: userId }
+              });
+            }
+          } else if (k === "impression") {
+            const eType = normalizeKind(item.entityType);
+            const eId = normalizeText(item.entityId);
+            if (TRACKABLE_ENTITY_TYPES.has(eType) && isUuid(eId)) {
+              impressions.push({
+                id: isUuid(item.impressionId) ? item.impressionId : undefined,
+                user_id: userId,
+                entity_type: eType,
+                entity_id: eId,
+                source: normalizeText(item.source) || null
+              });
+            }
+          } else if (k === "click") {
+             const eType = normalizeKind(item.entityType);
+             const eId = normalizeText(item.entityId);
+             if (TRACKABLE_ENTITY_TYPES.has(eType) && isUuid(eId)) {
+               clicks.push({
+                 user_id: userId,
+                 entity_type: eType,
+                 entity_id: eId,
+                 impression_id: isUuid(item.impressionId) ? item.impressionId : null,
+               });
+             }
+          } else if (k === "search") {
+             const sq = normalizeText(item.searchQuery);
+             if (sq) {
+               searches.push({
+                 user_id: userId,
+                 search_query: sq,
+                 results_count: asOptionalNumber(item.resultsCount),
+                 location_lat: asOptionalNumber(item.locationLat),
+                 location_lng: asOptionalNumber(item.locationLng),
+               });
+             }
+          }
+        }
+
+        const promises = [];
+        if (events.length > 0) promises.push(adminClient.from("event_store").insert(events));
+        if (impressions.length > 0) promises.push(adminClient.from("impressions").insert(impressions));
+        if (clicks.length > 0) promises.push(adminClient.from("clicks").insert(clicks));
+        if (searches.length > 0) promises.push(adminClient.from("search_logs").insert(searches));
+
+        await Promise.all(promises);
 
         return jsonResponse({ recorded: true }, 200, corsHeaders);
       }

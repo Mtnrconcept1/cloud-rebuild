@@ -98,7 +98,7 @@ export default function Profil() {
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
+      const { data } = await supabase.from("profiles").select("id, user_id, full_name, phone, address, city, avatar_url, tok_one_member").eq("user_id", user!.id).single();
       return data;
     },
     enabled: !!user,
@@ -144,7 +144,7 @@ export default function Profil() {
     queryFn: async () => {
       const { data } = await supabase
         .from("notification_preferences")
-        .select("*")
+        .select("id, user_id, channels, categories")
         .eq("user_id", user!.id)
         .maybeSingle();
       return (data as NotificationPreferences | null) || null;
@@ -157,7 +157,7 @@ export default function Profil() {
     queryFn: async () => {
       const { data } = await supabase
         .from("notification_subscriptions")
-        .select("*")
+        .select("id, user_id, topic, filters")
         .eq("user_id", user!.id);
       return (data || []) as NotificationSubscription[];
     },

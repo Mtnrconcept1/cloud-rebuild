@@ -122,14 +122,14 @@ export default function ZeroAttente() {
         (rows || []).filter((restaurant) => restaurant.supports_reservation && restaurant.supports_dinein);
 
       if (preSelectedRestaurantId) {
-        const { data: specific } = await supabase.from("restaurants").select("*").eq("id", preSelectedRestaurantId).single();
-        const { data: others } = await supabase.from("restaurants").select("*").eq("is_active", true).neq("id", preSelectedRestaurantId).order("rating", { ascending: false }).limit(8);
+        const { data: specific } = await supabase.from("restaurants").select("id, name, cuisine_type, city, rating, image_url, supports_reservation, supports_dinein, disabled_payment_methods, is_active").eq("id", preSelectedRestaurantId).single();
+        const { data: others } = await supabase.from("restaurants").select("id, name, cuisine_type, city, rating, image_url, supports_reservation, supports_dinein, disabled_payment_methods, is_active").eq("is_active", true).neq("id", preSelectedRestaurantId).order("rating", { ascending: false }).limit(8);
         const eligibleOthers = filterEligible(others);
         return (specific && specific.supports_reservation && specific.supports_dinein)
           ? [specific, ...eligibleOthers]
           : eligibleOthers;
       }
-      const { data } = await supabase.from("restaurants").select("*").eq("is_active", true).order("rating", { ascending: false }).limit(9);
+      const { data } = await supabase.from("restaurants").select("id, name, cuisine_type, city, rating, image_url, supports_reservation, supports_dinein, disabled_payment_methods, is_active").eq("is_active", true).order("rating", { ascending: false }).limit(9);
       return filterEligible(data);
     },
   });
@@ -157,7 +157,7 @@ export default function ZeroAttente() {
   const { data: menuItems } = useQuery({
     queryKey: ["menu-zero-wait", selectedRestaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category");
+      const { data } = await supabase.from("menu_items").select("id, name, price, category, description, image_url").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category");
       return data || [];
     },
     enabled: !!selectedRestaurant,

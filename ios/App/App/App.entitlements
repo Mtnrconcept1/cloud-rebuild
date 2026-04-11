@@ -4,5 +4,10 @@
 <dict>
 	<key>aps-environment</key>
 	<string>development</string>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:tok.ch</string>
+		<string>applinks:www.tok.ch</string>
+	</array>
 </dict>
 </plist>

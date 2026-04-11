@@ -107,6 +107,7 @@ export default function Panier() {
   const flashPickupDate = flashTakeawayItem?.metadata?.sale_date || null;
   const flashPickupStart = flashTakeawayItem?.metadata?.sale_start || null;
   const flashPickupEnd = flashTakeawayItem?.metadata?.sale_end || null;
+  const hasNormalItems = items.some(item => !item.metadata?.is_anti_waste && !item.metadata?.is_flash_sale && item.menuItemId !== "garantie-qualite-fee");
   const discountableSubtotal = useMemo(
     () => items
       .filter((item) => item.menuItemId !== "garantie-qualite-fee")
@@ -148,7 +149,7 @@ export default function Panier() {
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
   const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
   const canScheduleDelivery = orderMode === "delivery" && isSingleRestaurant && deliveryFeatureEnabled;
-  const needsTakeawaySlots = orderMode === "takeaway" && isSingleRestaurant && takeawayFeatureEnabled && !hasAntiGaspi && !hasTakeawayFlash;
+  const needsTakeawaySlots = orderMode === "takeaway" && isSingleRestaurant && takeawayFeatureEnabled && hasNormalItems;
 
   const { data: profile } = useQuery({
     queryKey: ["profile-loyalty", user?.id],
@@ -402,7 +403,11 @@ export default function Panier() {
 
     }
 
-    trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
+    trackEvent({
+      eventType: "checkout_initiated",
+      restaurantId: restaurantId,
+      eventData: { total: finalTotal }
+    });
     if (!hasJourneyAvailable) {
       return toast({
         title: "Parcours indisponible",
@@ -448,7 +453,7 @@ export default function Panier() {
         variant: "destructive",
       });
     }
-    if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
+    if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles à l'emporter.", variant: "destructive" });
 
     const hasIncompatibleFlashMode = flashItems.some((item) => {
       const canDelivery = item.metadata?.delivery_available !== false;
@@ -482,9 +487,9 @@ export default function Panier() {
           });
         }
       }
-    } else if (!hasAntiGaspi && !hasTakeawayFlash) {
+    } else if (orderMode === "takeaway" && hasNormalItems) {
       if (!pickupDate || !pickupTime) {
-        return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande." });
+        return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande pour vos plats habituels." });
       }
       if (needsTakeawaySlots && !selectedPickupSlot) {
         return toast({ title: "Horaire invalide", variant: "destructive", description: "Veuillez choisir un créneau de retrait pendant les heures de service du restaurant." });
@@ -789,9 +794,12 @@ export default function Panier() {
       delivery_time: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? deliveryTime : null,
       delivery_service: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? deliveryService : null,
       scheduled_delivery_label: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? scheduledDeliveryLabel : null,
-      pickup_date: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupDate : pickupDate) : null,
-      pickup_time: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupStart : pickupTime) : null,
-      pickup_time_end: orderMode === "takeaway" && !hasAntiGaspi && hasTakeawayFlash ? flashPickupEnd : null,
+      pickup_date: orderMode === "takeaway" ? (hasNormalItems ? pickupDate : (hasTakeawayFlash ? flashPickupDate : null)) : null,
+      pickup_time: orderMode === "takeaway" ? (hasNormalItems ? pickupTime : (hasTakeawayFlash ? flashPickupStart : null)) : null,
+      pickup_time_end: orderMode === "takeaway" && !hasNormalItems && hasTakeawayFlash ? flashPickupEnd : null,
+      anti_gaspi_pickup_date: hasAntiGaspi ? antiGaspiItem?.metadata?.available_date || null : null,
+      anti_gaspi_pickup_start: hasAntiGaspi ? antiGaspiItem?.metadata?.pickup_start || null : null,
+      anti_gaspi_pickup_end: hasAntiGaspi ? antiGaspiItem?.metadata?.pickup_end || null : null,
       flex_option: flexOption,
       flex_guarantee: flexOption === "express" ? "1% discount per minute delay" : flexOption === "standard" ? "1% discount per 2 minute delay" : "10% subtotal discount applied",
       tok_one_member: isTokOneMember,
@@ -1021,93 +1029,102 @@ export default function Panier() {
             </div>
           ) : (
             <div className="space-y-4">
-              {hasAntiGaspi ? (
+              {hasAntiGaspi && (
                 <div className="p-4 rounded-xl bg-miamz-green/10 border border-miamz-green/20 space-y-2">
                   <div className="flex items-center gap-2 text-miamz-green font-bold"><Leaf className="h-4 w-4" /><span>Retrait Anti-Gaspi</span></div>
                   <div className="text-sm space-y-1">
                     <p className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-muted-foreground" /><span>Le <strong>{antiGaspiItem?.metadata?.available_date ? new Date(antiGaspiItem.metadata.available_date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : "aujourd'hui"}</strong></span></p>
-                    <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Créneau :</span><strong>{antiGaspiItem?.metadata?.pickup_start} - {antiGaspiItem?.metadata?.pickup_end}</strong></p>
+                    <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Créneau fixe :</span><strong>{antiGaspiItem?.metadata?.pickup_start} - {antiGaspiItem?.metadata?.pickup_end}</strong></p>
+                    {hasNormalItems && <p className="text-xs text-muted-foreground pl-5 mt-1">Ce créneau s'applique aux offres anti-gaspi. Choisissez votre heure de retrait pour les autres plats ci-dessous.</p>}
                   </div>
                 </div>
-              ) : hasTakeawayFlash ? (
+              )}
+              {hasTakeawayFlash && (
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2">
                   <div className="flex items-center gap-2 text-amber-600 font-bold"><Zap className="h-4 w-4" /><span>Retrait Vente Flash</span></div>
                   <div className="text-sm space-y-1">
-                    <p className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-muted-foreground" /><span>Le <strong>{flashPickupDate ? new Date(flashPickupDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : "date definie par l'offre"}</strong></span></p>
-                    <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Creneau fixe :</span><strong>{flashPickupStart || "--:--"} - {flashPickupEnd || "--:--"}</strong></p>
-                    <p className="text-xs text-muted-foreground pl-5">Le creneau de retrait est impose par la vente flash et ne peut pas etre modifie.</p>
+                    <p className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-muted-foreground" /><span>Le <strong>{flashPickupDate ? new Date(flashPickupDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : "date définie par l'offre"}</strong></span></p>
+                    <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Créneau fixe :</span><strong>{flashPickupStart || "--:--"} - {flashPickupEnd || "--:--"}</strong></p>
+                    {hasNormalItems ? (
+                        <p className="text-xs text-muted-foreground pl-5 mt-1">Ce créneau est imposé. Choisissez votre heure de retrait pour les autres plats ci-dessous.</p>
+                    ) : (
+                        <p className="text-xs text-muted-foreground pl-5 mt-1">Le créneau de retrait est imposé par la vente flash et ne peut pas être modifié.</p>
+                    )}
                   </div>
                 </div>
-              ) : needsTakeawaySlots ? (
-                <div className="space-y-4 rounded-2xl border bg-card/60 p-4">
-                  <div className="space-y-1">
-                    <Label>Retrait a emporter</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Les creneaux respectent les heures de service du restaurant.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Date de retrait</Label>
-                    <Input
-                      type="date"
-                      value={pickupDate}
-                      onChange={(e) => setPickupDate(e.target.value)}
-                      min={getTodayDateValue()}
-                      max={getMaxScheduledDateValue()}
-                      className="w-full sm:w-56"
-                    />
-                  </div>
-                  {takeawaySlotGroups.length > 0 ? (
-                    <div className="space-y-3">
-                      {takeawaySlotGroups.map((group) => (
-                        <div key={group.service} className="space-y-2">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Service {group.label}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {group.slots.map((slot) => (
-                              <button
-                                key={`${group.service}-${slot.time}`}
-                                type="button"
-                                onClick={() => {
-                                  setPickupTime(slot.time);
-                                  setPickupService(slot.service);
-                                }}
-                                className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                                  selectedPickupSlot?.time === slot.time && selectedPickupSlot?.service === slot.service
-                                    ? "border-primary bg-primary text-primary-foreground"
-                                    : "border-border bg-background hover:bg-muted/40"
-                                }`}
-                              >
-                                {slot.label}
-                              </button>
-                            ))}
+              )}
+              {hasNormalItems && (
+                needsTakeawaySlots ? (
+                  <div className="space-y-4 rounded-2xl border bg-card/60 p-4">
+                    <div className="space-y-1">
+                      <Label>Retrait à emporter {hasAntiGaspi || hasTakeawayFlash ? "(Plats normaux)" : ""}</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Les créneaux respectent les heures de service du restaurant.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Date de retrait</Label>
+                      <Input
+                        type="date"
+                        value={pickupDate}
+                        onChange={(e) => setPickupDate(e.target.value)}
+                        min={getTodayDateValue()}
+                        max={getMaxScheduledDateValue()}
+                        className="w-full sm:w-56"
+                      />
+                    </div>
+                    {takeawaySlotGroups.length > 0 ? (
+                      <div className="space-y-3">
+                        {takeawaySlotGroups.map((group) => (
+                          <div key={group.service} className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              Service {group.label}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {group.slots.map((slot) => (
+                                <button
+                                  key={`${group.service}-${slot.time}`}
+                                  type="button"
+                                  onClick={() => {
+                                    setPickupTime(slot.time);
+                                    setPickupService(slot.service);
+                                  }}
+                                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                                    selectedPickupSlot?.time === slot.time && selectedPickupSlot?.service === slot.service
+                                      ? "border-primary bg-primary text-primary-foreground"
+                                      : "border-border bg-background hover:bg-muted/40"
+                                  }`}
+                                >
+                                  {slot.label}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
-                      Aucun creneau disponible a cette date. Essayez un autre jour de service.
-                    </div>
-                  )}
-                  {pickupTime && (
-                    <div className="rounded-xl bg-primary/5 p-3 text-sm">
-                      <span className="font-semibold">Retrait prevu :</span> {formatScheduledDeliveryLabel(pickupDate, pickupTime)}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <Label>Date de retrait</Label>
-                    <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} required min={new Date().toISOString().split('T')[0]} className="w-full sm:w-48" />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
+                        Aucun créneau disponible à cette date. Essayez un autre jour de service.
+                      </div>
+                    )}
+                    {pickupTime && (
+                      <div className="rounded-xl bg-primary/5 p-3 text-sm">
+                        <span className="font-semibold">Retrait prévu :</span> {formatScheduledDeliveryLabel(pickupDate, pickupTime)}
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Heure de retrait</Label>
-                    <Input type="time" value={pickupTime} onChange={(e) => setPickupTime(e.target.value)} required className="w-full sm:w-48" />
-                  </div>
-                </>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Date de retrait {hasAntiGaspi || hasTakeawayFlash ? "(Plats normaux)" : ""}</Label>
+                      <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} required min={new Date().toISOString().split('T')[0]} className="w-full sm:w-48" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Heure de retrait</Label>
+                      <Input type="time" value={pickupTime} onChange={(e) => setPickupTime(e.target.value)} required className="w-full sm:w-48" />
+                    </div>
+                  </>
+                )
               )}
             </div>
           )}

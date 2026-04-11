@@ -277,9 +277,9 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
   try {
     const [profileResponse, favoritesResponse, ordersResponse, reservationsResponse] = await Promise.all([
       supabase.from("profiles" as any).select("city").eq("user_id", currentUserId).maybeSingle(),
-      supabase.from("favorites" as any).select("restaurant_id").eq("user_id", currentUserId),
-      supabase.from("orders" as any).select("restaurant_id, total_amount, created_at, delivery_address, status").eq("user_id", currentUserId),
-      supabase.from("reservations" as any).select("restaurant_id, created_at, status, feature, metadata, time, date").eq("user_id", currentUserId),
+      supabase.from("favorites" as any).select("restaurant_id").eq("user_id", currentUserId).limit(50),
+      supabase.from("orders" as any).select("restaurant_id, total_amount, created_at, delivery_address, status").eq("user_id", currentUserId).order("created_at", { ascending: false }).limit(20),
+      supabase.from("reservations" as any).select("restaurant_id, created_at, status, feature, metadata, time, date").eq("user_id", currentUserId).order("created_at", { ascending: false }).limit(20),
     ]);
 
     const validOrders = ((ordersResponse.data || []) as any[]).filter((order) => !isInvalidOrderStatus(order?.status));
@@ -412,21 +412,67 @@ type AnalyticsIngestResponse = {
 };
 
 let _analyticsTrackingDisabled = false;
+let analyticsBatch: any[] = [];
+let analyticsBatchTimeout: number | null = null;
+
+async function flushAnalyticsBatch() {
+  if (analyticsBatch.length === 0 || _analyticsTrackingDisabled) return;
+  const items = [...analyticsBatch];
+  analyticsBatch = [];
+  try {
+    const { error } = await supabase.functions.invoke("track-analytics", {
+      body: { kind: "batch", payload: { items } },
+    });
+    if (error) _analyticsTrackingDisabled = true;
+  } catch {
+    _analyticsTrackingDisabled = true;
+  }
+}
 
 async function invokeAnalyticsIngest(body: Record<string, unknown>): Promise<AnalyticsIngestResponse | null> {
   if (_analyticsTrackingDisabled) return null;
 
   try {
-    const { data, error } = await supabase.functions.invoke("track-analytics", {
-      body,
-    });
-
-    if (error) {
-      _analyticsTrackingDisabled = true;
-      return null;
+    if (body.kind === "impression") {
+      const generatedId = (typeof window !== "undefined" && window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : undefined;
+      analyticsBatch.push({ ...body, impressionId: generatedId });
+      
+      if (!analyticsBatchTimeout && typeof window !== "undefined") {
+        analyticsBatchTimeout = window.setTimeout(() => {
+          analyticsBatchTimeout = null;
+          flushAnalyticsBatch();
+        }, 2000);
+      }
+      
+      if (analyticsBatch.length >= 15) {
+        if (analyticsBatchTimeout && typeof window !== "undefined") {
+          window.clearTimeout(analyticsBatchTimeout);
+          analyticsBatchTimeout = null;
+        }
+        flushAnalyticsBatch();
+      }
+      
+      return generatedId ? { id: generatedId } : null;
+    } else {
+      analyticsBatch.push(body);
+      
+      if (!analyticsBatchTimeout && typeof window !== "undefined") {
+        analyticsBatchTimeout = window.setTimeout(() => {
+          analyticsBatchTimeout = null;
+          flushAnalyticsBatch();
+        }, 2000);
+      }
+      
+      if (analyticsBatch.length >= 15) {
+        if (analyticsBatchTimeout && typeof window !== "undefined") {
+          window.clearTimeout(analyticsBatchTimeout);
+          analyticsBatchTimeout = null;
+        }
+        flushAnalyticsBatch();
+      }
+      
+      return { id: undefined };
     }
-
-    return (data as AnalyticsIngestResponse | null) ?? null;
   } catch {
     _analyticsTrackingDisabled = true;
     return null;

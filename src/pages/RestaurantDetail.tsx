@@ -85,13 +85,13 @@ export default function RestaurantDetail() {
 
   const { data: menuItems } = useQuery({
     queryKey: ["menu-items", id],
-    queryFn: async () => { const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", id!).eq("is_available", true).order("category"); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from("menu_items").select("id, name, description, price, image_url, category, restaurant_id").eq("restaurant_id", id!).eq("is_available", true).order("category"); return data || []; },
     enabled: !!id,
   });
 
   const { data: reviews } = useQuery({
     queryKey: ["reviews", id],
-    queryFn: async () => { const { data } = await supabase.from("reviews").select("*").eq("restaurant_id", id!).order("created_at", { ascending: false }); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from("reviews").select("id, rating, comment, created_at, user_name, user_id").eq("restaurant_id", id!).order("created_at", { ascending: false }); return data || []; },
     enabled: !!id,
   });
 
@@ -104,7 +104,7 @@ export default function RestaurantDetail() {
   const { data: flashSales } = useQuery({
     queryKey: ["restaurant-flash-sales", id],
     queryFn: async () => {
-      const { data } = await supabase.from("flash_sales").select("*").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
+      const { data } = await supabase.from("flash_sales").select("id, title, original_price, discounted_price, quantity_available, delivery_available, takeaway_available").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
       return data || [];
     },
     enabled: !!id,
@@ -113,7 +113,15 @@ export default function RestaurantDetail() {
   const { data: antiWasteOffers } = useQuery({
     queryKey: ["restaurant-anti-waste", id],
     queryFn: async () => {
-      const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from("anti_waste_offers")
+        .select("id, title, original_price, discounted_price, pickup_start, pickup_end, image_url, quantity_available, offer_type, available_date")
+        .eq("restaurant_id", id!)
+        .eq("is_active", true)
+        .gt("quantity_available", 0)
+        .gte("available_date", today)
+        .order("created_at", { ascending: false });
       return data || [];
     },
     enabled: !!id,

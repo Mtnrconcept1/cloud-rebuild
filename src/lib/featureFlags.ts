@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -98,22 +99,13 @@ function notifyFlagChange() {
 }
 
 export function useFeatureFlags(isAdmin = false) {
-  const [flags, setFlags] = useState<FeatureFlag[]>(buildSafeFallbackFlags());
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    fetchFlags(isAdmin).then((loadedFlags) => {
-      if (cancelled) return;
-      setFlags(loadedFlags);
-      setLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isAdmin]);
+  const { data: flags = buildSafeFallbackFlags(), isLoading: loading } = useQuery({
+    queryKey: ["feature-flags", isAdmin],
+    queryFn: () => fetchFlags(isAdmin),
+    staleTime: 1000 * 60 * 5, // Cache de 5 minutes
+  });
 
   const toggleFlag = useCallback(async (id: string): Promise<{ success: boolean; error?: string }> => {
     const flag = flags.find((entry) => entry.id === id);
@@ -123,25 +115,29 @@ export function useFeatureFlags(isAdmin = false) {
     const result = await toggleFlagViaRpc(flag.name, nextExplicitState);
     if (!result.success) return result;
 
-    setFlags((previousFlags) => {
+    queryClient.setQueryData(["feature-flags", isAdmin], (old: FeatureFlag[] | undefined) => {
+      const current = old || [];
       const overrides = new Map<string, boolean>([[flag.name, nextExplicitState]]);
-      return resolveFlags(rehydrateFlagRows(previousFlags, overrides));
+      return resolveFlags(rehydrateFlagRows(current, overrides));
     });
+    
     notifyFlagChange();
     return { success: true };
-  }, [flags]);
+  }, [flags, isAdmin, queryClient]);
 
   const activateAllFlags = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     const result = await activateAllViaRpc();
     if (!result.success) return result;
 
-    setFlags((previousFlags) => {
-      const overrides = new Map(previousFlags.map((flag) => [flag.name, true]));
-      return resolveFlags(rehydrateFlagRows(previousFlags, overrides));
+    queryClient.setQueryData(["feature-flags", isAdmin], (old: FeatureFlag[] | undefined) => {
+      const current = old || [];
+      const overrides = new Map(current.map((flag) => [flag.name, true]));
+      return resolveFlags(rehydrateFlagRows(current, overrides));
     });
+
     notifyFlagChange();
     return { success: true };
-  }, []);
+  }, [isAdmin, queryClient]);
 
   const featureMap = useMemo(() => buildFeatureMap(flags), [flags]);
 
@@ -164,28 +160,25 @@ export function useFeatureFlagSnapshot(): {
   isEnabled: (featureName: string) => boolean;
   isExplicitlyEnabled: (featureName: string) => boolean;
 } {
-  const [flags, setFlags] = useState<FeatureFlag[]>(buildSafeFallbackFlags());
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
+  const { data: flags = buildSafeFallbackFlags(), isLoading: loading } = useQuery({
+    queryKey: ["feature-flags", false],
+    queryFn: () => fetchFlags(false),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Pour supporter notifyFlagChange (événements window) et invalider le cache global
   useEffect(() => {
-    let cancelled = false;
-
-    const loadFlags = () => {
-      fetchFlags().then((loadedFlags) => {
-        if (cancelled) return;
-        setFlags(loadedFlags);
-        setLoading(false);
-      });
+    const handleFlagsChanged = () => {
+      queryClient.invalidateQueries({ queryKey: ["feature-flags"] });
     };
 
-    loadFlags();
-    window.addEventListener("feature-flags-changed", loadFlags);
-
+    window.addEventListener("feature-flags-changed", handleFlagsChanged);
     return () => {
-      cancelled = true;
-      window.removeEventListener("feature-flags-changed", loadFlags);
+      window.removeEventListener("feature-flags-changed", handleFlagsChanged);
     };
-  }, []);
+  }, [queryClient]);
 
   const featureMap = useMemo(() => buildFeatureMap(flags), [flags]);
   const activeFeatures = useMemo(
