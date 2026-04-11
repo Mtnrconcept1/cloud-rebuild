@@ -407,17 +407,47 @@ export function setAnalyticsUser(userId: string | null) {
   sponsoredAudienceSnapshotCache = null;
 }
 
+type AnalyticsIngestResponse = {
+  id?: string;
+};
+
+let _analyticsTrackingDisabled = false;
+
+async function invokeAnalyticsIngest(body: Record<string, unknown>): Promise<AnalyticsIngestResponse | null> {
+  if (_analyticsTrackingDisabled) return null;
+
+  try {
+    const { data, error } = await supabase.functions.invoke("track-analytics", {
+      body,
+    });
+
+    if (error) {
+      _analyticsTrackingDisabled = true;
+      return null;
+    }
+
+    return (data as AnalyticsIngestResponse | null) ?? null;
+  } catch {
+    _analyticsTrackingDisabled = true;
+    return null;
+  }
+}
+
 export async function trackEvent({
   eventType,
   eventData = {},
   restaurantId,
 }: TrackEventParams) {
+  const entityId = restaurantId || currentUserId;
+  if (!entityId) return;
+
   try {
-    await supabase.from("event_store").insert({
-      entity_id: (restaurantId || currentUserId || "anonymous") as any,
-      entity_type: restaurantId ? "restaurant" : "user",
-      event_name: eventType,
-      payload: { ...eventData, user_id: currentUserId },
+    await invokeAnalyticsIngest({
+      kind: "event",
+      entityId,
+      entityType: restaurantId ? "restaurant" : "user",
+      eventName: eventType,
+      payload: eventData,
     });
   } catch (e) {
     // Silent fail
@@ -430,12 +460,12 @@ export async function trackSearch(
   location?: { lat: number; lng: number }
 ) {
   try {
-    await supabase.from("search_logs").insert({
-      user_id: currentUserId,
-      search_query: query,
-      results_count: resultsCount,
-      location_lat: location?.lat,
-      location_lng: location?.lng,
+    await invokeAnalyticsIngest({
+      kind: "search",
+      searchQuery: query,
+      resultsCount,
+      locationLat: location?.lat,
+      locationLng: location?.lng,
     });
   } catch (e) {
     // Silent fail
@@ -448,21 +478,13 @@ export async function trackImpression(
   source?: string
 ) {
   try {
-    const payload = {
-      user_id: currentUserId,
-      entity_type: entityType,
-      entity_id: entityId,
-      source: source,
-    };
-
-    if (!currentUserId) {
-      // Anonymous users don't have SELECT permission, so just insert without select
-      await supabase.from("impressions").insert(payload);
-      return null;
-    }
-
-    const { data } = await supabase.from("impressions").insert(payload).select("id").single();
-    return data?.id;
+    const data = await invokeAnalyticsIngest({
+      kind: "impression",
+      entityType,
+      entityId,
+      source: source || null,
+    });
+    return data?.id || null;
   } catch (e) {
     return null;
   }
@@ -474,11 +496,11 @@ export async function trackClick(
   impressionId?: string
 ) {
   try {
-    await supabase.from("clicks").insert({
-      user_id: currentUserId,
-      entity_type: entityType,
-      entity_id: entityId,
-      impression_id: impressionId,
+    await invokeAnalyticsIngest({
+      kind: "click",
+      entityType,
+      entityId,
+      impressionId: impressionId || null,
     });
   } catch (e) {
     // Silent fail

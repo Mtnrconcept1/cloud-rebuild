@@ -48,5 +48,8 @@ verify_jwt = false
 [functions.track-sponsored-event]
 verify_jwt = false
 
+[functions.track-analytics]
+verify_jwt = false
+
 [functions.floorplan-ai]
 verify_jwt = false
