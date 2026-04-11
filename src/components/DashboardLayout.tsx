@@ -229,6 +229,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const activeFeatures = useActiveFeatures();
 
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ✅ safe localStorage
   const [collapsed, setCollapsed] = useState(() => {
@@ -249,6 +250,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     sidebarRef.current?.scrollTo({ top: 0 });
   }, [pathname]);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   // ✅ memo nav
   const sections = useMemo(() => {
     return NAV_SECTIONS.map((section) => ({
@@ -258,6 +263,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ),
     }));
   }, [activeFeatures]);
+
+  const activeNavItem = useMemo(
+    () =>
+      sections
+        .flatMap((section) => section.items)
+        .find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`)),
+    [pathname, sections]
+  );
 
   // ✅ realtime notifications
   const handleNotification = useCallback(
@@ -282,12 +295,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   });
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col md:flex-row">
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
         className={cn(
-          "hidden md:flex flex-col border-r bg-sidebar transition-all",
+          "hidden overflow-y-auto md:flex md:flex-col border-r bg-sidebar transition-all",
           collapsed ? "w-[80px]" : "w-72"
         )}
       >
@@ -306,25 +319,56 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* MOBILE */}
-      <div className="md:hidden p-3 border-b flex items-center gap-3">
-        <Sheet>
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-end px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:hidden">
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>
-            <Button size="icon" variant="ghost">
-              <Menu />
+            <Button
+              variant="ghost"
+              className={cn(
+                "pointer-events-auto h-14 rounded-full border border-border/70 bg-background/95 px-2 pr-4 text-foreground shadow-[0_14px_32px_rgba(15,23,42,0.14)] backdrop-blur-md transition-all hover:bg-background",
+                mobileMenuOpen && "border-primary/25 bg-primary text-primary-foreground hover:bg-primary"
+              )}
+              aria-label="Ouvrir le menu du dashboard"
+            >
+              <span
+                className={cn(
+                  "flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors",
+                  mobileMenuOpen && "bg-white/15 text-current shadow-none"
+                )}
+              >
+                <Menu className="h-4 w-4" />
+              </span>
+              <span className="flex min-w-0 flex-col items-start leading-tight">
+                <span
+                  className={cn(
+                    "text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground",
+                    mobileMenuOpen && "text-primary-foreground/75"
+                  )}
+                >
+                  Dashboard
+                </span>
+                <span className="max-w-[10rem] truncate text-sm font-semibold">
+                  {activeNavItem?.label ?? "Ouvrir le menu"}
+                </span>
+              </span>
             </Button>
           </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
+          <SheetContent className="flex h-full flex-col overflow-hidden p-0">
+            <SheetHeader className="border-b px-6 pb-4 pt-6 pr-14">
               <SheetTitle>Dashboard</SheetTitle>
             </SheetHeader>
-            <RestaurantSelector />
-            <NavItems pathname={pathname} sections={sections} disabledFeatures={disabledFeatures} />
+            <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
+              <RestaurantSelector />
+              <nav className="flex flex-col gap-1 pb-4">
+                <NavItems pathname={pathname} sections={sections} disabledFeatures={disabledFeatures} />
+              </nav>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
 
       {/* MAIN */}
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-6 pb-28 md:p-6">{children}</main>
     </div>
   );
 }
