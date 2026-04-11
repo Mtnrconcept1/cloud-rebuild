@@ -23,16 +23,30 @@ export default function CartItemList({ items, updateQuantity, removeItem }: Cart
         <div key={`${item.menuItemId}-${index}`} className="flex items-center gap-4 p-4 border rounded-xl bg-card">
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm">{item.name}</p>
+            {item.metadata?.is_chefs_table && (
+              <p className="text-xs text-muted-foreground">
+                {item.metadata?.chef_name ? `${item.metadata.chef_name} · ` : ""}
+                {item.metadata?.service_time ? `service ${item.metadata.service_time}` : "service dedie"}
+              </p>
+            )}
             <p className="text-sm text-primary font-bold">{(item.price * item.quantity).toFixed(2)} CHF</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.menuItemId, item.quantity - 1)}>
-              <Minus className="h-3 w-3" />
-            </Button>
-            <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
-            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.menuItemId, item.quantity + 1)}>
-              <Plus className="h-3 w-3" />
-            </Button>
+            {item.metadata?.is_chefs_table ? (
+              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                Quantite fixe
+              </span>
+            ) : (
+              <>
+                <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.menuItemId, item.quantity - 1)}>
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
+                <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.menuItemId, item.quantity + 1)}>
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </>
+            )}
             <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removeItem(item.menuItemId)}>
               <Trash2 className="h-3 w-3" />
             </Button>

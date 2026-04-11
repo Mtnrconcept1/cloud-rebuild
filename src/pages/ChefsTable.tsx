@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import {
   ChefHat,
   Clock3,
   MapPin,
+  ShoppingCart,
   Sparkles,
   Star,
   Users,
@@ -20,8 +22,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
-import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
-import { createReservationWithValidation } from "@/lib/reservationMutations";
 import { cn } from "@/lib/utils";
 
 interface FlashDrop {
@@ -51,7 +51,22 @@ interface ChefTableDropCardProps {
   drop: FlashDrop;
   index: number;
   isReserved: boolean;
-  onToggleReserve: (id: string) => void;
+  onToggleReserve: (drop: FlashDrop) => void;
+}
+
+interface ConfirmedChefReservation {
+  id: string;
+  restaurant_id: string;
+  restaurant_name: string;
+  date: string;
+  time: string;
+  party_size: number;
+  status: string;
+  total_amount: number;
+  created_at: string;
+  notes: string | null;
+  metadata: Record<string, unknown>;
+  preorder_items: Array<Record<string, unknown>>;
 }
 
 const currencyFormatter = new Intl.NumberFormat("fr-CH", {
@@ -79,6 +94,10 @@ function formatCurrency(value: number) {
 function buildRestaurantAddress(restaurant?: { address?: string | null; city?: string | null }) {
   const parts = [restaurant?.address, restaurant?.city].filter(Boolean);
   return parts.length > 0 ? parts.join(", ") : "Adresse communiquee apres reservation";
+}
+
+function buildChefTableMenuItemId(dropId: string) {
+  return `chef-table-${dropId}`;
 }
 
 function ChefTableDropCard({
@@ -241,7 +260,7 @@ function ChefTableDropCard({
           </div>
 
           <Button
-            onClick={() => onToggleReserve(drop.id)}
+            onClick={() => onToggleReserve(drop)}
             variant={isReserved ? "outline" : "default"}
             className={cn(
               "h-11 w-full rounded-xl font-semibold",
@@ -253,12 +272,12 @@ function ChefTableDropCard({
             {isReserved ? (
               <>
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Selectionne
+                Retirer du panier
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Reserver cette experience
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Ajouter au panier
               </>
             )}
           </Button>
@@ -269,14 +288,15 @@ function ChefTableDropCard({
 }
 
 export default function ChefsTable() {
-  const { user } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
+  const { items, addItem, removeItem, clearCart, updateCartMetadata } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [reserved, setReserved] = useState<Set<string>>(new Set());
-  const [confirmed, setConfirmed] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isFinalizingCheckout, setIsFinalizingCheckout] = useState(false);
+  const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(null);
+  const [confirmedReservations, setConfirmedReservations] = useState<ConfirmedChefReservation[]>([]);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   const { data: drops = [] } = useQuery({
@@ -340,140 +360,213 @@ export default function ChefsTable() {
     enabled: !!user,
   });
 
-  const notifyAll = !!chefsSubscription;
+  const chefsTableCartItems = useMemo(
+    () => items.filter((item) => item.metadata?.is_chefs_table),
+    [items],
+  );
 
-  const toggleReserve = (id: string) => {
-    const next = new Set(reserved);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setReserved(next);
-  };
+  const hasForeignCartItems = items.length > chefsTableCartItems.length;
+  const selectedDropIds = useMemo(
+    () =>
+      new Set(
+        chefsTableCartItems.map((item) =>
+          String(item.metadata?.chef_table_drop_id || item.menuItemId.replace("chef-table-", ""))),
+      ),
+    [chefsTableCartItems],
+  );
 
-  const reservedDrops = drops.filter((drop) => reserved.has(drop.id));
-  const reservedTotal = reservedDrops.reduce((sum, drop) => sum + drop.price, 0);
-  const reservedOriginalTotal = reservedDrops.reduce((sum, drop) => sum + drop.originalPrice, 0);
+  const reservedTotal = useMemo(
+    () => chefsTableCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [chefsTableCartItems],
+  );
+
+  const reservedOriginalTotal = useMemo(
+    () =>
+      chefsTableCartItems.reduce(
+        (sum, item) =>
+          sum + (Number(item.metadata?.original_price || item.price) * item.quantity),
+        0,
+      ),
+    [chefsTableCartItems],
+  );
+
   const reservedSavingsTotal = Math.max(reservedOriginalTotal - reservedTotal, 0);
-  const reservedRestaurantCount = new Set(reservedDrops.map((drop) => drop.restaurantId)).size;
+  const reservedRestaurantCount = useMemo(
+    () => new Set(chefsTableCartItems.map((item) => item.restaurantId)).size,
+    [chefsTableCartItems],
+  );
 
-  const handleConfirmReservation = async () => {
-    if (!user) {
+  const notifyAll = !!chefsSubscription;
+  const confirmed = confirmedReservations.length > 0;
+
+  const completePaidReservations = useCallback(async (sessionId: string) => {
+    setIsFinalizingCheckout(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("create-chefs-table-reservation", {
+        body: { session_id: sessionId },
+      });
+
+      if (error) {
+        throw new Error(error.message || "Impossible de finaliser la reservation Chef's Table.");
+      }
+
+      const reservations = Array.isArray(data?.reservations)
+        ? data.reservations
+        : [];
+
+      if (reservations.length === 0) {
+        throw new Error("Paiement valide, reservation en cours de finalisation. Rechargez la page dans quelques secondes.");
+      }
+
+      clearCart();
+      setConfirmedReservations(reservations as ConfirmedChefReservation[]);
+      setPendingCheckoutSessionId(null);
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
+
       toast({
-        title: "Connectez-vous",
-        description: "Vous devez etre connecte pour reserver.",
+        title: "Paiement confirme",
+        description:
+          reservations.length > 1
+            ? `${reservations.length} reservations Chef's Table ont ete confirmees.`
+            : "Votre reservation Chef's Table est confirmee.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible de finaliser la reservation Chef's Table.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFinalizingCheckout(false);
+    }
+  }, [clearCart, queryClient, toast]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const sessionId = params.get("session_id");
+
+    if (status === "success" && sessionId) {
+      setPendingCheckoutSessionId(sessionId);
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+
+    if (status === "cancelled") {
+      setPendingCheckoutSessionId(null);
+      toast({
+        title: "Paiement annule",
+        description: "Vos experiences restent dans le panier, vous pouvez reessayer.",
+        variant: "destructive",
+      });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    if (!pendingCheckoutSessionId || confirmed || authLoading || isFinalizingCheckout) return;
+
+    if (!user || !session?.access_token) {
+      toast({
+        title: "Reconnectez-vous",
+        description: "Le paiement a ete valide. Reconnectez-vous pour recuperer votre reservation Chef's Table.",
         variant: "destructive",
       });
       return;
     }
 
-    if (reservedDrops.length === 0) return;
+    void completePaidReservations(pendingCheckoutSessionId);
+  }, [
+    authLoading,
+    completePaidReservations,
+    confirmed,
+    isFinalizingCheckout,
+    pendingCheckoutSessionId,
+    session?.access_token,
+    toast,
+    user,
+  ]);
 
-    setLoading(true);
-
-    const byRestaurant = new Map<string, FlashDrop[]>();
-    for (const drop of reservedDrops) {
-      const list = byRestaurant.get(drop.restaurantId) || [];
-      list.push(drop);
-      byRestaurant.set(drop.restaurantId, list);
+  const handleToggleReserve = (drop: FlashDrop) => {
+    if (hasForeignCartItems) {
+      toast({
+        title: "Panier deja en cours",
+        description: "Finalisez ou videz votre panier actuel avant d'ajouter une experience Chef's Table.",
+        variant: "destructive",
+      });
+      navigate("/panier");
+      return;
     }
 
-    let success = true;
+    const menuItemId = buildChefTableMenuItemId(drop.id);
 
-    for (const [restaurantId, dropsForRestaurant] of byRestaurant) {
-      const firstDrop = dropsForRestaurant[0];
-      const dropDate = new Date(firstDrop.dropTime);
-      const dateStr = dropDate.toISOString().split("T")[0];
-      const timeStr = dropDate.toTimeString().slice(0, 5);
-
-      const preorderItems = dropsForRestaurant.map((drop) => ({
-        drop_id: drop.id,
-        dish: drop.dish,
-        chef: drop.chef,
-        price: drop.price,
-      }));
-
-      const total = dropsForRestaurant.reduce((sum, drop) => sum + drop.price, 0);
-
-      let reservationResult: Awaited<ReturnType<typeof createReservationWithValidation>>;
-      try {
-        reservationResult = await createReservationWithValidation({
-          restaurantId,
-          date: dateStr,
-          time: timeStr,
-          partySize: 1,
-          feature: "chefs_table",
-          metadata: {
-            feature: "chefs_table",
-            drops: preorderItems,
-            total_amount: total,
-            is_exclusive: true,
-          },
-          notes: `[Chef's Table] ${dropsForRestaurant.map((drop) => drop.dish).join(", ")}`,
-        });
-      } catch (reservationError) {
-        toast({
-          title: "Erreur",
-          description:
-            reservationError instanceof Error
-              ? reservationError.message
-              : "Creation de reservation impossible.",
-          variant: "destructive",
-        });
-        success = false;
-        break;
-      }
-
-      if (!reservationResult.ok) {
-        toast({
-          title: "Erreur",
-          description: reservationResult.errorMessage,
-          variant: "destructive",
-        });
-        success = false;
-        break;
-      }
+    if (selectedDropIds.has(drop.id)) {
+      removeItem(menuItemId);
+      toast({
+        title: "Retire du panier",
+        description: `${drop.dish} a ete retire de votre panier Chef's Table.`,
+      });
+      return;
     }
 
-    setLoading(false);
+    updateCartMetadata({ feature: "chefs_table" });
+    addItem({
+      menuItemId,
+      name: `[Chef's Table] ${drop.dish}`,
+      price: drop.price,
+      restaurantId: drop.restaurantId,
+      restaurantName: drop.restaurant,
+      metadata: {
+        is_chefs_table: true,
+        chef_table_drop_id: drop.id,
+        chef_name: drop.chef,
+        source: "chef_table_drop",
+        original_price: drop.originalPrice,
+        discount_percent: drop.discountPercent,
+        service_time: drop.serviceTimeLabel,
+        drop_time: drop.dropTime,
+        restaurant_address: drop.restaurantAddress,
+        cuisine: drop.cuisine,
+      },
+    });
+    toast({
+      title: "Ajoute au panier",
+      description: `${drop.dish} est pret pour le paiement.`,
+    });
+  };
 
-    if (success) {
-      try {
-        await dispatchQueuedNotifications("chefs-table-reservation");
-      } catch (dispatchError) {
-        console.error("Chef's Table notification dispatch failed:", dispatchError);
-      }
-
-      setConfirmed(true);
-      queryClient.invalidateQueries({ queryKey: ["reservations"] });
-    }
+  const handleProceedToCheckout = () => {
+    if (chefsTableCartItems.length === 0) return;
+    updateCartMetadata({ feature: "chefs_table" });
+    navigate("/panier");
   };
 
   const handleGoToReservations = () => {
-    setShowDetailModal(true);
+    if (confirmedReservations.length === 1) {
+      setShowDetailModal(true);
+      return;
+    }
+    navigate("/reservations");
   };
 
-  const detailForModal = confirmed
+  const detailForModal = confirmedReservations.length > 0
     ? {
-        id: crypto.randomUUID(),
-        date: reservedDrops[0]
-          ? new Date(reservedDrops[0].dropTime).toISOString().split("T")[0]
-          : new Date().toISOString().split("T")[0],
-        time: reservedDrops[0]
-          ? new Date(reservedDrops[0].dropTime).toTimeString().slice(0, 5)
-          : "19:00",
-        party_size: 1,
-        status: "pending",
+        id: confirmedReservations[0].id,
+        date: confirmedReservations[0].date,
+        time: confirmedReservations[0].time,
+        party_size: confirmedReservations[0].party_size,
+        status: confirmedReservations[0].status,
         feature: "chefs_table",
-        notes: `[Chef's Table] ${reservedDrops.map((drop) => drop.dish).join(", ")}`,
-        total_amount: reservedTotal,
-        created_at: new Date().toISOString(),
-        metadata: { feature: "chefs_table" } as any,
-        preorder_items: reservedDrops.map((drop) => ({
-          name: `${drop.dish} (${drop.chef})`,
-          quantity: 1,
-          unit_price: drop.price,
-          total_price: drop.price,
-        })) as any,
-        restaurant_name: reservedDrops[0]?.restaurant || "",
+        notes: confirmedReservations[0].notes,
+        total_amount: confirmedReservations[0].total_amount,
+        created_at: confirmedReservations[0].created_at,
+        metadata: confirmedReservations[0].metadata as any,
+        preorder_items: confirmedReservations[0].preorder_items as any,
+        restaurant_name: confirmedReservations[0].restaurant_name,
       }
     : null;
 
@@ -544,17 +637,25 @@ export default function ChefsTable() {
             </Badge>
           </div>
 
-          {!confirmed && (
+          {!confirmed ? (
             <>
-              {drops.length > 0 ? (
+              {isFinalizingCheckout ? (
+                <div className="rounded-[28px] border border-amber-200 bg-amber-50/50 p-10 text-center">
+                  <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
+                  <h2 className="mt-4 font-display text-2xl font-bold">Paiement recu</h2>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                    Nous finalisons vos reservations Chef's Table. Cela prend seulement quelques secondes.
+                  </p>
+                </div>
+              ) : drops.length > 0 ? (
                 <div className="grid gap-6">
                   {drops.map((drop, index) => (
                     <ChefTableDropCard
                       key={drop.id}
                       drop={drop}
                       index={index}
-                      isReserved={reserved.has(drop.id)}
-                      onToggleReserve={toggleReserve}
+                      isReserved={selectedDropIds.has(drop.id)}
+                      onToggleReserve={handleToggleReserve}
                     />
                   ))}
                 </div>
@@ -568,13 +669,13 @@ export default function ChefsTable() {
                 </div>
               )}
 
-              {reserved.size > 0 ? (
+              {chefsTableCartItems.length > 0 ? (
                 <div className="sticky bottom-4 z-40">
                   <div className="mx-4 rounded-[28px] border border-amber-500/40 bg-card/92 p-5 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.45)] backdrop-blur-xl">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                       <div className="space-y-2">
                         <p className="text-sm font-semibold text-foreground">
-                          {reserved.size} experience(s) selectionnee(s)
+                          {chefsTableCartItems.length} experience(s) dans votre panier
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {reservedRestaurantCount} restaurant(s) · economie totale{" "}
@@ -584,7 +685,7 @@ export default function ChefsTable() {
                         </p>
                         <p className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Users className="h-3 w-3" />
-                          Reservation de table avec plats exclusifs preselectionnes
+                          Paiement securise avant confirmation definitive de la reservation
                         </p>
                       </div>
 
@@ -601,25 +702,24 @@ export default function ChefsTable() {
                     </div>
 
                     <Button
-                      onClick={handleConfirmReservation}
-                      disabled={loading}
+                      onClick={handleProceedToCheckout}
                       className="mt-4 h-11 w-full rounded-xl bg-amber-500 font-semibold text-white hover:bg-amber-600"
                     >
-                      {loading ? "Reservation en cours..." : "Confirmer la reservation"}
+                      Proceder au paiement
                     </Button>
                   </div>
                 </div>
               ) : null}
             </>
-          )}
-
-          {confirmed ? (
+          ) : (
             <div className="space-y-6">
               <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6 text-center space-y-2">
                 <CheckCircle2 className="mx-auto h-12 w-12 text-amber-500" />
                 <h2 className="font-display text-xl font-bold">Reservation confirmee !</h2>
                 <p className="text-sm text-muted-foreground">
-                  Votre table et vos plats exclusifs sont reserves.
+                  {confirmedReservations.length > 1
+                    ? `${confirmedReservations.length} reservations Chef's Table ont ete confirmees apres paiement.`
+                    : "Votre table et vos plats exclusifs sont reserves apres paiement."}
                 </p>
               </div>
 
@@ -629,7 +729,7 @@ export default function ChefsTable() {
                 colorClass="amber-500"
               />
             </div>
-          ) : null}
+          )}
         </div>
       </FeatureWizard>
 
@@ -638,7 +738,9 @@ export default function ChefsTable() {
         open={showDetailModal}
         onOpenChange={(open) => {
           setShowDetailModal(open);
-          if (!open) navigate("/reservations");
+          if (!open && confirmedReservations.length !== 1) {
+            navigate("/reservations");
+          }
         }}
       />
     </>

@@ -35,6 +35,7 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import {
   getAllowedPaymentMethods,
   getFirstAvailablePaymentMethod,
+  getGloballyEnabledPaymentMethods,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
 import {
@@ -99,9 +100,12 @@ export default function Panier() {
   const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
   const { data: tokOneBenefits } = useTokOneBenefits(tokOneSubscription?.plan_id);
 
+  const isChefsTableCheckout = cartMetadata.feature === "chefs_table"
+    || (items.length > 0 && items.every((item) => item.metadata?.is_chefs_table));
   const hasAntiGaspi = items.some(item => item.metadata?.is_anti_waste);
   const antiGaspiItem = items.find(item => item.metadata?.is_anti_waste);
   const flashItems = items.filter(item => item.metadata?.is_flash_sale);
+  const chefsTableItems = items.filter(item => item.metadata?.is_chefs_table);
   const hasTakeawayFlash = orderMode === "takeaway" && flashItems.length > 0;
   const flashTakeawayItem = flashItems[0];
   const flashPickupDate = flashTakeawayItem?.metadata?.sale_date || null;
@@ -116,8 +120,16 @@ export default function Panier() {
 
   const roundMoney = useCallback((value: number) => Math.round((value + Number.EPSILON) * 100) / 100, []);
   const flexFees = { express: 2.50, standard: 1.00, flex: 0 };
-  const quotedDeliveryFee = orderMode === "takeaway" ? 0 : flexFees[flexOption];
-  const tokOneJourney = orderMode === "delivery" ? "delivery" : "takeaway";
+  const quotedDeliveryFee = isChefsTableCheckout
+    ? 0
+    : orderMode === "takeaway"
+      ? 0
+      : flexFees[flexOption];
+  const tokOneJourney = isChefsTableCheckout
+    ? "reservation"
+    : orderMode === "delivery"
+      ? "delivery"
+      : "takeaway";
   const tokOneDiscountPercent = useMemo(() => {
     if (!isTokOneMember) return 0;
     return resolveTokOneDiscountPercentageForContext(
@@ -134,21 +146,24 @@ export default function Panier() {
     ),
     [restaurantId, tokOneBenefits, tokOneJourney, tokOneSubscription?.user_subscription_plans],
   );
-  const tokOneFreeDeliveryEligible = orderMode === "delivery"
+  const tokOneFreeDeliveryEligible = !isChefsTableCheckout
+    && orderMode === "delivery"
     && isTokOneMember
     && quotedDeliveryFee > 0
     && discountableSubtotal >= tokOneFreeDeliveryMinOrder;
   const tokOneDiscount = useMemo(
-    () => (isTokOneMember ? roundMoney((discountableSubtotal * tokOneDiscountPercent) / 100) : 0),
-    [discountableSubtotal, isTokOneMember, roundMoney, tokOneDiscountPercent],
+    () => (isTokOneMember && !isChefsTableCheckout
+      ? roundMoney((discountableSubtotal * tokOneDiscountPercent) / 100)
+      : 0),
+    [discountableSubtotal, isChefsTableCheckout, isTokOneMember, roundMoney, tokOneDiscountPercent],
   );
   const tokOneDeliverySaved = tokOneFreeDeliveryEligible ? quotedDeliveryFee : 0;
   const deliveryFee = roundMoney(Math.max(0, quotedDeliveryFee - tokOneDeliverySaved));
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
   const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
-  const canScheduleDelivery = orderMode === "delivery" && isSingleRestaurant && deliveryFeatureEnabled;
-  const needsTakeawaySlots = orderMode === "takeaway" && isSingleRestaurant && takeawayFeatureEnabled && !hasAntiGaspi && !hasTakeawayFlash;
+  const canScheduleDelivery = !isChefsTableCheckout && orderMode === "delivery" && isSingleRestaurant && deliveryFeatureEnabled;
+  const needsTakeawaySlots = !isChefsTableCheckout && orderMode === "takeaway" && isSingleRestaurant && takeawayFeatureEnabled && !hasAntiGaspi && !hasTakeawayFlash;
 
   const { data: profile } = useQuery({
     queryKey: ["profile-loyalty", user?.id],
@@ -189,11 +204,16 @@ export default function Panier() {
   const deliveryAvailable = deliveryFeatureEnabled && !!restaurantPaymentConfig?.delivery_available;
   const takeawayAvailable = takeawayFeatureEnabled && !!restaurantPaymentConfig?.supports_pickup;
   const allowedPaymentMethods = useMemo(() => {
+    const globalSecureMethods = getGloballyEnabledPaymentMethods(activeFeatures).filter((method) => method !== "cash");
+    if (isChefsTableCheckout) {
+      return globalSecureMethods;
+    }
     const disabled = (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
     return getAllowedPaymentMethods(activeFeatures, disabled);
-  }, [activeFeatures, restaurantPaymentConfig]);
+  }, [activeFeatures, isChefsTableCheckout, restaurantPaymentConfig]);
 
   useEffect(() => {
+    if (isChefsTableCheckout) return;
     if (orderMode === "delivery" && !deliveryAvailable && takeawayAvailable) {
       setOrderMode("takeaway", { force: true });
       return;
@@ -202,17 +222,19 @@ export default function Panier() {
     if (orderMode === "takeaway" && !takeawayAvailable && deliveryAvailable) {
       setOrderMode("delivery", { force: true });
     }
-  }, [deliveryAvailable, orderMode, setOrderMode, takeawayAvailable]);
+  }, [deliveryAvailable, isChefsTableCheckout, orderMode, setOrderMode, takeawayAvailable]);
 
   useEffect(() => {
     if (allowedPaymentMethods.includes(paymentMethod)) return;
     const nextMethod = getFirstAvailablePaymentMethod(
       activeFeatures,
-      (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
+      isChefsTableCheckout
+        ? ["cash"]
+        : ((restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || []),
       "card",
     );
     if (nextMethod) setPaymentMethod(nextMethod);
-  }, [activeFeatures, allowedPaymentMethods, paymentMethod, restaurantPaymentConfig]);
+  }, [activeFeatures, allowedPaymentMethods, isChefsTableCheckout, paymentMethod, restaurantPaymentConfig]);
 
   const loyaltyPoints = profile?.loyalty_points || 0;
   const maxPointsDiscount = loyaltyPoints / 100;
@@ -236,10 +258,13 @@ export default function Panier() {
     setPromoCodeId(codeId);
   }, []);
 
-  const effectivePromoDiscount = Math.max(promoDiscount, promoCodeDiscount);
-  const effectivePromoName = promoCodeDiscount >= promoDiscount && promoCodeName ? promoCodeName : promoName;
-  const subFinalTotal = total - formulaDiscount - effectivePromoDiscount - tokOneDiscount + deliveryFee;
-  const flexDiscount = flexOption === "flex" ? total * 0.1 : 0;
+  const effectiveFormulaDiscount = isChefsTableCheckout ? 0 : formulaDiscount;
+  const effectivePromoDiscount = isChefsTableCheckout ? 0 : Math.max(promoDiscount, promoCodeDiscount);
+  const effectivePromoName = isChefsTableCheckout
+    ? null
+    : (promoCodeDiscount >= promoDiscount && promoCodeName ? promoCodeName : promoName);
+  const subFinalTotal = total - effectiveFormulaDiscount - effectivePromoDiscount - tokOneDiscount + deliveryFee;
+  const flexDiscount = isChefsTableCheckout ? 0 : (flexOption === "flex" ? total * 0.1 : 0);
   const maxPointsRedeemable = Math.min(loyaltyPoints, Math.floor(Math.max(subFinalTotal - flexDiscount, 0) * 100));
 
   useEffect(() => {
@@ -350,16 +375,59 @@ export default function Panier() {
     }
   }, [availableTakeawaySlots, needsTakeawaySlots, pickupDate, firstAvailablePickupDate, selectedPickupSlot]);
 
-  const pointsToRedeem = useLoyaltyPoints ? Math.min(pointsToRedeemInput, maxPointsRedeemable) : 0;
+  const pointsToRedeem = isChefsTableCheckout
+    ? 0
+    : (useLoyaltyPoints ? Math.min(pointsToRedeemInput, maxPointsRedeemable) : 0);
   const pointsDiscount = pointsToRedeem / 100;
-  const earnedXp = Math.floor(Math.max(subFinalTotal, 0) * 10);
+  const earnedXp = isChefsTableCheckout ? 0 : Math.floor(Math.max(subFinalTotal, 0) * 10);
   const finalTotal = subFinalTotal - pointsDiscount - flexDiscount;
   const requiresStripeCheckout = paymentMethod !== "cash" && finalTotal > 0.01;
-  const hasJourneyAvailable = deliveryAvailable || takeawayAvailable;
+  const hasJourneyAvailable = isChefsTableCheckout ? true : (deliveryAvailable || takeawayAvailable);
   const checkoutDeliveryAddress = orderMode === "delivery" ? address : "";
   const checkoutDeliveryCity = orderMode === "delivery" ? (deliveryCity || null) : null;
   const checkoutDeliveryLat = orderMode === "delivery" ? (deliverySelection?.latitude ?? null) : null;
   const checkoutDeliveryLng = orderMode === "delivery" ? (deliverySelection?.longitude ?? null) : null;
+
+  const chefsTableReservationGroups = useMemo(() => {
+    if (!isChefsTableCheckout) return [];
+
+    const groups = new Map<string, {
+      key: string;
+      restaurantId: string;
+      restaurantName: string;
+      serviceDate: string;
+      serviceTime: string;
+      items: typeof chefsTableItems;
+      total: number;
+    }>();
+
+    for (const item of chefsTableItems) {
+      const dropTime = String(item.metadata?.drop_time || "");
+      const restaurantId = String(item.restaurantId || "");
+      const serviceDate = dropTime ? dropTime.split("T")[0] : "";
+      const serviceTime = dropTime ? dropTime.slice(11, 16) : "";
+      const key = `${restaurantId}:${dropTime}`;
+      const existing = groups.get(key);
+
+      if (existing) {
+        existing.items.push(item);
+        existing.total += item.price * item.quantity;
+        continue;
+      }
+
+      groups.set(key, {
+        key,
+        restaurantId,
+        restaurantName: item.restaurantName,
+        serviceDate,
+        serviceTime,
+        items: [item],
+        total: item.price * item.quantity,
+      });
+    }
+
+    return Array.from(groups.values()).sort((a, b) => a.key.localeCompare(b.key));
+  }, [chefsTableItems, isChefsTableCheckout]);
 
   const handleCheckout = async () => {
     if (authLoading) {
@@ -400,6 +468,60 @@ export default function Panier() {
       return navigate("/auth");
     }
 
+    }
+
+    if (isChefsTableCheckout) {
+      if (allowedPaymentMethods.length === 0) {
+        return toast({
+          title: "Paiement indisponible",
+          description: "Aucun moyen de paiement securise n'est actuellement disponible.",
+          variant: "destructive",
+        });
+      }
+      if (paymentMethod === "cash") {
+        return toast({
+          title: "Paiement securise requis",
+          description: "Chef's Table doit etre regle a l'avance pour confirmer la reservation.",
+          variant: "destructive",
+        });
+      }
+
+      const { data: checkoutData, error: checkoutError } = await withTimeout(
+        supabase.functions.invoke("create-checkout", {
+          body: {
+            checkout_kind: "chefs-table",
+            items: chefsTableItems.map((item) => ({
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              restaurant_name: item.restaurantName,
+              restaurant_id: item.restaurantId,
+              menu_item_id: item.menuItemId,
+              metadata: item.metadata || {},
+            })),
+            payment_method: paymentMethod,
+            return_url: `${window.location.origin}/chefs-table`,
+            order_metadata: {
+              checkout_kind: "chefs-table",
+              restaurant_id: restaurantId,
+              order_reference: `CT-${Date.now()}`,
+              checkout_group_id: crypto.randomUUID(),
+              pre_discount_subtotal: total,
+              authoritative_total: finalTotal,
+              party_size: 1,
+            },
+          },
+        }),
+        CHECKOUT_TIMEOUT_MS,
+        "La creation de la session de paiement prend trop de temps. Reessayez dans quelques instants.",
+      );
+
+      if (checkoutError) throw new Error(checkoutError.message);
+      if (checkoutData?.error) throw new Error(checkoutData.error);
+      if (!checkoutData?.url) throw new Error("Impossible de lancer le paiement Chef's Table.");
+
+      window.location.assign(checkoutData.url);
+      return;
     }
 
     trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
@@ -891,16 +1013,56 @@ export default function Panier() {
     <main className="min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
         <h1 className="font-display text-3xl font-bold">Votre panier</h1>
-        <p className="text-sm text-muted-foreground">Restaurant : {items[0]?.restaurantName}</p>
+        <p className="text-sm text-muted-foreground">
+          {isChefsTableCheckout
+            ? `${chefsTableReservationGroups.length} reservation(s) Chef's Table a confirmer`
+            : `Restaurant : ${items[0]?.restaurantName}`}
+        </p>
 
         <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
 
-        <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
-        <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
-        <PromoCodeInput restaurantId={restaurantId} userId={user?.id} subtotal={total} onApplied={handlePromoCodeApplied} />
+        {isChefsTableCheckout ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-amber-700">
+              <ChefHat className="h-5 w-5" />
+              <p className="font-semibold">Reservation Chef&apos;s Table</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Le paiement securise confirme la reservation et les plats precommandes. Chaque drop garde son horaire de service.
+            </p>
+            <div className="space-y-3">
+              {chefsTableReservationGroups.map((group) => (
+                <div key={group.key} className="rounded-xl border bg-background/80 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium">{group.restaurantName}</p>
+                    <span className="text-sm font-semibold text-amber-700">{group.total.toFixed(2)} CHF</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {group.serviceDate
+                      ? `${new Date(group.serviceDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} a ${group.serviceTime || "--:--"}`
+                      : "Horaire defini par le drop"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
+            <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
+            <PromoCodeInput restaurantId={restaurantId} userId={user?.id} subtotal={total} onApplied={handlePromoCodeApplied} />
+          </>
+        )}
 
         <div className="space-y-4 pt-4 border-t">
-          {orderMode === "delivery" ? (
+          {isChefsTableCheckout ? (
+            <div className="rounded-2xl border bg-card/60 p-4 space-y-2">
+              <p className="text-sm font-semibold">Paiement avant confirmation</p>
+              <p className="text-sm text-muted-foreground">
+                Chef&apos;s Table fonctionne uniquement avec un paiement securise a l&apos;avance. Une fois le paiement accepte, vos reservations apparaissent dans l&apos;espace reservations.
+              </p>
+            </div>
+          ) : orderMode === "delivery" ? (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Adresse de livraison</Label>
@@ -1111,17 +1273,21 @@ export default function Panier() {
               )}
             </div>
           )}
-          <div className="space-y-2">
-            <Label>Notes (optionnel)</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Code d'entrée, étage..." />
-          </div>
+          {!isChefsTableCheckout ? (
+            <div className="space-y-2">
+              <Label>Notes (optionnel)</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Code d'entrée, étage..." />
+            </div>
+          ) : null}
         </div>
 
         <div className="border-t pt-4 space-y-2">
-          <LoyaltySection loyaltyPoints={loyaltyPoints} maxPointsDiscount={maxPointsDiscount} useLoyaltyPoints={useLoyaltyPoints} setUseLoyaltyPoints={setUseLoyaltyPoints} pointsToRedeemInput={pointsToRedeemInput} setPointsToRedeemInput={setPointsToRedeemInput} maxPointsRedeemable={maxPointsRedeemable} earnedXp={earnedXp} donateEarnedXp={donateEarnedXp} setDonateEarnedXp={setDonateEarnedXp} />
+          {!isChefsTableCheckout ? (
+            <LoyaltySection loyaltyPoints={loyaltyPoints} maxPointsDiscount={maxPointsDiscount} useLoyaltyPoints={useLoyaltyPoints} setUseLoyaltyPoints={setUseLoyaltyPoints} pointsToRedeemInput={pointsToRedeemInput} setPointsToRedeemInput={setPointsToRedeemInput} maxPointsRedeemable={maxPointsRedeemable} earnedXp={earnedXp} donateEarnedXp={donateEarnedXp} setDonateEarnedXp={setDonateEarnedXp} />
+          ) : null}
 
           <div className="flex justify-between text-sm"><span>Sous-total</span><span>{total.toFixed(2)} CHF</span></div>
-          {formulaDiscount > 0 && <div className="flex justify-between text-sm text-accent font-medium"><span>Réduction formule ({formulaName})</span><span>-{formulaDiscount.toFixed(2)} CHF</span></div>}
+          {effectiveFormulaDiscount > 0 && <div className="flex justify-between text-sm text-accent font-medium"><span>Réduction formule ({formulaName})</span><span>-{effectiveFormulaDiscount.toFixed(2)} CHF</span></div>}
           {effectivePromoDiscount > 0 && <div className="flex justify-between text-sm text-primary font-medium"><span>Promotion ({effectivePromoName})</span><span>-{effectivePromoDiscount.toFixed(2)} CHF</span></div>}
           {tokOneDiscount > 0 && (
             <div className="flex justify-between text-sm text-violet-600 font-medium">
@@ -1151,7 +1317,7 @@ export default function Panier() {
           )}
         </div>
 
-        {!isTokOneMember && orderMode === "delivery" && quotedDeliveryFee > 0 && (
+        {!isChefsTableCheckout && !isTokOneMember && orderMode === "delivery" && quotedDeliveryFee > 0 && (
           <Link to="/tok-one" className="flex items-center gap-3 p-3 rounded-xl bg-violet-50 border border-violet-200 hover:bg-violet-100 transition-colors">
             <Crown className="h-5 w-5 text-violet-600 shrink-0" />
             <div className="flex-1 min-w-0">
@@ -1162,13 +1328,21 @@ export default function Panier() {
           </Link>
         )}
 
-        {orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
+        {!isChefsTableCheckout && orderMode === "delivery" && <FlexOptions flexOption={flexOption} setFlexOption={setFlexOption} />}
         {!hasJourneyAvailable ? (
           <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
             Livraison et emporter sont actuellement indisponibles pour ce restaurant.
           </div>
         ) : null}
-        <PaymentMethodSelector paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} allowedMethods={allowedPaymentMethods} />
+        <PaymentMethodSelector
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          allowedMethods={allowedPaymentMethods}
+          cashDescription="Le paiement en espèces n'est pas disponible pour ce parcours."
+          secureDescription={isChefsTableCheckout
+            ? "Paiement sécurisé requis pour confirmer votre réservation Chef's Table"
+            : "Paiement sécurisé via Stripe"}
+        />
 
         <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading || !hasJourneyAvailable || allowedPaymentMethods.length === 0}>
           {loading ? (
@@ -1176,7 +1350,9 @@ export default function Panier() {
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               {requiresStripeCheckout ? "Traitement sécurisé..." : "Confirmation de la commande..."}
             </div>
-          ) : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
+          ) : isChefsTableCheckout
+            ? `Payer et confirmer la réservation · ${finalTotal.toFixed(2)} CHF`
+            : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
         </Button>
       </div>
     </main>
