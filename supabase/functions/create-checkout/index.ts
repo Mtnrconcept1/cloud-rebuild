@@ -461,6 +461,10 @@ Deno.serve(async (req) => {
       metadata: sessionMetadata,
     };
 
+    if (effectiveKind === "zero-attente" && payment_method === "twint") {
+      sessionParams.phone_number_collection = { enabled: true };
+    }
+
     if (discountCents > 0) {
       const hasTokOneDiscount = toMoney(sessionMetadata.tok_one_discount_amount) > 0
         || toMoney(sessionMetadata.tok_one_delivery_saved) > 0;

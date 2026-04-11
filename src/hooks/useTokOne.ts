@@ -21,7 +21,7 @@ export type TokOneBenefit = {
   value: Record<string, any> | null;
 };
 
-export type TokOneJourney = "delivery" | "takeaway";
+export type TokOneJourney = "delivery" | "takeaway" | "reservation" | "zero-attente";
 
 export const TOK_ONE_DEFAULT_DISCOUNT_PERCENT = 20;
 
@@ -93,6 +93,39 @@ function normalizeBenefitText(value: string) {
     .trim();
 }
 
+const TOK_ONE_CONTEXT_ALIASES: Record<TokOneJourney, string[]> = {
+  delivery: ["delivery", "livraison"],
+  takeaway: ["takeaway", "pickup", "pick up", "emporter", "a emporter"],
+  reservation: ["reservation", "booking", "dine in", "dinein", "sur place", "surplace", "on site", "onsite"],
+  "zero-attente": [
+    "zero attente",
+    "zeroattente",
+    "zero-attente",
+    "reservation",
+    "booking",
+    "dine in",
+    "dinein",
+    "sur place",
+    "surplace",
+    "on site",
+    "onsite",
+    "takeaway",
+    "pickup",
+    "pick up",
+    "emporter",
+    "a emporter",
+  ],
+};
+
+function matchesTokOneJourneyContext(entry: string, journey: TokOneJourney) {
+  const normalizedEntry = normalizeBenefitText(entry);
+  if (!normalizedEntry) return false;
+  if (normalizedEntry === "all" || normalizedEntry === "both" || normalizedEntry === "cart") {
+    return true;
+  }
+  return TOK_ONE_CONTEXT_ALIASES[journey].includes(normalizedEntry);
+}
+
 export function isTokOneBenefitApplicable(
   benefit: TokOneBenefit,
   input?: { restaurantId?: string | null; journey?: TokOneJourney | null },
@@ -124,12 +157,7 @@ export function isTokOneBenefitApplicable(
 
   if (contexts.length === 0) return true;
 
-  return contexts.some((entry) => (
-    entry === "all" ||
-    entry === "both" ||
-    entry === "cart" ||
-    entry === normalizeBenefitText(input.journey)
-  ));
+  return contexts.some((entry) => matchesTokOneJourneyContext(entry, input.journey!));
 }
 
 export function resolveTokOneDiscountPercentage(
@@ -165,7 +193,7 @@ export function resolveTokOneDiscountPercentageForContext(
     }, 0);
 
   if (configured > 0) return configured;
-  if (input.journey === "takeaway") {
+  if (input.journey === "takeaway" || input.journey === "reservation" || input.journey === "zero-attente") {
     const takeawayFallback = restaurantScopedBenefits
       .reduce((best, benefit) => {
         const value = parseBenefitNumber(benefit.value, ["percentage", "discount_percent", "percent", "value"]);

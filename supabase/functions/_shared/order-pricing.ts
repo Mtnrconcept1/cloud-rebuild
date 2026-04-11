@@ -80,6 +80,8 @@ type TokOneBenefitRow = {
   value: Record<string, unknown> | null;
 };
 
+type TokOneJourney = "delivery" | "takeaway" | "reservation" | "zero-attente";
+
 export type VerifiedOrderPricing = {
   validatedItems: ValidatedOrderItem[];
   subtotal: number;
@@ -346,6 +348,39 @@ function normalizeBenefitList(value: unknown) {
   return [];
 }
 
+const TOK_ONE_CONTEXT_ALIASES: Record<TokOneJourney, string[]> = {
+  delivery: ["delivery", "livraison"],
+  takeaway: ["takeaway", "pickup", "pick up", "emporter", "a emporter"],
+  reservation: ["reservation", "booking", "dine in", "dinein", "sur place", "surplace", "on site", "onsite"],
+  "zero-attente": [
+    "zero attente",
+    "zeroattente",
+    "zero-attente",
+    "reservation",
+    "booking",
+    "dine in",
+    "dinein",
+    "sur place",
+    "surplace",
+    "on site",
+    "onsite",
+    "takeaway",
+    "pickup",
+    "pick up",
+    "emporter",
+    "a emporter",
+  ],
+};
+
+function matchesTokOneJourneyContext(entry: string, journey: TokOneJourney) {
+  const normalizedEntry = normalizeText(entry);
+  if (!normalizedEntry) return false;
+  if (normalizedEntry === "all" || normalizedEntry === "both" || normalizedEntry === "cart") {
+    return true;
+  }
+  return TOK_ONE_CONTEXT_ALIASES[journey].includes(normalizedEntry);
+}
+
 function addBillingPeriod(start: Date, billingPeriod: string) {
   const periodEnd = new Date(start);
   if (billingPeriod === "yearly") {
@@ -359,7 +394,7 @@ function addBillingPeriod(start: Date, billingPeriod: string) {
 function isTokOneBenefitApplicable(
   benefit: TokOneBenefitRow,
   restaurantId: string,
-  journey: "delivery" | "takeaway",
+  journey: TokOneJourney,
 ) {
   const value = asRecord(benefit.value);
   if (!value) return true;
@@ -382,18 +417,13 @@ function isTokOneBenefitApplicable(
   ].map((entry) => normalizeText(entry));
 
   if (contexts.length === 0) return true;
-  return contexts.some((entry) => (
-    entry === "all" ||
-    entry === "both" ||
-    entry === "cart" ||
-    entry === journey
-  ));
+  return contexts.some((entry) => matchesTokOneJourneyContext(entry, journey));
 }
 
 function resolveTokOneDiscountPercent(
   benefits: TokOneBenefitRow[],
   restaurantId: string,
-  journey: "delivery" | "takeaway",
+  journey: TokOneJourney,
 ) {
   const discountBenefits = benefits.filter((benefit) => benefit.benefit_type === "discount_percentage");
   const restaurantScopedBenefits = discountBenefits
@@ -416,7 +446,7 @@ function resolveTokOneDiscountPercent(
     }, 0);
 
   if (configured > 0) return configured;
-  if (journey === "takeaway") {
+  if (journey === "takeaway" || journey === "reservation" || journey === "zero-attente") {
     const takeawayFallback = restaurantScopedBenefits
       .reduce((best, benefit) => {
         const value = parseConfigNumber(benefit.value, ["percentage", "discount_percent", "percent", "value"]);
@@ -431,7 +461,7 @@ function resolveTokOneFreeDeliveryThreshold(
   plan: TokOnePlanRow | null,
   benefits: TokOneBenefitRow[],
   restaurantId: string,
-  journey: "delivery" | "takeaway",
+  journey: TokOneJourney,
 ) {
   const freeDeliveryBenefits = benefits.filter((benefit) => benefit.benefit_type === "free_delivery");
   const configured = freeDeliveryBenefits
@@ -463,7 +493,7 @@ async function resolveTokOnePricing(input: {
     tokOneTotalSaved: 0,
   };
 
-  if (input.context !== "cart") return defaults;
+  if (input.context !== "cart" && input.context !== "zero-attente") return defaults;
 
   try {
     const now = new Date();
@@ -543,7 +573,11 @@ async function resolveTokOnePricing(input: {
 
     const plan = (planRes.data || null) as TokOnePlanRow | null;
     const benefits = (benefitsRes.data || []) as TokOneBenefitRow[];
-    const journey = input.isDeliveryJourney ? "delivery" as const : "takeaway" as const;
+    const journey = input.context === "zero-attente"
+      ? "zero-attente" as const
+      : input.isDeliveryJourney
+        ? "delivery" as const
+        : "takeaway" as const;
     const tokOneDiscountPercent = resolveTokOneDiscountPercent(benefits, input.restaurantId, journey);
     const tokOneDiscount = roundCurrency((input.subtotal * tokOneDiscountPercent) / 100);
     const freeDeliveryThreshold = resolveTokOneFreeDeliveryThreshold(plan, benefits, input.restaurantId, journey);

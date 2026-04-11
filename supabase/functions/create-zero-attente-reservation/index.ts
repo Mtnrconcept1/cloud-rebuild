@@ -28,16 +28,36 @@ function buildReservationNote(input: {
   count: number;
   subtotal: number;
   formulaDiscount: number;
+  tokOneDiscount: number;
+  tokOneDiscountPercent: number;
   total: number;
   paymentMethod: string;
+  cardBrand?: string | null;
+  cardLast4?: string | null;
+  twintPhoneNumber?: string | null;
 }) {
-  return [
+  const parts = [
     `[Zero Attente] ${input.count} plat(s) precommande(s)`,
     `Sous-total: ${input.subtotal.toFixed(2)} CHF`,
-    `Reduction: ${input.formulaDiscount.toFixed(2)} CHF`,
+    `Reduction formule: ${input.formulaDiscount.toFixed(2)} CHF`,
+    ...(input.tokOneDiscount > 0
+      ? [`Reduction Tok One${input.tokOneDiscountPercent > 0 ? ` (${input.tokOneDiscountPercent.toFixed(0)}%)` : ""}: ${input.tokOneDiscount.toFixed(2)} CHF`]
+      : []),
     `Total: ${input.total.toFixed(2)} CHF`,
     `Paiement: ${input.paymentMethod} (paye)`,
-  ].join(" - ");
+  ];
+
+  if (input.cardBrand || input.cardLast4) {
+    parts.push(
+      `Carte: ${[input.cardBrand, input.cardLast4 ? `**** ${input.cardLast4}` : ""].filter(Boolean).join(" ")}`,
+    );
+  }
+
+  if (input.twintPhoneNumber) {
+    parts.push(`TWINT: ${input.twintPhoneNumber}`);
+  }
+
+  return parts.join(" - ");
 }
 
 function buildPreorderItems(lineItems: Stripe.ApiList<Stripe.LineItem>) {
@@ -123,6 +143,14 @@ Deno.serve(async (req) => {
     const subtotal = parseMoney(session.metadata?.pre_discount_subtotal);
     const formulaDiscount = parseMoney(session.metadata?.formula_discount_amount);
     const formulaDiscountPercent = parseMoney(session.metadata?.formula_discount_percent);
+    const tokOneDiscount = parseMoney(session.metadata?.tok_one_discount_amount);
+    const tokOneDiscountPercent = parseMoney(session.metadata?.tok_one_discount_percent);
+    const tokOneDeliverySaved = parseMoney(session.metadata?.tok_one_delivery_saved);
+    const tokOneTotalSaved = parseMoney(
+      session.metadata?.tok_one_total_saved,
+      tokOneDiscount + tokOneDeliverySaved,
+    );
+    const tokOneMember = String(session.metadata?.tok_one_member || "").toLowerCase() === "true";
     const total = parseMoney(session.metadata?.authoritative_total, (session.amount_total || 0) / 100);
     const orderReference = String(session.metadata?.order_reference || `ZA-${Date.now()}`);
 
@@ -141,6 +169,10 @@ Deno.serve(async (req) => {
       : null;
     const cardBrand = paymentMethodData?.card?.brand || null;
     const cardLast4 = paymentMethodData?.card?.last4 || null;
+    const billingPhone = paymentMethodData?.billing_details?.phone || null;
+    const twintPhoneNumber = paymentMethod === "twint"
+      ? String(session.customer_details?.phone || billingPhone || "")
+      : "";
 
     const { data: restaurant, error: restaurantError } = await actor.adminClient
       .from("restaurants")
@@ -155,42 +187,86 @@ Deno.serve(async (req) => {
       count: preorderItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
       subtotal,
       formulaDiscount,
+      tokOneDiscount,
+      tokOneDiscountPercent,
       total,
       paymentMethod,
+      cardBrand,
+      cardLast4,
+      twintPhoneNumber,
     });
 
-    const { data: reservationId, error: reservationError } = await actor.adminClient.rpc(
-      "validate_and_create_reservation",
-      {
-        p_restaurant_id: restaurantId,
-        p_date: arrivalDate,
-        p_time: arrivalTime,
-        p_party_size: partySize,
-        p_feature: "zero-attente",
-        p_metadata: {
-          _internal_user_id: actor.userId,
-          feature: "zero-attente",
-          preorder_items: preorderItems,
-          pre_discount_subtotal: subtotal,
-          formula_applied: String(session.metadata?.formula_applied || "") || null,
-          formula_discount_amount: formulaDiscount,
-          formula_discount_percent: formulaDiscountPercent,
-          total_amount: total,
-          arrival_date: arrivalDate,
-          arrival_time: arrivalTime,
-          payment_method: paymentMethod,
-          checkout_session_id: session.id,
-          paid: true,
-          card_brand: cardBrand,
-          card_last4: cardLast4,
-          order_reference: orderReference,
-        },
-        p_notes: note,
-      },
-    );
+    const reservationPayload = {
+      _internal_user_id: actor.userId,
+      feature: "zero-attente",
+      preorder_items: preorderItems,
+      pre_discount_subtotal: subtotal,
+      formula_applied: String(session.metadata?.formula_applied || "") || null,
+      formula_discount_amount: formulaDiscount,
+      formula_discount_percent: formulaDiscountPercent,
+      tok_one_member: tokOneMember,
+      tok_one_discount_amount: tokOneDiscount,
+      tok_one_discount_percent: tokOneDiscountPercent,
+      tok_one_delivery_saved: tokOneDeliverySaved,
+      tok_one_total_saved: tokOneTotalSaved,
+      total_amount: total,
+      arrival_date: arrivalDate,
+      arrival_time: arrivalTime,
+      payment_method: paymentMethod,
+      checkout_session_id: session.id,
+      paid: true,
+      card_brand: cardBrand,
+      card_last4: cardLast4,
+      twint_phone_number: twintPhoneNumber || null,
+      order_reference: orderReference,
+    };
+    const storedReservationMetadata = { ...reservationPayload };
+    delete storedReservationMetadata._internal_user_id;
 
-    if (reservationError || !reservationId) {
-      throw new HttpError(500, reservationError?.message || "Creation de reservation impossible.");
+    const { data: existingReservation } = await actor.adminClient
+      .from("reservations")
+      .select("id")
+      .eq("user_id", actor.userId)
+      .eq("feature", "zero-attente")
+      .filter("metadata->>checkout_session_id", "eq", session.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const reservationAlreadyExisted = Boolean(existingReservation?.id);
+    let reservationId = existingReservation?.id || null;
+
+    if (reservationId) {
+      await actor.adminClient
+        .from("reservations")
+        .update({
+          status: "confirmed",
+          total_amount: total,
+          payment_method: paymentMethod,
+          preorder_items: preorderItems,
+          notes: note,
+          metadata: storedReservationMetadata,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", reservationId);
+    } else {
+      const { data: createdReservationId, error: reservationError } = await actor.adminClient.rpc(
+        "validate_and_create_reservation",
+        {
+          p_restaurant_id: restaurantId,
+          p_date: arrivalDate,
+          p_time: arrivalTime,
+          p_party_size: partySize,
+          p_feature: "zero-attente",
+          p_metadata: reservationPayload,
+          p_notes: note,
+        },
+      );
+
+      if (reservationError || !createdReservationId) {
+        throw new HttpError(500, reservationError?.message || "Creation de reservation impossible.");
+      }
+      reservationId = createdReservationId;
     }
 
     const { data: existingTransaction } = await actor.adminClient
@@ -213,8 +289,15 @@ Deno.serve(async (req) => {
           reservation_id: reservationId,
           feature: "zero-attente",
           restaurant_id: restaurantId,
+          payment_method: paymentMethod,
           card_brand: cardBrand,
           card_last4: cardLast4,
+          twint_phone_number: twintPhoneNumber || null,
+          tok_one_member: tokOneMember,
+          tok_one_discount_amount: tokOneDiscount,
+          tok_one_discount_percent: tokOneDiscountPercent,
+          tok_one_delivery_saved: tokOneDeliverySaved,
+          tok_one_total_saved: tokOneTotalSaved,
         },
       });
     }
@@ -227,7 +310,7 @@ Deno.serve(async (req) => {
       .eq("user_id", actor.userId)
       .maybeSingle();
 
-    if (restaurant?.owner_id) {
+    if (!reservationAlreadyExisted && restaurant?.owner_id) {
       await enqueueNotification({
         adminClient: actor.adminClient,
         userId: restaurant.owner_id,
@@ -251,35 +334,37 @@ Deno.serve(async (req) => {
       });
     }
 
-    await enqueueNotification({
-      adminClient: actor.adminClient,
-      userId: actor.userId,
-      title: "Reservation confirmee et payee",
-      body: `Votre table chez ${restaurant?.name || "le restaurant"} est reservee le ${arrivalDate} a ${arrivalTime} pour ${partySize} convive(s). ${zaItemCount} plat(s) precommande(s) - ${total.toFixed(2)} CHF.`,
-      type: "reservation",
-      category: "transactional",
-      data: {
-        reservation_id: reservationId,
-        restaurant_id: restaurantId,
-        restaurant_name: restaurant?.name || null,
-        party_size: partySize,
-        arrival_date: arrivalDate,
-        arrival_time: arrivalTime,
-        items_count: zaItemCount,
-        total_amount: total,
-        feature: "zero-attente",
-        url: "/reservations",
-      },
-    });
-
-    try {
-      await triggerNotificationDispatch({
-        source: "create-zero-attente-reservation",
-        push: true,
-        email: true,
+    if (!reservationAlreadyExisted) {
+      await enqueueNotification({
+        adminClient: actor.adminClient,
+        userId: actor.userId,
+        title: "Reservation confirmee et payee",
+        body: `Votre table chez ${restaurant?.name || "le restaurant"} est reservee le ${arrivalDate} a ${arrivalTime} pour ${partySize} convive(s). ${zaItemCount} plat(s) precommande(s) - ${total.toFixed(2)} CHF.`,
+        type: "reservation",
+        category: "transactional",
+        data: {
+          reservation_id: reservationId,
+          restaurant_id: restaurantId,
+          restaurant_name: restaurant?.name || null,
+          party_size: partySize,
+          arrival_date: arrivalDate,
+          arrival_time: arrivalTime,
+          items_count: zaItemCount,
+          total_amount: total,
+          feature: "zero-attente",
+          url: "/reservations",
+        },
       });
-    } catch (dispatchError) {
-      console.error("create-zero-attente-reservation notification dispatch failed:", dispatchError);
+
+      try {
+        await triggerNotificationDispatch({
+          source: "create-zero-attente-reservation",
+          push: true,
+          email: true,
+        });
+      } catch (dispatchError) {
+        console.error("create-zero-attente-reservation notification dispatch failed:", dispatchError);
+      }
     }
 
     await writeAuditLog({
@@ -310,6 +395,10 @@ Deno.serve(async (req) => {
       formula_applied: String(session.metadata?.formula_applied || "") || null,
       formula_discount_amount: formulaDiscount,
       formula_discount_percent: formulaDiscountPercent,
+      tok_one_member: tokOneMember,
+      tok_one_discount_amount: tokOneDiscount,
+      tok_one_discount_percent: tokOneDiscountPercent,
+      twint_phone_number: twintPhoneNumber || null,
       preorder_items: preorderItems,
     }, 200, corsHeaders);
   } catch (error) {
