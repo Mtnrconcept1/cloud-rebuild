@@ -3,17 +3,12 @@ import {
   authenticateRequest,
   requireRole,
 } from "../_shared/auth.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
   try {
     const actor = await authenticateRequest(req, { allowServiceRole: false });
@@ -68,7 +63,7 @@ Deno.serve(async (req) => {
 
     // Now try Firecrawl for extra restaurants
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
-    let firecrawlResults: string[] = [];
+    const firecrawlResults: string[] = [];
 
     if (FIRECRAWL_API_KEY) {
       try {

@@ -11,7 +11,7 @@ type LogLevel = "debug" | "info" | "warn" | "error";
 
 export type LogContext = Record<string, unknown>;
 
-const TOKEN_PATTERN = /(sk-[a-zA-Z0-9_-]{20,}|sbp_[a-zA-Z0-9]{20,}|whsec_[a-zA-Z0-9]{20,}|eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{10,})/g;
+const TOKEN_PATTERN = /(sk-[a-zA-Z0-9_-]{20,}|sbp_[a-zA-Z0-9]{20,}|whsec_[a-zA-Z0-9]{20,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,})/g;
 
 export function maskEmail(raw: unknown): string | null {
   if (typeof raw !== "string" || !raw.includes("@")) return null;

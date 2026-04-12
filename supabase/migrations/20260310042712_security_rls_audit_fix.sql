@@ -154,73 +154,127 @@ CREATE POLICY "Require auth for order_issues" ON public.order_issues FOR ALL USI
 ALTER TABLE public.order_refunds ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Require auth for order_refunds" ON public.order_refunds FOR ALL USING (auth.role() = 'authenticated');
 
-ALTER TABLE public.delivery_batches ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for delivery_batches" ON public.delivery_batches FOR ALL USING (auth.role() = 'authenticated');
+DO $$
+BEGIN
+  IF to_regclass('public.delivery_batches') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.delivery_batches ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for delivery_batches" ON public.delivery_batches FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.delivery_routes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for delivery_routes" ON public.delivery_routes FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.delivery_routes') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.delivery_routes ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for delivery_routes" ON public.delivery_routes FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.proof_of_delivery ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for proof_of_delivery" ON public.proof_of_delivery FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.proof_of_delivery') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.proof_of_delivery ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for proof_of_delivery" ON public.proof_of_delivery FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.payment_intents ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for payment_intents" ON public.payment_intents FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.payment_intents') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.payment_intents ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for payment_intents" ON public.payment_intents FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.payout_batches ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for payout_batches" ON public.payout_batches FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.payout_batches') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.payout_batches ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for payout_batches" ON public.payout_batches FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.payouts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for payouts" ON public.payouts FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.payouts') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.payouts ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for payouts" ON public.payouts FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for invoices" ON public.invoices FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.invoices') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for invoices" ON public.invoices FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.credit_notes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for credit_notes" ON public.credit_notes FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.credit_notes') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.credit_notes ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for credit_notes" ON public.credit_notes FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
+END
+$$;
 
-ALTER TABLE public.loyalty_tiers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for loyalty_tiers" ON public.loyalty_tiers FOR ALL USING (auth.role() = 'authenticated');
+DO $$
+BEGIN
+  IF to_regclass('public.loyalty_tiers') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.loyalty_tiers ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for loyalty_tiers" ON public.loyalty_tiers FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.loyalty_accounts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for loyalty_accounts" ON public.loyalty_accounts FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.loyalty_accounts') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.loyalty_accounts ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for loyalty_accounts" ON public.loyalty_accounts FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.subscription_benefits ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for subscription_benefits" ON public.subscription_benefits FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.subscription_benefits') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.subscription_benefits ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for subscription_benefits" ON public.subscription_benefits FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.gift_cards ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for gift_cards" ON public.gift_cards FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.gift_cards') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.gift_cards ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for gift_cards" ON public.gift_cards FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.review_replies ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for review_replies" ON public.review_replies FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.review_replies') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.review_replies ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for review_replies" ON public.review_replies FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.incident_reports ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for incident_reports" ON public.incident_reports FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.incident_reports') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.incident_reports ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for incident_reports" ON public.incident_reports FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.compensations ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for compensations" ON public.compensations FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.compensations') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.compensations ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for compensations" ON public.compensations FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.reservation_tables ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for reservation_tables" ON public.reservation_tables FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.reservation_tables') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.reservation_tables ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for reservation_tables" ON public.reservation_tables FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.reservation_slots ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for reservation_slots" ON public.reservation_slots FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.reservation_slots') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.reservation_slots ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for reservation_slots" ON public.reservation_slots FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.reservation_status_history ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for reservation_status_history" ON public.reservation_status_history FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.reservation_status_history') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.reservation_status_history ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for reservation_status_history" ON public.reservation_status_history FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.event_store ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for event_store" ON public.event_store FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.event_store') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.event_store ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for event_store" ON public.event_store FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.feature_store ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for feature_store" ON public.feature_store FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.feature_store') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.feature_store ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for feature_store" ON public.feature_store FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.recommendation_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for recommendation_logs" ON public.recommendation_logs FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.recommendation_logs') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.recommendation_logs ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for recommendation_logs" ON public.recommendation_logs FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.ml_predictions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for ml_predictions" ON public.ml_predictions FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.ml_predictions') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.ml_predictions ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for ml_predictions" ON public.ml_predictions FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
 
-ALTER TABLE public.fraud_signals ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Require auth for fraud_signals" ON public.fraud_signals FOR ALL USING (auth.role() = 'authenticated');
+  IF to_regclass('public.fraud_signals') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.fraud_signals ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'CREATE POLICY "Require auth for fraud_signals" ON public.fraud_signals FOR ALL USING (auth.role() = ''authenticated'')';
+  END IF;
+END
+$$;
 
 

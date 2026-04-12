@@ -286,7 +286,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
-    [selectedId]
+    [queryClient, selectedId]
   );
 
   useRealtimeNotifications({

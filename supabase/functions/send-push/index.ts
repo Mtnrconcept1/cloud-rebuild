@@ -8,12 +8,7 @@ import {
   requireRole,
   writeAuditLog,
 } from "../_shared/auth.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 /**
  * Generates an OAuth2 access token from a Firebase service account JSON.
@@ -74,14 +69,17 @@ async function getFirebaseAccessToken(serviceAccount: {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
-    actor = await authenticateRequest(req, { allowSchedulerSecret: true });
+    actor = await authenticateRequest(req, {
+      allowSchedulerSecret: true,
+      allowServiceRole: true,
+    });
     requireRole(actor, ["admin"]);
     const body = await req.json().catch(() => ({}));
     const userIdFilter = typeof body?.user_id === "string" && body.user_id.trim().length > 0

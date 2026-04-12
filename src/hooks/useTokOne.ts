@@ -39,6 +39,20 @@ export type TokOneSubscription = {
   user_subscription_plans: TokOnePlan | null;
 };
 
+const TOK_ONE_ENTITLED_STATUSES = new Set(["active", "trialing"]);
+
+export function isTokOneEntitledStatus(status: string | null | undefined) {
+  return TOK_ONE_ENTITLED_STATUSES.has(String(status || "").toLowerCase());
+}
+
+export function isTokOneSubscriptionActive(subscription: Pick<TokOneSubscription, "status" | "current_period_end"> | null | undefined) {
+  return Boolean(
+    subscription &&
+    isTokOneEntitledStatus(subscription.status) &&
+    new Date(subscription.current_period_end) > new Date(),
+  );
+}
+
 async function fetchTokOnePlan(planId: string | null | undefined) {
   if (!planId) return null;
   const { data, error } = await (supabase as any)
@@ -325,6 +339,6 @@ export function useTokOneSubscription() {
 /** Quick boolean check: does the user have an active Tok One subscription? */
 export function useIsTokOneMember() {
   const { data: sub, isLoading } = useTokOneSubscription();
-  const isActive = !!sub && sub.status === "active" && new Date(sub.current_period_end) > new Date();
+  const isActive = isTokOneSubscriptionActive(sub);
   return { isMember: isActive, subscription: sub, isLoading };
 }

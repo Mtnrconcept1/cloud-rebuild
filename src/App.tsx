@@ -17,40 +17,40 @@ import { isNative } from "@/lib/platform";
 // Client-facing pages (eagerly loaded for instant first paint)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Recherche from "./pages/Recherche";
-import RestaurantDetail from "./pages/RestaurantDetail";
-import AntiGaspi from "./pages/AntiGaspi";
-import Panier from "./pages/Panier";
-import Commandes from "./pages/Commandes";
-import Reservations from "./pages/Reservations";
-import Profil from "./pages/Profil";
-import Notifications from "./pages/Notifications";
-import SuiviCommande from "./pages/SuiviCommande";
-import NotFound from "./pages/NotFound";
-import Contact from "./pages/Contact";
-import CGU from "./pages/CGU";
-import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
-import APropos from "./pages/APropos";
-import PacksRestaurateur from "./pages/PacksRestaurateur";
-import Aide from "./pages/Aide";
-import SupportChat from "./components/SupportChat";
-import OrderConflictDialog from "./components/OrderConflictDialog";
+const Recherche = lazy(() => import("./pages/Recherche"));
+const RestaurantDetail = lazy(() => import("./pages/RestaurantDetail"));
+const AntiGaspi = lazy(() => import("./pages/AntiGaspi"));
+const Panier = lazy(() => import("./pages/Panier"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const SupportChat = lazy(() => import("./components/SupportChat"));
+const OrderConflictDialog = lazy(() => import("./components/OrderConflictDialog"));
 // New features (eagerly loaded — lightweight client pages)
-import CreneauxGarantis from "./pages/CreneauxGarantis";
-import FlexPrixBas from "./pages/FlexPrixBas";
-import MatchGroupes from "./pages/MatchGroupes";
-import MultiStop from "./pages/MultiStop";
-import MultiRestaurant from "./pages/MultiRestaurant";
-import ChefsTable from "./pages/ChefsTable";
-import ZeroAttente from "./pages/ZeroAttente";
-import GarantieQualite from "./pages/GarantieQualite";
-import BudgetAuto from "./pages/BudgetAuto";
-import Abonnement from "./pages/Abonnement";
-import GiftPoints from "./pages/GiftPoints";
-import VentesFlash from "./pages/VentesFlash";
-import TokOne from "./pages/TokOne";
 
 // ── Lazy-loaded chunks: Dashboard Restaurateur ──
+const Commandes = lazy(() => import("./pages/Commandes"));
+const Reservations = lazy(() => import("./pages/Reservations"));
+const Profil = lazy(() => import("./pages/Profil"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const SuiviCommande = lazy(() => import("./pages/SuiviCommande"));
+const Contact = lazy(() => import("./pages/Contact"));
+const CGU = lazy(() => import("./pages/CGU"));
+const PolitiqueConfidentialite = lazy(() => import("./pages/PolitiqueConfidentialite"));
+const APropos = lazy(() => import("./pages/APropos"));
+const PacksRestaurateur = lazy(() => import("./pages/PacksRestaurateur"));
+const Aide = lazy(() => import("./pages/Aide"));
+const CreneauxGarantis = lazy(() => import("./pages/CreneauxGarantis"));
+const FlexPrixBas = lazy(() => import("./pages/FlexPrixBas"));
+const MatchGroupes = lazy(() => import("./pages/MatchGroupes"));
+const MultiStop = lazy(() => import("./pages/MultiStop"));
+const MultiRestaurant = lazy(() => import("./pages/MultiRestaurant"));
+const ChefsTable = lazy(() => import("./pages/ChefsTable"));
+const ZeroAttente = lazy(() => import("./pages/ZeroAttente"));
+const GarantieQualite = lazy(() => import("./pages/GarantieQualite"));
+const BudgetAuto = lazy(() => import("./pages/BudgetAuto"));
+const Abonnement = lazy(() => import("./pages/Abonnement"));
+const GiftPoints = lazy(() => import("./pages/GiftPoints"));
+const VentesFlash = lazy(() => import("./pages/VentesFlash"));
+const TokOne = lazy(() => import("./pages/TokOne"));
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
 const DashboardRestaurant = lazy(() => import("./pages/dashboard/DashboardRestaurant"));
 const DashboardMenu = lazy(() => import("./pages/dashboard/DashboardMenu"));
@@ -278,8 +278,10 @@ function AppShell() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      <SupportChat />
-      <OrderConflictDialog />
+      <Suspense fallback={null}>
+        <SupportChat />
+        <OrderConflictDialog />
+      </Suspense>
     </>
   );
 }

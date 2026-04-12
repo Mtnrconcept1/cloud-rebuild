@@ -9,24 +9,21 @@ import {
   requireRestaurantAccess,
   writeAuditLog,
 } from "../_shared/auth.ts";
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { isTokOneEntitledStatus } from "../_shared/tok-one.ts";
 import {
   assertPaymentMethodAllowed,
   getEffectiveFeatureFlagSet,
 } from "../_shared/feature-flags.ts";
 import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
+type CheckoutItem = Record<string, unknown>;
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let auditKind = "order";
@@ -209,20 +206,39 @@ Deno.serve(async (req) => {
       if (amount <= 0) throw new HttpError(400, "Prix du plan invalide");
 
       // Check no existing active subscription
-      const { data: existingSub } = await actor.adminClient
+      if (payment_method !== "card") {
+        throw new HttpError(400, "Tok One requiert un paiement par carte");
+      }
+
+      const { data: existingSub, error: existingSubError } = await actor.adminClient
         .from("tok_one_subscriptions")
-        .select("id, status")
+        .select("id, status, current_period_end")
         .eq("user_id", actor.userId!)
-        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (existingSub) throw new HttpError(409, "Vous avez deja un abonnement actif");
+      if (existingSubError) throw new HttpError(500, existingSubError.message);
+
+      const now = new Date();
+      const hasActiveSubscription = Boolean(
+        existingSub &&
+        isTokOneEntitledStatus(existingSub.status) &&
+        (!existingSub.current_period_end || new Date(existingSub.current_period_end) > now),
+      );
+
+      if (hasActiveSubscription) {
+        throw new HttpError(409, "Vous avez deja un abonnement actif");
+      }
 
       lineItems = [{
         price_data: {
           currency: "chf",
           product_data: {
             name: `Tok One - ${plan.name} (${billingPeriod === "yearly" ? "Annuel" : "Mensuel"})`,
+          },
+          recurring: {
+            interval: billingPeriod === "yearly" ? "year" : "month",
           },
           unit_amount: Math.round(amount * 100),
         },
@@ -293,8 +309,8 @@ Deno.serve(async (req) => {
       if (primaryRestaurantError) throw new HttpError(500, primaryRestaurantError.message);
       if (!primaryRestaurant) throw new HttpError(404, "Restaurant introuvable");
 
-      const groupedItems = new Map<string, any[]>();
-      for (const item of items) {
+      const groupedItems = new Map<string, CheckoutItem[]>();
+      for (const item of items as CheckoutItem[]) {
         const restaurantId = String(item?.restaurant_id || item?.restaurantId || primaryRestaurantId);
         if (!restaurantId) throw new HttpError(400, "restaurant_id manquant sur un article");
         if (!groupedItems.has(restaurantId)) groupedItems.set(restaurantId, []);
@@ -451,15 +467,26 @@ Deno.serve(async (req) => {
     discountCents = Math.min(discountCents, totalBeforeDiscountCents);
 
     const urlSeparator = return_url.includes("?") ? "&" : "?";
+    const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
+    const userEmail = userLookup?.data.user?.email || undefined;
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      payment_method_types: paymentMethodTypes,
+      payment_method_types: effectiveKind === "tok-one" ? ["card"] : paymentMethodTypes,
       line_items: lineItems,
-      mode: "payment",
+      mode: effectiveKind === "tok-one" ? "subscription" : "payment",
       success_url: `${return_url}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
       cancel_url: `${return_url}${urlSeparator}status=cancelled`,
-      customer_email: actor.userClient ? (await actor.userClient.auth.getUser()).data.user?.email : undefined,
+      customer_email: userEmail,
+      client_reference_id: actor.userId || undefined,
       metadata: sessionMetadata,
     };
+
+    if (effectiveKind === "tok-one") {
+      sessionParams.subscription_data = {
+        trial_period_days: 14,
+        metadata: sessionMetadata,
+      };
+    }
 
     if (discountCents > 0) {
       const hasTokOneDiscount = toMoney(sessionMetadata.tok_one_discount_amount) > 0

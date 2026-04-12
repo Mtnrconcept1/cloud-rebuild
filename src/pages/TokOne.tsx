@@ -21,7 +21,11 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useTokOnePlans, useTokOneSubscription } from "@/hooks/useTokOne";
+import {
+  isTokOneSubscriptionActive,
+  useTokOnePlans,
+  useTokOneSubscription,
+} from "@/hooks/useTokOne";
 
 const BENEFITS = [
   {
@@ -88,7 +92,7 @@ export default function TokOne() {
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
     if (status === "success") {
-      toast({ title: "Bienvenue dans Tok One !", description: "Votre abonnement est maintenant actif." });
+      toast({ title: "Bienvenue dans Tok One !", description: "Votre abonnement ou votre essai gratuit est en cours d'activation." });
       queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
       window.history.replaceState({}, "", window.location.pathname);
     } else if (status === "cancelled") {
@@ -99,7 +103,7 @@ export default function TokOne() {
 
   const { data: plans, isLoading: plansLoading } = useTokOnePlans();
   const { data: activeSubscription } = useTokOneSubscription();
-  const isActive = !!activeSubscription && activeSubscription.status === "active" && new Date(activeSubscription.current_period_end) > new Date();
+  const isActive = isTokOneSubscriptionActive(activeSubscription);
 
   // Use the first active plan from the DB (single Tok One tier)
   const plan = plans?.[0];
@@ -140,8 +144,8 @@ export default function TokOne() {
       } else {
         throw new Error("URL de paiement manquante");
       }
-    } catch (err: any) {
-      const msg = err?.message || "Erreur lors du paiement";
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur lors du paiement";
       toast({ title: "Erreur", description: msg, variant: "destructive" });
     } finally {
       setSubscribing(false);
@@ -150,10 +154,9 @@ export default function TokOne() {
 
   const handleCancel = async () => {
     if (!activeSubscription) return;
-    const { error } = await (supabase as any)
-      .from("tok_one_subscriptions")
-      .update({ status: "cancelled", cancel_at_period_end: true })
-      .eq("id", activeSubscription.id);
+    const { error } = await supabase.functions.invoke("manage-tok-one-subscription", {
+      body: { action: "cancel" },
+    });
 
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });

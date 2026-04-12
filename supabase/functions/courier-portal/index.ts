@@ -14,12 +14,7 @@ import {
   enqueueNotification,
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 const ACTIVE_JOB_STATUSES = ["accepted", "arriving_pickup", "picked_up", "arriving_dropoff"];
 
@@ -323,9 +318,9 @@ async function applyJobStatusTransition(input: {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 

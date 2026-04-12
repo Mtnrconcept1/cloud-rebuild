@@ -17,7 +17,11 @@ const STORAGE_KEY = "miamz-dashboard-restaurant";
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const { restaurants, loading, error } = useOwnerRestaurants();
   const [selectedId, setSelectedIdState] = useState<string | null>(() => {
-    try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
+    try {
+      return localStorage.getItem(STORAGE_KEY);
+    } catch {
+      return null;
+    }
   });
 
   // Auto-select first owned restaurant, or clear stale selection
@@ -26,7 +30,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     if (restaurants.length === 0) {
       setSelectedIdState(null);
-      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Storage may be unavailable in some embedded contexts.
+      }
       return;
     }
 

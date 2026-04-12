@@ -13,6 +13,11 @@ BEGIN
     SELECT id INTO v_owner FROM auth.users LIMIT 1;
   END IF;
 
+  IF v_owner IS NULL THEN
+    RAISE NOTICE 'Skipping Geneva demo restaurant seed because no owner account exists yet.';
+    RETURN;
+  END IF;
+
   -- ========== RESTAURANTS ==========
 
   INSERT INTO public.restaurants (id, owner_id, name, description, cuisine_type, address, city, phone, rating, review_count, price_range, is_active, delivery_available, delivery_fee, min_order_amount, latitude, longitude, image_url)

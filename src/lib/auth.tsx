@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { setMonitoringUser } from "@/lib/monitoring";
 
 export type UserRole = "client" | "restaurateur" | "admin" | "courier";
 
@@ -75,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!initialised) return;
         setSession(session);
         setUser(session?.user ?? null);
+        setMonitoringUser(session?.user ?? null);
         if (session?.user) {
           await fetchRoles(session.user.id);
         } else {
@@ -87,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setMonitoringUser(session?.user ?? null);
       if (session?.user) {
         await fetchRoles(session.user.id);
       }
@@ -101,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
+    setMonitoringUser(null);
     setRoles([]);
     setActiveRole(null);
     localStorage.removeItem(ACTIVE_ROLE_KEY);

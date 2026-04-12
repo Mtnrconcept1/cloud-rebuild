@@ -55,7 +55,7 @@ function buildFallbackCampaign({
 
   let title = `Decouvrez ${restaurantName}`;
   let body = `${restaurantName} met a l'honneur ${firstCategory}${city ? ` a ${city}` : ""}. Donnez envie aux clients de passer commande aujourd'hui.`;
-  let type = "boost";
+  const type = "boost";
   let targetPages = ["home", "search"];
 
   if (flashCount > 0) {

@@ -72,10 +72,14 @@ export function getOfferExpiresAt(offeredAt: string, timeoutSeconds: number) {
   return new Date(Date.parse(offeredAt) + (timeoutSeconds || 45) * 1000);
 }
 
-export function getOfferTimeLeftSeconds(offeredAt: string, timeoutSeconds: number) {
+export function getOfferTimeLeftSeconds(
+  offeredAt: string,
+  timeoutSeconds: number,
+  nowMs = Date.now(),
+) {
   return Math.max(
     0,
-    Math.floor((getOfferExpiresAt(offeredAt, timeoutSeconds).getTime() - Date.now()) / 1000),
+    Math.floor((getOfferExpiresAt(offeredAt, timeoutSeconds).getTime() - nowMs) / 1000),
   );
 }
 
