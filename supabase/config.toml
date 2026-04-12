@@ -1,55 +1,36 @@
 project_id = "rgzqxttqwmaylrzxlzob"
 
-[functions.scrape-restaurants]
-verify_jwt = false
-
-[functions.enrich-restaurants]
-verify_jwt = false
-
-[functions.generate-invoices]
-verify_jwt = false
-
-[functions.validate-order]
-verify_jwt = false
-
-[functions.send-email]
-verify_jwt = false
-
-[functions.restaurant-advisor]
-verify_jwt = false
-
-[functions.generate-campaign]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = false
+# -----------------------------------------------------------------------------
+# Edge function auth policy.
+#
+# Default (not listed here) is verify_jwt = true, which is what we want for
+# every user-facing function. We only disable the Supabase platform JWT check
+# for callers that legitimately cannot provide a user JWT:
+#   - stripe-webhook      : signed by Stripe, verified via webhook secret.
+#   - dispatch-timeout    : cron-triggered, uses INTERNAL_CRON_SECRET.
+#   - notification-dispatch : cron + server-to-server, uses INTERNAL_CRON_SECRET.
+#   - generate-invoices   : cron-triggered, uses INTERNAL_CRON_SECRET.
+#   - track-analytics     : anonymous pings from the web client, opt-in JWT.
+#   - track-sponsored-event : same, impressions can be logged without login.
+#
+# Every other function now enforces verify_jwt = true at the platform level
+# AND re-checks role membership inside the handler. Belt + braces.
+# -----------------------------------------------------------------------------
 
 [functions.stripe-webhook]
-verify_jwt = false
-
-[functions.dispatch-order]
 verify_jwt = false
 
 [functions.dispatch-timeout]
 verify_jwt = false
 
-[functions.send-push]
-verify_jwt = false
-
-[functions.courier-portal]
-verify_jwt = false
-
 [functions.notification-dispatch]
 verify_jwt = false
 
-[functions.restaurant-order-status]
-verify_jwt = false
-
-[functions.track-sponsored-event]
+[functions.generate-invoices]
 verify_jwt = false
 
 [functions.track-analytics]
 verify_jwt = false
 
-[functions.floorplan-ai]
+[functions.track-sponsored-event]
 verify_jwt = false

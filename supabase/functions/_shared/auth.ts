@@ -20,6 +20,20 @@ export type RequestActor = {
   authMode: "user_jwt" | "service_role" | "scheduler_secret";
 };
 
+/**
+ * Constant-time string comparison. Prevents timing oracles when comparing
+ * shared secrets (scheduler secret, service role token).
+ */
+function safeEqual(a: string, b: string): boolean {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 type AuditActorContext = {
   userId?: string | null;
   roles?: string[];
@@ -117,11 +131,15 @@ export async function authenticateRequest(
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
   const adminClient = createAdminClient();
 
+  // Scheduler secret path: explicit opt-in for cron-triggered functions.
+  // Uses a dedicated shared secret that is NOT the Supabase service role key.
   if (options.allowSchedulerSecret) {
-    const providedSecret = req.headers.get("x-internal-cron-secret") || req.headers.get("x-cron-secret");
-    const configuredSecret = Deno.env.get("INTERNAL_CRON_SECRET") || Deno.env.get("CRON_SECRET");
+    const providedSecret = req.headers.get("x-internal-cron-secret") ||
+      req.headers.get("x-cron-secret") || "";
+    const configuredSecret = Deno.env.get("INTERNAL_CRON_SECRET") ||
+      Deno.env.get("CRON_SECRET") || "";
 
-    if (configuredSecret && providedSecret && providedSecret === configuredSecret) {
+    if (configuredSecret && providedSecret && safeEqual(providedSecret, configuredSecret)) {
       return {
         adminClient,
         userClient: null,
@@ -140,7 +158,11 @@ export async function authenticateRequest(
 
   const token = authHeader.slice("Bearer ".length).trim();
 
-  if (options.allowServiceRole !== false && token === serviceRoleKey) {
+  // Service role Bearer path: disabled by default. Only functions that
+  // explicitly opt in (server-to-server trusted callers) should set
+  // `allowServiceRole: true`, and those calls MUST travel over a trusted
+  // internal channel (never from the public client).
+  if (options.allowServiceRole === true && serviceRoleKey && safeEqual(token, serviceRoleKey)) {
     return {
       adminClient,
       userClient: null,
@@ -185,8 +207,28 @@ export async function authenticateRequest(
   };
 }
 
+/**
+ * Enforce role membership. Service-role / scheduler actors bypass the check
+ * because they are already trusted system identities that could only be
+ * produced by an explicit `allowServiceRole`/`allowSchedulerSecret` opt-in.
+ * User-JWT actors must match at least one of the allowed roles.
+ */
 export function requireRole(actor: RequestActor, allowedRoles: string[]) {
   if (actor.isServiceRole) return;
+  if (!allowedRoles.some((role) => actor.roles.includes(role))) {
+    throw new HttpError(403, "Forbidden");
+  }
+}
+
+/**
+ * Strict role check that ALWAYS requires a user JWT, even for service-role
+ * callers. Use in functions where impersonation must be auditable and where
+ * no automated / cron path is allowed.
+ */
+export function requireUserRole(actor: RequestActor, allowedRoles: string[]) {
+  if (!actor.userId) {
+    throw new HttpError(403, "Forbidden: user identity required");
+  }
   if (!allowedRoles.some((role) => actor.roles.includes(role))) {
     throw new HttpError(403, "Forbidden");
   }
