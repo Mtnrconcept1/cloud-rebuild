@@ -236,15 +236,18 @@ export default function DashboardFactures() {
           .select("total_amount, metadata")
           .eq("restaurant_id", selectedId!)
           .is("restaurant_invoice_id", null)
-          .not("status", "in", ["cancelled", "payment_failed", "refused", "pending"]),
+          .not("status", "in", "(cancelled,payment_failed,refused,pending)"),
         supabase
           .from("reservations")
           .select("total_amount")
           .eq("restaurant_id", selectedId!)
           .is("restaurant_invoice_id", null)
-          .not("status", "in", ["cancelled", "no_show", "pending"])
+          .not("status", "in", "(cancelled,no_show,pending)")
           .gt("total_amount", 0),
       ]);
+
+      if (ordersRes.error) throw ordersRes.error;
+      if (resRes.error) throw resRes.error;
 
       let ordersGross = 0;
       (ordersRes.data || []).forEach((order) => {
