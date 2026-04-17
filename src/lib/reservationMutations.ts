@@ -32,13 +32,17 @@ type ReservationCreateResult =
   | { ok: true; reservationId: string }
   | { ok: false; errorCode: string; errorMessage: string };
 
-type ReservationStatusResult =
-  | { ok: true }
-  | { ok: false; errorCode: string; errorMessage: string };
+export type ReservationStatusResult = {
+  ok: boolean;
+  errorCode?: string;
+  errorMessage?: string;
+};
 
-type ReservationMutationResult =
-  | { ok: true }
-  | { ok: false; errorCode: string; errorMessage: string };
+export type ReservationMutationResult = {
+  ok: boolean;
+  errorCode?: string;
+  errorMessage?: string;
+};
 
 export type CancellationReasonCode =
   | "closure"

@@ -162,7 +162,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     const result = await cancelReservationByCustomer(reservation.id);
     setCancelling(false);
     if (!result.ok) {
-      toast({ title: "Annulation impossible", description: result.errorMessage, variant: "destructive" });
+      toast({ title: "Annulation impossible", description: result.errorMessage ?? "Annulation impossible.", variant: "destructive" });
       return;
     }
 

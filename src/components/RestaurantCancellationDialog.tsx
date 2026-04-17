@@ -38,8 +38,8 @@ export default function RestaurantCancellationDialog({
   const canSubmit = reasonCode !== "" && !detailsTooShort && !submitting;
 
   const handleConfirm = () => {
-    if (!canSubmit || reasonCode === "") return;
-    onConfirm(reasonCode, details.trim() ? details.trim() : null);
+    if (!canSubmit) return;
+    onConfirm(reasonCode as CancellationReasonCode, details.trim() ? details.trim() : null);
   };
 
   const handleOpenChange = (next: boolean) => {

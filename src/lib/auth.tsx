@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
 
-  const fetchRoles = async (userId: string) => {
+  const fetchRoles = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
@@ -48,19 +48,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const fetchedRoles = (data || []).map((r) => r.role as UserRole);
     // Always include "client" as a base role
     if (!fetchedRoles.includes("client")) fetchedRoles.unshift("client");
+    return fetchedRoles;
+  }, []);
+
+  const applyRoles = useCallback((fetchedRoles: UserRole[]) => {
     setRoles(fetchedRoles);
 
-    // Restore saved role preference or pick highest priority
     const saved = localStorage.getItem(ACTIVE_ROLE_KEY) as UserRole | null;
     if (saved && fetchedRoles.includes(saved)) {
       setActiveRole(saved);
-    } else {
-      // Priority: admin > restaurateur > courier > client
-      const priority: UserRole[] = ["admin", "restaurateur", "courier", "client"];
-      const best = priority.find((r) => fetchedRoles.includes(r)) || "client";
-      setActiveRole(best);
+      return;
     }
-  };
+
+    const priority: UserRole[] = ["admin", "restaurateur", "courier", "client"];
+    const best = priority.find((role) => fetchedRoles.includes(role)) || "client";
+    setActiveRole(best);
+  }, []);
 
   const switchRole = useCallback((role: UserRole) => {
     setActiveRole(role);
@@ -69,36 +72,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let initialised = false;
+    let cancelled = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         // Skip until getSession has finished the first load
         if (!initialised) return;
+        if (cancelled) return;
         setSession(session);
         setUser(session?.user ?? null);
         setMonitoringUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchRoles(session.user.id);
-        } else {
+        if (!session?.user) {
           setRoles([]);
           setActiveRole(null);
         }
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
       setSession(session);
       setUser(session?.user ?? null);
       setMonitoringUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchRoles(session.user.id);
+      if (!session?.user) {
+        setRoles([]);
+        setActiveRole(null);
+        setLoading(false);
       }
-      setLoading(false);
       initialised = true;
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!user?.id) {
+      setRoles([]);
+      setActiveRole(null);
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void fetchRoles(user.id)
+      .then((fetchedRoles) => {
+        if (cancelled) return;
+        applyRoles(fetchedRoles);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyRoles, fetchRoles, user?.id]);
 
   const signOut = async () => {
     await supabase.auth.signOut();

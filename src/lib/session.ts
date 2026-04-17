@@ -96,15 +96,17 @@ export async function getFreshAccessToken(forceRefresh = false) {
 export async function invokeSupabaseFunction<TData = unknown>(
   functionName: string,
   options: {
+    accessToken?: string;
     body?: unknown;
     headers?: Record<string, string>;
   } = {},
 ) {
-  let accessToken = await getFreshAccessToken();
+  const { accessToken: providedAccessToken, ...invokeOptions } = options;
+  let accessToken = providedAccessToken || await getFreshAccessToken();
 
   let result = await supabase.functions.invoke<TData>(functionName, {
-    ...options,
-    headers: mergeFunctionHeaders(options.headers, accessToken),
+    ...invokeOptions,
+    headers: mergeFunctionHeaders(invokeOptions.headers, accessToken),
   });
 
   if (getFunctionsErrorStatus(result.error) !== 401) {
@@ -120,8 +122,8 @@ export async function invokeSupabaseFunction<TData = unknown>(
   accessToken = await getFreshAccessToken(true);
 
   result = await supabase.functions.invoke<TData>(functionName, {
-    ...options,
-    headers: mergeFunctionHeaders(options.headers, accessToken),
+    ...invokeOptions,
+    headers: mergeFunctionHeaders(invokeOptions.headers, accessToken),
   });
 
   if (result.error) {
