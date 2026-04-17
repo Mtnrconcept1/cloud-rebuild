@@ -12,6 +12,12 @@ type SafeReservationStatusRow = {
   error_message: string | null;
 };
 
+type SafeReservationMutationRow = {
+  ok: boolean | null;
+  error_code: string | null;
+  error_message: string | null;
+};
+
 type CreateReservationInput = {
   restaurantId: string;
   date: string;
@@ -29,6 +35,29 @@ type ReservationCreateResult =
 type ReservationStatusResult =
   | { ok: true }
   | { ok: false; errorCode: string; errorMessage: string };
+
+type ReservationMutationResult =
+  | { ok: true }
+  | { ok: false; errorCode: string; errorMessage: string };
+
+export type CancellationReasonCode =
+  | "closure"
+  | "overbooking"
+  | "kitchen_issue"
+  | "customer_unreachable"
+  | "private_event"
+  | "duplicate_error"
+  | "other";
+
+export const CANCELLATION_REASONS: Array<{ code: CancellationReasonCode; label: string }> = [
+  { code: "closure", label: "Fermeture exceptionnelle" },
+  { code: "overbooking", label: "Surbooking / table indisponible" },
+  { code: "kitchen_issue", label: "Probleme de cuisine" },
+  { code: "customer_unreachable", label: "Client injoignable" },
+  { code: "private_event", label: "Evenement prive prioritaire" },
+  { code: "duplicate_error", label: "Doublon ou erreur de saisie" },
+  { code: "other", label: "Autre" },
+];
 
 const getFirstRow = <T>(data: T[] | T | null | undefined): T | null => {
   if (Array.isArray(data)) return data[0] ?? null;
@@ -96,6 +125,60 @@ export async function updateRestaurantReservationStatus(
       ok: false,
       errorCode: result.error_code || "validation_error",
       errorMessage: result.error_message || "Mise a jour impossible.",
+    };
+  }
+
+  return { ok: true };
+}
+
+export async function cancelReservationByCustomer(
+  reservationId: string,
+): Promise<ReservationMutationResult> {
+  const { data, error } = await (supabase.rpc as any)("cancel_reservation_by_customer", {
+    p_reservation_id: reservationId,
+  });
+
+  if (error) throw error;
+
+  const result = getFirstRow<SafeReservationMutationRow>(data);
+  if (!result) {
+    throw new Error("Reponse serveur invalide.");
+  }
+
+  if (!result.ok) {
+    return {
+      ok: false,
+      errorCode: result.error_code || "validation_error",
+      errorMessage: result.error_message || "Annulation impossible.",
+    };
+  }
+
+  return { ok: true };
+}
+
+export async function cancelReservationByRestaurant(
+  reservationId: string,
+  reasonCode: CancellationReasonCode,
+  reasonDetails: string | null,
+): Promise<ReservationMutationResult> {
+  const { data, error } = await (supabase.rpc as any)("cancel_reservation_by_restaurant", {
+    p_reservation_id: reservationId,
+    p_reason_code: reasonCode,
+    p_reason_details: reasonDetails,
+  });
+
+  if (error) throw error;
+
+  const result = getFirstRow<SafeReservationMutationRow>(data);
+  if (!result) {
+    throw new Error("Reponse serveur invalide.");
+  }
+
+  if (!result.ok) {
+    return {
+      ok: false,
+      errorCode: result.error_code || "validation_error",
+      errorMessage: result.error_message || "Annulation impossible.",
     };
   }
 

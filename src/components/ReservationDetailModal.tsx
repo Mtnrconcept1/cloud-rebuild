@@ -9,10 +9,10 @@ import {
   CalendarDays, Clock, Users, MapPin, Utensils, ChefHat,
   Zap, Timer, AlertTriangle, X, CreditCard, Banknote, Receipt,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
+import { cancelReservationByCustomer } from "@/lib/reservationMutations";
 export type Json =
   | string
   | number
@@ -159,23 +159,22 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
 
   const handleCancel = async () => {
     setCancelling(true);
-    const { error } = await (supabase.rpc as any)("cancel_reservation", {
-      p_reservation_id: reservation.id,
-    });
+    const result = await cancelReservationByCustomer(reservation.id);
     setCancelling(false);
-    if (error) {
-      toast({ title: "Impossible d'annuler", description: error.message, variant: "destructive" });
-    } else {
-      try {
-        await dispatchQueuedNotifications("reservation-cancel");
-      } catch (dispatchError) {
-        console.error("Reservation cancellation notification dispatch failed:", dispatchError);
-      }
-      toast({ title: "Réservation annulée", description: "Votre réservation a bien été annulée." });
-      queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
-      setConfirmCancel(false);
-      onOpenChange(false);
+    if (!result.ok) {
+      toast({ title: "Annulation impossible", description: result.errorMessage, variant: "destructive" });
+      return;
     }
+
+    try {
+      await dispatchQueuedNotifications("reservation-cancel");
+    } catch (dispatchError) {
+      console.error("Reservation cancellation notification dispatch failed:", dispatchError);
+    }
+    toast({ title: "Réservation annulée", description: "Votre réservation a bien été annulée." });
+    queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+    setConfirmCancel(false);
+    onOpenChange(false);
   };
 
   return (
@@ -384,4 +383,3 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     </Dialog>
   );
 }
-

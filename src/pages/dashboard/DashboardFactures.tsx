@@ -58,6 +58,25 @@ type InvoiceSettings = {
   phone: string | null;
 };
 
+type ReservationFeeSummary = {
+  count: number;
+  amount: number;
+};
+
+type InvoiceReservationDetail = {
+  id: string;
+  total_amount: number | string | null;
+  date: string;
+  status: string | null;
+  feature: string | null;
+  billing_fee_chf: number | string | null;
+  confirmed_at: string | null;
+  cancelled_by: string | null;
+};
+
+const RESERVATION_FEE_PERIOD_START = "2000-01-01";
+const RESERVATION_FEE_PERIOD_END = "2100-12-31";
+
 const INVOICE_STATUS_META: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
   pending: { label: "En attente", variant: "secondary" },
@@ -182,7 +201,27 @@ export default function DashboardFactures() {
     enabled: !!selectedId && !restaurantsLoading,
   });
 
-  const { data: currentUninvoiced = 0, isLoading: uninvoicedLoading } = useQuery({
+  const { data: reservationFees = { count: 0, amount: 0 }, isLoading: reservationFeesLoading } = useQuery({
+    queryKey: ["dashboard-reservation-fees", selectedId, RESERVATION_FEE_PERIOD_START, RESERVATION_FEE_PERIOD_END],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("compute_restaurant_reservation_fees", {
+        p_restaurant_id: selectedId!,
+        p_period_start: RESERVATION_FEE_PERIOD_START,
+        p_period_end: RESERVATION_FEE_PERIOD_END,
+      });
+
+      if (error) throw error;
+
+      const row = Array.isArray(data) ? data[0] : data;
+      return {
+        count: Number(row?.reservations_count ?? 0),
+        amount: Number(row?.reservations_amount ?? 0),
+      } satisfies ReservationFeeSummary;
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
+  const { data: currentUninvoicedBase = 0, isLoading: uninvoicedBaseLoading } = useQuery({
     queryKey: ["dashboard-uninvoiced-amount", selectedId],
     queryFn: async () => {
       const [ordersRes, resRes] = await Promise.all([
@@ -215,6 +254,9 @@ export default function DashboardFactures() {
     enabled: !!selectedId && !restaurantsLoading,
   });
 
+  const currentUninvoiced = currentUninvoicedBase + reservationFees.amount;
+  const uninvoicedLoading = uninvoicedBaseLoading || reservationFeesLoading;
+
   const totalHT = useMemo(
     () => invoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ht), 0),
     [invoices],
@@ -246,6 +288,9 @@ export default function DashboardFactures() {
       queryClient.invalidateQueries({ queryKey: ["dashboard-invoice-settings", selectedId] }),
       queryClient.invalidateQueries({ queryKey: ["dashboard-payment-history", selectedId] }),
       queryClient.invalidateQueries({ queryKey: ["dashboard-uninvoiced-amount", selectedId] }),
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-reservation-fees", selectedId, RESERVATION_FEE_PERIOD_START, RESERVATION_FEE_PERIOD_END],
+      }),
     ]);
   };
 
@@ -358,9 +403,25 @@ export default function DashboardFactures() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-medium text-primary">A Facturer (Encours)</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-3">
                       <p className="text-2xl font-bold text-primary">{uninvoicedLoading ? "..." : formatAmount(currentUninvoiced)}</p>
                       <p className="text-xs text-muted-foreground mt-1">Montant pret a etre facture</p>
+                      {!uninvoicedLoading ? (
+                        <div className="space-y-1 border-t border-primary/10 pt-3 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Commandes et reservations prepayees</span>
+                            <span className="font-medium">{formatAmount(currentUninvoicedBase)}</span>
+                          </div>
+                          {reservationFees.count > 0 ? (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">
+                                Reservations confirmees ({reservationFees.count} x 5.-)
+                              </span>
+                              <span className="font-medium">{reservationFees.amount.toFixed(2)} CHF</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </CardContent>
                   </Card>
                   <Card>
@@ -635,13 +696,27 @@ function InvoicePreview({
     queryFn: async () => {
       const [ordersRes, resRes] = await Promise.all([
         supabase.from("orders").select("id, order_number, total_amount, metadata, created_at").eq("restaurant_invoice_id", invoice.id),
-        supabase.from("reservations").select("id, total_amount, date").eq("restaurant_invoice_id", invoice.id)
+        supabase
+          .from("reservations")
+          .select("id, total_amount, date, status, feature, billing_fee_chf, confirmed_at, cancelled_by")
+          .eq("restaurant_invoice_id", invoice.id),
       ]);
       return {
         orders: ordersRes.data || [],
-        reservations: resRes.data || []
+        reservations: (resRes.data || []) as InvoiceReservationDetail[],
       };
-    }
+    },
+  });
+
+  const billedReservationFees = (details?.reservations || []).filter((reservation) => {
+    const isCustomerSideCancellation =
+      reservation.status === "cancelled" &&
+      (reservation.cancelled_by === "customer" || reservation.cancelled_by === "admin");
+    return Boolean(reservation.confirmed_at) && !isCustomerSideCancellation;
+  });
+
+  const prepaidReservations = (details?.reservations || []).filter((reservation) => {
+    return Number(reservation.total_amount || 0) > 0;
   });
 
   return (
@@ -686,7 +761,7 @@ function InvoicePreview({
         <tbody>
           {isLoading ? (
             <tr className="border-b"><td className="py-3" colSpan={2}>Chargement des details...</td></tr>
-          ) : details && (details.orders.length > 0 || details.reservations.length > 0) ? (
+          ) : details && (details.orders.length > 0 || prepaidReservations.length > 0 || billedReservationFees.length > 0) ? (
             <>
               {details.orders.map(o => {
                 const paid = Number(o.total_amount || 0);
@@ -700,12 +775,33 @@ function InvoicePreview({
                   </tr>
                 );
               })}
-              {details.reservations.map(r => {
-                const payout = Number(r.total_amount || 0) * 0.90;
+              {prepaidReservations.map((reservation) => {
+                const payout = Number(reservation.total_amount || 0) * 0.90;
+                const reservationLabel =
+                  reservation.feature === "chefs_table" ? "Chef's Table" : "Flash / Zero Attente";
                 return (
-                  <tr key={r.id} className="border-b text-xs text-gray-600">
-                    <td className="py-2">Flash/Table Chef <span className="text-gray-400">({formatDate(r.date)})</span></td>
+                  <tr key={`prepaid-${reservation.id}`} className="border-b text-xs text-gray-600">
+                    <td className="py-2">
+                      {reservationLabel} <span className="text-gray-400">({formatDate(reservation.date)})</span>
+                    </td>
                     <td className="py-2 text-right">{formatAmount(payout)}</td>
+                  </tr>
+                );
+              })}
+              {billedReservationFees.map((reservation) => {
+                const fee = Number(reservation.billing_fee_chf || 0);
+                const statusLabel = reservation.status ? ` - ${reservation.status}` : "";
+                const cancellationLabel =
+                  reservation.status === "cancelled" && reservation.cancelled_by
+                    ? ` (${reservation.cancelled_by})`
+                    : "";
+                return (
+                  <tr key={`billing-fee-${reservation.id}`} className="border-b text-xs text-gray-600">
+                    <td className="py-2">
+                      Reservation confirmee 5.-{statusLabel}
+                      {cancellationLabel} <span className="text-gray-400">({formatDate(reservation.date)})</span>
+                    </td>
+                    <td className="py-2 text-right">{formatAmount(fee)}</td>
                   </tr>
                 );
               })}
