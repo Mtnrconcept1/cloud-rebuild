@@ -10,6 +10,10 @@ import {
   enqueueNotification,
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
+import {
+  isTokOneEntitledStatus,
+  syncTokOneSubscriptionRecord,
+} from "../_shared/tok-one.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -89,6 +93,69 @@ async function getPaymentMethodDetails(stripe: Stripe, session: Stripe.Checkout.
 function parseMoney(value: unknown, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function getStripeWebhookSecret() {
+  return getEnv("STRIPE_WEBHOOK_SECRET") || getEnv("STRIPE_WEBHOOK_SIGNING_SECRET");
+}
+
+async function recordTokOnePaymentIfMissing(input: {
+  adminClient: ReturnType<typeof createClient>;
+  session: Stripe.Checkout.Session;
+  userId: string;
+  planId: string;
+  billingPeriod: string;
+  stripeSubscriptionId: string | null;
+  eventId: string;
+}) {
+  const {
+    adminClient,
+    session,
+    userId,
+    planId,
+    billingPeriod,
+    stripeSubscriptionId,
+    eventId,
+  } = input;
+
+  const amount = (session.amount_total || 0) / 100;
+  if (amount <= 0) return;
+
+  const { data: existingTransaction, error: existingTransactionError } = await adminClient
+    .from("payment_transactions")
+    .select("id")
+    .eq("stripe_checkout_session_id", session.id)
+    .eq("type", "subscription")
+    .eq("status", "succeeded")
+    .limit(1)
+    .maybeSingle();
+
+  if (existingTransactionError) {
+    console.error("Failed to check existing Tok One payment transaction:", existingTransactionError);
+    return;
+  }
+
+  if (existingTransaction?.id) return;
+
+  await adminClient
+    .from("payment_transactions")
+    .insert({
+      order_id: null,
+      user_id: userId,
+      stripe_checkout_session_id: session.id,
+      stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+      amount,
+      currency: (session.currency || "chf").toLowerCase(),
+      type: "subscription",
+      status: "succeeded",
+      metadata: {
+        checkout_kind: "tok-one",
+        plan_id: planId,
+        billing_period: billingPeriod,
+        stripe_subscription_id: stripeSubscriptionId,
+        stripe_event_id: eventId,
+      },
+    });
 }
 
 function buildReservationNote(input: {
@@ -240,7 +307,7 @@ Deno.serve(async (req) => {
 
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
-  const webhookSecret = getEnv("STRIPE_WEBHOOK_SECRET");
+  const webhookSecret = getStripeWebhookSecret();
 
   if (!webhookSecret) {
     await writeAuditLog({
@@ -389,83 +456,46 @@ Deno.serve(async (req) => {
             break;
           }
 
-          const now = new Date();
-          const periodEnd = new Date(now);
-          if (billingPeriod === "yearly") {
-            periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-          } else {
-            periodEnd.setMonth(periodEnd.getMonth() + 1);
-          }
-
-          // Create subscription record
-          const { data: existingSubscription, error: existingSubscriptionError } = await supabaseAdmin
-            .from("tok_one_subscriptions")
-            .select("id, status, cancel_at_period_end")
-            .eq("user_id", userId)
-            .eq("plan_id", planId)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (existingSubscriptionError) {
-            console.error("Failed to fetch existing Tok One subscription:", existingSubscriptionError);
-          }
-
-          const subscriptionPayload = {
-            user_id: userId,
-            plan_id: planId,
-            status: "active",
-            current_period_start: now.toISOString(),
-            current_period_end: periodEnd.toISOString(),
-            cancel_at_period_end: false,
-            stripe_subscription_id: typeof session.subscription === "string" ? session.subscription : null,
-          };
-
-          const { error: subError } = existingSubscription?.id
-            ? await supabaseAdmin
-              .from("tok_one_subscriptions")
-              .update(subscriptionPayload)
-              .eq("id", existingSubscription.id)
-            : await supabaseAdmin
-              .from("tok_one_subscriptions")
-              .insert(subscriptionPayload);
-
-          if (subError) {
-            console.error("Failed to create Tok One subscription:", subError);
-          } else {
-            console.log(`Tok One subscription created for user ${userId}, plan ${planId}, period ${billingPeriod}`);
-          }
-
-          // Record payment transaction
-          const tokOnePaidAmount = ((session.amount_total || 0) / 100).toFixed(2);
-          await supabaseAdmin
-            .from("payment_transactions")
-            .insert({
-              order_id: null,
-              user_id: userId,
-              stripe_checkout_session_id: session.id,
-              stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
-              amount: tokOnePaidAmount,
-              currency: "chf",
-              type: "subscription",
-              status: "succeeded",
-              metadata: {
-                checkout_kind: "tok-one",
-                plan_id: planId,
-                billing_period: billingPeriod,
-              },
+          let stripeSubscription: Stripe.Subscription | null = null;
+          if (typeof session.subscription === "string") {
+            stripeSubscription = await stripe.subscriptions.retrieve(session.subscription);
+            await syncTokOneSubscriptionRecord({
+              adminClient: supabaseAdmin,
+              subscription: stripeSubscription,
+              fallbackUserId: userId,
+              fallbackPlanId: planId,
             });
+          } else {
+            console.warn(`Tok One checkout completed without Stripe subscription id for session ${session.id}`);
+          }
+
+          await recordTokOnePaymentIfMissing({
+            adminClient: supabaseAdmin,
+            session,
+            userId,
+            planId,
+            billingPeriod,
+            stripeSubscriptionId: stripeSubscription?.id || null,
+            eventId: event.id,
+          });
 
           // Notify user
           try {
+            const isTrialing = stripeSubscription?.status === "trialing";
             await enqueueNotification({
               adminClient: supabaseAdmin,
               userId,
               title: "Bienvenue dans Tok One !",
-              body: `Votre abonnement Tok One (${billingPeriod === "yearly" ? "annuel" : "mensuel"}) est maintenant actif. Profitez de la livraison gratuite et de tous vos avantages premium.`,
+              body: isTrialing
+                ? `Votre essai gratuit Tok One (${billingPeriod === "yearly" ? "annuel" : "mensuel"}) est actif. Vous profitez deja de vos avantages premium jusqu'a la fin de la periode d'essai.`
+                : `Votre abonnement Tok One (${billingPeriod === "yearly" ? "annuel" : "mensuel"}) est maintenant actif. Profitez de la livraison gratuite et de tous vos avantages premium.`,
               type: "subscription",
               category: "transactional",
-              data: { plan_id: planId, billing_period: billingPeriod },
+              data: {
+                plan_id: planId,
+                billing_period: billingPeriod,
+                stripe_subscription_id: stripeSubscription?.id || null,
+              },
             });
             await triggerNotificationDispatch({ source: "stripe-webhook-tok-one", push: true, email: true });
           } catch (error) {
@@ -1143,9 +1173,45 @@ Deno.serve(async (req) => {
 
       case "customer.subscription.created":
       case "customer.subscription.updated":
-      case "customer.subscription.deleted":
-        console.log(`Subscription event received: ${event.type}`);
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const syncResult = await syncTokOneSubscriptionRecord({
+          adminClient: supabaseAdmin,
+          subscription,
+        });
+
+        if (!syncResult.updated) {
+          console.warn(`Tok One subscription event skipped for ${subscription.id}: missing sync identifiers`);
+          break;
+        }
+
+        if (
+          event.type === "customer.subscription.updated" &&
+          !isTokOneEntitledStatus(syncResult.row?.status || null) &&
+          syncResult.row?.user_id
+        ) {
+          await enqueueNotification({
+            adminClient: supabaseAdmin,
+            userId: syncResult.row.user_id,
+            title: "Abonnement Tok One mis a jour",
+            body: "Votre abonnement Tok One n'est plus actif. Mettez a jour votre moyen de paiement pour retrouver vos avantages.",
+            type: "subscription",
+            category: "transactional",
+            data: {
+              stripe_subscription_id: subscription.id,
+              status: syncResult.row?.status || null,
+            },
+          });
+          try {
+            await triggerNotificationDispatch({ source: "stripe-webhook-subscription-update", push: true, email: true });
+          } catch (error) {
+            console.error("stripe-webhook subscription update notification trigger failed:", error);
+          }
+        }
+
+        console.log(`Subscription event synced: ${event.type} -> ${subscription.id}`);
         break;
+      }
 
       default:
         console.log(`Unhandled event type: ${event.type}`);

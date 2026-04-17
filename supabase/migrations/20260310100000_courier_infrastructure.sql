@@ -7,7 +7,7 @@
 ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'courier';
 
 -- Step 2: Create couriers table
-CREATE TABLE public.couriers (
+CREATE TABLE IF NOT EXISTS public.couriers (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
   first_name text,
@@ -33,7 +33,7 @@ CREATE TABLE public.couriers (
 );
 
 -- Step 3: Create courier_documents table
-CREATE TABLE public.courier_documents (
+CREATE TABLE IF NOT EXISTS public.courier_documents (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   courier_id uuid NOT NULL REFERENCES public.couriers(id) ON DELETE CASCADE,
   document_type text NOT NULL
@@ -49,7 +49,7 @@ CREATE TABLE public.courier_documents (
 );
 
 -- Step 4: Create courier_shifts table
-CREATE TABLE public.courier_shifts (
+CREATE TABLE IF NOT EXISTS public.courier_shifts (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   courier_id uuid NOT NULL REFERENCES public.couriers(id) ON DELETE CASCADE,
   day_of_week integer NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
@@ -60,7 +60,7 @@ CREATE TABLE public.courier_shifts (
 );
 
 -- Step 5: Create courier_locations table (high-frequency GPS tracking)
-CREATE TABLE public.courier_locations (
+CREATE TABLE IF NOT EXISTS public.courier_locations (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   courier_id uuid NOT NULL REFERENCES public.couriers(id) ON DELETE CASCADE,
   lat double precision NOT NULL,
@@ -71,11 +71,11 @@ CREATE TABLE public.courier_locations (
   recorded_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_courier_locations_recent
+CREATE INDEX IF NOT EXISTS idx_courier_locations_recent
   ON public.courier_locations (courier_id, recorded_at DESC);
 
 -- Step 6: Create dispatch_jobs table
-CREATE TABLE public.dispatch_jobs (
+CREATE TABLE IF NOT EXISTS public.dispatch_jobs (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id uuid NOT NULL REFERENCES public.orders(id),
   courier_id uuid REFERENCES public.couriers(id),
@@ -107,11 +107,11 @@ CREATE TABLE public.dispatch_jobs (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_dispatch_jobs_order ON public.dispatch_jobs (order_id);
-CREATE INDEX idx_dispatch_jobs_courier ON public.dispatch_jobs (courier_id, status);
+CREATE INDEX IF NOT EXISTS idx_dispatch_jobs_order ON public.dispatch_jobs (order_id);
+CREATE INDEX IF NOT EXISTS idx_dispatch_jobs_courier ON public.dispatch_jobs (courier_id, status);
 
 -- Step 7: Create dispatch_attempts table
-CREATE TABLE public.dispatch_attempts (
+CREATE TABLE IF NOT EXISTS public.dispatch_attempts (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   dispatch_job_id uuid NOT NULL REFERENCES public.dispatch_jobs(id) ON DELETE CASCADE,
   courier_id uuid NOT NULL REFERENCES public.couriers(id),
@@ -124,11 +124,11 @@ CREATE TABLE public.dispatch_attempts (
   estimated_earnings numeric
 );
 
-CREATE INDEX idx_dispatch_attempts_job ON public.dispatch_attempts (dispatch_job_id);
-CREATE INDEX idx_dispatch_attempts_courier ON public.dispatch_attempts (courier_id, status);
+CREATE INDEX IF NOT EXISTS idx_dispatch_attempts_job ON public.dispatch_attempts (dispatch_job_id);
+CREATE INDEX IF NOT EXISTS idx_dispatch_attempts_courier ON public.dispatch_attempts (courier_id, status);
 
 -- Step 8: Create courier_earnings table
-CREATE TABLE public.courier_earnings (
+CREATE TABLE IF NOT EXISTS public.courier_earnings (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   courier_id uuid NOT NULL REFERENCES public.couriers(id) ON DELETE CASCADE,
   amount numeric NOT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE public.courier_earnings (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_courier_earnings_courier ON public.courier_earnings (courier_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_courier_earnings_courier ON public.courier_earnings (courier_id, created_at DESC);
 
 -- Step 9: Add courier_id and scheduled_at to orders
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS courier_id uuid REFERENCES public.couriers(id);
@@ -149,7 +149,7 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS actual_delivered_at timestamp
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS cancellation_reason text;
 
 -- Step 10: Create payment_transactions table
-CREATE TABLE public.payment_transactions (
+CREATE TABLE IF NOT EXISTS public.payment_transactions (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id uuid REFERENCES public.orders(id),
   user_id uuid,
@@ -165,7 +165,7 @@ CREATE TABLE public.payment_transactions (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_payment_transactions_order ON public.payment_transactions (order_id);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_order ON public.payment_transactions (order_id);
 
 -- Step 11: Create user_wallets table
 CREATE TABLE IF NOT EXISTS public.user_wallets (
@@ -177,7 +177,7 @@ CREATE TABLE IF NOT EXISTS public.user_wallets (
 );
 
 -- Step 12: Create conversations & messages tables
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id uuid REFERENCES public.orders(id),
   type text NOT NULL DEFAULT 'order'
@@ -189,9 +189,9 @@ CREATE TABLE public.conversations (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_conversations_order ON public.conversations (order_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_order ON public.conversations (order_id);
 
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   sender_id uuid NOT NULL,
@@ -203,10 +203,10 @@ CREATE TABLE public.messages (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_messages_conversation ON public.messages (conversation_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON public.messages (conversation_id, created_at);
 
 -- Step 13: Create promo_codes tables
-CREATE TABLE public.promo_codes (
+CREATE TABLE IF NOT EXISTS public.promo_codes (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   code text NOT NULL UNIQUE,
   type text NOT NULL CHECK (type IN ('percentage', 'fixed', 'free_delivery')),
@@ -225,7 +225,7 @@ CREATE TABLE public.promo_codes (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.promo_code_uses (
+CREATE TABLE IF NOT EXISTS public.promo_code_uses (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   promo_code_id uuid NOT NULL REFERENCES public.promo_codes(id),
   user_id uuid NOT NULL,
@@ -235,7 +235,7 @@ CREATE TABLE public.promo_code_uses (
 );
 
 -- Step 14: Create referral_codes table
-CREATE TABLE public.referral_codes (
+CREATE TABLE IF NOT EXISTS public.referral_codes (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid NOT NULL UNIQUE,
   code text NOT NULL UNIQUE,
@@ -246,7 +246,7 @@ CREATE TABLE public.referral_codes (
 );
 
 -- Step 15: Create support_tickets tables
-CREATE TABLE public.support_tickets (
+CREATE TABLE IF NOT EXISTS public.support_tickets (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid NOT NULL,
   order_id uuid REFERENCES public.orders(id),
@@ -269,7 +269,7 @@ CREATE TABLE public.support_tickets (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.support_messages (
+CREATE TABLE IF NOT EXISTS public.support_messages (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   ticket_id uuid NOT NULL REFERENCES public.support_tickets(id) ON DELETE CASCADE,
   sender_id uuid NOT NULL,
@@ -279,8 +279,8 @@ CREATE TABLE public.support_messages (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_support_tickets_user ON public.support_tickets (user_id, created_at DESC);
-CREATE INDEX idx_support_messages_ticket ON public.support_messages (ticket_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_user ON public.support_tickets (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_support_messages_ticket ON public.support_messages (ticket_id, created_at);
 
 -- Step 16: Add stripe_account_id and commission to restaurants
 ALTER TABLE public.restaurants ADD COLUMN IF NOT EXISTS stripe_account_id text;
@@ -309,6 +309,8 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_restaurants_search_vector ON public.restaurants;
 
 CREATE TRIGGER trg_restaurants_search_vector
   BEFORE INSERT OR UPDATE ON public.restaurants
@@ -424,15 +426,20 @@ $$;
 -- Couriers
 ALTER TABLE public.couriers ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "couriers_own_profile_select" ON public.couriers;
 CREATE POLICY "couriers_own_profile_select" ON public.couriers
   FOR SELECT TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "couriers_own_profile_insert" ON public.couriers;
 CREATE POLICY "couriers_own_profile_insert" ON public.couriers
   FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "couriers_own_profile_update" ON public.couriers;
 CREATE POLICY "couriers_own_profile_update" ON public.couriers
   FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "couriers_admin_all" ON public.couriers;
 CREATE POLICY "couriers_admin_all" ON public.couriers
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 -- Clients can see courier basic info for their active orders
+DROP POLICY IF EXISTS "couriers_client_active_order" ON public.couriers;
 CREATE POLICY "couriers_client_active_order" ON public.couriers
   FOR SELECT TO authenticated USING (
     EXISTS (
@@ -447,34 +454,41 @@ CREATE POLICY "couriers_client_active_order" ON public.couriers
 -- Courier documents
 ALTER TABLE public.courier_documents ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "courier_docs_own" ON public.courier_documents;
 CREATE POLICY "courier_docs_own" ON public.courier_documents
   FOR ALL TO authenticated USING (
     EXISTS (SELECT 1 FROM public.couriers c WHERE c.id = courier_documents.courier_id AND c.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "courier_docs_admin" ON public.courier_documents;
 CREATE POLICY "courier_docs_admin" ON public.courier_documents
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Courier shifts
 ALTER TABLE public.courier_shifts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "courier_shifts_own" ON public.courier_shifts;
 CREATE POLICY "courier_shifts_own" ON public.courier_shifts
   FOR ALL TO authenticated USING (
     EXISTS (SELECT 1 FROM public.couriers c WHERE c.id = courier_shifts.courier_id AND c.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "courier_shifts_admin" ON public.courier_shifts;
 CREATE POLICY "courier_shifts_admin" ON public.courier_shifts
   FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Courier locations
 ALTER TABLE public.courier_locations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "courier_locations_own_insert" ON public.courier_locations;
 CREATE POLICY "courier_locations_own_insert" ON public.courier_locations
   FOR INSERT TO authenticated WITH CHECK (
     EXISTS (SELECT 1 FROM public.couriers c WHERE c.id = courier_locations.courier_id AND c.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "courier_locations_own_select" ON public.courier_locations;
 CREATE POLICY "courier_locations_own_select" ON public.courier_locations
   FOR SELECT TO authenticated USING (
     EXISTS (SELECT 1 FROM public.couriers c WHERE c.id = courier_locations.courier_id AND c.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "courier_locations_client_active" ON public.courier_locations;
 CREATE POLICY "courier_locations_client_active" ON public.courier_locations
   FOR SELECT TO authenticated USING (
     EXISTS (
@@ -485,74 +499,90 @@ CREATE POLICY "courier_locations_client_active" ON public.courier_locations
         AND dj.status IN ('accepted', 'arriving_pickup', 'picked_up', 'arriving_dropoff')
     )
   );
+DROP POLICY IF EXISTS "courier_locations_admin" ON public.courier_locations;
 CREATE POLICY "courier_locations_admin" ON public.courier_locations
   FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Dispatch jobs
 ALTER TABLE public.dispatch_jobs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "dispatch_jobs_courier_select" ON public.dispatch_jobs;
 CREATE POLICY "dispatch_jobs_courier_select" ON public.dispatch_jobs
   FOR SELECT TO authenticated USING (
     EXISTS (SELECT 1 FROM public.couriers c WHERE c.id = dispatch_jobs.courier_id AND c.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "dispatch_jobs_courier_update" ON public.dispatch_jobs;
 CREATE POLICY "dispatch_jobs_courier_update" ON public.dispatch_jobs
   FOR UPDATE TO authenticated USING (
     EXISTS (SELECT 1 FROM public.couriers c WHERE c.id = dispatch_jobs.courier_id AND c.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "dispatch_jobs_client_select" ON public.dispatch_jobs;
 CREATE POLICY "dispatch_jobs_client_select" ON public.dispatch_jobs
   FOR SELECT TO authenticated USING (
     EXISTS (SELECT 1 FROM public.orders o WHERE o.id = dispatch_jobs.order_id AND o.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "dispatch_jobs_admin" ON public.dispatch_jobs;
 CREATE POLICY "dispatch_jobs_admin" ON public.dispatch_jobs
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Dispatch attempts
 ALTER TABLE public.dispatch_attempts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "dispatch_attempts_courier" ON public.dispatch_attempts;
 CREATE POLICY "dispatch_attempts_courier" ON public.dispatch_attempts
   FOR ALL TO authenticated USING (
     EXISTS (SELECT 1 FROM public.couriers c WHERE c.id = dispatch_attempts.courier_id AND c.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "dispatch_attempts_admin" ON public.dispatch_attempts;
 CREATE POLICY "dispatch_attempts_admin" ON public.dispatch_attempts
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Courier earnings
 ALTER TABLE public.courier_earnings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "courier_earnings_own" ON public.courier_earnings;
 CREATE POLICY "courier_earnings_own" ON public.courier_earnings
   FOR SELECT TO authenticated USING (
     EXISTS (SELECT 1 FROM public.couriers c WHERE c.id = courier_earnings.courier_id AND c.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "courier_earnings_admin" ON public.courier_earnings;
 CREATE POLICY "courier_earnings_admin" ON public.courier_earnings
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Payment transactions
 ALTER TABLE public.payment_transactions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "payment_transactions_own" ON public.payment_transactions;
 CREATE POLICY "payment_transactions_own" ON public.payment_transactions
   FOR SELECT TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "payment_transactions_admin" ON public.payment_transactions;
 CREATE POLICY "payment_transactions_admin" ON public.payment_transactions
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- User wallets
 ALTER TABLE public.user_wallets ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "wallets_own" ON public.user_wallets;
 CREATE POLICY "wallets_own" ON public.user_wallets
   FOR ALL TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "wallets_admin" ON public.user_wallets;
 CREATE POLICY "wallets_admin" ON public.user_wallets
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Conversations
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "conversations_participant" ON public.conversations;
 CREATE POLICY "conversations_participant" ON public.conversations
   FOR ALL TO authenticated USING (auth.uid() = ANY(participant_ids));
+DROP POLICY IF EXISTS "conversations_admin" ON public.conversations;
 CREATE POLICY "conversations_admin" ON public.conversations
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Messages
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "messages_participant" ON public.messages;
 CREATE POLICY "messages_participant" ON public.messages
   FOR ALL TO authenticated USING (
     EXISTS (
@@ -560,16 +590,20 @@ CREATE POLICY "messages_participant" ON public.messages
       WHERE c.id = messages.conversation_id AND auth.uid() = ANY(c.participant_ids)
     )
   );
+DROP POLICY IF EXISTS "messages_admin" ON public.messages;
 CREATE POLICY "messages_admin" ON public.messages
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Promo codes
 ALTER TABLE public.promo_codes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "promo_codes_public_read" ON public.promo_codes;
 CREATE POLICY "promo_codes_public_read" ON public.promo_codes
   FOR SELECT TO authenticated USING (is_active = true);
+DROP POLICY IF EXISTS "promo_codes_admin" ON public.promo_codes;
 CREATE POLICY "promo_codes_admin" ON public.promo_codes
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+DROP POLICY IF EXISTS "promo_codes_restaurant" ON public.promo_codes;
 CREATE POLICY "promo_codes_restaurant" ON public.promo_codes
   FOR ALL TO authenticated USING (
     restaurant_id IS NOT NULL AND EXISTS (
@@ -580,43 +614,71 @@ CREATE POLICY "promo_codes_restaurant" ON public.promo_codes
 -- Promo code uses
 ALTER TABLE public.promo_code_uses ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "promo_uses_own" ON public.promo_code_uses;
 CREATE POLICY "promo_uses_own" ON public.promo_code_uses
   FOR SELECT TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "promo_uses_admin" ON public.promo_code_uses;
 CREATE POLICY "promo_uses_admin" ON public.promo_code_uses
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Referral codes
 ALTER TABLE public.referral_codes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "referral_own" ON public.referral_codes;
 CREATE POLICY "referral_own" ON public.referral_codes
   FOR ALL TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "referral_public_read" ON public.referral_codes;
 CREATE POLICY "referral_public_read" ON public.referral_codes
   FOR SELECT TO authenticated USING (true);
 
 -- Support tickets
 ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "support_tickets_own" ON public.support_tickets;
 CREATE POLICY "support_tickets_own" ON public.support_tickets
   FOR ALL TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "support_tickets_admin" ON public.support_tickets;
 CREATE POLICY "support_tickets_admin" ON public.support_tickets
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- Support messages
 ALTER TABLE public.support_messages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "support_messages_own" ON public.support_messages;
 CREATE POLICY "support_messages_own" ON public.support_messages
   FOR ALL TO authenticated USING (
     EXISTS (SELECT 1 FROM public.support_tickets t WHERE t.id = support_messages.ticket_id AND t.user_id = auth.uid())
   );
+DROP POLICY IF EXISTS "support_messages_admin" ON public.support_messages;
 CREATE POLICY "support_messages_admin" ON public.support_messages
   FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 
 -- =============================================================
 -- ENABLE REALTIME on critical tables
 -- =============================================================
-ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.delivery_tracking;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.dispatch_jobs;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.dispatch_attempts;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+DO $$
+DECLARE
+  realtime_table text;
+BEGIN
+  FOREACH realtime_table IN ARRAY ARRAY[
+    'orders',
+    'delivery_tracking',
+    'dispatch_jobs',
+    'dispatch_attempts',
+    'messages',
+    'notifications'
+  ]
+  LOOP
+    IF to_regclass(format('public.%s', realtime_table)) IS NOT NULL
+       AND NOT EXISTS (
+         SELECT 1
+         FROM pg_publication_tables
+         WHERE pubname = 'supabase_realtime'
+           AND schemaname = 'public'
+           AND tablename = realtime_table
+       ) THEN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', realtime_table);
+    END IF;
+  END LOOP;
+END
+$$;

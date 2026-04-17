@@ -5,18 +5,13 @@ import {
   jsonResponse,
   writeAuditLog,
 } from "../_shared/auth.ts";
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { triggerNotificationDispatch } from "../_shared/notifications.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 

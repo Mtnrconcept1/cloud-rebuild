@@ -69,12 +69,16 @@ export default function MultiRestaurant() {
   const currentCourse = COURSES[activeCourse];
 
   // The first selected restaurant defines the origin for the 500m radius
-  const originRestaurant = selections.length > 0 ? {
-    id: selections[0].restaurantId,
-    lat: selections[0].lat,
-    lng: selections[0].lng,
-    name: selections[0].restaurantName
-  } : null;
+  const originRestaurant = useMemo(() => {
+    if (selections.length === 0) return null;
+
+    return {
+      id: selections[0].restaurantId,
+      lat: selections[0].lat,
+      lng: selections[0].lng,
+      name: selections[0].restaurantName,
+    };
+  }, [selections]);
 
   const filteredRestaurants = useMemo(() => {
     if (!restaurants) return [];

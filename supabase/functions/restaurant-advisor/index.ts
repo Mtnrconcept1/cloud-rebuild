@@ -1,71 +1,75 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  HttpError,
+  authenticateRequest,
+  jsonResponse,
+  requireRestaurantAccess,
+  writeAuditLog,
+} from "../_shared/auth.ts";
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// Restaurant columns sent to the AI. Keep this list minimal and business-only:
+// never send owner_id, stripe_account_id, internal flags, raw addresses, etc.
+const RESTAURANT_COLUMNS =
+  "id, name, city, cuisine_type, rating, review_count, price_range, delivery_available, delivery_fee, min_order_amount";
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
+
+function sanitizeMessages(raw: unknown): ChatMessage[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((m): m is Record<string, unknown> => Boolean(m) && typeof m === "object")
+    .slice(-20) // cap to last 20 messages to bound cost
+    .map((m) => {
+      const role = m.role === "user" || m.role === "assistant" ? m.role : "user";
+      const content = typeof m.content === "string" ? m.content.slice(0, 4000) : "";
+      return { role, content } as ChatMessage;
+    })
+    .filter((m) => m.content.length > 0);
+}
+
+Deno.serve(async (req) => {
+  const cors = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, cors);
+  if (preflight) return preflight;
+
+  const log = makeLogger("restaurant-advisor");
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
-    const { messages, restaurantId } = await req.json();
+    actor = await authenticateRequest(req, { allowServiceRole: false });
+    if (!actor.userId) throw new HttpError(401, "Unauthorized");
 
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!OPENAI_API_KEY && !LOVABLE_API_KEY) throw new Error("OPENAI_API_KEY or LOVABLE_API_KEY must be configured");
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Non autorisé" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!OPENAI_API_KEY && !LOVABLE_API_KEY) {
+      log.error("ai_provider_missing");
+      throw new HttpError(503, "ai_service_unavailable");
     }
 
-    // Create supabase client with user token to verify ownership
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    const userClient = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Non autorisé" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const body = await req.json().catch(() => ({}));
+    const restaurantId = typeof body.restaurantId === "string" ? body.restaurantId : "";
+    const messages = sanitizeMessages(body.messages);
+    if (!restaurantId || messages.length === 0) {
+      throw new HttpError(400, "invalid_request");
     }
 
-    // Use service role to gather all data
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const restaurant = await requireRestaurantAccess(actor, restaurantId);
 
-    // Verify restaurant ownership
-    const { data: restaurant, error: restError } = await adminClient
-      .from("restaurants")
-      .select("*")
-      .eq("id", restaurantId)
-      .eq("owner_id", user.id)
-      .single();
+    // Fail-closed rate limits: per user (cost protection), per restaurant
+    // (multi-owner fairness), and global (platform brake).
+    const rl = createRateLimiter(actor.adminClient, "restaurant-advisor");
+    await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 3600 });
+    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 50, windowSeconds: 3600 });
+    await rl.consume("global", { maxRequests: 200, windowSeconds: 60 });
 
-    if (restError || !restaurant) {
-      return new Response(JSON.stringify({ error: "Restaurant introuvable" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Gather all restaurant data in parallel
+    // Gather restaurant data (minimal columns).
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const [
+      restaurantFullResult,
       ordersResult,
       reservationsResult,
       reviewsResult,
@@ -77,144 +81,123 @@ serve(async (req) => {
       formulasResult,
       promotionsResult,
     ] = await Promise.all([
-      // Orders (last 30 days)
-      adminClient
+      actor.adminClient
+        .from("restaurants")
+        .select(RESTAURANT_COLUMNS)
+        .eq("id", restaurantId)
+        .maybeSingle(),
+      actor.adminClient
         .from("orders")
         .select("id, total_amount, status, created_at, delivery_fee, discount_amount")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", thirtyDaysAgo)
-        .order("created_at", { ascending: false }),
-      // Reservations (last 30 days)
-      adminClient
+        .order("created_at", { ascending: false })
+        .limit(500),
+      actor.adminClient
         .from("reservations")
         .select("id, date, time, party_size, status, feature, total_amount, created_at")
         .eq("restaurant_id", restaurantId)
         .gte("created_at", thirtyDaysAgo)
-        .order("created_at", { ascending: false }),
-      // Reviews
-      adminClient
+        .order("created_at", { ascending: false })
+        .limit(500),
+      actor.adminClient
         .from("reviews")
         .select("id, rating, quality_rating, service_rating, speed_rating, comment, created_at")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(50),
-      // Menu items
-      adminClient
+      actor.adminClient
         .from("menu_items")
         .select("id, name, price, category, is_available, is_exclusive, image_url")
         .eq("restaurant_id", restaurantId),
-      // Ad campaigns
-      adminClient
+      actor.adminClient
         .from("ad_campaigns")
         .select("id, title, type, status, impressions, clicks, conversions, spent, total_budget, starts_at, ends_at")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(10),
-      // Flash sales
-      adminClient
+      actor.adminClient
         .from("flash_sales")
         .select("id, title, original_price, discounted_price, quantity_available, is_active, sale_date")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false })
         .limit(10),
-      // Photos
-      adminClient
+      actor.adminClient
         .from("restaurant_media")
-        .select("id, media_url, media_type, is_cover, alt_text")
+        .select("id, media_type, is_cover")
         .eq("restaurant_id", restaurantId),
-      // Anti-waste offers
-      adminClient
+      actor.adminClient
         .from("anti_waste_offers")
         .select("id, title, original_price, discounted_price, quantity_available, is_active")
         .eq("restaurant_id", restaurantId)
         .limit(10),
-      // Meal formulas
-      adminClient
+      actor.adminClient
         .from("meal_formulas")
         .select("id, name, discount_percent, is_active, applies_to")
         .eq("restaurant_id", restaurantId),
-      // Promotions
-      adminClient
+      actor.adminClient
         .from("restaurant_promotions")
         .select("id, name, promotion_type, promotion_value, active, start_at, end_at, target")
         .eq("restaurant_id", restaurantId)
         .limit(10),
     ]);
 
-    // Compute analytics
-    const orders = ordersResult.data || [];
-    const reservations = reservationsResult.data || [];
-    const reviews = reviewsResult.data || [];
-    const menuItems = menuResult.data || [];
-    const campaigns = campaignsResult.data || [];
-    const flashSales = flashSalesResult.data || [];
-    const photos = photosResult.data || [];
-    const antiWaste = antiWasteResult.data || [];
-    const formulas = formulasResult.data || [];
-    const promotions = promotionsResult.data || [];
+    const safeRestaurant = (restaurantFullResult.data ?? {
+      name: restaurant.name,
+      city: restaurant.city,
+      cuisine_type: restaurant.cuisine_type,
+    }) as Record<string, unknown>;
 
-    const totalRevenue = orders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+    const orders = (ordersResult.data ?? []) as Array<Record<string, unknown>>;
+    const reservations = (reservationsResult.data ?? []) as Array<Record<string, unknown>>;
+    const reviews = (reviewsResult.data ?? []) as Array<Record<string, unknown>>;
+    const menuItems = (menuResult.data ?? []) as Array<Record<string, unknown>>;
+    const campaigns = (campaignsResult.data ?? []) as Array<Record<string, unknown>>;
+    const flashSales = (flashSalesResult.data ?? []) as Array<Record<string, unknown>>;
+    const photos = (photosResult.data ?? []) as Array<Record<string, unknown>>;
+    const antiWaste = (antiWasteResult.data ?? []) as Array<Record<string, unknown>>;
+    const formulas = (formulasResult.data ?? []) as Array<Record<string, unknown>>;
+    const promotions = (promotionsResult.data ?? []) as Array<Record<string, unknown>>;
+
+    const totalRevenue = orders.reduce((s, o) => s + Number(o.total_amount ?? 0), 0);
     const avgTicket = orders.length > 0 ? totalRevenue / orders.length : 0;
     const cancelledOrders = orders.filter((o) => o.status === "cancelled").length;
-    const cancelRate = orders.length > 0 ? (cancelledOrders / orders.length * 100).toFixed(1) : "0";
-    const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : "N/A";
-    const avgQuality = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.quality_rating, 0) / reviews.length).toFixed(1) : "N/A";
-    const avgService = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.service_rating, 0) / reviews.length).toFixed(1) : "N/A";
-    const avgSpeed = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.speed_rating, 0) / reviews.length).toFixed(1) : "N/A";
+    const cancelRate = orders.length > 0 ? ((cancelledOrders / orders.length) * 100).toFixed(1) : "0";
 
-    const totalImpressions = campaigns.reduce((s, c) => s + (c.impressions || 0), 0);
-    const totalClicks = campaigns.reduce((s, c) => s + (c.clicks || 0), 0);
-    const totalConversions = campaigns.reduce((s, c) => s + (c.conversions || 0), 0);
-    const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(2) : "0";
-    const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks * 100).toFixed(2) : "0";
+    const fmt1 = (arr: number[]) =>
+      arr.length > 0 ? (arr.reduce((s, n) => s + n, 0) / arr.length).toFixed(1) : "N/A";
+    const avgRating = fmt1(reviews.map((r) => Number(r.rating ?? 0)));
+    const avgQuality = fmt1(reviews.map((r) => Number(r.quality_rating ?? 0)));
+    const avgService = fmt1(reviews.map((r) => Number(r.service_rating ?? 0)));
+    const avgSpeed = fmt1(reviews.map((r) => Number(r.speed_rating ?? 0)));
+
+    const totalImpressions = campaigns.reduce((s, c) => s + Number(c.impressions ?? 0), 0);
+    const totalClicks = campaigns.reduce((s, c) => s + Number(c.clicks ?? 0), 0);
+    const totalConversions = campaigns.reduce((s, c) => s + Number(c.conversions ?? 0), 0);
+    const ctr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0";
+    const conversionRate = totalClicks > 0 ? ((totalConversions / totalClicks) * 100).toFixed(2) : "0";
 
     const recentReviews = reviews.slice(0, 5).map((r) => ({
       rating: r.rating,
-      comment: r.comment || "(pas de commentaire)",
+      // Comments may contain PII from reviewers — truncate defensively.
+      comment: typeof r.comment === "string" ? r.comment.slice(0, 500) : "(pas de commentaire)",
       date: r.created_at,
     }));
 
     const menuCategories = [...new Set(menuItems.map((m) => m.category || "Sans catégorie"))];
     const itemsWithoutImage = menuItems.filter((m) => !m.image_url).length;
-    const unavailableItems = menuItems.filter((m) => !m.is_available).length;
+    const unavailableItems = menuItems.filter((m) => m.is_available === false).length;
 
     const contextData = {
-      restaurant: {
-        name: restaurant.name,
-        city: restaurant.city,
-        cuisine_type: restaurant.cuisine_type,
-        rating: restaurant.rating,
-        review_count: restaurant.review_count,
-        price_range: restaurant.price_range,
-        delivery_available: restaurant.delivery_available,
-        delivery_fee: restaurant.delivery_fee,
-        min_order_amount: restaurant.min_order_amount,
-      },
+      restaurant: safeRestaurant,
       sales_30d: {
         total_orders: orders.length,
         total_revenue: totalRevenue.toFixed(2) + " CHF",
         average_ticket: avgTicket.toFixed(2) + " CHF",
         cancel_rate: cancelRate + "%",
         cancelled_orders: cancelledOrders,
-        orders_by_status: orders.reduce((acc, o) => {
-          acc[o.status] = (acc[o.status] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
       },
-      reservations_30d: {
-        total: reservations.length,
-        by_feature: reservations.reduce((acc, r) => {
-          acc[r.feature] = (acc[r.feature] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
-        by_status: reservations.reduce((acc, r) => {
-          acc[r.status] = (acc[r.status] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
-        avg_party_size: reservations.length > 0
-          ? (reservations.reduce((s, r) => s + r.party_size, 0) / reservations.length).toFixed(1)
-          : "0",
-      },
+      reservations_30d: { total: reservations.length },
       reviews: {
         total: reviews.length,
         avg_rating: avgRating,
@@ -228,9 +211,6 @@ serve(async (req) => {
         categories: menuCategories,
         items_without_image: itemsWithoutImage,
         unavailable_items: unavailableItems,
-        price_range: menuItems.length > 0
-          ? { min: Math.min(...menuItems.map((m) => Number(m.price))).toFixed(2), max: Math.max(...menuItems.map((m) => Number(m.price))).toFixed(2) }
-          : null,
       },
       campaigns: {
         total: campaigns.length,
@@ -240,112 +220,93 @@ serve(async (req) => {
         total_conversions: totalConversions,
         ctr: ctr + "%",
         conversion_rate: conversionRate + "%",
-        total_spent: campaigns.reduce((s, c) => s + Number(c.spent || 0), 0).toFixed(2) + " CHF",
       },
-      photos: {
-        total: photos.length,
-        has_cover: photos.some((p) => p.is_cover),
-        types: photos.reduce((acc, p) => {
-          acc[p.media_type] = (acc[p.media_type] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
-      },
-      flash_sales: {
-        total: flashSales.length,
-        active: flashSales.filter((f) => f.is_active).length,
-      },
-      anti_waste: {
-        total: antiWaste.length,
-        active: antiWaste.filter((a) => a.is_active).length,
-      },
-      formulas: {
-        total: formulas.length,
-        active: formulas.filter((f) => f.is_active).length,
-      },
-      promotions: {
-        total: promotions.length,
-        active: promotions.filter((p) => p.active).length,
-      },
+      flash_sales: { total: flashSales.length, active: flashSales.filter((f) => f.is_active).length },
+      anti_waste: { total: antiWaste.length, active: antiWaste.filter((a) => a.is_active).length },
+      formulas: { total: formulas.length, active: formulas.filter((f) => f.is_active).length },
+      promotions: { total: promotions.length, active: promotions.filter((p) => p.active).length },
+      photos: { total: photos.length, has_cover: photos.some((p) => p.is_cover) },
     };
 
-    const systemPrompt = `Tu es l'assistant IA expert en restauration de la plateforme Tok. Tu aides les restaurateurs à optimiser leurs ventes, améliorer leur visibilité et augmenter leur chiffre d'affaires.
+    const systemPrompt = `Tu es l'assistant IA expert en restauration de la plateforme Tok. Tu aides les restaurateurs à optimiser leurs ventes.
 
-Tu as accès aux données complètes du restaurant "${restaurant.name}" :
+Données du restaurant "${restaurant.name}" :
 
 ${JSON.stringify(contextData, null, 2)}
 
 RÈGLES :
-- Réponds toujours en français
-- Sois concis, actionnable et bienveillant
-- Donne des conseils concrets basés sur les VRAIES données (pas de généralités vagues)
-- Utilise des émojis pour structurer tes réponses
-- Formate en Markdown avec des titres, listes et gras pour la clarté
-- Si on te demande des données que tu n'as pas, dis-le honnêtement
-- Compare les performances aux bonnes pratiques du secteur de la restauration
-- Propose des actions prioritaires classées par impact potentiel
-- Mentionne les fonctionnalités de la plateforme (ventes flash, anti-gaspi, formules, campagnes, Zéro Attente, Chef's Table) quand c'est pertinent
-
-DOMAINES D'EXPERTISE :
-1. Analyse des ventes et du panier moyen
-2. Optimisation du menu (prix, photos, catégories)
-3. Gestion des réservations et taux de remplissage
-4. Stratégie de campagnes marketing et ROI
-5. Amélioration de la satisfaction client (avis)
-6. Utilisation des promotions et formules
-7. Stratégie anti-gaspi et ventes flash
-8. Optimisation des photos et de la page restaurant`;
+- Réponds en français, concis, actionnable
+- Base tes conseils sur les VRAIES données (jamais de PII individuelle)
+- Format Markdown, émojis pour structurer
+- Si une donnée manque, dis-le honnêtement
+- Propose des actions prioritaires classées par impact`;
 
     const useOpenAI = !!OPENAI_API_KEY;
-    const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL") || "gpt-4o";
+    const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL") || "gpt-4o-mini";
 
-    const response = await fetch(
-      useOpenAI ? "https://api.openai.com/v1/chat/completions" : "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${useOpenAI ? OPENAI_API_KEY : LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: useOpenAI ? OPENAI_MODEL : "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...messages,
-          ],
-          stream: true,
-        }),
+    const aiUrl = useOpenAI
+      ? "https://api.openai.com/v1/chat/completions"
+      : "https://ai.gateway.lovable.dev/v1/chat/completions";
+
+    const response = await fetch(aiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${useOpenAI ? OPENAI_API_KEY : LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        model: useOpenAI ? OPENAI_MODEL : "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages,
+        ],
+        stream: true,
+      }),
+    });
 
     if (!response.ok) {
+      log.error("ai_gateway_error", { status: response.status });
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Trop de requêtes. Réessayez dans quelques instants." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        throw new HttpError(429, "Trop de requêtes. Réessayez dans quelques instants.");
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Crédits IA épuisés. Veuillez recharger votre compte." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        throw new HttpError(402, "Crédits IA épuisés.");
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      return new Response(JSON.stringify({ error: "Erreur du service IA" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new HttpError(502, "ai_service_error");
     }
 
+    // Audit success (fire-and-forget).
+    writeAuditLog({
+      adminClient: actor.adminClient,
+      functionName: "restaurant-advisor",
+      status: "success",
+      actor,
+      request: req,
+      targetEntityType: "restaurants",
+      targetEntityId: restaurantId,
+      metadata: { rid: log.rid, message_count: messages.length },
+    }).catch(() => {});
+
     return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: { ...cors, "Content-Type": "text/event-stream" },
     });
-  } catch (e) {
-    console.error("restaurant-advisor error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erreur inconnue" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  } catch (err) {
+    const status = err instanceof HttpError ? err.status : 500;
+    const message = err instanceof HttpError ? err.message : "internal_error";
+    log.error("request_failed", { status, message });
+
+    if (actor) {
+      writeAuditLog({
+        adminClient: actor.adminClient,
+        functionName: "restaurant-advisor",
+        status: "failure",
+        actor,
+        request: req,
+        errorMessage: message,
+        metadata: { rid: log.rid },
+      }).catch(() => {});
+    }
+
+    return jsonResponse({ error: message, rid: log.rid }, status, cors);
   }
 });

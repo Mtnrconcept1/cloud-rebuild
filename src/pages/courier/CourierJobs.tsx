@@ -80,7 +80,7 @@ export default function CourierJobs() {
   });
 
   const visibleOffers = useMemo(
-    () => offers.filter((offer: any) => getOfferTimeLeftSeconds(offer.offered_at, offer.timeout_seconds) > 0),
+    () => offers.filter((offer: any) => getOfferTimeLeftSeconds(offer.offered_at, offer.timeout_seconds, clockTick) > 0),
     [clockTick, offers],
   );
 

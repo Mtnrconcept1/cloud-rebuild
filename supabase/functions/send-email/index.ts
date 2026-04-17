@@ -7,12 +7,7 @@ import {
   requireRole,
   writeAuditLog,
 } from "../_shared/auth.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 async function sendEmailMessage(
   resendApiKey: string | null,
@@ -47,7 +42,7 @@ async function sendEmailMessage(
     return;
   }
 
-  console.log(`[Email] (No RESEND_API_KEY) To: ${payload.to}, Subject: ${payload.subject}`);
+  throw new Error("RESEND_API_KEY not configured");
 }
 
 function buildNotificationEmailBody(notification: any) {
@@ -77,14 +72,17 @@ function buildNotificationEmailBody(notification: any) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
-    actor = await authenticateRequest(req, { allowSchedulerSecret: true });
+    actor = await authenticateRequest(req, {
+      allowSchedulerSecret: true,
+      allowServiceRole: true,
+    });
     requireRole(actor, ["admin"]);
     const body = await req.json().catch(() => ({}));
     const userIdFilter = typeof body?.user_id === "string" && body.user_id.trim().length > 0

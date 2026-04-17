@@ -29,7 +29,11 @@ import CityAutocomplete from "@/components/CityAutocomplete";
 import { enablePush, disablePush } from "@/lib/push-unified";
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
-import { useTokOneSubscription, useTokOnePlans } from "@/hooks/useTokOne";
+import {
+  isTokOneSubscriptionActive,
+  useTokOneSubscription,
+  useTokOnePlans,
+} from "@/hooks/useTokOne";
 import { Badge } from "@/components/ui/badge";
 
 type FavoriteRestaurant = {
@@ -93,7 +97,7 @@ export default function Profil() {
   const { data: signupApplication } = useSignupApplication("client");
   const { data: tokOneSub } = useTokOneSubscription();
   const { data: tokOnePlans } = useTokOnePlans();
-  const tokOneIsActive = !!tokOneSub && tokOneSub.status === "active" && new Date(tokOneSub.current_period_end) > new Date();
+  const tokOneIsActive = isTokOneSubscriptionActive(tokOneSub);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -639,10 +643,9 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                     <AlertDialogAction
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       onClick={async () => {
-                        const { error } = await (supabase as any)
-                          .from("tok_one_subscriptions")
-                          .update({ status: "cancelled", cancel_at_period_end: true })
-                          .eq("id", subscription.id);
+                        const { error } = await supabase.functions.invoke("manage-tok-one-subscription", {
+                          body: { action: "cancel" },
+                        });
                         if (error) {
                           toast({ title: "Erreur", description: error.message, variant: "destructive" });
                         } else {

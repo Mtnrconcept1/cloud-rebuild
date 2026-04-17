@@ -2,6 +2,7 @@ import {
   assertPaymentMethodAllowed,
   getEffectiveFeatureFlagSet,
 } from "./feature-flags.ts";
+import { isTokOneEntitledStatus } from "./tok-one.ts";
 
 const QUALITY_GUARANTEE_FEE = 1.5;
 const UUID_REGEX =
@@ -507,13 +508,13 @@ async function resolveTokOnePricing(input: {
 
     if (subscriptionError) throw subscriptionError;
 
-    const activeSubscription = subscription as TokOneSubscriptionRow | null;
-    let resolvedPlanId = activeSubscription?.plan_id || null;
-    let hasActiveTokOne = Boolean(
-      activeSubscription &&
-      activeSubscription.status === "active" &&
-      (!activeSubscription.current_period_end || new Date(activeSubscription.current_period_end) > now),
-    );
+      const activeSubscription = subscription as TokOneSubscriptionRow | null;
+      let resolvedPlanId = activeSubscription?.plan_id || null;
+      let hasActiveTokOne = Boolean(
+        activeSubscription &&
+        isTokOneEntitledStatus(activeSubscription.status) &&
+        (!activeSubscription.current_period_end || new Date(activeSubscription.current_period_end) > now),
+      );
 
     if (!hasActiveTokOne) {
       const { data: transactions, error: transactionsError } = await input.adminClient

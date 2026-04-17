@@ -215,7 +215,7 @@ export default function RestaurantCard({
   const estimatedMinutes = useMemo(() => {
     const base = 25 + Math.floor(Math.random() * 15); // 25-40 min
     return { min: base, max: base + 10 };
-  }, [id]);
+  }, []);
 
   return (
     <div onClick={handleCardClick} className="group block cursor-pointer h-full">

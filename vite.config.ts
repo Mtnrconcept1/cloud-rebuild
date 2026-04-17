@@ -22,6 +22,16 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       external: ["firebase/app", "firebase/messaging"],
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
+          "supabase-vendor": ["@supabase/supabase-js"],
+          "ui-vendor": ["framer-motion", "lucide-react", "sonner", "cmdk", "vaul"],
+          "chart-vendor": ["recharts"],
+          "map-vendor": ["leaflet"],
+          "content-vendor": ["react-markdown"],
+        },
+      },
     },
   },
 }));

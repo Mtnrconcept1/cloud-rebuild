@@ -86,37 +86,91 @@ GRANT SELECT, INSERT ON public.order_refunds TO authenticated;
 -- ═══════════════════════════════════════════════════════════
 -- Phase 4: Delivery, Logistics & Payments
 -- ═══════════════════════════════════════════════════════════
-GRANT SELECT, INSERT, UPDATE ON public.delivery_batches TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.delivery_routes TO authenticated;
-GRANT SELECT, INSERT ON public.proof_of_delivery TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.payment_intents TO authenticated;
-GRANT SELECT ON public.payout_batches TO authenticated;
-GRANT SELECT ON public.payouts TO authenticated;
-GRANT SELECT ON public.invoices TO authenticated;
-GRANT SELECT ON public.credit_notes TO authenticated;
+DO $$
+BEGIN
+  IF to_regclass('public.delivery_batches') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.delivery_batches TO authenticated';
+  END IF;
+  IF to_regclass('public.delivery_routes') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.delivery_routes TO authenticated';
+  END IF;
+  IF to_regclass('public.proof_of_delivery') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT ON public.proof_of_delivery TO authenticated';
+  END IF;
+  IF to_regclass('public.payment_intents') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.payment_intents TO authenticated';
+  END IF;
+  IF to_regclass('public.payout_batches') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT ON public.payout_batches TO authenticated';
+  END IF;
+  IF to_regclass('public.payouts') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT ON public.payouts TO authenticated';
+  END IF;
+  IF to_regclass('public.invoices') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT ON public.invoices TO authenticated';
+  END IF;
+  IF to_regclass('public.credit_notes') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT ON public.credit_notes TO authenticated';
+  END IF;
+END
+$$;
 
 -- ═══════════════════════════════════════════════════════════
 -- Phase 5: Loyalty, Reviews, Reservations & AI Data
 -- ═══════════════════════════════════════════════════════════
-GRANT SELECT ON public.loyalty_tiers TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.loyalty_tiers TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.loyalty_accounts TO authenticated;
-GRANT SELECT ON public.subscription_benefits TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.subscription_benefits TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.gift_cards TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.review_replies TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.incident_reports TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.compensations TO authenticated;
-GRANT SELECT ON public.reservation_tables TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.reservation_tables TO authenticated;
-GRANT SELECT ON public.reservation_slots TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.reservation_slots TO authenticated;
-GRANT SELECT, INSERT ON public.reservation_status_history TO authenticated;
-GRANT SELECT, INSERT ON public.event_store TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON public.feature_store TO authenticated;
-GRANT SELECT, INSERT ON public.recommendation_logs TO authenticated;
-GRANT SELECT, INSERT ON public.ml_predictions TO authenticated;
-GRANT SELECT, INSERT ON public.fraud_signals TO authenticated;
+DO $$
+BEGIN
+  IF to_regclass('public.loyalty_tiers') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT ON public.loyalty_tiers TO anon';
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON public.loyalty_tiers TO authenticated';
+  END IF;
+  IF to_regclass('public.loyalty_accounts') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.loyalty_accounts TO authenticated';
+  END IF;
+  IF to_regclass('public.subscription_benefits') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT ON public.subscription_benefits TO anon';
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON public.subscription_benefits TO authenticated';
+  END IF;
+  IF to_regclass('public.gift_cards') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.gift_cards TO authenticated';
+  END IF;
+  IF to_regclass('public.review_replies') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.review_replies TO authenticated';
+  END IF;
+  IF to_regclass('public.incident_reports') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.incident_reports TO authenticated';
+  END IF;
+  IF to_regclass('public.compensations') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.compensations TO authenticated';
+  END IF;
+  IF to_regclass('public.reservation_tables') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT ON public.reservation_tables TO anon';
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON public.reservation_tables TO authenticated';
+  END IF;
+  IF to_regclass('public.reservation_slots') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT ON public.reservation_slots TO anon';
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON public.reservation_slots TO authenticated';
+  END IF;
+  IF to_regclass('public.reservation_status_history') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT ON public.reservation_status_history TO authenticated';
+  END IF;
+  IF to_regclass('public.event_store') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT ON public.event_store TO authenticated';
+  END IF;
+  IF to_regclass('public.feature_store') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE ON public.feature_store TO authenticated';
+  END IF;
+  IF to_regclass('public.recommendation_logs') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT ON public.recommendation_logs TO authenticated';
+  END IF;
+  IF to_regclass('public.ml_predictions') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT ON public.ml_predictions TO authenticated';
+  END IF;
+  IF to_regclass('public.fraud_signals') IS NOT NULL THEN
+    EXECUTE 'GRANT SELECT, INSERT ON public.fraud_signals TO authenticated';
+  END IF;
+END
+$$;
 
 -- Force PostgREST schema cache reload
 NOTIFY pgrst, 'reload schema';

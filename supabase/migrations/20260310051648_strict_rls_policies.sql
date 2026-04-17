@@ -17,9 +17,11 @@ DECLARE
     ];
 BEGIN
     FOREACH t IN ARRAY public_tables LOOP
-        EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
-        EXECUTE format('DROP POLICY IF EXISTS "Public read for %I" ON public.%I;', t, t);
-        EXECUTE format('CREATE POLICY "Public read for %I" ON public.%I FOR SELECT USING (true);', t, t);
+        IF to_regclass(format('public.%I', t)) IS NOT NULL THEN
+            EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
+            EXECUTE format('DROP POLICY IF EXISTS "Public read for %I" ON public.%I;', t, t);
+            EXECUTE format('CREATE POLICY "Public read for %I" ON public.%I FOR SELECT USING (true);', t, t);
+        END IF;
     END LOOP;
 END $$;
 
@@ -60,9 +62,11 @@ DECLARE
     ];
 BEGIN
     FOREACH t IN ARRAY user_owned_tables LOOP
-        EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
-        EXECUTE format('DROP POLICY IF EXISTS "Users manage own %I" ON public.%I;', t, t);
-        EXECUTE format('CREATE POLICY "Users manage own %I" ON public.%I FOR ALL USING (auth.uid() = user_id);', t, t);
+        IF to_regclass(format('public.%I', t)) IS NOT NULL THEN
+            EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
+            EXECUTE format('DROP POLICY IF EXISTS "Users manage own %I" ON public.%I;', t, t);
+            EXECUTE format('CREATE POLICY "Users manage own %I" ON public.%I FOR ALL USING (auth.uid() = user_id);', t, t);
+        END IF;
     END LOOP;
 END $$;
 
@@ -76,9 +80,14 @@ DROP POLICY IF EXISTS "Users manage own user_referrals" ON public.user_referrals
 CREATE POLICY "Users manage own user_referrals" ON public.user_referrals FOR ALL USING (auth.uid() = referrer_id);
 
 -- gift_cards (purchaser_id)
-ALTER TABLE public.gift_cards ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Users manage own gift_cards" ON public.gift_cards;
-CREATE POLICY "Users manage own gift_cards" ON public.gift_cards FOR ALL USING (auth.uid() = purchaser_id);
+DO $$
+BEGIN
+    IF to_regclass('public.gift_cards') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.gift_cards ENABLE ROW LEVEL SECURITY';
+        EXECUTE 'DROP POLICY IF EXISTS "Users manage own gift_cards" ON public.gift_cards';
+        EXECUTE 'CREATE POLICY "Users manage own gift_cards" ON public.gift_cards FOR ALL USING (auth.uid() = purchaser_id)';
+    END IF;
+END $$;
 
 -- referral_codes (user_id is unique and standard, but sometimes needs special care)
 ALTER TABLE public.referral_codes ENABLE ROW LEVEL SECURITY;
@@ -130,15 +139,26 @@ END $$;
 --------------------------------------------------------------------------------
 -- 6. SYSTEM & ANALYTICS (Insert Anyone, Read Admin)
 --------------------------------------------------------------------------------
-ALTER TABLE public.event_store ENABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+    IF to_regclass('public.event_store') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.event_store ENABLE ROW LEVEL SECURITY';
+        EXECUTE 'DROP POLICY IF EXISTS "Restrict read on analytics" ON public.event_store';
+        EXECUTE 'CREATE POLICY "Restrict read on analytics" ON public.event_store FOR SELECT USING (auth.uid() = entity_id)';
+    END IF;
+END $$;
+
 ALTER TABLE public.search_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.impressions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clicks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.fraud_signals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.ml_predictions ENABLE ROW LEVEL SECURITY;
-
--- Select policies for analytics usually restricted to service_role or entity owner
-DROP POLICY IF EXISTS "Restrict read on analytics" ON public.event_store;
-CREATE POLICY "Restrict read on analytics" ON public.event_store FOR SELECT USING (auth.uid() = entity_id);
+DO $$
+BEGIN
+    IF to_regclass('public.fraud_signals') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.fraud_signals ENABLE ROW LEVEL SECURITY';
+    END IF;
+    IF to_regclass('public.ml_predictions') IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE public.ml_predictions ENABLE ROW LEVEL SECURITY';
+    END IF;
+END $$;
 
 NOTIFY pgrst, 'reload schema';

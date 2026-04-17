@@ -12,13 +12,8 @@ import {
   shouldDispatchDeliveryNow,
   triggerDispatchOrder,
 } from "../_shared/delivery-dispatch.ts";
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { triggerNotificationDispatch } from "../_shared/notifications.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
 
 const ALLOWED_STATUSES = new Set([
   "pending",
@@ -42,9 +37,9 @@ type DispatchResult =
   | { state: "failed"; error: string };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let auditOrderId: string | null = null;

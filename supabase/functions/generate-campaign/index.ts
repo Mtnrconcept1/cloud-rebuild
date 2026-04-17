@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
 import {
   HttpError,
   authenticateRequest,
@@ -8,12 +6,9 @@ import {
   requireRestaurantAccess,
   writeAuditLog,
 } from "../_shared/auth.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
 const VALID_TARGET_PAGES = new Set(["home", "search", "flash_sales", "anti_waste"]);
@@ -60,7 +55,7 @@ function buildFallbackCampaign({
 
   let title = `Decouvrez ${restaurantName}`;
   let body = `${restaurantName} met a l'honneur ${firstCategory}${city ? ` a ${city}` : ""}. Donnez envie aux clients de passer commande aujourd'hui.`;
-  let type = "boost";
+  const type = "boost";
   let targetPages = ["home", "search"];
 
   if (flashCount > 0) {
@@ -121,18 +116,29 @@ function normalizeGeneratedCampaign(raw: unknown, fallbackCampaign: Record<strin
   };
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
+  const log = makeLogger("generate-campaign");
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let restaurantId = "";
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    if (!actor.userId) throw new HttpError(401, "Unauthorized");
     ({ restaurantId } = await req.json());
     if (!restaurantId) throw new HttpError(400, "restaurantId requis");
 
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
+
+    // Rate limit: expensive AI call, fail-closed.
+    const rl = createRateLimiter(actor.adminClient, "generate-campaign");
+    await rl.consume(`user:${actor.userId}`, { maxRequests: 10, windowSeconds: 3600 });
+    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 20, windowSeconds: 3600 });
+    await rl.consume("global", { maxRequests: 100, windowSeconds: 60 });
+
     const adminClient = actor.adminClient;
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
 
@@ -290,8 +296,8 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
         } else {
           fallbackReason = `gateway_${aiResponse.status}`;
         }
-      } catch (aiError) {
-        console.error("generate-campaign AI fallback:", aiError);
+      } catch (_aiError) {
+        log.error("ai_fallback");
         fallbackReason = "gateway_error";
       }
     }
@@ -315,7 +321,7 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
 
     return jsonResponse(campaign, 200, corsHeaders);
   } catch (error) {
-    console.error("generate-campaign error:", error);
+    log.error("request_failed", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

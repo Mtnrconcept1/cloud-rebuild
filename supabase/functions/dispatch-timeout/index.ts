@@ -12,12 +12,7 @@ import {
   shouldDispatchDeliveryNow,
   triggerDispatchOrder,
 } from "../_shared/delivery-dispatch.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 /**
  * Cron-triggered function that:
@@ -26,9 +21,9 @@ const corsHeaders = {
  * Should be called every 30 seconds via pg_cron or external scheduler.
  */
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
