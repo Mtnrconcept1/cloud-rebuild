@@ -224,9 +224,12 @@ export default function DashboardFactures() {
     enabled: !!selectedId && !restaurantsLoading,
   });
 
-  const { data: currentUninvoicedBase = 0, isLoading: uninvoicedBaseLoading } = useQuery({
+  const { data: uninvoicedBreakdown = { ordersAmount: 0, reservationsAmount: 0, total: 0 }, isLoading: uninvoicedBaseLoading } = useQuery({
     queryKey: ["dashboard-uninvoiced-amount", selectedId],
     queryFn: async () => {
+      // Tout ce que le client a paye via la plateforme (commandes + reservations payees,
+      // tous types: zero-attente, chefs_table, promo-formule, anti-gaspi...) doit etre
+      // refacture a TOK a hauteur de 90%.
       const [ordersRes, resRes] = await Promise.all([
         supabase
           .from("orders")
@@ -239,23 +242,36 @@ export default function DashboardFactures() {
           .select("total_amount")
           .eq("restaurant_id", selectedId!)
           .is("restaurant_invoice_id", null)
-          .eq("feature", "zero-attente")
           .not("status", "in", ["cancelled", "no_show", "pending"])
           .gt("total_amount", 0),
       ]);
 
-      let total = 0;
-      (ordersRes.data || []).forEach(o => {
-        total += Number(o.total_amount || 0) + Number((o.metadata as any)?.points_discount_amount || 0);
-      });
-      (resRes.data || []).forEach(r => {
-        total += Number(r.total_amount || 0);
+      let ordersGross = 0;
+      (ordersRes.data || []).forEach((order) => {
+        ordersGross +=
+          Number(order.total_amount || 0) +
+          Number((order.metadata as Record<string, unknown> | null)?.points_discount_amount || 0);
       });
 
-      return total * 0.90; // La part du restaurateur a facturer
+      let reservationsGross = 0;
+      (resRes.data || []).forEach((reservation) => {
+        reservationsGross += Number(reservation.total_amount || 0);
+      });
+
+      const ordersAmount = ordersGross * 0.9;
+      const reservationsAmount = reservationsGross * 0.9;
+      return {
+        ordersAmount,
+        reservationsAmount,
+        total: ordersAmount + reservationsAmount,
+      };
     },
     enabled: !!selectedId && !restaurantsLoading,
   });
+
+  const currentUninvoicedBase = uninvoicedBreakdown.total;
+  const uninvoicedOrdersAmount = uninvoicedBreakdown.ordersAmount;
+  const uninvoicedReservationsAmount = uninvoicedBreakdown.reservationsAmount;
 
   // Encours = uniquement la part 90% que le restaurateur facture a TOK.
   // Les frais de reservation (5.- par resa) sont une facture separee emise PAR TOK AU restaurateur,
@@ -432,6 +448,22 @@ export default function DashboardFactures() {
                     <CardContent className="space-y-2">
                       <p className="text-2xl font-bold text-primary">{uninvoicedLoading ? "..." : formatAmount(currentUninvoiced)}</p>
                       <p className="text-xs text-muted-foreground">Part de vos commandes et reservations prepayees a refacturer a TOK</p>
+                      {!uninvoicedLoading && currentUninvoiced > 0 ? (
+                        <div className="space-y-1 border-t border-primary/10 pt-2 text-xs">
+                          {uninvoicedOrdersAmount > 0 ? (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Commandes a emporter / livraison</span>
+                              <span className="font-medium">{formatAmount(uninvoicedOrdersAmount)}</span>
+                            </div>
+                          ) : null}
+                          {uninvoicedReservationsAmount > 0 ? (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Reservations payees (Zero attente, Chef's Table, flash...)</span>
+                              <span className="font-medium">{formatAmount(uninvoicedReservationsAmount)}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </CardContent>
                   </Card>
                   <Card className="border-orange-200 bg-orange-50">
