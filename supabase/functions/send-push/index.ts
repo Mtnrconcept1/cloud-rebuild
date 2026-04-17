@@ -9,6 +9,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 /**
  * Generates an OAuth2 access token from a Firebase service account JSON.
@@ -72,6 +73,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("send-push");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
@@ -219,7 +222,7 @@ Deno.serve(async (req) => {
             anySent = true;
           } else {
             const errorBody = await response.text();
-            console.error(`FCM send failed for token ${deviceToken.token.substring(0, 10)}...:`, errorBody);
+            log.error("FCM send failed for token", { message: errorBody });
 
             // Remove invalid tokens
             if (response.status === 404 || response.status === 400) {
@@ -243,7 +246,7 @@ Deno.serve(async (req) => {
         if (anySent) sent++;
         else failed++;
       } catch (err) {
-        console.error("Error processing delivery:", err);
+        log.error("Error processing delivery", { message: err instanceof Error ? err.message : "unknown" });
         await supabaseAdmin
           .from("notification_deliveries")
           .update({
@@ -268,7 +271,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ processed: deliveries.length, sent, failed }, 200, corsHeaders);
   } catch (error) {
-    console.error("send-push error:", error);
+    log.error("send-push error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

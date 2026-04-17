@@ -6,6 +6,7 @@ import {
   jsonResponse,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 const IMPRESSION_WINDOW_MS = 30 * 60 * 1000;
 const CLICK_WINDOW_MS = 5 * 60 * 1000;
@@ -79,6 +80,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("track-sponsored-event");
 
   try {
     if (req.method !== "POST") {
@@ -205,7 +208,7 @@ Deno.serve(async (req) => {
       corsHeaders,
     );
   } catch (error) {
-    console.error("track-sponsored-event error:", error);
+    log.error("track-sponsored-event error", { message: error instanceof Error ? error.message : "unknown" });
     if (error instanceof HttpError) {
       return jsonResponse({ error: error.message }, error.status, corsHeaders);
     }

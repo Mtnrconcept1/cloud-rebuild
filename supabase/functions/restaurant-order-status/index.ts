@@ -13,6 +13,7 @@ import {
   triggerDispatchOrder,
 } from "../_shared/delivery-dispatch.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 import { triggerNotificationDispatch } from "../_shared/notifications.ts";
 
 const ALLOWED_STATUSES = new Set([
@@ -40,6 +41,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("restaurant-order-status");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let auditOrderId: string | null = null;
@@ -147,7 +150,7 @@ Deno.serve(async (req) => {
         email: true,
       });
     } catch (error) {
-      console.error("restaurant-order-status notification dispatch failed:", error);
+      log.error("restaurant-order-status notification dispatch failed", { message: error instanceof Error ? error.message : "unknown" });
     }
 
     await writeAuditLog({
@@ -174,7 +177,7 @@ Deno.serve(async (req) => {
       dispatch,
     }, 200, corsHeaders);
   } catch (error) {
-    console.error("restaurant-order-status error:", error);
+    log.error("restaurant-order-status error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

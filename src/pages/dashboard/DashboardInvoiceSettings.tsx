@@ -157,19 +157,19 @@ export default function DashboardInvoiceSettings() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="flex items-center gap-2 font-display text-3xl font-bold">
-            <FileText className="h-7 w-7 text-primary" />
-            Parametres de facturation
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="flex items-center gap-2 font-display text-2xl font-bold leading-tight sm:text-3xl">
+            <FileText className="h-7 w-7 shrink-0 text-primary" />
+            <span>Parametres de facturation</span>
           </h1>
-          <Button onClick={save} disabled={saving}>
+          <Button onClick={save} disabled={saving} className="w-full sm:w-auto">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Sauvegarder
           </Button>
         </div>
 
         {restaurants.length > 1 ? (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {restaurants.map((restaurant) => (
               <Button
                 key={restaurant.id}

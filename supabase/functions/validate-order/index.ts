@@ -17,6 +17,7 @@ import {
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 interface OrderItem {
   menu_item_id: string;
@@ -59,6 +60,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("validate-order");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let auditRestaurantId = "";
@@ -312,7 +315,7 @@ Deno.serve(async (req) => {
       try {
         await triggerNotificationDispatch({ source: "validate-order", push: true, email: true });
       } catch (error) {
-        console.error("validate-order push trigger failed:", error);
+        log.error("validate-order push trigger failed", { message: error instanceof Error ? error.message : "unknown" });
       }
     }
 
@@ -344,7 +347,7 @@ Deno.serve(async (req) => {
       corsHeaders,
     );
   } catch (error) {
-    console.error("validate-order error:", error);
+    log.error("validate-order error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

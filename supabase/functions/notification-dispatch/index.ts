@@ -6,12 +6,15 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 import { triggerNotificationDispatch } from "../_shared/notifications.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("notification-dispatch");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
@@ -70,7 +73,7 @@ Deno.serve(async (req) => {
       channel_errors: dispatchResult.failedChannels,
     }, 200, corsHeaders);
   } catch (error) {
-    console.error("notification-dispatch error:", error);
+    log.error("notification-dispatch error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

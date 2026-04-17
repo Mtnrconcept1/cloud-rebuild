@@ -6,6 +6,7 @@ import {
   jsonResponse,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -73,6 +74,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("track-analytics");
 
   try {
     if (req.method !== "POST") {
@@ -193,7 +196,7 @@ Deno.serve(async (req) => {
         throw new HttpError(400, "Type de tracking invalide");
     }
   } catch (error) {
-    console.error("track-analytics error:", error);
+    log.error("track-analytics error", { message: error instanceof Error ? error.message : "unknown" });
     if (error instanceof HttpError) {
       return jsonResponse({ error: error.message }, error.status, corsHeaders);
     }

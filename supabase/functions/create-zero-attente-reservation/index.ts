@@ -13,6 +13,7 @@ import {
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 function parseMoney(value: unknown, fallback = 0) {
   const parsed = Number(value);
@@ -68,6 +69,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("create-zero-attente-reservation");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let sessionId = "";
@@ -274,7 +277,7 @@ Deno.serve(async (req) => {
         email: true,
       });
     } catch (dispatchError) {
-      console.error("create-zero-attente-reservation notification dispatch failed:", dispatchError);
+      log.error("create-zero-attente-reservation notification dispatch failed", { message: dispatchError instanceof Error ? dispatchError.message : "unknown" });
     }
 
     await writeAuditLog({
@@ -308,7 +311,7 @@ Deno.serve(async (req) => {
       preorder_items: preorderItems,
     }, 200, corsHeaders);
   } catch (error) {
-    console.error("create-zero-attente-reservation error:", error);
+    log.error("create-zero-attente-reservation error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

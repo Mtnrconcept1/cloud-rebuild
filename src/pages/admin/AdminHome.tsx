@@ -14,6 +14,7 @@ import {
   TrendingDown,
   Users,
   UtensilsCrossed,
+  Calculator,
   CalendarDays,
 } from "lucide-react";
 
@@ -32,6 +33,14 @@ const ADMIN_TOOLS = [
     href: "/admin/restaurants",
     feature: "admin-restaurants",
     color: "text-primary",
+  },
+  {
+    title: "Comptabilite",
+    description: "Gerer les reversements et les parts TOK.",
+    icon: Calculator,
+    href: "/admin/compta",
+    feature: "admin-compta",
+    color: "text-emerald-500",
   },
   {
     title: "Utilisateurs",

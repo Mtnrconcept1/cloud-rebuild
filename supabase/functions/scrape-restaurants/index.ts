@@ -1,14 +1,18 @@
 import {
   HttpError,
   authenticateRequest,
+  jsonResponse,
   requireRole,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("scrape-restaurants");
 
   try {
     const actor = await authenticateRequest(req, { allowServiceRole: false });
@@ -26,10 +30,7 @@ Deno.serve(async (req) => {
     // Check if restaurants already exist
     const { count } = await supabase.from("restaurants").select("*", { count: "exact", head: true });
     if (count && count > 0) {
-      return new Response(
-        JSON.stringify({ success: true, message: `${count} restaurants already exist. Skipping.` }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ success: true, message: `${count} restaurants already exist. Skipping.` }, 200, corsHeaders);
     }
 
 
@@ -42,10 +43,7 @@ Deno.serve(async (req) => {
       .select("id, cuisine_type, name");
 
     if (insertError) {
-      return new Response(
-        JSON.stringify({ success: false, error: insertError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ success: false, error: insertError.message }, 500, corsHeaders);
     }
 
     // Add menu items for each restaurant
@@ -108,26 +106,23 @@ Deno.serve(async (req) => {
           }
         }
       } catch (e) {
-        console.error("Firecrawl error (non-blocking):", e);
+        log.error("Firecrawl error (non-blocking)", { message: e instanceof Error ? e.message : "unknown" });
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        inserted: (inserted?.length || 0) + firecrawlResults.length,
-        known: inserted?.map((r) => r.name) || [],
-        scraped: firecrawlResults,
-        menuItems: allMenuItems.length,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({
+      success: true,
+      inserted: (inserted?.length || 0) + firecrawlResults.length,
+      known: inserted?.map((r) => r.name) || [],
+      scraped: firecrawlResults,
+      menuItems: allMenuItems.length,
+    }, 200, corsHeaders);
   } catch (error) {
-    console.error("Error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    log.error("scrape-restaurants error", { message: error instanceof Error ? error.message : "unknown" });
+    if (error instanceof HttpError) {
+      return jsonResponse({ success: false, error: error.message }, error.status, corsHeaders);
+    }
+    return jsonResponse({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, 500, corsHeaders);
   }
 });
 

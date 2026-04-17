@@ -9,6 +9,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 import {
   getLatestTokOneSubscription,
   isTokOneEntitledStatus,
@@ -25,6 +26,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("manage-tok-one-subscription");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let action: SubscriptionAction = "cancel";
@@ -124,7 +127,7 @@ Deno.serve(async (req) => {
       subscription: updatedSubscription,
     }, 200, corsHeaders);
   } catch (error) {
-    console.error("manage-tok-one-subscription error:", error);
+    log.error("manage-tok-one-subscription error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

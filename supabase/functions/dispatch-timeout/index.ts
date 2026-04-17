@@ -13,6 +13,7 @@ import {
   triggerDispatchOrder,
 } from "../_shared/delivery-dispatch.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 /**
  * Cron-triggered function that:
@@ -24,6 +25,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("dispatch-timeout");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
@@ -84,7 +87,7 @@ Deno.serve(async (req) => {
       if (response.ok) {
         scheduledDispatched++;
       } else {
-        console.error(`Scheduled dispatch failed for order ${order.id}:`, response.body);
+        log.error(`Scheduled dispatch failed for order ${order.id}`, { message: "dispatch_failed" });
       }
     }
 
@@ -166,7 +169,7 @@ Deno.serve(async (req) => {
       if (response.ok) {
         redispatched++;
       } else {
-        console.error(`Re-dispatch failed for job ${job.id}:`, response.body);
+        log.error(`Re-dispatch failed for job ${job.id}`, { message: "redispatch_failed" });
       }
     }
 
@@ -183,7 +186,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ expired, redispatched, scheduled_dispatched: scheduledDispatched, checked_at: now.toISOString() }, 200, corsHeaders);
   } catch (error) {
-    console.error("dispatch-timeout error:", error);
+    log.error("dispatch-timeout error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

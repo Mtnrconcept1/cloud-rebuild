@@ -13,7 +13,8 @@
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_63041f2442c3de90025218856b40c8c15848a30e npx supabase db push --include-all)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_63041f2442c3de90025218856b40c8c15848a30e npx supabase db execute --project-ref rgzqxttqwmaylrzxlzob -f supabase/migrations/20260329140000_fix_notification_pipeline_newsletter_column.sql)",
       "WebSearch",
-      "WebFetch(domain:unsplash.com)"
+      "WebFetch(domain:unsplash.com)",
+      "mcp__claude_ai_Supabase__apply_migration"
     ]
   }
 }

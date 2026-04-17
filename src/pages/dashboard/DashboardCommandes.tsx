@@ -403,7 +403,7 @@ export default function DashboardCommandes() {
                             </span>
                           </div>
                         ) : null}
-                        <OrderPaymentBreakdown order={order} className="mt-3" />
+                        <OrderPaymentBreakdown order={order} className="mt-3" isRestaurantDashboard={true} />
                       </div>
                     </div>
                   </div>

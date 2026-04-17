@@ -5,6 +5,7 @@ import {
   requireRole,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 const REVIEW_COMMENTS_FR = [
   "Excellent restaurant, cuisine raffinée et service impeccable !",
@@ -55,14 +56,24 @@ Deno.serve(async (req) => {
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
 
+  const log = makeLogger("enrich-restaurants");
+
   try {
     const actor = await authenticateRequest(req, { allowServiceRole: false });
     requireRole(actor, ["admin"]);
     const supabase = actor.adminClient;
     const body = await req.json().catch(() => ({}));
-    const mode = body.mode || "reviews"; // "reviews" or "photos"
-    
-    console.log("Starting enrich-restaurants, mode:", mode);
+    const mode = body.mode || "reviews";
+
+    // Fake review injection must never run in production.
+    if (mode === "reviews") {
+      const env = (Deno.env.get("ENVIRONMENT") || Deno.env.get("APP_ENV") || "").toLowerCase();
+      if (env === "production") {
+        throw new HttpError(403, "review_seeding_disabled_in_production");
+      }
+    }
+
+    log.info("start", { mode });
 
     // Get all active restaurants
     const { data: restaurants, error: restErr } = await supabase
@@ -71,7 +82,7 @@ Deno.serve(async (req) => {
       .eq("is_active", true);
 
     if (restErr) throw new Error("Failed to fetch restaurants: " + restErr.message);
-    console.log("Found", restaurants?.length, "restaurants");
+    log.info("restaurants_found", { count: restaurants?.length ?? 0 });
 
     if (!restaurants || restaurants.length === 0) {
       return new Response(
@@ -86,12 +97,11 @@ Deno.serve(async (req) => {
         .from("reviews")
         .select("restaurant_id");
       const restaurantsWithReviews = new Set((existingReviews || []).map((r: any) => r.restaurant_id));
-      console.log("Restaurants with reviews:", restaurantsWithReviews.size);
+      log.info("existing_reviews", { count: restaurantsWithReviews.size });
 
       // Get user IDs for reviews
       const { data: profiles } = await supabase.from("profiles").select("user_id").limit(10);
       const userIds = (profiles || []).map((p: any) => p.user_id);
-      console.log("Available user IDs:", userIds.length);
 
       if (userIds.length === 0) {
         return new Response(
@@ -130,7 +140,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      console.log("Reviews to insert:", reviewsToInsert.length);
+      log.info("reviews_to_insert", { count: reviewsToInsert.length });
 
       // Insert reviews in batches
       let reviewsAdded = 0;
@@ -139,13 +149,13 @@ Deno.serve(async (req) => {
         const batch = reviewsToInsert.slice(i, i + batchSize);
         const { error } = await supabase.from("reviews").insert(batch);
         if (error) {
-          console.error("Review insert error at batch", i, ":", error.message);
+          log.error("review_batch_error", { batch: i, message: error.message });
         } else {
           reviewsAdded += batch.length;
         }
       }
 
-      console.log("Reviews added:", reviewsAdded);
+      log.info("reviews_added", { count: reviewsAdded });
 
       // Recompute review stats for top 50 restaurants (to avoid timeout)
       const enrichedIds = [...new Set(reviewsToInsert.map((r) => r.restaurant_id))].slice(0, 50);
@@ -172,12 +182,11 @@ Deno.serve(async (req) => {
         (r) => !r.image_url || r.image_url.includes("placeholder") || r.image_url.includes("unsplash.com/photo-1517248135467")
       ).slice(0, 5);
 
-      console.log("Restaurants needing images:", needsImage.length);
+      log.info("photos_needed", { count: needsImage.length });
       let photosAdded = 0;
 
       for (const restaurant of needsImage) {
         try {
-          console.log("Searching images for:", restaurant.name);
           const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
             method: "POST",
             headers: {
@@ -195,7 +204,7 @@ Deno.serve(async (req) => {
 
           const searchData = await searchResponse.json();
           if (!searchResponse.ok) {
-            console.error("Firecrawl error:", JSON.stringify(searchData));
+            log.warn("firecrawl_error", { restaurant: restaurant.name, status: searchResponse.status });
             continue;
           }
 
@@ -229,7 +238,7 @@ Deno.serve(async (req) => {
             }
           }
         } catch (e) {
-          console.error(`Error for ${restaurant.name}:`, e);
+          log.error("photo_fetch_error", { restaurant: restaurant.name, message: e instanceof Error ? e.message : "unknown" });
         }
       }
 
@@ -301,7 +310,7 @@ Deno.serve(async (req) => {
             if (!error) productPhotosAdded++;
           }
         } catch (e) {
-          console.error(`Error for menu item ${item.name}:`, e);
+          log.error("product_photo_error", { item: item.name, message: e instanceof Error ? e.message : "unknown" });
         }
       }
 
@@ -317,7 +326,7 @@ Deno.serve(async (req) => {
       corsHeaders,
     );
   } catch (error) {
-    console.error("Error:", error);
+    log.error("request_failed", { message: error instanceof Error ? error.message : "unknown" });
     return jsonResponse(
       { success: false, error: error instanceof Error ? error.message : "Unknown error" },
       error instanceof HttpError ? error.status : 500,
