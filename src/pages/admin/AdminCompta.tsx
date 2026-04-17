@@ -1,14 +1,16 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calculator, Receipt, Store, Ticket } from "lucide-react";
+import { Calculator, FileSignature, Receipt, Store, Ticket } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type RestaurantFilterRow = {
@@ -58,8 +60,53 @@ type FraudMetricRow = {
 };
 
 export default function AdminCompta() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), "yyyy-MM"));
+  const [generatingFeeInvoices, setGeneratingFeeInvoices] = useState(false);
+
+  const handleGenerateTokFeeInvoices = async () => {
+    setGeneratingFeeInvoices(true);
+    try {
+      const firstOfMonth = `${selectedMonth}-01`;
+      const { data, error } = await (supabase.rpc as any)(
+        selectedRestaurant === "all"
+          ? "generate_tok_reservation_fee_invoices_all"
+          : "generate_tok_reservation_fee_invoice",
+        selectedRestaurant === "all"
+          ? { p_month: firstOfMonth }
+          : { p_restaurant_id: selectedRestaurant, p_month: firstOfMonth },
+      );
+      if (error) throw error;
+
+      const generated = selectedRestaurant === "all"
+        ? Number(data ?? 0)
+        : data
+          ? 1
+          : 0;
+
+      toast({
+        title: generated > 0 ? "Factures TOK generees" : "Aucune facture a generer",
+        description: generated > 0
+          ? `${generated} facture${generated > 1 ? "s" : ""} TOK -> restaurant emise${generated > 1 ? "s" : ""} pour ${selectedMonth}.`
+          : "Aucune reservation facturable non encore facturee pour cette periode.",
+      });
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-reservations"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-fraud"] }),
+      ]);
+    } catch (err) {
+      toast({
+        title: "Erreur de generation",
+        description: err instanceof Error ? err.message : "Impossible de generer les factures TOK.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingFeeInvoices(false);
+    }
+  };
 
   const { data: restaurants = [] } = useQuery({
     queryKey: ["admin-restaurants-list"],
@@ -418,6 +465,24 @@ export default function AdminCompta() {
                 </TabsContent>
 
                 <TabsContent value="reservations" className="mt-0 space-y-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-primary/20 bg-primary/5 p-3">
+                    <div className="text-sm">
+                      <p className="font-semibold text-primary">Facturer les frais de reservation TOK -&gt; restaurateur</p>
+                      <p className="text-xs text-muted-foreground">
+                        Genere une facture {selectedRestaurant === "all" ? "par restaurant" : "pour ce restaurant"} pour {monthOptions.find((option) => option.value === selectedMonth)?.label || selectedMonth}.
+                        Chaque reservation confirmee non facturee = 5.- pour TOK.
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={handleGenerateTokFeeInvoices}
+                      disabled={generatingFeeInvoices || reservationMetrics.billable === 0}
+                    >
+                      <FileSignature className={`mr-1 h-4 w-4 ${generatingFeeInvoices ? "animate-pulse" : ""}`} />
+                      {generatingFeeInvoices ? "Generation..." : "Generer les factures TOK"}
+                    </Button>
+                  </div>
+
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card className="bg-white">
                       <CardHeader className="pb-2">
