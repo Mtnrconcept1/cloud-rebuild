@@ -48,7 +48,7 @@ type ReservationHistoryRow = {
   invoice_id: string | null;
 };
 
-type PayoutInvoiceRow = {
+type AdminInvoiceRow = {
   id: string;
   restaurant_id: string;
   invoice_number: string | null;
@@ -61,6 +61,7 @@ type PayoutInvoiceRow = {
   due_at: string | null;
   paid_at: string | null;
   created_at: string;
+  invoice_type: "payout" | "reservation_fees" | null;
   restaurants?: { name: string | null } | null;
 };
 
@@ -112,6 +113,7 @@ export default function AdminCompta() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["admin-compta-reservations"] }),
         queryClient.invalidateQueries({ queryKey: ["admin-compta-fraud"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-fee-invoices"] }),
       ]);
     } catch (err) {
       toast({
@@ -206,6 +208,7 @@ export default function AdminCompta() {
           due_at,
           paid_at,
           created_at,
+          invoice_type,
           restaurants ( name )
         `)
         .eq("invoice_type", "payout")
@@ -219,23 +222,71 @@ export default function AdminCompta() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as PayoutInvoiceRow[];
+      return (data || []) as AdminInvoiceRow[];
     },
   });
 
-  const handleMarkPayoutInvoicePaid = async (invoiceId: string) => {
+  const { data: tokFeeInvoices = [], isLoading: tokFeeInvoicesLoading } = useQuery({
+    queryKey: ["admin-compta-reservation-fee-invoices", selectedRestaurant, selectedMonth],
+    queryFn: async () => {
+      const startOfMonth = `${selectedMonth}-01`;
+      const startDate = new Date(`${selectedMonth}-01T00:00:00Z`);
+      const endOfMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+      let query = supabase
+        .from("restaurant_invoices")
+        .select(`
+          id,
+          restaurant_id,
+          invoice_number,
+          period_start,
+          period_end,
+          amount_ht,
+          amount_tva,
+          amount_ttc,
+          status,
+          due_at,
+          paid_at,
+          created_at,
+          invoice_type,
+          restaurants ( name )
+        `)
+        .eq("invoice_type", "reservation_fees")
+        .gte("period_start", startOfMonth)
+        .lte("period_end", endOfMonth)
+        .order("created_at", { ascending: false });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as AdminInvoiceRow[];
+    },
+  });
+
+  const handleMarkInvoicePaid = async (invoice: AdminInvoiceRow) => {
     const { error } = await supabase
       .from("restaurant_invoices")
       .update({ status: "paid", paid_at: new Date().toISOString() })
-      .eq("id", invoiceId);
+      .eq("id", invoice.id);
 
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({ title: "Reversement marque comme paye" });
-    queryClient.invalidateQueries({ queryKey: ["admin-compta-payout-invoices"] });
+    toast({
+      title: invoice.invoice_type === "reservation_fees"
+        ? "Reglement facture TOK marque comme paye"
+        : "Reversement marque comme paye",
+    });
+
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["admin-compta-payout-invoices"] }),
+      queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-fee-invoices"] }),
+    ]);
   };
 
   const { data: fraudMetrics = [], isLoading: fraudMetricsLoading } = useQuery({
@@ -300,6 +351,18 @@ export default function AdminCompta() {
     };
   }, [payoutInvoices]);
 
+  const tokFeeMetrics = useMemo(() => {
+    const totalTtc = tokFeeInvoices.reduce((sum, invoice) => sum + Number(invoice.amount_ttc || 0), 0);
+    const unpaid = tokFeeInvoices.filter((invoice) => String(invoice.status || "").toLowerCase() !== "paid");
+    const unpaidTtc = unpaid.reduce((sum, invoice) => sum + Number(invoice.amount_ttc || 0), 0);
+    return {
+      total: tokFeeInvoices.length,
+      totalTtc,
+      unpaidCount: unpaid.length,
+      unpaidTtc,
+    };
+  }, [tokFeeInvoices]);
+
   const reservationMetrics = useMemo(() => {
     const confirmed = reservationHistory.filter((row) => !!row.confirmed_at).length;
     const billable = reservationHistory.filter((row) => row.billable).length;
@@ -330,7 +393,12 @@ export default function AdminCompta() {
     return options;
   }, []);
 
-  const isLoading = ordersLoading || reservationHistoryLoading || fraudMetricsLoading || payoutInvoicesLoading;
+  const isLoading =
+    ordersLoading
+    || reservationHistoryLoading
+    || fraudMetricsLoading
+    || payoutInvoicesLoading
+    || tokFeeInvoicesLoading;
 
   return (
     <div className="container space-y-6 py-8">
@@ -606,6 +674,130 @@ export default function AdminCompta() {
                     </Card>
                   </div>
 
+                  <div className="rounded-md border border-orange-200 bg-orange-50 p-3 text-sm">
+                    <p className="font-semibold text-orange-800">Factures TOK emises aux restaurateurs (5.- par reservation confirmee)</p>
+                    <p className="mt-1 text-xs text-orange-700">
+                      Ces factures sont payees par les restaurateurs a TOK. Marquez-les comme payees une fois l'encaissement confirme.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <Card className="bg-white">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Total facture</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">{tokFeeMetrics.totalTtc.toFixed(2)} CHF</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{tokFeeMetrics.total} facture(s) sur la periode</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-orange-200 bg-orange-50">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-orange-700">Restant a encaisser</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold text-orange-700">{tokFeeMetrics.unpaidTtc.toFixed(2)} CHF</p>
+                        <p className="mt-1 text-xs text-orange-600">{tokFeeMetrics.unpaidCount} facture(s) impayee(s)</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-emerald-200 bg-emerald-50">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-emerald-700">Deja encaisse</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold text-emerald-700">
+                          {(tokFeeMetrics.totalTtc - tokFeeMetrics.unpaidTtc).toFixed(2)} CHF
+                        </p>
+                        <p className="mt-1 text-xs text-emerald-600">{tokFeeMetrics.total - tokFeeMetrics.unpaidCount} facture(s) payee(s)</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Factures TOK - frais de reservation</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {tokFeeInvoices.length === 0 ? (
+                        <p className="py-6 text-center text-muted-foreground">Aucune facture TOK sur cette periode.</p>
+                      ) : (
+                        <div className="rounded-md border">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>N facture / Date</TableHead>
+                                {selectedRestaurant === "all" ? <TableHead>Restaurant</TableHead> : null}
+                                <TableHead>Periode</TableHead>
+                                <TableHead className="text-right">Montant HT</TableHead>
+                                <TableHead className="text-right">TVA</TableHead>
+                                <TableHead className="text-right font-bold">Total TTC</TableHead>
+                                <TableHead>Statut</TableHead>
+                                <TableHead>Echeance</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {tokFeeInvoices.map((invoice) => {
+                                const status = String(invoice.status || "").toLowerCase();
+                                const isPaid = status === "paid";
+                                const statusColor = isPaid
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : status === "overdue"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-amber-100 text-amber-700";
+                                return (
+                                  <TableRow key={invoice.id}>
+                                    <TableCell>
+                                      <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {format(new Date(invoice.created_at), "dd MMM yyyy", { locale: fr })}
+                                      </div>
+                                    </TableCell>
+                                    {selectedRestaurant === "all" ? (
+                                      <TableCell className="text-xs">{invoice.restaurants?.name || "-"}</TableCell>
+                                    ) : null}
+                                    <TableCell className="text-xs">
+                                      {format(new Date(invoice.period_start), "dd MMM", { locale: fr })} -{" "}
+                                      {format(new Date(invoice.period_end), "dd MMM", { locale: fr })}
+                                    </TableCell>
+                                    <TableCell className="text-right text-sm">{Number(invoice.amount_ht || 0).toFixed(2)} CHF</TableCell>
+                                    <TableCell className="text-right text-xs text-muted-foreground">
+                                      {Number(invoice.amount_tva || 0).toFixed(2)} CHF
+                                    </TableCell>
+                                    <TableCell className="text-right text-sm font-bold">{Number(invoice.amount_ttc || 0).toFixed(2)} CHF</TableCell>
+                                    <TableCell>
+                                      <Badge className={`text-[10px] ${statusColor}`}>{invoice.status || "draft"}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-xs">
+                                      {invoice.due_at
+                                        ? format(new Date(invoice.due_at), "dd MMM yyyy", { locale: fr })
+                                        : "-"}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      {!isPaid ? (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => handleMarkInvoicePaid(invoice)}
+                                        >
+                                          Marquer payee
+                                        </Button>
+                                      ) : (
+                                        <span className="text-xs text-emerald-600">
+                                          Payee {invoice.paid_at ? `le ${format(new Date(invoice.paid_at), "dd/MM", { locale: fr })}` : ""}
+                                        </span>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base">Analyse anti-fraude</CardTitle>
@@ -824,7 +1016,7 @@ export default function AdminCompta() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleMarkPayoutInvoicePaid(invoice.id)}
+                                      onClick={() => handleMarkInvoicePaid(invoice)}
                                     >
                                       Marquer payee
                                     </Button>
