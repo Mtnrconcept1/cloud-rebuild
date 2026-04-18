@@ -213,6 +213,10 @@ export default function DashboardReservations() {
 
   const filteredReservations = useMemo(() => (
     reservations.filter((reservation) => {
+      // Hide reservations that never reached confirmation (Stripe still pending or
+      // restaurateur hasn't confirmed manually). They are not actionable yet.
+      const status = String(reservation.status || "").toLowerCase();
+      if (status === "pending" || status === "pending_payment") return false;
       if (!isDateInDashboardTimeRange(reservation.date, timeRange, referenceDate, { dateOnly: true })) return false;
       if (serviceFilter !== "all") {
         const metadataService = extractMetadata(reservation).service;

@@ -11,8 +11,11 @@ import { useSignupApplication } from "@/hooks/useSignupApplication";
 import { useDashboardRestaurant } from "./DashboardContext";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 
-const INVALID_ORDER_STATUS_FILTER = "(cancelled,refused,payment_failed)";
-const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show)";
+// pending_payment = order created but Stripe checkout not yet completed.
+// These are not actionable for the restaurateur and must stay hidden until
+// the webhook flips them to "confirmed".
+const INVALID_ORDER_STATUS_FILTER = "(cancelled,refused,payment_failed,pending,pending_payment)";
+const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show,pending)";
 
 type UpcomingReservationRow = {
   id: string;

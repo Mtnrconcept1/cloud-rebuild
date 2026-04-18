@@ -69,13 +69,15 @@ type DashboardOrder = {
   dispatch_job: DashboardDispatchJob | null;
 };
 
-const DEFAULT_STATUS_SEQUENCE = ["confirmed", "preparing", "delivering", "delivered", "cancelled"] as const;
+const TAKEAWAY_STATUS_SEQUENCE = ["confirmed", "preparing", "ready", "delivered", "cancelled"] as const;
+const DELIVERY_STATUS_SEQUENCE = ["confirmed", "preparing", "delivering", "delivered", "cancelled"] as const;
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
   pending_payment: "Paiement en attente",
   confirmed: "Confirmee",
   preparing: "En preparation",
+  ready: "Prete a retirer",
   delivering: "En livraison",
   delivered: "Livree",
   cancelled: "Annulee",
@@ -94,14 +96,14 @@ function isDeliveryDashboardOrder(order: DashboardOrder) {
 }
 
 function getStatusOptions(order: DashboardOrder) {
-  const currentStatus = normalizeOrderStatus(order.status);
-  const baseStatuses = isDeliveryDashboardOrder(order)
-    ? ["confirmed", "preparing", "cancelled"]
-    : [...DEFAULT_STATUS_SEQUENCE];
+  const currentStatus = String(normalizeOrderStatus(order.status));
+  const baseStatuses: string[] = isDeliveryDashboardOrder(order)
+    ? [...DELIVERY_STATUS_SEQUENCE]
+    : [...TAKEAWAY_STATUS_SEQUENCE];
 
-  return baseStatuses.includes(currentStatus as string)
+  return baseStatuses.includes(currentStatus)
     ? baseStatuses
-    : [String(currentStatus), ...baseStatuses.filter((status) => status !== currentStatus)];
+    : [currentStatus, ...baseStatuses.filter((status) => status !== currentStatus)];
 }
 
 export default function DashboardCommandes() {
@@ -144,9 +146,13 @@ export default function DashboardCommandes() {
   });
 
   const filteredOrders = useMemo(() => (
-    (orders || []).filter((order) => (
-      isDateInDashboardTimeRange(order.created_at, timeRange, referenceDate)
-    ))
+    (orders || []).filter((order) => {
+      // Hide orders whose Stripe payment never completed - they are not actionable
+      // for the restaurateur and would otherwise display a misleading "pending" badge.
+      const status = String(order.status || "").toLowerCase();
+      if (status === "pending" || status === "pending_payment" || status === "payment_failed") return false;
+      return isDateInDashboardTimeRange(order.created_at, timeRange, referenceDate);
+    })
   ), [orders, referenceDate, timeRange]);
 
   const filteredOrdersRevenue = useMemo(() => (
