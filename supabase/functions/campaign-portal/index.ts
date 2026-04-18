@@ -7,6 +7,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
 const VALID_TARGET_PAGES = new Set(["home", "search", "flash_sales", "anti_waste"]);
@@ -158,6 +159,8 @@ Deno.serve(async (req) => {
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
 
+  const log = makeLogger("campaign-portal");
+
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let restaurantId = "";
   let action: CampaignPortalAction | "" = "";
@@ -204,7 +207,7 @@ Deno.serve(async (req) => {
       });
 
       if (error) {
-        console.warn("campaign-portal estimate_audience fallback:", error);
+        log.warn("campaign-portal estimate_audience fallback", { message: error instanceof Error ? error.message : "unknown" });
         return jsonResponse({
           estimate: 0,
           unavailable: true,
@@ -365,7 +368,7 @@ Deno.serve(async (req) => {
 
     throw new HttpError(400, "Action non prise en charge");
   } catch (error) {
-    console.error("campaign-portal error:", error);
+    log.error("campaign-portal error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

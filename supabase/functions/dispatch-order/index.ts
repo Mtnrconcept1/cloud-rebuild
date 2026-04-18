@@ -13,6 +13,7 @@ import {
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 const ACTIVE_DISPATCH_STATUSES = ["accepted", "arriving_pickup", "picked_up", "arriving_dropoff"];
 
@@ -180,6 +181,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("dispatch-order");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
@@ -407,7 +410,7 @@ Deno.serve(async (req) => {
         try {
           await triggerNotificationDispatch({ source: "dispatch-order-no-courier", push: true, email: true });
         } catch (error) {
-          console.error("dispatch-order no-courier notification trigger failed:", error);
+          log.error("dispatch-order no-courier notification trigger failed", { message: error instanceof Error ? error.message : "unknown" });
         }
 
         await writeAuditLog({
@@ -522,7 +525,7 @@ Deno.serve(async (req) => {
       try {
         await triggerNotificationDispatch({ source: "dispatch-order", push: true, email: false });
       } catch (error) {
-        console.error("dispatch-order push trigger failed:", error);
+        log.error("dispatch-order push trigger failed", { message: error instanceof Error ? error.message : "unknown" });
       }
     }
 
@@ -553,7 +556,7 @@ Deno.serve(async (req) => {
       round,
     }, 200, corsHeaders);
   } catch (error) {
-    console.error("dispatch-order error:", error);
+    log.error("dispatch-order error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

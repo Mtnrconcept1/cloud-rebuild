@@ -15,6 +15,7 @@ import {
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 const ACTIVE_JOB_STATUSES = ["accepted", "arriving_pickup", "picked_up", "arriving_dropoff"];
 
@@ -309,7 +310,7 @@ async function applyJobStatusTransition(input: {
       try {
         await triggerNotificationDispatch({ source: "courier-portal-delivered", push: true, email: true });
       } catch (error) {
-        console.error("courier-portal delivery push trigger failed:", error);
+        log.error("courier-portal delivery push trigger failed", { message: error instanceof Error ? error.message : "unknown" });
       }
     }
   }
@@ -321,6 +322,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("courier-portal");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
@@ -736,7 +739,7 @@ Deno.serve(async (req) => {
         try {
           await triggerNotificationDispatch({ source: "courier-portal-assigned", push: true, email: true });
         } catch (error) {
-          console.error("courier-portal assignment push trigger failed:", error);
+          log.error("courier-portal assignment push trigger failed", { message: error instanceof Error ? error.message : "unknown" });
         }
       }
 
@@ -916,7 +919,7 @@ Deno.serve(async (req) => {
 
     throw new HttpError(400, "Action inconnue");
   } catch (error) {
-    console.error("courier-portal error:", error);
+    log.error("courier-portal error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

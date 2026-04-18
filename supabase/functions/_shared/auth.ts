@@ -27,11 +27,17 @@ export type RequestActor = {
 function safeEqual(a: string, b: string): boolean {
   if (typeof a !== "string" || typeof b !== "string") return false;
   if (a.length !== b.length) return false;
+
   let diff = 0;
   for (let i = 0; i < a.length; i++) {
     diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
+
   return diff === 0;
+}
+
+function normalizeRole(role: unknown): string {
+  return typeof role === "string" ? role.trim().toLowerCase() : "";
 }
 
 type AuditActorContext = {
@@ -72,7 +78,10 @@ export function jsonResponse(
 ) {
   return new Response(JSON.stringify(payload), {
     status,
-    headers: { "Content-Type": "application/json", ...extraHeaders },
+    headers: {
+      "Content-Type": "application/json",
+      ...extraHeaders,
+    },
   });
 }
 
@@ -87,6 +96,7 @@ export function buildRequestMetadata(req: Request | null | undefined) {
   }
 
   const forwardedFor = req.headers.get("x-forwarded-for") || "";
+
   return {
     method: req.method,
     path: pathname,
@@ -131,15 +141,17 @@ export async function authenticateRequest(
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
   const adminClient = createAdminClient();
 
-  // Scheduler secret path: explicit opt-in for cron-triggered functions.
-  // Uses a dedicated shared secret that is NOT the Supabase service role key.
   if (options.allowSchedulerSecret) {
     const providedSecret = req.headers.get("x-internal-cron-secret") ||
       req.headers.get("x-cron-secret") || "";
     const configuredSecret = Deno.env.get("INTERNAL_CRON_SECRET") ||
       Deno.env.get("CRON_SECRET") || "";
 
-    if (configuredSecret && providedSecret && safeEqual(providedSecret, configuredSecret)) {
+    if (
+      configuredSecret &&
+      providedSecret &&
+      safeEqual(providedSecret, configuredSecret)
+    ) {
       return {
         adminClient,
         userClient: null,
@@ -158,11 +170,11 @@ export async function authenticateRequest(
 
   const token = authHeader.slice("Bearer ".length).trim();
 
-  // Service role Bearer path: disabled by default. Only functions that
-  // explicitly opt in (server-to-server trusted callers) should set
-  // `allowServiceRole: true`, and those calls MUST travel over a trusted
-  // internal channel (never from the public client).
-  if (options.allowServiceRole === true && serviceRoleKey && safeEqual(token, serviceRoleKey)) {
+  if (
+    options.allowServiceRole === true &&
+    serviceRoleKey &&
+    safeEqual(token, serviceRoleKey)
+  ) {
     return {
       adminClient,
       userClient: null,
@@ -177,15 +189,27 @@ export async function authenticateRequest(
   const userClient = createClient(
     getEnv("SUPABASE_URL"),
     getEnv("SUPABASE_ANON_KEY"),
-    { global: { headers: { Authorization: authHeader } } },
+    {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    },
   );
 
   const { data: userData, error: userError } = await userClient.auth.getUser();
+
   if (userError || !userData?.user) {
     throw new HttpError(401, "Unauthorized");
   }
 
   const userId = userData.user.id;
+
   const { data: roleRows, error: roleError } = await adminClient
     .from("user_roles")
     .select("role")
@@ -195,7 +219,12 @@ export async function authenticateRequest(
     throw new HttpError(500, roleError.message);
   }
 
-  const roles = (roleRows || []).map((row: { role: string }) => row.role);
+  const roles = [...new Set(
+    (roleRows || [])
+      .map((row: { role: string }) => normalizeRole(row.role))
+      .filter(Boolean),
+  )];
+
   return {
     adminClient,
     userClient,
@@ -213,10 +242,31 @@ export async function authenticateRequest(
  * produced by an explicit `allowServiceRole`/`allowSchedulerSecret` opt-in.
  * User-JWT actors must match at least one of the allowed roles.
  */
-export function requireRole(actor: RequestActor, allowedRoles: string[]) {
+export function requireRole(
+  actor: RequestActor,
+  allowedRoles: string[],
+  customMessage?: string,
+) {
   if (actor.isServiceRole) return;
-  if (!allowedRoles.some((role) => actor.roles.includes(role))) {
-    throw new HttpError(403, "Forbidden");
+
+  const normalizedAllowedRoles = allowedRoles
+    .map((role) => normalizeRole(role))
+    .filter(Boolean);
+
+  const normalizedActorRoles = actor.roles
+    .map((role) => normalizeRole(role))
+    .filter(Boolean);
+
+  const hasRole = normalizedAllowedRoles.some((role) =>
+    normalizedActorRoles.includes(role)
+  );
+
+  if (!hasRole) {
+    throw new HttpError(
+      403,
+      customMessage ||
+        `Forbidden: required roles [${normalizedAllowedRoles.join(", ")}], actual roles [${normalizedActorRoles.join(", ") || "none"}]`,
+    );
   }
 }
 
@@ -225,12 +275,33 @@ export function requireRole(actor: RequestActor, allowedRoles: string[]) {
  * callers. Use in functions where impersonation must be auditable and where
  * no automated / cron path is allowed.
  */
-export function requireUserRole(actor: RequestActor, allowedRoles: string[]) {
+export function requireUserRole(
+  actor: RequestActor,
+  allowedRoles: string[],
+  customMessage?: string,
+) {
   if (!actor.userId) {
     throw new HttpError(403, "Forbidden: user identity required");
   }
-  if (!allowedRoles.some((role) => actor.roles.includes(role))) {
-    throw new HttpError(403, "Forbidden");
+
+  const normalizedAllowedRoles = allowedRoles
+    .map((role) => normalizeRole(role))
+    .filter(Boolean);
+
+  const normalizedActorRoles = actor.roles
+    .map((role) => normalizeRole(role))
+    .filter(Boolean);
+
+  const hasRole = normalizedAllowedRoles.some((role) =>
+    normalizedActorRoles.includes(role)
+  );
+
+  if (!hasRole) {
+    throw new HttpError(
+      403,
+      customMessage ||
+        `Forbidden: required roles [${normalizedAllowedRoles.join(", ")}], actual roles [${normalizedActorRoles.join(", ") || "none"}]`,
+    );
   }
 }
 
@@ -247,11 +318,16 @@ export async function requireRestaurantAccess(
   if (error) {
     throw new HttpError(500, error.message);
   }
+
   if (!restaurant) {
     throw new HttpError(404, "Restaurant introuvable");
   }
 
-  if (!actor.isServiceRole && !actor.isAdmin && restaurant.owner_id !== actor.userId) {
+  if (
+    !actor.isServiceRole &&
+    !actor.isAdmin &&
+    restaurant.owner_id !== actor.userId
+  ) {
     throw new HttpError(403, "Forbidden");
   }
 

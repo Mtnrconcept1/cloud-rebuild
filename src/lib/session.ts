@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { SUPABASE_PUBLISHABLE_KEY } from "@/lib/env";
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/env";
 
 const ACCESS_TOKEN_REFRESH_THRESHOLD_MS = 60_000;
 const SESSION_EXPIRED_MESSAGE = "Session expiree. Reconnectez-vous.";
@@ -19,6 +19,20 @@ function mergeFunctionHeaders(headers: Record<string, string> | undefined, acces
   };
 }
 
+function mergeRpcHeaders(
+  headers: Record<string, string> | undefined,
+  accessToken: string,
+  schema: string,
+) {
+  return {
+    ...(headers || {}),
+    Authorization: `Bearer ${accessToken}`,
+    apikey: SUPABASE_PUBLISHABLE_KEY,
+    "Content-Type": "application/json",
+    "Content-Profile": schema,
+  };
+}
+
 function mergeRequestHeaders(headers: HeadersInit | undefined, accessToken: string) {
   const nextHeaders = new Headers(headers);
   nextHeaders.set("Authorization", `Bearer ${accessToken}`);
@@ -26,39 +40,60 @@ function mergeRequestHeaders(headers: HeadersInit | undefined, accessToken: stri
   return nextHeaders;
 }
 
-async function normalizeFunctionError(error: unknown, response?: Response) {
-  const fallbackMessage = error instanceof Error ? error.message : "Erreur lors de l'appel Edge Function.";
+async function getHttpErrorMessage(response: Response | undefined, fallbackMessage: string) {
+  if (!response) return fallbackMessage;
+
   let message = fallbackMessage;
 
-  if (response) {
-    try {
-      const clonedResponse = response.clone();
-      const contentType = (clonedResponse.headers.get("Content-Type") || "").toLowerCase();
+  try {
+    const clonedResponse = response.clone();
+    const contentType = (clonedResponse.headers.get("Content-Type") || "").toLowerCase();
 
-      if (contentType.includes("application/json")) {
-        const payload = await clonedResponse.json();
-        if (typeof payload?.error === "string" && payload.error.trim()) {
-          message = payload.error.trim();
-        } else if (typeof payload?.message === "string" && payload.message.trim()) {
-          message = payload.message.trim();
-        }
-      } else {
-        const payload = await clonedResponse.text();
-        if (payload.trim()) {
-          message = payload.trim();
-        }
+    if (contentType.includes("application/json")) {
+      const payload = await clonedResponse.json();
+      if (typeof payload?.error === "string" && payload.error.trim()) {
+        message = payload.error.trim();
+      } else if (typeof payload?.message === "string" && payload.message.trim()) {
+        message = payload.message.trim();
+      } else if (typeof payload?.hint === "string" && payload.hint.trim()) {
+        message = payload.hint.trim();
       }
-    } catch {
-      // Keep the original error message when the body cannot be parsed.
+    } else {
+      const payload = await clonedResponse.text();
+      if (payload.trim()) {
+        message = payload.trim();
+      }
     }
+  } catch {
+    // Keep the fallback when the body cannot be parsed.
   }
 
-  const normalizedError = new Error(message) as Error & {
+  return message;
+}
+
+async function normalizeHttpError(
+  fallbackMessage: string,
+  response?: Response,
+  name = "FunctionsHttpError",
+) {
+  const normalizedError = new Error(await getHttpErrorMessage(response, fallbackMessage)) as Error & {
     status?: number;
     context?: unknown;
   };
 
-  normalizedError.name = error instanceof Error ? error.name : "FunctionsHttpError";
+  normalizedError.name = name;
+  normalizedError.status = response?.status;
+  normalizedError.context = response;
+  return normalizedError;
+}
+
+async function normalizeFunctionError(error: unknown, response?: Response) {
+  const fallbackMessage = error instanceof Error ? error.message : "Erreur lors de l'appel Edge Function.";
+  const normalizedError = await normalizeHttpError(
+    fallbackMessage,
+    response,
+    error instanceof Error ? error.name : "FunctionsHttpError",
+  );
   normalizedError.status = response?.status ?? getFunctionsErrorStatus(error) ?? undefined;
   normalizedError.context = response ?? (error as { context?: unknown } | null)?.context;
   return normalizedError;
@@ -96,15 +131,17 @@ export async function getFreshAccessToken(forceRefresh = false) {
 export async function invokeSupabaseFunction<TData = unknown>(
   functionName: string,
   options: {
+    accessToken?: string;
     body?: unknown;
     headers?: Record<string, string>;
   } = {},
 ) {
-  let accessToken = await getFreshAccessToken();
+  const { accessToken: providedAccessToken, ...invokeOptions } = options;
+  let accessToken = providedAccessToken || await getFreshAccessToken();
 
   let result = await supabase.functions.invoke<TData>(functionName, {
-    ...options,
-    headers: mergeFunctionHeaders(options.headers, accessToken),
+    ...invokeOptions,
+    headers: mergeFunctionHeaders(invokeOptions.headers, accessToken),
   });
 
   if (getFunctionsErrorStatus(result.error) !== 401) {
@@ -120,8 +157,8 @@ export async function invokeSupabaseFunction<TData = unknown>(
   accessToken = await getFreshAccessToken(true);
 
   result = await supabase.functions.invoke<TData>(functionName, {
-    ...options,
-    headers: mergeFunctionHeaders(options.headers, accessToken),
+    ...invokeOptions,
+    headers: mergeFunctionHeaders(invokeOptions.headers, accessToken),
   });
 
   if (result.error) {
@@ -132,6 +169,62 @@ export async function invokeSupabaseFunction<TData = unknown>(
   }
 
   return result;
+}
+
+export async function invokeSupabaseRpc<TData = unknown>(
+  rpcName: string,
+  options: {
+    accessToken?: string;
+    body?: unknown;
+    headers?: Record<string, string>;
+    schema?: string;
+  } = {},
+) {
+  const {
+    accessToken: providedAccessToken,
+    body,
+    headers,
+    schema = "public",
+  } = options;
+
+  const endpoint = `${SUPABASE_URL}/rest/v1/rpc/${rpcName}`;
+
+  const invoke = async (accessToken: string) => {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: mergeRpcHeaders(headers, accessToken, schema),
+      body: JSON.stringify(body ?? {}),
+    });
+
+    const contentType = (response.headers.get("Content-Type") || "").toLowerCase();
+    let data: TData | null = null;
+
+    if (contentType.includes("application/json")) {
+      data = await response.json().catch(() => null);
+    } else if (response.status !== 204) {
+      data = await response.text().then((value) => value as TData).catch(() => null);
+    }
+
+    return { response, data };
+  };
+
+  let accessToken = providedAccessToken || await getFreshAccessToken();
+  let result = await invoke(accessToken);
+
+  if (result.response.status === 401) {
+    accessToken = await getFreshAccessToken(true);
+    result = await invoke(accessToken);
+  }
+
+  if (!result.response.ok) {
+    throw await normalizeHttpError(
+      "Erreur lors de l'appel RPC Supabase.",
+      result.response,
+      "PostgrestError",
+    );
+  }
+
+  return result.data;
 }
 
 export async function fetchWithFreshAccessToken(input: string, init: RequestInit = {}) {

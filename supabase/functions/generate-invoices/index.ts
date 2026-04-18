@@ -8,17 +8,36 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
+
+function formatErrorMessage(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return error instanceof Error ? error.message : "Erreur interne";
+  }
+
+  const message = "message" in error ? String(error.message || "") : "";
+  const code = "code" in error ? String(error.code || "") : "";
+  const hint = "hint" in error ? String(error.hint || "") : "";
+
+  return [message, code && `code=${code}`, hint && `hint=${hint}`]
+    .filter(Boolean)
+    .join(" | ");
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
 
+  const log = makeLogger("generate-invoices");
+
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let rpcMethod = "";
 
   try {
     actor = await authenticateRequest(req, { allowSchedulerSecret: true });
-    requireRole(actor, ["admin"]);
+    // On autorise "admin" ou "restaurant_owner"
+    requireRole(actor, ["admin", "restaurant_owner"]);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -27,38 +46,59 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const month = body.month || null; // optional: "2026-02-01"
+    const restaurantId = body.restaurant_id || null;
 
-    const { data, error } = await supabase.rpc("generate_monthly_invoices", { p_month: month });
+    if (actor.roles.includes("restaurant_owner") && !restaurantId) {
+      throw new HttpError(400, "restaurant_id required for restaurant owners");
+    }
 
-    if (error) throw error;
+    let resultData;
+
+    if (restaurantId) {
+      // Call a non-overloaded RPC wrapper. PostgREST rejects overloaded
+      // functions with the same argument names (PGRST203).
+      rpcMethod = "generate_restaurant_payout_invoice_rpc";
+      const { data, error } = await supabase.rpc(rpcMethod, { 
+        p_restaurant_id: restaurantId,
+        p_month: month 
+      });
+      if (error) throw error;
+      resultData = data;
+    } else {
+      rpcMethod = "generate_monthly_invoices";
+      const { data, error } = await supabase.rpc(rpcMethod, { p_month: month });
+      if (error) throw error;
+      resultData = data;
+    }
 
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,
       request: req,
       functionName: "generate-invoices",
-      action: "generate_monthly_invoices",
+      action: rpcMethod,
       status: "success",
       targetEntityType: "restaurant_invoices",
-      metadata: { month, generated: data },
+      metadata: { month, restaurantId, generated: resultData },
     });
 
-    return jsonResponse({ generated: data }, 200, corsHeaders);
+    return jsonResponse({ generated: resultData }, 200, corsHeaders);
   } catch (err) {
+    const errorMessage = formatErrorMessage(err);
+    log.error("generate-invoices error", { message: errorMessage });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,
       request: req,
       functionName: "generate-invoices",
-      action: "generate_monthly_invoices",
+      action: rpcMethod || "generate_monthly_invoices",
       status: "failure",
       targetEntityType: "restaurant_invoices",
-      errorMessage: err instanceof Error ? err.message : "Erreur interne",
+      errorMessage,
     });
     if (err instanceof HttpError) {
       return jsonResponse({ error: err.message }, err.status, corsHeaders);
     }
-    const message = err instanceof Error ? err.message : "Erreur interne";
-    return jsonResponse({ error: message }, 500, corsHeaders);
+    return jsonResponse({ error: errorMessage || "Erreur interne" }, 500, corsHeaders);
   }
 });

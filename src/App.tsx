@@ -94,6 +94,7 @@ const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications")
 const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 const AdminPlatformConfig = lazy(() => import("./pages/admin/AdminPlatformConfig"));
 const AdminLaunchPacks = lazy(() => import("./pages/admin/AdminLaunchPacks"));
+const AdminCompta = lazy(() => import("./pages/admin/AdminCompta"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -187,6 +188,7 @@ function AppShell() {
   const adminNotificationsEnabled = hasFeature("admin-notifications");
   const adminAuditEnabled = hasFeature("admin-audit");
   const adminPacksEnabled = hasFeature("admin-packs");
+  const adminComptaEnabled = hasFeature("admin-compta");
 
   return (
     <>
@@ -269,6 +271,7 @@ function AppShell() {
           <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminNotificationsEnabled} fallback="/admin"><AdminNotifications /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/packs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminPacksEnabled} fallback="/admin"><AdminLaunchPacks /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/compta" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />

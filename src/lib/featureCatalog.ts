@@ -616,6 +616,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     group: "admin_tools",
     routeTargets: ["/admin/packs"],
   },
+  {
+    name: "admin-compta",
+    label: "Admin: Comptabilite",
+    description: "Expose l'outil de rapprochement financier et le suivi des commissions 10% / reversements 90%.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    routeTargets: ["/admin/compta"],
+  },
 ];
 
 const FEATURE_DEFINITION_MAP = new Map(FEATURE_DEFINITIONS.map((definition) => [definition.name, definition]));

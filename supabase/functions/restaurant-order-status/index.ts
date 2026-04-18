@@ -13,20 +13,76 @@ import {
   triggerDispatchOrder,
 } from "../_shared/delivery-dispatch.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 import { triggerNotificationDispatch } from "../_shared/notifications.ts";
 
 const ALLOWED_STATUSES = new Set([
   "pending",
   "confirmed",
   "preparing",
+  "ready",
   "delivering",
   "delivered",
   "cancelled",
 ]);
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isTruthy(value: unknown) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "oui";
+}
+
+function hasSpecialPaidOrderMarkers(metadata: Record<string, unknown>) {
+  const feature = String(metadata.feature || "").trim().toLowerCase();
+  const hasAntiGaspi = isTruthy(metadata.has_anti_gaspi)
+    || isTruthy(metadata.is_anti_waste)
+    || feature === "anti-gaspi"
+    || feature === "anti_waste"
+    || feature === "zero-gaspi"
+    || String(metadata.anti_waste_offer_id || "").trim() !== "";
+  const hasFlashSale = isTruthy(metadata.has_flash_sale)
+    || isTruthy(metadata.is_flash_sale)
+    || feature === "ventes-flash"
+    || feature === "ventes_flash"
+    || feature === "flash_sale"
+    || feature === "flash-sale"
+    || String(metadata.flash_sale_id || "").trim() !== "";
+
+  return hasAntiGaspi || hasFlashSale;
+}
+
+function isPaidSpecialOrderLocked(
+  paymentStatus: unknown,
+  metadata: unknown,
+  orderItems: Array<{ anti_waste_offer_id?: string | null; metadata?: unknown }> = [],
+) {
+  const normalizedPaymentStatus = String(paymentStatus || "").trim().toLowerCase();
+  if (normalizedPaymentStatus !== "captured" && normalizedPaymentStatus !== "paid") {
+    return false;
+  }
+
+  const safeMetadata = isRecord(metadata) ? metadata : {};
+  if (hasSpecialPaidOrderMarkers(safeMetadata)) {
+    return true;
+  }
+
+  return orderItems.some((item) => {
+    const itemMetadata = isRecord(item.metadata) ? item.metadata : {};
+    return Boolean(item.anti_waste_offer_id)
+      || String(itemMetadata.flash_sale_id || "").trim() !== ""
+      || isTruthy(itemMetadata.is_anti_waste)
+      || isTruthy(itemMetadata.is_flash_sale);
+  });
+}
+
 function normalizeStatus(value: unknown) {
   const normalized = String(value || "").trim().toLowerCase();
   if (normalized === "on_the_way") return "delivering";
+  if (normalized === "ready_for_pickup") return "ready";
+  if (normalized === "picked_up") return "delivered";
   return normalized;
 }
 
@@ -40,6 +96,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("restaurant-order-status");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let auditOrderId: string | null = null;
@@ -66,7 +124,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error: orderError } = await actor.adminClient
       .from("orders")
-      .select("id, user_id, restaurant_id, status, order_number, delivery_address, scheduled_at, estimated_delivery_at, metadata")
+      .select("id, user_id, restaurant_id, status, payment_status, order_number, delivery_address, scheduled_at, estimated_delivery_at, metadata")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -85,6 +143,17 @@ Deno.serve(async (req) => {
       }, 200, corsHeaders);
     }
 
+    const { data: orderItems, error: orderItemsError } = await actor.adminClient
+      .from("order_items")
+      .select("anti_waste_offer_id, metadata")
+      .eq("order_id", order.id);
+
+    if (orderItemsError) throw new HttpError(500, orderItemsError.message);
+
+    if (isPaidSpecialOrderLocked(order.payment_status, order.metadata, orderItems || [])) {
+      throw new HttpError(400, "Cette commande speciale payee ne peut plus changer de statut.");
+    }
+
     const { error: updateError } = await actor.adminClient
       .from("orders")
       .update({
@@ -93,11 +162,14 @@ Deno.serve(async (req) => {
       } as any)
       .eq("id", order.id);
 
-    if (updateError) throw new HttpError(500, updateError.message);
+    if (updateError) {
+      if (updateError.code === "P0001") {
+        throw new HttpError(400, updateError.message);
+      }
+      throw new HttpError(500, updateError.message);
+    }
 
-    const metadata = order.metadata && typeof order.metadata === "object" && !Array.isArray(order.metadata)
-      ? order.metadata
-      : {};
+    const metadata = isRecord(order.metadata) ? order.metadata : {};
     const scheduledAt = typeof order.scheduled_at === "string"
       ? order.scheduled_at
       : (typeof metadata.scheduled_delivery_at === "string" ? metadata.scheduled_delivery_at : null);
@@ -147,7 +219,7 @@ Deno.serve(async (req) => {
         email: true,
       });
     } catch (error) {
-      console.error("restaurant-order-status notification dispatch failed:", error);
+      log.error("restaurant-order-status notification dispatch failed", { message: error instanceof Error ? error.message : "unknown" });
     }
 
     await writeAuditLog({
@@ -174,7 +246,7 @@ Deno.serve(async (req) => {
       dispatch,
     }, 200, corsHeaders);
   } catch (error) {
-    console.error("restaurant-order-status error:", error);
+    log.error("restaurant-order-status error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

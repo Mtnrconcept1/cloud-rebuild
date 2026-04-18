@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "npm:stripe@18.5.0";
 import { getEnv, writeAuditLog } from "../_shared/auth.ts";
+import { makeLogger } from "../_shared/logging.ts";
 import {
   enrichDeliveryMetadata,
   getEstimatedArrivalTime,
@@ -84,7 +85,7 @@ async function getPaymentMethodDetails(stripe: Stripe, session: Stripe.Checkout.
         }
       }
     } catch (error) {
-      console.error("Error fetching payment method details:", error);
+      log.error("card_details_fetch_error", { message: error instanceof Error ? error.message : "unknown" });
     }
   }
   return { cardBrand, cardLast4, billingPhone };
@@ -131,7 +132,7 @@ async function recordTokOnePaymentIfMissing(input: {
     .maybeSingle();
 
   if (existingTransactionError) {
-    console.error("Failed to check existing Tok One payment transaction:", existingTransactionError);
+    log.error("tok_one_payment_check_failed", { message: existingTransactionError.message });
     return;
   }
 
@@ -287,6 +288,8 @@ async function findOrdersForSession(
 }
 
 Deno.serve(async (req) => {
+  const log = makeLogger("stripe-webhook");
+
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -345,7 +348,7 @@ Deno.serve(async (req) => {
       webhookSecret,
     );
   } catch (error) {
-    console.warn("Webhook signature verification failed:", error);
+    log.warn("signature_verification_failed", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: supabaseAdmin,
       actor: { roles: ["service_role"], isServiceRole: true },
@@ -358,6 +361,26 @@ Deno.serve(async (req) => {
     });
     return new Response("Invalid webhook signature", { status: 400 });
   }
+
+  // Idempotency: skip duplicate Stripe events (replays, retries).
+  const { data: existingEvent } = await supabaseAdmin
+    .from("stripe_webhook_events")
+    .select("event_id")
+    .eq("event_id", event.id)
+    .maybeSingle();
+
+  if (existingEvent) {
+    log.info("duplicate_event_skipped", { eventId: event.id, type: event.type });
+    return new Response(JSON.stringify({ received: true, duplicate: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Record the event ID before processing so concurrent retries are also blocked.
+  await supabaseAdmin
+    .from("stripe_webhook_events")
+    .insert({ event_id: event.id, event_type: event.type, livemode: event.livemode });
 
   try {
     switch (event.type) {
@@ -440,7 +463,7 @@ Deno.serve(async (req) => {
             try {
               await triggerNotificationDispatch({ source: "stripe-webhook-campaign-paid", push: true, email: true });
             } catch (error) {
-              console.error("stripe-webhook campaign payment notification trigger failed:", error);
+              log.error("campaign_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
             }
           }
           break;
@@ -452,7 +475,7 @@ Deno.serve(async (req) => {
           const billingPeriod = session.metadata?.billing_period || "monthly";
 
           if (!userId || !planId) {
-            console.warn(`Missing tok-one metadata for session ${session.id}`);
+            log.warn("tok_one_missing_metadata", { sessionId: session.id });
             break;
           }
 
@@ -466,7 +489,7 @@ Deno.serve(async (req) => {
               fallbackPlanId: planId,
             });
           } else {
-            console.warn(`Tok One checkout completed without Stripe subscription id for session ${session.id}`);
+            log.warn("tok_one_no_subscription", { sessionId: session.id });
           }
 
           await recordTokOnePaymentIfMissing({
@@ -499,7 +522,7 @@ Deno.serve(async (req) => {
             });
             await triggerNotificationDispatch({ source: "stripe-webhook-tok-one", push: true, email: true });
           } catch (error) {
-            console.error("stripe-webhook tok-one notification trigger failed:", error);
+            log.error("tok_one_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
           }
 
           break;
@@ -510,7 +533,7 @@ Deno.serve(async (req) => {
           const packId = session.metadata?.pack_id || null;
 
           if (!restaurantLaunchPackId || !packId) {
-            console.warn(`Missing launch-pack metadata for session ${session.id}`);
+            log.warn("launch_pack_missing_metadata", { sessionId: session.id });
             break;
           }
 
@@ -632,7 +655,7 @@ Deno.serve(async (req) => {
               try {
                 await triggerNotificationDispatch({ source: "stripe-webhook-launch-pack", push: true, email: true });
               } catch (error) {
-                console.error("stripe-webhook launch-pack notification trigger failed:", error);
+                log.error("launch_pack_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
               }
             }
           }
@@ -641,7 +664,7 @@ Deno.serve(async (req) => {
 
         if (isZeroAttenteCheckoutKind(checkoutKind)) {
           if (!userId) {
-            console.warn(`Missing user_id for zero-attente session ${session.id}`);
+            log.warn("zero_attente_missing_user", { sessionId: session.id });
             break;
           }
 
@@ -665,7 +688,7 @@ Deno.serve(async (req) => {
           const orderReference = String(session.metadata?.order_reference || `ZA-${Date.now()}`);
 
           if (!restaurantId || !arrivalDate || !arrivalTime) {
-            console.warn(`Incomplete metadata for zero-attente session ${session.id}`);
+            log.warn("zero_attente_incomplete_metadata", { sessionId: session.id });
             break;
           }
 
@@ -864,7 +887,7 @@ Deno.serve(async (req) => {
             try {
               await triggerNotificationDispatch({ source: "stripe-webhook-zero-attente", push: true, email: true });
             } catch (error) {
-              console.error("stripe-webhook zero-attente notification trigger failed:", error);
+              log.error("zero_attente_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
             }
           }
           break;
@@ -1027,14 +1050,14 @@ Deno.serve(async (req) => {
         }
 
         if (!orders.length && !reservation) {
-          console.warn(`No order or reservation found for Stripe session ${session.id}`);
+          log.warn("no_order_or_reservation", { sessionId: session.id });
         }
 
         if (shouldDispatchNotifications) {
           try {
             await triggerNotificationDispatch({ source: "stripe-webhook-checkout", push: true, email: true });
           } catch (error) {
-            console.error("stripe-webhook notification trigger failed:", error);
+            log.error("order_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
           }
         }
         break;
@@ -1085,7 +1108,7 @@ Deno.serve(async (req) => {
           try {
             await triggerNotificationDispatch({ source: "stripe-webhook-payment-failed", push: true, email: true });
           } catch (error) {
-            console.error("stripe-webhook payment failure push trigger failed:", error);
+            log.error("payment_failure_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
           }
         }
         break;
@@ -1165,7 +1188,7 @@ Deno.serve(async (req) => {
           try {
             await triggerNotificationDispatch({ source: "stripe-webhook-refund", push: true, email: true });
           } catch (error) {
-            console.error("stripe-webhook refund push trigger failed:", error);
+            log.error("refund_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
           }
         }
         break;
@@ -1181,7 +1204,7 @@ Deno.serve(async (req) => {
         });
 
         if (!syncResult.updated) {
-          console.warn(`Tok One subscription event skipped for ${subscription.id}: missing sync identifiers`);
+          log.warn("tok_one_subscription_skipped", { subscriptionId: subscription.id });
           break;
         }
 
@@ -1205,16 +1228,16 @@ Deno.serve(async (req) => {
           try {
             await triggerNotificationDispatch({ source: "stripe-webhook-subscription-update", push: true, email: true });
           } catch (error) {
-            console.error("stripe-webhook subscription update notification trigger failed:", error);
+            log.error("subscription_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
           }
         }
 
-        console.log(`Subscription event synced: ${event.type} -> ${subscription.id}`);
+        log.info("subscription_synced", { eventType: event.type, subscriptionId: subscription.id });
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        log.info("unhandled_event_type", { eventType: event.type });
     }
 
     await writeAuditLog({
@@ -1232,7 +1255,7 @@ Deno.serve(async (req) => {
       },
     });
   } catch (error) {
-    console.error(`Error processing event ${event.type}:`, error);
+    log.error("event_processing_error", { eventType: event.type, message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: supabaseAdmin,
       actor: { roles: ["service_role"], isServiceRole: true },

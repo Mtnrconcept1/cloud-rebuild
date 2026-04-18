@@ -28,7 +28,7 @@ const EVENTS: RestaurantPaymentEvent[] = [
   {
     event_id: "refund-1",
     event_kind: "order_refund",
-    direction: "received",
+    direction: "issued",
     occurred_at: "2026-03-28T11:00:00.000Z",
     amount: 12,
     currency: "chf",
@@ -58,27 +58,42 @@ const EVENTS: RestaurantPaymentEvent[] = [
   {
     event_id: "invoice-1",
     event_kind: "invoice_payment",
-    direction: "issued",
+    direction: "received",
     occurred_at: "2026-03-26T09:00:00.000Z",
     amount: 18,
     currency: "chf",
     status: "succeeded",
-    title: "Facture reglee",
+    title: "Facture restaurateur reglee par TOK",
     subtitle: "FAC-2026-03-001",
     payment_method: null,
     order_id: null,
     campaign_id: null,
     invoice_id: "invoice-1",
   },
+  {
+    event_id: "invoice-2",
+    event_kind: "invoice_payment",
+    direction: "issued",
+    occurred_at: "2026-03-25T09:00:00.000Z",
+    amount: 8,
+    currency: "chf",
+    status: "succeeded",
+    title: "Facture TOK reglee",
+    subtitle: "TOK-2026-03-0001",
+    payment_method: null,
+    order_id: null,
+    campaign_id: null,
+    invoice_id: "invoice-2",
+  },
 ];
 
 describe("buildRestaurantPaymentSummary", () => {
   it("computes totals from succeeded events only", () => {
     expect(buildRestaurantPaymentSummary(EVENTS)).toEqual({
-      receivedCharges: 42,
+      receivedCharges: 60,
       refunds: 12,
-      issuedPayments: 18,
-      netPlatform: 12,
+      issuedPayments: 8,
+      netPlatform: 40,
     });
   });
 });
@@ -94,7 +109,8 @@ describe("payment helpers", () => {
   it("returns negative signed amounts for refunds and issued events", () => {
     expect(getRestaurantPaymentSignedAmount(EVENTS[0])).toBe(42);
     expect(getRestaurantPaymentSignedAmount(EVENTS[1])).toBe(-12);
-    expect(getRestaurantPaymentSignedAmount(EVENTS[3])).toBe(-18);
+    expect(getRestaurantPaymentSignedAmount(EVENTS[3])).toBe(18);
+    expect(getRestaurantPaymentSignedAmount(EVENTS[4])).toBe(-8);
   });
 
   it("formats payment methods and status filters", () => {

@@ -4,6 +4,7 @@ import { useDashboardRestaurant } from "./DashboardContext";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
+import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,8 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
-import { updateRestaurantReservationStatus } from "@/lib/reservationMutations";
-import { AlertTriangle, Check, CreditCard, Dot, MoonStar, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
+import {
+  cancelReservationByRestaurant,
+  type CancellationReasonCode,
+  updateRestaurantReservationStatus,
+} from "@/lib/reservationMutations";
+import { getReservationStatusLockMessage } from "@/lib/statusLocks";
+import { AlertTriangle, Ban, Check, CreditCard, Dot, MoonStar, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
@@ -91,6 +97,7 @@ export default function DashboardReservations() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<SortBy>("time");
   const [isCompactMode, setIsCompactMode] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
 
@@ -167,6 +174,39 @@ export default function DashboardReservations() {
     },
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: async ({
+      id,
+      reasonCode,
+      details,
+    }: {
+      id: string;
+      reasonCode: CancellationReasonCode;
+      details: string | null;
+    }) => {
+      const result = await cancelReservationByRestaurant(id, reasonCode, details);
+      if (!result.ok) {
+        throw new Error(result.errorMessage);
+      }
+
+      try {
+        await dispatchQueuedNotifications("dashboard-reservation-status");
+      } catch (dispatchError) {
+        console.error("Reservation cancellation notification dispatch failed:", dispatchError);
+      }
+
+      return { id };
+    },
+    onSuccess: () => {
+      toast({ title: "Reservation annulee", description: "La raison a ete enregistree." });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
+      setCancelTarget(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: "Annulation impossible", description: error.message, variant: "destructive" });
+    },
+  });
+
   const statusOptions = useMemo(() => {
     const uniqueStatuses = Array.from(new Set(reservations.map((reservation) => reservation.status))).sort();
     return ["all", ...uniqueStatuses];
@@ -174,6 +214,10 @@ export default function DashboardReservations() {
 
   const filteredReservations = useMemo(() => (
     reservations.filter((reservation) => {
+      // Hide reservations that never reached confirmation (Stripe still pending or
+      // restaurateur hasn't confirmed manually). They are not actionable yet.
+      const status = String(reservation.status || "").toLowerCase();
+      if (status === "pending" || status === "pending_payment") return false;
       if (!isDateInDashboardTimeRange(reservation.date, timeRange, referenceDate, { dateOnly: true })) return false;
       if (serviceFilter !== "all") {
         const metadataService = extractMetadata(reservation).service;
@@ -405,6 +449,8 @@ export default function DashboardReservations() {
                         const offerDiscountAmount = metadata.formula_discount_amount;
                         const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
                         const compactBase = isCompactMode ? "p-3" : "p-4";
+                        const statusLockMessage = getReservationStatusLockMessage(reservation);
+                        const isReservationLocked = Boolean(statusLockMessage);
 
                         const isZeroAttente = reservation.feature === "zero-attente";
                         const isChefTable = reservation.feature === "chefs_table";
@@ -512,7 +558,7 @@ export default function DashboardReservations() {
                                       size="sm"
                                       variant="outline"
                                       onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
-                                      disabled={updateStatusMutation.isPending}
+                                      disabled={updateStatusMutation.isPending || isReservationLocked}
                                     >
                                       <UserCheck className="mr-1 h-4 w-4" />
                                       Arrivee
@@ -520,8 +566,22 @@ export default function DashboardReservations() {
                                     <Button
                                       size="sm"
                                       variant="outline"
+                                      onClick={() => setCancelTarget(reservation)}
+                                      disabled={
+                                        isReservationLocked ||
+                                        reservation.status === "no_show" ||
+                                        cancelMutation.isPending
+                                      }
+                                      className="text-destructive"
+                                    >
+                                      <Ban className="mr-1 h-4 w-4" />
+                                      Annuler
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
                                       onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "no_show" })}
-                                      disabled={updateStatusMutation.isPending}
+                                      disabled={updateStatusMutation.isPending || isReservationLocked}
                                       className="text-destructive"
                                     >
                                       <X className="mr-1 h-4 w-4" />
@@ -535,12 +595,17 @@ export default function DashboardReservations() {
                                           status: reservation.status === "confirmed" ? "pending" : "confirmed",
                                         })
                                       }
-                                      disabled={updateStatusMutation.isPending}
+                                      disabled={updateStatusMutation.isPending || isReservationLocked}
                                     >
                                       <Check className="mr-1 h-4 w-4" />
                                       {reservation.status === "confirmed" ? "Reservee" : "Confirmee"}
                                     </Button>
                                   </div>
+                                  {statusLockMessage ? (
+                                    <p className="text-xs text-muted-foreground sm:text-right">
+                                      {statusLockMessage}
+                                    </p>
+                                  ) : null}
                                 </div>
                               </article>
                             );
@@ -557,6 +622,24 @@ export default function DashboardReservations() {
           </>
         ) : null}
       </div>
+      <RestaurantCancellationDialog
+        open={Boolean(cancelTarget)}
+        reservationLabel={
+          cancelTarget
+            ? `${cancelTarget.customer?.full_name ?? "Client"} - ${cancelTarget.date} ${getSafeTime(cancelTarget.time)}`
+            : undefined
+        }
+        submitting={cancelMutation.isPending}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCancelTarget(null);
+          }
+        }}
+        onConfirm={(reasonCode, details) => {
+          if (!cancelTarget) return;
+          cancelMutation.mutate({ id: cancelTarget.id, reasonCode, details });
+        }}
+      />
     </DashboardLayout>
   );
 }

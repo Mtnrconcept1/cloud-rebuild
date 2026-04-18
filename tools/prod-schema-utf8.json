@@ -1,0 +1,4532 @@
+﻿{
+  "extensions": [
+    {
+      "extname": "pg_graphql"
+    },
+    {
+      "extname": "pg_net"
+    },
+    {
+      "extname": "pg_stat_statements"
+    },
+    {
+      "extname": "pgcrypto"
+    },
+    {
+      "extname": "plpgsql"
+    },
+    {
+      "extname": "supabase_vault"
+    },
+    {
+      "extname": "uuid-ossp"
+    }
+  ],
+  "tables": [
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaign_events"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaigns"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "allergens"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "anti_waste_offers"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "audit_log"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cart_item_modifiers"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cart_items"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "carts"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "categories"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "chef_table_drops"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "clicks"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "collection_restaurants"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "collections"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "compensations"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "conversations"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_documents"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_earnings"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_locations"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_shifts"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "couriers"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credit_notes"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cuisines"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "delivery_batches"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "delivery_routes"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "delivery_tracking"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "device_tokens"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_allergens"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_availability_windows"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_images"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_modifier_groups"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_modifier_options"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_tags"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_variants"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dishes"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dispatch_attempts"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dispatch_jobs"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "edge_function_audit_logs"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "email_queue"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "event_store"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "favorites"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "feature_flags"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "feature_store"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "flash_sales"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fraud_signals"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "gift_cards"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "gift_points"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "group_members"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "impressions"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "incident_reports"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "inventory_items"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "inventory_movements"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "invoices"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "launch_pack_service_fulfillments"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "launch_packs"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "loyalty_accounts"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "loyalty_tiers"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "loyalty_transactions"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "meal_formula_categories"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "meal_formulas"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "menu_categories"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "menu_items"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "messages"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ml_predictions"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_campaigns"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_deliveries"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_preferences"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_subscriptions"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notifications"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_addresses"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_events"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_fees"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_groups"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_issues"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_item_modifiers"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_items"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_notes"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_refunds"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_status_history"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_taxes"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payment_intents"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payment_transactions"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payout_batches"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payouts"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_code_uses"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_codes"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "proof_of_delivery"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "rate_limit_buckets"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "recommendation_logs"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "referral_codes"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservation_slots"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservation_status_history"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservation_table_layout_overrides"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservation_tables"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservations"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_branches"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_cuisines"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_daily_kpis"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_delivery_rules"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_documents"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_hours"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_invoice_settings"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_invoices"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_launch_packs"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_media"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_payout_settings"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_promotions"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_recommendations"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_service_areas"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_settings"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_staff"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurants"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "review_replies"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reviews"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "search_logs"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "signup_application_documents"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "signup_applications"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "solidarity_donations"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "stripe_webhook_events"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "subscription_benefits"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "support_messages"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "support_tickets"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "tok_one_subscriptions"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_addresses"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_analytics"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_devices"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_notification_settings"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_payment_methods"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_preferences"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_profiles"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_referrals"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_roles"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_subscription_plans"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_subscriptions"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_wallets"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "wallet_transactions"
+    }
+  ],
+  "functions": [
+    {
+      "schema_name": "public",
+      "function_name": "admin_activate_all_feature_flags",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "admin_dispatch_notification_campaign",
+      "args": "p_campaign_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "admin_list_users",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "admin_review_signup_application",
+      "args": "p_application_id uuid, p_status text, p_review_note text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "admin_seed_default_flags",
+      "args": "p_flags jsonb",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "admin_set_user_roles",
+      "args": "p_user_id uuid, p_roles app_role[]",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "admin_toggle_feature_flag",
+      "args": "p_flag_name text, p_is_active boolean",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "auth_can_manage_dispatch_job",
+      "args": "p_dispatch_job_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "auth_can_manage_order_delivery",
+      "args": "p_order_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "auth_can_view_courier",
+      "args": "p_courier_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "auth_can_view_dispatch_job",
+      "args": "p_dispatch_job_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "auth_can_view_order_delivery",
+      "args": "p_order_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "auth_is_admin",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "auth_owns_courier",
+      "args": "p_courier_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "auth_owns_restaurant",
+      "args": "p_restaurant_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "broadcast_topic_notification",
+      "args": "p_topic text, p_title text, p_body text, p_type text, p_category text, p_data jsonb",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "claim_gift_points",
+      "args": "claim_code_param text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "cleanup_expired_groups",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "compute_order_discount_from_payload",
+      "args": "p_items_total numeric, p_delivery_fee numeric, p_total_amount numeric, p_metadata json",
+      "owner_name": "postgres",
+      "security_definer": false
+    },
+    {
+      "schema_name": "public",
+      "function_name": "create_order_with_items",
+      "args": "restaurant_id_param uuid, delivery_address_param text, total_amount_param numeric, delivery_fee_param numeric, notes_param text, items_param json, metadata_param json, checkout_id_param uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "credit_order_loyalty_points",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "credit_reservation_loyalty_points",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "decrement_stock",
+      "args": "p_table text, p_id uuid, p_qty integer",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "delete_user_gdpr_cascade",
+      "args": "p_user_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "donate_points_for_meal",
+      "args": "points_param integer, description_param text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "enqueue_deliveries",
+      "args": "p_notification_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "enqueue_notification",
+      "args": "p_user_id uuid, p_title text, p_body text, p_type text, p_category text, p_data json",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "ensure_guest_profile",
+      "args": "p_restaurant_id uuid, p_user_id uuid, p_source_channel text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "estimate_campaign_audience",
+      "args": "p_restaurant_id uuid, p_criteria jsonb",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "find_nearby_couriers",
+      "args": "p_lat double precision, p_lng double precision, p_radius_km double precision, p_limit integer",
+      "owner_name": "postgres",
+      "security_definer": false
+    },
+    {
+      "schema_name": "public",
+      "function_name": "generate_monthly_invoices",
+      "args": "p_month text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "generate_restaurant_payout_invoice",
+      "args": "p_restaurant_id uuid, p_month date",
+      "owner_name": "postgres",
+      "security_definer": false
+    },
+    {
+      "schema_name": "public",
+      "function_name": "generate_restaurant_payout_invoice",
+      "args": "p_restaurant_id uuid, p_month text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_campaign_stats",
+      "args": "campaign_ids uuid[]",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_customer_orders_dashboard",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_gift_stats",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_order_customers",
+      "args": "p_restaurant_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_reservation_customers",
+      "args": "p_restaurant_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_restaurant_comparison",
+      "args": "p_restaurant_id uuid, p_period text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_restaurant_orders_dashboard",
+      "args": "p_restaurant_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_restaurant_payment_history",
+      "args": "p_restaurant_id uuid, p_limit integer, p_before timestamp with time zone",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_restaurant_performance",
+      "args": "p_restaurant_id uuid, p_from text, p_to text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_restaurant_recommendations",
+      "args": "p_restaurant_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_total_donated_meals",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "get_total_donated_points",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "guard_ad_campaign_client_write",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "handle_new_user",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "has_role",
+      "args": "_user_id uuid, _role app_role",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "increment_ad_campaign_metric",
+      "args": "p_campaign_id uuid, p_metric text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "is_feature_flag_active",
+      "args": "p_flag_name text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "log_audit",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "log_feature_flag_audit",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "mark_noshow_reservations",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "normalize_search_text",
+      "args": "p_text text",
+      "owner_name": "postgres",
+      "security_definer": false
+    },
+    {
+      "schema_name": "public",
+      "function_name": "queue_notification_deliveries",
+      "args": "p_notification_id uuid, p_user_id uuid, p_category text, p_data jsonb",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "rate_limit_consume",
+      "args": "p_function_name text, p_subject text, p_max_requests integer, p_window_seconds integer",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "recompute_restaurant_review_stats",
+      "args": "p_restaurant_id uuid",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "record_ad_campaign_event",
+      "args": "p_campaign_id uuid, p_restaurant_id uuid, p_event_type text, p_dedupe_key text, p_user_id uuid, p_source text, p_page text, p_payload jsonb, p_conversion_type text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "redeem_loyalty_points",
+      "args": "user_id_param uuid, points_to_redeem integer, description_param text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "refresh_restaurant_daily_kpis_for_date",
+      "args": "p_restaurant_id uuid, p_day text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "refresh_restaurant_daily_kpis_recent_days",
+      "args": "p_days_back integer",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "rls_auto_enable",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "search_restaurants_catalog",
+      "args": "p_query text, p_city text, p_cuisine text, p_price_range integer, p_delivery_only boolean, p_min_rating numeric, p_sort_by text, p_sort_direction text, p_limit integer, p_offset integer",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "search_restaurants_nearby",
+      "args": "p_lat double precision, p_lng double precision, p_radius_km double precision, p_cuisine text, p_min_rating numeric, p_max_price_range integer, p_search_text text, p_delivery_only boolean, p_limit integer, p_offset integer",
+      "owner_name": "postgres",
+      "security_definer": false
+    },
+    {
+      "schema_name": "public",
+      "function_name": "send_gift_points",
+      "args": "recipient_email_param text, points_param integer, message_param text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "sync_signup_application",
+      "args": "p_requested_role app_role, p_full_name text, p_phone text, p_city text, p_address text, p_legal_name text, p_business_name text, p_business_registration_number text, p_tax_id text, p_restaurant_name text, p_restaurant_description text, p_vehicle_type text, p_license_plate text, p_iban text, p_metadata jsonb, p_documents jsonb",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_anti_gaspi_subscription_alert",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_chefs_table_subscription_alert",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_flash_sale_subscription_alert",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_invoice_notification",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_order_status_notification",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_recompute_review_stats",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_refresh_kpis",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_reservation_notifications",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "trigger_review_reply_notification",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "update_loyalty_tier",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "update_restaurant_reservation_status_safe",
+      "args": "p_reservation_id uuid, p_status text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "update_restaurant_search_vector",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": false
+    },
+    {
+      "schema_name": "public",
+      "function_name": "update_updated_at_column",
+      "args": "",
+      "owner_name": "postgres",
+      "security_definer": false
+    },
+    {
+      "schema_name": "public",
+      "function_name": "validate_and_create_reservation",
+      "args": "p_restaurant_id uuid, p_date date, p_time time without time zone, p_party_size integer, p_feature text, p_metadata jsonb, p_notes text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "validate_and_create_reservation_safe",
+      "args": "p_restaurant_id uuid, p_date date, p_time time without time zone, p_party_size integer, p_feature text, p_metadata jsonb, p_notes text",
+      "owner_name": "postgres",
+      "security_definer": true
+    },
+    {
+      "schema_name": "public",
+      "function_name": "validate_service_settings_json",
+      "args": "_opening_hours json",
+      "owner_name": "postgres",
+      "security_definer": false
+    }
+  ],
+  "triggers": [
+    {
+      "table_name": "ad_campaigns",
+      "trigger_name": "guard_ad_campaign_client_write",
+      "action_timing": "BEFORE",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION guard_ad_campaign_client_write()"
+    },
+    {
+      "table_name": "ad_campaigns",
+      "trigger_name": "guard_ad_campaign_client_write",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION guard_ad_campaign_client_write()"
+    },
+    {
+      "table_name": "ad_campaigns",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "anti_waste_offers",
+      "trigger_name": "after_anti_gaspi_subscription_alert",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_anti_gaspi_subscription_alert()"
+    },
+    {
+      "table_name": "anti_waste_offers",
+      "trigger_name": "after_anti_gaspi_subscription_alert",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_anti_gaspi_subscription_alert()"
+    },
+    {
+      "table_name": "chef_table_drops",
+      "trigger_name": "after_chefs_table_subscription_alert",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_chefs_table_subscription_alert()"
+    },
+    {
+      "table_name": "chef_table_drops",
+      "trigger_name": "after_chefs_table_subscription_alert",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_chefs_table_subscription_alert()"
+    },
+    {
+      "table_name": "chef_table_drops",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "delivery_tracking",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "delivery_tracking",
+      "trigger_name": "set_updated_at_delivery_tracking",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "feature_flags",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "feature_flags",
+      "trigger_name": "trg_feature_flag_audit",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION log_feature_flag_audit()"
+    },
+    {
+      "table_name": "feature_flags",
+      "trigger_name": "trg_feature_flag_audit",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION log_feature_flag_audit()"
+    },
+    {
+      "table_name": "feature_flags",
+      "trigger_name": "trg_feature_flag_audit",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION log_feature_flag_audit()"
+    },
+    {
+      "table_name": "flash_sales",
+      "trigger_name": "after_flash_sale_subscription_alert",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_flash_sale_subscription_alert()"
+    },
+    {
+      "table_name": "flash_sales",
+      "trigger_name": "after_flash_sale_subscription_alert",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_flash_sale_subscription_alert()"
+    },
+    {
+      "table_name": "flash_sales",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "flash_sales",
+      "trigger_name": "set_updated_at_flash_sales",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "launch_pack_service_fulfillments",
+      "trigger_name": "set_updated_at_launch_pack_fulfillments",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "launch_packs",
+      "trigger_name": "set_updated_at_launch_packs",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "notification_preferences",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "after_order_status_update",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_order_status_notification()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "audit_orders",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "audit_orders",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "audit_orders",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "set_updated_at_orders",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trg_audit_orders",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trg_audit_orders",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trg_audit_orders",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trg_credit_order_loyalty",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION credit_order_loyalty_points()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trg_order_status_notification",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_order_status_notification()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trg_refresh_kpis_orders",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_refresh_kpis()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trg_refresh_kpis_orders",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_refresh_kpis()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trg_updated_at_orders",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "orders",
+      "trigger_name": "trigger_order_status_notification",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_order_status_notification()"
+    },
+    {
+      "table_name": "profiles",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "profiles",
+      "trigger_name": "trg_update_loyalty_tier",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_loyalty_tier()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "after_reservation_notification",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_reservation_notifications()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "after_reservation_notification",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_reservation_notifications()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "audit_reservations",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "audit_reservations",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "audit_reservations",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "trg_audit_reservations",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "trg_audit_reservations",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "trg_audit_reservations",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "trg_credit_reservation_loyalty",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION credit_reservation_loyalty_points()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "trg_refresh_kpis_reservations",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_refresh_kpis()"
+    },
+    {
+      "table_name": "reservations",
+      "trigger_name": "trg_refresh_kpis_reservations",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_refresh_kpis()"
+    },
+    {
+      "table_name": "restaurant_daily_kpis",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurant_invoice_settings",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "trigger_name": "after_invoice_notification",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_invoice_notification()"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurant_launch_packs",
+      "trigger_name": "set_updated_at_restaurant_launch_packs",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurant_media",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurant_promotions",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurant_recommendations",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "audit_restaurants",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "audit_restaurants",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "audit_restaurants",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "set_updated_at_restaurants",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "trg_audit_restaurants",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "trg_audit_restaurants",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "trg_audit_restaurants",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION log_audit()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "trg_restaurants_search_vector",
+      "action_timing": "BEFORE",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION update_restaurant_search_vector()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "trg_restaurants_search_vector",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_restaurant_search_vector()"
+    },
+    {
+      "table_name": "restaurants",
+      "trigger_name": "trg_updated_at_restaurants",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "review_replies",
+      "trigger_name": "after_review_reply_notification",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_review_reply_notification()"
+    },
+    {
+      "table_name": "review_replies",
+      "trigger_name": "after_review_reply_notification",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_review_reply_notification()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "after_review_change",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "after_review_change",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "after_review_change",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "trg_recompute_review_stats",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "trg_recompute_review_stats",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "trg_recompute_review_stats",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "trigger_recompute_review_stats",
+      "action_timing": "AFTER",
+      "event_manipulation": "DELETE",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "trigger_recompute_review_stats",
+      "action_timing": "AFTER",
+      "event_manipulation": "INSERT",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "reviews",
+      "trigger_name": "trigger_recompute_review_stats",
+      "action_timing": "AFTER",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION trigger_recompute_review_stats()"
+    },
+    {
+      "table_name": "signup_application_documents",
+      "trigger_name": "set_updated_at_signup_application_documents",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "signup_applications",
+      "trigger_name": "set_updated_at_signup_applications",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    },
+    {
+      "table_name": "user_subscriptions",
+      "trigger_name": "set_updated_at",
+      "action_timing": "BEFORE",
+      "event_manipulation": "UPDATE",
+      "action_statement": "EXECUTE FUNCTION update_updated_at_column()"
+    }
+  ],
+  "realtime": [
+    {
+      "schemaname": "public",
+      "tablename": "delivery_tracking"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dispatch_attempts"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dispatch_jobs"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "messages"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notifications"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders"
+    }
+  ],
+  "policies": [
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaign_events",
+      "policyname": "ad_campaign_events_owner_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaigns",
+      "policyname": "Anyone can read active campaigns",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaigns",
+      "policyname": "ad_campaigns_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaigns",
+      "policyname": "ad_campaigns_owner_delete",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "DELETE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaigns",
+      "policyname": "ad_campaigns_owner_insert",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaigns",
+      "policyname": "ad_campaigns_owner_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaigns",
+      "policyname": "ad_campaigns_owner_update",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ad_campaigns",
+      "policyname": "ad_campaigns_public_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "allergens",
+      "policyname": "Public read for allergens",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "allergens",
+      "policyname": "Require auth for allergens",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "anti_waste_offers",
+      "policyname": "Anyone can view active offers",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "anti_waste_offers",
+      "policyname": "Public read for anti_waste_offers",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "anti_waste_offers",
+      "policyname": "Restaurant owners can manage offers",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "audit_log",
+      "policyname": "Admins can view audit logs",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cart_item_modifiers",
+      "policyname": "Require auth for cart_item_modifiers",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cart_items",
+      "policyname": "Require auth for cart_items",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cart_items",
+      "policyname": "Users manage own cart_items",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "carts",
+      "policyname": "Require auth for carts",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "carts",
+      "policyname": "Users manage own carts",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "categories",
+      "policyname": "Require auth for categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "categories",
+      "policyname": "categories_public_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "chef_table_drops",
+      "policyname": "Admins can manage drops",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "chef_table_drops",
+      "policyname": "Public drops are viewable by everyone",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "clicks",
+      "policyname": "Users can view their own clicks",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "collection_restaurants",
+      "policyname": "Public read for collection_restaurants",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "collection_restaurants",
+      "policyname": "Require auth for collection_restaurants",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "collections",
+      "policyname": "Public read for collections",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "collections",
+      "policyname": "Require auth for collections",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "compensations",
+      "policyname": "Require auth for compensations",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "conversations",
+      "policyname": "conversations_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "conversations",
+      "policyname": "conversations_participant",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_documents",
+      "policyname": "Couriers manage own courier_documents",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_documents",
+      "policyname": "courier_docs_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_documents",
+      "policyname": "courier_docs_own",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_earnings",
+      "policyname": "courier_earnings_admin_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_earnings",
+      "policyname": "courier_earnings_select_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_locations",
+      "policyname": "courier_locations_insert_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_locations",
+      "policyname": "courier_locations_select_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_shifts",
+      "policyname": "courier_shifts_select_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "courier_shifts",
+      "policyname": "courier_shifts_write_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "couriers",
+      "policyname": "couriers_insert_self",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "couriers",
+      "policyname": "couriers_select_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "couriers",
+      "policyname": "couriers_update_self",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credit_notes",
+      "policyname": "Require auth for credit_notes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cuisines",
+      "policyname": "Require auth for cuisines",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cuisines",
+      "policyname": "cuisines_public_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "delivery_batches",
+      "policyname": "Require auth for delivery_batches",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "delivery_routes",
+      "policyname": "Require auth for delivery_routes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "delivery_tracking",
+      "policyname": "delivery_tracking_manage_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "delivery_tracking",
+      "policyname": "delivery_tracking_select_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "device_tokens",
+      "policyname": "Users can manage their device tokens",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "device_tokens",
+      "policyname": "Users manage own device_tokens",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_allergens",
+      "policyname": "Public read for dish_allergens",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_allergens",
+      "policyname": "Require auth for dish_allergens",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_availability_windows",
+      "policyname": "Public read for dish_availability_windows",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_availability_windows",
+      "policyname": "Require auth for dish_availability_windows",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_images",
+      "policyname": "Public read for dish_images",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_images",
+      "policyname": "Require auth for dish_images",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_modifier_groups",
+      "policyname": "Public read for dish_modifier_groups",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_modifier_groups",
+      "policyname": "Require auth for dish_modifier_groups",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_modifier_options",
+      "policyname": "Public read for dish_modifier_options",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_modifier_options",
+      "policyname": "Require auth for dish_modifier_options",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_tags",
+      "policyname": "Public read for dish_tags",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_tags",
+      "policyname": "Require auth for dish_tags",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_variants",
+      "policyname": "Public read for dish_variants",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dish_variants",
+      "policyname": "Require auth for dish_variants",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dishes",
+      "policyname": "Public read for dishes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dishes",
+      "policyname": "Require auth for dishes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dispatch_attempts",
+      "policyname": "dispatch_attempts_courier_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dispatch_jobs",
+      "policyname": "dispatch_jobs_admin_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dispatch_jobs",
+      "policyname": "dispatch_jobs_select_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "dispatch_jobs",
+      "policyname": "dispatch_jobs_update_safe",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "edge_function_audit_logs",
+      "policyname": "edge_function_audit_logs_admin_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "email_queue",
+      "policyname": "Admins can view email queue",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "event_store",
+      "policyname": "Require auth for event_store",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "event_store",
+      "policyname": "Users can view their own event_store",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "favorites",
+      "policyname": "Users can add favorites",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "favorites",
+      "policyname": "Users can remove favorites",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "DELETE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "favorites",
+      "policyname": "Users can view their favorites",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "favorites",
+      "policyname": "Users manage own favorites",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "feature_flags",
+      "policyname": "Admins can manage feature flags",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "feature_flags",
+      "policyname": "Feature flags are viewable by everyone",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "feature_flags",
+      "policyname": "feature_flags_public_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "feature_store",
+      "policyname": "Require auth for feature_store",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "flash_sales",
+      "policyname": "Admins can manage flash sales",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "flash_sales",
+      "policyname": "Anyone can view active flash sales",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "flash_sales",
+      "policyname": "Public read for flash_sales",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "flash_sales",
+      "policyname": "Restaurant owners can manage flash sales",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fraud_signals",
+      "policyname": "Require auth for fraud_signals",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "gift_cards",
+      "policyname": "Require auth for gift_cards",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "gift_points",
+      "policyname": "Authenticated users can send gifts",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "gift_points",
+      "policyname": "Users can view their own gifts",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "group_members",
+      "policyname": "Anyone can view group members",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "group_members",
+      "policyname": "Users can join groups",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "group_members",
+      "policyname": "group_members_self",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "impressions",
+      "policyname": "Users can view their own impressions",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "incident_reports",
+      "policyname": "Require auth for incident_reports",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "inventory_items",
+      "policyname": "Require auth for inventory_items",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "inventory_movements",
+      "policyname": "Require auth for inventory_movements",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "invoices",
+      "policyname": "Require auth for invoices",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "launch_pack_service_fulfillments",
+      "policyname": "fulfillments_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "launch_pack_service_fulfillments",
+      "policyname": "fulfillments_owner_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "launch_packs",
+      "policyname": "launch_packs_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "launch_packs",
+      "policyname": "launch_packs_public_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "loyalty_accounts",
+      "policyname": "Require auth for loyalty_accounts",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "loyalty_tiers",
+      "policyname": "Require auth for loyalty_tiers",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "loyalty_transactions",
+      "policyname": "Users can view their own loyalty transactions",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "meal_formula_categories",
+      "policyname": "Anyone can view formula categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "meal_formula_categories",
+      "policyname": "Restaurant owners can manage formula categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "meal_formulas",
+      "policyname": "Anyone can view active formulas",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "meal_formulas",
+      "policyname": "Restaurant owners can manage formulas",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "menu_categories",
+      "policyname": "Public read for menu_categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "menu_categories",
+      "policyname": "Require auth for menu_categories",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "menu_items",
+      "policyname": "Anyone can view available menu items",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "menu_items",
+      "policyname": "Restaurant owners can manage menu items",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "menu_items",
+      "policyname": "menu_items_owner_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "menu_items",
+      "policyname": "menu_items_public_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "messages",
+      "policyname": "messages_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "messages",
+      "policyname": "messages_participant",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ml_predictions",
+      "policyname": "Require auth for ml_predictions",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_campaigns",
+      "policyname": "Admins can manage campaigns",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_deliveries",
+      "policyname": "Users can view their notification deliveries",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_preferences",
+      "policyname": "Users can manage their notification preferences",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_subscriptions",
+      "policyname": "Users can manage their subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notification_subscriptions",
+      "policyname": "notification_subscriptions_self",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notifications",
+      "policyname": "Users can update their notifications",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "notifications",
+      "policyname": "Users can view their notifications",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_addresses",
+      "policyname": "Require auth for order_addresses",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_events",
+      "policyname": "Require auth for order_events",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_fees",
+      "policyname": "Require auth for order_fees",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_groups",
+      "policyname": "Anyone can view active groups",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_groups",
+      "policyname": "Users can create groups",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_issues",
+      "policyname": "Require auth for order_issues",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_item_modifiers",
+      "policyname": "Require auth for order_item_modifiers",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_items",
+      "policyname": "Require auth for order_items",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_items",
+      "policyname": "Restaurant owners can view order items",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_items",
+      "policyname": "Users can create order items",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_items",
+      "policyname": "Users can view their own order items",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_notes",
+      "policyname": "Require auth for order_notes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_refunds",
+      "policyname": "Require auth for order_refunds",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_status_history",
+      "policyname": "Require auth for order_status_history",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_taxes",
+      "policyname": "Require auth for order_taxes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "Restaurant owners can update orders",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "Restaurant owners can view orders",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "Users can create orders",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "Users can view their own orders",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "Users manage own orders",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "orders_courier_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payment_intents",
+      "policyname": "Require auth for payment_intents",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payment_transactions",
+      "policyname": "Users manage own payment_transactions",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payment_transactions",
+      "policyname": "payment_transactions_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payment_transactions",
+      "policyname": "payment_transactions_own",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payout_batches",
+      "policyname": "Require auth for payout_batches",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "payouts",
+      "policyname": "Require auth for payouts",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "Admins can view all profiles",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "Users can insert their own profile",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "Users can update their own profile",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "Users can view their own profile",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "profiles_self_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_code_uses",
+      "policyname": "Users manage own promo_code_uses",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_code_uses",
+      "policyname": "promo_uses_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_code_uses",
+      "policyname": "promo_uses_own",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_codes",
+      "policyname": "promo_codes_active_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_codes",
+      "policyname": "promo_codes_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_codes",
+      "policyname": "promo_codes_public_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promo_codes",
+      "policyname": "promo_codes_restaurant",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "proof_of_delivery",
+      "policyname": "Require auth for proof_of_delivery",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "proof_of_delivery",
+      "policyname": "proof_of_delivery_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "proof_of_delivery",
+      "policyname": "proof_of_delivery_client_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "proof_of_delivery",
+      "policyname": "proof_of_delivery_courier_insert",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "proof_of_delivery",
+      "policyname": "proof_of_delivery_courier_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "proof_of_delivery",
+      "policyname": "proof_of_delivery_courier_update",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "proof_of_delivery",
+      "policyname": "proof_of_delivery_restaurant_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "rate_limit_buckets",
+      "policyname": "deny all rate_limit_buckets",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "recommendation_logs",
+      "policyname": "Require auth for recommendation_logs",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "referral_codes",
+      "policyname": "Users manage own referral_codes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "referral_codes",
+      "policyname": "referral_own",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "referral_codes",
+      "policyname": "referral_public_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservation_slots",
+      "policyname": "Require auth for reservation_slots",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservation_status_history",
+      "policyname": "Require auth for reservation_status_history",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservation_table_layout_overrides",
+      "policyname": "Require auth for reservation_table_layout_overrides",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservation_tables",
+      "policyname": "Require auth for reservation_tables",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservations",
+      "policyname": "Restaurant owners can update reservations",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservations",
+      "policyname": "Restaurant owners can view reservations",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservations",
+      "policyname": "Users can cancel their reservations",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservations",
+      "policyname": "Users can create reservations",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservations",
+      "policyname": "Users can view their own reservations",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reservations",
+      "policyname": "Users manage own reservations",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_branches",
+      "policyname": "Public read for restaurant_branches",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_branches",
+      "policyname": "Require auth for restaurant_branches",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_cuisines",
+      "policyname": "Require auth for restaurant_cuisines",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_daily_kpis",
+      "policyname": "Admins can manage daily kpis",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_daily_kpis",
+      "policyname": "Restaurant owners can manage daily kpis",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_delivery_rules",
+      "policyname": "Public read for restaurant_delivery_rules",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_delivery_rules",
+      "policyname": "Require auth for restaurant_delivery_rules",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_documents",
+      "policyname": "Require auth for restaurant_documents",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_hours",
+      "policyname": "Public read for restaurant_hours",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_hours",
+      "policyname": "Require auth for restaurant_hours",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_invoice_settings",
+      "policyname": "Admins can manage invoice settings",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_invoice_settings",
+      "policyname": "Restaurant owners can manage invoice settings",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_invoices",
+      "policyname": "restaurant_invoices_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_invoices",
+      "policyname": "restaurant_invoices_owner_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_launch_packs",
+      "policyname": "restaurant_launch_packs_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_launch_packs",
+      "policyname": "restaurant_launch_packs_owner_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_media",
+      "policyname": "Admins can manage media",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_media",
+      "policyname": "Anyone can view restaurant media",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_media",
+      "policyname": "Restaurant owners can manage media",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_payout_settings",
+      "policyname": "Require auth for restaurant_payout_settings",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_promotions",
+      "policyname": "Admins can manage promotions",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_promotions",
+      "policyname": "Anyone can view active promotions",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_promotions",
+      "policyname": "Restaurant owners can manage promotions",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_recommendations",
+      "policyname": "Admins can manage recommendations",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_recommendations",
+      "policyname": "Restaurant owners can manage recommendations",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_service_areas",
+      "policyname": "Public read for restaurant_service_areas",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_service_areas",
+      "policyname": "Require auth for restaurant_service_areas",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_settings",
+      "policyname": "Require auth for restaurant_settings",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_staff",
+      "policyname": "Require auth for restaurant_staff",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurant_staff",
+      "policyname": "restaurant_staff_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurants",
+      "policyname": "Admins can manage all restaurants",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurants",
+      "policyname": "Owners can manage their restaurants",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurants",
+      "policyname": "restaurants_owner_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "restaurants",
+      "policyname": "restaurants_public_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "review_replies",
+      "policyname": "Admins can manage review replies",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "review_replies",
+      "policyname": "Require auth for review_replies",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "review_replies",
+      "policyname": "review_replies_owner_insert",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "review_replies",
+      "policyname": "review_replies_public_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reviews",
+      "policyname": "Admins can delete reviews",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "DELETE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reviews",
+      "policyname": "Admins can update reviews",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reviews",
+      "policyname": "Users can create reviews",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reviews",
+      "policyname": "Users can delete their own reviews",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "DELETE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reviews",
+      "policyname": "Users can update their own reviews",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reviews",
+      "policyname": "reviews_public_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reviews",
+      "policyname": "reviews_user_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "search_logs",
+      "policyname": "Users can view their own search_logs",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "signup_application_documents",
+      "policyname": "signup_application_documents_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "signup_application_documents",
+      "policyname": "signup_application_documents_self_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "signup_applications",
+      "policyname": "signup_applications_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "signup_applications",
+      "policyname": "signup_applications_self_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "solidarity_donations",
+      "policyname": "Anyone can view solidarity donations",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "solidarity_donations",
+      "policyname": "Authenticated users can create donations",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "stripe_webhook_events",
+      "policyname": "stripe_webhook_events_deny_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{anon,authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "subscription_benefits",
+      "policyname": "Require auth for subscription_benefits",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "support_messages",
+      "policyname": "Users view own support_messages",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "support_messages",
+      "policyname": "support_messages_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "support_messages",
+      "policyname": "support_messages_own",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "support_tickets",
+      "policyname": "Users manage own support_tickets",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "support_tickets",
+      "policyname": "support_tickets_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "support_tickets",
+      "policyname": "support_tickets_own",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "tok_one_subscriptions",
+      "policyname": "tok_one_subscriptions_own_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "tok_one_subscriptions",
+      "policyname": "tok_one_subscriptions_own_update",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_addresses",
+      "policyname": "Require auth for user_addresses",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_addresses",
+      "policyname": "Users manage own user_addresses",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_analytics",
+      "policyname": "Admins can view all analytics",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_analytics",
+      "policyname": "Users can insert their own analytics",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_analytics",
+      "policyname": "Users can view their own analytics",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_devices",
+      "policyname": "Require auth for user_devices",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_devices",
+      "policyname": "Users manage own user_devices",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_notification_settings",
+      "policyname": "Require auth for user_notification_settings",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_notification_settings",
+      "policyname": "Users manage own user_notification_settings",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_payment_methods",
+      "policyname": "Require auth for user_payment_methods",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_payment_methods",
+      "policyname": "Users manage own user_payment_methods",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_preferences",
+      "policyname": "Require auth for user_preferences",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_preferences",
+      "policyname": "Users can manage their preferences",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_preferences",
+      "policyname": "Users manage own user_preferences",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_profiles",
+      "policyname": "Admins can view all user_profiles",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_profiles",
+      "policyname": "Require auth for user_profiles",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_profiles",
+      "policyname": "user_profiles_self_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_referrals",
+      "policyname": "Require auth for user_referrals",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_referrals",
+      "policyname": "Users manage own user_referrals",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_roles",
+      "policyname": "Users can view their own roles",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_roles",
+      "policyname": "user_roles_admin_all",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_roles",
+      "policyname": "user_roles_self_select",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_subscription_plans",
+      "policyname": "Public read for user_subscription_plans",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_subscription_plans",
+      "policyname": "Require auth for user_subscription_plans",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_subscriptions",
+      "policyname": "Require auth for user_subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_subscriptions",
+      "policyname": "Users can manage their subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_subscriptions",
+      "policyname": "Users manage own user_subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_wallets",
+      "policyname": "Require auth for user_wallets",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_wallets",
+      "policyname": "Users manage own user_wallets",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_wallets",
+      "policyname": "wallets_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_wallets",
+      "policyname": "wallets_own",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "wallet_transactions",
+      "policyname": "Require auth for wallet_transactions",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "wallet_transactions",
+      "policyname": "Users view own wallet_transactions",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT"
+    }
+  ],
+  "reservationColumns": [
+    {
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "user_id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "restaurant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "date",
+      "data_type": "date",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "time",
+      "data_type": "time without time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "party_size",
+      "data_type": "integer",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "notes",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "feature",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "preorder_items",
+      "data_type": "jsonb",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "total_amount",
+      "data_type": "numeric",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "payment_method",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "order_reference",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "checkout_id",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "branch_id",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "reservation_time",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "special_requests",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "restaurant_invoice_id",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "confirmed_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "cancelled_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "cancelled_by",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "cancellation_reason_code",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "cancellation_reason_details",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "billing_fee_chf",
+      "data_type": "numeric",
+      "is_nullable": "NO"
+    }
+  ],
+  "invoiceColumns": [
+    {
+      "table_name": "orders",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "user_id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "restaurant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "delivery_address",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "total_amount",
+      "data_type": "numeric",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "original_total",
+      "data_type": "numeric",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "discount_amount",
+      "data_type": "numeric",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "delivery_fee",
+      "data_type": "numeric",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "notes",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "order_number",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "checkout_id",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "donate_earned_xp",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "idempotency_key",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "courier_id",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "scheduled_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "estimated_delivery_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "actual_delivered_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "cancellation_reason",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "branch_id",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "type",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "source",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "scheduled_for",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "subtotal_amount",
+      "data_type": "numeric",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "delivery_fee_amount",
+      "data_type": "numeric",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "service_fee_amount",
+      "data_type": "numeric",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "tax_amount",
+      "data_type": "numeric",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "tip_amount",
+      "data_type": "numeric",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "currency",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "payment_status",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "fulfillment_status",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "accepted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "ready_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "picked_up_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "delivered_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "orders",
+      "column_name": "restaurant_invoice_id",
+      "data_type": "uuid",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "restaurant_id",
+      "data_type": "uuid",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "period_start",
+      "data_type": "date",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "period_end",
+      "data_type": "date",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "amount_ht",
+      "data_type": "numeric",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "amount_tva",
+      "data_type": "numeric",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "amount_ttc",
+      "data_type": "numeric",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "pdf_url",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "due_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "paid_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "restaurant_invoices",
+      "column_name": "invoice_number",
+      "data_type": "text",
+      "is_nullable": "YES"
+    }
+  ],
+  "functionDefs": [
+    {
+      "function_name": "generate_restaurant_payout_invoice",
+      "args": "p_restaurant_id uuid, p_month date",
+      "definition": "CREATE OR REPLACE FUNCTION public.generate_restaurant_payout_invoice(p_restaurant_id uuid, p_month date DEFAULT NULL::date)\n RETURNS integer\n LANGUAGE plpgsql\nAS $function$\nDECLARE\n  target_month date;\n  period_s date;\n  period_e date;\n  ext_period record;\n  inv_count integer := 0;\n  next_num integer;\n  rev numeric;\n  za_rev numeric;\n  tva_rate numeric := 0.077;\nBEGIN\n  -- Si p_month est null, on prend le mois dernier complet, sinon le mois demandé.\n  target_month := COALESCE(p_month::date, (date_trunc('month', now()) - interval '1 month')::date);\n  period_s := date_trunc('month', target_month)::date;\n  period_e := (period_s + interval '1 month' - interval '1 day')::date;\n\n  -- Vérif si déjà facturé\n  IF EXISTS (\n    SELECT 1\n    FROM restaurant_invoices\n    WHERE restaurant_id = p_restaurant_id\n      AND period_start = period_s\n      AND period_end = period_e\n  ) THEN\n    RETURN 0;\n  END IF;\n\n  -- \"encaissement Tok\": Les commandes standard.\n  -- On recalcule le montant brut en ajoutant les Miamz (points_discount_amount) si présents.\n  -- Car Tok encaisse le total, et prend en charge les Miamz. Le restaurant récupère 90% de : (Paiement client + Miamz).\n  SELECT COALESCE(SUM(total_amount + COALESCE((metadata->>'points_discount_amount')::numeric, 0)), 0) INTO rev\n  FROM orders\n  WHERE restaurant_id = p_restaurant_id\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'refused', 'payment_failed')\n    AND created_at >= period_s::timestamptz\n    AND created_at < (period_e + interval '1 day')::timestamptz;\n\n  -- Ventes zero-attente (Réservations, sans miamz car pas dispo dessus pour l'instant)\n  SELECT COALESCE(SUM(total_amount), 0) INTO za_rev\n  FROM reservations\n  WHERE restaurant_id = p_restaurant_id\n    AND lower(COALESCE(feature, '')) = 'zero-attente'\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'no_show')\n    AND total_amount > 0\n    AND date >= period_s\n    AND date <= period_e;\n\n  rev := rev + za_rev;\n\n  -- Le restaurant facture Tok pour 90% de ce total brut\n  rev := rev * 0.90;\n\n  IF rev > 0 THEN\n    SELECT COALESCE(MAX(CAST(SUBSTRING(invoice_number FROM '[0-9]+$') AS integer)), 0) + 1\n    INTO next_num\n    FROM restaurant_invoices\n    WHERE restaurant_id = p_restaurant_id;\n\n    INSERT INTO restaurant_invoices (\n      restaurant_id,\n      period_start,\n      period_end,\n      amount_ht,\n      amount_tva,\n      amount_ttc,\n      status,\n      invoice_number,\n      due_at\n    )\n    VALUES (\n      p_restaurant_id,\n      period_s,\n      period_e,\n      ROUND(rev / (1 + tva_rate), 2),\n      ROUND(rev - rev / (1 + tva_rate), 2),\n      ROUND(rev, 2),\n      'draft', -- Draft so they can preview it, or 'pending' meaning Tok owes them.\n      'FAC-' || TO_CHAR(period_s, 'YYYYMM') || '-' || LPAD(next_num::text, 4, '0'),\n      (period_e + interval '30 days')::timestamptz\n    );\n    inv_count := 1;\n  END IF;\n\n  RETURN inv_count;\nEND;\n$function$\n"
+    },
+    {
+      "function_name": "generate_restaurant_payout_invoice",
+      "args": "p_restaurant_id uuid, p_month text",
+      "definition": "CREATE OR REPLACE FUNCTION public.generate_restaurant_payout_invoice(p_restaurant_id uuid, p_month text DEFAULT NULL::text)\n RETURNS integer\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n  inv_id uuid;\n  next_num integer;\n  rev numeric := 0;\n  za_rev numeric := 0;\n  tva_rate numeric := 0.077;\n  unpaid_orders_count integer := 0;\n  unpaid_reservations_count integer := 0;\n  min_date timestamptz;\n  max_date timestamptz;\n  inv_period_s date;\n  inv_period_e date;\nBEGIN\n  SELECT COUNT(id), COALESCE(SUM(total_amount + COALESCE((metadata->>'points_discount_amount')::numeric, 0)), 0), MIN(created_at), MAX(created_at)\n  INTO unpaid_orders_count, rev, min_date, max_date\n  FROM orders\n  WHERE restaurant_id = p_restaurant_id\n    AND restaurant_invoice_id IS NULL\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'refused', 'payment_failed', 'pending');\n\n  SELECT COUNT(id), COALESCE(SUM(total_amount), 0), LEAST(min_date, MIN(created_at)), GREATEST(max_date, MAX(created_at))\n  INTO unpaid_reservations_count, za_rev, min_date, max_date\n  FROM reservations\n  WHERE restaurant_id = p_restaurant_id\n    AND restaurant_invoice_id IS NULL\n    AND lower(COALESCE(feature, '')) = 'zero-attente'\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'no_show', 'pending')\n    AND total_amount > 0;\n\n  IF unpaid_orders_count = 0 AND unpaid_reservations_count = 0 THEN\n    RETURN 0;\n  END IF;\n\n  rev := rev + za_rev;\n  rev := rev * 0.90;\n\n  inv_period_s := COALESCE(min_date::date, CURRENT_DATE);\n  inv_period_e := COALESCE(max_date::date, CURRENT_DATE);\n\n  SELECT COALESCE(MAX(CAST(SUBSTRING(invoice_number FROM '[0-9]+$') AS integer)), 0) + 1\n  INTO next_num\n  FROM restaurant_invoices\n  WHERE restaurant_id = p_restaurant_id;\n\n  INSERT INTO restaurant_invoices (\n    restaurant_id,\n    period_start,\n    period_end,\n    amount_ht,\n    amount_tva,\n    amount_ttc,\n    status,\n    invoice_number,\n    due_at\n  )\n  VALUES (\n    p_restaurant_id,\n    inv_period_s,\n    inv_period_e,\n    ROUND(rev / (1 + tva_rate), 2),\n    ROUND(rev - rev / (1 + tva_rate), 2),\n    ROUND(rev, 2),\n    'pending',\n    'FAC-' || TO_CHAR(CURRENT_DATE, 'YYYYMM') || '-' || LPAD(next_num::text, 4, '0'),\n    (CURRENT_DATE + interval '30 days')::timestamptz\n  ) RETURNING id INTO inv_id;\n\n  UPDATE orders\n  SET restaurant_invoice_id = inv_id\n  WHERE restaurant_id = p_restaurant_id\n    AND restaurant_invoice_id IS NULL\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'refused', 'payment_failed', 'pending');\n\n  UPDATE reservations\n  SET restaurant_invoice_id = inv_id\n  WHERE restaurant_id = p_restaurant_id\n    AND restaurant_invoice_id IS NULL\n    AND lower(COALESCE(feature, '')) = 'zero-attente'\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'no_show', 'pending')\n    AND total_amount > 0;\n\n  RETURN 1;\nEND;\n$function$\n"
+    },
+    {
+      "function_name": "get_restaurant_comparison",
+      "args": "p_restaurant_id uuid, p_period text",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_restaurant_comparison(p_restaurant_id uuid, p_period text)\n RETURNS json\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  result json;\n  days_back integer;\n  v_order_revenue numeric;\n  v_za_revenue numeric;\nBEGIN\n  days_back := CASE p_period WHEN '7d' THEN 7 WHEN '30d' THEN 30 WHEN '90d' THEN 90 ELSE 30 END;\n\n  SELECT COALESCE(SUM(total_amount), 0) INTO v_order_revenue\n  FROM orders\n  WHERE restaurant_id = p_restaurant_id\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'refused', 'payment_failed')\n    AND created_at >= now() - (days_back || ' days')::interval;\n\n  SELECT COALESCE(SUM(total_amount), 0) INTO v_za_revenue\n  FROM reservations\n  WHERE restaurant_id = p_restaurant_id\n    AND lower(COALESCE(feature, '')) = 'zero-attente'\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'no_show')\n    AND total_amount > 0\n    AND date >= (now() - (days_back || ' days')::interval)::date;\n\n  SELECT json_build_object(\n    'my_revenue', v_order_revenue + v_za_revenue,\n    'my_orders',\n      COALESCE((\n        SELECT count(*)\n        FROM orders\n        WHERE restaurant_id = p_restaurant_id\n          AND created_at >= now() - (days_back || ' days')::interval\n      ), 0),\n    'my_avg_rating',\n      COALESCE((SELECT avg(rating) FROM reviews WHERE restaurant_id = p_restaurant_id), 0),\n    'avg_revenue',\n      COALESCE((\n        SELECT avg(rev)\n        FROM (\n          SELECT sum(total_amount) AS rev\n          FROM orders\n          WHERE lower(COALESCE(status, '')) NOT IN ('cancelled', 'refused', 'payment_failed')\n            AND created_at >= now() - (days_back || ' days')::interval\n          GROUP BY restaurant_id\n        ) t\n      ), 0),\n    'avg_orders',\n      COALESCE((\n        SELECT avg(cnt)\n        FROM (\n          SELECT count(*) AS cnt\n          FROM orders\n          WHERE created_at >= now() - (days_back || ' days')::interval\n          GROUP BY restaurant_id\n        ) t\n      ), 0),\n    'avg_rating',\n      COALESCE((SELECT avg(rating) FROM reviews), 0)\n  ) INTO result;\n\n  RETURN result;\nEND;\n$function$\n"
+    },
+    {
+      "function_name": "get_restaurant_performance",
+      "args": "p_restaurant_id uuid, p_from text, p_to text",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_restaurant_performance(p_restaurant_id uuid, p_from text, p_to text)\n RETURNS json\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  result json;\n  v_order_revenue numeric;\n  v_za_revenue numeric;\nBEGIN\n  SELECT COALESCE(SUM(total_amount), 0) INTO v_order_revenue\n  FROM orders\n  WHERE restaurant_id = p_restaurant_id\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'refused', 'payment_failed')\n    AND created_at >= p_from::date::timestamptz\n    AND created_at < (p_to::date + interval '1 day')::timestamptz;\n\n  SELECT COALESCE(SUM(total_amount), 0) INTO v_za_revenue\n  FROM reservations\n  WHERE restaurant_id = p_restaurant_id\n    AND lower(COALESCE(feature, '')) = 'zero-attente'\n    AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'no_show')\n    AND total_amount > 0\n    AND date >= p_from::date\n    AND date <= p_to::date;\n\n  SELECT json_build_object(\n    'total_orders',\n      COALESCE((\n        SELECT count(*)\n        FROM orders\n        WHERE restaurant_id = p_restaurant_id\n          AND created_at >= p_from::date::timestamptz\n          AND created_at < (p_to::date + interval '1 day')::timestamptz\n      ), 0),\n    'total_revenue', v_order_revenue + v_za_revenue,\n    'avg_ticket',\n      COALESCE((\n        SELECT avg(total_amount)\n        FROM orders\n        WHERE restaurant_id = p_restaurant_id\n          AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'refused', 'payment_failed')\n          AND created_at >= p_from::date::timestamptz\n          AND created_at < (p_to::date + interval '1 day')::timestamptz\n      ), 0),\n    'total_reservations',\n      COALESCE((\n        SELECT count(*)\n        FROM reservations\n        WHERE restaurant_id = p_restaurant_id\n          AND date >= p_from::date\n          AND date <= p_to::date\n          AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'no_show')\n      ), 0),\n    'cancel_rate',\n      COALESCE((\n        SELECT round(\n          count(*) FILTER (WHERE lower(COALESCE(status, '')) IN ('cancelled', 'refused', 'payment_failed'))::numeric\n          / NULLIF(count(*), 0) * 100,\n          1\n        )\n        FROM orders\n        WHERE restaurant_id = p_restaurant_id\n          AND created_at >= p_from::date::timestamptz\n          AND created_at < (p_to::date + interval '1 day')::timestamptz\n      ), 0)\n  ) INTO result;\n\n  RETURN result;\nEND;\n$function$\n"
+    },
+    {
+      "function_name": "get_restaurant_recommendations",
+      "args": "p_restaurant_id uuid",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_restaurant_recommendations(p_restaurant_id uuid)\n RETURNS json\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  result json;\n  v_actor_id uuid := auth.uid();\n  v_is_service_role boolean := auth.role() = 'service_role';\nBEGIN\n  IF NOT v_is_service_role AND NOT public.has_role(v_actor_id, 'admin') AND NOT EXISTS (\n    SELECT 1\n    FROM public.restaurants\n    WHERE id = p_restaurant_id\n      AND owner_id = v_actor_id\n  ) THEN\n    RAISE EXCEPTION 'Forbidden';\n  END IF;\n\n  SELECT COALESCE(json_agg(row_to_json(r)), '[]'::json)\n  INTO result\n  FROM (\n    SELECT *\n    FROM public.restaurant_recommendations\n    WHERE restaurant_id = p_restaurant_id\n      AND status = 'pending'\n    ORDER BY priority ASC\n    LIMIT 10\n  ) r;\n\n  RETURN result;\nEND;\n$function$\n"
+    },
+    {
+      "function_name": "redeem_loyalty_points",
+      "args": "user_id_param uuid, points_to_redeem integer, description_param text",
+      "definition": "CREATE OR REPLACE FUNCTION public.redeem_loyalty_points(user_id_param uuid, points_to_redeem integer, description_param text DEFAULT NULL::text)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_actor_id uuid := auth.uid();\n  v_current_points integer;\nBEGIN\n  IF v_actor_id IS NULL THEN\n    RAISE EXCEPTION 'Authentication required';\n  END IF;\n\n  IF user_id_param IS DISTINCT FROM v_actor_id THEN\n    RAISE EXCEPTION 'Forbidden';\n  END IF;\n\n  IF COALESCE(points_to_redeem, 0) <= 0 THEN\n    RAISE EXCEPTION 'points_to_redeem must be positive';\n  END IF;\n\n  SELECT loyalty_points\n  INTO v_current_points\n  FROM public.profiles\n  WHERE user_id = v_actor_id\n  FOR UPDATE;\n\n  IF v_current_points IS NULL OR v_current_points < points_to_redeem THEN\n    RETURN false;\n  END IF;\n\n  UPDATE public.profiles\n  SET loyalty_points = loyalty_points - points_to_redeem\n  WHERE user_id = v_actor_id;\n\n  INSERT INTO public.loyalty_transactions (\n    user_id,\n    amount,\n    transaction_type,\n    description\n  )\n  VALUES (\n    v_actor_id,\n    -points_to_redeem,\n    'redeem',\n    description_param\n  );\n\n  RETURN true;\nEND;\n$function$\n"
+    },
+    {
+      "function_name": "rls_auto_enable",
+      "args": "",
+      "definition": "CREATE OR REPLACE FUNCTION public.rls_auto_enable()\n RETURNS event_trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE\n  cmd record;\nBEGIN\n  FOR cmd IN\n    SELECT *\n    FROM pg_event_trigger_ddl_commands()\n    WHERE command_tag IN ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')\n      AND object_type IN ('table','partitioned table')\n  LOOP\n     IF cmd.schema_name IS NOT NULL AND cmd.schema_name IN ('public') AND cmd.schema_name NOT IN ('pg_catalog','information_schema') AND cmd.schema_name NOT LIKE 'pg_toast%' AND cmd.schema_name NOT LIKE 'pg_temp%' THEN\n      BEGIN\n        EXECUTE format('alter table if exists %s enable row level security', cmd.object_identity);\n        RAISE LOG 'rls_auto_enable: enabled RLS on %', cmd.object_identity;\n      EXCEPTION\n        WHEN OTHERS THEN\n          RAISE LOG 'rls_auto_enable: failed to enable RLS on %', cmd.object_identity;\n      END;\n     ELSE\n        RAISE LOG 'rls_auto_enable: skip % (either system schema or not in enforced list: %.)', cmd.object_identity, cmd.schema_name;\n     END IF;\n  END LOOP;\nEND;\n$function$\n"
+    }
+  ],
+  "recentEdgeAudit": [],
+  "queueHealth": [
+    {
+      "metric": "notification_deliveries_queued",
+      "value": "0"
+    },
+    {
+      "metric": "email_queue_queued",
+      "value": "0"
+    },
+    {
+      "metric": "dispatch_jobs_searching",
+      "value": "0"
+    },
+    {
+      "metric": "dispatch_attempts_pending",
+      "value": "0"
+    }
+  ]
+}

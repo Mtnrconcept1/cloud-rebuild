@@ -8,6 +8,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
 
 async function sendEmailMessage(
   resendApiKey: string | null,
@@ -75,6 +76,8 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  const log = makeLogger("send-email");
 
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
@@ -233,7 +236,7 @@ Deno.serve(async (req) => {
       corsHeaders,
     );
   } catch (error: unknown) {
-    console.error("send-email error:", error);
+    log.error("send-email error", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
       adminClient: actor?.adminClient || createAdminClient(),
       actor,

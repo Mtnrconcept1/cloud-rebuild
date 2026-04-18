@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { invokeSupabaseRpc } from "@/lib/session";
 
 interface ReviewFormProps {
   restaurantId: string;
@@ -30,6 +30,24 @@ function RatingSlider({ label, value, onChange }: RatingSliderProps) {
   );
 }
 
+function getReviewSubmissionErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "Impossible d'envoyer l'avis.";
+
+  switch (message) {
+    case "auth_required":
+    case "permission denied for function submit_verified_review":
+      return "Votre session a expire. Reconnectez-vous puis reessayez.";
+    case "review_not_eligible":
+      return "Vous ne pouvez laisser un avis qu'apres une reservation honoree ou une commande terminee.";
+    case "review_already_submitted":
+      return "Vous avez deja laisse un avis pour ce restaurant.";
+    case "rating_out_of_range":
+      return "Les notes doivent etre comprises entre 1 et 10.";
+    default:
+      return message;
+  }
+}
+
 export default function ReviewForm({ restaurantId, onSuccess }: ReviewFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -45,24 +63,33 @@ export default function ReviewForm({ restaurantId, onSuccess }: ReviewFormProps)
     if (!user) return;
 
     setLoading(true);
-    const { error } = await (supabase.rpc as any)("submit_verified_review", {
-      p_restaurant_id: restaurantId,
-      p_rating: overallRating,
-      p_service_rating: serviceRating,
-      p_quality_rating: qualityRating,
-      p_speed_rating: speedRating,
-      p_comment: comment || null,
-      p_tags: [],
-      p_reservation_id: null,
-    });
-    setLoading(false);
 
-    if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    try {
+      await invokeSupabaseRpc("submit_verified_review", {
+        body: {
+          p_restaurant_id: restaurantId,
+          p_rating: overallRating,
+          p_service_rating: serviceRating,
+          p_quality_rating: qualityRating,
+          p_speed_rating: speedRating,
+          p_comment: comment || null,
+          p_tags: [],
+          p_reservation_id: null,
+          p_order_id: null,
+        },
+      });
+    } catch (error) {
+      setLoading(false);
+      toast({
+        title: "Erreur",
+        description: getReviewSubmissionErrorMessage(error),
+        variant: "destructive",
+      });
       return;
     }
 
-    toast({ title: "Avis publié !" });
+    setLoading(false);
+    toast({ title: "Avis publie !" });
     setServiceRating(8);
     setQualityRating(8);
     setSpeedRating(8);
@@ -77,11 +104,11 @@ export default function ReviewForm({ restaurantId, onSuccess }: ReviewFormProps)
       <h4 className="text-sm font-semibold">Laisser un avis</h4>
       <div className="space-y-3 rounded-lg border bg-secondary/20 p-3">
         <RatingSlider label="Service" value={serviceRating} onChange={setServiceRating} />
-        <RatingSlider label="Qualité" value={qualityRating} onChange={setQualityRating} />
-        <RatingSlider label="Rapidité" value={speedRating} onChange={setSpeedRating} />
+        <RatingSlider label="Qualite" value={qualityRating} onChange={setQualityRating} />
+        <RatingSlider label="Rapidite" value={speedRating} onChange={setSpeedRating} />
       </div>
       <p className="text-xs text-muted-foreground">
-        Les avis sont réservés aux visites effectivement honorées et vérifiées côté serveur.
+        Les avis sont reserves aux visites effectivement honorees et verifiees cote serveur.
       </p>
       <div className="flex items-center justify-between rounded-lg border bg-primary/5 px-3 py-2">
         <span className="text-sm font-medium">Note globale</span>

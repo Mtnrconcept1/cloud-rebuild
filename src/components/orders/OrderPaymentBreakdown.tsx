@@ -23,6 +23,7 @@ type OrderPaymentBreakdownProps = {
   showDivider?: boolean;
   alwaysShowTotal?: boolean;
   totalLabel?: string;
+  isRestaurantDashboard?: boolean;
 };
 
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
@@ -42,6 +43,30 @@ function getMetadata(order: OrderLike) {
   }
 
   return order.metadata;
+}
+
+export function isTokCommissionApplicable(order: OrderLike) {
+  const meta = getMetadata(order);
+  const type = String(meta.type || "").toLowerCase();
+  const feature = String(meta.feature || "").toLowerCase();
+  const hasAntiGaspi = Boolean(meta.has_anti_gaspi);
+  const hasFlashSale = Boolean(meta.has_flash_sale);
+
+  if (type === "takeaway" || type === "pickup") return true;
+  if (feature === "ventes-flash" || hasFlashSale) return true;
+  if (feature === "anti-gaspi" || feature === "zero-gaspi" || hasAntiGaspi) return true;
+  if (feature === "table-chef" || feature === "chefs-table") return true;
+  
+  // Detection fallback pour le takeaway
+  if (meta.pickup_time || meta.pickup_date) return true;
+  
+  // Si ce n'est pas "zero-attente", et sans adresse de livraison dans les meta,
+  // c'est generalement par defaut du click & collect / Takeaway
+  if (feature !== "zero-attente" && (!meta.delivery_address || String(meta.delivery_address).trim() === "")) {
+    return true;
+  }
+
+  return false;
 }
 
 export function getOrderPaymentBreakdown(order: OrderLike) {
@@ -105,6 +130,7 @@ export default function OrderPaymentBreakdown({
   showDivider = true,
   alwaysShowTotal = false,
   totalLabel = "Total",
+  isRestaurantDashboard = false,
 }: OrderPaymentBreakdownProps) {
   const breakdown = getOrderPaymentBreakdown(order);
   const {
@@ -229,6 +255,35 @@ export default function OrderPaymentBreakdown({
           {cardLast4 ? (
             <span className="rounded bg-secondary px-1 py-0.5 font-mono text-[10px]">**** {cardLast4}</span>
           ) : null}
+        </div>
+      ) : null}
+
+      {isRestaurantDashboard && isTokCommissionApplicable(order) ? (
+        <div className="mt-4 space-y-2 rounded-lg border border-dashed border-primary/20 bg-primary/5 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Repartion (Commande specifique)</p>
+          <div className="flex justify-between font-medium text-destructive">
+            <span>Commission Tok (10%)</span>
+            <span>-{(total * 0.10).toFixed(2)} CHF</span>
+          </div>
+          <div className="flex justify-between font-bold text-emerald-600">
+            <span>Net Restaurateur (90%)</span>
+            <span>+{(total * 0.90).toFixed(2)} CHF</span>
+          </div>
+        </div>
+      ) : null}
+
+      {isRestaurantDashboard && pointsDiscount > 0 ? (
+        <div className="mt-2 rounded-lg border border-dashed border-violet-500/20 bg-violet-500/5 p-3">
+          <div className="flex justify-between font-medium text-violet-700">
+            <span className="flex items-center gap-1">
+              <Gift className="h-3 w-3" />
+              Miamz a rembourser par Tok
+            </span>
+            <span>+{pointsDiscount.toFixed(2)} CHF</span>
+          </div>
+          <p className="mt-1 text-[10px] text-violet-600">
+            Ce montant sera ajoute au solde lors de la facturation periodique.
+          </p>
         </div>
       ) : null}
     </div>

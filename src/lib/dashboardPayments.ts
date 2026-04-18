@@ -102,15 +102,15 @@ export function buildRestaurantPaymentSummary(events: RestaurantPaymentEvent[]):
 
     const amount = toAmount(event.amount);
 
-    if (event.event_kind === "order_charge") {
-      summary.receivedCharges += amount;
-      summary.netPlatform += amount;
-      return summary;
-    }
-
     if (event.event_kind === "order_refund") {
       summary.refunds += amount;
       summary.netPlatform -= amount;
+      return summary;
+    }
+
+    if (event.direction === "received") {
+      summary.receivedCharges += amount;
+      summary.netPlatform += amount;
       return summary;
     }
 
@@ -128,7 +128,11 @@ export function buildRestaurantPaymentSummary(events: RestaurantPaymentEvent[]):
 export function getRestaurantPaymentSignedAmount(event: RestaurantPaymentEvent) {
   const amount = toAmount(event.amount);
 
-  if (event.event_kind === "order_charge") {
+  if (event.event_kind === "order_refund") {
+    return -amount;
+  }
+
+  if (event.direction === "received") {
     return amount;
   }
 

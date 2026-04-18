@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDownLeft, ArrowUpRight, CreditCard, Download, Eye, FileText, ReceiptText, RefreshCcw, Settings, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CreditCard, Download, Eye, FileText, Gift, ReceiptText, RefreshCcw, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./DashboardContext";
 
+type InvoiceType = "payout" | "reservation_fees";
+
 type Invoice = {
   id: string;
   invoice_number: string | null;
@@ -40,6 +42,7 @@ type Invoice = {
   pdf_url: string | null;
   created_at: string;
   restaurant_id: string;
+  invoice_type: InvoiceType | null;
 };
 
 type InvoiceSettings = {
@@ -57,6 +60,25 @@ type InvoiceSettings = {
   email: string | null;
   phone: string | null;
 };
+
+type ReservationFeeSummary = {
+  count: number;
+  amount: number;
+};
+
+type InvoiceReservationDetail = {
+  id: string;
+  total_amount: number | string | null;
+  date: string;
+  status: string | null;
+  feature: string | null;
+  billing_fee_chf: number | string | null;
+  confirmed_at: string | null;
+  cancelled_by: string | null;
+};
+
+const RESERVATION_FEE_PERIOD_START = "2000-01-01";
+const RESERVATION_FEE_PERIOD_END = "2100-12-31";
 
 const INVOICE_STATUS_META: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
@@ -182,17 +204,115 @@ export default function DashboardFactures() {
     enabled: !!selectedId && !restaurantsLoading,
   });
 
-  const totalHT = useMemo(
-    () => invoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ht), 0),
+  const { data: reservationFees = { count: 0, amount: 0 }, isLoading: reservationFeesLoading } = useQuery({
+    queryKey: ["dashboard-reservation-fees", selectedId, RESERVATION_FEE_PERIOD_START, RESERVATION_FEE_PERIOD_END],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("compute_restaurant_reservation_fees", {
+        p_restaurant_id: selectedId!,
+        p_period_start: RESERVATION_FEE_PERIOD_START,
+        p_period_end: RESERVATION_FEE_PERIOD_END,
+      });
+
+      if (error) throw error;
+
+      const row = Array.isArray(data) ? data[0] : data;
+      return {
+        count: Number(row?.reservations_count ?? 0),
+        amount: Number(row?.reservations_amount ?? 0),
+      } satisfies ReservationFeeSummary;
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
+  const { data: uninvoicedBreakdown = { ordersAmount: 0, reservationsAmount: 0, total: 0 }, isLoading: uninvoicedBaseLoading } = useQuery({
+    queryKey: ["dashboard-uninvoiced-amount", selectedId],
+    queryFn: async () => {
+      // Tout ce que le client a paye via la plateforme (commandes + reservations payees,
+      // tous types: zero-attente, chefs_table, promo-formule, anti-gaspi...) doit etre
+      // refacture a TOK a hauteur de 90%.
+      const [ordersRes, resRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("total_amount, metadata")
+          .eq("restaurant_id", selectedId!)
+          .is("restaurant_invoice_id", null)
+          .not("status", "in", "(cancelled,payment_failed,refused,pending)"),
+        supabase
+          .from("reservations")
+          .select("total_amount")
+          .eq("restaurant_id", selectedId!)
+          .is("restaurant_invoice_id", null)
+          .not("status", "in", "(cancelled,no_show,pending)")
+          .gt("total_amount", 0),
+      ]);
+
+      if (ordersRes.error) throw ordersRes.error;
+      if (resRes.error) throw resRes.error;
+
+      let ordersGross = 0;
+      (ordersRes.data || []).forEach((order) => {
+        ordersGross +=
+          Number(order.total_amount || 0) +
+          Number((order.metadata as Record<string, unknown> | null)?.points_discount_amount || 0);
+      });
+
+      let reservationsGross = 0;
+      (resRes.data || []).forEach((reservation) => {
+        reservationsGross += Number(reservation.total_amount || 0);
+      });
+
+      const ordersAmount = ordersGross * 0.9;
+      const reservationsAmount = reservationsGross * 0.9;
+      return {
+        ordersAmount,
+        reservationsAmount,
+        total: ordersAmount + reservationsAmount,
+      };
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
+  const currentUninvoicedBase = uninvoicedBreakdown.total;
+  const uninvoicedOrdersAmount = uninvoicedBreakdown.ordersAmount;
+  const uninvoicedReservationsAmount = uninvoicedBreakdown.reservationsAmount;
+
+  // Encours = uniquement la part 90% que le restaurateur facture a TOK.
+  // Les frais de reservation (5.- par resa) sont une facture separee emise PAR TOK AU restaurateur,
+  // pas inclus dans l'encours du restaurateur.
+  const currentUninvoiced = currentUninvoicedBase;
+  const uninvoicedLoading = uninvoicedBaseLoading;
+  const tokFeesUninvoiced = reservationFees.amount;
+  const tokFeesUninvoicedCount = reservationFees.count;
+  const tokFeesLoading = reservationFeesLoading;
+
+  const payoutInvoices = useMemo(
+    () => invoices.filter((invoice) => (invoice.invoice_type || "payout") === "payout"),
     [invoices],
+  );
+  const tokFeeInvoices = useMemo(
+    () => invoices.filter((invoice) => invoice.invoice_type === "reservation_fees"),
+    [invoices],
+  );
+
+  const totalHT = useMemo(
+    () => payoutInvoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ht), 0),
+    [payoutInvoices],
   );
   const totalTTC = useMemo(
-    () => invoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ttc), 0),
-    [invoices],
+    () => payoutInvoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ttc), 0),
+    [payoutInvoices],
   );
   const unpaidInvoices = useMemo(
-    () => invoices.filter((invoice) => String(invoice.status || "").toLowerCase() !== "paid").length,
-    [invoices],
+    () => payoutInvoices.filter((invoice) => String(invoice.status || "").toLowerCase() !== "paid").length,
+    [payoutInvoices],
+  );
+  const totalTokFeesTTC = useMemo(
+    () => tokFeeInvoices.reduce((sum, invoice) => sum + toAmount(invoice.amount_ttc), 0),
+    [tokFeeInvoices],
+  );
+  const unpaidTokFees = useMemo(
+    () => tokFeeInvoices.filter((invoice) => String(invoice.status || "").toLowerCase() !== "paid").length,
+    [tokFeeInvoices],
   );
 
   const paymentSummary = useMemo(
@@ -212,13 +332,19 @@ export default function DashboardFactures() {
       queryClient.invalidateQueries({ queryKey: ["dashboard-invoices", selectedId] }),
       queryClient.invalidateQueries({ queryKey: ["dashboard-invoice-settings", selectedId] }),
       queryClient.invalidateQueries({ queryKey: ["dashboard-payment-history", selectedId] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard-uninvoiced-amount", selectedId] }),
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-reservation-fees", selectedId, RESERVATION_FEE_PERIOD_START, RESERVATION_FEE_PERIOD_END],
+      }),
     ]);
   };
 
   const generateInvoices = async () => {
     setGenerating(true);
 
-    const { data, error } = await supabase.functions.invoke("generate-invoices", { body: {} });
+    const { data, error } = await supabase.functions.invoke("generate-invoices", { 
+      body: selectedId ? { restaurant_id: selectedId } : {} 
+    });
 
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -226,11 +352,10 @@ export default function DashboardFactures() {
       return;
     }
 
-    toast({ title: `${Number(data?.generated || 0)} facture(s) generee(s)` });
+    toast({ title: `${Number(data?.generated || 0)} facture(s) de reversement generee(s)` });
     await refreshBillingQueries();
     setGenerating(false);
   };
-
   const markInvoicePaid = async (invoiceId: string) => {
     const { error } = await supabase
       .from("restaurant_invoices")
@@ -251,9 +376,9 @@ export default function DashboardFactures() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-display text-3xl font-bold">Factures</h1>
+            <h1 className="font-display text-3xl font-bold">Factures & Reversements</h1>
             <p className="text-sm text-muted-foreground">
-              {selectedRestaurant ? `Suivi de ${selectedRestaurant.name}` : "Selectionnez un restaurant dans la barre laterale."}
+              {selectedRestaurant ? `Suivi des reversements de ${selectedRestaurant.name}` : "Selectionnez un restaurant dans la barre laterale."}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -263,12 +388,12 @@ export default function DashboardFactures() {
                 Personnaliser
               </Link>
             </Button>
-            {isAdmin ? (
-              <Button size="sm" onClick={generateInvoices} disabled={generating}>
+            {selectedRestaurant && (
+              <Button size="sm" onClick={generateInvoices} disabled={generating || currentUninvoiced <= 0}>
                 <RefreshCcw className={`mr-1 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-                Generer factures
+                {currentUninvoiced > 0 ? `Facturer l'encours (${formatAmount(currentUninvoiced)})` : "Rien a facturer"}
               </Button>
-            ) : null}
+            )}
           </div>
         </div>
 
@@ -305,29 +430,74 @@ export default function DashboardFactures() {
               </TabsList>
 
               <TabsContent value="invoices" className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Card>
+                <div className="mb-4 rounded-lg border border-violet-500/20 bg-violet-500/5 p-4 text-violet-800">
+                  <div className="flex items-start gap-3">
+                    <Gift className="mt-0.5 h-5 w-5 text-violet-600" />
+                    <div>
+                      <h4 className="font-semibold">Remboursements Miamz (Points Fidelite)</h4>
+                      <p className="text-sm">
+                        Lorsqu'un client utilise ses Miamz pour payer, Tok prend en charge ce montant en totalite.
+                        Ces remboursements sont automatiquement inclus sous forme de credit dans vos factures periodiques, ou vous pouvez demander un versement anticipe.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-4">
+                  <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Total HT</CardTitle>
+                      <CardTitle className="text-sm font-medium text-primary">A facturer a TOK (90%)</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-2xl font-bold">{formatAmount(totalHT)}</p>
+                    <CardContent className="space-y-2">
+                      <p className="text-2xl font-bold text-primary">{uninvoicedLoading ? "..." : formatAmount(currentUninvoiced)}</p>
+                      <p className="text-xs text-muted-foreground">Part de vos commandes et reservations prepayees a refacturer a TOK</p>
+                      {!uninvoicedLoading && currentUninvoiced > 0 ? (
+                        <div className="space-y-1 border-t border-primary/10 pt-2 text-xs">
+                          {uninvoicedOrdersAmount > 0 ? (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Commandes a emporter / livraison</span>
+                              <span className="font-medium">{formatAmount(uninvoicedOrdersAmount)}</span>
+                            </div>
+                          ) : null}
+                          {uninvoicedReservationsAmount > 0 ? (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Reservations payees (Zero attente, Chef's Table, flash...)</span>
+                              <span className="font-medium">{formatAmount(uninvoicedReservationsAmount)}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                  <Card className="border-orange-200 bg-orange-50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-orange-700">A payer a TOK (5.-/resa)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <p className="text-2xl font-bold text-orange-700">{tokFeesLoading ? "..." : formatAmount(tokFeesUninvoiced)}</p>
+                      <p className="text-xs text-orange-600">
+                        {tokFeesUninvoicedCount > 0
+                          ? `${tokFeesUninvoicedCount} reservation${tokFeesUninvoicedCount > 1 ? "s" : ""} confirmee${tokFeesUninvoicedCount > 1 ? "s" : ""} (5.- par resa)`
+                          : "Aucune reservation confirmee non facturee"}
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Total TTC</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Total facture a TOK (TTC)</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-2xl font-bold">{formatAmount(totalTTC)}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{payoutInvoices.length} facture(s) emise(s)</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Impayees</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Factures TOK recues</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-2xl font-bold">{unpaidInvoices}</p>
+                      <p className="text-2xl font-bold">{formatAmount(totalTokFeesTTC)}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{tokFeeInvoices.length} facture(s) - {unpaidTokFees} impayee(s)</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -335,71 +505,60 @@ export default function DashboardFactures() {
                 {invoicesLoading || settingsLoading ? <p className="text-muted-foreground">Chargement des factures...</p> : null}
                 {billingError ? <p className="text-destructive">Erreur lors du chargement : {billingError}</p> : null}
 
-                {!invoicesLoading && !billingError && invoices.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-10 text-center text-muted-foreground">
-                      <FileText className="mx-auto mb-3 h-10 w-10 opacity-40" />
-                      <p>Aucune facture pour ce restaurant.</p>
-                      <p className="mt-1 text-xs">Les factures apparaitront ici des qu elles sont generees.</p>
-                    </CardContent>
-                  </Card>
-                ) : null}
-
                 {!invoicesLoading && !billingError ? (
-                  <div className="space-y-3">
-                    {invoices.map((invoice) => {
-                      const statusKey = String(invoice.status || "draft").toLowerCase();
-                      const statusMeta = INVOICE_STATUS_META[statusKey] || {
-                        label: statusKey || "Inconnu",
-                        variant: "outline" as const,
-                      };
-
-                      return (
-                        <Card key={invoice.id}>
-                          <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-4">
-                            <div className="space-y-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-semibold">{formatAmount(invoice.amount_ttc)}</span>
-                                <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
-                                {invoice.invoice_number ? (
-                                  <span className="font-mono text-xs text-muted-foreground">{invoice.invoice_number}</span>
-                                ) : null}
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                Periode : {formatDate(invoice.period_start)} {"->"} {formatDate(invoice.period_end)}
-                              </p>
-                              {invoice.due_at && !invoice.paid_at ? (
-                                <p className="text-xs text-muted-foreground">Echeance : {formatDate(invoice.due_at)}</p>
-                              ) : null}
-                              {invoice.paid_at ? (
-                                <p className="text-xs text-muted-foreground">Payee le {formatDate(invoice.paid_at)}</p>
-                              ) : null}
-                            </div>
-
-                            <div className="flex flex-wrap gap-2">
-                              <Button size="sm" variant="outline" onClick={() => setPreviewInvoice(invoice)}>
-                                <Eye className="mr-1 h-4 w-4" />
-                                Apercu
-                              </Button>
-                              {invoice.pdf_url ? (
-                                <Button size="sm" variant="outline" asChild>
-                                  <a href={invoice.pdf_url} target="_blank" rel="noreferrer">
-                                    <Download className="mr-1 h-4 w-4" />
-                                    PDF
-                                  </a>
-                                </Button>
-                              ) : null}
-                              {isAdmin && String(invoice.status || "").toLowerCase() !== "paid" ? (
-                                <Button size="sm" onClick={() => markInvoicePaid(invoice.id)}>
-                                  Marquer payee
-                                </Button>
-                              ) : null}
-                            </div>
+                  <>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                        <ArrowUpRight className="h-4 w-4" />
+                        Mes factures emises a TOK (90% des commandes)
+                      </div>
+                      {payoutInvoices.length === 0 ? (
+                        <Card>
+                          <CardContent className="py-8 text-center text-muted-foreground">
+                            <FileText className="mx-auto mb-3 h-10 w-10 opacity-40" />
+                            <p>Aucune facture emise pour ce restaurant.</p>
+                            <p className="mt-1 text-xs">Cliquez sur "Facturer l'encours" pour generer la prochaine facture.</p>
                           </CardContent>
                         </Card>
-                      );
-                    })}
-                  </div>
+                      ) : (
+                        payoutInvoices.map((invoice) => (
+                          <InvoiceCard
+                            key={invoice.id}
+                            invoice={invoice}
+                            isAdmin={isAdmin}
+                            onPreview={setPreviewInvoice}
+                            onMarkPaid={markInvoicePaid}
+                          />
+                        ))
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-orange-700">
+                        <ArrowDownLeft className="h-4 w-4" />
+                        Factures recues de TOK (5.- par reservation confirmee)
+                      </div>
+                      {tokFeeInvoices.length === 0 ? (
+                        <Card className="border-dashed">
+                          <CardContent className="py-8 text-center text-muted-foreground">
+                            <ReceiptText className="mx-auto mb-3 h-10 w-10 opacity-40" />
+                            <p>Aucune facture TOK recue pour le moment.</p>
+                            <p className="mt-1 text-xs">TOK emet ces factures mensuellement pour vos reservations confirmees.</p>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        tokFeeInvoices.map((invoice) => (
+                          <InvoiceCard
+                            key={invoice.id}
+                            invoice={invoice}
+                            isAdmin={isAdmin}
+                            onPreview={setPreviewInvoice}
+                            onMarkPaid={markInvoicePaid}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </>
                 ) : null}
               </TabsContent>
 
@@ -558,6 +717,75 @@ export default function DashboardFactures() {
   );
 }
 
+function InvoiceCard({
+  invoice,
+  isAdmin,
+  onPreview,
+  onMarkPaid,
+}: {
+  invoice: Invoice;
+  isAdmin: boolean;
+  onPreview: (invoice: Invoice) => void;
+  onMarkPaid: (invoiceId: string) => void;
+}) {
+  const statusKey = String(invoice.status || "draft").toLowerCase();
+  const statusMeta = INVOICE_STATUS_META[statusKey] || {
+    label: statusKey || "Inconnu",
+    variant: "outline" as const,
+  };
+  const isTokFee = invoice.invoice_type === "reservation_fees";
+
+  return (
+    <Card className={isTokFee ? "border-orange-200" : undefined}>
+      <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-4">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold">{formatAmount(invoice.amount_ttc)}</span>
+            <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
+            {isTokFee ? (
+              <Badge variant="outline" className="border-orange-300 text-orange-700">
+                Frais TOK
+              </Badge>
+            ) : null}
+            {invoice.invoice_number ? (
+              <span className="font-mono text-xs text-muted-foreground">{invoice.invoice_number}</span>
+            ) : null}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Periode : {formatDate(invoice.period_start)} {"->"} {formatDate(invoice.period_end)}
+          </p>
+          {invoice.due_at && !invoice.paid_at ? (
+            <p className="text-xs text-muted-foreground">Echeance : {formatDate(invoice.due_at)}</p>
+          ) : null}
+          {invoice.paid_at ? (
+            <p className="text-xs text-muted-foreground">Payee le {formatDate(invoice.paid_at)}</p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => onPreview(invoice)}>
+            <Eye className="mr-1 h-4 w-4" />
+            Apercu
+          </Button>
+          {invoice.pdf_url ? (
+            <Button size="sm" variant="outline" asChild>
+              <a href={invoice.pdf_url} target="_blank" rel="noreferrer">
+                <Download className="mr-1 h-4 w-4" />
+                PDF
+              </a>
+            </Button>
+          ) : null}
+          {isAdmin && String(invoice.status || "").toLowerCase() !== "paid" ? (
+            <Button size="sm" onClick={() => onMarkPaid(invoice.id)}>
+              Marquer payee
+            </Button>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function InvoicePreview({
   invoice,
   settings,
@@ -572,6 +800,45 @@ function InvoicePreview({
   const periodStart = formatDate(invoice.period_start, { month: "long" });
   const periodEnd = formatDate(invoice.period_end, { month: "long" });
   const invoiceStatus = String(invoice.status || "").toLowerCase();
+
+  const { data: details, isLoading } = useQuery({
+    queryKey: ["invoice-details", invoice.id],
+    queryFn: async () => {
+      const [ordersRes, resRes] = await Promise.all([
+        supabase.from("orders").select("id, order_number, total_amount, metadata, created_at").eq("restaurant_invoice_id", invoice.id),
+        supabase
+          .from("reservations")
+          .select("id, total_amount, date, status, feature, billing_fee_chf, confirmed_at, cancelled_by")
+          .eq("restaurant_invoice_id", invoice.id),
+      ]);
+      return {
+        orders: ordersRes.data || [],
+        reservations: (resRes.data || []) as InvoiceReservationDetail[],
+      };
+    },
+  });
+
+  const isTokFeeInvoice = invoice.invoice_type === "reservation_fees";
+
+  const billedReservationFees = (details?.reservations || []).filter((reservation) => {
+    const isCustomerSideCancellation =
+      reservation.status === "cancelled" &&
+      (reservation.cancelled_by === "customer" || reservation.cancelled_by === "admin");
+    return Boolean(reservation.confirmed_at) && !isCustomerSideCancellation;
+  });
+
+  const prepaidReservations = (details?.reservations || []).filter((reservation) => {
+    return Number(reservation.total_amount || 0) > 0;
+  });
+
+  // For payout invoices we exclude the 5.- billing fees from the visible lines
+  // (they live on the separate TOK -> restaurant invoice).
+  const payoutOrders = isTokFeeInvoice ? [] : (details?.orders || []);
+  const payoutPrepaidReservations = isTokFeeInvoice ? [] : prepaidReservations;
+  const tokFeeLines = isTokFeeInvoice ? billedReservationFees : [];
+  const hasLines = isTokFeeInvoice
+    ? tokFeeLines.length > 0
+    : payoutOrders.length > 0 || payoutPrepaidReservations.length > 0;
 
   return (
     <div className="space-y-6 rounded-lg border bg-white p-8 text-sm text-black">
@@ -594,6 +861,15 @@ function InvoicePreview({
 
         <div className="text-right">
           <p className="text-2xl font-bold text-gray-800">FACTURE</p>
+          {isTokFeeInvoice ? (
+            <p className="mt-1 inline-block rounded bg-orange-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-orange-700">
+              TOK {"->"} {restaurantName}
+            </p>
+          ) : (
+            <p className="mt-1 inline-block rounded bg-emerald-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+              {restaurantName} {"->"} TOK
+            </p>
+          )}
           {invoice.invoice_number ? <p className="mt-1 font-mono text-sm">{invoice.invoice_number}</p> : null}
           {invoiceDate ? <p className="mt-2 text-xs text-gray-500">Date d emission : {invoiceDate}</p> : null}
           {dueDate ? <p className="text-xs text-gray-500">Echeance : {dueDate}</p> : null}
@@ -613,10 +889,62 @@ function InvoicePreview({
           </tr>
         </thead>
         <tbody>
-          <tr className="border-b">
-            <td className="py-3">Commissions plateforme - {restaurantName}</td>
-            <td className="py-3 text-right">{formatAmount(invoice.amount_ht)}</td>
-          </tr>
+          {isLoading ? (
+            <tr className="border-b"><td className="py-3" colSpan={2}>Chargement des details...</td></tr>
+          ) : hasLines ? (
+            <>
+              {payoutOrders.map((o) => {
+                const paid = Number(o.total_amount || 0);
+                const miamz = Number((o.metadata as any)?.points_discount_amount || 0);
+                const base = paid + miamz;
+                const payout = base * 0.90;
+                return (
+                  <tr key={o.id} className="border-b text-xs text-gray-600">
+                    <td className="py-2">Commande #{o.order_number} <span className="text-gray-400">({formatDate(o.created_at)})</span></td>
+                    <td className="py-2 text-right">{formatAmount(payout)}</td>
+                  </tr>
+                );
+              })}
+              {payoutPrepaidReservations.map((reservation) => {
+                const payout = Number(reservation.total_amount || 0) * 0.90;
+                const reservationLabel =
+                  reservation.feature === "chefs_table" ? "Chef's Table" : "Flash / Zero Attente";
+                return (
+                  <tr key={`prepaid-${reservation.id}`} className="border-b text-xs text-gray-600">
+                    <td className="py-2">
+                      {reservationLabel} <span className="text-gray-400">({formatDate(reservation.date)})</span>
+                    </td>
+                    <td className="py-2 text-right">{formatAmount(payout)}</td>
+                  </tr>
+                );
+              })}
+              {tokFeeLines.map((reservation) => {
+                const fee = Number(reservation.billing_fee_chf || 0);
+                const cancellationLabel =
+                  reservation.status === "cancelled" && reservation.cancelled_by
+                    ? ` - annulee par le ${reservation.cancelled_by}`
+                    : "";
+                return (
+                  <tr key={`fee-${reservation.id}`} className="border-b text-xs text-gray-600">
+                    <td className="py-2">
+                      Frais de reservation confirmee{cancellationLabel}{" "}
+                      <span className="text-gray-400">({formatDate(reservation.date)})</span>
+                    </td>
+                    <td className="py-2 text-right">{formatAmount(fee)}</td>
+                  </tr>
+                );
+              })}
+            </>
+          ) : (
+            <tr className="border-b">
+              <td className="py-3 text-gray-500 italic">
+                {isTokFeeInvoice
+                  ? `Frais de reservation - ${restaurantName}`
+                  : `Prestation globale - ${restaurantName}`}
+              </td>
+              <td className="py-3 text-right text-gray-500">{formatAmount(invoice.amount_ht)}</td>
+            </tr>
+          )}
         </tbody>
         <tfoot>
           <tr>

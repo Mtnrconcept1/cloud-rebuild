@@ -6,9 +6,31 @@ type MonitoringContext = {
   tags?: Record<string, string>;
 };
 
-const SENTRY_DSN = sanitizeEnvValue(import.meta.env.VITE_SENTRY_DSN);
+const RAW_SENTRY_DSN = sanitizeEnvValue(import.meta.env.VITE_SENTRY_DSN);
 const SENTRY_ENVIRONMENT = sanitizeEnvValue(import.meta.env.VITE_SENTRY_ENVIRONMENT || import.meta.env.MODE);
 const SENTRY_RELEASE = sanitizeEnvValue(import.meta.env.VITE_APP_RELEASE);
+
+function isPlaceholderValue(value: string) {
+  return /REPLACE(?:_WITH)?(?:_[A-Z0-9]+)*/i.test(value);
+}
+
+export function isConfiguredSentryDsn(value: string) {
+  if (!value || isPlaceholderValue(value)) return false;
+
+  try {
+    const parsed = new URL(value);
+    return (
+      /https?:/.test(parsed.protocol) &&
+      Boolean(parsed.host) &&
+      Boolean(parsed.username) &&
+      !isPlaceholderValue(parsed.username)
+    );
+  } catch {
+    return false;
+  }
+}
+
+const SENTRY_DSN = isConfiguredSentryDsn(RAW_SENTRY_DSN) ? RAW_SENTRY_DSN : "";
 
 type SentryModule = typeof import("@sentry/react");
 

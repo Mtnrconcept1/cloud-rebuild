@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift, Crown } from "lucide-react";
+import { ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift, Crown, ChefHat } from "lucide-react";
 import { Link } from "react-router-dom";
 import FormulaDetector from "@/components/FormulaDetector";
 import PromotionDetector from "@/components/PromotionDetector";
@@ -46,6 +46,7 @@ import {
   useTokOneBenefits,
 } from "@/hooks/useTokOne";
 import { savePendingCheckoutPostActions } from "@/lib/pendingCheckout";
+import { getFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
 
 const AUTH_TIMEOUT_MS = 30000;
 const CHECKOUT_TIMEOUT_MS = 15000;
@@ -65,7 +66,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
 
 export default function Panier() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode } = useCart();
-  const { user, session, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -443,134 +444,120 @@ export default function Panier() {
 
     setLoading(true);
     try {
-    if (!session?.access_token) {
-    let activeSession = session;
-    if (!activeSession) {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      activeSession = sessionData.session;
-    }
-    if (!activeSession?.access_token) {
-      await supabase.auth.signOut();
-      toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
-      return navigate("/auth");
-    }
+      let accessToken = "";
+      try {
+        accessToken = await withTimeout(
+          getFreshAccessToken(),
+          AUTH_TIMEOUT_MS,
+          "Le rafraichissement de session prend trop de temps. Reconnectez-vous puis reessayez.",
+        );
+      } catch {
+        await supabase.auth.signOut();
+        toast({ title: "Session expiree", description: "Veuillez vous reconnecter.", variant: "destructive" });
+        return navigate("/auth");
+      }
 
-    // Proactively refresh the token to avoid 401 on edge function call
-    const { error: refreshError } = await withTimeout(
-      supabase.auth.refreshSession(),
-      AUTH_TIMEOUT_MS,
-      "Le rafraichissement de session prend trop de temps. Reconnectez-vous puis reessayez.",
-    );
-    if (refreshError) {
-      await supabase.auth.signOut();
-      toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
-      return navigate("/auth");
-    }
+      if (isChefsTableCheckout) {
+        if (allowedPaymentMethods.length === 0) {
+          return toast({
+            title: "Paiement indisponible",
+            description: "Aucun moyen de paiement securise n'est actuellement disponible.",
+            variant: "destructive",
+          });
+        }
+        if (paymentMethod === "cash") {
+          return toast({
+            title: "Paiement securise requis",
+            description: "Chef's Table doit etre regle a l'avance pour confirmer la reservation.",
+            variant: "destructive",
+          });
+        }
 
-    }
+        const { data: checkoutData, error: checkoutError } = await withTimeout(
+          supabase.functions.invoke("create-checkout", {
+            body: {
+              checkout_kind: "chefs-table",
+              items: chefsTableItems.map((item) => ({
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                restaurant_name: item.restaurantName,
+                restaurant_id: item.restaurantId,
+                menu_item_id: item.menuItemId,
+                metadata: item.metadata || {},
+              })),
+              payment_method: paymentMethod,
+              return_url: `${window.location.origin}/chefs-table`,
+              order_metadata: {
+                checkout_kind: "chefs-table",
+                restaurant_id: restaurantId,
+                order_reference: `CT-${Date.now()}`,
+                checkout_group_id: crypto.randomUUID(),
+                pre_discount_subtotal: total,
+                authoritative_total: finalTotal,
+                party_size: 1,
+              },
+            },
+          }),
+          CHECKOUT_TIMEOUT_MS,
+          "La creation de la session de paiement prend trop de temps. Reessayez dans quelques instants.",
+        );
 
-    if (isChefsTableCheckout) {
+        if (checkoutError) throw new Error(checkoutError.message);
+        if (checkoutData?.error) throw new Error(checkoutData.error);
+        if (!checkoutData?.url) throw new Error("Impossible de lancer le paiement Chef's Table.");
+
+        window.location.assign(checkoutData.url);
+        return;
+      }
+
+      trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
+      if (!hasJourneyAvailable) {
+        return toast({
+          title: "Parcours indisponible",
+          description: "Livraison et emporter sont desactives pour ce restaurant.",
+          variant: "destructive",
+        });
+      }
       if (allowedPaymentMethods.length === 0) {
         return toast({
           title: "Paiement indisponible",
-          description: "Aucun moyen de paiement securise n'est actuellement disponible.",
+          description: "Aucun moyen de paiement n'est actuellement disponible.",
           variant: "destructive",
         });
       }
-      if (paymentMethod === "cash") {
+      if (!allowedPaymentMethods.includes(paymentMethod)) {
+        const fallbackPaymentMethod = getFirstAvailablePaymentMethod(
+          activeFeatures,
+          (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
+          "card",
+        );
+        if (fallbackPaymentMethod) {
+          setPaymentMethod(fallbackPaymentMethod);
+        }
         return toast({
-          title: "Paiement securise requis",
-          description: "Chef's Table doit etre regle a l'avance pour confirmer la reservation.",
+          title: "Moyen de paiement indisponible",
+          description: "Selectionnez un moyen de paiement encore actif.",
           variant: "destructive",
         });
       }
-
-      const { data: checkoutData, error: checkoutError } = await withTimeout(
-        supabase.functions.invoke("create-checkout", {
-          body: {
-            checkout_kind: "chefs-table",
-            items: chefsTableItems.map((item) => ({
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              restaurant_name: item.restaurantName,
-              restaurant_id: item.restaurantId,
-              menu_item_id: item.menuItemId,
-              metadata: item.metadata || {},
-            })),
-            payment_method: paymentMethod,
-            return_url: `${window.location.origin}/chefs-table`,
-            order_metadata: {
-              checkout_kind: "chefs-table",
-              restaurant_id: restaurantId,
-              order_reference: `CT-${Date.now()}`,
-              checkout_group_id: crypto.randomUUID(),
-              pre_discount_subtotal: total,
-              authoritative_total: finalTotal,
-              party_size: 1,
-            },
-          },
-        }),
-        CHECKOUT_TIMEOUT_MS,
-        "La creation de la session de paiement prend trop de temps. Reessayez dans quelques instants.",
-      );
-
-      if (checkoutError) throw new Error(checkoutError.message);
-      if (checkoutData?.error) throw new Error(checkoutData.error);
-      if (!checkoutData?.url) throw new Error("Impossible de lancer le paiement Chef's Table.");
-
-      window.location.assign(checkoutData.url);
-      return;
-    }
-
-    trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
-    if (!hasJourneyAvailable) {
-      return toast({
-        title: "Parcours indisponible",
-        description: "Livraison et emporter sont desactives pour ce restaurant.",
-        variant: "destructive",
-      });
-    }
-    if (allowedPaymentMethods.length === 0) {
-      return toast({
-        title: "Paiement indisponible",
-        description: "Aucun moyen de paiement n'est actuellement disponible.",
-        variant: "destructive",
-      });
-    }
-    if (!allowedPaymentMethods.includes(paymentMethod)) {
-      const fallbackPaymentMethod = getFirstAvailablePaymentMethod(
-        activeFeatures,
-        (restaurantPaymentConfig as Record<string, unknown>)?.disabled_payment_methods as string[] || [],
-        "card",
-      );
-      if (fallbackPaymentMethod) {
-        setPaymentMethod(fallbackPaymentMethod);
+      if (orderMode === "delivery" && !deliveryAvailable) {
+        if (takeawayAvailable) setOrderMode("takeaway", { force: true });
+        return toast({
+          title: "Livraison indisponible",
+          description: "Ce restaurant n'accepte plus la livraison actuellement.",
+          variant: "destructive",
+        });
       }
-      return toast({
-        title: "Moyen de paiement indisponible",
-        description: "Selectionnez un moyen de paiement encore actif.",
-        variant: "destructive",
-      });
-    }
-    if (orderMode === "delivery" && !deliveryAvailable) {
-      if (takeawayAvailable) setOrderMode("takeaway", { force: true });
-      return toast({
-        title: "Livraison indisponible",
-        description: "Ce restaurant n'accepte plus la livraison actuellement.",
-        variant: "destructive",
-      });
-    }
-    if (orderMode === "takeaway" && !takeawayAvailable) {
-      if (deliveryAvailable) setOrderMode("delivery", { force: true });
-      return toast({
-        title: "Emporter indisponible",
-        description: "Ce restaurant n'accepte plus l'emporter actuellement.",
-        variant: "destructive",
-      });
-    }
-    if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
+      if (orderMode === "takeaway" && !takeawayAvailable) {
+        if (deliveryAvailable) setOrderMode("delivery", { force: true });
+        return toast({
+          title: "Emporter indisponible",
+          description: "Ce restaurant n'accepte plus l'emporter actuellement.",
+          variant: "destructive",
+        });
+      }
+      if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
 
     const hasIncompatibleFlashMode = flashItems.some((item) => {
       const canDelivery = item.metadata?.delivery_available !== false;
@@ -673,7 +660,8 @@ export default function Panier() {
     ));
     const previewResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
       const { data, error } = await withTimeout(
-        supabase.functions.invoke("validate-order", {
+        invokeSupabaseFunction("validate-order", {
+          accessToken,
           body: {
             ...body,
             preview_only: true,
@@ -705,7 +693,8 @@ export default function Panier() {
           });
         }
         const { data: checkoutData, error: checkoutError } = await withTimeout(
-          supabase.functions.invoke("create-checkout", {
+          invokeSupabaseFunction("create-checkout", {
+            accessToken,
             body: {
               items: items.map(i => ({
                 name: i.name,
@@ -752,7 +741,8 @@ export default function Panier() {
 
         const orderResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
           const { data: validateResult, error: validateError } = await withTimeout(
-            supabase.functions.invoke("validate-order", {
+            invokeSupabaseFunction("validate-order", {
+              accessToken,
               body: {
                 ...body,
                 metadata: { ...(body.metadata || {}), stripe_session_id: checkoutData.session_id },
@@ -810,7 +800,8 @@ export default function Panier() {
       // Cash payment flow or zero-balance online flow — create orders directly as confirmed
         for (const { resId, body } of validationPayloads) {
 
-        const { data: validateResult, error: validateError } = await supabase.functions.invoke("validate-order", {
+        const { data: validateResult, error: validateError } = await invokeSupabaseFunction("validate-order", {
+          accessToken,
           body,
         });
 

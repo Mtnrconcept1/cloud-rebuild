@@ -11,6 +11,8 @@ import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+import { invokeSupabaseFunction } from "@/lib/session";
+import { getOrderStatusLockMessage } from "@/lib/statusLocks";
 import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
@@ -69,13 +71,15 @@ type DashboardOrder = {
   dispatch_job: DashboardDispatchJob | null;
 };
 
-const DEFAULT_STATUS_SEQUENCE = ["confirmed", "preparing", "delivering", "delivered", "cancelled"] as const;
+const TAKEAWAY_STATUS_SEQUENCE = ["confirmed", "preparing", "ready", "delivered", "cancelled"] as const;
+const DELIVERY_STATUS_SEQUENCE = ["confirmed", "preparing", "delivering", "delivered", "cancelled"] as const;
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
   pending_payment: "Paiement en attente",
   confirmed: "Confirmee",
   preparing: "En preparation",
+  ready: "Prete a retirer",
   delivering: "En livraison",
   delivered: "Livree",
   cancelled: "Annulee",
@@ -94,14 +98,14 @@ function isDeliveryDashboardOrder(order: DashboardOrder) {
 }
 
 function getStatusOptions(order: DashboardOrder) {
-  const currentStatus = normalizeOrderStatus(order.status);
-  const baseStatuses = isDeliveryDashboardOrder(order)
-    ? ["confirmed", "preparing", "cancelled"]
-    : [...DEFAULT_STATUS_SEQUENCE];
+  const currentStatus = String(normalizeOrderStatus(order.status));
+  const baseStatuses: string[] = isDeliveryDashboardOrder(order)
+    ? [...DELIVERY_STATUS_SEQUENCE]
+    : [...TAKEAWAY_STATUS_SEQUENCE];
 
-  return baseStatuses.includes(currentStatus as string)
+  return baseStatuses.includes(currentStatus)
     ? baseStatuses
-    : [String(currentStatus), ...baseStatuses.filter((status) => status !== currentStatus)];
+    : [currentStatus, ...baseStatuses.filter((status) => status !== currentStatus)];
 }
 
 export default function DashboardCommandes() {
@@ -144,9 +148,13 @@ export default function DashboardCommandes() {
   });
 
   const filteredOrders = useMemo(() => (
-    (orders || []).filter((order) => (
-      isDateInDashboardTimeRange(order.created_at, timeRange, referenceDate)
-    ))
+    (orders || []).filter((order) => {
+      // Hide orders whose Stripe payment never completed - they are not actionable
+      // for the restaurateur and would otherwise display a misleading "pending" badge.
+      const status = String(order.status || "").toLowerCase();
+      if (status === "pending" || status === "pending_payment" || status === "payment_failed") return false;
+      return isDateInDashboardTimeRange(order.created_at, timeRange, referenceDate);
+    })
   ), [orders, referenceDate, timeRange]);
 
   const filteredOrdersRevenue = useMemo(() => (
@@ -155,7 +163,7 @@ export default function DashboardCommandes() {
 
   const updateStatus = async (orderId: string, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
-    const { data, error } = await supabase.functions.invoke("restaurant-order-status", {
+    const { data, error } = await invokeSupabaseFunction("restaurant-order-status", {
       body: {
         order_id: orderId,
         status: normalizedStatus,
@@ -163,7 +171,9 @@ export default function DashboardCommandes() {
     });
 
     if (error) {
-      const is401 = error.message?.includes("401") || error.message?.includes("Unauthorized");
+      const is401 = (error as Error & { status?: number }).status === 401
+        || error.message?.includes("401")
+        || error.message?.includes("Unauthorized");
       toast({
         title: is401 ? "Session expirée" : "Erreur",
         description: is401 ? "Votre session a expiré, veuillez vous reconnecter." : error.message,
@@ -274,6 +284,8 @@ export default function DashboardCommandes() {
               const customerAddress = order.delivery_address ?? "Adresse non renseignee";
               const paymentMeta = (order.metadata || {}) as Record<string, any>;
               const paymentBreakdown = getOrderPaymentBreakdown(order);
+              const orderStatusLockMessage = getOrderStatusLockMessage(order);
+              const isOrderStatusLocked = Boolean(orderStatusLockMessage);
               const deliveryFlowStatus = String(order.dispatch_job?.status || tracking?.status || "");
               const scheduledLabel = typeof paymentMeta.scheduled_delivery_label === "string" ? paymentMeta.scheduled_delivery_label : "";
               const statusOptions = getStatusOptions(order);
@@ -339,18 +351,29 @@ export default function DashboardCommandes() {
                           ) : null}
                         </div>
                       </div>
-                      <Select value={normalizeOrderStatus(order.status)} onValueChange={(value) => updateStatus(order.id, value)}>
-                        <SelectTrigger className="h-10 w-40 shadow-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {STATUS_LABELS[status] || status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-1">
+                        <Select
+                          value={normalizeOrderStatus(order.status)}
+                          onValueChange={(value) => updateStatus(order.id, value)}
+                          disabled={isOrderStatusLocked}
+                        >
+                          <SelectTrigger className="h-10 w-40 shadow-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statusOptions.map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {STATUS_LABELS[status] || status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {orderStatusLockMessage ? (
+                          <p className="max-w-40 text-right text-[11px] text-muted-foreground">
+                            {orderStatusLockMessage}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
 
@@ -403,7 +426,7 @@ export default function DashboardCommandes() {
                             </span>
                           </div>
                         ) : null}
-                        <OrderPaymentBreakdown order={order} className="mt-3" />
+                        <OrderPaymentBreakdown order={order} className="mt-3" isRestaurantDashboard={true} />
                       </div>
                     </div>
                   </div>
