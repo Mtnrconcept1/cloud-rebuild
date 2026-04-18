@@ -4,6 +4,36 @@
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
+## Supabase target safety
+
+This repo can talk to different Supabase projects depending on which env file
+the frontend loads and which project the Supabase CLI is linked to locally.
+That is the main source of "it worked in Antigravity but broke in Codex local"
+drift on this project.
+
+Rules for this repo:
+
+- `supabase/.temp/` is local-only and must never be committed.
+- The default local target is development. Switch targets explicitly instead of
+  reusing stale CLI link metadata.
+- Run `npm run supabase:target:dev` to reset local work to the development
+  project.
+- Run `npm run supabase:target:prod` before a production deploy, then relink if
+  your CLI needs it.
+- Run `npm run supabase:doctor` before `supabase db push` or `supabase functions deploy`.
+- Run `npm run supabase:doctor:prod` before any production deploy.
+- If the doctor fails, align the frontend env and your local `supabase link`
+  target before continuing.
+
+Common commands:
+
+```sh
+npm install
+npm run supabase:target:dev
+npm run supabase:doctor
+npm run supabase:doctor:prod
+```
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
@@ -32,7 +62,11 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Verify that the frontend target and local Supabase link agree.
+npm run supabase:target:dev
+npm run supabase:doctor
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 

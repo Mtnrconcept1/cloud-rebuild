@@ -11,6 +11,8 @@ import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
+import { invokeSupabaseFunction } from "@/lib/session";
+import { getOrderStatusLockMessage } from "@/lib/statusLocks";
 import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
@@ -161,7 +163,7 @@ export default function DashboardCommandes() {
 
   const updateStatus = async (orderId: string, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
-    const { data, error } = await supabase.functions.invoke("restaurant-order-status", {
+    const { data, error } = await invokeSupabaseFunction("restaurant-order-status", {
       body: {
         order_id: orderId,
         status: normalizedStatus,
@@ -169,7 +171,9 @@ export default function DashboardCommandes() {
     });
 
     if (error) {
-      const is401 = error.message?.includes("401") || error.message?.includes("Unauthorized");
+      const is401 = (error as Error & { status?: number }).status === 401
+        || error.message?.includes("401")
+        || error.message?.includes("Unauthorized");
       toast({
         title: is401 ? "Session expirée" : "Erreur",
         description: is401 ? "Votre session a expiré, veuillez vous reconnecter." : error.message,
@@ -280,6 +284,8 @@ export default function DashboardCommandes() {
               const customerAddress = order.delivery_address ?? "Adresse non renseignee";
               const paymentMeta = (order.metadata || {}) as Record<string, any>;
               const paymentBreakdown = getOrderPaymentBreakdown(order);
+              const orderStatusLockMessage = getOrderStatusLockMessage(order);
+              const isOrderStatusLocked = Boolean(orderStatusLockMessage);
               const deliveryFlowStatus = String(order.dispatch_job?.status || tracking?.status || "");
               const scheduledLabel = typeof paymentMeta.scheduled_delivery_label === "string" ? paymentMeta.scheduled_delivery_label : "";
               const statusOptions = getStatusOptions(order);
@@ -345,18 +351,29 @@ export default function DashboardCommandes() {
                           ) : null}
                         </div>
                       </div>
-                      <Select value={normalizeOrderStatus(order.status)} onValueChange={(value) => updateStatus(order.id, value)}>
-                        <SelectTrigger className="h-10 w-40 shadow-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {STATUS_LABELS[status] || status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-1">
+                        <Select
+                          value={normalizeOrderStatus(order.status)}
+                          onValueChange={(value) => updateStatus(order.id, value)}
+                          disabled={isOrderStatusLocked}
+                        >
+                          <SelectTrigger className="h-10 w-40 shadow-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statusOptions.map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {STATUS_LABELS[status] || status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {orderStatusLockMessage ? (
+                          <p className="max-w-40 text-right text-[11px] text-muted-foreground">
+                            {orderStatusLockMessage}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
 

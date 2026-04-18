@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { getOrderStatusLockMessage } from "@/lib/statusLocks";
 
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
   card: { label: "Carte bancaire", icon: CreditCard },
@@ -362,6 +363,9 @@ export default function Commandes() {
                   <div className="space-y-4 p-4">
                     {groupOrders.map((order) => {
                       const displayStatus = getDisplayStatus(order);
+                      const orderStatusLockMessage = displayStatus === "confirmed"
+                        ? getOrderStatusLockMessage(order)
+                        : null;
                       const isTrackableDelivery = Boolean(
                         order.delivery_address &&
                         (order.metadata as any)?.feature !== "zero-attente" &&
@@ -390,7 +394,18 @@ export default function Commandes() {
                                 <Link to={`/commande/${order.id}`}><MapPin className="mr-1 h-3 w-3" />Suivi temps réel</Link>
                               </Button>
                             ) : null}
-                            {displayStatus === "confirmed" ? (
+                            {displayStatus === "confirmed" && orderStatusLockMessage ? (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 text-xs text-destructive"
+                                disabled
+                              >
+                                <XCircle className="mr-1 h-3 w-3" />
+                                Annuler
+                              </Button>
+                            ) : null}
+                            {displayStatus === "confirmed" && !orderStatusLockMessage ? (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:text-destructive">
@@ -422,6 +437,9 @@ export default function Commandes() {
                               </Button>
                             ) : null}
                           </div>
+                          {orderStatusLockMessage ? (
+                            <p className="text-xs text-muted-foreground">{orderStatusLockMessage}</p>
+                          ) : null}
                         </div>
                       );
                     })}

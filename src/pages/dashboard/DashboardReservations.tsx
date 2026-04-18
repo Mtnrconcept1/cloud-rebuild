@@ -18,6 +18,7 @@ import {
   type CancellationReasonCode,
   updateRestaurantReservationStatus,
 } from "@/lib/reservationMutations";
+import { getReservationStatusLockMessage } from "@/lib/statusLocks";
 import { AlertTriangle, Ban, Check, CreditCard, Dot, MoonStar, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import {
@@ -448,6 +449,8 @@ export default function DashboardReservations() {
                         const offerDiscountAmount = metadata.formula_discount_amount;
                         const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
                         const compactBase = isCompactMode ? "p-3" : "p-4";
+                        const statusLockMessage = getReservationStatusLockMessage(reservation);
+                        const isReservationLocked = Boolean(statusLockMessage);
 
                         const isZeroAttente = reservation.feature === "zero-attente";
                         const isChefTable = reservation.feature === "chefs_table";
@@ -555,7 +558,7 @@ export default function DashboardReservations() {
                                       size="sm"
                                       variant="outline"
                                       onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
-                                      disabled={updateStatusMutation.isPending}
+                                      disabled={updateStatusMutation.isPending || isReservationLocked}
                                     >
                                       <UserCheck className="mr-1 h-4 w-4" />
                                       Arrivee
@@ -565,7 +568,7 @@ export default function DashboardReservations() {
                                       variant="outline"
                                       onClick={() => setCancelTarget(reservation)}
                                       disabled={
-                                        reservation.status === "cancelled" ||
+                                        isReservationLocked ||
                                         reservation.status === "no_show" ||
                                         cancelMutation.isPending
                                       }
@@ -578,7 +581,7 @@ export default function DashboardReservations() {
                                       size="sm"
                                       variant="outline"
                                       onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "no_show" })}
-                                      disabled={updateStatusMutation.isPending}
+                                      disabled={updateStatusMutation.isPending || isReservationLocked}
                                       className="text-destructive"
                                     >
                                       <X className="mr-1 h-4 w-4" />
@@ -592,12 +595,17 @@ export default function DashboardReservations() {
                                           status: reservation.status === "confirmed" ? "pending" : "confirmed",
                                         })
                                       }
-                                      disabled={updateStatusMutation.isPending}
+                                      disabled={updateStatusMutation.isPending || isReservationLocked}
                                     >
                                       <Check className="mr-1 h-4 w-4" />
                                       {reservation.status === "confirmed" ? "Reservee" : "Confirmee"}
                                     </Button>
                                   </div>
+                                  {statusLockMessage ? (
+                                    <p className="text-xs text-muted-foreground sm:text-right">
+                                      {statusLockMessage}
+                                    </p>
+                                  ) : null}
                                 </div>
                               </article>
                             );

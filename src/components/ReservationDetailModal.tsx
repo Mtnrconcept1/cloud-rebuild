@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { cancelReservationByCustomer } from "@/lib/reservationMutations";
+import { getReservationStatusLockMessage } from "@/lib/statusLocks";
 
 export type Json =
   | string
@@ -208,7 +209,8 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     minute: "2-digit",
   });
 
-  const isCancellable = canCancel(reservation);
+  const statusLockMessage = getReservationStatusLockMessage(reservation);
+  const isCancellable = !statusLockMessage && canCancel(reservation);
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -445,6 +447,20 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
             Réservée le {createdFormatted}
           </p>
         </div>
+
+        {statusLockMessage ? (
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled
+            >
+              <X className="h-4 w-4 mr-2" />
+              Annulation verrouillee
+            </Button>
+            <p className="text-xs text-muted-foreground">{statusLockMessage}</p>
+          </DialogFooter>
+        ) : null}
 
         {isCancellable && (
           <DialogFooter className="flex-col gap-2 sm:flex-col">
