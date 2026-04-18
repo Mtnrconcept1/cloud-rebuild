@@ -353,11 +353,6 @@ Deno.serve(async (req) => {
           url: "/reservations",
         },
       });
-<<<<<<< HEAD
-    } catch (dispatchError) {
-      log.error("create-zero-attente-reservation notification dispatch failed", { message: dispatchError instanceof Error ? dispatchError.message : "unknown" });
-=======
-
       try {
         await triggerNotificationDispatch({
           source: "create-zero-attente-reservation",
@@ -365,9 +360,8 @@ Deno.serve(async (req) => {
           email: true,
         });
       } catch (dispatchError) {
-        console.error("create-zero-attente-reservation notification dispatch failed:", dispatchError);
+        log.error("create-zero-attente-reservation notification dispatch failed", { message: dispatchError instanceof Error ? dispatchError.message : "unknown" });
       }
->>>>>>> 341b42c10e1105422b8394309f7cec79f82ddd46
     }
 
     await writeAuditLog({

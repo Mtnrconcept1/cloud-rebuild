@@ -883,19 +883,12 @@ Deno.serve(async (req) => {
             });
           }
 
-<<<<<<< HEAD
-          try {
-            await triggerNotificationDispatch({ source: "stripe-webhook-zero-attente", push: true, email: true });
-          } catch (error) {
-            log.error("zero_attente_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
-=======
           if (!reservationAlreadyExisted) {
             try {
               await triggerNotificationDispatch({ source: "stripe-webhook-zero-attente", push: true, email: true });
             } catch (error) {
-              console.error("stripe-webhook zero-attente notification trigger failed:", error);
+              log.error("zero_attente_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
             }
->>>>>>> 341b42c10e1105422b8394309f7cec79f82ddd46
           }
           break;
         }

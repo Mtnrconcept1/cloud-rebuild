@@ -29,11 +29,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
-<<<<<<< HEAD
 import { cancelReservationByCustomer } from "@/lib/reservationMutations";
-=======
 
->>>>>>> 341b42c10e1105422b8394309f7cec79f82ddd46
 export type Json =
   | string
   | number
@@ -217,14 +214,8 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     setCancelling(true);
     const result = await cancelReservationByCustomer(reservation.id);
     setCancelling(false);
-<<<<<<< HEAD
     if (!result.ok) {
       toast({ title: "Annulation impossible", description: result.errorMessage ?? "Annulation impossible.", variant: "destructive" });
-=======
-
-    if (error) {
-      toast({ title: "Impossible d'annuler", description: error.message, variant: "destructive" });
->>>>>>> 341b42c10e1105422b8394309f7cec79f82ddd46
       return;
     }
 
@@ -233,10 +224,6 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     } catch (dispatchError) {
       console.error("Reservation cancellation notification dispatch failed:", dispatchError);
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> 341b42c10e1105422b8394309f7cec79f82ddd46
     toast({ title: "Réservation annulée", description: "Votre réservation a bien été annulée." });
     queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
     setConfirmCancel(false);
