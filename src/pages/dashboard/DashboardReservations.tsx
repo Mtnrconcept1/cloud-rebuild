@@ -214,10 +214,11 @@ export default function DashboardReservations() {
 
   const filteredReservations = useMemo(() => (
     reservations.filter((reservation) => {
-      // Hide reservations that never reached confirmation (Stripe still pending or
-      // restaurateur hasn't confirmed manually). They are not actionable yet.
+      // Hide only reservations whose Stripe checkout was abandoned. 'pending' is the
+      // default state for classique reservations that the restaurateur still needs
+      // to confirm - those MUST stay visible.
       const status = String(reservation.status || "").toLowerCase();
-      if (status === "pending" || status === "pending_payment") return false;
+      if (status === "pending_payment") return false;
       if (!isDateInDashboardTimeRange(reservation.date, timeRange, referenceDate, { dateOnly: true })) return false;
       if (serviceFilter !== "all") {
         const metadataService = extractMetadata(reservation).service;

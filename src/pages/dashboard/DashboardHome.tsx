@@ -13,9 +13,11 @@ import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/servi
 
 // pending_payment = order created but Stripe checkout not yet completed.
 // These are not actionable for the restaurateur and must stay hidden until
-// the webhook flips them to "confirmed".
+// the webhook flips them to "confirmed". For orders, 'pending' is also
+// pre-checkout and gets filtered. For reservations, 'pending' is the default
+// state where the restaurateur still has to confirm: we must keep it visible.
 const INVALID_ORDER_STATUS_FILTER = "(cancelled,refused,payment_failed,pending,pending_payment)";
-const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show,pending)";
+const INVALID_RESERVATION_STATUS_FILTER = "(cancelled,no_show,pending_payment)";
 
 type UpcomingReservationRow = {
   id: string;
