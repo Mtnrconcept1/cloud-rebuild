@@ -8,16 +8,21 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Timer, Utensils, Clock, CheckCircle2, ChevronLeft,
-  Armchair, ChefHat, Zap, ArrowRight, Plus, Minus, Users, CreditCard, Sparkles, Percent,
+  Armchair, ChefHat, Zap, ArrowRight, Plus, Minus, Users, CreditCard, Sparkles, Percent, Crown,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
-import ReservationDetailModal from "@/components/ReservationDetailModal";
+import ReservationDetailModal, { type ReservationDetail } from "@/components/ReservationDetailModal";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
 import { formatMissingCoursesText, roundCurrency } from "@/lib/meal-formulas";
 import { trackSponsoredConversion } from "@/lib/analytics";
+import {
+  resolveTokOneDiscountPercentageForContext,
+  useIsTokOneMember,
+  useTokOneBenefits,
+} from "@/hooks/useTokOne";
 import {
   getAllowedPaymentMethods,
   getFirstAvailablePaymentMethod,
@@ -31,6 +36,8 @@ type PricingSummary = {
   formulaDiscount: number;
   formulaDiscountPercent: number;
   formulaName: string | null;
+  tokOneDiscount: number;
+  tokOneDiscountPercent: number;
   total: number;
 };
 
@@ -97,9 +104,12 @@ export default function ZeroAttente() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
   const [confirmedPricing, setConfirmedPricing] = useState<PricingSummary | null>(null);
+  const [confirmedReservationDetail, setConfirmedReservationDetail] = useState<ReservationDetail | null>(null);
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(() => readPendingZeroAttenteSessionId());
   const attemptedProcessingKeyRef = useRef<string | null>(null);
   const authPromptKeyRef = useRef<string | null>(null);
+  const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
+  const { data: tokOneBenefits } = useTokOneBenefits(tokOneSubscription?.plan_id);
   const allowedPaymentMethods = useMemo(() => {
     const disabled = (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
     return getAllowedPaymentMethods(activeFeatures, disabled).filter((method) => method !== "cash");
@@ -195,7 +205,6 @@ export default function ZeroAttente() {
     matchedFormula,
     suggestion,
     discountAmount: formulaDiscountRaw,
-    finalTotal: totalAfterDiscountRaw,
   } = useMealFormulaDetection({
     restaurantId: selectedRestaurant?.id || null,
     items: selectedFormulaItems,
@@ -209,7 +218,21 @@ export default function ZeroAttente() {
   const formulaDiscount = roundCurrency(formulaDiscountRaw);
   const formulaName = matchedFormula?.name || null;
   const formulaDiscountPercent = matchedFormula?.discountPercent || 0;
-  const totalAfterDiscount = roundCurrency(totalAfterDiscountRaw);
+  const tokOneDiscountPercent = useMemo(() => {
+    if (!isTokOneMember) return 0;
+    return resolveTokOneDiscountPercentageForContext(
+      tokOneBenefits,
+      { restaurantId: selectedRestaurant?.id || null, journey: "zero-attente" },
+    );
+  }, [isTokOneMember, selectedRestaurant?.id, tokOneBenefits]);
+  const tokOneDiscount = useMemo(
+    () => (isTokOneMember ? roundCurrency((subtotal * tokOneDiscountPercent) / 100) : 0),
+    [isTokOneMember, roundCurrency, subtotal, tokOneDiscountPercent],
+  );
+  const totalAfterDiscount = useMemo(
+    () => roundCurrency(Math.max(0, subtotal - formulaDiscount - tokOneDiscount)),
+    [formulaDiscount, roundCurrency, subtotal, tokOneDiscount],
+  );
   const currentPricing: PricingSummary = useMemo(
     () => ({
       count,
@@ -217,9 +240,11 @@ export default function ZeroAttente() {
       formulaDiscount,
       formulaDiscountPercent: roundCurrency(formulaDiscountPercent),
       formulaName,
+      tokOneDiscount,
+      tokOneDiscountPercent: roundCurrency(tokOneDiscountPercent),
       total: totalAfterDiscount,
     }),
-    [count, subtotal, formulaDiscount, formulaDiscountPercent, formulaName, totalAfterDiscount]
+    [count, subtotal, formulaDiscount, formulaDiscountPercent, formulaName, tokOneDiscount, tokOneDiscountPercent, totalAfterDiscount]
   );
 
   const handlePayAndReserve = async () => {
@@ -307,9 +332,12 @@ export default function ZeroAttente() {
             formula_discount: pricingForCheckout.formulaDiscount,
             formula_discount_amount: pricingForCheckout.formulaDiscount,
             formula_discount_percent: pricingForCheckout.formulaDiscountPercent,
+            tok_one_member: isTokOneMember,
+            tok_one_discount_amount: pricingForCheckout.tokOneDiscount,
+            tok_one_discount_percent: pricingForCheckout.tokOneDiscountPercent,
             pre_discount_subtotal: pricingForCheckout.subtotal,
             authoritative_total: pricingForCheckout.total,
-            discount_amount: pricingForCheckout.formulaDiscount,
+            discount_amount: pricingForCheckout.formulaDiscount + pricingForCheckout.tokOneDiscount,
           },
         },
       });
@@ -340,10 +368,7 @@ export default function ZeroAttente() {
         throw new Error("Reconnectez-vous pour recuperer votre reservation Zero Attente.");
       }
 
-      let reservationRecord: any = null;
-      const maxAttempts = 12;
-
-      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const fetchReservation = async () => {
         const { data, error } = await supabase
           .from("reservations")
           .select("*, restaurants(name)")
@@ -357,13 +382,32 @@ export default function ZeroAttente() {
         if (error) {
           throw new Error(error.message || "Impossible de recuperer la reservation Zero Attente.");
         }
+        return data;
+      };
 
-        if (data) {
-          reservationRecord = data;
-          break;
+      let reservationRecord: any = await fetchReservation();
+
+      if (!reservationRecord) {
+        await getFreshAccessToken();
+        const { error: finalizeError } = await supabase.functions.invoke("create-zero-attente-reservation", {
+          body: { session_id: checkoutSessionId },
+        });
+
+        if (finalizeError) {
+          const status = getFunctionsErrorStatus(finalizeError);
+          if (status === 401 || status === 403) {
+            throw new Error("Reconnectez-vous pour finaliser la reservation Zero Attente.");
+          }
+          throw new Error(finalizeError.message || "Impossible de finaliser la reservation Zero Attente.");
         }
+      }
 
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+      const maxAttempts = reservationRecord ? 12 : 6;
+
+      for (let attempt = 0; attempt < maxAttempts && !reservationRecord; attempt += 1) {
+        reservationRecord = await fetchReservation();
+        if (reservationRecord) break;
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
       if (!reservationRecord) {
@@ -394,12 +438,28 @@ export default function ZeroAttente() {
       setPartySize(Number(reservationRecord.party_size || partySize));
       setPaymentMethod((metadata.payment_method as PaymentMethodId) || "card");
       setQuantities(restoredQuantities);
+      setConfirmedReservationDetail({
+        id: reservationIdValue,
+        date: String(reservationRecord.date || metadata.arrival_date || arrivalDate),
+        time: String(metadata.arrival_time || reservationRecord.time || arrivalTime),
+        party_size: Number(reservationRecord.party_size || partySize),
+        status: String(reservationRecord.status || "confirmed"),
+        feature: "zero-attente",
+        notes: typeof reservationRecord.notes === "string" ? reservationRecord.notes : null,
+        total_amount: Number(reservationRecord.total_amount || metadata.total_amount || 0),
+        created_at: String(reservationRecord.created_at || new Date().toISOString()),
+        metadata: (reservationRecord.metadata || {}) as any,
+        preorder_items: preorderItems as any,
+        restaurant_name: restaurantName,
+      });
       setConfirmedPricing({
         count: preorderItems.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0),
         subtotal: roundCurrency(Number(metadata.pre_discount_subtotal || 0)),
         formulaDiscount: roundCurrency(Number(metadata.formula_discount_amount || 0)),
         formulaDiscountPercent: roundCurrency(Number(metadata.formula_discount_percent || 0)),
         formulaName: metadata.formula_applied || null,
+        tokOneDiscount: roundCurrency(Number(metadata.tok_one_discount_amount || metadata.tok_one_total_saved || 0)),
+        tokOneDiscountPercent: roundCurrency(Number(metadata.tok_one_discount_percent || 0)),
         total: roundCurrency(Number(reservationRecord.total_amount || metadata.total_amount || 0)),
       });
       setReservationId(reservationIdValue);
@@ -627,14 +687,14 @@ export default function ZeroAttente() {
 
   const displayPricing = confirmedPricing || currentPricing;
 
-  const detailForModal = reservationId ? {
+  const detailForModal = confirmedReservationDetail || (reservationId ? {
     id: reservationId,
     date: arrivalDate,
     time: arrivalTime,
     party_size: partySize,
     status: "pending",
     feature: "zero-attente",
-    notes: `[Zéro Attente] ${displayPricing.count} plat(s) précommandé(s) - Sous-total: ${displayPricing.subtotal.toFixed(2)} CHF - Réduction: ${displayPricing.formulaDiscount.toFixed(2)} CHF - Total: ${displayPricing.total.toFixed(2)} CHF`,
+    notes: `[Zéro Attente] ${displayPricing.count} plat(s) précommandé(s) - Sous-total: ${displayPricing.subtotal.toFixed(2)} CHF - Réduction formule: ${displayPricing.formulaDiscount.toFixed(2)} CHF${displayPricing.tokOneDiscount > 0 ? ` - Réduction Tok One${displayPricing.tokOneDiscountPercent > 0 ? ` (${displayPricing.tokOneDiscountPercent.toFixed(0)}%)` : ""}: ${displayPricing.tokOneDiscount.toFixed(2)} CHF` : ""} - Total: ${displayPricing.total.toFixed(2)} CHF`,
     total_amount: displayPricing.total,
     created_at: new Date().toISOString(),
     metadata: {
@@ -645,11 +705,14 @@ export default function ZeroAttente() {
       formula_applied: displayPricing.formulaName,
       formula_discount_amount: displayPricing.formulaDiscount,
       formula_discount_percent: displayPricing.formulaDiscountPercent,
+      tok_one_member: isTokOneMember,
+      tok_one_discount_amount: displayPricing.tokOneDiscount,
+      tok_one_discount_percent: displayPricing.tokOneDiscountPercent,
       total_amount: displayPricing.total,
     } as any,
     preorder_items: preorderItemsForModal as any,
     restaurant_name: selectedRestaurant?.name || "",
-  } : null;
+  } : null);
 
   return (
     <>
@@ -814,6 +877,15 @@ export default function ZeroAttente() {
                       <span>-{formulaDiscount.toFixed(2)} CHF</span>
                     </div>
                   )}
+                  {tokOneDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-violet-600 font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <Crown className="h-3.5 w-3.5" />
+                        Réduction Tok One{tokOneDiscountPercent > 0 ? ` (${tokOneDiscountPercent.toFixed(0)}%)` : ""}
+                      </span>
+                      <span>-{tokOneDiscount.toFixed(2)} CHF</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm font-semibold border-t pt-2">
                     <span>Total</span>
                     <span>{totalAfterDiscount.toFixed(2)} CHF</span>
@@ -860,6 +932,15 @@ export default function ZeroAttente() {
                   <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400 font-medium">
                     <span>Réduction formule{formulaName ? ` (${formulaName})` : ""}</span>
                     <span>-{formulaDiscount.toFixed(2)} CHF</span>
+                  </div>
+                )}
+                {tokOneDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-violet-600 font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <Crown className="h-3.5 w-3.5" />
+                      Réduction Tok One{tokOneDiscountPercent > 0 ? ` (${tokOneDiscountPercent.toFixed(0)}%)` : ""}
+                    </span>
+                    <span>-{tokOneDiscount.toFixed(2)} CHF</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold border-t pt-2 mt-2">
@@ -917,6 +998,15 @@ export default function ZeroAttente() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Réduction formule</span>
                     <span className="font-medium text-emerald-600 dark:text-emerald-400">-{displayPricing.formulaDiscount.toFixed(2)} CHF</span>
+                  </div>
+                )}
+                {displayPricing.tokOneDiscount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Crown className="h-3.5 w-3.5 text-violet-600" />
+                      Tok One{displayPricing.tokOneDiscountPercent > 0 ? ` (${displayPricing.tokOneDiscountPercent.toFixed(0)}%)` : ""}
+                    </span>
+                    <span className="font-medium text-violet-600">-{displayPricing.tokOneDiscount.toFixed(2)} CHF</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2">

@@ -136,7 +136,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const restaurantId = items.length > 0 ? items[0].restaurantId : null;
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
-    if (items.length > 0 && cartMetadata.feature !== "multi-restaurant" && items[0].restaurantId !== item.restaurantId) {
+    const existingCartIsChefTable = items.length > 0 && items.every((cartItem) => cartItem.metadata?.is_chefs_table);
+    const incomingItemIsChefTable = !!item.metadata?.is_chefs_table;
+    const allowCrossRestaurant = cartMetadata.feature === "multi-restaurant"
+      || (existingCartIsChefTable && incomingItemIsChefTable);
+
+    if (items.length > 0 && !allowCrossRestaurant && items[0].restaurantId !== item.restaurantId) {
       setConflict({ type: "restaurant", pendingItem: item });
       return;
     }
@@ -164,6 +169,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       const existing = prev.find((i) => i.menuItemId === item.menuItemId && JSON.stringify(i.metadata) === JSON.stringify(item.metadata));
       if (existing) {
+        if (item.metadata?.is_chefs_table) {
+          return prev;
+        }
         return prev.map((i) =>
           (i.menuItemId === item.menuItemId && JSON.stringify(i.metadata) === JSON.stringify(item.metadata)) ? { ...i, quantity: i.quantity + 1 } : i
         );
@@ -173,7 +181,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = (menuItemId: string) => {
-    setItems((prev) => prev.filter((i) => i.menuItemId !== menuItemId));
+    setItems((prev) => {
+      const next = prev.filter((i) => i.menuItemId !== menuItemId);
+      if (next.length === 0) {
+        setCartMetadata({});
+      }
+      return next;
+    });
   };
 
   const updateQuantity = (menuItemId: string, quantity: number) => {
