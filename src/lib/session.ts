@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/env";
 
 const ACCESS_TOKEN_REFRESH_THRESHOLD_MS = 60_000;
@@ -100,7 +100,7 @@ async function normalizeFunctionError(error: unknown, response?: Response) {
 }
 
 export async function getFreshAccessToken(forceRefresh = false) {
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const { data: sessionData, error: sessionError } = await getSupabase().auth.getSession();
 
   if (sessionError) {
     throw new Error(SESSION_EXPIRED_MESSAGE);
@@ -113,7 +113,7 @@ export async function getFreshAccessToken(forceRefresh = false) {
   );
 
   if (forceRefresh || !activeSession || expiresSoon) {
-    const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
+    const { data: refreshedData, error: refreshError } = await getSupabase().auth.refreshSession();
     if (refreshError) {
       throw new Error(SESSION_EXPIRED_MESSAGE);
     }
@@ -139,7 +139,7 @@ export async function invokeSupabaseFunction<TData = unknown>(
   const { accessToken: providedAccessToken, ...invokeOptions } = options;
   let accessToken = providedAccessToken || await getFreshAccessToken();
 
-  let result = await supabase.functions.invoke<TData>(functionName, {
+  let result = await getSupabase().functions.invoke<TData>(functionName, {
     ...invokeOptions,
     headers: mergeFunctionHeaders(invokeOptions.headers, accessToken),
   });
@@ -156,7 +156,7 @@ export async function invokeSupabaseFunction<TData = unknown>(
 
   accessToken = await getFreshAccessToken(true);
 
-  result = await supabase.functions.invoke<TData>(functionName, {
+  result = await getSupabase().functions.invoke<TData>(functionName, {
     ...invokeOptions,
     headers: mergeFunctionHeaders(invokeOptions.headers, accessToken),
   });
