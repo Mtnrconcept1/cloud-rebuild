@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 
 export interface OrderDetails {
     orderReference: string;
@@ -30,7 +30,7 @@ export function generateOrderReference(): string {
 export async function sendOrderConfirmationEmail(details: OrderDetails) {
     // Queue email via edge function instead of simulating
     try {
-        const { error } = await supabase.from("email_queue" as any).insert({
+        const { error } = await getSupabase().from("email_queue" as any).insert({
             to_email: details.customerEmail,
             subject: `Confirmation de commande ${details.orderReference} - Tok`,
             body_text: buildEmailText(details),
