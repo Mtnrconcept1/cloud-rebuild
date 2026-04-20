@@ -14,6 +14,7 @@ import {
   clearPendingCheckoutPostActions,
   getPendingCheckoutPostActions,
 } from "@/lib/pendingCheckout";
+import { cancelOrderByCustomer } from "@/lib/orderMutations";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -175,13 +176,10 @@ export default function Commandes() {
 
   const cancelMutation = useMutation({
     mutationFn: async (orderId: string) => {
-      const { error } = await supabase
-        .from("orders")
-        .update({ status: "cancelled" })
-        .eq("id", orderId)
-        .eq("user_id", user!.id)
-        .eq("status", "confirmed");
-      if (error) throw error;
+      const result = await cancelOrderByCustomer(orderId);
+      if (!result.ok) {
+        throw new Error(result.errorMessage || "Annulation impossible.");
+      }
     },
     onSuccess: () => {
       toast({ title: "Commande annulee" });

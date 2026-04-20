@@ -227,7 +227,7 @@ export default function DashboardFactures() {
   const { data: uninvoicedBreakdown = { ordersAmount: 0, reservationsAmount: 0, total: 0 }, isLoading: uninvoicedBaseLoading } = useQuery({
     queryKey: ["dashboard-uninvoiced-amount", selectedId],
     queryFn: async () => {
-      // Tout ce que le client a paye via la plateforme (commandes + reservations payees,
+      // Tout ce que le client a paye via la plateforme (commandes capturees + reservations payees,
       // tous types: zero-attente, chefs_table, promo-formule, anti-gaspi...) doit etre
       // refacture a TOK a hauteur de 90%.
       const [ordersRes, resRes] = await Promise.all([
@@ -236,6 +236,7 @@ export default function DashboardFactures() {
           .select("total_amount, metadata")
           .eq("restaurant_id", selectedId!)
           .is("restaurant_invoice_id", null)
+          .in("payment_status", ["paid", "captured"])
           .not("status", "in", "(cancelled,payment_failed,refused,pending)"),
         supabase
           .from("reservations")

@@ -1,0 +1,185 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 20
+  SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write production frontend env
+        run: node ./scripts/write-production-env.mjs --out=.env.production.local
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+
+      - name: Align repo to production Supabase target
+        run: npm run supabase:target:prod
+
+      - name: Verify production Supabase target
+        run: npm run supabase:doctor:prod
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test:prod
+
+      - name: Build production app
+        run: npm run build:prod
+
+  deploy_supabase:
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: production
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      STRIPE_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_WEBHOOK_SIGNING_SECRET }}
+      INTERNAL_CRON_SECRET: ${{ secrets.INTERNAL_CRON_SECRET }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+      PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+      SITE_URL: ${{ secrets.SITE_URL }}
+      ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      LOVABLE_API_KEY: ${{ secrets.LOVABLE_API_KEY }}
+      FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.92.1
+
+      - name: Align repo to production Supabase target
+        run: npm run supabase:target:prod
+
+      - name: Verify production Supabase target
+        run: npm run supabase:doctor:prod
+
+      - name: Prepare Supabase function secrets env
+        run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
+
+      - name: Link Supabase production project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Sync Supabase production secrets
+        run: supabase secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Push database migrations
+        run: supabase db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Deploy Edge Functions
+        run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
+
+  deploy_frontend:
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - deploy_supabase
+    if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+    environment: production
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write production frontend env
+        run: node ./scripts/write-production-env.mjs --out=.env.production.local
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+
+      - name: Pull Vercel project settings
+        run: npx vercel@latest pull --yes --environment=production --token="${VERCEL_TOKEN}"
+
+      - name: Build Vercel production output
+        run: npx vercel@latest build --prod --token="${VERCEL_TOKEN}"
+
+      - name: Deploy Vercel production output
+        run: npx vercel@latest deploy --prebuilt --prod --token="${VERCEL_TOKEN}"

@@ -12,6 +12,7 @@ import {
   enqueueNotification,
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
+import { recordZeroAttenteChargeIfMissing } from "../_shared/payment-transactions.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
@@ -267,38 +268,32 @@ Deno.serve(async (req) => {
       reservationId = createdReservationId;
     }
 
-    const { data: existingTransaction } = await actor.adminClient
-      .from("payment_transactions")
-      .select("id")
-      .eq("stripe_checkout_session_id", session.id)
-      .eq("type", "charge")
-      .maybeSingle();
-
-    if (!existingTransaction) {
-      await actor.adminClient.from("payment_transactions").insert({
-        user_id: actor.userId,
-        stripe_checkout_session_id: session.id,
-        stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null,
-        amount: total,
-        currency: (session.currency || "chf").toLowerCase(),
-        type: "charge",
-        status: "succeeded",
-        metadata: {
-          reservation_id: reservationId,
-          feature: "zero-attente",
-          restaurant_id: restaurantId,
-          payment_method: paymentMethod,
-          card_brand: cardBrand,
-          card_last4: cardLast4,
-          twint_phone_number: twintPhoneNumber || null,
-          tok_one_member: tokOneMember,
-          tok_one_discount_amount: tokOneDiscount,
-          tok_one_discount_percent: tokOneDiscountPercent,
-          tok_one_delivery_saved: tokOneDeliverySaved,
-          tok_one_total_saved: tokOneTotalSaved,
-        },
-      });
-    }
+    await recordZeroAttenteChargeIfMissing({
+      adminClient: actor.adminClient,
+      userId: actor.userId,
+      sessionId: session.id,
+      paymentIntentId: typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id || null,
+      amount: total,
+      currency: (session.currency || "chf").toLowerCase(),
+      reservationId,
+      metadata: {
+        reservation_id: reservationId,
+        feature: "zero-attente",
+        restaurant_id: restaurantId,
+        payment_method: paymentMethod,
+        card_brand: cardBrand,
+        card_last4: cardLast4,
+        twint_phone_number: twintPhoneNumber || null,
+        tok_one_member: tokOneMember,
+        tok_one_discount_amount: tokOneDiscount,
+        tok_one_discount_percent: tokOneDiscountPercent,
+        tok_one_delivery_saved: tokOneDeliverySaved,
+        tok_one_total_saved: tokOneTotalSaved,
+      },
+      log,
+    });
 
     const zaItemCount = preorderItems.reduce((sum: number, item: { quantity: number }) => sum + Number(item.quantity || 0), 0);
 

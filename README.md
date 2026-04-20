@@ -25,6 +25,69 @@ Rules for this repo:
 - If the doctor fails, align the frontend env and your local `supabase link`
   target before continuing.
 
+## GitHub Actions production deploy
+
+This repo now ships a dedicated production workflow at
+`.github/workflows/deploy-production.yml`.
+
+What it does on `main` / `master` pushes and manual runs:
+
+- validates the production build with real production env values
+- aligns the checkout to the production Supabase target
+- syncs Edge Function secrets to the hosted Supabase project
+- pushes pending database migrations
+- deploys all Supabase Edge Functions
+- deploys the frontend to Vercel if the Vercel secrets are present
+
+Required GitHub secrets for the Supabase deploy:
+
+- `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_DB_PASSWORD`
+
+Recommended GitHub secrets for frontend production builds:
+
+- `VITE_STRIPE_PUBLISHABLE_KEY`
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+- `VITE_FIREBASE_VAPID_KEY`
+
+Optional but supported frontend/build metadata secrets:
+
+- `VITE_SUPABASE_PROJECT_ID`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SENTRY_DSN`
+
+Optional Supabase Edge Function secrets synced by the workflow when present:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_WEBHOOK_SIGNING_SECRET`
+- `INTERNAL_CRON_SECRET`
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
+- `APP_BASE_URL`
+- `PUBLIC_APP_URL`
+- `SITE_URL`
+- `ALLOWED_ORIGINS`
+- `FIREBASE_SERVICE_ACCOUNT`
+- `LOVABLE_API_KEY`
+- `FIRECRAWL_API_KEY`
+
+Optional Vercel deploy secrets:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
 Common commands:
 
 ```sh
