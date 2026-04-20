@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 
 type DispatchNotificationOptions = {
   push?: boolean;
@@ -41,7 +41,7 @@ export async function dispatchQueuedNotifications(
     };
   }
 
-  const { data, error, response } = await supabase.functions.invoke("notification-dispatch", {
+  const { data, error, response } = await getSupabase().functions.invoke("notification-dispatch", {
     body: {
       source,
       push: options.push ?? true,

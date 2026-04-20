@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 
 type SafeOrderMutationRow = {
   ok: boolean | null;
@@ -20,7 +20,7 @@ const getFirstRow = <T>(data: T[] | T | null | undefined): T | null => {
 export async function cancelOrderByCustomer(
   orderId: string,
 ): Promise<OrderMutationResult> {
-  const { data, error } = await (supabase.rpc as any)("cancel_order_by_customer", {
+  const { data, error } = await (getSupabase().rpc as any)("cancel_order_by_customer", {
     p_order_id: orderId,
   });
 

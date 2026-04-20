@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    getSupabase().auth.getSession().then(({ data: { session } }) => {
       if (cancelled) return;
       setSession(session);
       setUser(session?.user ?? null);

@@ -1,5 +1,5 @@
 import { PushNotifications } from "@capacitor/push-notifications";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { getPlatform } from "@/lib/platform";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 
@@ -30,7 +30,7 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
       PushNotifications.addListener("registration", async (token) => {
         const platform = getPlatform();
 
-        const { error } = await supabase
+        const { error } = await getSupabase()
           .from("device_tokens")
           .upsert(
             {
@@ -61,7 +61,7 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
 
 export async function unregisterNativePush(userId: string): Promise<{ ok: boolean; reason?: string }> {
   const platform = getPlatform();
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from("device_tokens")
     .update({ enabled: false } satisfies Partial<DeviceTokenMutation>)
     .eq("user_id", userId)

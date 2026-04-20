@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 
 type SafeReservationCreateRow = {
   reservation_id: string | null;
@@ -73,7 +73,7 @@ export async function createReservationWithValidation(
 ): Promise<ReservationCreateResult> {
   // Call supabase.rpc as a method (not detached) to preserve `this` context.
   // Supabase internally accesses `this.rest` which breaks if `this` is lost.
-  const { data, error } = await (supabase.rpc as any)("validate_and_create_reservation_safe", {
+  const { data, error } = await (getSupabase().rpc as any)("validate_and_create_reservation_safe", {
     p_restaurant_id: input.restaurantId,
     p_date: input.date,
     p_time: input.time,
@@ -112,7 +112,7 @@ export async function updateRestaurantReservationStatus(
   reservationId: string,
   status: string,
 ): Promise<ReservationStatusResult> {
-  const { data, error } = await (supabase.rpc as any)("update_restaurant_reservation_status_safe", {
+  const { data, error } = await (getSupabase().rpc as any)("update_restaurant_reservation_status_safe", {
     p_reservation_id: reservationId,
     p_status: status,
   });
@@ -138,7 +138,7 @@ export async function updateRestaurantReservationStatus(
 export async function cancelReservationByCustomer(
   reservationId: string,
 ): Promise<ReservationMutationResult> {
-  const { data, error } = await (supabase.rpc as any)("cancel_reservation_by_customer", {
+  const { data, error } = await (getSupabase().rpc as any)("cancel_reservation_by_customer", {
     p_reservation_id: reservationId,
   });
 
@@ -165,7 +165,7 @@ export async function cancelReservationByRestaurant(
   reasonCode: CancellationReasonCode,
   reasonDetails: string | null,
 ): Promise<ReservationMutationResult> {
-  const { data, error } = await (supabase.rpc as any)("cancel_reservation_by_restaurant", {
+  const { data, error } = await (getSupabase().rpc as any)("cancel_reservation_by_restaurant", {
     p_reservation_id: reservationId,
     p_reason_code: reasonCode,
     p_reason_details: reasonDetails,
