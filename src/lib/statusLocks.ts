@@ -2,6 +2,7 @@ type StatusLockEntity = {
   status?: unknown;
   total_amount?: unknown;
   feature?: unknown;
+  payment_status?: unknown;
   metadata?: unknown;
 };
 
@@ -66,7 +67,7 @@ export function isReservationStatusLocked(entity: StatusLockEntity) {
   return getReservationStatusLockReason(entity) !== null;
 }
 
-export function isPaidSpecialOrderStatusLocked(entity: Pick<StatusLockEntity, "metadata">) {
+export function isPaidSpecialOrderStatusLocked(entity: Pick<StatusLockEntity, "metadata" | "payment_status">) {
   const metadata = getMetadata(entity.metadata);
   const feature = readString(metadata.feature).toLowerCase();
   const hasAntiGaspi = readBooleanish(metadata.has_anti_gaspi)
@@ -87,19 +88,22 @@ export function isPaidSpecialOrderStatusLocked(entity: Pick<StatusLockEntity, "m
     return false;
   }
 
-  const paymentStatus = readString(metadata.payment_status).toLowerCase();
-  if (paymentStatus === "paid") {
+  const paymentStatus = readString(entity.payment_status || metadata.payment_status).toLowerCase();
+  if (paymentStatus === "paid" || paymentStatus === "captured") {
     return true;
   }
 
-  return Boolean(
+  const paymentMethod = readString(metadata.payment_method).toLowerCase();
+  const hasSecurePaymentEvidence = Boolean(
     readString(metadata.stripe_session_id)
       || readString(metadata.stripe_payment_intent)
       || readString(metadata.card_last4),
   );
+
+  return paymentMethod !== "cash" && hasSecurePaymentEvidence;
 }
 
-export function getOrderStatusLockReason(entity: Pick<StatusLockEntity, "metadata">): OrderStatusLockReason {
+export function getOrderStatusLockReason(entity: Pick<StatusLockEntity, "metadata" | "payment_status">): OrderStatusLockReason {
   return isPaidSpecialOrderStatusLocked(entity) ? "paid_special" : null;
 }
 
@@ -116,7 +120,7 @@ export function getReservationStatusLockMessage(entity: StatusLockEntity) {
   return null;
 }
 
-export function getOrderStatusLockMessage(entity: Pick<StatusLockEntity, "metadata">) {
+export function getOrderStatusLockMessage(entity: Pick<StatusLockEntity, "metadata" | "payment_status">) {
   return getOrderStatusLockReason(entity)
     ? "Statut verrouille apres paiement pour cette commande speciale."
     : null;

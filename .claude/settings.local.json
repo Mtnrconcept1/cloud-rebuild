@@ -14,7 +14,13 @@
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_63041f2442c3de90025218856b40c8c15848a30e npx supabase db execute --project-ref rgzqxttqwmaylrzxlzob -f supabase/migrations/20260329140000_fix_notification_pipeline_newsletter_column.sql)",
       "WebSearch",
       "WebFetch(domain:unsplash.com)",
-      "mcp__claude_ai_Supabase__apply_migration"
+      "mcp__claude_ai_Supabase__apply_migration",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__list_edge_functions",
+      "Bash(python -c ' *)",
+      "Bash(git add *)",
+      "mcp__claude_ai_Supabase__list_migrations",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

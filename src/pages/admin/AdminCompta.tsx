@@ -22,6 +22,7 @@ type AdminOrderRow = {
   id: string;
   created_at: string;
   total_amount: number | string | null;
+  payment_status?: string | null;
   status: string;
   order_number: string | null;
   metadata: Record<string, unknown> | null;
@@ -145,22 +146,24 @@ export default function AdminCompta() {
       const startOfMonth = new Date(`${selectedMonth}-01T00:00:00Z`);
       const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0, 23, 59, 59);
 
-      let query = supabase
-        .from("orders")
-        .select(`
-          id,
-          created_at,
-          total_amount,
-          status,
-          order_number,
-          metadata,
-          restaurant_id,
-          restaurants ( name )
-        `)
-        .gte("created_at", startOfMonth.toISOString())
-        .lte("created_at", endOfMonth.toISOString())
-        .not("status", "eq", "cancelled")
-        .not("status", "eq", "pending");
+        let query = supabase
+          .from("orders")
+          .select(`
+            id,
+            created_at,
+            total_amount,
+            payment_status,
+            status,
+            order_number,
+            metadata,
+            restaurant_id,
+            restaurants ( name )
+          `)
+          .gte("created_at", startOfMonth.toISOString())
+          .lte("created_at", endOfMonth.toISOString())
+          .in("payment_status", ["paid", "captured"])
+          .not("status", "eq", "cancelled")
+          .not("status", "eq", "pending");
 
       if (selectedRestaurant !== "all") {
         query = query.eq("restaurant_id", selectedRestaurant);
