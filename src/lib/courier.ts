@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/env";
 
 export const COURIER_ACTIVE_JOB_STATUSES = [
@@ -118,6 +118,7 @@ export function mapCourierEarningTypeLabel(type: string) {
 }
 
 async function getFreshAccessToken() {
+  const supabase = getSupabase();
   const { data: sessionData } = await supabase.auth.getSession();
   let session = sessionData.session;
 
@@ -143,9 +144,9 @@ async function getFreshAccessToken() {
 function isUnauthorizedFunctionsError(error: unknown) {
   return Boolean(
     error &&
-    typeof error === "object" &&
-    "status" in error &&
-    (error as { status?: number }).status === 401,
+      typeof error === "object" &&
+      "status" in error &&
+      (error as { status?: number }).status === 401,
   );
 }
 
@@ -172,7 +173,9 @@ async function callCourierPortal<T>(accessToken: string, payload: Record<string,
   }
 
   if (!response.ok) {
-    const error = new Error(parsedBody?.error || `Erreur ${response.status}`) as Error & { status?: number };
+    const error = new Error(parsedBody?.error || `Erreur ${response.status}`) as Error & {
+      status?: number;
+    };
     error.status = response.status;
     throw error;
   }
@@ -180,7 +183,10 @@ async function callCourierPortal<T>(accessToken: string, payload: Record<string,
   return parsedBody as T;
 }
 
-export async function invokeCourierPortal<T>(action: string, payload: Record<string, unknown> = {}) {
+export async function invokeCourierPortal<T>(
+  action: string,
+  payload: Record<string, unknown> = {},
+) {
   const requestPayload = {
     action,
     ...payload,
@@ -196,6 +202,7 @@ export async function invokeCourierPortal<T>(action: string, payload: Record<str
       throw error;
     }
 
+    const supabase = getSupabase();
     const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
     accessToken = refreshedData.session?.access_token || "";
 
@@ -206,7 +213,12 @@ export async function invokeCourierPortal<T>(action: string, payload: Record<str
     data = await callCourierPortal<T>(accessToken, requestPayload);
   }
 
-  if (data && typeof data === "object" && "error" in data && typeof (data as { error?: unknown }).error === "string") {
+  if (
+    data &&
+    typeof data === "object" &&
+    "error" in data &&
+    typeof (data as { error?: unknown }).error === "string"
+  ) {
     throw new Error((data as { error: string }).error);
   }
 
@@ -251,7 +263,10 @@ export async function syncCourierPresence(payload: {
   return response.courier;
 }
 
-export async function respondToDispatchAttempt(attemptId: string, decision: "accept" | "decline") {
+export async function respondToDispatchAttempt(
+  attemptId: string,
+  decision: "accept" | "decline",
+) {
   return invokeCourierPortal<{ status: string; dispatch_job?: any }>("respond_attempt", {
     attempt_id: attemptId,
     decision,
@@ -278,6 +293,7 @@ export async function verifyCourierDelivery(
 }
 
 export async function fetchCourierProfile(userId: string) {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("couriers")
     .select("*")
@@ -289,6 +305,7 @@ export async function fetchCourierProfile(userId: string) {
 }
 
 export async function fetchCourierOffers(courierId: string) {
+  const supabase = getSupabase();
   const { data, error } = await (supabase.from("dispatch_attempts") as any)
     .select(`
       id,
@@ -343,6 +360,7 @@ export async function fetchCourierOffers(courierId: string) {
 }
 
 export async function fetchCourierActiveJobs(courierId: string) {
+  const supabase = getSupabase();
   const { data, error } = await (supabase.from("dispatch_jobs") as any)
     .select(`
       id,
@@ -408,6 +426,7 @@ export async function fetchCourierActiveJobs(courierId: string) {
 }
 
 export async function fetchCourierRecentJobs(courierId: string) {
+  const supabase = getSupabase();
   const { data, error } = await (supabase.from("dispatch_jobs") as any)
     .select(`
       id,
@@ -444,6 +463,7 @@ export async function fetchCourierRecentJobs(courierId: string) {
 }
 
 export async function fetchCourierEarnings(courierId: string) {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("courier_earnings")
     .select("*")
@@ -456,6 +476,7 @@ export async function fetchCourierEarnings(courierId: string) {
 }
 
 export async function fetchCourierShifts(courierId: string) {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("courier_shifts")
     .select("*")
