@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 
 import {
   buildFeatureMap,
@@ -49,12 +49,12 @@ async function seedMissingDefaultsViaRpc(definitions: FeatureFlagDefinition[]) {
     is_active: definition.defaultEnabled,
   }));
 
-  await (supabase.rpc as any)("admin_seed_default_flags", { p_flags: payload });
+  await (getSupabase().rpc as any)("admin_seed_default_flags", { p_flags: payload });
 }
 
 async function fetchFlags(isAdmin = false): Promise<FeatureFlag[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from("feature_flags")
       .select("id, name, label, description, is_active")
       .order("created_at", { ascending: true });
@@ -78,7 +78,7 @@ async function fetchFlags(isAdmin = false): Promise<FeatureFlag[]> {
 }
 
 async function toggleFlagViaRpc(flagName: string, isActive: boolean): Promise<{ success: boolean; error?: string }> {
-  const { error } = await (supabase.rpc as any)("admin_toggle_feature_flag", {
+  const { error } = await (getSupabase().rpc as any)("admin_toggle_feature_flag", {
     p_flag_name: flagName,
     p_is_active: isActive,
   });
@@ -88,7 +88,7 @@ async function toggleFlagViaRpc(flagName: string, isActive: boolean): Promise<{ 
 }
 
 async function activateAllViaRpc(): Promise<{ success: boolean; count?: number; error?: string }> {
-  const { data, error } = await (supabase.rpc as any)("admin_activate_all_feature_flags");
+  const { data, error } = await (getSupabase().rpc as any)("admin_activate_all_feature_flags");
   if (error) return { success: false, error: error.message };
   return { success: true, count: Number(data || 0) };
 }
