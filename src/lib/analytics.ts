@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_AUDIENCE_CRITERIA,
   matchesAudienceCriteria,
@@ -276,10 +276,10 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
 
   try {
     const [profileResponse, favoritesResponse, ordersResponse, reservationsResponse] = await Promise.all([
-      supabase.from("profiles" as any).select("city").eq("user_id", currentUserId).maybeSingle(),
-      supabase.from("favorites" as any).select("restaurant_id").eq("user_id", currentUserId),
-      supabase.from("orders" as any).select("restaurant_id, total_amount, created_at, delivery_address, status").eq("user_id", currentUserId),
-      supabase.from("reservations" as any).select("restaurant_id, created_at, status, feature, metadata, time, date").eq("user_id", currentUserId),
+      getSupabase().from("profiles" as any).select("city").eq("user_id", currentUserId).maybeSingle(),
+      getSupabase().from("favorites" as any).select("restaurant_id").eq("user_id", currentUserId),
+      getSupabase().from("orders" as any).select("restaurant_id, total_amount, created_at, delivery_address, status").eq("user_id", currentUserId),
+      getSupabase().from("reservations" as any).select("restaurant_id, created_at, status, feature, metadata, time, date").eq("user_id", currentUserId),
     ]);
 
     const validOrders = ((ordersResponse.data || []) as any[]).filter((order) => !isInvalidOrderStatus(order?.status));
@@ -297,12 +297,12 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
     let cuisineSignals: string[] = [];
     if (interactedRestaurantIds.length > 0) {
       const [restaurantCuisinesResponse, cuisinesResponse, restaurantsResponse] = await Promise.all([
-        supabase
+        getSupabase()
           .from("restaurant_cuisines")
           .select("restaurant_id, cuisine_id")
           .in("restaurant_id", interactedRestaurantIds),
-        (supabase.from("cuisines") as any).select("id, name, slug, keywords"),
-        (supabase.from("restaurants") as any).select("id, cuisine_type").in("id", interactedRestaurantIds),
+        (getSupabase().from("cuisines") as any).select("id, name, slug, keywords"),
+        (getSupabase().from("restaurants") as any).select("id, cuisine_type").in("id", interactedRestaurantIds),
       ]);
 
       const cuisineMap = new Map<string, string[]>();
@@ -392,12 +392,12 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
 }
 
 // Auto-sync authentication state
-supabase.auth.getSession().then(({ data: { session } }) => {
+getSupabase().auth.getSession().then(({ data: { session } }) => {
   currentUserId = session?.user?.id || null;
   sponsoredAudienceSnapshotCache = null;
 });
 
-supabase.auth.onAuthStateChange((_event, session) => {
+getSupabase().auth.onAuthStateChange((_event, session) => {
   currentUserId = session?.user?.id || null;
   sponsoredAudienceSnapshotCache = null;
 });
@@ -417,7 +417,7 @@ async function invokeAnalyticsIngest(body: Record<string, unknown>): Promise<Ana
   if (_analyticsTrackingDisabled) return null;
 
   try {
-    const { data, error } = await supabase.functions.invoke("track-analytics", {
+    const { data, error } = await getSupabase().functions.invoke("track-analytics", {
       body,
     });
 
@@ -522,7 +522,7 @@ async function trackSponsoredEvent(input: {
 
   try {
     const viewerId = getOrCreateAnalyticsViewerId();
-    const { data, error } = await supabase.functions.invoke("track-sponsored-event", {
+    const { data, error } = await getSupabase().functions.invoke("track-sponsored-event", {
       body: {
         eventType: input.eventType,
         campaignId: input.campaignId,
@@ -598,7 +598,7 @@ export async function trackSponsoredClick(
 
 export async function trackCheckoutEvent(orderId: string, eventType: string, payload: any = {}) {
   try {
-    await supabase.from("order_events").insert({
+    await getSupabase().from("order_events").insert({
       order_id: orderId,
       event_type: eventType,
       payload: payload,
@@ -708,7 +708,7 @@ export async function getRestaurantCampaigns(restaurantId: string) {
 
 export async function getActiveSponsoredRestaurants(page: string) {
   const [campaignResponse, audienceSnapshot] = await Promise.all([
-    supabase
+    getSupabase()
     .from("ad_campaigns" as any)
     .select("*, restaurants(*)")
     .in("type", ["boost", "banner", "sponsored"])
@@ -775,7 +775,7 @@ export async function createCampaign(campaign: {
 }
 
 export async function updateCampaignStatus(campaignId: string, status: string) {
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from("ad_campaigns" as any)
     .update({ status })
     .eq("id", campaignId);
@@ -783,7 +783,7 @@ export async function updateCampaignStatus(campaignId: string, status: string) {
 }
 
 export async function getCampaignStats(restaurantId: string) {
-  const { data: campaigns } = await supabase
+  const { data: campaigns } = await getSupabase()
     .from("ad_campaigns" as any)
     .select("*")
     .eq("restaurant_id", restaurantId);

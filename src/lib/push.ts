@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getMessaging, getToken, isSupported } from "firebase/messaging";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import {
   FIREBASE_API_KEY,
   FIREBASE_APP_ID,
@@ -57,7 +57,7 @@ export async function getWebPushStatus(userId: string): Promise<WebPushStatus> {
   const permission = "Notification" in window ? Notification.permission : "unsupported";
   const { isReady } = getFirebaseConfig();
 
-  const { count, error } = await supabase
+  const { count, error } = await getSupabase()
     .from("device_tokens")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
@@ -117,7 +117,7 @@ export async function enableWebPush(userId: string) {
       return { ok: false, reason: "Token push introuvable." };
     }
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from("device_tokens")
       .upsert({
         user_id: userId,
@@ -138,7 +138,7 @@ export async function enableWebPush(userId: string) {
 }
 
 export async function disableWebPush(userId: string) {
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from("device_tokens")
     .update({ enabled: false } as any)
     .eq("user_id", userId)
