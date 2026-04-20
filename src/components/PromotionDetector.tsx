@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { BadgePercent, Sparkles } from "lucide-react";
+
+const supabase = getSupabase();
 
 interface PromotionDetectorProps {
   restaurantId: string | null;

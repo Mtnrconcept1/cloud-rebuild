@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { getAudienceEstimate } from "@/lib/analytics";
 import {
   CUSTOMER_SEGMENT_OPTIONS,
@@ -21,6 +21,8 @@ import {
   type AudienceCriteria,
 } from "@/lib/campaignTargeting";
 import { PREDEFINED_RESTAURANT_CATEGORIES } from "@/lib/restaurantCategories";
+
+const supabase = getSupabase();
 
 interface AudienceTargetingProps {
   criteria: AudienceCriteria;

@@ -40,7 +40,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_AUDIENCE_CRITERIA,
   normalizeAudienceCriteria,
@@ -62,6 +62,8 @@ import {
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
 import { useDashboardRestaurant } from "./DashboardContext";
+
+const supabase = getSupabase();
 
 const CAMPAIGN_TYPES = [
   { value: "boost", label: "Boost (Sponsorise)" },

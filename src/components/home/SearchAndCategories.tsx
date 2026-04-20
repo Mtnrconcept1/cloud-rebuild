@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { trackEvent, trackClick } from "@/lib/analytics";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
+
+const supabase = getSupabase();
 
 export default function SearchAndCategories() {
   const [searchQuery, setSearchQuery] = useState("");

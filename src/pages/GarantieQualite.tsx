@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton, WizardCartSummary } from "@/components/FeatureWizard";
+
+const supabase = getSupabase();
 
 type Step = "option" | "restaurant" | "menu" | "confirm";
 

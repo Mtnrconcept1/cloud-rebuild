@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { Link } from "react-router-dom";
@@ -15,6 +15,8 @@ import { useEffect, useMemo, useState } from "react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useRealtimeDeliveryTracking, useRealtimeDispatchJob } from "@/hooks/useRealtimeOrder";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
+
+const supabase = getSupabase();
 
 const STEPS = [
   { key: "preparing", label: "En préparation", icon: ChefHat, description: "Le restaurant prépare votre commande", countdownLabel: "Prêt dans" },

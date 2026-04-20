@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./DashboardContext";
 import { ArrowUp, ArrowDown, Minus, Scale, Euro, ShoppingCart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const supabase = getSupabase();
 
 type ComparisonData = {
   my_revenue: number;

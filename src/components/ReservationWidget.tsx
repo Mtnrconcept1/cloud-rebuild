@@ -8,10 +8,12 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 import { getServiceSettings, type ServicePeriod } from "@/lib/serviceSettings";
+
+const supabase = getSupabase();
 
 interface ReservationWidgetProps { restaurantId: string; restaurantName: string; onReserve: (date: Date, time: string, partySize: number) => void; }
 

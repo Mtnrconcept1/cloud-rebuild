@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,8 @@ import {
   useTokOnePlans,
 } from "@/hooks/useTokOne";
 import { Badge } from "@/components/ui/badge";
+
+const supabase = getSupabase();
 
 type FavoriteRestaurant = {
   id: string;

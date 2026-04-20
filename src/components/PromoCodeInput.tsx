@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tag, Check, X, Loader2 } from "lucide-react";
+
+const supabase = getSupabase();
 
 interface PromoCodeInputProps {
   restaurantId: string | null;

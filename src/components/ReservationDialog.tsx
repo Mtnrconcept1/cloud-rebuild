@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { trackSponsoredConversion } from "@/lib/analytics";
 import { useAuth } from "@/lib/auth";
 import { useActiveFeatures } from "@/lib/featureFlags";
@@ -23,6 +23,8 @@ import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/l
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { createReservationWithValidation } from "@/lib/reservationMutations";
 import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
+
+const supabase = getSupabase();
 
 interface ReservationDialogProps {
   restaurantId: string;

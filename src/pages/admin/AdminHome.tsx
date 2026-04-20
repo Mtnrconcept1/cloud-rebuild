@@ -22,8 +22,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useActiveFeatures } from "@/lib/featureFlags";
+
+const supabase = getSupabase();
 
 const ADMIN_TOOLS = [
   {

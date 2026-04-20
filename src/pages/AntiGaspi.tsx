@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import CampaignBanner from "@/components/CampaignBanner";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { Leaf, Gift, Heart, Info } from "lucide-react";
 import AntiWasteCard from "@/components/AntiWasteCard";
 import { Badge } from "@/components/ui/badge";
+
+const supabase = getSupabase();
 
 export default function AntiGaspi() {
   const { data: rawOffers, isLoading } = useQuery({

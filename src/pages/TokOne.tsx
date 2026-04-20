@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ import {
   useTokOnePlans,
   useTokOneSubscription,
 } from "@/hooks/useTokOne";
+
+const supabase = getSupabase();
 
 const BENEFITS = [
   {

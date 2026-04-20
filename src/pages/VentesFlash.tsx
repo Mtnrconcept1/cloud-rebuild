@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import CampaignBanner from "@/components/CampaignBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import CountdownTimer, { getTargetFromMinutes } from "@/components/CountdownTimer";
+
+const supabase = getSupabase();
 
 type Step = "browse" | "confirm";
 

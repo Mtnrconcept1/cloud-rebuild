@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,8 @@ import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { SUPABASE_URL } from "@/lib/env";
 import { useDashboardRestaurant } from "./DashboardContext";
+
+const supabase = getSupabase();
 
 type Message = { role: "user" | "assistant"; content: string };
 

@@ -2,8 +2,10 @@ import { Star, Trophy, ArrowUpRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+
+const supabase = getSupabase();
 
 const TIER_CONFIG = {
   bronze: { color: "bg-orange-700", label: "Bronze", next: 1000 },

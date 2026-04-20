@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+const supabase = getSupabase();
 
 interface DeliveryStop {
   id: string;

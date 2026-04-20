@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import {
   Plus, Minus, Shield, Gift,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+const supabase = getSupabase();
 
 const FLEX_WINDOWS = [
   { id: "short", label: "Offre 1h", start: "19:00", end: "20:00", savings: 15, co2Saved: 8 },

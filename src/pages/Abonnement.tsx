@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,8 @@ import {
   TrendingDown, Sparkles, ShoppingCart,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+const supabase = getSupabase();
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 const DAY_EMOJIS = ["🍽️", "🍽️", "🍽️", "🍽️", "🍽️", "☀️", "☀️"];

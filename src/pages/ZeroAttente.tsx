@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,8 @@ import {
   getFirstAvailablePaymentMethod,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
+
+const supabase = getSupabase();
 
 type Step = "info" | "restaurant" | "menu" | "payment" | "confirm";
 type PricingSummary = {

@@ -1,6 +1,6 @@
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +18,8 @@ import { useCart } from "@/lib/cart";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useRef } from "react";
+
+const supabase = getSupabase();
 
 export default function RestaurantDetail() {
   const { id } = useParams<{ id: string }>();

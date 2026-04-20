@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { calculateDistance } from "@/lib/geo";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
+
+const supabase = getSupabase();
 
 interface CourseSelection {
   id: string; // Unique ID for each selection to allow duplicates

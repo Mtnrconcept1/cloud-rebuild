@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { Lightbulb, CheckCircle2, RefreshCw, TrendingUp, AlertTriangle, Star } from "lucide-react";
+
+const supabase = getSupabase();
 
 type RecommendationRow = {
   id: string;

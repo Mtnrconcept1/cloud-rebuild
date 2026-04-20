@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./DashboardContext";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +28,8 @@ import {
   isDateInDashboardTimeRange,
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
+
+const supabase = getSupabase();
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];

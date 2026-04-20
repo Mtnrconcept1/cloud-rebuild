@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
 import { trackSponsoredClick, trackSponsoredImpression, trackImpression, trackClick } from "@/lib/analytics";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useToast } from "@/hooks/use-toast";
+
+const supabase = getSupabase();
 
 interface RestaurantCardProps {
   id: string;

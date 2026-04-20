@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { DEFAULT_SERVICE_SETTINGS, getServicePeriodLabel, type ServicePeriod } from "@/lib/serviceSettings";
 import { useDashboardRestaurant } from "./DashboardContext";
+
+const supabase = getSupabase();
 
 const DAYS_OF_WEEK = [
   { value: "mon", label: "Lun" },

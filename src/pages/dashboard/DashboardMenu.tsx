@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { useDashboardRestaurant } from "./DashboardContext";
+
+const supabase = getSupabase();
 
 type MenuItemForm = {
   name: string;

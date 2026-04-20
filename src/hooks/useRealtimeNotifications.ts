@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+
+const supabase = getSupabase();
 
 export type RealtimeNotification = {
   id: string;

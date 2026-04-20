@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useNavigate, Link } from "react-router-dom";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
@@ -27,6 +27,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getOrderStatusLockMessage } from "@/lib/statusLocks";
+
+const supabase = getSupabase();
 
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
   card: { label: "Carte bancaire", icon: CreditCard },

@@ -15,12 +15,14 @@ import SolidaritySection from "@/components/home/SolidaritySection";
 import RestaurantSection from "@/components/home/RestaurantSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import FooterSection from "@/components/home/FooterSection";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getActiveSponsoredRestaurants, setAnalyticsUser, trackEvent } from "@/lib/analytics";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
+
+const supabase = getSupabase();
 
 type SearchSort =
   | "pertinence"

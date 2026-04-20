@@ -4,7 +4,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import {
   TrendingUp,
@@ -30,6 +30,8 @@ import {
   type ReservationPerformanceRow,
   type ReviewPerformanceRow,
 } from "@/lib/dashboardPerformance";
+
+const supabase = getSupabase();
 
 type RestaurantInvoiceRow = Database["public"]["Tables"]["restaurant_invoices"]["Row"];
 

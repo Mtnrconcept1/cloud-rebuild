@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,8 @@ import {
   type ServiceSettingsMap,
   validateServiceSettings,
 } from "@/lib/serviceSettings";
+
+const supabase = getSupabase();
 
 const SERVICE_PERIODS: Array<{
   key: ServicePeriod;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +23,8 @@ import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import { cn } from "@/lib/utils";
+
+const supabase = getSupabase();
 
 interface FlashDrop {
   id: string;

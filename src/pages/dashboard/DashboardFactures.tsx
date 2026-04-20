@@ -23,8 +23,10 @@ import {
   type RestaurantPaymentEvent,
   type RestaurantPaymentStatusFilter,
 } from "@/lib/dashboardPayments";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./DashboardContext";
+
+const supabase = getSupabase();
 
 type InvoiceType = "payout" | "reservation_fees";
 
