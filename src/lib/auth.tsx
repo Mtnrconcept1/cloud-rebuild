@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { setMonitoringUser } from "@/lib/monitoring";
 
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
 
   const fetchRoles = useCallback(async (userId: string) => {
-    const { data } = await supabase
+    const { data } = await getSupabase()
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let initialised = false;
     let cancelled = false;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = getSupabase().auth.onAuthStateChange(
       (_event, session) => {
         // Skip until getSession has finished the first load
         if (!initialised) return;
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [applyRoles, fetchRoles, user?.id]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await getSupabase().auth.signOut();
     setUser(null);
     setSession(null);
     setMonitoringUser(null);
