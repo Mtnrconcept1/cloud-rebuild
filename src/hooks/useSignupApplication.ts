@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { SignupApplication, SignupRole } from "@/lib/signup";
+
+const supabase = getSupabase();
 
 export function useSignupApplication(role?: SignupRole) {
   const { user } = useAuth();

@@ -1,10 +1,12 @@
 import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { CartItem } from "@/lib/cart";
 import { Badge } from "@/components/ui/badge";
 import { Percent, Sparkles } from "lucide-react";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
+
+const supabase = getSupabase();
 
 interface FormulaDetectorProps {
   items: CartItem[];

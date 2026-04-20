@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardCartSummary, WizardNextButton } from "@/components/FeatureWizard";
 import { resolveMenuItemImageUrl } from "@/lib/menu-item-images";
+
+const supabase = getSupabase();
 
 interface DietTag {
   id: string;

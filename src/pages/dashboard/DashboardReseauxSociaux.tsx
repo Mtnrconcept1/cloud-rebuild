@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { Globe, Instagram, Facebook, ExternalLink, Trash2 } from "lucide-react";
+
+const supabase = getSupabase();
 
 type RestaurantSocial = {
   id: string;

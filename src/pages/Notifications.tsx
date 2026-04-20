@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import { Bell, CheckCheck } from "lucide-react";
+
+const supabase = getSupabase();
 
 export default function Notifications() {
   const { user } = useAuth();

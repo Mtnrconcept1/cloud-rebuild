@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useAuth } from "@/lib/auth";
 import { SUPABASE_URL } from "@/lib/env";
@@ -26,6 +26,8 @@ import {
 import { getGloballyEnabledPaymentMethods } from "@/lib/paymentMethods";
 
 import { useDashboardRestaurant } from "./DashboardContext";
+
+const supabase = getSupabase();
 
 type CuisineOption = {
   id: string;

@@ -11,7 +11,7 @@ import {
 } from "@/lib/launchPacks";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { toast } from "sonner";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
@@ -23,6 +23,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+
+const supabase = getSupabase();
 
 // All possible services for comparison table
 const ALL_SERVICES: { slug: LaunchPackServiceSlug; label: string }[] = [

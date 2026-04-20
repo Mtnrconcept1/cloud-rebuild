@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Bike, ChefHat, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth";
 import {
   getMissingSignupDocuments,
@@ -25,6 +25,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { LOGO_URL } from "@/lib/constants";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
+
+const supabase = getSupabase();
 
 type SignupFormState = {
   fullName: string;

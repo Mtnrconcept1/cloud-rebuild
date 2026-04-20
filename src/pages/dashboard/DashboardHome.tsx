@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
 import { useDashboardRestaurant } from "./DashboardContext";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
+
+const supabase = getSupabase();
 
 // pending_payment = order created but Stripe checkout not yet completed.
 // These are not actionable for the restaurateur and must stay hidden until

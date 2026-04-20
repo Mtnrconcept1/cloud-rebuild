@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { watchPosition } from "@/lib/geolocation-native";
+
+const supabase = getSupabase();
 
 interface CourierPosition {
   lat: number;

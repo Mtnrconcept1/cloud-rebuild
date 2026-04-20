@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
@@ -9,6 +9,8 @@ import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
+
+const supabase = getSupabase();
 
 type ReservationSort =
   | "reservation_date_desc"

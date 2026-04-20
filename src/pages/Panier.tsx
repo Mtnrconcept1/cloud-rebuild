@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,8 @@ import {
 } from "@/hooks/useTokOne";
 import { savePendingCheckoutPostActions } from "@/lib/pendingCheckout";
 import { getFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
+
+const supabase = getSupabase();
 
 const AUTH_TIMEOUT_MS = 30000;
 const CHECKOUT_TIMEOUT_MS = 15000;

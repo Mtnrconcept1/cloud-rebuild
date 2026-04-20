@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import type { LaunchPack, RestaurantLaunchPack } from "@/lib/launchPacks";
+
+const supabase = getSupabase();
 
 /** Fetch all active launch packs (public page) */
 export function useLaunchPacks() {

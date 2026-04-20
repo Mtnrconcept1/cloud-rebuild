@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -21,6 +21,8 @@ import {
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
 import { useDashboardRestaurant } from "./DashboardContext";
+
+const supabase = getSupabase();
 
 type DashboardOrderItem = {
   id: string;

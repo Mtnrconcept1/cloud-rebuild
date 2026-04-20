@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import type {
   RestaurantLaunchPack,
   FulfillmentStatus,
   PackPurchaseStatus,
 } from "@/lib/launchPacks";
+
+const supabase = getSupabase();
 
 export type AdminRestaurantPack = RestaurantLaunchPack & {
   restaurants: { id: string; name: string; owner_id: string; disabled_dashboard_features: string[] };

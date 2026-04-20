@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { Plus, Bell, Send, Trash2, Mail, Smartphone, AppWindow } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+const supabase = getSupabase();
 
 const CATEGORIES = [
   { value: "marketing", label: "Marketing" },

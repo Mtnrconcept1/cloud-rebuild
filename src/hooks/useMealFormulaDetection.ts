@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import {
   detectBestMealFormula,
   roundCurrency,
@@ -9,6 +9,8 @@ import {
   type MealFormulaDetectionResult,
   type MealFormulaRow,
 } from "@/lib/meal-formulas";
+
+const supabase = getSupabase();
 
 type UseMealFormulaDetectionOptions = {
   restaurantId: string | null;

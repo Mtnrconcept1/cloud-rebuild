@@ -28,7 +28,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { LOGO_URL } from "@/lib/constants";
@@ -55,6 +55,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+
+const supabase = getSupabase();
 
 const FEATURES = [
   { icon: Shield, label: "Creneaux garantis", desc: "Livraison ponctuelle ou remboursee", to: "/creneaux-garantis", feature: "creneaux-garantis", color: "text-blue-500", bg: "bg-blue-500/10", hoverBg: "group-hover:bg-blue-500/20" },

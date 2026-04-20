@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import CityAutocomplete from "@/components/CityAutocomplete";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import {
   restaurantMatchesCategoryFilter,
 } from "@/lib/restaurantCategories";
 import { useActiveFeatures } from "@/lib/featureFlags";
+
+const supabase = getSupabase();
 
 type SortValue = "pertinence" | "note" | "promotion" | "prix" | "popularite" | "nouveaux" | "mieux_notes_mois" | "plus_reserves_mois";
 type SortDirection = "asc" | "desc";
