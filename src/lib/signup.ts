@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 
 import type { UserRole } from "@/lib/auth";
 
@@ -248,7 +248,7 @@ export async function uploadVerificationDocument(input: {
   const safeRole = sanitizeFileSegment(input.role) || "signup";
   const filePath = `${input.userId}/${safeRole}/${safeDocumentType}-${crypto.randomUUID()}.${safeExtension}`;
 
-  const { error } = await supabase.storage
+  const { error } = await getSupabase().storage
     .from("verification-documents")
     .upload(filePath, input.file, {
       upsert: true,
@@ -270,7 +270,7 @@ export async function uploadVerificationDocument(input: {
 }
 
 export async function getVerificationDocumentUrl(filePath: string, expiresInSeconds = 3600) {
-  const { data, error } = await supabase.storage
+  const { data, error } = await getSupabase().storage
     .from("verification-documents")
     .createSignedUrl(filePath, expiresInSeconds);
 
