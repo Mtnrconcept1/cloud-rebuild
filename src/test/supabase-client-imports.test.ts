@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-const srcRoot = fileURLToPath(new URL("..", import.meta.url));
+const srcRoot = path.resolve(process.cwd(), "src");
 const forbiddenImportPattern =
   /import\s*\{\s*supabase\s*\}\s*from\s*["']@\/integrations\/supabase\/client["'];?/;
 
