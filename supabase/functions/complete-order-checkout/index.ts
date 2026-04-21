@@ -4,17 +4,17 @@ import {
   HttpError,
   authenticateRequest,
   createAdminClient,
+  isJsonRecord,
   getEnv,
   jsonResponse,
   writeAuditLog,
-} from "../_shared/auth.ts";
-import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
-import {
+  buildCorsHeaders,
+  handleCorsPreflight,
   enrichDeliveryMetadata,
   getEstimatedArrivalTime,
   isDeliveryOrder,
-} from "../_shared/delivery-dispatch.ts";
-import { makeLogger } from "../_shared/logging.ts";
+  makeLogger,
+} from "./_local.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -30,10 +30,6 @@ type OrderLookupRow = {
   metadata: JsonRecord | null;
   scheduled_at: string | null;
 };
-
-function isJsonRecord(value: unknown): value is JsonRecord {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
 
 async function getPaymentMethodDetails(
   stripe: Stripe,
