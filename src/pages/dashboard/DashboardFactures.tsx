@@ -50,7 +50,7 @@ export default function DashboardFactures() {
               <h1 className="font-display text-3xl font-bold">Page d&apos;accueil compta</h1>
               <p className="text-sm text-muted-foreground">
                 {selectedRestaurant
-                  ? `Vue d'ensemble des entrees et sorties d'argent pour ${selectedRestaurant.name}.`
+                  ? `Vue d'ensemble des entrees et sorties d'argent pour ${selectedRestaurant.name}, avec separation explicite des commandes, ventes flash et anti-gaspi.`
                   : "Selectionnez un restaurant depuis la barre laterale pour ouvrir la comptabilite."}
               </p>
             </div>
@@ -142,7 +142,7 @@ export default function DashboardFactures() {
                   <CardTitle>Origine de votre part 90%</CardTitle>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  La ventilation est identique a celle de TOK, mais affichee du point de vue restaurateur.
+                  La ventilation est identique a celle de TOK, mais affichee du point de vue restaurateur. Les ventes flash et l&apos;anti-gaspi restent visibles comme sources distinctes.
                 </p>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -151,7 +151,13 @@ export default function DashboardFactures() {
                     <CardContent className="space-y-2 py-5">
                       <p className="text-sm font-medium text-muted-foreground">{COMMISSION_SOURCE_LABELS[source]}</p>
                       <p className="text-2xl font-bold">{formatAmount(summary.inflow.bySource[source])}</p>
-                      <p className="text-xs text-muted-foreground">Part restaurant sur cette source</p>
+                      <p className="text-xs text-muted-foreground">
+                        {source === "anti_gaspi"
+                          ? "Part restaurant sur les commandes anti-gaspi"
+                          : source === "flash_sales"
+                            ? "Part restaurant sur les ventes flash"
+                            : "Part restaurant sur cette source"}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}

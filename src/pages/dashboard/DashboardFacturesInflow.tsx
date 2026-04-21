@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownRight, Download, FileUp, RefreshCcw, Settings } from "lucide-react";
@@ -113,10 +113,33 @@ export default function DashboardFacturesInflow() {
     selectedRestaurant,
     summary,
     payoutInvoiceSections,
+    uninvoicedRestaurantShareBySource,
     uninvoicedRestaurantShareTotal,
     isLoading,
     error,
   } = useDashboardFacturesData();
+
+  const inflowSourceBreakdown = useMemo(
+    () =>
+      COMMISSION_SOURCE_ORDER.map((source) => {
+        const total = summary.inflow.bySource[source];
+        const uninvoiced = uninvoicedRestaurantShareBySource[source] || 0;
+
+        return {
+          source,
+          label: COMMISSION_SOURCE_LABELS[source],
+          total,
+          uninvoiced,
+          alreadyInvoicedOrReceived: Math.max(total - uninvoiced, 0),
+        };
+      }),
+    [summary.inflow.bySource, uninvoicedRestaurantShareBySource],
+  );
+
+  const specialOrderBreakdown = useMemo(
+    () => inflowSourceBreakdown.filter(({ source }) => source === "flash_sales" || source === "anti_gaspi"),
+    [inflowSourceBreakdown],
+  );
 
   const handleGenerateInvoices = async () => {
     if (!selectedRestaurant) return;
@@ -262,16 +285,62 @@ export default function DashboardFacturesInflow() {
                   <CardTitle>Origine des entrees restaurant</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                {COMMISSION_SOURCE_ORDER.map((source) => (
-                  <Card key={source} className="shadow-none">
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {specialOrderBreakdown.map((sourceDetail) => (
+                    <Card
+                      key={sourceDetail.source}
+                      className={sourceDetail.source === "flash_sales" ? "border-amber-200 bg-amber-50/60 shadow-none" : "border-emerald-200 bg-emerald-50/60 shadow-none"}
+                    >
+                      <CardContent className="space-y-3 py-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">{sourceDetail.label}</p>
+                            <p className="text-2xl font-bold">{formatAmount(sourceDetail.total)}</p>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                            Commande speciale
+                          </Badge>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-lg border bg-background/80 p-3">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Encours non facture</p>
+                            <p className="mt-1 text-lg font-semibold">{formatAmount(sourceDetail.uninvoiced)}</p>
+                          </div>
+                          <div className="rounded-lg border bg-background/80 p-3">
+                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Deja emis ou encaisse</p>
+                            <p className="mt-1 text-lg font-semibold">{formatAmount(sourceDetail.alreadyInvoicedOrReceived)}</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          La part restaurateur de cette source est detaillee separement pour rendre visibles les ventes flash et l&apos;anti-gaspi.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                  {inflowSourceBreakdown.map((sourceDetail) => (
+                  <Card key={sourceDetail.source} className="shadow-none">
                     <CardContent className="space-y-2 py-5">
-                      <p className="text-sm font-medium text-muted-foreground">{COMMISSION_SOURCE_LABELS[source]}</p>
-                      <p className="text-2xl font-bold">{formatAmount(summary.inflow.bySource[source])}</p>
-                      <p className="text-xs text-muted-foreground">Part 90% generee par cette source</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium text-muted-foreground">{sourceDetail.label}</p>
+                        {sourceDetail.source === "flash_sales" || sourceDetail.source === "anti_gaspi" ? (
+                          <Badge variant="secondary" className="text-[10px]">
+                            Focus
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <p className="text-2xl font-bold">{formatAmount(sourceDetail.total)}</p>
+                      <div className="space-y-1 text-xs text-muted-foreground">
+                        <p>Encours non facture: {formatAmount(sourceDetail.uninvoiced)}</p>
+                        <p>Deja emis ou encaisse: {formatAmount(sourceDetail.alreadyInvoicedOrReceived)}</p>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
+                </div>
               </CardContent>
             </Card>
 

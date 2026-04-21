@@ -4,6 +4,7 @@ import DeliveryMap from "@/components/DeliveryMap";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
@@ -23,6 +24,12 @@ import {
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
 import { groupItemsByDay, resolveOpenDayKey } from "@/lib/dashboardGrouping";
+import {
+  DASHBOARD_ORDER_TYPE_ORDER,
+  classifyDashboardOrderType,
+  getDashboardOrderTypeMeta,
+  summarizeDashboardOrdersByType,
+} from "@/lib/dashboardOrderTypes";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 const supabase = getSupabase();
@@ -175,6 +182,7 @@ export default function DashboardCommandes() {
       ...group,
       dateLabel: formatDashboardDateHeading(group.dateKey),
       revenue: group.items.reduce((sum, order) => sum + Number(order.total_amount || 0), 0),
+      orderTypeSummary: summarizeDashboardOrdersByType(group.items, (order) => order.total_amount),
     }));
   }, [filteredOrders]);
 
@@ -321,6 +329,29 @@ export default function DashboardCommandes() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="space-y-4 px-5 pb-5">
+                      <div className="space-y-3 rounded-2xl border border-dashed border-border/70 bg-muted/20 p-4">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold">Repartition du jour</p>
+                          <p className="text-xs text-muted-foreground">
+                            Les commandes anti-gaspi et ventes flash restent dans le flux chronologique, avec leur source visible separement.
+                          </p>
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-3">
+                          {DASHBOARD_ORDER_TYPE_ORDER.map((orderType) => {
+                            const summary = dayGroup.orderTypeSummary[orderType];
+                            const meta = getDashboardOrderTypeMeta(orderType);
+
+                            return (
+                              <div key={orderType} className={`rounded-xl border p-3 ${meta.summaryCardClassName}`}>
+                                <p className="text-sm font-semibold">{meta.label}</p>
+                                <p className="mt-2 text-2xl font-bold">{summary.count}</p>
+                                <p className={`text-xs ${meta.summaryTextClassName}`}>{summary.revenue.toFixed(2)} CHF</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
                       {dayGroup.items.map((order) => {
                         const tracking = order.delivery_tracking ?? null;
                         const customer = order.customer;
@@ -355,14 +386,24 @@ export default function DashboardCommandes() {
                           }));
                         const canPreviewRoute = isDeliveryDashboardOrder(order) && routeMapStops.length >= 2;
                         const isRouteExpanded = expandedRouteOrderId === order.id;
+                        const orderType = classifyDashboardOrderType(order);
+                        const orderTypeMeta = getDashboardOrderTypeMeta(orderType);
 
                         return (
-                          <div key={order.id} className="space-y-4 rounded-2xl border bg-card p-5">
+                          <div
+                            key={order.id}
+                            className={`space-y-4 rounded-2xl border bg-card p-5 ${orderTypeMeta.cardClassName}`}
+                          >
                             <div className="flex flex-wrap items-start justify-between gap-4">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-lg font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
                                   <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
+                                  {orderTypeMeta.badgeLabel ? (
+                                    <Badge variant="outline" className={orderTypeMeta.badgeClassName}>
+                                      {orderTypeMeta.badgeLabel}
+                                    </Badge>
+                                  ) : null}
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                   {new Date(order.created_at).toLocaleDateString("fr-FR", {
