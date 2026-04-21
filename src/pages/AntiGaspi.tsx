@@ -22,17 +22,16 @@ export default function AntiGaspi() {
     refetchInterval: 60000,
   });
 
-  // Only show offers in their active window: available_date == today AND pickup_start <= now <= pickup_end
+  // Show active offers from today onward, and hide only offers whose pickup window is already finished.
   const offers = (rawOffers || []).filter((offer: any) => {
     if (!offer.available_date) return false;
     const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    if (offer.available_date < today) return false;
+    if (Number(offer.quantity_available || 0) <= 0) return false;
     if (offer.pickup_end) {
       const end = new Date(`${offer.available_date}T${offer.pickup_end}`);
-      if (end.getTime() <= now.getTime()) return false;
-    }
-    if (offer.pickup_start) {
-      const start = new Date(`${offer.available_date}T${offer.pickup_start}`);
-      if (start.getTime() > now.getTime()) return false;
+      if (offer.available_date === today && end.getTime() <= now.getTime()) return false;
     }
     return true;
   });

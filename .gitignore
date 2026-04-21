@@ -42,3 +42,5 @@ android/keystore.properties
 .vercel
 .npm-cache/
 eslint-output.json
+
+.vercel

@@ -28,6 +28,13 @@ describe("classifyOrderCommissionSource", () => {
     })).toBe("anti_gaspi");
   });
 
+  it("classifies anti-gaspi orders from anti-waste metadata used by checkout", () => {
+    expect(classifyOrderCommissionSource({
+      metadata: { is_anti_waste: true, anti_waste_offer_id: "offer_123" },
+      payment_status: "paid",
+    })).toBe("anti_gaspi");
+  });
+
   it("classifies chef's table orders explicitly", () => {
     expect(classifyOrderCommissionSource({
       metadata: { feature: "chefs_table" },

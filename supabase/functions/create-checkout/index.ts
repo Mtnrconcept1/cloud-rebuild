@@ -476,7 +476,7 @@ Deno.serve(async (req) => {
               metadata: {
                 menu_item_id: String(item.menuItemId || ""),
                 source: String(item.source || ""),
-                anti_waste_offer_id: String(item.metadata?.anti_waste_offer_id || ""),
+                anti_waste_offer_id: String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || ""),
                 flash_sale_id: String(item.metadata?.flash_sale_id || ""),
               },
             },

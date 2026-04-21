@@ -81,14 +81,19 @@ export function classifyOrderCommissionSource(order: OrderLike): CommissionSourc
   const feature = normalize(metadata.feature);
   const type = normalize(metadata.type);
   const hasFlashSale = Boolean(metadata.has_flash_sale || metadata.is_flash_sale || metadata.flash_sale_id);
-  const hasAntiGaspi = Boolean(metadata.has_anti_gaspi || metadata.anti_gaspi_id);
+  const hasAntiGaspi = Boolean(
+    metadata.has_anti_gaspi
+    || metadata.is_anti_waste
+    || metadata.anti_gaspi_id
+    || metadata.anti_waste_offer_id,
+  );
   const hasChefsTable = Boolean(metadata.is_chefs_table || metadata.chefs_table_id);
 
   if (feature === "ventes-flash" || feature === "flash-sale" || hasFlashSale) {
     return "flash_sales";
   }
 
-  if (feature === "anti-gaspi" || feature === "zero-gaspi" || hasAntiGaspi) {
+  if (feature === "anti-gaspi" || feature === "anti-waste" || feature === "zero-gaspi" || hasAntiGaspi) {
     return "anti_gaspi";
   }
 
