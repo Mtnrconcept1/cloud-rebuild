@@ -30,8 +30,8 @@ describe("parseStripeReturnSearch", () => {
 
 describe("buildAuthRedirectTarget", () => {
   it("preserves the full return path through auth", () => {
-    expect(buildAuthRedirectTarget("/commandes", "?session_id=cs_test_123&status=success")).toBe(
-      "/auth?redirect=%2Fcommandes%3Fsession_id%3Dcs_test_123%26status%3Dsuccess",
+    expect(buildAuthRedirectTarget("/commande/confirmation", "?session_id=cs_test_123&status=success")).toBe(
+      "/auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess",
     );
   });
 });

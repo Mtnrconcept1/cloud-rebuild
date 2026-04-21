@@ -2,15 +2,17 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "npm:stripe@18.5.0";
 import { getEnv, writeAuditLog } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
-import {
-  enrichDeliveryMetadata,
-  getEstimatedArrivalTime,
-  isDeliveryOrder,
-} from "../_shared/delivery-dispatch.ts";
+import { finalizeChefsTableCheckout } from "../_shared/chefs-table.ts";
 import {
   enqueueNotification,
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
+import {
+  allocateAmounts,
+  finalizePaidOrderCheckout,
+  getStripePaymentMethodDetails,
+  markOrderCheckoutSessionState,
+} from "../_shared/order-checkout.ts";
 import { recordZeroAttenteChargeIfMissing } from "../_shared/payment-transactions.ts";
 import {
   isTokOneEntitledStatus,
@@ -19,29 +21,15 @@ import {
 
 type JsonRecord = Record<string, unknown>;
 
-type OrderLookupRow = {
-  id: string;
-  status: string | null;
-  user_id: string | null;
-  restaurant_id: string;
-  delivery_address: string | null;
-  total_amount: number | null;
-  order_number: string | null;
-  metadata: JsonRecord | null;
-  scheduled_at: string | null;
-  notes: string | null;
-};
-
-type ReservationLookupRow = {
-  id: string;
-  metadata: JsonRecord | null;
-};
-
 type PaymentTransactionRow = {
   order_id: string | null;
   user_id: string | null;
   metadata?: JsonRecord | null;
   amount?: number | null;
+};
+
+type LoggerLike = {
+  error?: (event: string, data?: Record<string, unknown>) => void;
 };
 
 function isJsonRecord(value: unknown): value is JsonRecord {
@@ -52,44 +40,6 @@ function getCampaignId(metadata: unknown) {
   return isJsonRecord(metadata) && typeof metadata.campaign_id === "string"
     ? metadata.campaign_id
     : null;
-}
-
-function allocateAmounts(totalAmount: number, rows: Array<{ amount: number }>) {
-  const totalBase = rows.reduce((sum, row) => sum + Math.max(0, Number(row.amount || 0)), 0);
-  let remaining = Math.round(totalAmount * 100) / 100;
-
-  return rows.map((row, index) => {
-    const share = totalBase > 0 ? Math.max(0, Number(row.amount || 0)) / totalBase : (rows.length > 0 ? 1 / rows.length : 0);
-    const value = index === rows.length - 1
-      ? Math.max(0, remaining)
-      : Math.round((totalAmount * share) * 100) / 100;
-    remaining = Math.max(0, Math.round((remaining - value) * 100) / 100);
-    return value;
-  });
-}
-
-async function getPaymentMethodDetails(stripe: Stripe, session: Stripe.Checkout.Session) {
-  let cardBrand = "";
-  let cardLast4 = "";
-  let billingPhone = "";
-  if (session.payment_intent && typeof session.payment_intent === "string") {
-    try {
-      const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent, {
-        expand: ["payment_method"],
-      });
-      const paymentMethod = paymentIntent.payment_method;
-      if (paymentMethod && typeof paymentMethod !== "string") {
-        billingPhone = paymentMethod.billing_details?.phone || "";
-        if (paymentMethod.card) {
-          cardBrand = paymentMethod.card.brand;
-          cardLast4 = paymentMethod.card.last4;
-        }
-      }
-    } catch (error) {
-      log.error("card_details_fetch_error", { message: error instanceof Error ? error.message : "unknown" });
-    }
-  }
-  return { cardBrand, cardLast4, billingPhone };
 }
 
 function parseMoney(value: unknown, fallback = 0) {
@@ -109,6 +59,7 @@ async function recordTokOnePaymentIfMissing(input: {
   billingPeriod: string;
   stripeSubscriptionId: string | null;
   eventId: string;
+  log?: LoggerLike;
 }) {
   const {
     adminClient,
@@ -118,6 +69,7 @@ async function recordTokOnePaymentIfMissing(input: {
     billingPeriod,
     stripeSubscriptionId,
     eventId,
+    log,
   } = input;
 
   const amount = (session.amount_total || 0) / 100;
@@ -133,7 +85,7 @@ async function recordTokOnePaymentIfMissing(input: {
     .maybeSingle();
 
   if (existingTransactionError) {
-    log.error("tok_one_payment_check_failed", { message: existingTransactionError.message });
+    log?.error?.("tok_one_payment_check_failed", { message: existingTransactionError.message });
     return;
   }
 
@@ -225,67 +177,8 @@ function buildPreorderItems(lineItems: Stripe.ApiList<Stripe.LineItem>) {
     });
 }
 
-function getOrderJourneyLabel(input: {
-  isDelivery: boolean;
-  metadata: Record<string, unknown>;
-}) {
-  if (input.isDelivery) return "livraison";
-  if (typeof input.metadata.pickup_time === "string" && input.metadata.pickup_time) return "a emporter";
-  return "commande";
-}
-
 function isZeroAttenteCheckoutKind(checkoutKind: string | null | undefined) {
   return checkoutKind === "zero-attente" || checkoutKind === "reservation_zero_attente";
-}
-
-async function findOrdersForSession(
-  supabaseAdmin: ReturnType<typeof createClient>,
-  session: Stripe.Checkout.Session,
-) : Promise<OrderLookupRow[]> {
-  const orderRef = session.metadata?.order_reference || null;
-  const checkoutId = session.metadata?.checkout_id || null;
-  const checkoutGroupId = session.metadata?.checkout_group_id || null;
-  const ordersById = new Map<string, OrderLookupRow>();
-
-  const appendOrders = (rows: OrderLookupRow[] | null | undefined) => {
-    for (const row of rows || []) {
-      if (row?.id) ordersById.set(String(row.id), row);
-    }
-  };
-
-  const baseSelect = "id, status, user_id, restaurant_id, delivery_address, total_amount, order_number, metadata, scheduled_at, notes";
-
-  const { data: sessionOrders } = await supabaseAdmin
-    .from("orders")
-    .select(baseSelect)
-    .filter("metadata->>stripe_session_id", "eq", session.id);
-  appendOrders(sessionOrders as OrderLookupRow[] | null | undefined);
-
-  if (checkoutGroupId) {
-    const { data: groupOrders } = await supabaseAdmin
-      .from("orders")
-      .select(baseSelect)
-      .filter("metadata->>checkout_group_id", "eq", checkoutGroupId);
-    appendOrders(groupOrders as OrderLookupRow[] | null | undefined);
-  }
-
-  if (checkoutId) {
-    const { data: checkoutOrders } = await supabaseAdmin
-      .from("orders")
-      .select(baseSelect)
-      .eq("checkout_id", checkoutId);
-    appendOrders(checkoutOrders as OrderLookupRow[] | null | undefined);
-  }
-
-  if (orderRef) {
-    const { data: refOrders } = await supabaseAdmin
-      .from("orders")
-      .select(baseSelect)
-      .eq("order_number", orderRef);
-    appendOrders(refOrders as OrderLookupRow[] | null | undefined);
-  }
-
-  return Array.from(ordersById.values());
 }
 
 Deno.serve(async (req) => {
@@ -390,10 +283,9 @@ Deno.serve(async (req) => {
         const checkoutKind = String(session.metadata?.checkout_kind || "order");
         const userId = session.metadata?.user_id || null;
         const campaignId = session.metadata?.campaign_id || null;
-        let shouldDispatchNotifications = false;
 
         if (checkoutKind === "campaign" && campaignId) {
-          const { cardBrand, cardLast4 } = await getPaymentMethodDetails(stripe, session);
+          const { cardBrand, cardLast4 } = await getStripePaymentMethodDetails(stripe, session, log);
           const { data: campaign } = await supabaseAdmin
             .from("ad_campaigns")
             .select("id, restaurant_id, title")
@@ -501,6 +393,7 @@ Deno.serve(async (req) => {
             billingPeriod,
             stripeSubscriptionId: stripeSubscription?.id || null,
             eventId: event.id,
+            log,
           });
 
           // Notify user
@@ -538,7 +431,7 @@ Deno.serve(async (req) => {
             break;
           }
 
-          const { cardBrand, cardLast4 } = await getPaymentMethodDetails(stripe, session);
+          const { cardBrand, cardLast4 } = await getStripePaymentMethodDetails(stripe, session, log);
 
           // Update purchase record to paid
           await supabaseAdmin
@@ -698,7 +591,7 @@ Deno.serve(async (req) => {
             expand: ["data.price.product"],
           });
           const preorderItems = buildPreorderItems(lineItems);
-          const { cardBrand, cardLast4, billingPhone } = await getPaymentMethodDetails(stripe, session);
+          const { cardBrand, cardLast4, billingPhone } = await getStripePaymentMethodDetails(stripe, session, log);
           const twintPhoneNumber = paymentMethod === "twint"
             ? String(session.customer_details?.phone || billingPhone || "")
             : "";
@@ -888,172 +781,59 @@ Deno.serve(async (req) => {
           break;
         }
 
-        const orders = await findOrdersForSession(supabaseAdmin, session);
-        const { data: reservation } = await supabaseAdmin
-          .from("reservations")
-          .select("id, metadata")
-          .filter("metadata->>checkout_session_id", "eq", session.id)
-          .maybeSingle();
-        const reservationRecord = reservation as ReservationLookupRow | null;
-
-        const { cardBrand, cardLast4 } = await getPaymentMethodDetails(stripe, session);
-
-        for (const order of orders) {
-          const existingMeta = isJsonRecord(order.metadata) ? order.metadata : {};
-          const isDelivery = isDeliveryOrder({
-            deliveryAddress: order.delivery_address,
-            metadata: existingMeta,
-            orderType: String((existingMeta as Record<string, unknown>).type || ""),
-          });
-          const deliveryMetadata = isDelivery ? enrichDeliveryMetadata(existingMeta) : existingMeta;
-          const scheduledAt = isDelivery
-            ? String((deliveryMetadata as Record<string, unknown>).scheduled_delivery_at || order.scheduled_at || "") || null
-            : null;
-          const estimatedDeliveryAt = isDelivery
-            ? getEstimatedArrivalTime(deliveryMetadata, scheduledAt)
-            : null;
-
-          await supabaseAdmin
-            .from("orders")
-            .update({
-              status: "confirmed",
-              payment_status: "captured",
-              estimated_delivery_at: estimatedDeliveryAt,
-              metadata: {
-                ...deliveryMetadata,
-                stripe_session_id: session.id,
-                stripe_payment_intent: session.payment_intent,
-                payment_status: session.payment_status,
-                card_brand: cardBrand,
-                card_last4: cardLast4,
-              },
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", order.id);
-        }
-
-        if (reservationRecord) {
-          const existingMeta = isJsonRecord(reservationRecord.metadata) ? reservationRecord.metadata : {};
-          await supabaseAdmin
-            .from("reservations")
-            .update({
-              status: "confirmed",
-              metadata: {
-                ...existingMeta,
-                checkout_session_id: session.id,
-                card_brand: cardBrand,
-                card_last4: cardLast4,
-                paid: true,
-              },
-            })
-            .eq("id", reservationRecord.id);
-          shouldDispatchNotifications = true;
-        }
-
-        const allocations = allocateAmounts(
-          (session.amount_total || 0) / 100,
-          orders.map((order) => ({ amount: Number(order.total_amount || 0) })),
-        );
-
-        for (const [index, order] of orders.entries()) {
-          const existingMeta = isJsonRecord(order.metadata) ? order.metadata : {};
-          const isDelivery = isDeliveryOrder({
-            deliveryAddress: order.delivery_address,
-            metadata: existingMeta,
-            orderType: String((existingMeta as Record<string, unknown>).type || ""),
-          });
-          const deliveryMetadata = isDelivery ? enrichDeliveryMetadata(existingMeta) : existingMeta;
-          const scheduledAt = isDelivery
-            ? String((deliveryMetadata as Record<string, unknown>).scheduled_delivery_at || order.scheduled_at || "") || null
-            : null;
-          const estimatedDeliveryAt = isDelivery
-            ? getEstimatedArrivalTime(deliveryMetadata, scheduledAt)
-            : null;
-
-          await supabaseAdmin.from("payment_transactions").insert({
-            order_id: order.id,
-            user_id: userId,
-            stripe_checkout_session_id: session.id,
-            stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
-            amount: allocations[index] || 0,
-            currency: (session.currency || "chf").toLowerCase(),
-            type: "charge",
-            status: "succeeded",
-            metadata: {
-              card_brand: cardBrand,
-              card_last4: cardLast4,
-              order_reference: order.order_number || session.metadata?.order_reference || null,
-              reservation_id: reservationRecord?.id || null,
-            },
-          });
-
-          if (isDelivery && scheduledAt) {
-            await supabaseAdmin.from("delivery_tracking").upsert({
-              order_id: order.id,
-              status: "scheduled",
-              estimated_arrival: estimatedDeliveryAt,
-            });
+        if (checkoutKind === "chefs-table") {
+          if (!userId) {
+            log.warn("chefs_table_missing_user", { sessionId: session.id });
+            break;
           }
 
-          const { data: restaurant } = await supabaseAdmin
-            .from("restaurants")
-            .select("owner_id, name")
-            .eq("id", order.restaurant_id)
-            .maybeSingle();
-          const { data: profile } = order.user_id
-            ? await supabaseAdmin
-              .from("profiles")
-              .select("full_name")
-              .eq("user_id", order.user_id)
-              .maybeSingle()
-            : { data: null };
-
-          if (restaurant?.owner_id) {
-            const journeyLabel = getOrderJourneyLabel({
-              isDelivery,
-              metadata: deliveryMetadata as Record<string, unknown>,
-            });
-
-            await enqueueNotification({
-              adminClient: supabaseAdmin,
-              userId: restaurant.owner_id,
-              title: "Nouvelle commande",
-              body: `${journeyLabel} - ${order.order_number || session.metadata?.order_reference || order.id} - ${order.total_amount} CHF`,
-              type: "order",
-              category: "transactional",
-              data: {
-                order_id: order.id,
-                order_number: order.order_number || session.metadata?.order_reference || null,
-                restaurant_id: order.restaurant_id,
-                restaurant_name: restaurant.name,
-                delivery_address: order.delivery_address || null,
-                customer_name: profile?.full_name || null,
-                items_count: deliveryMetadata.items_count || null,
-                items_summary: deliveryMetadata.items_summary || null,
-                scheduled_delivery_at: scheduledAt,
-                scheduled_delivery_label: deliveryMetadata.scheduled_delivery_label || null,
-                delivery_window_label: deliveryMetadata.delivery_window_label || null,
-                service_mode: journeyLabel,
-                pickup_time: deliveryMetadata.pickup_time || null,
-                total_amount: order.total_amount,
-                url: "/dashboard/commandes",
-              },
-            });
-          }
-
-          shouldDispatchNotifications = true;
+          const paymentDetails = await getStripePaymentMethodDetails(stripe, session, log);
+          await finalizeChefsTableCheckout({
+            adminClient: supabaseAdmin,
+            session,
+            userId,
+            cardBrand: paymentDetails.cardBrand,
+            cardLast4: paymentDetails.cardLast4,
+            log,
+            shouldDispatchNotifications: true,
+            fetchLineItems: () => stripe.checkout.sessions.listLineItems(session.id, {
+              limit: 100,
+              expand: ["data.price.product"],
+            }),
+          });
+          break;
         }
 
-        if (!orders.length && !reservation) {
-          log.warn("no_order_or_reservation", { sessionId: session.id });
-        }
+        const paymentDetails = await getStripePaymentMethodDetails(stripe, session, log);
+        const finalizedOrders = await finalizePaidOrderCheckout({
+          adminClient: supabaseAdmin,
+          session,
+          cardBrand: paymentDetails.cardBrand,
+          cardLast4: paymentDetails.cardLast4,
+          billingPhone: paymentDetails.billingPhone,
+          log,
+          shouldDispatchNotifications: true,
+        });
 
-        if (shouldDispatchNotifications) {
-          try {
-            await triggerNotificationDispatch({ source: "stripe-webhook-checkout", push: true, email: true });
-          } catch (error) {
-            log.error("order_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
-          }
+        if (!finalizedOrders.orders.length) {
+          log.warn("no_order_for_checkout_session", { sessionId: session.id });
+        }
+        break;
+      }
+
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const checkoutKind = String(session.metadata?.checkout_kind || "order");
+
+        if (checkoutKind === "order") {
+          await markOrderCheckoutSessionState({
+            adminClient: supabaseAdmin,
+            session,
+            orderStatus: "payment_failed",
+            paymentStatus: "expired",
+            checkoutState: "expired",
+            failureMessage: "Session Stripe expiree avant paiement.",
+          });
         }
         break;
       }

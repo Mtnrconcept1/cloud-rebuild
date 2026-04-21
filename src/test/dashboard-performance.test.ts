@@ -26,6 +26,12 @@ describe("dashboard performance helpers", () => {
           metadata: {},
         },
         {
+          created_at: "2026-03-11T19:00:00.000Z",
+          total_amount: 12,
+          status: "pending_payment",
+          metadata: {},
+        },
+        {
           created_at: "2026-03-12T19:00:00.000Z",
           total_amount: 30,
           status: "delivered",
@@ -65,14 +71,14 @@ describe("dashboard performance helpers", () => {
       ],
     });
 
-    expect(summary.totalOrders).toBe(4);
+    expect(summary.totalOrders).toBe(5);
     expect(summary.validOrdersCount).toBe(2);
-    expect(summary.invalidOrdersCount).toBe(2);
+    expect(summary.invalidOrdersCount).toBe(3);
     expect(summary.totalRevenue).toBe(50);
     expect(summary.grossRevenue).toBe(58);
     expect(summary.avgTicket).toBe(25);
     expect(summary.totalReservations).toBe(2);
-    expect(summary.cancelRate).toBe(50);
+    expect(summary.cancelRate).toBe(60);
     expect(summary.avgSatisfaction).toBe(4);
     expect(summary.reservationServiceBreakdown.lunch).toEqual({ count: 1, covers: 2 });
     expect(summary.reservationServiceBreakdown.dinner).toEqual({ count: 1, covers: 3 });
@@ -97,7 +103,7 @@ describe("dashboard performance helpers", () => {
       },
       {
         kpi_date: "2026-03-11",
-        orders_count: 1,
+        orders_count: 2,
         valid_orders_count: 0,
         revenue: 0,
         avg_ticket: 0,

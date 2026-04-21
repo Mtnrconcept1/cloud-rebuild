@@ -8,19 +8,17 @@ import {
   jsonResponse,
   writeAuditLog,
 } from "../_shared/auth.ts";
+import { finalizeChefsTableCheckout } from "../_shared/chefs-table.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
-import {
-  finalizePaidOrderCheckout,
-  getStripePaymentMethodDetails,
-} from "../_shared/order-checkout.ts";
+import { getStripePaymentMethodDetails } from "../_shared/order-checkout.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
 
-  const log = makeLogger("complete-order-checkout");
+  const log = makeLogger("create-chefs-table-reservation");
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let sessionId = "";
 
@@ -53,9 +51,9 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "Session Stripe non payee.");
     }
 
-    const checkoutKind = String(session.metadata?.checkout_kind || "order");
-    if (checkoutKind !== "order") {
-      throw new HttpError(400, "Session Stripe invalide pour une commande.");
+    const checkoutKind = String(session.metadata?.checkout_kind || "");
+    if (checkoutKind !== "chefs-table") {
+      throw new HttpError(400, "Session Stripe invalide pour Chef's Table.");
     }
 
     if (String(session.metadata?.user_id || "") !== actor.userId) {
@@ -63,33 +61,37 @@ Deno.serve(async (req) => {
     }
 
     const paymentDetails = await getStripePaymentMethodDetails(stripe, session, log);
-    const result = await finalizePaidOrderCheckout({
+    const result = await finalizeChefsTableCheckout({
       adminClient: actor.adminClient,
       session,
+      userId: actor.userId,
       cardBrand: paymentDetails.cardBrand,
       cardLast4: paymentDetails.cardLast4,
-      billingPhone: paymentDetails.billingPhone,
       log,
       shouldDispatchNotifications: true,
+      fetchLineItems: () => stripe.checkout.sessions.listLineItems(session.id, {
+        limit: 100,
+        expand: ["data.price.product"],
+      }),
     });
 
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,
       request: req,
-      functionName: "complete-order-checkout",
-      action: "complete_paid_order_checkout",
+      functionName: "create-chefs-table-reservation",
+      action: "finalize_chefs_table_checkout",
       status: "success",
       targetEntityType: "stripe_session",
       targetEntityId: session.id,
       metadata: {
-        order_ids: result.orders.map((order) => order.id),
+        reservation_ids: result.reservations.map((reservation) => reservation.id),
       },
     });
 
     return jsonResponse(result, 200, corsHeaders);
   } catch (error) {
-    log.error("complete_order_checkout_failed", {
+    log.error("create-chefs-table-reservation error", {
       message: error instanceof Error ? error.message : "unknown",
       sessionId,
     });
@@ -98,10 +100,10 @@ Deno.serve(async (req) => {
       adminClient: actor?.adminClient || createAdminClient(),
       actor,
       request: req,
-      functionName: "complete-order-checkout",
-      action: "complete_paid_order_checkout",
+      functionName: "create-chefs-table-reservation",
+      action: "finalize_chefs_table_checkout",
       status: "failure",
-      targetEntityType: sessionId ? "stripe_session" : null,
+      targetEntityType: sessionId ? "stripe_session" : "reservations",
       targetEntityId: sessionId || null,
       errorMessage: error instanceof Error ? error.message : "Erreur interne",
     });

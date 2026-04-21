@@ -2,14 +2,84 @@ type LoggerLike = {
   warn?: (event: string, data?: Record<string, unknown>) => void;
 };
 
-function isPgUniqueViolation(error: unknown) {
+export function isPgUniqueViolation(error: unknown) {
   return typeof error === "object"
     && error !== null
     && "code" in error
     && (error as { code?: string }).code === "23505";
 }
 
-export async function recordZeroAttenteChargeIfMissing(input: {
+export async function recordOrderChargeIfMissing(input: {
+  adminClient: any;
+  orderId: string;
+  userId: string | null;
+  sessionId: string;
+  paymentIntentId: string | null;
+  amount: number;
+  currency: string;
+  metadata: Record<string, unknown>;
+  log?: LoggerLike;
+}) {
+  const {
+    adminClient,
+    orderId,
+    userId,
+    sessionId,
+    paymentIntentId,
+    amount,
+    currency,
+    metadata,
+    log,
+  } = input;
+
+  const { data: existingTransaction, error: existingTransactionError } = await adminClient
+    .from("payment_transactions")
+    .select("id")
+    .eq("order_id", orderId)
+    .eq("stripe_checkout_session_id", sessionId)
+    .eq("type", "charge")
+    .eq("status", "succeeded")
+    .limit(1)
+    .maybeSingle();
+
+  if (existingTransactionError) {
+    throw existingTransactionError;
+  }
+
+  if (existingTransaction?.id) {
+    return { inserted: false, reason: "existing_order_charge" as const };
+  }
+
+  const { error: insertError } = await adminClient
+    .from("payment_transactions")
+    .insert({
+      order_id: orderId,
+      user_id: userId,
+      stripe_checkout_session_id: sessionId,
+      stripe_payment_intent_id: paymentIntentId,
+      amount,
+      currency,
+      type: "charge",
+      status: "succeeded",
+      metadata,
+    });
+
+  if (insertError) {
+    if (isPgUniqueViolation(insertError)) {
+      log?.warn?.("duplicate_order_charge_skipped", {
+        order_id: orderId,
+        session_id: sessionId,
+      });
+      return { inserted: false, reason: "unique_conflict" as const };
+    }
+
+    throw insertError;
+  }
+
+  return { inserted: true, reason: null };
+}
+
+export async function recordReservationChargeIfMissing(input: {
   adminClient: any;
   userId: string;
   sessionId: string;
@@ -17,6 +87,7 @@ export async function recordZeroAttenteChargeIfMissing(input: {
   amount: number;
   currency: string;
   reservationId: string;
+  feature: string;
   metadata: Record<string, unknown>;
   log?: LoggerLike;
 }) {
@@ -28,6 +99,7 @@ export async function recordZeroAttenteChargeIfMissing(input: {
     amount,
     currency,
     reservationId,
+    feature,
     metadata,
     log,
   } = input;
@@ -38,6 +110,7 @@ export async function recordZeroAttenteChargeIfMissing(input: {
     .eq("stripe_checkout_session_id", sessionId)
     .eq("type", "charge")
     .eq("status", "succeeded")
+    .filter("metadata->>reservation_id", "eq", reservationId)
     .limit(1)
     .maybeSingle();
 
@@ -63,7 +136,8 @@ export async function recordZeroAttenteChargeIfMissing(input: {
   }
 
   if (existingReservationTransaction?.id) {
-    log?.warn?.("duplicate_zero_attente_reservation_charge_skipped", {
+    log?.warn?.("duplicate_reservation_charge_skipped", {
+      feature,
       reservation_id: reservationId,
       existing_session_id: existingReservationTransaction.stripe_checkout_session_id,
       incoming_session_id: sessionId,
@@ -81,12 +155,17 @@ export async function recordZeroAttenteChargeIfMissing(input: {
       currency,
       type: "charge",
       status: "succeeded",
-      metadata,
+      metadata: {
+        ...metadata,
+        reservation_id: reservationId,
+        feature,
+      },
     });
 
   if (insertError) {
     if (isPgUniqueViolation(insertError)) {
-      log?.warn?.("duplicate_zero_attente_session_charge_skipped", {
+      log?.warn?.("duplicate_reservation_session_charge_skipped", {
+        feature,
         reservation_id: reservationId,
         session_id: sessionId,
       });
@@ -97,4 +176,41 @@ export async function recordZeroAttenteChargeIfMissing(input: {
   }
 
   return { inserted: true, reason: null };
+}
+
+export async function recordZeroAttenteChargeIfMissing(input: {
+  adminClient: any;
+  userId: string;
+  sessionId: string;
+  paymentIntentId: string | null;
+  amount: number;
+  currency: string;
+  reservationId: string;
+  metadata: Record<string, unknown>;
+  log?: LoggerLike;
+}) {
+  const {
+    adminClient,
+    userId,
+    sessionId,
+    paymentIntentId,
+    amount,
+    currency,
+    reservationId,
+    metadata,
+    log,
+  } = input;
+
+  return recordReservationChargeIfMissing({
+    adminClient,
+    userId,
+    sessionId,
+    paymentIntentId,
+    amount,
+    currency,
+    reservationId,
+    feature: "zero-attente",
+    metadata,
+    log,
+  });
 }

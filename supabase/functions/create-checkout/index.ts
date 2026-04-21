@@ -100,6 +100,9 @@ Deno.serve(async (req) => {
       formula_discount_percent: String(order_metadata?.formula_discount_percent || ""),
       promo_applied: "",
       promo_discount_amount: "0.00",
+      promo_code_id: String(order_metadata?.promo_code_id || ""),
+      promo_code_discount_amount: "0.00",
+      points_to_redeem: String(order_metadata?.points_to_redeem || 0),
       points_discount_amount: "0.00",
       flex_discount_amount: "0.00",
       authoritative_total: "0.00",
@@ -297,6 +300,80 @@ Deno.serve(async (req) => {
         campaign_title: campaign.title,
         authoritative_total: campaignAmount.toFixed(2),
       };
+    } else if (effectiveKind === "chefs-table") {
+      if (!Array.isArray(items) || items.length === 0) {
+        throw new HttpError(400, "Aucune experience Chef's Table.");
+      }
+
+      auditTargetEntityType = "chef_table_drops";
+      auditTargetEntityId = String(order_metadata?.checkout_group_id || "");
+
+      const dropIds = Array.from(new Set(
+        (items as CheckoutItem[])
+          .map((item) => String(item?.metadata?.chef_table_drop_id || ""))
+          .filter(Boolean),
+      ));
+
+      if (dropIds.length === 0) {
+        throw new HttpError(400, "Drop Chef's Table introuvable.");
+      }
+
+      const { data: dropRows, error: dropsError } = await actor.adminClient
+        .from("chef_table_drops")
+        .select("id, restaurant_id, chef_name, dish_name, price, original_price, drop_time, remaining_portions, is_active, restaurants(name)")
+        .in("id", dropIds);
+
+      if (dropsError) throw new HttpError(500, dropsError.message);
+
+      const dropMap = new Map((dropRows || []).map((row: any) => [row.id, row]));
+      let authoritativeTotal = 0;
+
+      for (const item of items as CheckoutItem[]) {
+        const dropId = String(item?.metadata?.chef_table_drop_id || "");
+        const quantity = Math.max(1, Number(item?.quantity || 1));
+        const drop = dropMap.get(dropId);
+
+        if (!drop) {
+          throw new HttpError(404, "Drop Chef's Table introuvable.");
+        }
+        if (!drop.is_active) {
+          throw new HttpError(409, "Ce drop Chef's Table n'est plus disponible.");
+        }
+        if (Number(drop.remaining_portions || 0) < quantity) {
+          throw new HttpError(409, "Le nombre de portions disponibles a change pour ce drop.");
+        }
+
+        const unitAmount = Math.round(Number(drop.price || 0) * 100);
+        if (unitAmount <= 0) {
+          throw new HttpError(400, "Prix Chef's Table invalide.");
+        }
+
+        lineItems.push({
+          price_data: {
+            currency: "chf",
+            product_data: {
+              name: String(drop.dish_name || item?.name || "Experience Chef's Table"),
+              description: String(drop.restaurants?.name || item?.restaurant_name || "Chef's Table"),
+              metadata: {
+                chef_table_drop_id: drop.id,
+                restaurant_id: drop.restaurant_id,
+                drop_time: String(drop.drop_time || ""),
+                source: "chef_table_drop",
+              },
+            },
+            unit_amount: unitAmount,
+          },
+          quantity,
+        });
+
+        authoritativeTotal += Number(drop.price || 0) * quantity;
+      }
+
+      sessionMetadata = {
+        ...sessionMetadata,
+        restaurant_id: String(order_metadata?.restaurant_id || ""),
+        authoritative_total: authoritativeTotal.toFixed(2),
+      };
     } else {
       const primaryRestaurantId = String(order_metadata?.restaurant_id || "");
       if (!primaryRestaurantId) throw new HttpError(400, "restaurant_id requis");
@@ -354,6 +431,8 @@ Deno.serve(async (req) => {
       let authoritativeTotal = 0;
       let formulaDiscountTotal = 0;
       let promoDiscountTotal = 0;
+      let promoCodeDiscountTotal = 0;
+      let appliedPromoCodeId = "";
       let tokOneDiscountTotal = 0;
       let tokOneDeliveryDiscountTotal = 0;
       let tokOneMemberAny = false;
@@ -375,6 +454,7 @@ Deno.serve(async (req) => {
           formula_discount: restaurantId === primaryRestaurantId ? order_metadata?.formula_discount || 0 : 0,
           promotion_discount_amount: restaurantId === primaryRestaurantId ? order_metadata?.promotion_discount_amount || 0 : 0,
           promotion_applied: restaurantId === primaryRestaurantId ? order_metadata?.promotion_applied || null : null,
+          promo_code_id: restaurantId === primaryRestaurantId ? order_metadata?.promo_code_id || null : null,
         };
 
         const pricing = await buildVerifiedOrderPricing({
@@ -430,6 +510,10 @@ Deno.serve(async (req) => {
         authoritativeTotal += pricing.total;
         formulaDiscountTotal += pricing.formulaDiscount;
         promoDiscountTotal += pricing.promoDiscount;
+        promoCodeDiscountTotal += pricing.promoCodeDiscount;
+        if (!appliedPromoCodeId && pricing.promoCodeId) {
+          appliedPromoCodeId = pricing.promoCodeId;
+        }
         tokOneDiscountTotal += pricing.tokOneDiscount;
         tokOneDeliveryDiscountTotal += pricing.tokOneDeliveryDiscount;
         if (pricing.tokOneMember) tokOneMemberAny = true;
@@ -452,6 +536,8 @@ Deno.serve(async (req) => {
         formula_discount_amount: formulaDiscountTotal.toFixed(2),
         promo_applied: String(primaryPromoNames[0] || ""),
         promo_discount_amount: promoDiscountTotal.toFixed(2),
+        promo_code_id: appliedPromoCodeId,
+        promo_code_discount_amount: promoCodeDiscountTotal.toFixed(2),
         tok_one_member: tokOneMemberAny ? "true" : "false",
         tok_one_discount_amount: tokOneDiscountTotal.toFixed(2),
         tok_one_discount_percent: tokOneDiscountPercentMax.toFixed(2),

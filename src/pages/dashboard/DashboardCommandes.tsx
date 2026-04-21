@@ -79,6 +79,7 @@ const DELIVERY_STATUS_SEQUENCE = ["confirmed", "preparing", "delivering", "deliv
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
   pending_payment: "Paiement en attente",
+  payment_failed: "Paiement echoue",
   confirmed: "Confirmee",
   preparing: "En preparation",
   ready: "Prete a retirer",

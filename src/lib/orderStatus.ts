@@ -1,11 +1,13 @@
 export const CANONICAL_ORDER_STATUSES = [
   "pending",
+  "pending_payment",
   "confirmed",
   "preparing",
   "ready",
   "delivering",
   "delivered",
   "cancelled",
+  "payment_failed",
 ] as const;
 
 export type CanonicalOrderStatus = (typeof CANONICAL_ORDER_STATUSES)[number];

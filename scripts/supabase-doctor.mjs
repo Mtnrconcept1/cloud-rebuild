@@ -37,6 +37,7 @@ function inspectMode(mode) {
   const envInfo = readEnvStack(mode);
   const configProjectId = readConfigProjectId();
   const linkInfo = readLinkInfo();
+  const workflowProjectId = readWorkflowProjectId();
   const errors = [];
   const warnings = [];
 
@@ -50,25 +51,35 @@ function inspectMode(mode) {
     warnings.push("supabase/config.toml does not expose a project_id.");
   }
 
+  if (mode === "production") {
+    if (!workflowProjectId) {
+      warnings.push("GitHub Actions production deploy ref is missing from .github/workflows/deploy-production.yml.");
+    } else if (envInfo.projectRef && envInfo.projectRef !== workflowProjectId) {
+      errors.push(
+        `Production frontend target (${envInfo.projectRef}) does not match GitHub Actions deploy ref (${workflowProjectId}).`,
+      );
+    }
+  }
+
   if (envInfo.projectRef && configProjectId && envInfo.projectRef !== configProjectId) {
-    errors.push(
-      `Frontend target (${envInfo.projectRef}) does not match supabase/config.toml (${configProjectId}).`,
+    warnings.push(
+      `supabase/config.toml currently targets ${configProjectId}, not the ${mode} frontend project ${envInfo.projectRef}. Run npm run supabase:target:${mode === "production" ? "prod" : "dev"} before ${mode} deploy commands.`,
     );
   }
 
-  if (envInfo.projectRef && linkInfo.projectRef && envInfo.projectRef !== linkInfo.projectRef) {
+  if (configProjectId && linkInfo.projectRef && configProjectId !== linkInfo.projectRef) {
     errors.push(
-      `Frontend target (${envInfo.projectRef}) does not match supabase/.temp/project-ref (${linkInfo.projectRef}).`,
+      `supabase/config.toml (${configProjectId}) does not match supabase/.temp/project-ref (${linkInfo.projectRef}).`,
     );
   }
 
   if (
-    envInfo.projectRef &&
+    configProjectId &&
     linkInfo.linkedProjectRef &&
-    envInfo.projectRef !== linkInfo.linkedProjectRef
+    configProjectId !== linkInfo.linkedProjectRef
   ) {
     errors.push(
-      `Frontend target (${envInfo.projectRef}) does not match supabase/.temp/linked-project.json (${linkInfo.linkedProjectRef}).`,
+      `supabase/config.toml (${configProjectId}) does not match supabase/.temp/linked-project.json (${linkInfo.linkedProjectRef}).`,
     );
   }
 
@@ -93,6 +104,7 @@ function inspectMode(mode) {
     envInfo,
     configProjectId,
     linkInfo,
+    workflowProjectId,
     errors,
     warnings,
   };
@@ -157,6 +169,17 @@ function readLinkInfo() {
   return { projectRef, linkedProjectRef };
 }
 
+function readWorkflowProjectId() {
+  const workflowPath = path.join(ROOT, ".github", "workflows", "deploy-production.yml");
+  if (!fs.existsSync(workflowPath)) {
+    return null;
+  }
+
+  const content = fs.readFileSync(workflowPath, "utf8");
+  const match = content.match(/^\s*SUPABASE_PROJECT_REF:\s*([A-Za-z0-9_-]+)\s*$/m);
+  return match ? cleanValue(match[1]) : null;
+}
+
 function extractProjectRef(env) {
   const explicitProjectId = cleanValue(env.VITE_SUPABASE_PROJECT_ID);
   if (explicitProjectId) {
@@ -190,7 +213,15 @@ function describeFiles(files) {
 }
 
 function printResult(result) {
-  const { mode, envInfo, configProjectId, linkInfo, errors, warnings } = result;
+  const {
+    mode,
+    envInfo,
+    configProjectId,
+    linkInfo,
+    workflowProjectId,
+    errors,
+    warnings,
+  } = result;
   const header = `Supabase doctor (${mode})`;
   console.log(`\n${header}`);
   console.log("=".repeat(header.length));
@@ -202,6 +233,9 @@ function printResult(result) {
   console.log(
     `supabase/.temp/linked-project.json: ${linkInfo.linkedProjectRef ?? "missing"}`,
   );
+  if (mode === "production") {
+    console.log(`GitHub Actions SUPABASE_PROJECT_REF: ${workflowProjectId ?? "missing"}`);
+  }
 
   if (errors.length === 0) {
     console.log("Result: OK");
