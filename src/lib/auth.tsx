@@ -39,17 +39,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
 
-  const fetchRoles = useCallback(async (userId: string) => {
-    const { data } = await getSupabase()
+  const resolveRolesWithFallback = useCallback(async (userId: string) => {
+    const supabase = getSupabase();
+    const resolvedRoles = new Set<UserRole>(["client"]);
+
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
 
-    const fetchedRoles = (data || []).map((r) => r.role as UserRole);
-    // Always include "client" as a base role
-    if (!fetchedRoles.includes("client")) fetchedRoles.unshift("client");
-    return fetchedRoles;
+    if (!error) {
+      for (const row of data || []) {
+        const role = row.role as UserRole;
+        if (role === "client" || role === "restaurateur" || role === "admin" || role === "courier") {
+          resolvedRoles.add(role);
+        }
+      }
+
+      if (resolvedRoles.size > 1) {
+        return Array.from(resolvedRoles);
+      }
+    } else {
+      console.error("[auth] failed to read user_roles directly, trying has_role fallback", error);
+    }
+
+    const privilegedRoles: UserRole[] = ["admin", "restaurateur", "courier"];
+
+    const fallbackChecks = await Promise.all(
+      privilegedRoles.map(async (role) => {
+        const { data: hasRole, error: hasRoleError } = await supabase.rpc("has_role", {
+          _user_id: userId,
+          _role: role,
+        });
+
+        if (hasRoleError) {
+          console.error(`[auth] has_role fallback failed for ${role}`, hasRoleError);
+          return null;
+        }
+
+        return hasRole ? role : null;
+      }),
+    );
+
+    for (const role of fallbackChecks) {
+      if (role) {
+        resolvedRoles.add(role);
+      }
+    }
+
+    return Array.from(resolvedRoles);
   }, []);
+
+  const fetchRoles = useCallback(async (userId: string) => {
+    return resolveRolesWithFallback(userId);
+  }, [resolveRolesWithFallback]);
 
   const applyRoles = useCallback((fetchedRoles: UserRole[]) => {
     setRoles(fetchedRoles);
