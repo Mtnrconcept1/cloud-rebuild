@@ -47,14 +47,34 @@ const ALLOWED_HEADERS = [
   "stripe-signature",
 ].join(", ");
 
+function normalizeOrigin(value: string | null | undefined): string | null {
+  const cleaned = value?.trim();
+  if (!cleaned) return null;
+
+  try {
+    return new URL(cleaned).origin;
+  } catch {
+    return null;
+  }
+}
+
 function parseAllowedOrigins(): string[] {
-  const envValue = Deno.env.get("ALLOWED_ORIGINS")?.trim();
-  if (!envValue) return DEFAULT_ALLOWED_ORIGINS;
-  const parsed = envValue
+  const configuredOrigins = (Deno.env.get("ALLOWED_ORIGINS")?.trim() || "")
     .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return parsed.length > 0 ? parsed : DEFAULT_ALLOWED_ORIGINS;
+    .map((entry) => normalizeOrigin(entry))
+    .filter((entry): entry is string => Boolean(entry));
+
+  const appOrigins = [
+    normalizeOrigin(Deno.env.get("APP_BASE_URL")),
+    normalizeOrigin(Deno.env.get("PUBLIC_APP_URL")),
+    normalizeOrigin(Deno.env.get("SITE_URL")),
+  ].filter((entry): entry is string => Boolean(entry));
+
+  return Array.from(new Set([
+    ...DEFAULT_ALLOWED_ORIGINS,
+    ...configuredOrigins,
+    ...appOrigins,
+  ]));
 }
 
 function isOriginAllowed(origin: string | null, allowed: string[]): boolean {
