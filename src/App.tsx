@@ -69,6 +69,8 @@ const DashboardPromotions = lazy(() => import("./pages/dashboard/DashboardPromot
 const DashboardCampagneOverview = lazy(() => import("./pages/dashboard/DashboardCampagneOverview"));
 const DashboardReseauxSociaux = lazy(() => import("./pages/dashboard/DashboardReseauxSociaux"));
 const DashboardFactures = lazy(() => import("./pages/dashboard/DashboardFactures"));
+const DashboardFacturesInflow = lazy(() => import("./pages/dashboard/DashboardFacturesInflow"));
+const DashboardFacturesOutflow = lazy(() => import("./pages/dashboard/DashboardFacturesOutflow"));
 const DashboardInvoiceSettings = lazy(() => import("./pages/dashboard/DashboardInvoiceSettings"));
 const DashboardPhotos = lazy(() => import("./pages/dashboard/DashboardPhotos"));
 const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport"));
@@ -96,6 +98,8 @@ const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 const AdminPlatformConfig = lazy(() => import("./pages/admin/AdminPlatformConfig"));
 const AdminLaunchPacks = lazy(() => import("./pages/admin/AdminLaunchPacks"));
 const AdminCompta = lazy(() => import("./pages/admin/AdminCompta"));
+const AdminComptaInflow = lazy(() => import("./pages/admin/AdminComptaInflow"));
+const AdminComptaOutflow = lazy(() => import("./pages/admin/AdminComptaOutflow"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -245,6 +249,8 @@ function AppShell() {
             }
           />
           <Route path="/dashboard/factures" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard"><DashboardFactures /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/factures/entrees" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><DashboardFacturesInflow /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/factures/sorties" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><DashboardFacturesOutflow /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/factures/parametres" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesParametresEnabled} fallback="/dashboard/factures"><DashboardInvoiceSettings /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/offres" element={<DashboardRoute><FeatureSwitch enabled={dashboardOffresEnabled} fallback="/dashboard"><DashboardOffres /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/ventes-flash" element={<DashboardRoute><FeatureSwitch enabled={dashboardVentesFlashEnabled} fallback="/dashboard"><DashboardVentesFlash /></FeatureSwitch></DashboardRoute>} />
@@ -274,6 +280,8 @@ function AppShell() {
           <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/packs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminPacksEnabled} fallback="/admin"><AdminLaunchPacks /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/compta/entrees" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaInflow /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/compta/sorties" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
