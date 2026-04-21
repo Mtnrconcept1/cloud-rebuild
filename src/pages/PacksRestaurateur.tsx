@@ -63,8 +63,6 @@ const FAQ_ITEMS = [
 const ALLOWED_PAYMENT_METHODS: PaymentMethodId[] = [
   "card",
   "twint",
-  "postfinance_card",
-  "postfinance_efinance",
 ];
 
 type Restaurant = { id: string; name: string };
