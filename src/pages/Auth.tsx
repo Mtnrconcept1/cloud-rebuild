@@ -4,6 +4,7 @@ import { Bike, ChefHat, FileText, Loader2, Shield, ShoppingBag, Upload } from "l
 
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth";
+import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import {
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
@@ -164,6 +165,11 @@ export default function Auth() {
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
     [roleMode, signupForm.vehicleType],
   );
+  const postAuthRedirectTarget = useMemo(() => {
+    const redirectTarget = searchParams.get("redirect");
+    if (!redirectTarget) return null;
+    return normalizeInternalNavigationTarget(redirectTarget, "/");
+  }, [searchParams]);
 
   useEffect(() => {
     if (user && roles.length > 1 && !showRolePicker) {
@@ -173,7 +179,7 @@ export default function Auth() {
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     switchRole(selectedRole);
-    navigate(ROLE_CONFIG[selectedRole].to);
+    navigate(postAuthRedirectTarget || ROLE_CONFIG[selectedRole].to);
   };
 
   const handleResetPassword = async () => {
@@ -377,7 +383,7 @@ export default function Auth() {
   }
 
   if (user && roles.length === 1) {
-    navigate(ROLE_CONFIG[roles[0]].to);
+    navigate(postAuthRedirectTarget || ROLE_CONFIG[roles[0]].to);
     return null;
   }
 
