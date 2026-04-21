@@ -61,6 +61,17 @@ export type AdminInvoiceRow = {
   restaurants?: { name: string | null } | null;
 };
 
+export type AdminCampaignRow = {
+  id: string;
+  restaurant_id: string;
+  created_at: string | null;
+  payment_status: string;
+  paid_amount: number;
+  total_budget: number | null;
+  title: string;
+  restaurants?: { name: string | null } | null;
+};
+
 export function toAmount(value: number | string | null | undefined) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -150,6 +161,11 @@ function buildCommissionBases(orders: readonly AdminOrderRow[], reservations: re
 
 function sumBySource(bases: CommissionBaseTotals, rate: number) {
   return COMMISSION_SOURCE_ORDER.reduce((sum, source) => sum + bases[source] * rate, 0);
+}
+
+function getCampaignPaidAmount(campaign: Pick<AdminCampaignRow, "paid_amount" | "total_budget">) {
+  const paidAmount = toAmount(campaign.paid_amount);
+  return paidAmount > 0 ? paidAmount : toAmount(campaign.total_budget);
 }
 
 export function useAdminComptaData(selectedRestaurant: string, selectedMonth: string) {
@@ -302,6 +318,36 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     },
   });
 
+  const campaignsQuery = useQuery({
+    queryKey: ["admin-compta-paid-campaigns", selectedRestaurant, selectedMonth],
+    queryFn: async () => {
+      let query = supabase
+        .from("ad_campaigns")
+        .select(`
+          id,
+          restaurant_id,
+          created_at,
+          payment_status,
+          paid_amount,
+          total_budget,
+          title,
+          restaurants ( name )
+        `)
+        .eq("payment_status", "paid")
+        .gte("created_at", monthBounds.monthStartDate.toISOString())
+        .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("created_at", { ascending: false });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as AdminCampaignRow[];
+    },
+  });
+
   const commissionBases = useMemo(
     () => buildCommissionBases(ordersQuery.data || [], reservationsQuery.data || []),
     [ordersQuery.data, reservationsQuery.data],
@@ -329,11 +375,17 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     () => sumBySource(commissionBases, 1),
     [commissionBases],
   );
+  const paidCampaignsTotal = useMemo(
+    () => (campaignsQuery.data || []).reduce((sum, campaign) => sum + getCampaignPaidAmount(campaign), 0),
+    [campaignsQuery.data],
+  );
+  const paidCampaignsCount = campaignsQuery.data?.length || 0;
 
   return {
     restaurants: restaurantsQuery.data || [],
     orders: ordersQuery.data || [],
     reservationPayments: reservationsQuery.data || [],
+    paidCampaigns: campaignsQuery.data || [],
     payoutInvoices: payoutInvoicesQuery.data || [],
     tokFeeInvoices: tokFeeInvoicesQuery.data || [],
     payoutInvoiceSections,
@@ -341,15 +393,19 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     commissionBases,
     summary,
     paidEventGross,
+    paidCampaignsTotal,
+    paidCampaignsCount,
     monthOptions,
     isLoading: restaurantsQuery.isLoading
       || ordersQuery.isLoading
       || reservationsQuery.isLoading
+      || campaignsQuery.isLoading
       || payoutInvoicesQuery.isLoading
       || tokFeeInvoicesQuery.isLoading,
     error: restaurantsQuery.error
       || ordersQuery.error
       || reservationsQuery.error
+      || campaignsQuery.error
       || payoutInvoicesQuery.error
       || tokFeeInvoicesQuery.error,
   };
