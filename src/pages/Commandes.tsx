@@ -15,6 +15,8 @@ import {
   getPendingCheckoutPostActions,
 } from "@/lib/pendingCheckout";
 import { cancelOrderByCustomer } from "@/lib/orderMutations";
+import { invokeSupabaseFunction } from "@/lib/session";
+import { parseStripeReturnSearch } from "@/lib/stripeReturn";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -151,7 +153,7 @@ function getDisplayStatus(order: any) {
 }
 
 export default function Commandes() {
-  const { user } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addItem, clearCart } = useCart();
@@ -196,14 +198,27 @@ export default function Commandes() {
   useEffect(() => {
     let isCancelled = false;
 
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get("status");
-    const sessionId = params.get("session_id");
+    const { status, sessionId } = parseStripeReturnSearch(window.location.search);
 
     const finalizeSuccessfulCheckout = async () => {
       const pendingOrderId = localStorage.getItem("stripe_pending_order_id");
       const pendingPostActions = getPendingCheckoutPostActions(sessionId);
-      const targetOrderId = pendingOrderId || pendingPostActions?.orderId || null;
+      let targetOrderId = pendingOrderId || pendingPostActions?.orderId || null;
+
+      if (user && sessionId) {
+        const { data, error } = await invokeSupabaseFunction<{
+          orders?: Array<{ id: string }>;
+        }>("complete-order-checkout", {
+          body: { session_id: sessionId },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        const completedOrders = Array.isArray(data?.orders) ? data.orders : [];
+        targetOrderId ||= completedOrders[0]?.id || null;
+      }
 
       if (pendingPostActions && pendingPostActions.userId === user?.id) {
         try {
@@ -266,15 +281,35 @@ export default function Commandes() {
 
       localStorage.removeItem("stripe_pending_order_id");
       window.history.replaceState({}, "", window.location.pathname);
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
+      queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
 
       if (targetOrderId) {
         toast({ title: "Paiement confirmé", description: "Suivez votre commande en temps réel." });
         navigate(`/commande/${targetOrderId}`, { replace: true });
+      } else {
+        toast({ title: "Paiement confirme", description: "Votre commande est disponible dans votre historique." });
       }
     };
 
+    if (authLoading) {
+      return () => {
+        isCancelled = true;
+      };
+    }
+
     if (status === "success" && sessionId) {
-      void finalizeSuccessfulCheckout();
+      void finalizeSuccessfulCheckout().catch((error) => {
+        if (isCancelled) return;
+        toast({
+          title: "Paiement valide, finalisation en cours",
+          description: error instanceof Error
+            ? error.message
+            : "Rechargez la page dans quelques secondes si la confirmation tarde.",
+          variant: "destructive",
+        });
+      });
     } else if (status === "cancelled") {
       toast({ title: "Paiement annulé", description: "Vous pouvez réessayer depuis votre panier.", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
@@ -283,7 +318,7 @@ export default function Commandes() {
     return () => {
       isCancelled = true;
     };
-  }, [navigate, queryClient, toast, user?.id]);
+  }, [authLoading, navigate, queryClient, session?.access_token, toast, user, user?.id]);
 
   const { data: ordersData, isLoading, error } = useQuery({
     queryKey: ["my-orders", user?.id],

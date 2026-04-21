@@ -13,6 +13,9 @@ project_id = "rgzqxttqwmaylrzxlzob"
 [functions.campaign-portal]
 verify_jwt = false
 
+[functions.complete-order-checkout]
+verify_jwt = false
+
 [functions.courier-portal]
 verify_jwt = false
 

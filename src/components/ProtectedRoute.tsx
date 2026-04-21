@@ -1,5 +1,6 @@
 import { useAuth } from "@/lib/auth";
-import { Navigate } from "react-router-dom";
+import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
+import { Navigate, useLocation } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,6 +9,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, loading, role, roles } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -17,7 +19,14 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) {
+    return (
+      <Navigate
+        to={buildAuthRedirectTarget(location.pathname, location.search)}
+        replace
+      />
+    );
+  }
 
   // Allow if: active role matches, OR user has the required role, OR user is admin
   if (requiredRole && role !== requiredRole && !roles.includes(requiredRole) && role !== "admin" && !roles.includes("admin")) {
