@@ -8,10 +8,12 @@ import RestaurantCancellationDialog from "@/components/RestaurantCancellationDia
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
+import { resolveOpenDayKey } from "@/lib/dashboardGrouping";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import {
   cancelReservationByRestaurant,
@@ -99,6 +101,7 @@ export default function DashboardReservations() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<SortBy>("time");
   const [isCompactMode, setIsCompactMode] = useState(false);
+  const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
@@ -289,6 +292,18 @@ export default function DashboardReservations() {
     );
   }, [filteredReservations]);
 
+  useEffect(() => {
+    const visibleDateKeys = groupedReservations.map((group) => group.dateKey);
+
+    setOpenDayKey((previousOpenDayKey) =>
+      resolveOpenDayKey({
+        visibleDateKeys,
+        currentDateKey: referenceDate,
+        previousOpenDayKey,
+      }),
+    );
+  }, [groupedReservations, referenceDate]);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -418,207 +433,222 @@ export default function DashboardReservations() {
             </div>
 
             {groupedReservations.length > 0 ? (
-              <div className="space-y-4">
+              <Accordion
+                type="single"
+                collapsible
+                className="space-y-4"
+                value={openDayKey ?? undefined}
+                onValueChange={(value) => setOpenDayKey(value || null)}
+              >
                 {groupedReservations.map((dateGroup) => (
-                  <section key={dateGroup.dateKey} className="space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-muted/20 px-4 py-3">
-                      <div>
-                        <p className="text-sm font-semibold capitalize">{dateGroup.dateLabel}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {dateGroup.reservationCount} reservation(s) - {dateGroup.totalGuests} couverts
-                        </p>
-                      </div>
-                    </div>
-
-                    {dateGroup.groups.map((group) => (
-                      <div key={`${dateGroup.dateKey}-${group.slot}`} className="space-y-2">
-                        <div className="flex items-center justify-between rounded-lg border border-dashed px-3 py-2 text-sm">
-                          <div className="flex items-center gap-2 font-semibold">
-                            <Dot className="h-4 w-4" />
-                            <span>{group.slot}</span>
-                          </div>
-                          <p className="text-muted-foreground">
-                            {group.reservationCount} reservation(s) - {group.totalGuests} couverts
+                  <AccordionItem
+                    key={dateGroup.dateKey}
+                    value={dateGroup.dateKey}
+                    className="overflow-hidden rounded-xl border bg-muted/20"
+                  >
+                    <AccordionTrigger className="px-4 py-3 text-left hover:no-underline">
+                      <div className="flex flex-1 flex-wrap items-center justify-between gap-2 pr-4">
+                        <div>
+                          <p className="text-sm font-semibold capitalize">{dateGroup.dateLabel}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {dateGroup.reservationCount} reservation(s) - {dateGroup.totalGuests} couverts
                           </p>
                         </div>
-                        <div className="space-y-2">
-                          {group.items.map((reservation) => {
-                        const metadata = extractMetadata(reservation);
-                        const servicePeriod = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
-                        const hasNoShowRisk = metadata.no_show_risk || metadata.risk_level === "high";
-                        const keyNotes = metadata.key_notes || [];
-                        const offerName = metadata.formula_applied || metadata.promo;
-                        const offerDiscountPercent = metadata.formula_discount_percent ?? metadata.discount;
-                        const offerDiscountAmount = metadata.formula_discount_amount;
-                        const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
-                        const compactBase = isCompactMode ? "p-3" : "p-4";
-                        const statusLockMessage = getReservationStatusLockMessage(reservation);
-                        const isReservationLocked = Boolean(statusLockMessage);
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <div className="space-y-3">
+                        {dateGroup.groups.map((group) => (
+                          <div key={`${dateGroup.dateKey}-${group.slot}`} className="space-y-2">
+                            <div className="flex items-center justify-between rounded-lg border border-dashed bg-background/80 px-3 py-2 text-sm">
+                              <div className="flex items-center gap-2 font-semibold">
+                                <Dot className="h-4 w-4" />
+                                <span>{group.slot}</span>
+                              </div>
+                              <p className="text-muted-foreground">
+                                {group.reservationCount} reservation(s) - {group.totalGuests} couverts
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              {group.items.map((reservation) => {
+                                const metadata = extractMetadata(reservation);
+                                const servicePeriod = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
+                                const hasNoShowRisk = metadata.no_show_risk || metadata.risk_level === "high";
+                                const keyNotes = metadata.key_notes || [];
+                                const offerName = metadata.formula_applied || metadata.promo;
+                                const offerDiscountPercent = metadata.formula_discount_percent ?? metadata.discount;
+                                const offerDiscountAmount = metadata.formula_discount_amount;
+                                const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
+                                const compactBase = isCompactMode ? "p-3" : "p-4";
+                                const statusLockMessage = getReservationStatusLockMessage(reservation);
+                                const isReservationLocked = Boolean(statusLockMessage);
 
-                        const isZeroAttente = reservation.feature === "zero-attente";
-                        const isChefTable = reservation.feature === "chefs_table";
-                        const articleClass = isZeroAttente
-                          ? `rounded-xl border-2 border-indigo-300 bg-indigo-50/40 ${compactBase}`
-                          : isChefTable
-                          ? `rounded-xl border-2 border-amber-300 bg-amber-50/40 ${compactBase}`
-                          : `rounded-xl border bg-card ${compactBase}`;
+                                const isZeroAttente = reservation.feature === "zero-attente";
+                                const isChefTable = reservation.feature === "chefs_table";
+                                const articleClass = isZeroAttente
+                                  ? `rounded-xl border-2 border-indigo-300 bg-indigo-50/40 ${compactBase}`
+                                  : isChefTable
+                                  ? `rounded-xl border-2 border-amber-300 bg-amber-50/40 ${compactBase}`
+                                  : `rounded-xl border bg-card ${compactBase}`;
 
-                            return (
-                              <article key={reservation.id} className={articleClass}>
-                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                  <div className="space-y-2">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <span className="font-semibold">{reservation.customer?.full_name || "Client inconnu"}</span>
-                                      <OrderStatusBadge status={reservation.status} />
-                                      <Badge variant="secondary">{reservation.party_size} pers.</Badge>
-                                      <Badge variant="outline">{getServicePeriodLabel(servicePeriod)}</Badge>
-                                      {isZeroAttente && (
-                                        <Badge className="text-[10px] uppercase tracking-widest border-indigo-300 text-white bg-indigo-500">Zero Attente</Badge>
-                                      )}
-                                      {isChefTable && (
-                                        <Badge className="text-[10px] uppercase tracking-widest border-amber-300 text-white bg-amber-500">Chef's Table</Badge>
-                                      )}
-                                    </div>
-                                    {!isCompactMode ? (
-                                      <p className="text-sm text-muted-foreground">
-                                        {new Date(reservation.date).toLocaleDateString("fr-FR")} - {getSafeTime(reservation.time)}
-                                        {reservation.customer?.phone ? ` - ${reservation.customer.phone}` : ""}
-                                      </p>
-                                    ) : null}
-                                    <div className="flex flex-wrap gap-2">
-                                      {offerName || typeof offerDiscountPercent === "number" ? (
-                                        <Badge variant="outline" className="text-[11px]">
-                                          {offerLabel}
-                                          {offerName ? ` - ${offerName}` : ""}
-                                          {typeof offerDiscountPercent === "number" ? ` - -${offerDiscountPercent}%` : ""}
-                                          {typeof offerDiscountAmount === "number" && offerDiscountAmount > 0
-                                            ? ` - -${offerDiscountAmount.toFixed(2)} CHF`
-                                            : ""}
-                                        </Badge>
-                                      ) : null}
-                                      {hasNoShowRisk ? (
-                                        <Badge variant="destructive" className="text-[11px]">
-                                          <ShieldAlert className="mr-1 h-3 w-3" />
-                                          Risque no-show
-                                        </Badge>
-                                      ) : null}
-                                      {keyNotes.slice(0, 2).map((note) => (
-                                        <Badge key={note} variant="outline" className="text-[11px]">
-                                          {note}
-                                        </Badge>
-                                      ))}
-                                      {reservation.notes && !isCompactMode ? (
-                                        <Badge variant="outline" className="text-[11px]">
-                                          <AlertTriangle className="mr-1 h-3 w-3" />
-                                          {reservation.notes}
-                                        </Badge>
-                                      ) : null}
-                                    </div>
+                                return (
+                                  <article key={reservation.id} className={articleClass}>
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                      <div className="space-y-2">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <span className="font-semibold">{reservation.customer?.full_name || "Client inconnu"}</span>
+                                          <OrderStatusBadge status={reservation.status} />
+                                          <Badge variant="secondary">{reservation.party_size} pers.</Badge>
+                                          <Badge variant="outline">{getServicePeriodLabel(servicePeriod)}</Badge>
+                                          {isZeroAttente && (
+                                            <Badge className="border-indigo-300 bg-indigo-500 text-[10px] uppercase tracking-widest text-white">Zero Attente</Badge>
+                                          )}
+                                          {isChefTable && (
+                                            <Badge className="border-amber-300 bg-amber-500 text-[10px] uppercase tracking-widest text-white">Chef's Table</Badge>
+                                          )}
+                                        </div>
+                                        {!isCompactMode ? (
+                                          <p className="text-sm text-muted-foreground">
+                                            {new Date(reservation.date).toLocaleDateString("fr-FR")} - {getSafeTime(reservation.time)}
+                                            {reservation.customer?.phone ? ` - ${reservation.customer.phone}` : ""}
+                                          </p>
+                                        ) : null}
+                                        <div className="flex flex-wrap gap-2">
+                                          {offerName || typeof offerDiscountPercent === "number" ? (
+                                            <Badge variant="outline" className="text-[11px]">
+                                              {offerLabel}
+                                              {offerName ? ` - ${offerName}` : ""}
+                                              {typeof offerDiscountPercent === "number" ? ` - -${offerDiscountPercent}%` : ""}
+                                              {typeof offerDiscountAmount === "number" && offerDiscountAmount > 0
+                                                ? ` - -${offerDiscountAmount.toFixed(2)} CHF`
+                                                : ""}
+                                            </Badge>
+                                          ) : null}
+                                          {hasNoShowRisk ? (
+                                            <Badge variant="destructive" className="text-[11px]">
+                                              <ShieldAlert className="mr-1 h-3 w-3" />
+                                              Risque no-show
+                                            </Badge>
+                                          ) : null}
+                                          {keyNotes.slice(0, 2).map((note) => (
+                                            <Badge key={note} variant="outline" className="text-[11px]">
+                                              {note}
+                                            </Badge>
+                                          ))}
+                                          {reservation.notes && !isCompactMode ? (
+                                            <Badge variant="outline" className="text-[11px]">
+                                              <AlertTriangle className="mr-1 h-3 w-3" />
+                                              {reservation.notes}
+                                            </Badge>
+                                          ) : null}
+                                        </div>
 
-                                    {!isCompactMode ? (
-                                      <div className="mt-4 space-y-3 border-t pt-3">
-                                        {metadata.preorder_items && metadata.preorder_items.length > 0 ? (
-                                          <div className="space-y-1.5">
-                                            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase text-muted-foreground">
-                                              <Utensils className="h-3 w-3" />
-                                              Plats reserves
-                                            </p>
-                                            <div className="grid grid-cols-1 gap-1.5">
-                                              {metadata.preorder_items.map((item, index) => (
-                                                <div key={index} className="flex items-center gap-2 rounded-lg bg-muted/20 p-2 text-sm">
-                                                  <span className="text-xs font-bold text-primary">x{item.quantity}</span>
-                                                  <span className="font-medium">{item.name}</span>
+                                        {!isCompactMode ? (
+                                          <div className="mt-4 space-y-3 border-t pt-3">
+                                            {metadata.preorder_items && metadata.preorder_items.length > 0 ? (
+                                              <div className="space-y-1.5">
+                                                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase text-muted-foreground">
+                                                  <Utensils className="h-3 w-3" />
+                                                  Plats reserves
+                                                </p>
+                                                <div className="grid grid-cols-1 gap-1.5">
+                                                  {metadata.preorder_items.map((item, index) => (
+                                                    <div key={index} className="flex items-center gap-2 rounded-lg bg-muted/20 p-2 text-sm">
+                                                      <span className="text-xs font-bold text-primary">x{item.quantity}</span>
+                                                      <span className="font-medium">{item.name}</span>
+                                                    </div>
+                                                  ))}
                                                 </div>
-                                              ))}
+                                              </div>
+                                            ) : null}
+
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                                              {metadata.payment_method ? (
+                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                  <CreditCard className="h-3.5 w-3.5" />
+                                                  <span>
+                                                    Paiement : <strong className="uppercase text-foreground">{metadata.payment_method}</strong>
+                                                  </span>
+                                                  {metadata.card_last4 ? (
+                                                    <span className="rounded bg-secondary px-1.5 py-0.5 font-mono">**** {metadata.card_last4}</span>
+                                                  ) : null}
+                                                </div>
+                                              ) : null}
+                                              {reservation.total_amount > 0 ? (
+                                                <div className="text-sm font-bold text-primary">
+                                                  Total : {Number(reservation.total_amount).toFixed(2)} CHF
+                                                </div>
+                                              ) : null}
                                             </div>
                                           </div>
                                         ) : null}
-
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                                          {metadata.payment_method ? (
-                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                              <CreditCard className="h-3.5 w-3.5" />
-                                              <span>
-                                                Paiement : <strong className="uppercase text-foreground">{metadata.payment_method}</strong>
-                                              </span>
-                                              {metadata.card_last4 ? (
-                                                <span className="rounded bg-secondary px-1.5 py-0.5 font-mono">**** {metadata.card_last4}</span>
-                                              ) : null}
-                                            </div>
-                                          ) : null}
-                                          {reservation.total_amount > 0 ? (
-                                            <div className="text-sm font-bold text-primary">
-                                              Total : {Number(reservation.total_amount).toFixed(2)} CHF
-                                            </div>
-                                          ) : null}
-                                        </div>
                                       </div>
-                                    ) : null}
-                                  </div>
 
-                                  <div className="flex flex-wrap gap-2 sm:justify-end">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
-                                      disabled={updateStatusMutation.isPending || isReservationLocked}
-                                    >
-                                      <UserCheck className="mr-1 h-4 w-4" />
-                                      Arrivee
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => setCancelTarget(reservation)}
-                                      disabled={
-                                        isReservationLocked ||
-                                        reservation.status === "no_show" ||
-                                        cancelMutation.isPending
-                                      }
-                                      className="text-destructive"
-                                    >
-                                      <Ban className="mr-1 h-4 w-4" />
-                                      Annuler
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "no_show" })}
-                                      disabled={updateStatusMutation.isPending || isReservationLocked}
-                                      className="text-destructive"
-                                    >
-                                      <X className="mr-1 h-4 w-4" />
-                                      No-show
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      onClick={() =>
-                                        updateStatusMutation.mutate({
-                                          id: reservation.id,
-                                          status: reservation.status === "confirmed" ? "pending" : "confirmed",
-                                        })
-                                      }
-                                      disabled={updateStatusMutation.isPending || isReservationLocked}
-                                    >
-                                      <Check className="mr-1 h-4 w-4" />
-                                      {reservation.status === "confirmed" ? "Reservee" : "Confirmee"}
-                                    </Button>
-                                  </div>
-                                  {statusLockMessage ? (
-                                    <p className="text-xs text-muted-foreground sm:text-right">
-                                      {statusLockMessage}
-                                    </p>
-                                  ) : null}
-                                </div>
-                              </article>
-                            );
-                          })}
-                        </div>
+                                      <div className="flex flex-wrap gap-2 sm:justify-end">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
+                                          disabled={updateStatusMutation.isPending || isReservationLocked}
+                                        >
+                                          <UserCheck className="mr-1 h-4 w-4" />
+                                          Arrivee
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => setCancelTarget(reservation)}
+                                          disabled={
+                                            isReservationLocked ||
+                                            reservation.status === "no_show" ||
+                                            cancelMutation.isPending
+                                          }
+                                          className="text-destructive"
+                                        >
+                                          <Ban className="mr-1 h-4 w-4" />
+                                          Annuler
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "no_show" })}
+                                          disabled={updateStatusMutation.isPending || isReservationLocked}
+                                          className="text-destructive"
+                                        >
+                                          <X className="mr-1 h-4 w-4" />
+                                          No-show
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() =>
+                                            updateStatusMutation.mutate({
+                                              id: reservation.id,
+                                              status: reservation.status === "confirmed" ? "pending" : "confirmed",
+                                            })
+                                          }
+                                          disabled={updateStatusMutation.isPending || isReservationLocked}
+                                        >
+                                          <Check className="mr-1 h-4 w-4" />
+                                          {reservation.status === "confirmed" ? "Reservee" : "Confirmee"}
+                                        </Button>
+                                      </div>
+                                      {statusLockMessage ? (
+                                        <p className="text-xs text-muted-foreground sm:text-right">
+                                          {statusLockMessage}
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                  </article>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </section>
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
+              </Accordion>
             ) : (
               <p className="py-10 text-center text-muted-foreground">Aucune reservation pour les filtres selectionnes.</p>
             )}
