@@ -75,7 +75,7 @@ type BuildPerformanceSummaryInput = {
   toDay: string;
 };
 
-export const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed"]);
+export const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed", "pending_payment"]);
 export const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "no_show"]);
 
 function normalizeStatus(status: string | null | undefined) {

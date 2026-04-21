@@ -22,6 +22,9 @@ verify_jwt = false
 [functions.create-checkout]
 verify_jwt = false
 
+[functions.create-chefs-table-reservation]
+verify_jwt = false
+
 [functions.create-zero-attente-reservation]
 verify_jwt = false
 

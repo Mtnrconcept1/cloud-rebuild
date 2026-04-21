@@ -239,7 +239,7 @@ export default function DashboardFactures() {
           .eq("restaurant_id", selectedId!)
           .is("restaurant_invoice_id", null)
           .in("payment_status", ["paid", "captured"])
-          .not("status", "in", "(cancelled,payment_failed,refused,pending)"),
+          .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)"),
         supabase
           .from("reservations")
           .select("total_amount")

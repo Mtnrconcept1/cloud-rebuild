@@ -57,6 +57,24 @@ type RestaurantPromotionRow = {
   promotion_value: number;
 };
 
+type PromoCodeRow = {
+  id: string;
+  code: string;
+  type: string;
+  value: number;
+  min_order_amount: number | null;
+  max_discount: number | null;
+  max_uses: number | null;
+  current_uses: number | null;
+  per_user_limit: number | null;
+  restaurant_id: string | null;
+  is_first_order_only: boolean | null;
+  is_stackable: boolean | null;
+  valid_from: string | null;
+  valid_until: string | null;
+  is_active: boolean | null;
+};
+
 type TokOneSubscriptionRow = {
   id: string;
   plan_id: string | null;
@@ -93,6 +111,10 @@ export type VerifiedOrderPricing = {
   formulaName: string | null;
   promoDiscount: number;
   promoName: string | null;
+  promoCodeId: string | null;
+  promoCodeDiscount: number;
+  promoCodeName: string | null;
+  promotionSource: "restaurant_promotion" | "promo_code" | null;
   tokOneMember: boolean;
   tokOneDiscount: number;
   tokOneDiscountPercent: number;
@@ -314,6 +336,97 @@ function computePromotionDiscount(
   return {
     amount: bestPromo?.discount || 0,
     name: bestPromo?.name || null,
+  };
+}
+
+async function computePromoCodeDiscount(input: {
+  adminClient: any;
+  userId: string;
+  restaurantId: string;
+  promoCodeId: string | null;
+  subtotal: number;
+  deliveryFee: number;
+}) {
+  if (!input.promoCodeId) {
+    return {
+      id: null,
+      amount: 0,
+      name: null,
+    };
+  }
+
+  const { data: promoRow, error: promoError } = await input.adminClient
+    .from("promo_codes")
+    .select("id, code, type, value, min_order_amount, max_discount, max_uses, current_uses, per_user_limit, restaurant_id, is_first_order_only, is_stackable, valid_from, valid_until, is_active")
+    .eq("id", input.promoCodeId)
+    .maybeSingle();
+
+  if (promoError) throw new Error(promoError.message);
+
+  const promo = promoRow as PromoCodeRow | null;
+  if (!promo || promo.is_active === false) {
+    throw new Error("Code promo invalide.");
+  }
+
+  const now = new Date().toISOString();
+  if (promo.valid_from && promo.valid_from > now) {
+    throw new Error("Ce code promo n'est pas encore actif.");
+  }
+  if (promo.valid_until && promo.valid_until < now) {
+    throw new Error("Ce code promo a expire.");
+  }
+  if (promo.max_uses != null && Number(promo.current_uses || 0) >= promo.max_uses) {
+    throw new Error("Ce code promo a atteint sa limite d'utilisation.");
+  }
+  if (promo.restaurant_id && promo.restaurant_id !== input.restaurantId) {
+    throw new Error("Ce code promo n'est pas valable pour ce restaurant.");
+  }
+  if (promo.min_order_amount && input.subtotal < Number(promo.min_order_amount)) {
+    throw new Error(`Commande minimum de ${Number(promo.min_order_amount).toFixed(2)} CHF requise.`);
+  }
+
+  if (promo.per_user_limit) {
+    const { count, error: usesError } = await input.adminClient
+      .from("promo_code_uses")
+      .select("*", { count: "exact", head: true })
+      .eq("promo_code_id", promo.id)
+      .eq("user_id", input.userId);
+
+    if (usesError) throw new Error(usesError.message);
+    if (count != null && count >= promo.per_user_limit) {
+      throw new Error("Vous avez deja utilise ce code.");
+    }
+  }
+
+  if (promo.is_first_order_only) {
+    const { count, error: ordersError } = await input.adminClient
+      .from("orders")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", input.userId)
+      .not("status", "in", "(cancelled,refused,payment_failed,pending_payment)");
+
+    if (ordersError) throw new Error(ordersError.message);
+    if (count != null && count > 0) {
+      throw new Error("Ce code est reserve a la premiere commande.");
+    }
+  }
+
+  let discount = 0;
+  if (promo.type === "percentage") {
+    discount = roundCurrency((input.subtotal * Number(promo.value || 0)) / 100);
+    if (promo.max_discount) {
+      discount = Math.min(discount, Number(promo.max_discount));
+    }
+  } else if (promo.type === "fixed") {
+    discount = Math.min(Number(promo.value || 0), input.subtotal);
+  } else if (promo.type === "free_delivery") {
+    discount = roundCurrency(input.deliveryFee);
+  }
+
+  return {
+    id: promo.id,
+    amount: roundCurrency(discount),
+    name: `Code ${promo.code}`,
   };
 }
 
@@ -838,6 +951,31 @@ export async function buildVerifiedOrderPricing(input: {
     subtotal,
     deliveryFee,
   );
+  const promoCode = await computePromoCodeDiscount({
+    adminClient: input.adminClient,
+    userId: input.userId,
+    restaurantId: input.restaurantId,
+    promoCodeId: typeof metadata.promo_code_id === "string" ? metadata.promo_code_id : null,
+    subtotal,
+    deliveryFee,
+  });
+  const selectedPromo = promoCode.amount > 0 && promoCode.amount >= promotion.amount
+    ? {
+      amount: promoCode.amount,
+      name: promoCode.name,
+      source: "promo_code" as const,
+    }
+    : promotion.amount > 0
+      ? {
+        amount: promotion.amount,
+        name: promotion.name,
+        source: "restaurant_promotion" as const,
+      }
+      : {
+        amount: 0,
+        name: null,
+        source: null,
+      };
 
   const maxPointsDiscount = roundCurrency(Math.max(0, toNumber(profileRes.data?.loyalty_points) / 100));
   const requestedPointsDiscount = roundCurrency(Math.max(0, toNumber(metadata.points_discount_amount || metadata.points_discount)));
@@ -853,7 +991,7 @@ export async function buildVerifiedOrderPricing(input: {
   const discountAmount = roundCurrency(
     Math.min(
       originalTotal,
-      formula.amount + promotion.amount + tokOnePricing.tokOneDiscount + tokOnePricing.tokOneDeliveryDiscount + pointsDiscount + flexDiscount,
+      formula.amount + selectedPromo.amount + tokOnePricing.tokOneDiscount + tokOnePricing.tokOneDeliveryDiscount + pointsDiscount + flexDiscount,
     ),
   );
 
@@ -865,8 +1003,12 @@ export async function buildVerifiedOrderPricing(input: {
     formulaDiscount: formula.amount,
     formulaDiscountPercent: formula.percent,
     formulaName: formula.name,
-    promoDiscount: promotion.amount,
-    promoName: promotion.name,
+    promoDiscount: selectedPromo.amount,
+    promoName: selectedPromo.name,
+    promoCodeId: selectedPromo.source === "promo_code" ? promoCode.id : null,
+    promoCodeDiscount: selectedPromo.source === "promo_code" ? promoCode.amount : 0,
+    promoCodeName: selectedPromo.source === "promo_code" ? promoCode.name : null,
+    promotionSource: selectedPromo.source,
     tokOneMember: tokOnePricing.tokOneMember,
     tokOneDiscount: tokOnePricing.tokOneDiscount,
     tokOneDiscountPercent: tokOnePricing.tokOneDiscountPercent,

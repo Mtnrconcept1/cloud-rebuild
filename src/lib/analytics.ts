@@ -45,7 +45,7 @@ const ANALYTICS_VIEWER_KEY = "miamz-analytics-viewer-v1";
 const SPONSORED_AUDIENCE_CACHE_MS = 5 * 60 * 1000;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed"]);
+const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed", "pending_payment"]);
 const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "refused"]);
 
 type SponsoredRotationStore = Record<string, WeightedCampaignRotationState>;

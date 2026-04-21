@@ -108,6 +108,8 @@ Deno.serve(async (req) => {
       formula_discount_percent: pricing.formulaDiscountPercent,
       promotion_applied: pricing.promoName,
       promotion_discount_amount: pricing.promoDiscount,
+      promo_code_id: pricing.promoCodeId,
+      promo_code_discount_amount: pricing.promoCodeDiscount,
       tok_one_member: pricing.tokOneMember,
       tok_one_discount_amount: pricing.tokOneDiscount,
       tok_one_discount_percent: pricing.tokOneDiscountPercent,
@@ -249,20 +251,23 @@ Deno.serve(async (req) => {
       .select("full_name")
       .eq("user_id", actor.userId!)
       .maybeSingle();
-    const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId!);
-    const userEmail = authUser?.user?.email || "client@tok.ch";
 
-    await actor.adminClient.from("email_queue").insert({
-      to_email: userEmail,
-      subject: `Confirmation de commande ${orderReference}`.trim(),
-      body_text: `Commande enregistree. Total valide: ${pricing.total.toFixed(2)} CHF`,
-      metadata: {
-        order_id: orderId,
-        restaurant_id,
-        items: pricing.validatedItems.length,
-        customer_name: profile?.full_name || null,
-      },
-    });
+    if (!hasStripeSession) {
+      const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId!);
+      const userEmail = authUser?.user?.email || "client@tok.ch";
+
+      await actor.adminClient.from("email_queue").insert({
+        to_email: userEmail,
+        subject: `Confirmation de commande ${orderReference}`.trim(),
+        body_text: `Commande enregistree. Total valide: ${pricing.total.toFixed(2)} CHF`,
+        metadata: {
+          order_id: orderId,
+          restaurant_id,
+          items: pricing.validatedItems.length,
+          customer_name: profile?.full_name || null,
+        },
+      });
+    }
 
     if (isDelivery && scheduledDelivery) {
       await actor.adminClient.from("delivery_tracking").upsert({
@@ -342,6 +347,8 @@ Deno.serve(async (req) => {
         verified_total: pricing.total,
         original_total: pricing.originalTotal,
         discount_amount: pricing.discountAmount,
+        applied_promo_code_id: pricing.promoCodeId,
+        applied_promo_code_discount: pricing.promoCodeDiscount,
       },
       200,
       corsHeaders,

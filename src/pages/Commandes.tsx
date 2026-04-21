@@ -1,22 +1,22 @@
-import { useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useNavigate, Link } from "react-router-dom";
-import OrderStatusBadge from "@/components/OrderStatusBadge";
-import { Button } from "@/components/ui/button";
-import { ShoppingCart, MapPin, CreditCard, Banknote, Percent, Truck, Sparkles, Gift, Package, RefreshCcw, XCircle, Crown } from "lucide-react";
-import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
-import { normalizeOrderStatus } from "@/lib/orderStatus";
-import { useToast } from "@/hooks/use-toast";
-import { useCart } from "@/lib/cart";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  clearPendingCheckoutPostActions,
-  getPendingCheckoutPostActions,
-} from "@/lib/pendingCheckout";
-import { cancelOrderByCustomer } from "@/lib/orderMutations";
-import { invokeSupabaseFunction } from "@/lib/session";
-import { parseStripeReturnSearch } from "@/lib/stripeReturn";
+  Banknote,
+  CreditCard,
+  Crown,
+  Gift,
+  MapPin,
+  Package,
+  Percent,
+  RefreshCcw,
+  ShoppingCart,
+  Sparkles,
+  Truck,
+  XCircle,
+} from "lucide-react";
+
+import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import OrderStatusBadge from "@/components/OrderStatusBadge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,14 +28,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { getSupabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
+import { cancelOrderByCustomer } from "@/lib/orderMutations";
+import { normalizeOrderStatus } from "@/lib/orderStatus";
+import { parseStripeReturnSearch } from "@/lib/stripeReturn";
 import { getOrderStatusLockMessage } from "@/lib/statusLocks";
+import { useToast } from "@/hooks/use-toast";
 
 const supabase = getSupabase();
 
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
   card: { label: "Carte bancaire", icon: CreditCard },
   twint: { label: "TWINT", icon: CreditCard },
-  cash: { label: "Espèces", icon: Banknote },
+  cash: { label: "Especes", icon: Banknote },
 };
 
 function PaymentBreakdown({ order }: { order: any }) {
@@ -54,8 +62,8 @@ function PaymentBreakdown({ order }: { order: any }) {
   const total = Number(order.total_amount);
   const subtotal = Number(
     meta.pre_discount_subtotal
-    || subtotalFromItems
-    || Math.max(0, total - deliveryFee - qualityFee + formulaDiscount + promotionDiscount + tokOneDiscount + flexDiscount + pointsDiscount),
+      || subtotalFromItems
+      || Math.max(0, total - deliveryFee - qualityFee + formulaDiscount + promotionDiscount + tokOneDiscount + flexDiscount + pointsDiscount),
   );
   const tokOneMember = !!meta.tok_one_member;
   const tokOneDeliverySaved = Number(meta.tok_one_delivery_saved || 0);
@@ -110,7 +118,7 @@ function PaymentBreakdown({ order }: { order: any }) {
       ) : null}
       {pointsDiscount > 0 ? (
         <div className="flex justify-between text-emerald-600">
-          <span className="flex items-center gap-1"><Gift className="h-3 w-3" />Points fidélité</span>
+          <span className="flex items-center gap-1"><Gift className="h-3 w-3" />Points fidelite</span>
           <span>-{pointsDiscount.toFixed(2)} CHF</span>
         </div>
       ) : null}
@@ -127,7 +135,7 @@ function PaymentBreakdown({ order }: { order: any }) {
       ) : null}
       {qualityFee > 0 ? (
         <div className="flex justify-between text-muted-foreground">
-          <span>Garantie qualité</span>
+          <span>Garantie qualite</span>
           <span>+{qualityFee.toFixed(2)} CHF</span>
         </div>
       ) : null}
@@ -137,7 +145,7 @@ function PaymentBreakdown({ order }: { order: any }) {
       </div>
       <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
         <PmIcon className="h-3 w-3" />
-        <span>Payé par {pm.label}</span>
+        <span>Paye par {pm.label}</span>
       </div>
     </div>
   );
@@ -152,19 +160,26 @@ function getDisplayStatus(order: any) {
   return normalizeOrderStatus(order.status);
 }
 
+function getCheckoutSessionId(order: any) {
+  const raw = order?.metadata?.stripe_session_id;
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
 export default function Commandes() {
-  const { user, session, loading: authLoading } = useAuth();
+  const { user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addItem, clearCart } = useCart();
   const queryClient = useQueryClient();
+  const stripeReturn = parseStripeReturnSearch(location.search);
 
   const handleReorder = (order: any) => {
     clearCart();
     const items = (order.order_items as any[]) || [];
     for (const item of items) {
       const unitPrice = Number(item.total_price) / Math.max(item.quantity, 1);
-      for (let i = 0; i < item.quantity; i++) {
+      for (let i = 0; i < item.quantity; i += 1) {
         addItem({
           menuItemId: item.menu_item_id,
           name: item.name || "Article",
@@ -194,138 +209,12 @@ export default function Commandes() {
     },
   });
 
-  // Handle Stripe payment return — redirect to real-time order tracking
-  useEffect(() => {
-    let isCancelled = false;
-
-    const { status, sessionId } = parseStripeReturnSearch(window.location.search);
-
-    const finalizeSuccessfulCheckout = async () => {
-      const pendingOrderId = localStorage.getItem("stripe_pending_order_id");
-      const pendingPostActions = getPendingCheckoutPostActions(sessionId);
-      let targetOrderId = pendingOrderId || pendingPostActions?.orderId || null;
-
-      if (user && sessionId) {
-        const { data, error } = await invokeSupabaseFunction<{
-          orders?: Array<{ id: string }>;
-        }>("complete-order-checkout", {
-          body: { session_id: sessionId },
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        const completedOrders = Array.isArray(data?.orders) ? data.orders : [];
-        targetOrderId ||= completedOrders[0]?.id || null;
-      }
-
-      if (pendingPostActions && pendingPostActions.userId === user?.id) {
-        try {
-          if (pendingPostActions.pointsToRedeem > 0) {
-            const { error: rpcError } = await (supabase.rpc as any)("redeem_loyalty_points", {
-              user_id_param: pendingPostActions.userId,
-              points_to_redeem: pendingPostActions.pointsToRedeem,
-              description_param: `Paiement pour commande du ${new Date().toLocaleDateString()}`,
-            });
-            if (rpcError) throw rpcError;
-          }
-
-          const appliedOrderId = pendingPostActions.orderId || pendingOrderId;
-          if (pendingPostActions.promoCodeId && appliedOrderId) {
-            const { data: existingUse, error: existingUseError } = await supabase
-              .from("promo_code_uses")
-              .select("id")
-              .eq("promo_code_id", pendingPostActions.promoCodeId)
-              .eq("user_id", pendingPostActions.userId)
-              .eq("order_id", appliedOrderId)
-              .maybeSingle();
-
-            if (existingUseError) throw existingUseError;
-
-            if (!existingUse) {
-              const { error: insertUseError } = await supabase
-                .from("promo_code_uses")
-                .insert({
-                  promo_code_id: pendingPostActions.promoCodeId,
-                  user_id: pendingPostActions.userId,
-                  order_id: appliedOrderId,
-                });
-              if (insertUseError) throw insertUseError;
-
-              const { data: promoCodeRow, error: promoCodeError } = await supabase
-                .from("promo_codes")
-                .select("current_uses")
-                .eq("id", pendingPostActions.promoCodeId)
-                .single();
-              if (promoCodeError) throw promoCodeError;
-
-              const currentUses = Number(promoCodeRow?.current_uses || 0);
-              const { error: updatePromoError } = await supabase
-                .from("promo_codes")
-                .update({ current_uses: currentUses + 1 })
-                .eq("id", pendingPostActions.promoCodeId);
-              if (updatePromoError) throw updatePromoError;
-            }
-          }
-
-          clearPendingCheckoutPostActions(sessionId);
-          queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
-          queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
-        } catch (error) {
-          console.error("Failed to apply pending checkout post-actions:", error);
-        }
-      }
-
-      if (isCancelled) return;
-
-      localStorage.removeItem("stripe_pending_order_id");
-      window.history.replaceState({}, "", window.location.pathname);
-      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
-      queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
-
-      if (targetOrderId) {
-        toast({ title: "Paiement confirmé", description: "Suivez votre commande en temps réel." });
-        navigate(`/commande/${targetOrderId}`, { replace: true });
-      } else {
-        toast({ title: "Paiement confirme", description: "Votre commande est disponible dans votre historique." });
-      }
-    };
-
-    if (authLoading) {
-      return () => {
-        isCancelled = true;
-      };
-    }
-
-    if (status === "success" && sessionId) {
-      void finalizeSuccessfulCheckout().catch((error) => {
-        if (isCancelled) return;
-        toast({
-          title: "Paiement valide, finalisation en cours",
-          description: error instanceof Error
-            ? error.message
-            : "Rechargez la page dans quelques secondes si la confirmation tarde.",
-          variant: "destructive",
-        });
-      });
-    } else if (status === "cancelled") {
-      toast({ title: "Paiement annulé", description: "Vous pouvez réessayer depuis votre panier.", variant: "destructive" });
-      window.history.replaceState({}, "", window.location.pathname);
-    }
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [authLoading, navigate, queryClient, session?.access_token, toast, user, user?.id]);
-
   const { data: ordersData, isLoading, error } = useQuery({
     queryKey: ["my-orders", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_customer_orders_dashboard" as any);
-      if (error) throw error;
+      const { data, error: rpcError } = await supabase.rpc("get_customer_orders_dashboard" as any);
+      if (rpcError) throw rpcError;
 
       return ((data || []) as any[]).map((order) => ({
         ...order,
@@ -347,6 +236,10 @@ export default function Commandes() {
   });
 
   const orders = (ordersData || []).filter((order) => (order.metadata as any)?.feature !== "zero-attente");
+
+  if (stripeReturn.isStripeReturn) {
+    return <Navigate to={`/commande/confirmation${location.search}`} replace />;
+  }
 
   return (
     <CustomerDashboardLayout>
@@ -371,7 +264,7 @@ export default function Commandes() {
               }, {} as Record<string, any[]>),
             ).map(([groupKey, groupOrders]) => {
               const mainOrder = groupOrders[0];
-              const totalAmount = groupOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+              const totalAmount = groupOrders.reduce((sum, order) => sum + Number(order.total_amount), 0);
 
               return (
                 <div key={groupKey} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
@@ -398,14 +291,17 @@ export default function Commandes() {
                   <div className="space-y-4 p-4">
                     {groupOrders.map((order) => {
                       const displayStatus = getDisplayStatus(order);
+                      const checkoutSessionId = getCheckoutSessionId(order);
                       const orderStatusLockMessage = displayStatus === "confirmed"
                         ? getOrderStatusLockMessage(order)
                         : null;
                       const isTrackableDelivery = Boolean(
-                        order.delivery_address &&
-                        (order.metadata as any)?.feature !== "zero-attente" &&
-                        !(order.metadata as any)?.pickup_time,
+                        order.delivery_address
+                        && (order.metadata as any)?.feature !== "zero-attente"
+                        && !(order.metadata as any)?.pickup_time,
                       );
+                      const canTrackOrder = isTrackableDelivery
+                        && !["pending", "pending_payment", "payment_failed", "cancelled", "delivered"].includes(String(displayStatus));
 
                       return (
                         <div key={order.id} className="space-y-3">
@@ -422,20 +318,37 @@ export default function Commandes() {
                             ))}
                           </div>
                           <PaymentBreakdown order={order} />
-                          {(order.metadata as any)?.scheduled_delivery_label ? <p className="text-xs text-muted-foreground">Livraison planifiee : {(order.metadata as any).scheduled_delivery_label}</p> : null}
+                          {(order.metadata as any)?.scheduled_delivery_label ? (
+                            <p className="text-xs text-muted-foreground">
+                              Livraison planifiee : {(order.metadata as any).scheduled_delivery_label}
+                            </p>
+                          ) : null}
+                          {displayStatus === "pending_payment" ? (
+                            <p className="text-xs text-muted-foreground">
+                              Paiement en attente de confirmation. Si vous avez deja paye, utilisez la verification Stripe. Sinon, relancez la commande depuis votre panier.
+                            </p>
+                          ) : null}
+                          {displayStatus === "payment_failed" ? (
+                            <p className="text-xs text-muted-foreground">
+                              Le paiement a echoue ou la session Stripe a expire. Vous pouvez relancer cette commande.
+                            </p>
+                          ) : null}
                           <div className="flex flex-wrap gap-2">
-                            {displayStatus !== "delivered" && displayStatus !== "cancelled" && isTrackableDelivery ? (
+                            {canTrackOrder ? (
                               <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
-                                <Link to={`/commande/${order.id}`}><MapPin className="mr-1 h-3 w-3" />Suivi temps réel</Link>
+                                <Link to={`/commande/${order.id}`}><MapPin className="mr-1 h-3 w-3" />Suivi temps reel</Link>
+                              </Button>
+                            ) : null}
+                            {displayStatus === "pending_payment" && checkoutSessionId ? (
+                              <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
+                                <Link to={`/commande/confirmation?session_id=${encodeURIComponent(checkoutSessionId)}&status=success`}>
+                                  <CreditCard className="mr-1 h-3 w-3" />
+                                  Verifier le paiement
+                                </Link>
                               </Button>
                             ) : null}
                             {displayStatus === "confirmed" && orderStatusLockMessage ? (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 text-xs text-destructive"
-                                disabled
-                              >
+                              <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive" disabled>
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Annuler
                               </Button>
@@ -466,7 +379,9 @@ export default function Commandes() {
                                 </AlertDialogContent>
                               </AlertDialog>
                             ) : null}
-                            {(displayStatus === "delivered" || displayStatus === "cancelled") ? (
+                            {(displayStatus === "delivered"
+                              || displayStatus === "cancelled"
+                              || displayStatus === "payment_failed") ? (
                               <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => handleReorder(order)}>
                                 <RefreshCcw className="mr-1 h-3 w-3" />Commander a nouveau
                               </Button>

@@ -45,8 +45,7 @@ import {
   useIsTokOneMember,
   useTokOneBenefits,
 } from "@/hooks/useTokOne";
-import { savePendingCheckoutPostActions } from "@/lib/pendingCheckout";
-import { getFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
+import { getFreshAccessToken, invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
 
 const supabase = getSupabase();
 
@@ -617,6 +616,9 @@ export default function Panier() {
     const resCount = orderGroups.length;
     const checkoutGroupId = crypto.randomUUID();
     let firstOrderId: string | null = null;
+    let checkoutBenefitsOrderId: string | null = null;
+    let checkoutBenefitsPromoCodeId: string | null = null;
+    let checkoutBenefitsPromoDiscount = 0;
     const orderReference = generateOrderReference();
     const allocateAcrossGroups = (totalDiscount: number) => {
       const baseTotal = orderGroups.reduce((sum, group) => sum + group.resSubtotal, 0);
@@ -708,17 +710,22 @@ export default function Panier() {
                 metadata: i.metadata || {},
               })),
               payment_method: paymentMethod,
-              return_url: `${window.location.origin}/commandes`,
+              return_url: `${window.location.origin}/commande/confirmation`,
               order_metadata: {
                 order_reference: orderReference,
                 restaurant_id: restaurantId,
                 delivery_fee: quotedDeliveryFee,
                 checkout_group_id: checkoutGroupId,
+                promo_code_id: promoCodeId,
+                points_to_redeem: pointsToRedeem,
                 delivery_address: checkoutDeliveryAddress,
                 delivery_city: checkoutDeliveryCity,
                 delivery_lat: checkoutDeliveryLat,
                 delivery_lng: checkoutDeliveryLng,
                 formula_discount: formulaDiscount,
+                formula_discount_amount: formulaDiscount,
+                promotion_discount_amount: effectivePromoDiscount,
+                promotion_applied: effectivePromoName,
                 points_discount: pointsDiscount,
                 points_discount_amount: pointsDiscount,
                 flex_discount: flexDiscount,
@@ -771,23 +778,6 @@ export default function Panier() {
 
         firstOrderId = orderResults.find((result) => result.orderId)?.orderId || null;
 
-        if (user?.id && checkoutData.session_id && (pointsToRedeem > 0 || promoCodeId)) {
-          savePendingCheckoutPostActions({
-            sessionId: checkoutData.session_id,
-            userId: user.id,
-            orderId: firstOrderId,
-            pointsToRedeem,
-            promoCodeId,
-          });
-        }
-
-        clearCart();
-        queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
-
-        // Redirect to Stripe — save order ID for post-payment redirect
-        if (firstOrderId) {
-          localStorage.setItem("stripe_pending_order_id", firstOrderId);
-        }
         window.location.assign(checkoutData.url);
         return;
       }
@@ -811,6 +801,14 @@ export default function Panier() {
         if (validateResult?.error) throw new Error(validateResult.error);
         const orderId = validateResult?.order_id;
         if (!firstOrderId) firstOrderId = orderId;
+        if (!checkoutBenefitsOrderId && orderId) {
+          checkoutBenefitsOrderId = orderId;
+        }
+        if (orderId && validateResult?.applied_promo_code_id) {
+          checkoutBenefitsOrderId = orderId;
+          checkoutBenefitsPromoCodeId = String(validateResult.applied_promo_code_id);
+          checkoutBenefitsPromoDiscount = Number(validateResult.applied_promo_code_discount || 0);
+        }
 
         if (orderId) {
           await trackCheckoutEvent(orderId, paymentMethod === "cash" ? "checkout_cash_confirmed" : "checkout_zero_balance_confirmed", {
@@ -828,19 +826,23 @@ export default function Panier() {
         });
       }
 
-      if (useLoyaltyPoints && pointsToRedeem > 0) {
-        const { error: rpcError } = await (supabase.rpc as any)("redeem_loyalty_points", { user_id_param: user.id, points_to_redeem: pointsToRedeem, description_param: `Paiement pour commande du ${new Date().toLocaleDateString()}` });
-        if (rpcError) throw rpcError;
-      }
-
-      // Record promo code usage
-      if (promoCodeId && user?.id && firstOrderId) {
-        await supabase.from("promo_code_uses").insert({ promo_code_id: promoCodeId, user_id: user.id, order_id: firstOrderId });
-        await supabase.from("promo_codes").update({ current_uses: (await supabase.from("promo_codes").select("current_uses").eq("id", promoCodeId).single()).data?.current_uses + 1 }).eq("id", promoCodeId);
+      if (user?.id && checkoutBenefitsOrderId && (pointsToRedeem > 0 || checkoutBenefitsPromoCodeId)) {
+        await invokeSupabaseRpc("apply_checkout_benefits", {
+          accessToken,
+          body: {
+            p_user_id: user.id,
+            p_order_id: checkoutBenefitsOrderId,
+            p_points_to_redeem: pointsToRedeem,
+            p_promo_code_id: checkoutBenefitsPromoCodeId,
+            p_discount_applied: checkoutBenefitsPromoDiscount,
+            p_description: `Paiement commande ${orderReference}`,
+          },
+        });
       }
 
       await new Promise(resolve => setTimeout(resolve, 1500));
       clearCart();
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
       queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
       queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
       if (donateEarnedXp) {

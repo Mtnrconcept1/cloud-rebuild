@@ -28,6 +28,7 @@ const OrderConflictDialog = lazy(() => import("./components/OrderConflictDialog"
 
 // ── Lazy-loaded chunks: Dashboard Restaurateur ──
 const Commandes = lazy(() => import("./pages/Commandes"));
+const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const Reservations = lazy(() => import("./pages/Reservations"));
 const Profil = lazy(() => import("./pages/Profil"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -203,6 +204,7 @@ function AppShell() {
 
           <Route path="/panier" element={<Panier />} />
           <Route path="/commandes" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><Commandes /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/commande/confirmation" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><OrderConfirmation /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commande/:id" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><SuiviCommande /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/reservations" element={<ProtectedRoute><FeatureSwitch enabled={reservationEnabled} fallback="/"><Reservations /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
