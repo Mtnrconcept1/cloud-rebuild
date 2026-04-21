@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDownRight, ArrowUpRight, Building2, Coins, Receipt, Store, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Building2, Coins, Megaphone, Receipt, Store, Wallet } from "lucide-react";
 
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,8 @@ export default function AdminCompta() {
     restaurants,
     summary,
     paidEventGross,
+    paidCampaignsCount,
+    paidCampaignsTotal,
     monthOptions,
     isLoading,
     error,
@@ -171,6 +173,34 @@ export default function AdminCompta() {
                   </CardContent>
                 </Card>
               ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2">
+                <Megaphone className="h-5 w-5 text-primary" />
+                <CardTitle>Autres encaissements TOK</CardTitle>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Revenus encaisses par TOK hors commissions marketplace et hors ventilation 10% / 90%.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Card className="border-border/60 bg-muted/20 shadow-none">
+                <CardContent className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Campagnes publicitaires</p>
+                    <p className="text-2xl font-bold">{formatAmount(paidCampaignsTotal)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {paidCampaignsCount} campagne{paidCampaignsCount > 1 ? "s" : ""} payee{paidCampaignsCount > 1 ? "s" : ""} sur le filtre courant
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="w-fit text-[11px] uppercase tracking-wide">
+                    Hors commissions marketplace
+                  </Badge>
+                </CardContent>
+              </Card>
             </CardContent>
           </Card>
 

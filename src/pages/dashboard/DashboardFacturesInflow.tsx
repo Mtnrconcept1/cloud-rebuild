@@ -112,6 +112,8 @@ export default function DashboardFacturesInflow() {
   const {
     selectedRestaurant,
     summary,
+    paidCampaignsCount,
+    paidCampaignsTotal,
     payoutInvoiceSections,
     uninvoicedRestaurantShareBySource,
     uninvoicedRestaurantShareTotal,
@@ -341,6 +343,33 @@ export default function DashboardFacturesInflow() {
                   </Card>
                 ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle>Depenses marketing</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Les campagnes publicitaires payees par votre restaurant sont suivies ici a part. Elles ne font pas partie des entrees restaurant ni de votre part 90%.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <Card className="border-orange-200 bg-orange-50/60 shadow-none">
+                  <CardContent className="space-y-2 py-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Campagnes publicitaires</p>
+                        <p className="text-2xl font-bold text-orange-950">{formatAmount(paidCampaignsTotal)}</p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                        Depense separee
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-orange-800">
+                      {paidCampaignsCount} campagne{paidCampaignsCount > 1 ? "s" : ""} payee{paidCampaignsCount > 1 ? "s" : ""} pour ce restaurant.
+                    </p>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
 

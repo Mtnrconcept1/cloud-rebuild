@@ -170,6 +170,43 @@ export default function AdminHome() {
     },
   });
 
+  const { data: tokOneStats } = useQuery({
+    queryKey: ["admin-tok-one-stats"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("tok_one_subscriptions")
+        .select(`
+          status,
+          user_subscription_plans (
+            price_monthly,
+            price_yearly
+          )
+        `)
+        .in("status", ["active", "trialing"]);
+
+      if (error) throw error;
+
+      const subscriptions = (data || []) as Array<{
+        status?: string | null;
+        user_subscription_plans?: {
+          price_monthly?: number | null;
+          price_yearly?: number | null;
+        } | null;
+      }>;
+
+      const activeCount = subscriptions.length;
+      const estimatedRevenue = subscriptions.reduce((sum, subscription) => {
+        const plan = subscription.user_subscription_plans;
+        return sum + Number(plan?.price_monthly || 0);
+      }, 0);
+
+      return {
+        activeCount,
+        estimatedRevenue,
+      };
+    },
+  });
+
   const { data: recentOrders } = useQuery({
     queryKey: ["admin-recent-orders"],
     queryFn: async () => {
@@ -238,7 +275,7 @@ export default function AdminHome() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Restaurants</CardTitle>
@@ -280,6 +317,23 @@ export default function AdminHome() {
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent><p className="text-2xl font-bold">{revenueStats?.cancelRate || 0}%</p></CardContent>
+        </Card>
+        <Card className="col-span-2 border-amber-200 bg-amber-50 md:col-span-3 lg:col-span-2 xl:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+            <CardTitle className="text-xs font-medium text-amber-800">Abonnements Tok One</CardTitle>
+            <Crown className="h-4 w-4 text-amber-700" />
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <p className="text-2xl font-bold text-amber-900">
+              {(tokOneStats?.estimatedRevenue || 0).toFixed(2)} <span className="text-sm font-normal">CHF</span>
+            </p>
+            <p className="text-xs text-amber-800">
+              Revenu actif estime pour {tokOneStats?.activeCount || 0} abonnement{(tokOneStats?.activeCount || 0) > 1 ? "s" : ""}
+            </p>
+            <p className="text-[11px] text-amber-700/90">
+              Revenu estime sur base mensuelle, utilise comme fallback de securite.
+            </p>
+          </CardContent>
         </Card>
       </div>
 

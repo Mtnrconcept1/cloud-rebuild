@@ -56,6 +56,15 @@ export type RestaurantReservationPaymentRow = {
   restaurant_invoice_id: string | null;
 };
 
+export type RestaurantPaidCampaignRow = {
+  id: string;
+  created_at: string;
+  payment_status: string;
+  paid_amount: number | null;
+  total_budget: number | null;
+  title: string | null;
+};
+
 type ReservationFeeSummary = {
   count: number;
   amount: number;
@@ -71,6 +80,12 @@ export function toAmount(value: number | string | null | undefined) {
 
 export function formatAmount(value: number | string | null | undefined, currency = "CHF") {
   return `${toAmount(value).toFixed(2)} ${currency}`;
+}
+
+function getCampaignPaidAmount(campaign: Pick<RestaurantPaidCampaignRow, "paid_amount" | "total_budget">) {
+  const paidAmount = toAmount(campaign.paid_amount);
+  if (paidAmount > 0) return paidAmount;
+  return toAmount(campaign.total_budget);
 }
 
 export function formatDate(value: string | null | undefined) {
@@ -209,6 +224,22 @@ export function useDashboardFacturesData() {
     enabled: !!selectedId && !restaurantsLoading,
   });
 
+  const paidCampaignsQuery = useQuery({
+    queryKey: ["dashboard-paid-campaigns-v1", selectedId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ad_campaigns")
+        .select("id, created_at, payment_status, paid_amount, total_budget, title")
+        .eq("restaurant_id", selectedId!)
+        .eq("payment_status", "paid")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as RestaurantPaidCampaignRow[];
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
   const payoutInvoices = useMemo(
     () => (invoicesQuery.data || []).filter((invoice) => (invoice.invoice_type || "payout") === "payout"),
     [invoicesQuery.data],
@@ -257,6 +288,11 @@ export function useDashboardFacturesData() {
     () => Object.values(uninvoicedRestaurantShareBySource).reduce((sum, amount) => sum + amount, 0),
     [uninvoicedRestaurantShareBySource],
   );
+  const paidCampaignsTotal = useMemo(
+    () => (paidCampaignsQuery.data || []).reduce((sum, campaign) => sum + getCampaignPaidAmount(campaign), 0),
+    [paidCampaignsQuery.data],
+  );
+  const paidCampaignsCount = paidCampaignsQuery.data?.length || 0;
 
   return {
     restaurants,
@@ -269,6 +305,9 @@ export function useDashboardFacturesData() {
     payoutInvoiceSections,
     tokFeeInvoiceSections,
     reservationFees: reservationFeesQuery.data || { count: 0, amount: 0 },
+    paidCampaigns: paidCampaignsQuery.data || [],
+    paidCampaignsTotal,
+    paidCampaignsCount,
     commissionBases,
     uninvoicedCommissionBases,
     uninvoicedRestaurantShareBySource,
@@ -278,11 +317,13 @@ export function useDashboardFacturesData() {
       || invoicesQuery.isLoading
       || ordersQuery.isLoading
       || reservationsQuery.isLoading
-      || reservationFeesQuery.isLoading,
+      || reservationFeesQuery.isLoading
+      || paidCampaignsQuery.isLoading,
     error: restaurantsError
       || invoicesQuery.error
       || ordersQuery.error
       || reservationsQuery.error
-      || reservationFeesQuery.error,
+      || reservationFeesQuery.error
+      || paidCampaignsQuery.error,
   };
 }
