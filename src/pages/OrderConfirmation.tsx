@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import {
@@ -17,30 +17,24 @@ import OrderStatusBadge from "@/components/OrderStatusBadge";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
+import {
+  buildCheckoutCompletionFromDashboardOrders,
+  type CheckoutCompletionResult,
+  getOrderStripeSessionId,
+  isOrderCheckoutFinalized,
+  readPendingOrderCheckoutSessionId,
+  writePendingOrderCheckoutSessionId,
+} from "@/lib/orderConfirmation";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { parseStripeReturnSearch } from "@/lib/stripeReturn";
 import { useToast } from "@/hooks/use-toast";
 
 const supabase = getSupabase();
-
-type CheckoutCompletionOrder = {
-  id: string;
-  order_number: string | null;
-  restaurant_id: string;
-  total_amount: number;
-  status: string;
-  payment_status: string;
-};
-
-type CheckoutCompletionResult = {
-  orders: CheckoutCompletionOrder[];
-  primaryOrderId: string | null;
-  checkoutGroupId: string | null;
-  orderReference: string | null;
-  newlyFinalized: boolean;
-};
+const CHECKOUT_RECOVERY_ATTEMPTS = 8;
+const CHECKOUT_RECOVERY_DELAY_MS = 1_250;
 
 function normalizeDashboardOrder(order: any) {
   return {
@@ -64,33 +58,139 @@ function normalizeDashboardOrder(order: any) {
 export default function OrderConfirmation() {
   const location = useLocation();
   const { toast } = useToast();
+  const { user, session, loading: authLoading } = useAuth();
   const { clearCart } = useCart();
   const queryClient = useQueryClient();
   const stripeReturn = parseStripeReturnSearch(location.search);
   const processedSessionRef = useRef<string | null>(null);
+  const reconnectPromptRef = useRef<string | null>(null);
+  const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(
+    () => readPendingOrderCheckoutSessionId(),
+  );
   const [state, setState] = useState<"processing" | "success" | "cancelled" | "error">(
-    stripeReturn.status === "cancelled" ? "cancelled" : "processing",
+    stripeReturn.status === "cancelled"
+      ? "cancelled"
+      : (stripeReturn.status === "success" || pendingCheckoutSessionId)
+        ? "processing"
+        : "error",
   );
   const [completion, setCompletion] = useState<CheckoutCompletionResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const syncPendingCheckoutSessionId = useCallback((sessionId: string | null) => {
+    writePendingOrderCheckoutSessionId(sessionId);
+    setPendingCheckoutSessionId(sessionId);
+
+    if (!sessionId) {
+      processedSessionRef.current = null;
+      reconnectPromptRef.current = null;
+    }
+  }, []);
+
+  const finalizeSuccess = useCallback((result: CheckoutCompletionResult, sessionId: string) => {
+    clearCart();
+    localStorage.removeItem("stripe_pending_order_id");
+    syncPendingCheckoutSessionId(null);
+    setCompletion(result);
+    setState("success");
+    setErrorMessage(null);
+    processedSessionRef.current = sessionId;
+
+    queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+    queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
+    queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["donated-meals-total"] });
+    queryClient.invalidateQueries({ queryKey: ["donated-points-total"] });
+
+    toast({
+      title: "Paiement confirme",
+      description: result.orders.length > 1
+        ? "Vos commandes sont confirmees."
+        : "Votre commande est confirmee.",
+    });
+  }, [clearCart, queryClient, syncPendingCheckoutSessionId, toast]);
+
+  const fetchOrdersByCheckoutSessionId = useCallback(async (sessionId: string) => {
+    const { data, error } = await supabase.rpc("get_customer_orders_dashboard" as any);
+    if (error) {
+      throw error;
+    }
+
+    return ((data || []) as any[])
+      .map(normalizeDashboardOrder)
+      .filter((order) => getOrderStripeSessionId(order) === sessionId);
+  }, []);
+
+  const recoverCompletedCheckout = useCallback(async (sessionId: string) => {
+    for (let attempt = 0; attempt < CHECKOUT_RECOVERY_ATTEMPTS; attempt += 1) {
+      const matchedOrders = await fetchOrdersByCheckoutSessionId(sessionId);
+
+      if (matchedOrders.length > 0 && matchedOrders.every(isOrderCheckoutFinalized)) {
+        return buildCheckoutCompletionFromDashboardOrders(matchedOrders);
+      }
+
+      if (attempt < CHECKOUT_RECOVERY_ATTEMPTS - 1) {
+        await new Promise((resolve) => setTimeout(resolve, CHECKOUT_RECOVERY_DELAY_MS));
+      }
+    }
+
+    return null;
+  }, [fetchOrdersByCheckoutSessionId]);
+
   useEffect(() => {
-    if (stripeReturn.status !== "success" || !stripeReturn.sessionId) {
+    if (stripeReturn.status === "success" && stripeReturn.sessionId) {
+      syncPendingCheckoutSessionId(stripeReturn.sessionId);
+      setState("processing");
+      setErrorMessage(null);
+
+      if (location.search) {
+        window.history.replaceState({}, "", location.pathname);
+      }
+
       return;
     }
 
-    if (processedSessionRef.current === stripeReturn.sessionId) {
+    if (stripeReturn.status === "cancelled") {
+      syncPendingCheckoutSessionId(null);
+      setState("cancelled");
+      setErrorMessage(null);
+
+      if (location.search) {
+        window.history.replaceState({}, "", location.pathname);
+      }
+
+      return;
+    }
+  }, [location.pathname, location.search, stripeReturn.sessionId, stripeReturn.status, syncPendingCheckoutSessionId]);
+
+  useEffect(() => {
+    if (!pendingCheckoutSessionId || authLoading) {
       return;
     }
 
-    processedSessionRef.current = stripeReturn.sessionId;
+    const processingKey = `${user?.id || "guest"}:${pendingCheckoutSessionId}`;
+
+    if (!user || !session?.access_token) {
+      if (reconnectPromptRef.current !== processingKey) {
+        reconnectPromptRef.current = processingKey;
+        setErrorMessage("Reconnectez-vous pour finaliser et afficher le recapitulatif de votre commande.");
+        setState("error");
+      }
+      return;
+    }
+
+    if (processedSessionRef.current === pendingCheckoutSessionId) {
+      return;
+    }
+
+    processedSessionRef.current = pendingCheckoutSessionId;
     setState("processing");
     setErrorMessage(null);
 
     void (async () => {
       try {
         const { data, error } = await invokeSupabaseFunction<CheckoutCompletionResult>("complete-order-checkout", {
-          body: { session_id: stripeReturn.sessionId },
+          body: { session_id: pendingCheckoutSessionId },
         });
 
         if (error) throw error;
@@ -100,29 +200,49 @@ export default function OrderConfirmation() {
           throw new Error("Paiement valide, mais aucune commande n'a ete retrouvee.");
         }
 
-        clearCart();
-        localStorage.removeItem("stripe_pending_order_id");
-        setCompletion(data ?? null);
-        setState("success");
-
-        queryClient.invalidateQueries({ queryKey: ["my-orders"] });
-        queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
-        queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
-        queryClient.invalidateQueries({ queryKey: ["donated-meals-total"] });
-        queryClient.invalidateQueries({ queryKey: ["donated-points-total"] });
-
-        toast({
-          title: "Paiement confirme",
-          description: completedOrders.length > 1
-            ? "Vos commandes sont confirmees."
-            : "Votre commande est confirmee.",
-        });
+        finalizeSuccess(data ?? {
+          orders: completedOrders,
+          primaryOrderId: completedOrders[0]?.id ?? null,
+          checkoutGroupId: null,
+          orderReference: completedOrders[0]?.order_number ?? null,
+          newlyFinalized: true,
+        }, pendingCheckoutSessionId);
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "Impossible de finaliser le paiement.");
+        try {
+          const recoveredCompletion = await recoverCompletedCheckout(pendingCheckoutSessionId);
+
+          if (recoveredCompletion) {
+            finalizeSuccess(recoveredCompletion, pendingCheckoutSessionId);
+            return;
+          }
+        } catch {
+          // Keep the original function error below.
+        }
+
+        processedSessionRef.current = null;
+        const errorStatus =
+          error && typeof error === "object" && "status" in error && typeof error.status === "number"
+            ? error.status
+            : null;
+        const fallbackMessage =
+          errorStatus === 401 || errorStatus === 403
+            ? "Le paiement est valide, mais votre session doit etre revalidee pour afficher le recapitulatif."
+            : error instanceof Error
+              ? error.message
+              : "Impossible de finaliser le paiement.";
+
+        setErrorMessage(fallbackMessage);
         setState("error");
       }
     })();
-  }, [clearCart, queryClient, stripeReturn.sessionId, stripeReturn.status, toast]);
+  }, [
+    authLoading,
+    finalizeSuccess,
+    pendingCheckoutSessionId,
+    recoverCompletedCheckout,
+    session?.access_token,
+    user,
+  ]);
 
   const orderIds = useMemo(
     () => (completion?.orders || []).map((order) => order.id),
@@ -148,8 +268,9 @@ export default function OrderConfirmation() {
   const restaurantCount = orders.length;
   const primaryOrderId = completion?.primaryOrderId || (orders[0]?.id ?? null);
   const orderReference = completion?.orderReference || (orders[0]?.order_number ?? null);
+  const hasCheckoutContext = stripeReturn.isStripeReturn || Boolean(pendingCheckoutSessionId) || Boolean(completion);
 
-  if (!stripeReturn.isStripeReturn) {
+  if (!hasCheckoutContext) {
     return <Navigate to="/commandes" replace />;
   }
 
