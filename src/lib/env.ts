@@ -1,18 +1,6 @@
-function stripWrappingQuotes(value: string) {
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
-  }
+export { sanitizeEnvValue } from "@/lib/publicEnv";
 
-  return value;
-}
-
-export function sanitizeEnvValue(value: unknown) {
-  if (typeof value !== "string") return "";
-  return stripWrappingQuotes(value).replace(/[\r\n]+/g, "").trim();
-}
+import { sanitizeEnvValue } from "@/lib/publicEnv";
 
 export const SUPABASE_URL = sanitizeEnvValue(import.meta.env.VITE_SUPABASE_URL);
 export const SUPABASE_PUBLISHABLE_KEY = sanitizeEnvValue(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
