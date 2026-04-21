@@ -47,8 +47,22 @@ function parseMoney(value: unknown, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function getStripeWebhookSecret() {
-  return getEnv("STRIPE_WEBHOOK_SECRET") || getEnv("STRIPE_WEBHOOK_SIGNING_SECRET");
+function splitWebhookSecrets(value: string | null) {
+  if (!value) return [];
+
+  return value
+    .split(/[,\n]/)
+    .map((secret) => secret.trim())
+    .filter(Boolean);
+}
+
+function getStripeWebhookSecrets() {
+  return Array.from(
+    new Set([
+      ...splitWebhookSecrets(getEnv("STRIPE_WEBHOOK_SECRET")),
+      ...splitWebhookSecrets(getEnv("STRIPE_WEBHOOK_SIGNING_SECRET")),
+    ]),
+  );
 }
 
 async function recordTokOnePaymentIfMissing(input: {
@@ -204,9 +218,9 @@ Deno.serve(async (req) => {
 
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
-  const webhookSecret = getStripeWebhookSecret();
+  const webhookSecrets = getStripeWebhookSecrets();
 
-  if (!webhookSecret) {
+  if (webhookSecrets.length === 0) {
     await writeAuditLog({
       adminClient: supabaseAdmin,
       actor: { roles: ["service_role"], isServiceRole: true },
@@ -235,12 +249,28 @@ Deno.serve(async (req) => {
   }
 
   let event: Stripe.Event;
+  let signatureError: unknown = null;
   try {
-    event = await stripe.webhooks.constructEventAsync(
-      body,
-      signature,
-      webhookSecret,
-    );
+    let verifiedEvent: Stripe.Event | null = null;
+
+    for (const webhookSecret of webhookSecrets) {
+      try {
+        verifiedEvent = await stripe.webhooks.constructEventAsync(
+          body,
+          signature,
+          webhookSecret,
+        );
+        break;
+      } catch (error) {
+        signatureError = error;
+      }
+    }
+
+    if (!verifiedEvent) {
+      throw signatureError ?? new Error("Invalid webhook signature");
+    }
+
+    event = verifiedEvent;
   } catch (error) {
     log.warn("signature_verification_failed", { message: error instanceof Error ? error.message : "unknown" });
     await writeAuditLog({
