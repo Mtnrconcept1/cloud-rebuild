@@ -2,6 +2,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/env';
+import { readSupabasePublicEnv } from '@/lib/publicEnv';
 import { authStorage } from './authStorage';
 
 // Import the supabase client like this:
@@ -12,11 +13,15 @@ let supabase: SupabaseClient<Database> | null = null;
 export function getSupabase(): SupabaseClient<Database> {
   if (supabase) return supabase;
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    throw new Error("Supabase is not configured.");
-  }
+  const { url, publishableKey } = readSupabasePublicEnv(
+    {
+      VITE_SUPABASE_URL: SUPABASE_URL,
+      VITE_SUPABASE_PUBLISHABLE_KEY: SUPABASE_PUBLISHABLE_KEY,
+    },
+    "runtime",
+  );
 
-  supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  supabase = createClient<Database>(url, publishableKey, {
     auth: {
       storage: authStorage,
       persistSession: true,

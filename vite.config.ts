@@ -1,37 +1,51 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { getMissingSupabasePublicEnvKeys } from "./src/lib/publicEnv";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    allowedHosts: true,
-    hmr: {
-      overlay: false,
+export default defineConfig(({ mode }) => {
+  if (mode === "production") {
+    const env = loadEnv(mode, process.cwd(), "");
+    const missingSupabaseEnvKeys = getMissingSupabasePublicEnvKeys(env);
+
+    if (missingSupabaseEnvKeys.length) {
+      throw new Error(
+        `Missing required Supabase public environment variables for production build: ${missingSupabaseEnvKeys.join(", ")}.`,
+      );
+    }
+  }
+
+  return {
+    server: {
+      host: "::",
+      port: 8080,
+      allowedHosts: true,
+      hmr: {
+        overlay: false,
+      },
     },
-  },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+    plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
     },
-  },
-  build: {
-    rollupOptions: {
-      external: ["firebase/app", "firebase/messaging"],
-      output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
-          "supabase-vendor": ["@supabase/supabase-js"],
-          "ui-vendor": ["framer-motion", "lucide-react", "sonner", "cmdk", "vaul"],
-          "chart-vendor": ["recharts"],
-          "map-vendor": ["leaflet"],
-          "content-vendor": ["react-markdown"],
+    build: {
+      rollupOptions: {
+        external: ["firebase/app", "firebase/messaging"],
+        output: {
+          manualChunks: {
+            "react-vendor": ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
+            "supabase-vendor": ["@supabase/supabase-js"],
+            "ui-vendor": ["framer-motion", "lucide-react", "sonner", "cmdk", "vaul"],
+            "chart-vendor": ["recharts"],
+            "map-vendor": ["leaflet"],
+            "content-vendor": ["react-markdown"],
+          },
         },
       },
     },
-  },
-}));
+  };
+});
