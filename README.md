@@ -67,8 +67,8 @@ Optional Supabase Edge Function secrets synced by the workflow when present:
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_WEBHOOK_SIGNING_SECRET`
+- `STRIPE_WEBHOOK_SECRET` for the primary Stripe webhook destination
+- `STRIPE_WEBHOOK_SIGNING_SECRET` for an optional second destination on the same endpoint URL
 - `INTERNAL_CRON_SECRET`
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL`

@@ -38,6 +38,7 @@ import {
   getGloballyEnabledPaymentMethods,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
+import { writePendingOrderCheckoutSessionId } from "@/lib/orderConfirmation";
 import {
   TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
   resolveTokOneDiscountPercentageForContext,
@@ -747,6 +748,8 @@ export default function Panier() {
         if (!checkoutData?.url || !checkoutData?.session_id) {
           throw new Error("Impossible de lancer le paiement Stripe pour cette commande.");
         }
+
+        writePendingOrderCheckoutSessionId(checkoutData.session_id);
 
         const orderResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
           const { data: validateResult, error: validateError } = await withTimeout(
