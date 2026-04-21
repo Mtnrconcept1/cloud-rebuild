@@ -71,11 +71,11 @@ Deno.serve(async (req) => {
         paymentMethodTypes.push("twint");
         break;
       case "postfinance_card":
-        paymentMethodTypes.push("postfinance_card");
-        break;
       case "postfinance_efinance":
-        paymentMethodTypes.push("postfinance_efinance");
-        break;
+        throw new HttpError(
+          400,
+          "Les paiements PostFinance sont temporairement indisponibles. Utilisez la carte bancaire ou TWINT.",
+        );
       case "card":
       default:
         paymentMethodTypes.push("card");

@@ -4,6 +4,7 @@ import {
   authenticateRequest,
   createAdminClient,
   jsonResponse,
+  requireRestaurantAccess,
   requireRole,
   writeAuditLog,
 } from "../_shared/auth.ts";
@@ -36,8 +37,9 @@ Deno.serve(async (req) => {
 
   try {
     actor = await authenticateRequest(req, { allowSchedulerSecret: true });
-    // On autorise "admin" ou "restaurant_owner"
-    requireRole(actor, ["admin", "restaurant_owner"]);
+    // The dashboard uses the "restaurateur" role in production. Keep
+    // "restaurant_owner" as a compatibility alias for any legacy accounts.
+    requireRole(actor, ["admin", "restaurateur", "restaurant_owner"]);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -47,14 +49,21 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const month = body.month || null; // optional: "2026-02-01"
     const restaurantId = body.restaurant_id || null;
+    const isRestaurantActor = actor.roles.some((role) =>
+      role === "restaurateur" || role === "restaurant_owner"
+    );
 
-    if (actor.roles.includes("restaurant_owner") && !restaurantId) {
+    if (isRestaurantActor && !restaurantId) {
       throw new HttpError(400, "restaurant_id required for restaurant owners");
     }
 
     let resultData;
 
     if (restaurantId) {
+      if (isRestaurantActor) {
+        await requireRestaurantAccess(actor, restaurantId);
+      }
+
       // Call a non-overloaded RPC wrapper. PostgREST rejects overloaded
       // functions with the same argument names (PGRST203).
       rpcMethod = "generate_restaurant_payout_invoice_rpc";

@@ -58,10 +58,11 @@ describe("payment helpers", () => {
     const activeFeatures = new Set([
       "payment-card",
       "payment-twint",
+      "payment-postfinance-card",
       "payment-cash",
     ]);
 
-    expect(getGloballyEnabledPaymentMethods(activeFeatures)).toEqual(["card", "twint", "cash"]);
+    expect(getGloballyEnabledPaymentMethods(activeFeatures)).toEqual(["card", "twint", "postfinance_card", "cash"]);
     expect(getAllowedPaymentMethods(activeFeatures, ["twint"])).toEqual(["card", "cash"]);
   });
 
@@ -73,5 +74,15 @@ describe("payment helpers", () => {
 
     expect(getFirstAvailablePaymentMethod(activeFeatures, ["twint"], "card")).toBe("cash");
     expect(getFirstAvailablePaymentMethod(new Set(), [], "card")).toBe("card");
+  });
+
+  it("does not expose PostFinance in Stripe Checkout flows", () => {
+    const activeFeatures = new Set([
+      "payment-postfinance-card",
+      "payment-postfinance-efinance",
+    ]);
+
+    expect(getAllowedPaymentMethods(activeFeatures, [])).toEqual([]);
+    expect(getFirstAvailablePaymentMethod(activeFeatures, [], "postfinance_card")).toBeNull();
   });
 });

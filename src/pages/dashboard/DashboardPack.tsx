@@ -39,8 +39,6 @@ import {
 const ALLOWED_PAYMENT_METHODS: PaymentMethodId[] = [
   "card",
   "twint",
-  "postfinance_card",
-  "postfinance_efinance",
 ];
 
 function FulfillmentCard({ f }: { f: ServiceFulfillment }) {

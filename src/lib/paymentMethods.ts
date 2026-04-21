@@ -21,6 +21,15 @@ export const PAYMENT_METHOD_FEATURE_MAP: Record<PaymentMethodId, string> = {
   cash: "payment-cash",
 };
 
+const STRIPE_CHECKOUT_UNSUPPORTED_METHODS = new Set<PaymentMethodId>([
+  "postfinance_card",
+  "postfinance_efinance",
+]);
+
+function filterCheckoutCompatibleMethods(methods: PaymentMethodId[]): PaymentMethodId[] {
+  return methods.filter((method) => !STRIPE_CHECKOUT_UNSUPPORTED_METHODS.has(method));
+}
+
 export function getGloballyEnabledPaymentMethods(activeFeatures: Set<string>): PaymentMethodId[] {
   return ALL_PAYMENT_METHODS.filter((method) => activeFeatures.has(PAYMENT_METHOD_FEATURE_MAP[method]));
 }
@@ -31,7 +40,7 @@ export function getAllowedPaymentMethods(
 ): PaymentMethodId[] {
   const globallyEnabled = getGloballyEnabledPaymentMethods(activeFeatures);
   const disabled = new Set((disabledPaymentMethods || []).map((method) => String(method)));
-  return globallyEnabled.filter((method) => !disabled.has(method));
+  return filterCheckoutCompatibleMethods(globallyEnabled.filter((method) => !disabled.has(method)));
 }
 
 export function getFirstAvailablePaymentMethod(
@@ -42,8 +51,10 @@ export function getFirstAvailablePaymentMethod(
   const allowed = getAllowedPaymentMethods(activeFeatures, disabledPaymentMethods);
   if (allowed.length > 0) return allowed[0];
 
-  const globallyEnabled = getGloballyEnabledPaymentMethods(activeFeatures);
+  const globallyEnabled = filterCheckoutCompatibleMethods(getGloballyEnabledPaymentMethods(activeFeatures));
   if (globallyEnabled.length > 0) return globallyEnabled[0];
 
-  return ALL_PAYMENT_METHODS.includes(fallback) ? fallback : null;
+  return STRIPE_CHECKOUT_UNSUPPORTED_METHODS.has(fallback)
+    ? null
+    : (ALL_PAYMENT_METHODS.includes(fallback) ? fallback : null);
 }
