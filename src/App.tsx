@@ -204,7 +204,7 @@ function AppShell() {
 
           <Route path="/panier" element={<Panier />} />
           <Route path="/commandes" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><Commandes /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/commande/confirmation" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><OrderConfirmation /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/commande/confirmation" element={<FeatureSwitch enabled={commandesEnabled} fallback="/"><OrderConfirmation /></FeatureSwitch>} />
           <Route path="/commande/:id" element={<ProtectedRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><SuiviCommande /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/reservations" element={<ProtectedRoute><FeatureSwitch enabled={reservationEnabled} fallback="/"><Reservations /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />

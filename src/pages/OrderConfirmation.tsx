@@ -29,7 +29,7 @@ import {
 } from "@/lib/orderConfirmation";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { invokeSupabaseFunction } from "@/lib/session";
-import { parseStripeReturnSearch } from "@/lib/stripeReturn";
+import { buildAuthRedirectTarget, parseStripeReturnSearch } from "@/lib/stripeReturn";
 import { useToast } from "@/hooks/use-toast";
 
 const supabase = getSupabase();
@@ -269,6 +269,7 @@ export default function OrderConfirmation() {
   const primaryOrderId = completion?.primaryOrderId || (orders[0]?.id ?? null);
   const orderReference = completion?.orderReference || (orders[0]?.order_number ?? null);
   const hasCheckoutContext = stripeReturn.isStripeReturn || Boolean(pendingCheckoutSessionId) || Boolean(completion);
+  const reconnectHref = buildAuthRedirectTarget(location.pathname, location.search);
 
   if (!hasCheckoutContext) {
     return <Navigate to="/commandes" replace />;
@@ -317,6 +318,14 @@ export default function OrderConfirmation() {
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-3">
+              {!user ? (
+                <Button asChild>
+                  <Link to={reconnectHref}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Se reconnecter pour finaliser
+                  </Link>
+                </Button>
+              ) : null}
               <Button asChild>
                 <Link to="/commandes"><History className="mr-2 h-4 w-4" />Mes commandes</Link>
               </Button>
