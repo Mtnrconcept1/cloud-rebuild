@@ -39,6 +39,11 @@ for (const name of allowedNames) {
   entries.push([name, value]);
 }
 
+const derivedAllowedOrigins = deriveAllowedOrigins(entries);
+if (derivedAllowedOrigins && !entries.some(([name]) => name === "ALLOWED_ORIGINS")) {
+  entries.push(["ALLOWED_ORIGINS", derivedAllowedOrigins]);
+}
+
 ensureDefault(entries, "ENVIRONMENT", "production");
 ensureDefault(entries, "APP_ENV", "production");
 
@@ -73,6 +78,31 @@ function ensureDefault(entries, name, value) {
   }
 
   entries.push([name, value]);
+}
+
+function deriveAllowedOrigins(entries) {
+  const originCandidates = ["APP_BASE_URL", "PUBLIC_APP_URL", "SITE_URL"]
+    .map((name) => entries.find(([entryName]) => entryName === name)?.[1] || null)
+    .map((value) => normalizeOrigin(value))
+    .filter(Boolean);
+
+  if (originCandidates.length === 0) {
+    return null;
+  }
+
+  return Array.from(new Set(originCandidates)).join(",");
+}
+
+function normalizeOrigin(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
 }
 
 function quoteEnvValue(value) {
