@@ -749,7 +749,7 @@ export async function buildVerifiedOrderPricing(input: {
   ));
   const antiWasteOfferIds = Array.from(new Set(
     items
-      .map((item) => String(item.metadata?.anti_waste_offer_id || ""))
+      .map((item) => String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || ""))
       .filter(Boolean),
   ));
   const flashSaleIds = Array.from(new Set(
@@ -871,7 +871,7 @@ export async function buildVerifiedOrderPricing(input: {
       continue;
     }
 
-    const antiWasteOfferId = String(item.metadata?.anti_waste_offer_id || "");
+    const antiWasteOfferId = String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || "");
     if (antiWasteOfferId) {
       const offer = antiWasteMap.get(antiWasteOfferId);
       if (!offer || !offer.is_active) throw new Error("Offre anti-gaspi invalide ou expiree.");
