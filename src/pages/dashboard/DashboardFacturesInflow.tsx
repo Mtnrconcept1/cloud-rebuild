@@ -110,6 +110,9 @@ export default function DashboardFacturesInflow() {
   const isAdmin = roles.includes("admin");
 
   const {
+    miamzReimbursementsCount,
+    miamzReimbursementsOutstanding,
+    miamzReimbursementsTotal,
     selectedRestaurant,
     summary,
     paidCampaignsCount,
@@ -239,7 +242,7 @@ export default function DashboardFacturesInflow() {
 
         {selectedRestaurant && !isLoading && !error ? (
           <>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
               <Card className="border-primary/20 bg-primary/5">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-primary">Factures emises en attente</CardTitle>
@@ -276,6 +279,17 @@ export default function DashboardFacturesInflow() {
                     {formatAmount(COMMISSION_SOURCE_ORDER.reduce((sum, source) => sum + summary.inflow.bySource[source], 0))}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">Vue miroir par source de ce que TOK a encaisse</p>
+                </CardContent>
+              </Card>
+              <Card className="border-violet-200 bg-violet-50/80">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-violet-800">Remboursements Miamz</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-violet-950">{formatAmount(miamzReimbursementsTotal)}</p>
+                  <p className="mt-1 text-xs text-violet-700">
+                    {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz, dont {formatAmount(miamzReimbursementsOutstanding)} encore non facture
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -321,6 +335,33 @@ export default function DashboardFacturesInflow() {
                     </Card>
                   ))}
                 </div>
+
+                <Card className="border-violet-200 bg-violet-50/60 shadow-none">
+                  <CardContent className="space-y-3 py-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Miamz rembourses par TOK</p>
+                        <p className="text-2xl font-bold">{formatAmount(miamzReimbursementsTotal)}</p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                        Inclus dans vos reversements
+                      </Badge>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-lg border bg-background/80 p-3">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Encore non facture</p>
+                        <p className="mt-1 text-lg font-semibold">{formatAmount(miamzReimbursementsOutstanding)}</p>
+                      </div>
+                      <div className="rounded-lg border bg-background/80 p-3">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Commandes avec Miamz</p>
+                        <p className="mt-1 text-lg font-semibold">{miamzReimbursementsCount}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ce montant correspond aux reductions Miamz avancees au client puis remboursees par TOK a votre restaurant.
+                    </p>
+                  </CardContent>
+                </Card>
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                   {inflowSourceBreakdown.map((sourceDetail) => (

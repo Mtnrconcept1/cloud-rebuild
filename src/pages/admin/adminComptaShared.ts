@@ -8,6 +8,7 @@ import {
   classifyReservationCommissionSource,
   COMMISSION_SOURCE_ORDER,
   createEmptyCommissionBaseTotals,
+  getPointsDiscountAmount,
   type CommissionBaseTotals,
 } from "@/lib/comptaCommissionSources";
 import { buildTokAccountingSummary } from "@/lib/comptaFlow";
@@ -30,6 +31,7 @@ export type AdminOrderRow = {
   order_number: string | null;
   metadata: Record<string, unknown> | null;
   restaurant_id: string;
+  restaurant_invoice_id: string | null;
   restaurants?: { name: string | null } | null;
 };
 
@@ -69,6 +71,17 @@ export type AdminCampaignRow = {
   paid_amount: number;
   total_budget: number | null;
   title: string;
+  restaurants?: { name: string | null } | null;
+};
+
+export type AdminReservationFeeAccrualRow = {
+  id: string;
+  restaurant_id: string;
+  confirmed_at: string | null;
+  billing_fee_chf: number | string | null;
+  cancelled_by: string | null;
+  restaurant_invoice_id: string | null;
+  invoice_type: "payout" | "reservation_fees" | null;
   restaurants?: { name: string | null } | null;
 };
 
@@ -145,8 +158,7 @@ function buildCommissionBases(orders: readonly AdminOrderRow[], reservations: re
     const source = classifyOrderCommissionSource(order);
     if (!source) return;
 
-    const metadata = order.metadata && typeof order.metadata === "object" ? order.metadata : {};
-    const grossAmount = toAmount(order.total_amount) + toAmount(metadata.points_discount_amount);
+    const grossAmount = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
     totals[source] += grossAmount;
   });
 
@@ -166,6 +178,15 @@ function sumBySource(bases: CommissionBaseTotals, rate: number) {
 function getCampaignPaidAmount(campaign: Pick<AdminCampaignRow, "paid_amount" | "total_budget">) {
   const paidAmount = toAmount(campaign.paid_amount);
   return paidAmount > 0 ? paidAmount : toAmount(campaign.total_budget);
+}
+
+function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "cancelled_by" | "invoice_type">) {
+  const cancelledBy = String(row.cancelled_by || "").trim().toLowerCase();
+  if (!(cancelledBy === "" || (cancelledBy !== "customer" && cancelledBy !== "admin"))) {
+    return false;
+  }
+
+  return row.invoice_type !== "reservation_fees";
 }
 
 export function useAdminComptaData(selectedRestaurant: string, selectedMonth: string) {
@@ -199,6 +220,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           order_number,
           metadata,
           restaurant_id,
+          restaurant_invoice_id,
           restaurants ( name )
         `)
         .gte("created_at", monthBounds.monthStartDate.toISOString())
@@ -213,6 +235,57 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []) as AdminOrderRow[];
+    },
+  });
+
+  const reservationFeeAccrualsQuery = useQuery({
+    queryKey: ["admin-compta-reservation-fee-accruals-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => {
+      let query = supabase
+        .from("reservations")
+        .select(`
+          id,
+          restaurant_id,
+          confirmed_at,
+          billing_fee_chf,
+          cancelled_by,
+          restaurant_invoice_id,
+          restaurants ( name )
+        `)
+        .not("confirmed_at", "is", null)
+        .gte("confirmed_at", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("confirmed_at", `${monthBounds.monthEnd}T23:59:59.999Z`);
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      const { data, error } = await query.order("confirmed_at", { ascending: false });
+      if (error) throw error;
+
+      const rows = (data || []) as Array<Omit<AdminReservationFeeAccrualRow, "invoice_type">>;
+      const invoiceIds = Array.from(new Set(rows.map((row) => row.restaurant_invoice_id).filter(Boolean))) as string[];
+      const invoiceTypeById = new Map<string, "payout" | "reservation_fees" | null>();
+
+      if (invoiceIds.length > 0) {
+        const { data: invoices, error: invoicesError } = await supabase
+          .from("restaurant_invoices")
+          .select("id, invoice_type")
+          .in("id", invoiceIds);
+
+        if (invoicesError) throw invoicesError;
+
+        (invoices || []).forEach((invoice) => {
+          invoiceTypeById.set(invoice.id, (invoice.invoice_type || "payout") as "payout" | "reservation_fees");
+        });
+      }
+
+      return rows
+        .map((row) => ({
+          ...row,
+          invoice_type: row.restaurant_invoice_id ? invoiceTypeById.get(row.restaurant_invoice_id) || null : null,
+        }) satisfies AdminReservationFeeAccrualRow)
+        .filter(isBillableReservationFee);
     },
   });
 
@@ -367,24 +440,50 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       commissionBases,
       reservationFeeInvoices: tokFeeInvoiceSections,
       payoutInvoices: payoutInvoiceSections,
+      reservationFeeAccruedAmount: (reservationFeeAccrualsQuery.data || []).reduce(
+        (sum, row) => sum + toAmount(row.billing_fee_chf),
+        0,
+      ),
     }),
-    [commissionBases, payoutInvoiceSections, tokFeeInvoiceSections],
+    [commissionBases, payoutInvoiceSections, reservationFeeAccrualsQuery.data, tokFeeInvoiceSections],
   );
 
   const paidEventGross = useMemo(
     () => sumBySource(commissionBases, 1),
     [commissionBases],
   );
+  const reservationFeeAccrualCount = reservationFeeAccrualsQuery.data?.length || 0;
+  const reservationFeeAccrualAmount = useMemo(
+    () => (reservationFeeAccrualsQuery.data || []).reduce((sum, row) => sum + toAmount(row.billing_fee_chf), 0),
+    [reservationFeeAccrualsQuery.data],
+  );
   const paidCampaignsTotal = useMemo(
     () => (campaignsQuery.data || []).reduce((sum, campaign) => sum + getCampaignPaidAmount(campaign), 0),
     [campaignsQuery.data],
   );
   const paidCampaignsCount = campaignsQuery.data?.length || 0;
+  const miamzReimbursementsTotal = useMemo(
+    () => (ordersQuery.data || []).reduce((sum, order) => sum + getPointsDiscountAmount(order.metadata), 0),
+    [ordersQuery.data],
+  );
+  const miamzReimbursementsOutstanding = useMemo(
+    () => (ordersQuery.data || []).reduce((sum, order) => (
+      order.restaurant_invoice_id
+        ? sum
+        : sum + getPointsDiscountAmount(order.metadata)
+    ), 0),
+    [ordersQuery.data],
+  );
+  const miamzReimbursementsCount = useMemo(
+    () => (ordersQuery.data || []).filter((order) => getPointsDiscountAmount(order.metadata) > 0).length,
+    [ordersQuery.data],
+  );
 
   return {
     restaurants: restaurantsQuery.data || [],
     orders: ordersQuery.data || [],
     reservationPayments: reservationsQuery.data || [],
+    reservationFeeAccruals: reservationFeeAccrualsQuery.data || [],
     paidCampaigns: campaignsQuery.data || [],
     payoutInvoices: payoutInvoicesQuery.data || [],
     tokFeeInvoices: tokFeeInvoicesQuery.data || [],
@@ -393,18 +492,25 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     commissionBases,
     summary,
     paidEventGross,
+    reservationFeeAccrualCount,
+    reservationFeeAccrualAmount,
     paidCampaignsTotal,
     paidCampaignsCount,
+    miamzReimbursementsTotal,
+    miamzReimbursementsOutstanding,
+    miamzReimbursementsCount,
     monthOptions,
     isLoading: restaurantsQuery.isLoading
       || ordersQuery.isLoading
       || reservationsQuery.isLoading
+      || reservationFeeAccrualsQuery.isLoading
       || campaignsQuery.isLoading
       || payoutInvoicesQuery.isLoading
       || tokFeeInvoicesQuery.isLoading,
     error: restaurantsQuery.error
       || ordersQuery.error
       || reservationsQuery.error
+      || reservationFeeAccrualsQuery.error
       || campaignsQuery.error
       || payoutInvoicesQuery.error
       || tokFeeInvoicesQuery.error,

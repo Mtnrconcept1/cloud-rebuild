@@ -20,6 +20,9 @@ export default function DashboardFactures() {
   const {
     selectedRestaurant,
     commissionBases,
+    miamzReimbursementsCount,
+    miamzReimbursementsOutstanding,
+    miamzReimbursementsTotal,
     summary,
     reservationFees,
     paidCampaignsCount,
@@ -38,7 +41,7 @@ export default function DashboardFactures() {
     0,
   );
   const totalReceivable = summary.inflow.receivableFromTok + uninvoicedRestaurantShareTotal;
-  const totalPayable = summary.outflow.payableToTok + reservationFees.amount;
+  const totalPayable = summary.outflow.totalOutstanding;
 
   return (
     <DashboardLayout>
@@ -91,7 +94,7 @@ export default function DashboardFactures() {
 
         {selectedRestaurant && !isLoading && !error ? (
           <>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
               <Card className="border-sky-200 bg-sky-50/70">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-sky-800">Paiements clients via TOK</CardTitle>
@@ -132,6 +135,18 @@ export default function DashboardFactures() {
                   <p className="text-3xl font-bold text-orange-950">{formatAmount(totalPayable)}</p>
                   <p className="mt-1 text-xs text-orange-700">
                     {formatAmount(summary.outflow.payableToTok)} facture + {formatAmount(reservationFees.amount)} frais reservation non encore factures
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-violet-200 bg-violet-50/80">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-violet-800">Remboursements Miamz</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-violet-950">{formatAmount(miamzReimbursementsTotal)}</p>
+                  <p className="mt-1 text-xs text-violet-700">
+                    {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz, dont {formatAmount(miamzReimbursementsOutstanding)} encore non facture
                   </p>
                 </CardContent>
               </Card>
@@ -187,6 +202,33 @@ export default function DashboardFactures() {
                     </div>
                     <p className="text-xs text-orange-800">
                       {paidCampaignsCount} campagne{paidCampaignsCount > 1 ? "s" : ""} payee{paidCampaignsCount > 1 ? "s" : ""} par votre restaurant.
+                    </p>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle>Miamz rembourses par TOK</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Lorsqu&apos;un client paye une partie de sa commande en Miamz, TOK rembourse ce montant a votre restaurant. Ce flux reste visible a part mais il est integre a vos reversements.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <Card className="border-violet-200 bg-violet-50/60 shadow-none">
+                  <CardContent className="space-y-2 py-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Remboursements Miamz</p>
+                        <p className="text-2xl font-bold text-violet-950">{formatAmount(miamzReimbursementsTotal)}</p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                        Inclus dans vos reversements
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-violet-800">
+                      {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz sur le filtre courant, dont {formatAmount(miamzReimbursementsOutstanding)} encore non facture.
                     </p>
                   </CardContent>
                 </Card>

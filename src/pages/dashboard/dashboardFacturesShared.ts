@@ -8,6 +8,7 @@ import {
   classifyReservationCommissionSource,
   COMMISSION_SOURCE_ORDER,
   createEmptyCommissionBaseTotals,
+  getPointsDiscountAmount,
 } from "@/lib/comptaCommissionSources";
 import { buildRestaurantAccountingSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
@@ -56,6 +57,15 @@ export type RestaurantReservationPaymentRow = {
   restaurant_invoice_id: string | null;
 };
 
+type RestaurantReservationFeeRow = {
+  id: string;
+  restaurant_id: string;
+  confirmed_at: string | null;
+  billing_fee_chf: number | string | null;
+  cancelled_by: string | null;
+  restaurant_invoice_id: string | null;
+};
+
 export type RestaurantPaidCampaignRow = {
   id: string;
   created_at: string;
@@ -70,9 +80,6 @@ type ReservationFeeSummary = {
   amount: number;
 };
 
-const RESERVATION_FEE_PERIOD_START = "2000-01-01";
-const RESERVATION_FEE_PERIOD_END = "2100-12-31";
-
 export function toAmount(value: number | string | null | undefined) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -86,6 +93,11 @@ function getCampaignPaidAmount(campaign: Pick<RestaurantPaidCampaignRow, "paid_a
   const paidAmount = toAmount(campaign.paid_amount);
   if (paidAmount > 0) return paidAmount;
   return toAmount(campaign.total_budget);
+}
+
+function isBillableReservationFee(cancelledBy: string | null | undefined) {
+  const normalized = String(cancelledBy || "").trim().toLowerCase();
+  return normalized === "" || (normalized !== "customer" && normalized !== "admin");
 }
 
 export function formatDate(value: string | null | undefined) {
@@ -123,8 +135,7 @@ function buildCommissionBases(
     const source = classifyOrderCommissionSource(order);
     if (!source) return;
 
-    const metadata = order.metadata && typeof order.metadata === "object" ? order.metadata : {};
-    const grossAmount = toAmount(order.total_amount) + toAmount(metadata.points_discount_amount);
+    const grossAmount = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
     totals[source] += grossAmount;
   });
 
@@ -204,22 +215,17 @@ export function useDashboardFacturesData() {
     enabled: !!selectedId && !restaurantsLoading,
   });
 
-  const reservationFeesQuery = useQuery({
-    queryKey: ["dashboard-reservation-fees-v2", selectedId, RESERVATION_FEE_PERIOD_START, RESERVATION_FEE_PERIOD_END],
+  const reservationFeeRowsQuery = useQuery({
+    queryKey: ["dashboard-reservation-fee-rows-v3", selectedId],
     queryFn: async () => {
-      const { data, error } = await (supabase.rpc as any)("compute_restaurant_reservation_fees", {
-        p_restaurant_id: selectedId!,
-        p_period_start: RESERVATION_FEE_PERIOD_START,
-        p_period_end: RESERVATION_FEE_PERIOD_END,
-      });
-
+      const { data, error } = await supabase
+        .from("reservations")
+        .select("id, restaurant_id, confirmed_at, billing_fee_chf, cancelled_by, restaurant_invoice_id")
+        .eq("restaurant_id", selectedId!)
+        .not("confirmed_at", "is", null)
+        .order("confirmed_at", { ascending: false });
       if (error) throw error;
-
-      const row = Array.isArray(data) ? data[0] : data;
-      return {
-        count: Number(row?.reservations_count ?? 0),
-        amount: Number(row?.reservations_amount ?? 0),
-      } satisfies ReservationFeeSummary;
+      return (data || []) as RestaurantReservationFeeRow[];
     },
     enabled: !!selectedId && !restaurantsLoading,
   });
@@ -257,6 +263,29 @@ export function useDashboardFacturesData() {
     () => splitInvoicesByPaymentState(tokFeeInvoices),
     [tokFeeInvoices],
   );
+  const invoiceTypeById = useMemo(
+    () => new Map((invoicesQuery.data || []).map((invoice) => [invoice.id, invoice.invoice_type || "payout"])),
+    [invoicesQuery.data],
+  );
+  const reservationFees = useMemo(() => {
+    return (reservationFeeRowsQuery.data || []).reduce<ReservationFeeSummary>((accumulator, reservation) => {
+      if (!isBillableReservationFee(reservation.cancelled_by)) {
+        return accumulator;
+      }
+
+      const linkedInvoiceType = reservation.restaurant_invoice_id
+        ? invoiceTypeById.get(reservation.restaurant_invoice_id) || null
+        : null;
+
+      if (linkedInvoiceType === "reservation_fees") {
+        return accumulator;
+      }
+
+      accumulator.count += 1;
+      accumulator.amount += toAmount(reservation.billing_fee_chf);
+      return accumulator;
+    }, { count: 0, amount: 0 });
+  }, [invoiceTypeById, reservationFeeRowsQuery.data]);
 
   const commissionBases = useMemo(
     () => buildCommissionBases(ordersQuery.data || [], reservationsQuery.data || []),
@@ -266,9 +295,12 @@ export function useDashboardFacturesData() {
   const uninvoicedCommissionBases = useMemo(
     () => buildCommissionBases(
       (ordersQuery.data || []).filter((order) => !order.restaurant_invoice_id),
-      (reservationsQuery.data || []).filter((reservation) => !reservation.restaurant_invoice_id),
+      (reservationsQuery.data || []).filter((reservation) => {
+        if (!reservation.restaurant_invoice_id) return true;
+        return invoiceTypeById.get(reservation.restaurant_invoice_id) !== "payout";
+      }),
     ),
-    [ordersQuery.data, reservationsQuery.data],
+    [invoiceTypeById, ordersQuery.data, reservationsQuery.data],
   );
 
   const summary = useMemo(
@@ -276,8 +308,9 @@ export function useDashboardFacturesData() {
       commissionBases,
       reservationFeeInvoices: tokFeeInvoiceSections,
       payoutInvoices: payoutInvoiceSections,
+      reservationFeeAccruedAmount: reservationFees.amount,
     }),
-    [commissionBases, payoutInvoiceSections, tokFeeInvoiceSections],
+    [commissionBases, payoutInvoiceSections, reservationFees.amount, tokFeeInvoiceSections],
   );
 
   const uninvoicedRestaurantShareBySource = useMemo(
@@ -293,6 +326,22 @@ export function useDashboardFacturesData() {
     [paidCampaignsQuery.data],
   );
   const paidCampaignsCount = paidCampaignsQuery.data?.length || 0;
+  const miamzReimbursementsTotal = useMemo(
+    () => (ordersQuery.data || []).reduce((sum, order) => sum + getPointsDiscountAmount(order.metadata), 0),
+    [ordersQuery.data],
+  );
+  const miamzReimbursementsOutstanding = useMemo(
+    () => (ordersQuery.data || []).reduce((sum, order) => (
+      order.restaurant_invoice_id
+        ? sum
+        : sum + getPointsDiscountAmount(order.metadata)
+    ), 0),
+    [ordersQuery.data],
+  );
+  const miamzReimbursementsCount = useMemo(
+    () => (ordersQuery.data || []).filter((order) => getPointsDiscountAmount(order.metadata) > 0).length,
+    [ordersQuery.data],
+  );
 
   return {
     restaurants,
@@ -304,10 +353,13 @@ export function useDashboardFacturesData() {
     reservationPayments: reservationsQuery.data || [],
     payoutInvoiceSections,
     tokFeeInvoiceSections,
-    reservationFees: reservationFeesQuery.data || { count: 0, amount: 0 },
+    reservationFees,
     paidCampaigns: paidCampaignsQuery.data || [],
     paidCampaignsTotal,
     paidCampaignsCount,
+    miamzReimbursementsTotal,
+    miamzReimbursementsOutstanding,
+    miamzReimbursementsCount,
     commissionBases,
     uninvoicedCommissionBases,
     uninvoicedRestaurantShareBySource,
@@ -317,13 +369,13 @@ export function useDashboardFacturesData() {
       || invoicesQuery.isLoading
       || ordersQuery.isLoading
       || reservationsQuery.isLoading
-      || reservationFeesQuery.isLoading
+      || reservationFeeRowsQuery.isLoading
       || paidCampaignsQuery.isLoading,
     error: restaurantsError
       || invoicesQuery.error
       || ordersQuery.error
       || reservationsQuery.error
-      || reservationFeesQuery.error
+      || reservationFeeRowsQuery.error
       || paidCampaignsQuery.error,
   };
 }

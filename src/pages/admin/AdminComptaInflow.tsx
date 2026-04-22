@@ -106,11 +106,16 @@ export default function AdminComptaInflow() {
   const {
     restaurants,
     summary,
+    reservationFeeAccrualAmount,
+    reservationFeeAccrualCount,
     tokFeeInvoiceSections,
+    miamzReimbursementsCount,
+    miamzReimbursementsTotal,
     monthOptions,
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
+  const totalReservationFeesOpen = summary.inflow.reservationFeesOutstanding + reservationFeeAccrualAmount;
 
   const handleGenerateInvoices = async () => {
     setGenerating(true);
@@ -228,7 +233,7 @@ export default function AdminComptaInflow() {
 
       {!isLoading && !error ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <Card className="border-emerald-200 bg-emerald-50/70">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-emerald-800">Commissions 10%</CardTitle>
@@ -240,11 +245,33 @@ export default function AdminComptaInflow() {
             </Card>
             <Card className="border-amber-200 bg-amber-50/80">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-amber-800">Factures a encaisser</CardTitle>
+                <CardTitle className="text-sm font-medium text-amber-800">5.- non factures</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-amber-950">{formatAmount(summary.inflow.reservationFeesOutstanding)}</p>
-                <p className="mt-1 text-xs text-amber-700">Factures TOK ouvertes cote restaurateurs</p>
+                <p className="text-3xl font-bold text-amber-950">{formatAmount(reservationFeeAccrualAmount)}</p>
+                <p className="mt-1 text-xs text-amber-700">
+                  {reservationFeeAccrualCount} reservation{reservationFeeAccrualCount > 1 ? "s" : ""} confirmée{reservationFeeAccrualCount > 1 ? "s" : ""} encore sans facture TOK
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-orange-200 bg-orange-50/80">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-orange-800">Factures a encaisser</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-orange-950">{formatAmount(summary.inflow.reservationFeesOutstanding)}</p>
+                <p className="mt-1 text-xs text-orange-700">Factures TOK deja emises cote restaurateurs</p>
+              </CardContent>
+            </Card>
+            <Card className="border-violet-200 bg-violet-50/80">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-violet-800">Paiements Miamz</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-violet-950">{formatAmount(miamzReimbursementsTotal)}</p>
+                <p className="mt-1 text-xs text-violet-700">
+                  {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec remise Miamz sur la periode
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -256,16 +283,22 @@ export default function AdminComptaInflow() {
                 <p className="mt-1 text-xs text-muted-foreground">Historique regle sur les factures TOK</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Entrees ouvertes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{formatAmount(summary.inflow.totalOutstanding)}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Commissions du mois + factures TOK en attente</p>
-              </CardContent>
-            </Card>
           </div>
+
+          <Card className="border-dashed">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
+              <div>
+                <p className="font-medium">Lecture des 5.- par reservation</p>
+                <p className="text-muted-foreground">
+                  {formatAmount(totalReservationFeesOpen)} a encaisser au total: {formatAmount(reservationFeeAccrualAmount)} encore non factures et {formatAmount(summary.inflow.reservationFeesOutstanding)} deja factures.
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Entrees ouvertes</p>
+                <p className="text-xl font-semibold">{formatAmount(summary.inflow.totalOutstanding)}</p>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader className="pb-4">
