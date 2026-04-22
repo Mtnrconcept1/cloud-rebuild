@@ -47,6 +47,11 @@ function getRecord(value: unknown) {
   return value as Record<string, unknown>;
 }
 
+function toAmount(value: unknown) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 function isPaidStatus(status: unknown) {
   const normalizedStatus = normalize(status);
   return normalizedStatus === "paid" || normalizedStatus === "captured";
@@ -70,6 +75,11 @@ export function createEmptyCommissionBaseTotals(): CommissionBaseTotals {
     flash_sales: 0,
     anti_gaspi: 0,
   };
+}
+
+export function getPointsDiscountAmount(metadata: Record<string, unknown> | null | undefined) {
+  const record = getRecord(metadata);
+  return toAmount(record.points_discount_amount ?? record.points_discount);
 }
 
 export function classifyOrderCommissionSource(order: OrderLike): CommissionSource | null {
@@ -132,7 +142,7 @@ export function classifyReservationCommissionSource(reservation: ReservationLike
     return "flash_sales";
   }
 
-  if (feature === "anti-gaspi" || feature === "zero-gaspi") {
+  if (feature === "anti-gaspi" || feature === "anti-waste" || feature === "zero-gaspi") {
     return "anti_gaspi";
   }
 

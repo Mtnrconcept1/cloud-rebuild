@@ -4,6 +4,7 @@ import {
   classifyOrderCommissionSource,
   classifyReservationCommissionSource,
   createEmptyCommissionBaseTotals,
+  getPointsDiscountAmount,
 } from "@/lib/comptaCommissionSources";
 
 describe("classifyOrderCommissionSource", () => {
@@ -67,6 +68,14 @@ describe("classifyReservationCommissionSource", () => {
     })).toBe("chefs_table");
   });
 
+  it("classifies anti-waste reservation metadata variants as anti-gaspi", () => {
+    expect(classifyReservationCommissionSource({
+      feature: "anti_waste",
+      total_amount: 18,
+      status: "confirmed",
+    })).toBe("anti_gaspi");
+  });
+
   it("returns null for unpaid classic reservations that should not generate a 10 percent bucket", () => {
     expect(classifyReservationCommissionSource({
       feature: null,
@@ -85,5 +94,15 @@ describe("createEmptyCommissionBaseTotals", () => {
       flash_sales: 0,
       anti_gaspi: 0,
     });
+  });
+});
+
+describe("getPointsDiscountAmount", () => {
+  it("reads the checkout metadata key used in production", () => {
+    expect(getPointsDiscountAmount({ points_discount_amount: "4.5" })).toBe(4.5);
+  });
+
+  it("falls back to the legacy points_discount key", () => {
+    expect(getPointsDiscountAmount({ points_discount: 3 })).toBe(3);
   });
 });

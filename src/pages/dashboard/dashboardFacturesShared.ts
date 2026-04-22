@@ -8,6 +8,7 @@ import {
   classifyReservationCommissionSource,
   COMMISSION_SOURCE_ORDER,
   createEmptyCommissionBaseTotals,
+  getPointsDiscountAmount,
 } from "@/lib/comptaCommissionSources";
 import { buildRestaurantAccountingSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
@@ -123,8 +124,7 @@ function buildCommissionBases(
     const source = classifyOrderCommissionSource(order);
     if (!source) return;
 
-    const metadata = order.metadata && typeof order.metadata === "object" ? order.metadata : {};
-    const grossAmount = toAmount(order.total_amount) + toAmount(metadata.points_discount_amount);
+    const grossAmount = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
     totals[source] += grossAmount;
   });
 
@@ -276,8 +276,9 @@ export function useDashboardFacturesData() {
       commissionBases,
       reservationFeeInvoices: tokFeeInvoiceSections,
       payoutInvoices: payoutInvoiceSections,
+      reservationFeeAccruedAmount: reservationFeesQuery.data?.amount || 0,
     }),
-    [commissionBases, payoutInvoiceSections, tokFeeInvoiceSections],
+    [commissionBases, payoutInvoiceSections, reservationFeesQuery.data?.amount, tokFeeInvoiceSections],
   );
 
   const uninvoicedRestaurantShareBySource = useMemo(
@@ -293,6 +294,22 @@ export function useDashboardFacturesData() {
     [paidCampaignsQuery.data],
   );
   const paidCampaignsCount = paidCampaignsQuery.data?.length || 0;
+  const miamzReimbursementsTotal = useMemo(
+    () => (ordersQuery.data || []).reduce((sum, order) => sum + getPointsDiscountAmount(order.metadata), 0),
+    [ordersQuery.data],
+  );
+  const miamzReimbursementsOutstanding = useMemo(
+    () => (ordersQuery.data || []).reduce((sum, order) => (
+      order.restaurant_invoice_id
+        ? sum
+        : sum + getPointsDiscountAmount(order.metadata)
+    ), 0),
+    [ordersQuery.data],
+  );
+  const miamzReimbursementsCount = useMemo(
+    () => (ordersQuery.data || []).filter((order) => getPointsDiscountAmount(order.metadata) > 0).length,
+    [ordersQuery.data],
+  );
 
   return {
     restaurants,
@@ -308,6 +325,9 @@ export function useDashboardFacturesData() {
     paidCampaigns: paidCampaignsQuery.data || [],
     paidCampaignsTotal,
     paidCampaignsCount,
+    miamzReimbursementsTotal,
+    miamzReimbursementsOutstanding,
+    miamzReimbursementsCount,
     commissionBases,
     uninvoicedCommissionBases,
     uninvoicedRestaurantShareBySource,

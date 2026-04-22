@@ -23,13 +23,16 @@ describe("buildTokAccountingSummary", () => {
         actionable: [{ amount_ttc: 90 }],
         history: [{ amount_ttc: 60 }],
       },
+      reservationFeeAccruedAmount: 10,
     });
 
     expect(summary.inflow.totalCommissions).toBe(26);
     expect(summary.inflow.bySource.zero_attente).toBe(8);
     expect(summary.inflow.reservationFeesOutstanding).toBe(15);
+    expect(summary.inflow.reservationFeesPendingInvoice).toBe(10);
     expect(summary.outflow.payoutsOutstanding).toBe(90);
     expect(summary.outflow.payoutsPaid).toBe(60);
+    expect(summary.inflow.totalOutstanding).toBe(51);
   });
 });
 
@@ -51,11 +54,14 @@ describe("buildRestaurantAccountingSummary", () => {
         actionable: [{ amount_ttc: 90 }],
         history: [{ amount_ttc: 60 }],
       },
+      reservationFeeAccruedAmount: 10,
     });
 
     expect(summary.inflow.receivableFromTok).toBe(90);
     expect(summary.inflow.bySource.orders).toBe(90);
     expect(summary.outflow.payableToTok).toBe(15);
+    expect(summary.outflow.reservationFeesPendingInvoice).toBe(10);
     expect(summary.outflow.alreadyPaidToTok).toBe(5);
+    expect(summary.outflow.totalOutstanding).toBe(25);
   });
 });

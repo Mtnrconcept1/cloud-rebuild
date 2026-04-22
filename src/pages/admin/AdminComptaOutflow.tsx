@@ -104,6 +104,9 @@ export default function AdminComptaOutflow() {
 
   const {
     restaurants,
+    miamzReimbursementsCount,
+    miamzReimbursementsOutstanding,
+    miamzReimbursementsTotal,
     summary,
     payoutInvoiceSections,
     monthOptions,
@@ -193,7 +196,7 @@ export default function AdminComptaOutflow() {
 
       {!isLoading && !error ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <Card className="border-rose-200 bg-rose-50/80">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-rose-800">A reverser</CardTitle>
@@ -201,6 +204,17 @@ export default function AdminComptaOutflow() {
               <CardContent>
                 <p className="text-3xl font-bold text-rose-950">{formatAmount(summary.outflow.payoutsOutstanding)}</p>
                 <p className="mt-1 text-xs text-rose-700">Factures recues des restaurateurs encore ouvertes</p>
+              </CardContent>
+            </Card>
+            <Card className="border-violet-200 bg-violet-50/80">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-violet-800">Paiements Miamz</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-violet-950">{formatAmount(miamzReimbursementsTotal)}</p>
+                <p className="mt-1 text-xs text-violet-700">
+                  {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec remise Miamz, dont {formatAmount(miamzReimbursementsOutstanding)} encore non facture
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -238,6 +252,9 @@ export default function AdminComptaOutflow() {
                 <Wallet className="h-5 w-5 text-rose-600" />
                 <CardTitle>Origine des reversements restaurateurs</CardTitle>
               </div>
+              <p className="text-sm text-muted-foreground">
+                Les reversements incluent la part 90% restaurant ainsi que les remboursements Miamz quand un client utilise ses points sur une commande.
+              </p>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
               {COMMISSION_SOURCE_ORDER.map((source) => (

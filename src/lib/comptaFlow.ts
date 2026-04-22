@@ -31,12 +31,14 @@ export function buildTokAccountingSummary(input: {
   commissionBases: CommissionBaseTotals;
   reservationFeeInvoices: InvoiceBuckets;
   payoutInvoices: InvoiceBuckets;
+  reservationFeeAccruedAmount?: number;
 }) {
   const bySource = mapByRate(input.commissionBases, COMMISSION_RATE);
   const restaurantShareBySource = mapByRate(input.commissionBases, RESTAURANT_SHARE_RATE);
   const totalCommissions = Object.values(bySource).reduce((sum, amount) => sum + amount, 0);
   const reservationFeesOutstanding = sumInvoices(input.reservationFeeInvoices.actionable);
   const reservationFeesCollected = sumInvoices(input.reservationFeeInvoices.history);
+  const reservationFeesPendingInvoice = toAmount(input.reservationFeeAccruedAmount);
   const payoutsOutstanding = sumInvoices(input.payoutInvoices.actionable);
   const payoutsPaid = sumInvoices(input.payoutInvoices.history);
 
@@ -45,8 +47,9 @@ export function buildTokAccountingSummary(input: {
       bySource,
       totalCommissions,
       reservationFeesOutstanding,
+      reservationFeesPendingInvoice,
       reservationFeesCollected,
-      totalOutstanding: totalCommissions + reservationFeesOutstanding,
+      totalOutstanding: totalCommissions + reservationFeesOutstanding + reservationFeesPendingInvoice,
       totalCollected: reservationFeesCollected,
     },
     outflow: {
@@ -56,7 +59,7 @@ export function buildTokAccountingSummary(input: {
       totalOutstanding: payoutsOutstanding,
       totalPaid: payoutsPaid,
     },
-    netOutstanding: totalCommissions + reservationFeesOutstanding - payoutsOutstanding,
+    netOutstanding: totalCommissions + reservationFeesOutstanding + reservationFeesPendingInvoice - payoutsOutstanding,
   };
 }
 
@@ -64,12 +67,14 @@ export function buildRestaurantAccountingSummary(input: {
   commissionBases: CommissionBaseTotals;
   reservationFeeInvoices: InvoiceBuckets;
   payoutInvoices: InvoiceBuckets;
+  reservationFeeAccruedAmount?: number;
 }) {
   const bySource = mapByRate(input.commissionBases, RESTAURANT_SHARE_RATE);
   const receivableFromTok = sumInvoices(input.payoutInvoices.actionable);
   const receivedFromTok = sumInvoices(input.payoutInvoices.history);
   const payableToTok = sumInvoices(input.reservationFeeInvoices.actionable);
   const alreadyPaidToTok = sumInvoices(input.reservationFeeInvoices.history);
+  const reservationFeesPendingInvoice = toAmount(input.reservationFeeAccruedAmount);
 
   return {
     inflow: {
@@ -81,10 +86,11 @@ export function buildRestaurantAccountingSummary(input: {
     },
     outflow: {
       payableToTok,
+      reservationFeesPendingInvoice,
       alreadyPaidToTok,
-      totalOutstanding: payableToTok,
+      totalOutstanding: payableToTok + reservationFeesPendingInvoice,
       totalPaid: alreadyPaidToTok,
     },
-    netOutstanding: receivableFromTok - payableToTok,
+    netOutstanding: receivableFromTok - payableToTok - reservationFeesPendingInvoice,
   };
 }

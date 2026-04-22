@@ -28,12 +28,18 @@ export default function AdminCompta() {
     restaurants,
     summary,
     paidEventGross,
+    reservationFeeAccrualAmount,
+    reservationFeeAccrualCount,
     paidCampaignsCount,
     paidCampaignsTotal,
+    miamzReimbursementsCount,
+    miamzReimbursementsOutstanding,
+    miamzReimbursementsTotal,
     monthOptions,
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
+  const totalReservationFeesOpen = summary.inflow.reservationFeesOutstanding + reservationFeeAccrualAmount;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
@@ -111,7 +117,7 @@ export default function AdminCompta() {
 
       {!isLoading && !error ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <Card className="border-sky-200 bg-sky-50/70">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-sky-800">Paiements clients passes par TOK</CardTitle>
@@ -134,11 +140,25 @@ export default function AdminCompta() {
 
             <Card className="border-amber-200 bg-amber-50/80">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-amber-800">Factures a encaisser</CardTitle>
+                <CardTitle className="text-sm font-medium text-amber-800">5.- reservations a encaisser</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-amber-950">{formatAmount(summary.inflow.reservationFeesOutstanding)}</p>
-                <p className="mt-1 text-xs text-amber-700">Factures TOK faites aux restaurateurs encore ouvertes</p>
+                <p className="text-3xl font-bold text-amber-950">{formatAmount(totalReservationFeesOpen)}</p>
+                <p className="mt-1 text-xs text-amber-700">
+                  {formatAmount(summary.inflow.reservationFeesOutstanding)} deja factures + {formatAmount(reservationFeeAccrualAmount)} non factures ({reservationFeeAccrualCount} reservation{reservationFeeAccrualCount > 1 ? "s" : ""})
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-violet-200 bg-violet-50/80">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-violet-800">Paiements Miamz</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-violet-950">{formatAmount(miamzReimbursementsTotal)}</p>
+                <p className="mt-1 text-xs text-violet-700">
+                  {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz, dont {formatAmount(miamzReimbursementsOutstanding)} encore non facture
+                </p>
               </CardContent>
             </Card>
 
@@ -173,6 +193,34 @@ export default function AdminCompta() {
                   </CardContent>
                 </Card>
               ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-violet-600" />
+                <CardTitle>Paiements Miamz rembourses aux restaurateurs</CardTitle>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Les reductions Miamz appliquees par les clients sont remboursees par TOK aux restaurateurs et restent visibles a part, meme si elles sont integrees aux reversements.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Card className="border-violet-200 bg-violet-50/60 shadow-none">
+                <CardContent className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Remboursements Miamz</p>
+                    <p className="text-2xl font-bold">{formatAmount(miamzReimbursementsTotal)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec remise Miamz sur le filtre courant
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="w-fit text-[11px] uppercase tracking-wide">
+                    Inclus dans les reversements restaurants
+                  </Badge>
+                </CardContent>
+              </Card>
             </CardContent>
           </Card>
 
