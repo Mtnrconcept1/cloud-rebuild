@@ -129,9 +129,7 @@ export default function DashboardFacturesOutflow() {
     toast({ title: "Facture marquee comme payee" });
     if (selectedRestaurant) {
       await queryClient.invalidateQueries({ queryKey: ["dashboard-invoices-v2", selectedRestaurant.id] });
-      await queryClient.invalidateQueries({
-        queryKey: ["dashboard-reservation-fees-v2", selectedRestaurant.id, "2000-01-01", "2100-12-31"],
-      });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-reservation-fee-rows-v3", selectedRestaurant.id] });
     }
   };
 

@@ -81,6 +81,7 @@ export type AdminReservationFeeAccrualRow = {
   billing_fee_chf: number | string | null;
   cancelled_by: string | null;
   restaurant_invoice_id: string | null;
+  invoice_type: "payout" | "reservation_fees" | null;
   restaurants?: { name: string | null } | null;
 };
 
@@ -179,9 +180,13 @@ function getCampaignPaidAmount(campaign: Pick<AdminCampaignRow, "paid_amount" | 
   return paidAmount > 0 ? paidAmount : toAmount(campaign.total_budget);
 }
 
-function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "cancelled_by">) {
+function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "cancelled_by" | "invoice_type">) {
   const cancelledBy = String(row.cancelled_by || "").trim().toLowerCase();
-  return cancelledBy === "" || (cancelledBy !== "customer" && cancelledBy !== "admin");
+  if (!(cancelledBy === "" || (cancelledBy !== "customer" && cancelledBy !== "admin"))) {
+    return false;
+  }
+
+  return row.invoice_type !== "reservation_fees";
 }
 
 export function useAdminComptaData(selectedRestaurant: string, selectedMonth: string) {
@@ -249,8 +254,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
         `)
         .not("confirmed_at", "is", null)
         .gte("confirmed_at", `${monthBounds.monthStart}T00:00:00.000Z`)
-        .lte("confirmed_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
-        .is("restaurant_invoice_id", null);
+        .lte("confirmed_at", `${monthBounds.monthEnd}T23:59:59.999Z`);
 
       if (selectedRestaurant !== "all") {
         query = query.eq("restaurant_id", selectedRestaurant);
@@ -258,7 +262,30 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
 
       const { data, error } = await query.order("confirmed_at", { ascending: false });
       if (error) throw error;
-      return ((data || []) as AdminReservationFeeAccrualRow[]).filter(isBillableReservationFee);
+
+      const rows = (data || []) as Array<Omit<AdminReservationFeeAccrualRow, "invoice_type">>;
+      const invoiceIds = Array.from(new Set(rows.map((row) => row.restaurant_invoice_id).filter(Boolean))) as string[];
+      const invoiceTypeById = new Map<string, "payout" | "reservation_fees" | null>();
+
+      if (invoiceIds.length > 0) {
+        const { data: invoices, error: invoicesError } = await supabase
+          .from("restaurant_invoices")
+          .select("id, invoice_type")
+          .in("id", invoiceIds);
+
+        if (invoicesError) throw invoicesError;
+
+        (invoices || []).forEach((invoice) => {
+          invoiceTypeById.set(invoice.id, (invoice.invoice_type || "payout") as "payout" | "reservation_fees");
+        });
+      }
+
+      return rows
+        .map((row) => ({
+          ...row,
+          invoice_type: row.restaurant_invoice_id ? invoiceTypeById.get(row.restaurant_invoice_id) || null : null,
+        }) satisfies AdminReservationFeeAccrualRow)
+        .filter(isBillableReservationFee);
     },
   });
 
