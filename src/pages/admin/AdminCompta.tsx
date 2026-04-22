@@ -27,9 +27,8 @@ export default function AdminCompta() {
   const {
     restaurants,
     summary,
+    payableAccruals,
     paidEventGross,
-    reservationFeeAccrualAmount,
-    reservationFeeAccrualCount,
     paidCampaignsCount,
     paidCampaignsTotal,
     miamzReimbursementsCount,
@@ -39,7 +38,7 @@ export default function AdminCompta() {
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
-  const totalReservationFeesOpen = summary.inflow.reservationFeesOutstanding + reservationFeeAccrualAmount;
+  const totalPayableOpen = summary.inflow.payableOutstanding + payableAccruals.totalAmount;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
@@ -140,12 +139,12 @@ export default function AdminCompta() {
 
             <Card className="border-amber-200 bg-amber-50/80">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-amber-800">5.- reservations a encaisser</CardTitle>
+                <CardTitle className="text-sm font-medium text-amber-800">Facturation restaurateurs ouverte</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-amber-950">{formatAmount(totalReservationFeesOpen)}</p>
+                <p className="text-3xl font-bold text-amber-950">{formatAmount(totalPayableOpen)}</p>
                 <p className="mt-1 text-xs text-amber-700">
-                  {formatAmount(summary.inflow.reservationFeesOutstanding)} deja factures + {formatAmount(reservationFeeAccrualAmount)} non factures ({reservationFeeAccrualCount} reservation{reservationFeeAccrualCount > 1 ? "s" : ""})
+                  {formatAmount(summary.inflow.payableOutstanding)} deja facture + {formatAmount(payableAccruals.totalAmount)} non facture
                 </p>
               </CardContent>
             </Card>
@@ -275,8 +274,8 @@ export default function AdminCompta() {
               <CardContent className="flex items-center gap-3 py-5">
                 <Building2 className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Reservation fees deja encaisses</p>
-                  <p className="text-xl font-semibold">{formatAmount(summary.inflow.reservationFeesCollected)}</p>
+                  <p className="text-sm text-muted-foreground">Factures TOK deja encaissees</p>
+                  <p className="text-xl font-semibold">{formatAmount(summary.inflow.payableCollected)}</p>
                 </div>
               </CardContent>
             </Card>

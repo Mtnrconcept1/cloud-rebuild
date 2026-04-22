@@ -23,8 +23,8 @@ export default function DashboardFactures() {
     miamzReimbursementsCount,
     miamzReimbursementsOutstanding,
     miamzReimbursementsTotal,
+    payableAccruals,
     summary,
-    reservationFees,
     paidCampaignsCount,
     paidCampaignsTotal,
     uninvoicedRestaurantShareTotal,
@@ -134,7 +134,7 @@ export default function DashboardFactures() {
                 <CardContent>
                   <p className="text-3xl font-bold text-orange-950">{formatAmount(totalPayable)}</p>
                   <p className="mt-1 text-xs text-orange-700">
-                    {formatAmount(summary.outflow.payableToTok)} facture + {formatAmount(reservationFees.amount)} frais reservation non encore factures
+                    {formatAmount(summary.outflow.payableToTok)} facture + {formatAmount(payableAccruals.totalAmount)} encours non encore facture
                   </p>
                 </CardContent>
               </Card>

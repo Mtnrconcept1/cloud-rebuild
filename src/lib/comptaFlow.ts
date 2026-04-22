@@ -29,16 +29,19 @@ function mapByRate(bases: CommissionBaseTotals, rate: number) {
 
 export function buildTokAccountingSummary(input: {
   commissionBases: CommissionBaseTotals;
+  payableInvoices?: InvoiceBuckets;
   reservationFeeInvoices: InvoiceBuckets;
   payoutInvoices: InvoiceBuckets;
+  payableAccruedAmount?: number;
   reservationFeeAccruedAmount?: number;
 }) {
+  const payableInvoices = input.payableInvoices ?? input.reservationFeeInvoices;
   const bySource = mapByRate(input.commissionBases, COMMISSION_RATE);
   const restaurantShareBySource = mapByRate(input.commissionBases, RESTAURANT_SHARE_RATE);
   const totalCommissions = Object.values(bySource).reduce((sum, amount) => sum + amount, 0);
-  const reservationFeesOutstanding = sumInvoices(input.reservationFeeInvoices.actionable);
-  const reservationFeesCollected = sumInvoices(input.reservationFeeInvoices.history);
-  const reservationFeesPendingInvoice = toAmount(input.reservationFeeAccruedAmount);
+  const payableOutstanding = sumInvoices(payableInvoices.actionable);
+  const payableCollected = sumInvoices(payableInvoices.history);
+  const payablePendingInvoice = toAmount(input.payableAccruedAmount ?? input.reservationFeeAccruedAmount);
   const payoutsOutstanding = sumInvoices(input.payoutInvoices.actionable);
   const payoutsPaid = sumInvoices(input.payoutInvoices.history);
 
@@ -46,11 +49,14 @@ export function buildTokAccountingSummary(input: {
     inflow: {
       bySource,
       totalCommissions,
-      reservationFeesOutstanding,
-      reservationFeesPendingInvoice,
-      reservationFeesCollected,
-      totalOutstanding: totalCommissions + reservationFeesOutstanding + reservationFeesPendingInvoice,
-      totalCollected: reservationFeesCollected,
+      payableOutstanding,
+      payablePendingInvoice,
+      payableCollected,
+      reservationFeesOutstanding: payableOutstanding,
+      reservationFeesPendingInvoice: payablePendingInvoice,
+      reservationFeesCollected: payableCollected,
+      totalOutstanding: payableOutstanding + payablePendingInvoice,
+      totalCollected: payableCollected,
     },
     outflow: {
       bySource: restaurantShareBySource,
@@ -59,22 +65,25 @@ export function buildTokAccountingSummary(input: {
       totalOutstanding: payoutsOutstanding,
       totalPaid: payoutsPaid,
     },
-    netOutstanding: totalCommissions + reservationFeesOutstanding + reservationFeesPendingInvoice - payoutsOutstanding,
+    netOutstanding: payableOutstanding + payablePendingInvoice - payoutsOutstanding,
   };
 }
 
 export function buildRestaurantAccountingSummary(input: {
   commissionBases: CommissionBaseTotals;
+  payableInvoices?: InvoiceBuckets;
   reservationFeeInvoices: InvoiceBuckets;
   payoutInvoices: InvoiceBuckets;
+  payableAccruedAmount?: number;
   reservationFeeAccruedAmount?: number;
 }) {
+  const payableInvoices = input.payableInvoices ?? input.reservationFeeInvoices;
   const bySource = mapByRate(input.commissionBases, RESTAURANT_SHARE_RATE);
   const receivableFromTok = sumInvoices(input.payoutInvoices.actionable);
   const receivedFromTok = sumInvoices(input.payoutInvoices.history);
-  const payableToTok = sumInvoices(input.reservationFeeInvoices.actionable);
-  const alreadyPaidToTok = sumInvoices(input.reservationFeeInvoices.history);
-  const reservationFeesPendingInvoice = toAmount(input.reservationFeeAccruedAmount);
+  const payableToTok = sumInvoices(payableInvoices.actionable);
+  const alreadyPaidToTok = sumInvoices(payableInvoices.history);
+  const payablePendingInvoice = toAmount(input.payableAccruedAmount ?? input.reservationFeeAccruedAmount);
 
   return {
     inflow: {
@@ -86,11 +95,12 @@ export function buildRestaurantAccountingSummary(input: {
     },
     outflow: {
       payableToTok,
-      reservationFeesPendingInvoice,
+      payablePendingInvoice,
       alreadyPaidToTok,
-      totalOutstanding: payableToTok + reservationFeesPendingInvoice,
+      reservationFeesPendingInvoice: payablePendingInvoice,
+      totalOutstanding: payableToTok + payablePendingInvoice,
       totalPaid: alreadyPaidToTok,
     },
-    netOutstanding: receivableFromTok - payableToTok - reservationFeesPendingInvoice,
+    netOutstanding: receivableFromTok - payableToTok - payablePendingInvoice,
   };
 }

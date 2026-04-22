@@ -31,7 +31,7 @@ export type RestaurantInvoiceRow = {
   pdf_url: string | null;
   created_at: string;
   restaurant_id: string;
-  invoice_type: "payout" | "reservation_fees" | null;
+  invoice_type: "payout" | "reservation_fees" | "payable" | null;
 };
 
 export type RestaurantOrderRow = {
@@ -63,7 +63,16 @@ type RestaurantReservationFeeRow = {
   confirmed_at: string | null;
   billing_fee_chf: number | string | null;
   cancelled_by: string | null;
-  restaurant_invoice_id: string | null;
+  reservation_fee_invoice_id: string | null;
+};
+
+type RestaurantPayableLineItemRow = {
+  id: string;
+  restaurant_id: string;
+  item_kind: string;
+  source_id: string | null;
+  source_table: string | null;
+  amount_ttc: number | string | null;
 };
 
 export type RestaurantPaidCampaignRow = {
@@ -127,6 +136,19 @@ type ReservationFeeSummary = {
   amount: number;
 };
 
+type PayableAccrualSummary = {
+  orderCommissionAmount: number;
+  orderCommissionCount: number;
+  reservationCommissionAmount: number;
+  reservationCommissionCount: number;
+  reservationFeeAmount: number;
+  reservationFeeCount: number;
+  campaignAmount: number;
+  campaignCount: number;
+  totalAmount: number;
+  totalCount: number;
+};
+
 export function toAmount(value: number | string | null | undefined) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -145,6 +167,114 @@ function getCampaignPaidAmount(campaign: Pick<RestaurantPaidCampaignRow, "paid_a
 function isBillableReservationFee(cancelledBy: string | null | undefined) {
   const normalized = String(cancelledBy || "").trim().toLowerCase();
   return normalized === "" || (normalized !== "customer" && normalized !== "admin");
+}
+
+function createEmptyPayableAccrualSummary(): PayableAccrualSummary {
+  return {
+    orderCommissionAmount: 0,
+    orderCommissionCount: 0,
+    reservationCommissionAmount: 0,
+    reservationCommissionCount: 0,
+    reservationFeeAmount: 0,
+    reservationFeeCount: 0,
+    campaignAmount: 0,
+    campaignCount: 0,
+    totalAmount: 0,
+    totalCount: 0,
+  };
+}
+
+function buildBilledSourceLookup(lineItems: readonly RestaurantPayableLineItemRow[]) {
+  const orderCommissionIds = new Set<string>();
+  const reservationCommissionIds = new Set<string>();
+  const campaignPaymentIds = new Set<string>();
+
+  lineItems.forEach((lineItem) => {
+    if (!lineItem.source_id) return;
+
+    if (lineItem.item_kind === "order_commission") {
+      orderCommissionIds.add(lineItem.source_id);
+      return;
+    }
+
+    if (lineItem.item_kind === "reservation_commission") {
+      reservationCommissionIds.add(lineItem.source_id);
+      return;
+    }
+
+    if (lineItem.item_kind === "campaign_payment") {
+      campaignPaymentIds.add(lineItem.source_id);
+    }
+  });
+
+  return {
+    orderCommissionIds,
+    reservationCommissionIds,
+    campaignPaymentIds,
+  };
+}
+
+function buildPayableAccrualSummary(input: {
+  orders: readonly RestaurantOrderRow[];
+  reservationPayments: readonly RestaurantReservationPaymentRow[];
+  reservationFeeRows: readonly RestaurantReservationFeeRow[];
+  paidCampaigns: readonly RestaurantPaidCampaignRow[];
+  billedLineItems: readonly RestaurantPayableLineItemRow[];
+}) {
+  const summary = createEmptyPayableAccrualSummary();
+  const billedSourceLookup = buildBilledSourceLookup(input.billedLineItems);
+
+  input.orders.forEach((order) => {
+    if (billedSourceLookup.orderCommissionIds.has(order.id)) return;
+
+    const commissionBase = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
+    const commissionAmount = commissionBase * 0.1;
+    if (commissionAmount <= 0) return;
+
+    summary.orderCommissionAmount += commissionAmount;
+    summary.orderCommissionCount += 1;
+  });
+
+  input.reservationPayments.forEach((reservation) => {
+    if (billedSourceLookup.reservationCommissionIds.has(reservation.id)) return;
+
+    const commissionAmount = toAmount(reservation.total_amount) * 0.1;
+    if (commissionAmount <= 0) return;
+
+    summary.reservationCommissionAmount += commissionAmount;
+    summary.reservationCommissionCount += 1;
+  });
+
+  input.reservationFeeRows.forEach((reservationFee) => {
+    const amount = toAmount(reservationFee.billing_fee_chf);
+    if (amount <= 0) return;
+    if (!isBillableReservationFee(reservationFee.cancelled_by)) return;
+    if (reservationFee.reservation_fee_invoice_id) return;
+
+    summary.reservationFeeAmount += amount;
+    summary.reservationFeeCount += 1;
+  });
+
+  input.paidCampaigns.forEach((campaign) => {
+    if (billedSourceLookup.campaignPaymentIds.has(campaign.id)) return;
+
+    const amount = getCampaignPaidAmount(campaign);
+    if (amount <= 0) return;
+
+    summary.campaignAmount += amount;
+    summary.campaignCount += 1;
+  });
+
+  summary.totalAmount = summary.orderCommissionAmount
+    + summary.reservationCommissionAmount
+    + summary.reservationFeeAmount
+    + summary.campaignAmount;
+  summary.totalCount = summary.orderCommissionCount
+    + summary.reservationCommissionCount
+    + summary.reservationFeeCount
+    + summary.campaignCount;
+
+  return summary;
 }
 
 export function formatDate(value: string | null | undefined) {
@@ -371,7 +501,7 @@ export function useDashboardFacturesData() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, restaurant_id, confirmed_at, billing_fee_chf, cancelled_by, restaurant_invoice_id")
+        .select("id, restaurant_id, confirmed_at, billing_fee_chf, cancelled_by, reservation_fee_invoice_id")
         .eq("restaurant_id", selectedId!)
         .not("confirmed_at", "is", null)
         .order("confirmed_at", { ascending: false });
@@ -397,12 +527,27 @@ export function useDashboardFacturesData() {
     enabled: !!selectedId && !restaurantsLoading,
   });
 
+  const payableLineItemsQuery = useQuery({
+    queryKey: ["dashboard-payable-line-items-v1", selectedId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurant_invoice_line_items")
+        .select("id, restaurant_id, item_kind, source_id, source_table, amount_ttc")
+        .eq("restaurant_id", selectedId!)
+        .order("occurred_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as RestaurantPayableLineItemRow[];
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
   const payoutInvoices = useMemo(
     () => (invoicesQuery.data || []).filter((invoice) => (invoice.invoice_type || "payout") === "payout"),
     [invoicesQuery.data],
   );
-  const tokFeeInvoices = useMemo(
-    () => (invoicesQuery.data || []).filter((invoice) => invoice.invoice_type === "reservation_fees"),
+  const payableInvoices = useMemo(
+    () => (invoicesQuery.data || []).filter((invoice) => invoice.invoice_type === "payable" || invoice.invoice_type === "reservation_fees"),
     [invoicesQuery.data],
   );
 
@@ -410,9 +555,9 @@ export function useDashboardFacturesData() {
     () => splitInvoicesByPaymentState(payoutInvoices),
     [payoutInvoices],
   );
-  const tokFeeInvoiceSections = useMemo(
-    () => splitInvoicesByPaymentState(tokFeeInvoices),
-    [tokFeeInvoices],
+  const payableInvoiceSections = useMemo(
+    () => splitInvoicesByPaymentState(payableInvoices),
+    [payableInvoices],
   );
   const invoiceTypeById = useMemo(
     () => new Map((invoicesQuery.data || []).map((invoice) => [invoice.id, invoice.invoice_type || "payout"])),
@@ -424,11 +569,7 @@ export function useDashboardFacturesData() {
         return accumulator;
       }
 
-      const linkedInvoiceType = reservation.restaurant_invoice_id
-        ? invoiceTypeById.get(reservation.restaurant_invoice_id) || null
-        : null;
-
-      if (linkedInvoiceType === "reservation_fees") {
+      if (reservation.reservation_fee_invoice_id) {
         return accumulator;
       }
 
@@ -436,7 +577,7 @@ export function useDashboardFacturesData() {
       accumulator.amount += toAmount(reservation.billing_fee_chf);
       return accumulator;
     }, { count: 0, amount: 0 });
-  }, [invoiceTypeById, reservationFeeRowsQuery.data]);
+  }, [reservationFeeRowsQuery.data]);
 
   const commissionBases = useMemo(
     () => buildCommissionBases(ordersQuery.data || [], reservationsQuery.data || []),
@@ -453,15 +594,32 @@ export function useDashboardFacturesData() {
     ),
     [invoiceTypeById, ordersQuery.data, reservationsQuery.data],
   );
+  const payableAccruals = useMemo(
+    () => buildPayableAccrualSummary({
+      orders: ordersQuery.data || [],
+      reservationPayments: reservationsQuery.data || [],
+      reservationFeeRows: reservationFeeRowsQuery.data || [],
+      paidCampaigns: paidCampaignsQuery.data || [],
+      billedLineItems: payableLineItemsQuery.data || [],
+    }),
+    [
+      ordersQuery.data,
+      paidCampaignsQuery.data,
+      payableLineItemsQuery.data,
+      reservationFeeRowsQuery.data,
+      reservationsQuery.data,
+    ],
+  );
 
   const summary = useMemo(
     () => buildRestaurantAccountingSummary({
       commissionBases,
-      reservationFeeInvoices: tokFeeInvoiceSections,
+      payableInvoices: payableInvoiceSections,
+      reservationFeeInvoices: payableInvoiceSections,
       payoutInvoices: payoutInvoiceSections,
-      reservationFeeAccruedAmount: reservationFees.amount,
+      payableAccruedAmount: payableAccruals.totalAmount,
     }),
-    [commissionBases, payoutInvoiceSections, reservationFees.amount, tokFeeInvoiceSections],
+    [commissionBases, payableAccruals.totalAmount, payableInvoiceSections, payoutInvoiceSections],
   );
 
   const uninvoicedRestaurantShareBySource = useMemo(
@@ -499,12 +657,15 @@ export function useDashboardFacturesData() {
     selectedRestaurant,
     invoices: invoicesQuery.data || [],
     payoutInvoices,
-    tokFeeInvoices,
+    payableInvoices,
+    tokFeeInvoices: payableInvoices,
     orders: ordersQuery.data || [],
     reservationPayments: reservationsQuery.data || [],
     payoutInvoiceSections,
-    tokFeeInvoiceSections,
+    payableInvoiceSections,
+    tokFeeInvoiceSections: payableInvoiceSections,
     reservationFees,
+    payableAccruals,
     paidCampaigns: paidCampaignsQuery.data || [],
     paidCampaignsTotal,
     paidCampaignsCount,
@@ -521,12 +682,14 @@ export function useDashboardFacturesData() {
       || ordersQuery.isLoading
       || reservationsQuery.isLoading
       || reservationFeeRowsQuery.isLoading
+      || payableLineItemsQuery.isLoading
       || paidCampaignsQuery.isLoading,
     error: restaurantsError
       || invoicesQuery.error
       || ordersQuery.error
       || reservationsQuery.error
       || reservationFeeRowsQuery.error
+      || payableLineItemsQuery.error
       || paidCampaignsQuery.error,
   };
 }

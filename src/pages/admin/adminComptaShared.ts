@@ -58,8 +58,9 @@ export type AdminInvoiceRow = {
   status: string | null;
   due_at: string | null;
   paid_at: string | null;
+  pdf_url: string | null;
   created_at: string;
-  invoice_type: "payout" | "reservation_fees" | null;
+  invoice_type: "payout" | "reservation_fees" | "payable" | null;
   restaurants?: { name: string | null } | null;
 };
 
@@ -80,9 +81,30 @@ export type AdminReservationFeeAccrualRow = {
   confirmed_at: string | null;
   billing_fee_chf: number | string | null;
   cancelled_by: string | null;
-  restaurant_invoice_id: string | null;
-  invoice_type: "payout" | "reservation_fees" | null;
+  reservation_fee_invoice_id: string | null;
   restaurants?: { name: string | null } | null;
+};
+
+export type AdminPayableLineItemRow = {
+  id: string;
+  restaurant_id: string;
+  item_kind: string;
+  source_id: string | null;
+  source_table: string | null;
+  amount_ttc: number | string | null;
+};
+
+export type AdminPayableAccrualSummary = {
+  orderCommissionAmount: number;
+  orderCommissionCount: number;
+  reservationCommissionAmount: number;
+  reservationCommissionCount: number;
+  reservationFeeAmount: number;
+  reservationFeeCount: number;
+  campaignAmount: number;
+  campaignCount: number;
+  totalAmount: number;
+  totalCount: number;
 };
 
 export type InvoiceDetailLineType = "order" | "reservation";
@@ -286,13 +308,119 @@ function getCampaignPaidAmount(campaign: Pick<AdminCampaignRow, "paid_amount" | 
   return paidAmount > 0 ? paidAmount : toAmount(campaign.total_budget);
 }
 
-function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "cancelled_by" | "invoice_type">) {
+function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "cancelled_by" | "reservation_fee_invoice_id">) {
   const cancelledBy = String(row.cancelled_by || "").trim().toLowerCase();
   if (!(cancelledBy === "" || (cancelledBy !== "customer" && cancelledBy !== "admin"))) {
     return false;
   }
 
-  return row.invoice_type !== "reservation_fees";
+  return !row.reservation_fee_invoice_id;
+}
+
+function createEmptyPayableAccrualSummary(): AdminPayableAccrualSummary {
+  return {
+    orderCommissionAmount: 0,
+    orderCommissionCount: 0,
+    reservationCommissionAmount: 0,
+    reservationCommissionCount: 0,
+    reservationFeeAmount: 0,
+    reservationFeeCount: 0,
+    campaignAmount: 0,
+    campaignCount: 0,
+    totalAmount: 0,
+    totalCount: 0,
+  };
+}
+
+function buildBilledSourceLookup(lineItems: readonly AdminPayableLineItemRow[]) {
+  const orderCommissionIds = new Set<string>();
+  const reservationCommissionIds = new Set<string>();
+  const campaignPaymentIds = new Set<string>();
+
+  lineItems.forEach((lineItem) => {
+    if (!lineItem.source_id) return;
+
+    if (lineItem.item_kind === "order_commission") {
+      orderCommissionIds.add(lineItem.source_id);
+      return;
+    }
+
+    if (lineItem.item_kind === "reservation_commission") {
+      reservationCommissionIds.add(lineItem.source_id);
+      return;
+    }
+
+    if (lineItem.item_kind === "campaign_payment") {
+      campaignPaymentIds.add(lineItem.source_id);
+    }
+  });
+
+  return {
+    orderCommissionIds,
+    reservationCommissionIds,
+    campaignPaymentIds,
+  };
+}
+
+function buildAdminPayableAccrualSummary(input: {
+  orders: readonly AdminOrderRow[];
+  reservationPayments: readonly AdminReservationPaymentRow[];
+  reservationFeeAccruals: readonly AdminReservationFeeAccrualRow[];
+  paidCampaigns: readonly AdminCampaignRow[];
+  billedLineItems: readonly AdminPayableLineItemRow[];
+}) {
+  const summary = createEmptyPayableAccrualSummary();
+  const billedSourceLookup = buildBilledSourceLookup(input.billedLineItems);
+
+  input.orders.forEach((order) => {
+    if (billedSourceLookup.orderCommissionIds.has(order.id)) return;
+
+    const commissionBase = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
+    const commissionAmount = commissionBase * 0.1;
+    if (commissionAmount <= 0) return;
+
+    summary.orderCommissionAmount += commissionAmount;
+    summary.orderCommissionCount += 1;
+  });
+
+  input.reservationPayments.forEach((reservation) => {
+    if (billedSourceLookup.reservationCommissionIds.has(reservation.id)) return;
+
+    const commissionAmount = toAmount(reservation.total_amount) * 0.1;
+    if (commissionAmount <= 0) return;
+
+    summary.reservationCommissionAmount += commissionAmount;
+    summary.reservationCommissionCount += 1;
+  });
+
+  input.reservationFeeAccruals.forEach((reservationFee) => {
+    const amount = toAmount(reservationFee.billing_fee_chf);
+    if (amount <= 0) return;
+
+    summary.reservationFeeAmount += amount;
+    summary.reservationFeeCount += 1;
+  });
+
+  input.paidCampaigns.forEach((campaign) => {
+    if (billedSourceLookup.campaignPaymentIds.has(campaign.id)) return;
+
+    const amount = getCampaignPaidAmount(campaign);
+    if (amount <= 0) return;
+
+    summary.campaignAmount += amount;
+    summary.campaignCount += 1;
+  });
+
+  summary.totalAmount = summary.orderCommissionAmount
+    + summary.reservationCommissionAmount
+    + summary.reservationFeeAmount
+    + summary.campaignAmount;
+  summary.totalCount = summary.orderCommissionCount
+    + summary.reservationCommissionCount
+    + summary.reservationFeeCount
+    + summary.campaignCount;
+
+  return summary;
 }
 
 export function useAdminPayoutInvoiceDetailLines(invoiceId: string | null) {
@@ -404,7 +532,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           confirmed_at,
           billing_fee_chf,
           cancelled_by,
-          restaurant_invoice_id,
+          reservation_fee_invoice_id,
           restaurants ( name )
         `)
         .not("confirmed_at", "is", null)
@@ -418,29 +546,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       const { data, error } = await query.order("confirmed_at", { ascending: false });
       if (error) throw error;
 
-      const rows = (data || []) as Array<Omit<AdminReservationFeeAccrualRow, "invoice_type">>;
-      const invoiceIds = Array.from(new Set(rows.map((row) => row.restaurant_invoice_id).filter(Boolean))) as string[];
-      const invoiceTypeById = new Map<string, "payout" | "reservation_fees" | null>();
-
-      if (invoiceIds.length > 0) {
-        const { data: invoices, error: invoicesError } = await supabase
-          .from("restaurant_invoices")
-          .select("id, invoice_type")
-          .in("id", invoiceIds);
-
-        if (invoicesError) throw invoicesError;
-
-        (invoices || []).forEach((invoice) => {
-          invoiceTypeById.set(invoice.id, (invoice.invoice_type || "payout") as "payout" | "reservation_fees");
-        });
-      }
-
-      return rows
-        .map((row) => ({
-          ...row,
-          invoice_type: row.restaurant_invoice_id ? invoiceTypeById.get(row.restaurant_invoice_id) || null : null,
-        }) satisfies AdminReservationFeeAccrualRow)
-        .filter(isBillableReservationFee);
+      return ((data || []) as AdminReservationFeeAccrualRow[]).filter(isBillableReservationFee);
     },
   });
 
@@ -491,6 +597,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           status,
           due_at,
           paid_at,
+          pdf_url,
           created_at,
           invoice_type,
           restaurants ( name )
@@ -510,8 +617,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     },
   });
 
-  const tokFeeInvoicesQuery = useQuery({
-    queryKey: ["admin-compta-reservation-fee-invoices-v2", selectedRestaurant, selectedMonth],
+  const payableInvoicesQuery = useQuery({
+    queryKey: ["admin-compta-payable-invoices-v3", selectedRestaurant, selectedMonth],
     queryFn: async () => {
       let query = supabase
         .from("restaurant_invoices")
@@ -527,11 +634,12 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           status,
           due_at,
           paid_at,
+          pdf_url,
           created_at,
           invoice_type,
           restaurants ( name )
         `)
-        .eq("invoice_type", "reservation_fees")
+        .in("invoice_type", ["payable", "reservation_fees"])
         .gte("period_start", monthBounds.monthStart)
         .lte("period_end", monthBounds.monthEnd)
         .order("created_at", { ascending: false });
@@ -543,6 +651,26 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as AdminInvoiceRow[];
+    },
+  });
+
+  const payableLineItemsQuery = useQuery({
+    queryKey: ["admin-compta-payable-line-items-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => {
+      let query = supabase
+        .from("restaurant_invoice_line_items")
+        .select("id, restaurant_id, item_kind, source_id, source_table, amount_ttc")
+        .gte("occurred_at", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("occurred_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("occurred_at", { ascending: false });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as AdminPayableLineItemRow[];
     },
   });
 
@@ -585,22 +713,36 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     () => splitInvoicesByPaymentState(payoutInvoicesQuery.data || []),
     [payoutInvoicesQuery.data],
   );
-  const tokFeeInvoiceSections = useMemo(
-    () => splitInvoicesByPaymentState(tokFeeInvoicesQuery.data || []),
-    [tokFeeInvoicesQuery.data],
+  const payableInvoiceSections = useMemo(
+    () => splitInvoicesByPaymentState(payableInvoicesQuery.data || []),
+    [payableInvoicesQuery.data],
+  );
+  const payableAccruals = useMemo(
+    () => buildAdminPayableAccrualSummary({
+      orders: ordersQuery.data || [],
+      reservationPayments: reservationsQuery.data || [],
+      reservationFeeAccruals: reservationFeeAccrualsQuery.data || [],
+      paidCampaigns: campaignsQuery.data || [],
+      billedLineItems: payableLineItemsQuery.data || [],
+    }),
+    [
+      campaignsQuery.data,
+      ordersQuery.data,
+      payableLineItemsQuery.data,
+      reservationFeeAccrualsQuery.data,
+      reservationsQuery.data,
+    ],
   );
 
   const summary = useMemo(
     () => buildTokAccountingSummary({
       commissionBases,
-      reservationFeeInvoices: tokFeeInvoiceSections,
+      payableInvoices: payableInvoiceSections,
+      reservationFeeInvoices: payableInvoiceSections,
       payoutInvoices: payoutInvoiceSections,
-      reservationFeeAccruedAmount: (reservationFeeAccrualsQuery.data || []).reduce(
-        (sum, row) => sum + toAmount(row.billing_fee_chf),
-        0,
-      ),
+      payableAccruedAmount: payableAccruals.totalAmount,
     }),
-    [commissionBases, payoutInvoiceSections, reservationFeeAccrualsQuery.data, tokFeeInvoiceSections],
+    [commissionBases, payableAccruals.totalAmount, payableInvoiceSections, payoutInvoiceSections],
   );
 
   const paidEventGross = useMemo(
@@ -639,11 +781,14 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     orders: ordersQuery.data || [],
     reservationPayments: reservationsQuery.data || [],
     reservationFeeAccruals: reservationFeeAccrualsQuery.data || [],
+    payableAccruals,
     paidCampaigns: campaignsQuery.data || [],
     payoutInvoices: payoutInvoicesQuery.data || [],
-    tokFeeInvoices: tokFeeInvoicesQuery.data || [],
+    payableInvoices: payableInvoicesQuery.data || [],
+    tokFeeInvoices: payableInvoicesQuery.data || [],
     payoutInvoiceSections,
-    tokFeeInvoiceSections,
+    payableInvoiceSections,
+    tokFeeInvoiceSections: payableInvoiceSections,
     commissionBases,
     summary,
     paidEventGross,
@@ -661,13 +806,15 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || reservationFeeAccrualsQuery.isLoading
       || campaignsQuery.isLoading
       || payoutInvoicesQuery.isLoading
-      || tokFeeInvoicesQuery.isLoading,
+      || payableInvoicesQuery.isLoading
+      || payableLineItemsQuery.isLoading,
     error: restaurantsQuery.error
       || ordersQuery.error
       || reservationsQuery.error
       || reservationFeeAccrualsQuery.error
       || campaignsQuery.error
       || payoutInvoicesQuery.error
-      || tokFeeInvoicesQuery.error,
+      || payableInvoicesQuery.error
+      || payableLineItemsQuery.error,
   };
 }
