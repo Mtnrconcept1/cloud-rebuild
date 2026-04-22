@@ -11,12 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { InvoiceDetailAccordion } from "@/components/invoices/InvoiceDetailAccordion";
 import {
   formatAmount,
   formatDate,
   formatPeriod,
   getInvoiceStatusClass,
   type AdminInvoiceRow,
+  useAdminReservationFeeInvoiceDetailLines,
   useAdminComptaData,
 } from "./adminComptaShared";
 
@@ -27,6 +29,70 @@ function getErrorMessage(error: unknown) {
   return error ? String(error) : "";
 }
 
+function InvoiceTableRow({
+  invoice,
+  isExpanded,
+  onToggleDetail,
+  onMarkPaid,
+}: {
+  invoice: AdminInvoiceRow;
+  isExpanded: boolean;
+  onToggleDetail: (invoiceId: string) => void;
+  onMarkPaid: (invoice: AdminInvoiceRow) => Promise<void>;
+}) {
+  const detailQuery = useAdminReservationFeeInvoiceDetailLines(isExpanded ? invoice.id : null);
+  const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
+  const detailButtonLabel = isExpanded ? "Masquer le detail" : "Voir le detail";
+
+  return (
+    <>
+      <TableRow key={invoice.id}>
+        <TableCell>
+          <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
+          <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
+          <div className="text-xs text-muted-foreground">
+            Facture adressee a : {invoice.restaurants?.name || "-"}
+          </div>
+        </TableCell>
+        <TableCell className="text-sm">{invoice.restaurants?.name || "-"}</TableCell>
+        <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
+        <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
+        <TableCell>
+          <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
+        </TableCell>
+        <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
+        <TableCell className="text-right">
+          <div className="flex flex-col items-end gap-2">
+            <Button size="sm" variant="ghost" onClick={() => onToggleDetail(invoice.id)}>
+              {detailButtonLabel}
+            </Button>
+            {isPaid ? (
+              <span className="text-xs text-muted-foreground">Reglee</span>
+            ) : (
+              <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
+                Marquer payee
+              </Button>
+            )}
+          </div>
+        </TableCell>
+      </TableRow>
+      {isExpanded ? (
+        <TableRow className="bg-muted/30">
+          <TableCell colSpan={7} className="px-4 py-5">
+            <InvoiceDetailAccordion
+              mode="reservation_fees"
+              lines={detailQuery.data || []}
+              loading={detailQuery.isLoading}
+              error={detailQuery.error}
+              invoiceAmountTtc={invoice.amount_ttc}
+            />
+          </TableCell>
+        </TableRow>
+      ) : null}
+    </>
+  );
+}
+
 function InvoiceTable({
   invoices,
   onMarkPaid,
@@ -34,6 +100,8 @@ function InvoiceTable({
   invoices: AdminInvoiceRow[];
   onMarkPaid: (invoice: AdminInvoiceRow) => Promise<void>;
 }) {
+  const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
+
   if (invoices.length === 0) {
     return (
       <Card className="border-dashed">
@@ -60,31 +128,16 @@ function InvoiceTable({
         </TableHeader>
         <TableBody>
           {invoices.map((invoice) => {
-            const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-
             return (
-              <TableRow key={invoice.id}>
-                <TableCell>
-                  <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
-                  <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
-                </TableCell>
-                <TableCell className="text-sm">{invoice.restaurants?.name || "-"}</TableCell>
-                <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-                <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
-                <TableCell>
-                  <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
-                </TableCell>
-                <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
-                <TableCell className="text-right">
-                  {isPaid ? (
-                    <span className="text-xs text-muted-foreground">Reglee</span>
-                  ) : (
-                    <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
-                      Marquer payee
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
+              <InvoiceTableRow
+                key={invoice.id}
+                invoice={invoice}
+                isExpanded={expandedInvoiceId === invoice.id}
+                onToggleDetail={(invoiceId) => {
+                  setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
+                }}
+                onMarkPaid={onMarkPaid}
+              />
             );
           })}
         </TableBody>

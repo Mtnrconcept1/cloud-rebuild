@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownRight, Download, FileUp, RefreshCcw, Settings } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { InvoiceDetailAccordion } from "@/components/invoices/InvoiceDetailAccordion";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ import {
   formatPeriod,
   getInvoiceStatusClass,
   type RestaurantInvoiceRow,
+  useDashboardPayoutInvoiceDetailLines,
   useDashboardFacturesData,
 } from "./dashboardFacturesShared";
 
@@ -28,15 +30,90 @@ function getErrorMessage(error: unknown) {
   return error ? String(error) : "";
 }
 
+function InvoiceTableRow({
+  invoice,
+  canMarkPaid,
+  isExpanded,
+  onToggleDetail,
+  onMarkPaid,
+  restaurantName,
+}: {
+  invoice: RestaurantInvoiceRow;
+  canMarkPaid: boolean;
+  isExpanded: boolean;
+  onToggleDetail: (invoiceId: string) => void;
+  onMarkPaid: (invoiceId: string) => Promise<void>;
+  restaurantName: string | null;
+}) {
+  const detailQuery = useDashboardPayoutInvoiceDetailLines(isExpanded ? invoice.id : null);
+  const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
+  const detailButtonLabel = isExpanded ? "Masquer le detail" : "Voir le detail";
+
+  return (
+    <>
+      <TableRow key={invoice.id}>
+        <TableCell>
+          <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
+          <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
+          <div className="text-xs text-muted-foreground">Restaurant concerne : {restaurantName || "-"}</div>
+        </TableCell>
+        <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
+        <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
+        <TableCell>
+          <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
+        </TableCell>
+        <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
+        <TableCell className="text-right">
+          <div className="flex justify-end gap-2">
+            {invoice.pdf_url ? (
+              <Button asChild size="sm" variant="outline">
+                <a href={invoice.pdf_url} target="_blank" rel="noreferrer">
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
+                </a>
+              </Button>
+            ) : null}
+            <Button size="sm" variant="ghost" onClick={() => onToggleDetail(invoice.id)}>
+              {detailButtonLabel}
+            </Button>
+            {canMarkPaid && !isPaid ? (
+              <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
+                Marquer payee
+              </Button>
+            ) : null}
+          </div>
+        </TableCell>
+      </TableRow>
+      {isExpanded ? (
+        <TableRow className="bg-muted/30">
+          <TableCell colSpan={6} className="px-4 py-5">
+            <InvoiceDetailAccordion
+              mode="payout"
+              lines={detailQuery.data || []}
+              loading={detailQuery.isLoading}
+              error={detailQuery.error}
+              invoiceAmountTtc={invoice.amount_ttc}
+            />
+          </TableCell>
+        </TableRow>
+      ) : null}
+    </>
+  );
+}
+
 function InvoiceTable({
   invoices,
   canMarkPaid,
   onMarkPaid,
+  restaurantName,
 }: {
   invoices: RestaurantInvoiceRow[];
   canMarkPaid: boolean;
   onMarkPaid: (invoiceId: string) => Promise<void>;
+  restaurantName: string | null;
 }) {
+  const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
+
   if (invoices.length === 0) {
     return (
       <Card className="border-dashed">
@@ -62,38 +139,18 @@ function InvoiceTable({
         </TableHeader>
         <TableBody>
           {invoices.map((invoice) => {
-            const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-
             return (
-              <TableRow key={invoice.id}>
-                <TableCell>
-                  <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
-                  <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
-                </TableCell>
-                <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-                <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
-                <TableCell>
-                  <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
-                </TableCell>
-                <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {invoice.pdf_url ? (
-                      <Button asChild size="sm" variant="outline">
-                        <a href={invoice.pdf_url} target="_blank" rel="noreferrer">
-                          <Download className="mr-2 h-4 w-4" />
-                          PDF
-                        </a>
-                      </Button>
-                    ) : null}
-                    {canMarkPaid && !isPaid ? (
-                      <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
-                        Marquer payee
-                      </Button>
-                    ) : null}
-                  </div>
-                </TableCell>
-              </TableRow>
+              <InvoiceTableRow
+                key={invoice.id}
+                invoice={invoice}
+                canMarkPaid={canMarkPaid}
+                isExpanded={expandedInvoiceId === invoice.id}
+                restaurantName={restaurantName}
+                onToggleDetail={(invoiceId) => {
+                  setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
+                }}
+                onMarkPaid={onMarkPaid}
+              />
             );
           })}
         </TableBody>
@@ -425,7 +482,12 @@ export default function DashboardFacturesInflow() {
                   <CardTitle className="text-base">A encaisser</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <InvoiceTable invoices={payoutInvoiceSections.actionable} canMarkPaid={isAdmin} onMarkPaid={handleMarkPaid} />
+                  <InvoiceTable
+                    invoices={payoutInvoiceSections.actionable}
+                    canMarkPaid={isAdmin}
+                    onMarkPaid={handleMarkPaid}
+                    restaurantName={selectedRestaurant?.name || null}
+                  />
                 </CardContent>
               </Card>
 
@@ -434,7 +496,12 @@ export default function DashboardFacturesInflow() {
                   <CardTitle className="text-base">Historique</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <InvoiceTable invoices={payoutInvoiceSections.history} canMarkPaid={isAdmin} onMarkPaid={handleMarkPaid} />
+                  <InvoiceTable
+                    invoices={payoutInvoiceSections.history}
+                    canMarkPaid={isAdmin}
+                    onMarkPaid={handleMarkPaid}
+                    restaurantName={selectedRestaurant?.name || null}
+                  />
                 </CardContent>
               </Card>
             </div>

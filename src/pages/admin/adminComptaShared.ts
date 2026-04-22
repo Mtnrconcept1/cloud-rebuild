@@ -85,6 +85,53 @@ export type AdminReservationFeeAccrualRow = {
   restaurants?: { name: string | null } | null;
 };
 
+export type InvoiceDetailLineType = "order" | "reservation";
+
+export type InvoiceDetailSource =
+  | "orders"
+  | "zero_attente"
+  | "chefs_table"
+  | "flash_sales"
+  | "anti_gaspi"
+  | "other";
+
+export type InvoiceDetailSourcePresentation = {
+  label: string;
+  className: string;
+};
+
+export type PayoutInvoiceDetailLine = {
+  lineId: string;
+  lineType: InvoiceDetailLineType;
+  source: InvoiceDetailSource;
+  reference: string;
+  label: string;
+  occurredAt: string;
+  grossAmount: number;
+  rateApplied: number;
+  invoicedAmount: number;
+};
+
+export type ReservationFeeInvoiceDetailLine = {
+  reservationId: string;
+  reservationDate: string;
+  reservationTime: string;
+  partySize: number;
+  status: string;
+  cancelledBy: string | null;
+  cancellationReasonCode: string | null;
+  billingFeeChf: number;
+};
+
+export const INVOICE_DETAIL_SOURCE_PRESENTATION: Record<InvoiceDetailSource, InvoiceDetailSourcePresentation> = {
+  orders: { label: "Commande", className: "bg-slate-100 text-slate-700" },
+  zero_attente: { label: "Zero attente", className: "bg-cyan-100 text-cyan-700" },
+  chefs_table: { label: "Chef's Table", className: "bg-violet-100 text-violet-700" },
+  flash_sales: { label: "Vente flash", className: "bg-amber-100 text-amber-700" },
+  anti_gaspi: { label: "Anti-gaspi", className: "bg-emerald-100 text-emerald-700" },
+  other: { label: "Autre", className: "bg-slate-100 text-slate-600" },
+};
+
 export function toAmount(value: number | string | null | undefined) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -119,11 +166,69 @@ export function getInvoiceStatusClass(status: string | null) {
   return "bg-amber-100 text-amber-700";
 }
 
+function normalizeInvoiceDetailLineType(value: unknown): InvoiceDetailLineType {
+  const normalized = String(value || "").trim().toLowerCase();
+
+  if (normalized === "order" || normalized === "reservation") {
+    return normalized;
+  }
+
+  throw new Error(`Unexpected payout invoice line type: ${String(value)}`);
+}
+
+function normalizeInvoiceDetailSource(value: unknown): InvoiceDetailSource {
+  const normalized = String(value || "").trim().toLowerCase();
+
+  if (
+    normalized === "orders"
+    || normalized === "zero_attente"
+    || normalized === "chefs_table"
+    || normalized === "flash_sales"
+    || normalized === "anti_gaspi"
+    || normalized === "other"
+  ) {
+    return normalized;
+  }
+
+  throw new Error(`Unexpected payout invoice source: ${String(value)}`);
+}
+
+export function getInvoiceDetailSourcePresentation(source: InvoiceDetailSource) {
+  return INVOICE_DETAIL_SOURCE_PRESENTATION[source];
+}
+
+export function getPayoutInvoiceOrderSubtotal(lines: readonly PayoutInvoiceDetailLine[]) {
+  return lines.reduce((sum, line) => sum + (line.lineType === "order" ? line.invoicedAmount : 0), 0);
+}
+
+export function getPayoutInvoiceReservationSubtotal(lines: readonly PayoutInvoiceDetailLine[]) {
+  return lines.reduce((sum, line) => sum + (line.lineType === "reservation" ? line.invoicedAmount : 0), 0);
+}
+
+export function getPayoutInvoiceLinesTotal(lines: readonly PayoutInvoiceDetailLine[]) {
+  return lines.reduce((sum, line) => sum + line.invoicedAmount, 0);
+}
+
+export function getPayoutInvoiceRoundingDelta(
+  invoiceAmountTtc: number | string | null | undefined,
+  lines: readonly PayoutInvoiceDetailLine[],
+) {
+  const delta = toAmount(invoiceAmountTtc) - getPayoutInvoiceLinesTotal(lines);
+  return Math.abs(delta) < 0.005 ? null : delta;
+}
+
+export function getReservationFeeInvoiceLinesTotal(lines: readonly ReservationFeeInvoiceDetailLine[]) {
+  return lines.reduce((sum, line) => sum + line.billingFeeChf, 0);
+}
+
 export function buildMonthOptions() {
   const options: Array<{ value: string; label: string }> = [];
+  const currentMonthStart = new Date();
+  currentMonthStart.setDate(1);
+  currentMonthStart.setHours(0, 0, 0, 0);
 
   for (let index = 0; index < 6; index += 1) {
-    const date = new Date();
+    const date = new Date(currentMonthStart);
     date.setMonth(date.getMonth() - index);
     const value = format(date, "yyyy-MM");
     const label = format(date, "MMMM yyyy", { locale: fr });
@@ -188,6 +293,55 @@ function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "canc
   }
 
   return row.invoice_type !== "reservation_fees";
+}
+
+export function useAdminPayoutInvoiceDetailLines(invoiceId: string | null) {
+  return useQuery({
+    queryKey: ["admin-compta-payout-invoice-lines", invoiceId],
+    queryFn: async () => {
+      if (!invoiceId) return [] as PayoutInvoiceDetailLine[];
+
+      const { data, error } = await supabase.rpc("get_payout_invoice_lines", { p_invoice_id: invoiceId });
+      if (error) throw error;
+
+      return (data || []).map((row) => ({
+        lineId: String(row.line_id),
+        lineType: normalizeInvoiceDetailLineType(row.line_type),
+        source: normalizeInvoiceDetailSource(row.source),
+        reference: String(row.reference || ""),
+        label: String(row.label || ""),
+        occurredAt: String(row.occurred_at || ""),
+        grossAmount: toAmount(row.gross_amount),
+        rateApplied: toAmount(row.rate_applied),
+        invoicedAmount: toAmount(row.invoiced_amount),
+      })) as PayoutInvoiceDetailLine[];
+    },
+    enabled: !!invoiceId,
+  });
+}
+
+export function useAdminReservationFeeInvoiceDetailLines(invoiceId: string | null) {
+  return useQuery({
+    queryKey: ["admin-compta-reservation-fee-invoice-lines", invoiceId],
+    queryFn: async () => {
+      if (!invoiceId) return [] as ReservationFeeInvoiceDetailLine[];
+
+      const { data, error } = await supabase.rpc("get_reservation_fee_invoice_lines", { p_invoice_id: invoiceId });
+      if (error) throw error;
+
+      return (data || []).map((row) => ({
+        reservationId: String(row.reservation_id),
+        reservationDate: String(row.reservation_date || ""),
+        reservationTime: row.reservation_time ? String(row.reservation_time) : "",
+        partySize: toAmount(row.party_size),
+        status: String(row.status || ""),
+        cancelledBy: row.cancelled_by ? String(row.cancelled_by) : null,
+        cancellationReasonCode: row.cancellation_reason_code ? String(row.cancellation_reason_code) : null,
+        billingFeeChf: toAmount(row.billing_fee_chf),
+      })) as ReservationFeeInvoiceDetailLine[];
+    },
+    enabled: !!invoiceId,
+  });
 }
 
 export function useAdminComptaData(selectedRestaurant: string, selectedMonth: string) {
