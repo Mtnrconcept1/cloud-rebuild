@@ -13,6 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Leaf, Percent, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDashboardRestaurant } from "./DashboardContext";
+import {
+  isSpecialOfferEffectivelyActive,
+  isSpecialOfferSoldOut,
+} from "@/lib/specialOffers";
 
 const supabase = getSupabase();
 
@@ -71,8 +75,16 @@ export default function DashboardOffres() {
     enabled: !!selectedId,
   });
 
-  const toggleActive = async (id: string, current: boolean) => {
+  const toggleActive = async (id: string, current: boolean, isSoldOut: boolean) => {
     if (!selectedId) return;
+    if (isSoldOut) {
+      toast({
+        title: "Offre epuisee",
+        description: "Ajoutez a nouveau du stock avant de reactiver cette offre.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const { error } = await supabase
       .from("anti_waste_offers")
@@ -159,6 +171,8 @@ export default function DashboardOffres() {
         ) : (
           <div className="space-y-3">
             {offers.map((offer) => {
+              const isSoldOut = isSpecialOfferSoldOut(offer);
+              const isEffectivelyActive = isSpecialOfferEffectivelyActive(offer);
               const discount = offer.original_price > 0
                 ? Math.round((1 - offer.discounted_price / offer.original_price) * 100)
                 : 0;
@@ -175,7 +189,12 @@ export default function DashboardOffres() {
                         <Badge className="border-green-500/20 bg-green-500/10 text-[10px] text-green-700">
                           -{discount}%
                         </Badge>
-                        {!offer.is_active && (
+                        {isSoldOut && (
+                          <Badge variant="destructive" className="text-[10px]">
+                            Epuisee
+                          </Badge>
+                        )}
+                        {!isSoldOut && !offer.is_active && (
                           <Badge variant="secondary" className="text-[10px]">
                             Inactive
                           </Badge>
@@ -194,7 +213,11 @@ export default function DashboardOffres() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Switch checked={offer.is_active} onCheckedChange={() => toggleActive(offer.id, offer.is_active)} />
+                      <Switch
+                        checked={isEffectivelyActive}
+                        disabled={isSoldOut}
+                        onCheckedChange={() => toggleActive(offer.id, isEffectivelyActive, isSoldOut)}
+                      />
                       <Button
                         size="icon"
                         variant="ghost"

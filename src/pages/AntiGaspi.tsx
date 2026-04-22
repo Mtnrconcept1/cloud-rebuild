@@ -4,6 +4,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { Leaf, Gift, Heart, Info } from "lucide-react";
 import AntiWasteCard from "@/components/AntiWasteCard";
 import { Badge } from "@/components/ui/badge";
+import { isAntiWasteOfferPubliclyVisible } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
 
@@ -22,19 +23,9 @@ export default function AntiGaspi() {
     refetchInterval: 60000,
   });
 
-  // Show active offers from today onward, and hide only offers whose pickup window is already finished.
-  const offers = (rawOffers || []).filter((offer: any) => {
-    if (!offer.available_date) return false;
-    const now = new Date();
-    const today = now.toISOString().slice(0, 10);
-    if (offer.available_date < today) return false;
-    if (Number(offer.quantity_available || 0) <= 0) return false;
-    if (offer.pickup_end) {
-      const end = new Date(`${offer.available_date}T${offer.pickup_end}`);
-      if (offer.available_date === today && end.getTime() <= now.getTime()) return false;
-    }
-    return true;
-  });
+  const offers = (rawOffers || []).filter((offer: any) =>
+    isAntiWasteOfferPubliclyVisible(offer),
+  );
 
   const specialActions = [
     { id: "surprise", title: "Paniers Surprise", icon: Gift, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/20", desc: "Contenu mystère à -70%" },

@@ -138,11 +138,12 @@ export function buildMonthOptions() {
 }
 
 function buildMonthBounds(selectedMonth: string) {
+  const [yearPart, monthPart] = selectedMonth.split("-");
+  const year = Number(yearPart);
+  const monthIndex = Number(monthPart) - 1;
   const monthStart = `${selectedMonth}-01`;
-  const monthStartDate = new Date(`${selectedMonth}-01T00:00:00Z`);
-  const monthEnd = new Date(monthStartDate.getFullYear(), monthStartDate.getMonth() + 1, 0)
-    .toISOString()
-    .slice(0, 10);
+  const monthStartDate = new Date(Date.UTC(year, monthIndex, 1));
+  const monthEnd = new Date(Date.UTC(year, monthIndex + 1, 0)).toISOString().slice(0, 10);
 
   return {
     monthStart,

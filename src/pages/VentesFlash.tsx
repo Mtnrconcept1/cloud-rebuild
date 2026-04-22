@@ -15,6 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import CountdownTimer, { getTargetFromMinutes } from "@/components/CountdownTimer";
+import { isFlashSalePubliclyVisible } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
 
@@ -67,13 +68,7 @@ export default function VentesFlash() {
     if (!allOffers) return [];
     const now = new Date();
 
-    // Only show offers within their active window: sale_start <= now <= sale_end
-    return allOffers.filter((offer: any) => {
-      if (!offer.sale_date || !offer.sale_start || !offer.sale_end) return false;
-      const start = new Date(`${offer.sale_date}T${offer.sale_start}`);
-      const end = new Date(`${offer.sale_date}T${offer.sale_end}`);
-      return start.getTime() <= now.getTime() && end.getTime() > now.getTime();
-    });
+    return allOffers.filter((offer: any) => isFlashSalePubliclyVisible(offer, now));
   }, [allOffers]);
 
   const targetDates = useMemo(() => {
