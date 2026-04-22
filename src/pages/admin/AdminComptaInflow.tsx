@@ -140,7 +140,10 @@ export default function AdminComptaInflow() {
           : "Aucune nouvelle facture a produire sur cette periode.",
       });
 
-      await queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-fee-invoices-v2"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-fee-invoices-v2"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-fee-accruals-v1"] }),
+      ]);
     } catch (generationError) {
       toast({
         title: "Erreur de generation",
