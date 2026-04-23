@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Armchair,
@@ -34,7 +34,14 @@ import {
 import DashboardLayout from "@/components/DashboardLayout";
 import { FloorPlanItemIllustration, FloorPlanPresetIcon } from "@/components/floor-plan/FloorPlanItemIllustration";
 import FloorPlanAIPanel, { type AIFloorPlanResult } from "@/components/floor-plan/FloorPlanAIPanel";
+import ReservationQueue from "@/components/floor-plan/ReservationQueue";
+import ServiceBoard from "@/components/floor-plan/ServiceBoard";
+import StudioCanvas from "@/components/floor-plan/StudioCanvas";
+import StudioInspector from "@/components/floor-plan/StudioInspector";
+import StudioPalette from "@/components/floor-plan/StudioPalette";
 import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
+import TableContextDrawer from "@/components/floor-plan/TableContextDrawer";
+import type { StudioLibraryTab } from "@/components/floor-plan/studioShared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -713,6 +720,8 @@ export default function DashboardPlanSalle() {
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastAutoSavedLayoutSignatureRef = useRef<string | null>(null);
   const scheduledAutoSaveLayoutSignatureRef = useRef<string | null>(null);
+  const assignReservationToTableRef = useRef<(reservationId: string, tableId: string) => void>(() => undefined);
+  const getVisibleTableAtPointRef = useRef<(x: number, y: number) => DraftTable | null>(() => null);
 
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedSector, setSelectedSector] = useState(DEFAULT_SECTOR);
@@ -725,7 +734,8 @@ export default function DashboardPlanSalle() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<SortBy>("time");
   const [reservationQuery, setReservationQuery] = useState("");
-  const [libraryTab, setLibraryTab] = useState<"elements" | "structure" | "decoration">("elements");
+  const [libraryQuery, setLibraryQuery] = useState("");
+  const [libraryTab, setLibraryTab] = useState<StudioLibraryTab>("tables");
   const [inspectorTab, setInspectorTab] = useState<"properties" | "layers">("properties");
   const [leftPanelView, setLeftPanelView] = useState<"library" | "reservations">("library");
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
@@ -764,6 +774,14 @@ export default function DashboardPlanSalle() {
   } | null>(null);
   const [draggedReservationId, setDraggedReservationId] = useState<string | null>(null);
   const [dragOverTableId, setDragOverTableId] = useState<string | null>(null);
+  const [reservationPointerDrag, setReservationPointerDrag] = useState<{
+    reservationId: string;
+    pointerId: number;
+  } | null>(null);
+  const [reservationPointerPosition, setReservationPointerPosition] = useState<{
+    clientX: number;
+    clientY: number;
+  } | null>(null);
   const [rotateState, setRotateState] = useState<{
     tableId: string;
     startAngle: number;
@@ -1039,7 +1057,10 @@ export default function DashboardPlanSalle() {
     const statuses = Array.from(new Set(branchScopedReservations.map((reservation) => String(reservation.status || "pending"))));
     return ["all", ...statuses.sort((left, right) => left.localeCompare(right, "fr"))];
   }, [branchScopedReservations]);
-  const normalizedReservationQuery = normalizeSearchText(reservationQuery);
+  const deferredReservationQuery = useDeferredValue(reservationQuery);
+  const deferredLibraryQuery = useDeferredValue(libraryQuery);
+  const normalizedReservationQuery = normalizeSearchText(deferredReservationQuery);
+  const normalizedLibraryQuery = normalizeSearchText(deferredLibraryQuery);
 
   const filteredReservations = useMemo(() => (
     branchScopedReservations
@@ -1107,7 +1128,10 @@ export default function DashboardPlanSalle() {
     return grouped;
   }, [draftAssignments, filteredReservations, visibleReservableTableIdSet]);
 
+  const activeServiceReservationId = draggedReservationId || selectedReservationId;
+  const activeServiceReservation = activeServiceReservationId ? reservationsById.get(activeServiceReservationId) || null : null;
   const selectedReservation = selectedReservationId ? reservationsById.get(selectedReservationId) || null : null;
+  const pointerDraggedReservation = reservationPointerDrag ? reservationsById.get(reservationPointerDrag.reservationId) || null : null;
   const selectedReservationPreorderItems = useMemo(
     () => (selectedReservation ? getReservationPreorderItems(selectedReservation) : []),
     [selectedReservation],
@@ -1161,33 +1185,30 @@ export default function DashboardPlanSalle() {
     () => filteredReservations.filter((reservation) => !draftAssignments[reservation.id]),
     [draftAssignments, filteredReservations],
   );
-  const presetGroups = useMemo(() => ([
-    {
-      id: "tables",
-      label: "Tables reservables",
-      description: "Ces elements peuvent recevoir des reservations.",
-      items: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "table"),
-    },
-    {
-      id: "furniture",
-      label: "Mobilier",
-      description: "Elements decoratifs et structurels pour coller a la vraie salle.",
-      items: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "furniture"),
-    },
-  ]), []);
   const libraryPresets = useMemo(() => ({
-    elements: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "table"),
-    structure: FLOOR_PLAN_PRESETS.filter((preset) => [
-      "bar",
-      "corner-bench",
-      "banquette",
-      "booth",
-      "host-stand",
-      "divider",
-      "service-station",
-    ].includes(preset.kind)),
-    decoration: FLOOR_PLAN_PRESETS.filter((preset) => ["chair", "stool", "plant"].includes(preset.kind)),
+    tables: FLOOR_PLAN_PRESETS.filter((preset) => preset.category === "table"),
+    seating: FLOOR_PLAN_PRESETS.filter((preset) => ["chair", "stool", "corner-bench", "banquette", "booth"].includes(preset.kind)),
+    structure: FLOOR_PLAN_PRESETS.filter((preset) => ["bar", "host-stand", "divider", "service-station"].includes(preset.kind)),
+    decor: FLOOR_PLAN_PRESETS.filter((preset) => ["plant"].includes(preset.kind)),
   }), []);
+  const filteredLibraryPresets = useMemo(() => ({
+    tables: libraryPresets.tables.filter((preset) => {
+      if (!normalizedLibraryQuery) return true;
+      return normalizeSearchText([preset.label, preset.description, preset.kind].join(" ")).includes(normalizedLibraryQuery);
+    }),
+    seating: libraryPresets.seating.filter((preset) => {
+      if (!normalizedLibraryQuery) return true;
+      return normalizeSearchText([preset.label, preset.description, preset.kind].join(" ")).includes(normalizedLibraryQuery);
+    }),
+    structure: libraryPresets.structure.filter((preset) => {
+      if (!normalizedLibraryQuery) return true;
+      return normalizeSearchText([preset.label, preset.description, preset.kind].join(" ")).includes(normalizedLibraryQuery);
+    }),
+    decor: libraryPresets.decor.filter((preset) => {
+      if (!normalizedLibraryQuery) return true;
+      return normalizeSearchText([preset.label, preset.description, preset.kind].join(" ")).includes(normalizedLibraryQuery);
+    }),
+  }), [libraryPresets.decor, libraryPresets.seating, libraryPresets.structure, libraryPresets.tables, normalizedLibraryQuery]);
 
   const isTemplateMode = editMode === "template";
   const hasUnpersistedDraftTables = draftTables.some((table) => !table.persisted);
@@ -1213,8 +1234,23 @@ export default function DashboardPlanSalle() {
   }, [draftTables, hasUnpersistedDraftTables, isTemplateMode, resolvedLayoutsByTableId]);
   const availableTables = visibleReservableTables.filter((table) => !assignedVisibleTableIds.has(table.id));
   const availableCovers = availableTables.reduce((sum, table) => sum + table.capacity, 0);
+  const assignedVisibleReservations = filteredReservations.filter((reservation) => !!draftAssignments[reservation.id]);
   const canPersist = !!selectedBranchId && (isTemplateMode || !hasUnpersistedDraftTables);
   const canvasZoomLabel = `${Math.round(canvasZoom * 100)}%`;
+  const selectedReservationAssignedTableDropState = selectedReservation && selectedTable && selectedTableIsReservable
+    ? getReservationDropState(selectedReservation.id, selectedTable.id)
+    : null;
+  const compatibleTablesForSelectedReservation = selectedReservation
+    ? visibleReservableTables
+      .filter((table) => getReservationDropState(selectedReservation.id, table.id).ok)
+      .sort((left, right) => left.capacity - right.capacity || left.table_number.localeCompare(right.table_number, "fr"))
+      .slice(0, 6)
+    : [];
+  const compatibleReservationsForSelectedTable = selectedTable && selectedTableIsReservable
+    ? unassignedVisibleReservations
+      .filter((reservation) => getReservationDropState(reservation.id, selectedTable.id).ok)
+      .slice(0, 6)
+    : [];
 
   const getCanvasPointFromClient = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
@@ -1357,6 +1393,62 @@ export default function DashboardPlanSalle() {
       window.removeEventListener("pointerup", handlePointerUp);
     };
   }, [canvasWidth, canvasZoom, dragState, resizeState, rotateState, tableMap]);
+
+  useEffect(() => {
+    if (!reservationPointerDrag) return undefined;
+
+    const clearReservationPointerDrag = () => {
+      setReservationPointerDrag(null);
+      setReservationPointerPosition(null);
+      setDraggedReservationId(null);
+      setDragOverTableId(null);
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerId !== reservationPointerDrag.pointerId) return;
+
+      setReservationPointerPosition({
+        clientX: event.clientX,
+        clientY: event.clientY,
+      });
+
+      const point = getCanvasPointFromClient(event.clientX, event.clientY);
+      const hoveredTable = point ? getVisibleTableAtPointRef.current(point.x, point.y) : null;
+      setDragOverTableId(hoveredTable?.id || null);
+
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      if (event.pointerId !== reservationPointerDrag.pointerId) return;
+
+      const point = getCanvasPointFromClient(event.clientX, event.clientY);
+      const hoveredTable = point ? getVisibleTableAtPointRef.current(point.x, point.y) : null;
+
+      if (hoveredTable) {
+        assignReservationToTableRef.current(reservationPointerDrag.reservationId, hoveredTable.id);
+      }
+
+      clearReservationPointerDrag();
+    };
+
+    const handlePointerCancel = (event: PointerEvent) => {
+      if (event.pointerId !== reservationPointerDrag.pointerId) return;
+      clearReservationPointerDrag();
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerCancel);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerCancel);
+    };
+  }, [reservationPointerDrag]);
 
   useEffect(() => {
     if (selectedReservationId && !reservationsById.has(selectedReservationId)) {
@@ -1672,6 +1764,22 @@ export default function DashboardPlanSalle() {
     setDraftTables((current) => current.map((table) => (table.id === tableId ? updater(table) : table)));
   };
 
+  const updateDraftTableFootprint = (tableId: string, width: number, height: number) => {
+    updateDraftTable(tableId, (table) => ({
+      ...table,
+      layout: ensureFloorPlanLayoutFitsCapacity(
+        {
+          ...table.layout,
+          w: Math.round(width),
+          h: Math.round(height),
+        },
+        table.capacity,
+        table.layout.shape,
+        table.layout.kind,
+      ),
+    }));
+  };
+
   const removeDraftTable = (tableId: string) => {
     if (!isTemplateMode) {
       toast({
@@ -1966,7 +2074,7 @@ export default function DashboardPlanSalle() {
     setSelectedTableId(tableId);
   };
 
-  const getReservationDropState = (reservationId: string, tableId: string) => {
+  function getReservationDropState(reservationId: string, tableId: string) {
     const reservation = reservationsById.get(reservationId);
     const table = tableMap.get(tableId);
 
@@ -2004,7 +2112,7 @@ export default function DashboardPlanSalle() {
     }
 
     return { ok: true as const, reason: null };
-  };
+  }
 
   const assignReservationToTable = (reservationId: string, tableId: string) => {
     const dropState = getReservationDropState(reservationId, tableId);
@@ -2025,12 +2133,64 @@ export default function DashboardPlanSalle() {
     setSelectedTableId(tableId);
   };
 
+  const clearReservationAssignment = (reservationId: string) => {
+    setDraftAssignments((current) => ({ ...current, [reservationId]: null }));
+    setSelectedReservationId(reservationId);
+  };
+
+  const clearServiceSelection = () => {
+    setSelectedReservationId(null);
+    setSelectedTableId(null);
+    setDraggedReservationId(null);
+    setDragOverTableId(null);
+    setReservationPointerDrag(null);
+    setReservationPointerPosition(null);
+  };
+
+  const handleServiceReservationPress = (reservationId: string) => {
+    if (selectedTableId) {
+      const targetTable = tableMap.get(selectedTableId);
+      if (targetTable && isReservableDraftTable(targetTable)) {
+        const dropState = getReservationDropState(reservationId, selectedTableId);
+        if (dropState.ok) {
+          assignReservationToTable(reservationId, selectedTableId);
+          return;
+        }
+      }
+    }
+
+    setSelectedReservationId(reservationId);
+    const assignedTableId = draftAssignments[reservationId];
+    if (assignedTableId) {
+      setSelectedTableId(assignedTableId);
+    }
+  };
+
+  const handleServiceTablePress = (tableId: string) => {
+    const targetTable = tableMap.get(tableId);
+    if (selectedReservationId && targetTable && isReservableDraftTable(targetTable)) {
+      const dropState = getReservationDropState(selectedReservationId, tableId);
+      if (dropState.ok) {
+        assignReservationToTable(selectedReservationId, tableId);
+        return;
+      }
+    }
+
+    setSelectedTableId(tableId);
+    if (!selectedReservationId) {
+      const primaryAssignment = (visibleAssignmentsByTable.get(tableId) || [])[0];
+      if (primaryAssignment) {
+        setSelectedReservationId(primaryAssignment.id);
+      }
+    }
+  };
+
   const handleReservationDragStart = (
     event: React.DragEvent<HTMLDivElement>,
     reservationId: string,
   ) => {
     setDraggedReservationId(reservationId);
-    setSelectedReservationId(reservationId);
+    setSelectedTableId(null);
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("application/x-reservation-id", reservationId);
     event.dataTransfer.setData("text/plain", reservationId);
@@ -2039,6 +2199,30 @@ export default function DashboardPlanSalle() {
   const handleReservationDragEnd = () => {
     setDraggedReservationId(null);
     setDragOverTableId(null);
+    setReservationPointerDrag(null);
+    setReservationPointerPosition(null);
+  };
+
+  const handleReservationHandlePointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    reservationId: string,
+  ) => {
+    if (event.button !== 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setSelectedReservationId(null);
+    setSelectedTableId(null);
+    setDraggedReservationId(reservationId);
+    setReservationPointerDrag({
+      reservationId,
+      pointerId: event.pointerId,
+    });
+    setReservationPointerPosition({
+      clientX: event.clientX,
+      clientY: event.clientY,
+    });
   };
 
   const updateCanvasZoom = (nextZoom: number) => {
@@ -2100,6 +2284,11 @@ export default function DashboardPlanSalle() {
       setDragOverTableId(null);
     }
   };
+
+  useEffect(() => {
+    assignReservationToTableRef.current = assignReservationToTable;
+    getVisibleTableAtPointRef.current = getVisibleTableAtPoint;
+  });
 
   const selectedReservationAssignedTableId = selectedReservation ? draftAssignments[selectedReservation.id] : null;
   const selectedReservationAssignedTable = selectedReservationAssignedTableId
@@ -2296,7 +2485,7 @@ export default function DashboardPlanSalle() {
                     <p className="font-semibold">{saveStatus.label}</p>
                     <p className="text-xs opacity-80">{saveStatus.detail}</p>
                   </div>
-                  {selectedBranch ? (
+                  {selectedBranch && isTemplateMode ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -2307,7 +2496,7 @@ export default function DashboardPlanSalle() {
                       <span className="ml-2">Panneaux</span>
                     </Button>
                   ) : null}
-                  {selectedBranch ? (
+                  {selectedBranch && isTemplateMode ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -2324,7 +2513,7 @@ export default function DashboardPlanSalle() {
                       </span>
                     </Button>
                   ) : null}
-                  {selectedBranch ? (
+                  {selectedBranch && isTemplateMode ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -2341,7 +2530,7 @@ export default function DashboardPlanSalle() {
                       </span>
                     </Button>
                   ) : null}
-                  {selectedBranch ? (
+                  {selectedBranch && !isTemplateMode ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -2405,7 +2594,10 @@ export default function DashboardPlanSalle() {
 
         {selectedBranch ? (
           <div className="flex min-h-0 flex-1 flex-col gap-3">
-            <div className="grid gap-3 rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,246,251,0.96))] p-4 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.35)] md:grid-cols-2 xl:grid-cols-7">
+            <div className={cn(
+              "grid gap-3 rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,246,251,0.96))] p-4 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.35)]",
+              isTemplateMode ? "md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(320px,1.15fr)]" : "md:grid-cols-2 xl:grid-cols-7",
+            )}>
               <div className="space-y-1.5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Salle</p>
                 <Select value={selectedBranchId || ""} onValueChange={setSelectedBranchId}>
@@ -2438,73 +2630,85 @@ export default function DashboardPlanSalle() {
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Periode</p>
-                <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
-                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
-                    <SelectValue placeholder="Periode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DASHBOARD_TIME_RANGE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {isTemplateMode ? (
+                <div className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Mode structure</p>
+                  <p className="mt-2 text-base font-semibold text-slate-900">Template global du secteur</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    La construction reste independante du service. Le canevas garde son scroll local, les panneaux se replient avant de le tronquer.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Periode</p>
+                    <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                        <SelectValue placeholder="Periode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DASHBOARD_TIME_RANGE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Date</p>
-                <Input type="date" value={referenceDate} className="h-12 rounded-2xl border-slate-200 bg-white" onChange={(event) => setReferenceDate(event.target.value)} />
-              </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Date</p>
+                    <Input type="date" value={referenceDate} className="h-12 rounded-2xl border-slate-200 bg-white" onChange={(event) => setReferenceDate(event.target.value)} />
+                  </div>
 
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Service</p>
-                <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
-                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
-                    <SelectValue placeholder="Tous" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="lunch">Midi</SelectItem>
-                    <SelectItem value="dinner">Soir</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Service</p>
+                    <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                        <SelectValue placeholder="Tous" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous</SelectItem>
+                        <SelectItem value="lunch">Midi</SelectItem>
+                        <SelectItem value="dinner">Soir</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Statut</p>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
-                    <SelectValue placeholder="Tous" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status === "all" ? "Tous" : status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Statut</p>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                        <SelectValue placeholder="Tous" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status === "all" ? "Tous" : status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Tri</p>
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
-                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
-                    <SelectValue placeholder="Heure" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="time">Heure d'arrivee</SelectItem>
-                    <SelectItem value="party_size">Taille du groupe</SelectItem>
-                    <SelectItem value="status">Statut</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Tri</p>
+                    <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                        <SelectValue placeholder="Heure" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="time">Heure d'arrivee</SelectItem>
+                        <SelectItem value="party_size">Taille du groupe</SelectItem>
+                        <SelectItem value="status">Statut</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </div>
 
-            {showWorkspaceStats ? (
+            {showWorkspaceStats && !isTemplateMode ? (
             <div className="grid shrink-0 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <Card className="rounded-3xl border-slate-200/80 bg-white shadow-sm">
                 <CardContent className="flex items-start justify-between gap-3 px-5 py-4">
@@ -2561,1605 +2765,476 @@ export default function DashboardPlanSalle() {
             </div>
             ) : null}
 
-            <div className={cn(
-              "grid min-h-0 flex-1 gap-5 transition-[grid-template-columns] duration-300 lg:grid-cols-[minmax(0,1fr)_320px]",
-              leftSidebarCollapsed
-                ? rightSidebarCollapsed
-                  ? "xl:grid-cols-[92px_minmax(0,1fr)_92px]"
-                  : "xl:grid-cols-[92px_minmax(0,1fr)_320px]"
-                : rightSidebarCollapsed
-                  ? "xl:grid-cols-[320px_minmax(0,1fr)_92px]"
-                  : "xl:grid-cols-[320px_minmax(0,1fr)_320px]",
-            )}>
-              <div className={cn("hidden min-h-0 xl:flex xl:flex-col", leftSidebarCollapsed && "xl:w-[92px]")}>
-                {leftSidebarCollapsed ? (
-                  <div className="space-y-3">
-                    <div className="rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-3 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
-                      <div className="flex flex-col items-center gap-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
-                          onClick={() => setLeftSidebarCollapsed(false)}
-                          title="Ouvrir le menu"
-                        >
-                          <PanelLeftOpen className="h-4 w-4 text-slate-700" />
-                        </Button>
-                        <div className="h-px w-full bg-slate-200" />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
-                          onClick={() => {
-                            setLeftPanelView("library");
-                            setLibraryTab("elements");
-                            setLeftSidebarCollapsed(false);
-                          }}
-                          title="Ouvrir les elements"
-                        >
-                          <LayoutPanelTop className="h-4 w-4 text-slate-700" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
-                          onClick={() => {
-                            setLeftPanelView("library");
-                            setLibraryTab("structure");
-                            setLeftSidebarCollapsed(false);
-                          }}
-                          title="Ouvrir la structure"
-                        >
-                          <Armchair className="h-4 w-4 text-slate-700" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
-                          onClick={() => {
-                            setLeftPanelView("reservations");
-                            setLeftSidebarCollapsed(false);
-                          }}
-                          title="Ouvrir les reservations"
-                        >
-                          <CalendarClock className="h-4 w-4 text-slate-700" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="rounded-[24px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] px-3 py-4 text-center shadow-[0_24px_80px_-44px_rgba(15,23,42,0.3)]">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Resa</p>
-                      <p className="mt-2 text-2xl font-bold text-slate-900">{unassignedVisibleReservations.length}</p>
-                      <p className="mt-1 text-[11px] text-slate-500">sans table</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                <div className="mb-4 grid shrink-0 grid-cols-2 gap-2 rounded-[24px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-2 shadow-[0_18px_60px_-40px_rgba(15,23,42,0.35)]">
-                  <Button
-                    type="button"
-                    variant={leftPanelView === "library" ? "default" : "ghost"}
-                    className="h-11 rounded-2xl"
-                    onClick={() => setLeftPanelView("library")}
-                  >
-                    <LayoutPanelTop className="mr-2 h-4 w-4" />
-                    Bibliotheque
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={leftPanelView === "reservations" ? "default" : "ghost"}
-                    className="h-11 rounded-2xl"
-                    onClick={() => setLeftPanelView("reservations")}
-                  >
-                    <CalendarClock className="mr-2 h-4 w-4" />
-                    Reservations
-                  </Button>
-                </div>
-                {leftPanelView === "library" ? (
-                <Card className={cn("flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]", !isTemplateMode && "border-dashed")}>
-                  <CardHeader className="border-b border-slate-200/80 pb-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-lg text-slate-900">Bibliotheque d'elements</CardTitle>
-                        <CardDescription className="mt-1 text-slate-500">
-                          Palette de conception optimisee pour un usage tactile rapide.
-                        </CardDescription>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
-                          {isTemplateMode ? "Edition" : "Lecture"}
-                        </Badge>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-10 w-10 rounded-2xl text-slate-600 hover:bg-white"
-                          onClick={() => setLeftSidebarCollapsed(true)}
-                          title="Replier le panneau"
-                        >
-                          <PanelLeftClose className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex min-h-0 flex-1 flex-col p-4">
-                    {!isTemplateMode ? (
-                      <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-900">
-                        Passez en mode structure pour ajouter ou supprimer des elements.
-                      </div>
-                    ) : null}
-                    <ScrollArea className="min-h-0 flex-1 pr-3">
-                    <div className="space-y-4">
-                    <PanelSection
-                      open={panelSections.libraryCatalog}
-                      onOpenChange={(open) => setPanelSectionOpen("libraryCatalog", open)}
-                      title="Palette"
-                      description="Choisissez la famille d'elements puis ajoutez-les sans encombrer la colonne."
-                    >
-                      <Tabs value={libraryTab} onValueChange={(value) => setLibraryTab(value as "elements" | "structure" | "decoration")}>
-                        <TabsList className={`${SIDE_PANEL_TAB_LIST_CLASS} grid-cols-3`}>
-                          <TabsTrigger value="elements" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Elements</TabsTrigger>
-                          <TabsTrigger value="structure" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Structure</TabsTrigger>
-                          <TabsTrigger value="decoration" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Decoration</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="elements" className="mt-4 space-y-3">
-                          <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
-                            {libraryPresets.elements.map((preset) => (
-                              <PalettePresetButton
-                                key={preset.id}
-                                preset={preset}
-                                onClick={() => addTableFromPreset(preset.id)}
-                                disabled={tablesLoading || !isTemplateMode}
-                              />
-                            ))}
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="structure" className="mt-4 space-y-3">
-                          <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
-                            {libraryPresets.structure.map((preset) => (
-                              <PalettePresetButton
-                                key={preset.id}
-                                preset={preset}
-                                onClick={() => addTableFromPreset(preset.id)}
-                                disabled={tablesLoading || !isTemplateMode}
-                              />
-                            ))}
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="decoration" className="mt-4 space-y-3">
-                          <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
-                            {libraryPresets.decoration.map((preset) => (
-                              <PalettePresetButton
-                                key={preset.id}
-                                preset={preset}
-                                onClick={() => addTableFromPreset(preset.id)}
-                                disabled={tablesLoading || !isTemplateMode}
-                              />
-                            ))}
-                          </div>
-                        </TabsContent>
-                      </Tabs>
-                    </PanelSection>
-
-                    <PanelSection
-                      open={panelSections.librarySectors}
-                      onOpenChange={(open) => setPanelSectionOpen("librarySectors", open)}
-                      title="Secteurs"
-                      description="Creez rapidement des zones de service sans surcharger le panneau."
-                    >
-                      <div className="space-y-3">
-                        <Label htmlFor="new-sector" className="text-xs uppercase tracking-[0.18em] text-slate-500">Nouveau secteur</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="new-sector"
-                            value={newSectorName}
-                            placeholder="Terrasse, Salon VIP..."
-                            className="h-11 rounded-2xl border-slate-200 bg-slate-50"
-                            disabled={!isTemplateMode}
-                            onChange={(event) => setNewSectorName(event.target.value)}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter") {
-                                event.preventDefault();
-                                addSector();
-                              }
+            {isTemplateMode ? (
+              <div
+                className={cn(
+                  "grid min-h-0 flex-1 gap-5 transition-[grid-template-columns] duration-300",
+                  leftSidebarCollapsed
+                    ? rightSidebarCollapsed
+                      ? "xl:grid-cols-[92px_minmax(0,1fr)_92px]"
+                      : "xl:grid-cols-[92px_minmax(0,1fr)_320px]"
+                    : rightSidebarCollapsed
+                      ? "xl:grid-cols-[320px_minmax(0,1fr)_92px]"
+                      : "xl:grid-cols-[320px_minmax(0,1fr)_320px]",
+                )}
+              >
+                <div className={cn("hidden min-h-0 xl:flex xl:flex-col", leftSidebarCollapsed && "xl:w-[92px]")}>
+                  {leftSidebarCollapsed ? (
+                    <div className="space-y-3">
+                      <div className="rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-3 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
+                        <div className="flex flex-col items-center gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                            onClick={() => setLeftSidebarCollapsed(false)}
+                            title="Ouvrir la palette"
+                          >
+                            <PanelLeftOpen className="h-4 w-4 text-slate-700" />
+                          </Button>
+                          <div className="h-px w-full bg-slate-200" />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                            onClick={() => {
+                              setLibraryTab("tables");
+                              setLeftSidebarCollapsed(false);
                             }}
-                          />
-                          <Button variant="outline" className="h-11 rounded-2xl border-slate-200 bg-white" onClick={addSector} disabled={!isTemplateMode}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Ajouter
+                            title="Ouvrir les tables"
+                          >
+                            <LayoutPanelTop className="h-4 w-4 text-slate-700" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                            onClick={() => {
+                              setLibraryTab("seating");
+                              setLeftSidebarCollapsed(false);
+                            }}
+                            title="Ouvrir les assises"
+                          >
+                            <Armchair className="h-4 w-4 text-slate-700" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                            onClick={() => {
+                              setLibraryTab("structure");
+                              setLeftSidebarCollapsed(false);
+                            }}
+                            title="Ouvrir la structure"
+                          >
+                            <Store className="h-4 w-4 text-slate-700" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                            onClick={() => {
+                              setLibraryTab("decor");
+                              setLeftSidebarCollapsed(false);
+                            }}
+                            title="Ouvrir le decor"
+                          >
+                            <Sparkles className="h-4 w-4 text-slate-700" />
                           </Button>
                         </div>
                       </div>
-                    </PanelSection>
 
-                    {selectedId ? (
-                      <PanelSection
-                        open={panelSections.libraryAI}
-                        onOpenChange={(open) => setPanelSectionOpen("libraryAI", open)}
-                        title="Assistant IA"
-                        description="Utilisez-le uniquement quand vous avez besoin d'un point de depart plus global."
-                        contentClassName="p-1"
-                      >
-                        <FloorPlanAIPanel
-                          restaurantId={selectedId}
-                          currentLayout={draftTables.map((t) => ({
-                            table_number: t.table_number,
-                            capacity: t.capacity,
-                            layout: { x: t.layout.x, y: t.layout.y, w: t.layout.w, h: t.layout.h, shape: t.layout.shape, kind: t.layout.kind },
-                          }))}
-                          canvasWidth={CANVAS_WIDTH}
-                          canvasHeight={CANVAS_HEIGHT}
-                          onApply={applyAILayout}
-                          disabled={!isTemplateMode}
-                        />
-                      </PanelSection>
-                    ) : null}
-                    </div>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-                ) : null}
-
-                {leftPanelView === "reservations" ? (
-                <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
-                  <CardHeader className="border-b border-slate-200/80 pb-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-lg text-slate-900">Reservations a placer</CardTitle>
-                        <CardDescription className="mt-1 text-slate-500">
-                          Glissez une reservation sur une table ou utilisez l'inspecteur pour l'affecter.
-                        </CardDescription>
+                      <div className="rounded-[24px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] px-3 py-4 text-center shadow-[0_24px_80px_-44px_rgba(15,23,42,0.3)]">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Secteur</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900">{selectedSector}</p>
+                        <p className="mt-1 text-[11px] text-slate-500">{visibleTables.length} element(s)</p>
                       </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
-                          {filteredReservations.length}
-                        </Badge>
+                    </div>
+                  ) : (
+                    <div className="flex min-h-0 flex-1 flex-col gap-3">
+                      <div className="flex justify-end">
                         <Button
                           type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-10 w-10 rounded-2xl text-slate-600 hover:bg-white"
+                          variant="outline"
+                          className="h-11 rounded-2xl border-slate-200 bg-white px-3 shadow-sm"
                           onClick={() => setLeftSidebarCollapsed(true)}
-                          title="Replier le panneau"
                         >
-                          <PanelLeftClose className="h-4 w-4" />
+                          <PanelLeftClose className="h-4 w-4 text-slate-600" />
+                          <span className="ml-2">Replier la palette</span>
                         </Button>
                       </div>
+                      <StudioPalette
+                        selectedId={selectedId}
+                        selectedSector={selectedSector}
+                        sectorOptions={sectorOptions}
+                        libraryTab={libraryTab}
+                        libraryQuery={libraryQuery}
+                        draftTables={draftTables}
+                        tablesLoading={tablesLoading}
+                        newSectorName={newSectorName}
+                        onLibraryTabChange={setLibraryTab}
+                        onLibraryQueryChange={setLibraryQuery}
+                        onPresetClick={addTableFromPreset}
+                        onSectorSelect={setSelectedSector}
+                        onNewSectorNameChange={setNewSectorName}
+                        onAddSector={addSector}
+                        onApplyAILayout={applyAILayout}
+                        presetsByTab={filteredLibraryPresets}
+                      />
                     </div>
-                  </CardHeader>
-                  <CardContent className="min-h-0 flex-1 p-4">
-                    <div className="flex h-full min-h-0 flex-col gap-4">
-                      <PanelSection
-                        open={panelSections.reservationSearch}
-                        onOpenChange={(open) => setPanelSectionOpen("reservationSearch", open)}
-                        title="Recherche"
-                        description="Filtrez rapidement la file des reservations."
-                      >
-                        <div className="relative">
-                          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <Input
-                            value={reservationQuery}
-                            onChange={(event) => setReservationQuery(event.target.value)}
-                            placeholder="Rechercher un nom, numero, service..."
-                            className="h-11 rounded-2xl border-slate-200 bg-white pl-9"
-                          />
-                        </div>
-                      </PanelSection>
-
-                      <PanelSection
-                        open={panelSections.reservationList}
-                        onOpenChange={(open) => setPanelSectionOpen("reservationList", open)}
-                        title="Liste"
-                        description="Reservations visibles pour la date, le service et les filtres actifs."
-                        badge={<Badge variant="outline" className="rounded-full bg-white">{unassignedVisibleReservations.length} sans table</Badge>}
-                        className="flex min-h-0 flex-1 flex-col"
-                        contentClassName="min-h-0 flex-1 p-0"
-                      >
-                        <ScrollArea className="h-full">
-                          <div className="space-y-3 p-4">
-                        {reservationsLoading ? (
-                          <p className="text-sm text-muted-foreground">Chargement des reservations...</p>
-                        ) : null}
-
-                        {filteredReservations.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">Aucune reservation pour les filtres selectionnes.</p>
-                        ) : null}
-
-                        {filteredReservations.map((reservation) => {
-                          const assignedTableId = draftAssignments[reservation.id];
-                          const assignedTable = assignedTableId ? tableMap.get(assignedTableId) || null : null;
-                          const isSelected = reservation.id === selectedReservationId;
-                          const reservationService = getReservationService(reservation);
-                          const isZeroAttente = isZeroAttenteReservation(reservation);
-                          const preorderItems = getReservationPreorderItems(reservation);
-
-                          return (
-                            <div
-                              key={reservation.id}
-                              role="button"
-                              tabIndex={0}
-                              draggable
-                              onClick={() => {
-                                setSelectedReservationId(reservation.id);
-                                if (assignedTableId) {
-                                  setSelectedTableId(assignedTableId);
-                                }
-                              }}
-                              onDragStart={(event) => handleReservationDragStart(event, reservation.id)}
-                              onDragEnd={handleReservationDragEnd}
-                              onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                  event.preventDefault();
-                                  setSelectedReservationId(reservation.id);
-                                  if (assignedTableId) {
-                                    setSelectedTableId(assignedTableId);
-                                  }
-                                }
-                              }}
-                              className={cn(
-                                "w-full cursor-grab rounded-2xl border p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing",
-                                isSelected && isZeroAttente && "border-teal-500 bg-teal-50 shadow-sm ring-2 ring-teal-200",
-                                isSelected && !isZeroAttente && "border-primary bg-primary/5 shadow-sm",
-                                !isSelected && isZeroAttente && "border-teal-200 bg-teal-50/60 hover:bg-teal-50",
-                                !isSelected && !isZeroAttente && "border-border bg-background hover:bg-muted/40",
-                                draggedReservationId === reservation.id && "scale-[0.99] opacity-60",
-                              )}
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="space-y-2">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <span className="font-semibold">{getReservationCustomerLabel(reservation)}</span>
-                                    {isZeroAttente ? (
-                                      <Badge className="border border-teal-200 bg-teal-100 text-teal-800">
-                                        Zero Attente
-                                      </Badge>
-                                    ) : null}
-                                    <Badge className={cn("border", getReservationStatusTone(reservation.status))}>
-                                      {reservation.status || "pending"}
-                                    </Badge>
-                                  </div>
-                                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                                    <span className="inline-flex items-center gap-1">
-                                      <Clock3 className="h-3.5 w-3.5" />
-                                      {getSafeTime(reservation.time)}
-                                    </span>
-                                    <span>{getShortDateLabel(reservation.date)}</span>
-                                    <span>{reservation.party_size} pers.</span>
-                                    <span>{getServicePeriodLabel(reservationService)}</span>
-                                    {preorderItems.length > 0 ? (
-                                      <span>{preorderItems.length} produit(s)</span>
-                                    ) : null}
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs">
-                                      <Grip className="h-3 w-3" />
-                                      Drag & drop
-                                    </span>
-                                  </div>
-                                  {assignedTable ? (
-                                    <Badge variant="outline" className="bg-background">
-                                      Affectee a {assignedTable.table_number}
-                                    </Badge>
-                                  ) : (
-                                    <Badge variant="outline" className="bg-background text-amber-700 border-amber-200">
-                                      Sans table
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                  {assignedTableId ? (
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        setDraftAssignments((current) => ({ ...current, [reservation.id]: null }));
-                                      }}
-                                    >
-                                      Liberer
-                                    </Button>
-                                  ) : null}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                          </div>
-                        </ScrollArea>
-                      </PanelSection>
-                    </div>
-                  </CardContent>
-                </Card>
-                ) : null}
-                  </>
-                )}
-              </div>
-
-              <div className="min-w-0 min-h-0 flex flex-col gap-4">
-              <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
-                <CardHeader className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <CardTitle className="text-[1.4rem] text-slate-900">{selectedSector}</CardTitle>
-                      <CardDescription className="mt-1 text-slate-500">
-                        {isTemplateMode
-                          ? "Template global applique par defaut chaque jour"
-                          : `${formatDashboardDateHeading(referenceDate)} - ${filteredReservations.length} reservation(s) visibles`}
-                      </CardDescription>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
-                        {isTemplateMode
-                          ? "Template global - drag pour repositionner et redimensionner"
-                          : "Plan du jour - drag pour ajuster uniquement cette date"}
-                      </Badge>
-                      {!isTemplateMode ? (
-                        <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">
-                          Sauvegarde auto active
-                        </Badge>
-                      ) : null}
-                      <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white px-1 py-1 shadow-sm">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-xl"
-                          onClick={() => updateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
-                          disabled={canvasZoom <= MIN_CANVAS_ZOOM}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="min-w-14 text-center text-sm font-semibold">{canvasZoomLabel}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-xl"
-                          onClick={() => updateCanvasZoom(1)}
-                          disabled={canvasZoom === 1}
-                        >
-                          <ZoomOut className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-xl"
-                          onClick={() => updateCanvasZoom(canvasZoom + CANVAS_ZOOM_STEP)}
-                          disabled={canvasZoom >= MAX_CANVAS_ZOOM}
-                        >
-                          <ZoomIn className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex min-h-0 flex-1 flex-col p-4">
-                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(251,252,254,1),rgba(243,245,249,1))] p-4">
-                    <div className="flex min-h-0 flex-1 flex-col rounded-[24px] border border-slate-200/80 bg-white/70 p-3 shadow-inner">
-                      <div className="flex items-center justify-between pl-16 pr-5 text-[11px] font-medium text-slate-500">
-                        {Array.from({ length: 9 }, (_, index) => (
-                          <span key={`ruler-x-${index}`}>{index * 2}</span>
-                        ))}
-                      </div>
-                      <div className="mt-2 flex min-h-0 flex-1 gap-3">
-                        <div className="flex w-10 shrink-0 flex-col justify-between py-4 text-[11px] font-medium text-slate-500">
-                          {Array.from({ length: 7 }, (_, index) => (
-                            <span key={`ruler-y-${index}`}>{index * 2}</span>
-                          ))}
-                        </div>
-                        <div ref={canvasViewportRef} className="min-w-0 min-h-0 flex-1">
-                          <ScrollArea className="h-full w-full">
-                      <div
-                        ref={canvasRef}
-                        className="relative overflow-hidden rounded-[28px] border border-slate-300/70 shadow-inner"
-                        onWheelCapture={handleCanvasWheel}
-                        onDragOver={handleCanvasDragOver}
-                        onDrop={handleCanvasDrop}
-                        onDragLeave={handleCanvasDragLeave}
-                        style={{
-                          width: canvasWidth,
-                          height: CANVAS_HEIGHT,
-                          backgroundImage: "linear-gradient(rgba(148,163,184,0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.16) 1px, transparent 1px)",
-                          backgroundSize: "32px 32px, 32px 32px",
-                          backgroundColor: "#f7f8fb",
-                        }}
-                      >
-                        <div
-                          className="relative h-full w-full overflow-hidden"
-                          style={{
-                            width: canvasWidth,
-                            height: CANVAS_HEIGHT,
-                          }}
-                        >
-                          <div className="pointer-events-none absolute inset-[26px] rounded-[34px] border-[14px] border-[#34353a] bg-[linear-gradient(180deg,rgba(201,160,116,0.96),rgba(184,145,104,0.94))] shadow-[0_30px_70px_-35px_rgba(15,23,42,0.55)]" />
-                          <div className="pointer-events-none absolute inset-[44px] rounded-[20px] bg-[linear-gradient(135deg,rgba(221,188,146,0.94),rgba(189,149,108,0.95))]" />
-                          {visibleTables.length === 0 ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-muted-foreground">
-                              <LayoutPanelTop className="h-10 w-10 text-primary/60" />
-                              <div className="space-y-1">
-                                <p className="font-medium text-foreground">Aucun element dans ce secteur</p>
-                                <p className="text-sm">Ajoutez une table ou du mobilier depuis la palette de gauche pour commencer.</p>
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {visibleTables.map((table) => {
-                            const assignments = visibleAssignmentsByTable.get(table.id) || [];
-                            const primaryAssignment = assignments[0] || null;
-                            const isReservable = isReservableDraftTable(table);
-                            const isSelected = table.id === selectedTableId;
-                            const isZeroAttentePrimary = primaryAssignment ? isZeroAttenteReservation(primaryAssignment) : false;
-                            const activeDraggedReservationId = draggedReservationId;
-                            const dropState = activeDraggedReservationId && isReservable
-                              ? getReservationDropState(activeDraggedReservationId, table.id)
-                              : null;
-                            const isDragTarget = isReservable && dragOverTableId === table.id && !!activeDraggedReservationId;
-                            const canDropHere = !!dropState?.ok;
-                            const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
-                            const density = getTableDensity(renderedFrame);
-                            const isTight = density === "tight";
-                            const contentPadding = isReservable
-                              ? getTableContentPadding(table.layout, table.capacity, canvasZoom)
-                              : { top: 0, right: 0, bottom: 0, left: 0 };
-                            const coverLabel = density === "regular" ? `${table.capacity} couv.` : `${table.capacity}`;
-                            const reservationCustomerLabel = primaryAssignment
-                              ? getCompactReservationCustomerLabel(primaryAssignment, density)
-                              : null;
-                            const reservationDetailLabel = primaryAssignment
-                              ? density === "tight"
-                                ? `${primaryAssignment.party_size}p`
-                                : `${primaryAssignment.party_size} pers.`
-                              : null;
-
-                            return (
-                              <div
-                                key={table.id}
-                                className="absolute select-none focus:outline-none"
-                                style={{
-                                  left: renderedFrame.x,
-                                  top: renderedFrame.y,
-                                  width: renderedFrame.w,
-                                  height: renderedFrame.h,
-                                  zIndex: isSelected ? 40 : isReservable && assignments.length > 0 ? 24 : 12,
-                                  cursor: dragState?.tableId === table.id ? "grabbing" : "grab",
-                                }}
-                                onPointerDown={(event) => {
-                                  if ((event.target as HTMLElement).closest("[data-rotate-handle]") || (event.target as HTMLElement).closest("[data-resize-handle]")) return;
-                                  startDraggingTable(event, table.id);
-                                }}
-                                onClick={() => setSelectedTableId(table.id)}
-                              >
-                                {/* Rotated wrapper */}
-                                <div
-                                  className="relative h-full w-full"
-                                  style={{
-                                    transform: `rotate(${table.layout.rotation}deg)`,
-                                    transformOrigin: "center center",
-                                  }}
-                                >
-                                  {/* SVG illustration — no background block for furniture */}
-                                  <div className="absolute inset-0">
-                                    <FloorPlanItemIllustration
-                                      kind={table.layout.kind}
-                                      shape={table.layout.shape}
-                                      capacity={table.capacity}
-                                      seatType={table.layout.seatType}
-                                      seatPlacements={table.layout.seatPlacements}
-                                      cornerBenchCorners={table.layout.cornerBenchCorners}
-                                      cornerBenchConfigs={table.layout.cornerBenchConfigs}
-                                      tableWidth={table.layout.tableWidth}
-                                      tableHeight={table.layout.tableHeight}
-                                      cornerBenchHorizontal={table.layout.cornerBenchHorizontal}
-                                      cornerBenchVertical={table.layout.cornerBenchVertical}
-                                      cornerBenchDepth={table.layout.cornerBenchDepth}
-                                      className="h-full w-full"
-                                    />
-                                  </div>
-
-                                  {/* Selection ring */}
-                                  {isSelected && (
-                                    <div className="pointer-events-none absolute inset-[-2px] rounded-lg border-2 border-primary/50" />
-                                  )}
-
-                                  {/* Drop target feedback */}
-                                  {isDragTarget && (
-                                    <div className={cn(
-                                      "pointer-events-none absolute inset-[-2px] rounded-lg border-2",
-                                      canDropHere ? "border-emerald-500 bg-emerald-50/30" : "border-rose-500 bg-rose-50/30",
-                                    )} />
-                                  )}
-
-                                  {/* ── TABLE OVERLAY (name + reservation info) ── */}
-                                  {isReservable && (
-                                    <div
-                                      className="absolute inset-0 flex flex-col overflow-hidden"
-                                      style={{
-                                        paddingTop: contentPadding.top,
-                                        paddingRight: contentPadding.right,
-                                        paddingBottom: contentPadding.bottom,
-                                        paddingLeft: contentPadding.left,
-                                      }}
-                                    >
-                                      {/* Table name + capacity */}
-                                      <div className="flex items-start justify-between gap-1">
-                                        <div className="min-w-0">
-                                          <p className={cn(
-                                            "break-words font-bold text-foreground drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]",
-                                            density === "regular" ? "text-sm" : density === "compact" ? "text-[10px]" : "text-[8px]",
-                                          )}>
-                                            {table.table_number}
-                                          </p>
-                                          {!isTight && (
-                                            <p className={cn(
-                                              "uppercase text-muted-foreground drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]",
-                                              density === "regular" ? "text-[9px] tracking-[0.14em]" : "text-[7px] tracking-[0.1em]",
-                                            )}>
-                                              {coverLabel}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-
-                                      {/* Reservation card */}
-                                      <div className={cn(
-                                        "flex min-h-0 flex-1 flex-col items-center justify-center",
-                                        density === "regular" ? "gap-1.5" : "gap-0.5",
-                                      )}>
-                                        {primaryAssignment ? (
-                                          <button
-                                            type="button"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              setSelectedReservationId(primaryAssignment.id);
-                                              setSelectedTableId(table.id);
-                                            }}
-                                            className={cn(
-                                              "max-w-full border text-left shadow-sm backdrop-blur-sm transition-colors",
-                                              isZeroAttentePrimary
-                                                ? "border-teal-200 bg-teal-50/90 hover:bg-teal-100/90"
-                                                : "border-[#ebd4bb] bg-white/90 hover:bg-white",
-                                              density === "regular"
-                                                ? "rounded-xl px-2.5 py-1.5"
-                                                : density === "compact"
-                                                  ? "rounded-lg px-1.5 py-1"
-                                                  : "rounded-md px-1 py-0.5",
-                                            )}
-                                          >
-                                            <p className={cn(
-                                              "truncate font-semibold text-foreground",
-                                              density === "regular" ? "text-[11px]" : density === "compact" ? "text-[9px]" : "text-[7px]",
-                                            )}>
-                                              {reservationCustomerLabel}
-                                            </p>
-                                            <div className="flex items-center gap-1">
-                                              <span className={cn(
-                                                "font-medium text-muted-foreground",
-                                                density === "regular" ? "text-[10px]" : "text-[7px]",
-                                              )}>
-                                                {getSafeTime(primaryAssignment.time)} {reservationDetailLabel}
-                                              </span>
-                                            </div>
-                                          </button>
-                                        ) : null}
-                                        {assignments.length > 1 && !isTight ? (
-                                          <span className={cn(
-                                            "font-medium text-muted-foreground drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]",
-                                            density === "regular" ? "text-[10px]" : "text-[8px]",
-                                          )}>
-                                            +{assignments.length - 1}
-                                          </span>
-                                        ) : null}
-                                      </div>
-
-                                      {/* Drop feedback */}
-                                      {isDragTarget && activeDraggedReservationId ? (
-                                        <div className={cn(
-                                          "absolute bottom-1 left-1 right-1 rounded-lg border px-2 py-1 text-center text-[9px] font-semibold backdrop-blur-sm",
-                                          canDropHere
-                                            ? "border-emerald-200 bg-emerald-100/90 text-emerald-800"
-                                            : "border-rose-200 bg-rose-100/90 text-rose-800",
-                                        )}>
-                                          {canDropHere ? "Affecter" : dropState?.reason}
-                                        </div>
-                                      ) : null}
-                                    </div>
-                                  )}
-
-                                  {/* Resize handle (bottom-right, selected only) */}
-                                  {isSelected && (
-                                    <button
-                                      type="button"
-                                      data-resize-handle
-                                      aria-label={`Redimensionner ${table.table_number}`}
-                                      className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border border-primary/50 bg-white shadow-sm"
-                                      style={{ cursor: "nwse-resize" }}
-                                      onPointerDown={(event) => startResizingTable(event, table.id, PRIMARY_RESIZE_HANDLE.key)}
-                                    />
-                                  )}
-                                </div>
-
-                                {/* Rotate handle — outside the rotated wrapper so it stays upright */}
-                                {isSelected && (
-                                  <div
-                                    data-rotate-handle
-                                    className="absolute flex items-center justify-center"
-                                    style={{
-                                      top: -28,
-                                      left: "50%",
-                                      transform: "translateX(-50%)",
-                                      cursor: "grab",
-                                    }}
-                                    onPointerDown={(event) => startRotatingTable(event, table.id)}
-                                  >
-                                    <div className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/50 bg-white shadow-md">
-                                      <RotateCw className="h-3.5 w-3.5 text-primary" />
-                                    </div>
-                                    {/* Connecting line from handle to element */}
-                                    <div className="absolute top-6 h-2 w-px bg-primary/30" />
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                          </ScrollArea>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-center">
-                <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2 text-xs text-slate-500 shadow-sm">
-                  Maintenez Ctrl pour zoomer, glissez un element pour le deplacer, utilisez la molette pour affiner la vue.
+                  )}
                 </div>
-              </div>
 
-              </div>
+                <div className="flex min-h-0 flex-1 flex-col gap-5">
+                  <StudioCanvas
+                    selectedSector={selectedSector}
+                    canvasWidth={canvasWidth}
+                    canvasZoom={canvasZoom}
+                    canvasZoomLabel={canvasZoomLabel}
+                    canvasRef={canvasRef}
+                    canvasViewportRef={canvasViewportRef}
+                    visibleTables={visibleTables}
+                    selectedTableId={selectedTableId}
+                    draggingTableId={dragState?.tableId || resizeState?.tableId || rotateState?.tableId || null}
+                    onTablePress={setSelectedTableId}
+                    onCanvasWheel={handleCanvasWheel}
+                    onCanvasBackgroundPress={() => setSelectedTableId(null)}
+                    onStartDraggingTable={startDraggingTable}
+                    onStartResizingTable={(event, tableId) => startResizingTable(event, tableId, PRIMARY_RESIZE_HANDLE.key)}
+                    onStartRotatingTable={startRotatingTable}
+                    onUpdateCanvasZoom={updateCanvasZoom}
+                    getRenderedFrame={(table) => getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT)}
+                  />
 
-              {rightSidebarCollapsed ? (
-                <div className="hidden min-h-0 xl:flex xl:flex-col">
-                  <div className="flex h-full flex-col items-center gap-3 rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-3 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.3)]">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
-                      onClick={() => setRightSidebarCollapsed(false)}
-                      title="Ouvrir l'inspecteur"
-                    >
-                      <PanelRightOpen className="h-4 w-4 text-slate-700" />
-                    </Button>
-                    <div className="h-px w-full bg-slate-200" />
-                    <Button
-                      type="button"
-                      variant={inspectorTab === "properties" ? "default" : "outline"}
-                      size="icon"
-                      className="h-12 w-12 rounded-2xl"
-                      onClick={() => {
-                        setInspectorTab("properties");
-                        setRightSidebarCollapsed(false);
+                  <div className="xl:hidden">
+                    <StudioInspector
+                      selectedTable={selectedTable}
+                      selectedTableIsReservable={selectedTableIsReservable}
+                      selectedTableDimensions={selectedTableDimensions}
+                      sectorOptions={sectorOptions}
+                      onRename={(value) => {
+                        if (!selectedTable) return;
+                        updateDraftTable(selectedTable.id, (table) => ({
+                          ...table,
+                          table_number: value,
+                        }));
                       }}
-                      title="Proprietes"
-                    >
-                      <Armchair className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={inspectorTab === "layers" ? "default" : "outline"}
-                      size="icon"
-                      className="h-12 w-12 rounded-2xl"
-                      onClick={() => {
-                        setInspectorTab("layers");
-                        setRightSidebarCollapsed(false);
+                      onSectorChange={(value) => {
+                        if (!selectedTable) return;
+                        updateDraftTable(selectedTable.id, (table) => ({
+                          ...table,
+                          sector: value,
+                        }));
                       }}
-                      title="Calques"
-                    >
-                      <LayoutPanelTop className="h-4 w-4" />
-                    </Button>
-                    <div className="mt-auto w-full rounded-[22px] border border-slate-200 bg-white/85 px-3 py-4 text-center">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Sel.</p>
-                      <p className="mt-2 text-xl font-bold text-slate-900">{selectedTable ? 1 : 0}</p>
-                      <p className="mt-1 text-[11px] text-slate-500">element</p>
-                    </div>
+                      onRotationChange={(value) => {
+                        if (!selectedTable) return;
+                        updateDraftTable(selectedTable.id, (table) => ({
+                          ...table,
+                          layout: { ...table.layout, rotation: value },
+                        }));
+                      }}
+                      onRotateIncrement={() => {
+                        if (!selectedTable) return;
+                        updateDraftTable(selectedTable.id, (table) => ({
+                          ...table,
+                          layout: {
+                            ...table.layout,
+                            rotation: (table.layout.rotation + 45) % 360,
+                          },
+                        }));
+                      }}
+                      onToggleActive={(checked) => {
+                        if (!selectedTable) return;
+                        updateDraftTable(selectedTable.id, (table) => ({
+                          ...table,
+                          is_active: checked,
+                        }));
+                      }}
+                      onConfigureTable={() => {
+                        if (!selectedTable) return;
+                        setEditingSeatingTableId(selectedTable.id);
+                        setTableConfigDialogOpen(true);
+                      }}
+                      onDuplicate={() => {
+                        if (!selectedTable) return;
+                        duplicateTable(selectedTable.id);
+                      }}
+                      onRemove={() => {
+                        if (!selectedTable) return;
+                        removeDraftTable(selectedTable.id);
+                      }}
+                      onUpdateFurnitureWidth={(value) => {
+                        if (!selectedTable) return;
+                        updateDraftTableFootprint(selectedTable.id, value, selectedTable.layout.h);
+                      }}
+                      onUpdateFurnitureHeight={(value) => {
+                        if (!selectedTable) return;
+                        updateDraftTableFootprint(selectedTable.id, selectedTable.layout.w, value);
+                      }}
+                    />
                   </div>
                 </div>
-              ) : null}
 
-              <div className={cn("hidden min-h-0 lg:flex lg:flex-col", rightSidebarCollapsed && "xl:hidden")}>
-                <Card className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
-                  <CardHeader className="border-b border-slate-200/80 pb-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-lg text-slate-900">Inspecteur</CardTitle>
-                        <CardDescription className="mt-1 text-slate-500">
-                          {isTemplateMode
-                            ? "Ajustez la structure du template ou finalisez le placement de la reservation active."
-                            : "Ajustez le placement du jour ou finalisez le placement de la reservation active."}
-                        </CardDescription>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 rounded-2xl text-slate-600 hover:bg-white"
-                        onClick={() => setRightSidebarCollapsed(true)}
-                        title="Replier le panneau"
-                      >
-                        <PanelRightClose className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="min-h-0 flex-1 overflow-hidden p-4">
-                    <Tabs className="flex h-full min-h-0 flex-col" value={inspectorTab} onValueChange={(value) => setInspectorTab(value as "properties" | "layers")}>
-                      <TabsList className={`${SIDE_PANEL_TAB_LIST_CLASS} grid-cols-2`}>
-                        <TabsTrigger value="properties" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Proprietes</TabsTrigger>
-                        <TabsTrigger value="layers" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Calques</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="properties" className="mt-4 min-h-0 flex-1">
-                    <ScrollArea className="h-full pr-3">
-                    <div className="space-y-4">
-                    {selectedReservation ? (
-                      <PanelSection
-                        open={panelSections.inspectorReservation}
-                        onOpenChange={(open) => setPanelSectionOpen("inspectorReservation", open)}
-                        title="Reservation active"
-                        description="Contexte client et affectation en cours."
-                        badge={<Badge variant="outline" className="rounded-full bg-white">{selectedReservation.party_size} pers.</Badge>}
-                        className={cn(
-                          isZeroAttenteReservation(selectedReservation) ? "border-teal-200 bg-teal-50/60" : "bg-white/90",
-                        )}
-                      >
-                        <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "flex h-11 w-11 items-center justify-center rounded-full",
-                            isZeroAttenteReservation(selectedReservation)
-                              ? "bg-teal-100 text-teal-700"
-                              : "bg-primary/10 text-primary",
-                          )}>
-                            <UserRound className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <p className="font-semibold">{getReservationCustomerLabel(selectedReservation)}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDashboardDateHeading(selectedReservation.date)} - {getSafeTime(selectedReservation.time)}
+                <div className={cn("hidden min-h-0 xl:flex xl:flex-col", rightSidebarCollapsed && "xl:w-[92px]")}>
+                  {rightSidebarCollapsed ? (
+                    <div className="space-y-3">
+                      <div className="rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-3 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
+                        <div className="flex flex-col items-center gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-12 w-12 rounded-2xl border-slate-200 bg-white shadow-sm"
+                            onClick={() => setRightSidebarCollapsed(false)}
+                            title="Ouvrir l'inspecteur"
+                          >
+                            <PanelRightOpen className="h-4 w-4 text-slate-700" />
+                          </Button>
+                          <div className="h-px w-full bg-slate-200" />
+                          <div className="rounded-[20px] border border-slate-200 bg-white px-3 py-4 text-center">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Selection</p>
+                            <p className="mt-2 text-sm font-semibold text-slate-900">
+                              {selectedTable ? selectedTable.table_number : "Aucune"}
+                            </p>
+                            <p className="mt-1 text-[11px] text-slate-500">
+                              {selectedTable ? getFloorPlanItemTypeLabel(selectedTable.layout.kind, selectedTable.layout.shape) : "Touchez un element"}
                             </p>
                           </div>
                         </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <Badge variant="outline">{selectedReservation.party_size} pers.</Badge>
-                          <Badge variant="outline">{getServicePeriodLabel(selectedReservationService)}</Badge>
-                          {isZeroAttenteReservation(selectedReservation) ? (
-                            <Badge className="border border-teal-200 bg-teal-100 text-teal-800">
-                              Zero Attente
-                            </Badge>
-                          ) : null}
-                          <Badge className={cn("border", getReservationStatusTone(selectedReservation.status))}>
-                            {selectedReservation.status || "pending"}
-                          </Badge>
-                        </div>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {selectedReservationAssignedTable ? (
-                            <Badge variant="outline" className="bg-background">
-                              Actuellement sur {selectedReservationAssignedTable.table_number}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-background text-amber-700 border-amber-200">
-                              Pas encore placee
-                            </Badge>
-                          )}
-                          {selectedTableIsReservable && selectedTable ? (
-                            <Button
-                              size="sm"
-                              onClick={() => assignReservationToTable(selectedReservation.id, selectedTable.id)}
-                            >
-                              Affecter a {selectedTable.table_number}
-                            </Button>
-                          ) : null}
-                          {selectedReservationAssignedTableId ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setDraftAssignments((current) => ({ ...current, [selectedReservation.id]: null }))}
-                            >
-                              Retirer de la table
-                            </Button>
-                          ) : null}
-                        </div>
-                        <div className="mt-4 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
-                          <div className="min-w-0 rounded-2xl border bg-background/80 p-3">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Client</p>
-                            <div className="mt-2 space-y-2 text-sm">
-                              <div className="flex items-start justify-between gap-3">
-                                <span className="text-muted-foreground">Nom</span>
-                                <span className="min-w-0 break-words text-right font-medium">{getReservationCustomerLabel(selectedReservation)}</span>
-                              </div>
-                              <div className="flex items-start justify-between gap-3">
-                                <span className="text-muted-foreground">Telephone</span>
-                                <span className="min-w-0 break-words text-right font-medium">{selectedReservation.customer?.phone || "Non renseigne"}</span>
-                              </div>
-                              <div className="flex items-start justify-between gap-3">
-                                <span className="text-muted-foreground">Convives</span>
-                                <span className="text-right font-medium">{selectedReservation.party_size}</span>
-                              </div>
-                            </div>
-                            {selectedReservationSpecialRequest ? (
-                              <div className="mt-3 rounded-xl border border-dashed bg-muted/30 p-2.5">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</p>
-                                <p className="mt-1 break-words text-sm text-foreground">{selectedReservationSpecialRequest}</p>
-                              </div>
-                            ) : null}
-                          </div>
-                          <div className="min-w-0 rounded-2xl border bg-background/80 p-3">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Paiement</p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  selectedReservationPaymentDetails?.isPaid
-                                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                    : "border-amber-200 bg-amber-50 text-amber-700",
-                                )}
-                              >
-                                {selectedReservationPaymentDetails?.isPaid ? "Paye" : "A regler"}
-                              </Badge>
-                              {selectedReservationPaymentDetails?.paymentMethod ? (
-                                <Badge variant="outline">{selectedReservationPaymentDetails.paymentMethod}</Badge>
-                              ) : null}
-                            </div>
-                            <div className="mt-2 space-y-2 text-sm">
-                              <div className="flex items-start justify-between gap-3">
-                                <span className="text-muted-foreground">Montant</span>
-                                <span className="min-w-0 break-words text-right font-medium">
-                                  {formatReservationCurrency(selectedReservationPaymentDetails?.totalAmount ?? null) || "Non renseigne"}
-                                </span>
-                              </div>
-                              <div className="flex items-start justify-between gap-3">
-                                <span className="text-muted-foreground">Instrument</span>
-                                <span className="min-w-0 break-words text-right font-medium">
-                                  {selectedReservationPaymentDetails?.cardLabel || "Non renseigne"}
-                                </span>
-                              </div>
-                              <div className="flex items-start justify-between gap-3">
-                                <span className="text-muted-foreground">Reference</span>
-                                <span className="min-w-0 break-words text-right font-medium">
-                                  {selectedReservationPaymentDetails?.orderReference
-                                    || selectedReservationPaymentDetails?.checkoutSessionId
-                                    || "Non renseignee"}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {selectedReservationPreorderItems.length > 0 ? (
-                          <div className="mt-4 rounded-2xl border bg-background/80 p-3">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Produits choisis</p>
-                              <Badge variant="outline">
-                                {selectedReservationPreorderItems.reduce((sum, item) => sum + item.quantity, 0)} article(s)
-                              </Badge>
-                            </div>
-                            <div className="mt-3 space-y-2">
-                              {selectedReservationPreorderItems.map((item, index) => (
-                                <div key={`${item.menuItemId || item.name}-${index}`} className="rounded-xl border bg-muted/20 px-3 py-2">
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                      <p className="font-medium">{item.name}</p>
-                                      <p className="text-sm text-muted-foreground">
-                                        {item.quantity} x {formatReservationCurrency(item.unitPrice) || "Prix indisponible"}
-                                      </p>
-                                    </div>
-                                    <span className="shrink-0 text-sm font-semibold">
-                                      {formatReservationCurrency(item.totalPrice) || "Prix indisponible"}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : null}
-                        </div>
-                      </PanelSection>
-                    ) : (
-                      <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                        Selectionnez une reservation dans la colonne de gauche pour preparer son placement.
                       </div>
-                    )}
-
-                    {selectedTable ? (
-                      <>
-                      <PanelSection
-                        open={panelSections.inspectorElement}
-                        onOpenChange={(open) => setPanelSectionOpen("inspectorElement", open)}
-                        title="Element selectionne"
-                        description="Reglez le mobilier ou la table selectionnee."
-                        badge={<Badge variant="outline" className="rounded-full bg-white">{getFloorPlanItemTypeLabel(selectedTable.layout.kind, selectedTable.layout.shape)}</Badge>}
-                      >
-                      <div className="space-y-4">
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-xs uppercase tracking-wide text-muted-foreground">{selectedTable.sector}</p>
-                          </div>
-                        </div>
-
-                        {!isTemplateMode ? (
-                          <div className="rounded-2xl border border-dashed bg-muted/20 p-3 text-sm text-muted-foreground">
-                            Le plan du jour ne modifie que la position et la taille des elements. Pour changer durablement la structure de la salle, passez en mode template.
-                          </div>
-                        ) : null}
-
-                        <div className="grid gap-3">
-                          <div className="space-y-2">
-                            <Label>Nom de l'element</Label>
-                            <Input
-                              value={selectedTable.table_number}
-                              disabled={!isTemplateMode}
-                              onChange={(event) => updateDraftTable(selectedTable.id, (table) => ({
-                                ...table,
-                                table_number: event.target.value,
-                              }))}
-                            />
-                          </div>
-
-                          {selectedTableIsReservable ? (
-                            <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))]">
-                              <div className="space-y-2">
-                                <Label>Couverts configures</Label>
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  value={selectedTable.capacity}
-                                  disabled
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                  La capacite suit le plan d'assises defini dans le configurateur.
-                                </p>
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label>Forme</Label>
-                                <Select
-                                  value={selectedTable.layout.shape}
-                                  disabled={!isTemplateMode}
-                                  onValueChange={(value) => {
-                                    const nextShape = value as FloorPlanTableShape;
-                                    updateDraftTable(selectedTable.id, (table) => ({
-                                      ...table,
-                                      layout: ensureFloorPlanLayoutFitsCapacity(
-                                        table.layout,
-                                        table.capacity,
-                                        nextShape,
-                                        table.layout.kind,
-                                      ),
-                                    }));
-                                  }}
-                                >
-                                  <SelectTrigger className="min-w-0">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="rect">Rectangle</SelectItem>
-                                    <SelectItem value="round">Ronde</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="rounded-2xl border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-                              Ce mobilier structure visuellement la salle mais ne peut pas recevoir de reservation.
-                            </div>
-                          )}
-
-                          {selectedTableIsReservable && selectedTableDimensions ? (
-                            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))]">
-                              <div className="min-w-0">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Plateau</p>
-                                <p className="mt-1 break-words text-sm font-semibold text-slate-900">
-                                  {selectedTableDimensions.tableWidth} x {selectedTableDimensions.tableHeight} cm
-                                </p>
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Emprise</p>
-                                <p className="mt-1 break-words text-sm font-semibold text-slate-900">
-                                  {selectedTableDimensions.footprintWidth} x {selectedTableDimensions.footprintHeight} cm
-                                </p>
-                              </div>
-                            </div>
-                          ) : null}
-
-                          <div className="space-y-2">
-                            <Label>Secteur</Label>
-                            <Select
-                              value={selectedTable.sector}
-                              disabled={!isTemplateMode}
-                              onValueChange={(value) => updateDraftTable(selectedTable.id, (table) => ({
-                                ...table,
-                                sector: value,
-                              }))}
-                            >
-                              <SelectTrigger className="min-w-0">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sectorOptions.map((sector) => (
-                                  <SelectItem key={sector} value={sector}>
-                                    {sector}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Rotation</Label>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Input
-                                type="number"
-                                min={0}
-                                max={359}
-                                step={15}
-                                value={Math.round(selectedTable.layout.rotation)}
-                                onChange={(event) => {
-                                  const deg = Math.round(Number(event.target.value) || 0) % 360;
-                                  updateDraftTable(selectedTable.id, (table) => ({
-                                    ...table,
-                                    layout: { ...table.layout, rotation: deg < 0 ? deg + 360 : deg },
-                                  }));
-                                }}
-                                className="w-[88px] min-w-0"
-                              />
-                              <span className="text-xs text-muted-foreground">deg</span>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 shrink-0"
-                                onClick={() => {
-                                  updateDraftTable(selectedTable.id, (table) => ({
-                                    ...table,
-                                    layout: { ...table.layout, rotation: (table.layout.rotation + 45) % 360 },
-                                  }));
-                                }}
-                              >
-                                <RotateCw className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border px-4 py-3">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium">Element actif</p>
-                              <p className="text-sm text-muted-foreground">Inactive = masque du plan et des placements.</p>
-                            </div>
-                            <Switch
-                              checked={selectedTable.is_active}
-                              disabled={!isTemplateMode}
-                              onCheckedChange={(checked) => updateDraftTable(selectedTable.id, (table) => ({
-                                ...table,
-                                is_active: checked,
-                              }))}
-                            />
-                          </div>
-
-                          {selectedTableIsReservable && isTemplateMode ? (
-                            <Button
-                              variant="outline"
-                              className="justify-start"
-                              onClick={() => {
-                                setEditingSeatingTableId(selectedTable.id);
-                                setTableConfigDialogOpen(true);
-                              }}
-                            >
-                              <Armchair className="mr-2 h-4 w-4" />
-                              Configurer dimensions et assises
-                            </Button>
-                          ) : null}
-
-                          {isTemplateMode ? (
-                            <Button
-                              variant="outline"
-                              className="justify-start"
-                              onClick={() => duplicateTable(selectedTable.id)}
-                            >
-                              <Copy className="mr-2 h-4 w-4" />
-                              Dupliquer
-                            </Button>
-                          ) : null}
-
-                          <Button
-                            variant="outline"
-                            className="justify-start text-destructive"
-                            onClick={() => removeDraftTable(selectedTable.id)}
-                            disabled={!isTemplateMode}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer l'element
-                          </Button>
-                        </div>
-                      </div>
-                      </PanelSection>
-                        {selectedTableIsReservable ? (
-                          <PanelSection
-                            open={panelSections.inspectorPlanning}
-                            onOpenChange={(open) => setPanelSectionOpen("inspectorPlanning", open)}
-                            title="Planning sur cette table"
-                            badge={<Badge variant="outline" className="rounded-full bg-white">{selectedTableAssignments.length}</Badge>}
-                          >
-                            {selectedTableAssignments.length > 0 ? (
-                              <div className="space-y-2">
-                                {selectedTableAssignments.map((reservation) => (
-                                  <button
-                                    key={reservation.id}
-                                    type="button"
-                                    className={cn(
-                                      "w-full rounded-2xl border px-3 py-2 text-left transition-colors",
-                                      isZeroAttenteReservation(reservation)
-                                        ? "border-teal-200 bg-teal-50/70 hover:bg-teal-100/70"
-                                        : "bg-muted/20 hover:bg-muted/35",
-                                    )}
-                                    onClick={() => {
-                                      setSelectedReservationId(reservation.id);
-                                      setSelectedTableId(selectedTable.id);
-                                    }}
-                                  >
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="font-medium">{getReservationCustomerLabel(reservation)}</span>
-                                      <span className="text-sm text-muted-foreground">{getSafeTime(reservation.time)}</span>
-                                    </div>
-                                    <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                      <span>{getShortDateLabel(reservation.date)}</span>
-                                      <span>{reservation.party_size} pers.</span>
-                                      {isZeroAttenteReservation(reservation) ? <span>Zero Attente</span> : null}
-                                      <span>{reservation.status || "pending"}</span>
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-sm text-muted-foreground">Aucune reservation visible n'est actuellement affectee a cette table.</p>
-                            )}
-                          </PanelSection>
-                        ) : null}
-                      </>
-                    ) : (
-                      <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                        Selectionnez un element dans le plan pour modifier ses proprietes.
-                      </div>
-                    )}
                     </div>
-                    </ScrollArea>
-                      </TabsContent>
-
-                      <TabsContent value="layers" className="mt-4 min-h-0 flex-1">
-                        <ScrollArea className="h-full pr-3">
-                        <div className="space-y-4">
-                        <PanelSection
-                          open={panelSections.layersElements}
-                          onOpenChange={(open) => setPanelSectionOpen("layersElements", open)}
-                          title="Elements visibles"
-                          description="Liste compacte des elements actifs du secteur."
+                  ) : (
+                    <div className="flex min-h-0 flex-1 flex-col gap-3">
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-11 rounded-2xl border-slate-200 bg-white px-3 shadow-sm"
+                          onClick={() => setRightSidebarCollapsed(true)}
                         >
-                          <div className="space-y-2">
-                            {layerItems.length > 0 ? (
-                              layerItems.map((item) => (
-                                <button
-                                  key={item.id}
-                                  type="button"
-                                  className={cn(
-                                    "flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left transition-colors",
-                                    selectedTableId === item.id
-                                      ? "border-primary bg-primary/5"
-                                      : "border-slate-200 bg-slate-50 hover:bg-slate-100",
-                                  )}
-                                  onClick={() => setSelectedTableId(item.id)}
-                                >
-                                  <div className="min-w-0">
-                                    <p className="truncate font-medium text-slate-900">{item.label}</p>
-                                    <p className="text-xs text-slate-500">{item.kindLabel} • {item.sector}</p>
-                                  </div>
-                                  <Badge variant="outline" className="shrink-0 rounded-full bg-white">
-                                    {item.capacity > 0 ? `${item.capacity} pl.` : "decor"}
-                                  </Badge>
-                                </button>
-                              ))
-                            ) : (
-                              <p className="text-sm text-slate-500">Aucun element actif dans ce secteur.</p>
-                            )}
-                          </div>
-                        </PanelSection>
-
-                        <PanelSection
-                          open={panelSections.layersStats}
-                          onOpenChange={(open) => setPanelSectionOpen("layersStats", open)}
-                          title="Statistiques"
-                          description="Resume rapide de l'etat du secteur."
-                        >
-                          <div className="grid gap-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-slate-500">Capacite totale</span>
-                              <span className="text-lg font-semibold text-slate-900">{visibleCapacity}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-slate-500">Reservations placees</span>
-                              <span className="text-lg font-semibold text-slate-900">{placedReservationsCount}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-slate-500">Tables disponibles</span>
-                              <span className="text-lg font-semibold text-slate-900">{availableTables.length}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-slate-500">Sans table</span>
-                              <span className="text-lg font-semibold text-slate-900">{unassignedVisibleReservations.length}</span>
-                            </div>
-                          </div>
-                        </PanelSection>
-                        </div>
-                        </ScrollArea>
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
+                          <PanelRightClose className="h-4 w-4 text-slate-600" />
+                          <span className="ml-2">Replier l'inspecteur</span>
+                        </Button>
+                      </div>
+                      <StudioInspector
+                        selectedTable={selectedTable}
+                        selectedTableIsReservable={selectedTableIsReservable}
+                        selectedTableDimensions={selectedTableDimensions}
+                        sectorOptions={sectorOptions}
+                        onRename={(value) => {
+                          if (!selectedTable) return;
+                          updateDraftTable(selectedTable.id, (table) => ({
+                            ...table,
+                            table_number: value,
+                          }));
+                        }}
+                        onSectorChange={(value) => {
+                          if (!selectedTable) return;
+                          updateDraftTable(selectedTable.id, (table) => ({
+                            ...table,
+                            sector: value,
+                          }));
+                        }}
+                        onRotationChange={(value) => {
+                          if (!selectedTable) return;
+                          updateDraftTable(selectedTable.id, (table) => ({
+                            ...table,
+                            layout: { ...table.layout, rotation: value },
+                          }));
+                        }}
+                        onRotateIncrement={() => {
+                          if (!selectedTable) return;
+                          updateDraftTable(selectedTable.id, (table) => ({
+                            ...table,
+                            layout: {
+                              ...table.layout,
+                              rotation: (table.layout.rotation + 45) % 360,
+                            },
+                          }));
+                        }}
+                        onToggleActive={(checked) => {
+                          if (!selectedTable) return;
+                          updateDraftTable(selectedTable.id, (table) => ({
+                            ...table,
+                            is_active: checked,
+                          }));
+                        }}
+                        onConfigureTable={() => {
+                          if (!selectedTable) return;
+                          setEditingSeatingTableId(selectedTable.id);
+                          setTableConfigDialogOpen(true);
+                        }}
+                        onDuplicate={() => {
+                          if (!selectedTable) return;
+                          duplicateTable(selectedTable.id);
+                        }}
+                        onRemove={() => {
+                          if (!selectedTable) return;
+                          removeDraftTable(selectedTable.id);
+                        }}
+                        onUpdateFurnitureWidth={(value) => {
+                          if (!selectedTable) return;
+                          updateDraftTableFootprint(selectedTable.id, value, selectedTable.layout.h);
+                        }}
+                        onUpdateFurnitureHeight={(value) => {
+                          if (!selectedTable) return;
+                          updateDraftTableFootprint(selectedTable.id, selectedTable.layout.w, value);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
+                <ServiceBoard
+                  selectedSector={selectedSector}
+                  subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} reservation(s) visibles`}
+                  activeReservationLabel={activeServiceReservation ? getReservationCustomerLabel(activeServiceReservation) : null}
+                  canvasWidth={canvasWidth}
+                  canvasZoom={canvasZoom}
+                  canvasZoomLabel={canvasZoomLabel}
+                  canvasRef={canvasRef}
+                  canvasViewportRef={canvasViewportRef}
+                  visibleTables={visibleTables}
+                  visibleAssignmentsByTable={visibleAssignmentsByTable}
+                  selectedTableId={selectedTableId}
+                  selectedReservationId={selectedReservationId}
+                  draggedReservationId={draggedReservationId}
+                  dragOverTableId={dragOverTableId}
+                  visibleTablesCount={visibleTables.length}
+                  availableTablesCount={availableTables.length}
+                  unassignedReservationsCount={unassignedVisibleReservations.length}
+                  onTablePress={handleServiceTablePress}
+                  onPrimaryReservationPress={(reservationId, tableId) => {
+                    setSelectedReservationId(reservationId);
+                    setSelectedTableId(tableId);
+                  }}
+                  onCanvasWheel={handleCanvasWheel}
+                  onCanvasDragOver={handleCanvasDragOver}
+                  onCanvasDrop={handleCanvasDrop}
+                  onCanvasDragLeave={handleCanvasDragLeave}
+                  onCanvasBackgroundPress={clearServiceSelection}
+                  onStartDraggingTable={startDraggingTable}
+                  onStartResizingTable={(event, tableId) => startResizingTable(event, tableId, PRIMARY_RESIZE_HANDLE.key)}
+                  onStartRotatingTable={startRotatingTable}
+                  onUpdateCanvasZoom={updateCanvasZoom}
+                  getReservationDropState={getReservationDropState}
+                  getRenderedFrame={(table) => getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT)}
+                  getTableContentPadding={getTableContentPadding}
+                />
+
+                <ReservationQueue
+                  reservationQuery={reservationQuery}
+                  reservationsLoading={reservationsLoading}
+                  selectedReservationId={selectedReservationId}
+                  selectedTable={selectedTableIsReservable ? selectedTable : null}
+                  draggedReservationId={draggedReservationId}
+                  unassignedReservations={unassignedVisibleReservations}
+                  assignedReservations={assignedVisibleReservations}
+                  draftAssignments={draftAssignments}
+                  tableMap={tableMap}
+                  onReservationQueryChange={setReservationQuery}
+                  onReservationPress={handleServiceReservationPress}
+                  onReservationDragStart={handleReservationDragStart}
+                  onReservationDragEnd={handleReservationDragEnd}
+                  onReservationHandlePointerDown={handleReservationHandlePointerDown}
+                  onReleaseReservation={clearReservationAssignment}
+                  getReservationDropState={getReservationDropState}
+                />
+              </div>
+            )}
           </div>
         ) : null}
       </div>
-      <Sheet open={leftSheetOpen} onOpenChange={setLeftSheetOpen}>
+      {pointerDraggedReservation && reservationPointerPosition ? (
+        <div
+          className="pointer-events-none fixed z-[120] hidden max-w-[240px] -translate-y-1/2 rounded-full border border-amber-200 bg-white/96 px-4 py-2 shadow-[0_18px_55px_-28px_rgba(15,23,42,0.45)] sm:flex"
+          style={{
+            left: reservationPointerPosition.clientX + 18,
+            top: reservationPointerPosition.clientY - 18,
+          }}
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-700">
+              <Grip className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-950">{getReservationCustomerLabel(pointerDraggedReservation)}</p>
+              <p className="text-xs text-slate-500">Déposer sur une table</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      <TableContextDrawer
+        open={!isTemplateMode && !draggedReservationId && !reservationPointerDrag && (!!selectedReservation || !!selectedTable)}
+        selectedReservation={selectedReservation}
+        selectedTable={selectedTable}
+        selectedTableIsReservable={selectedTableIsReservable}
+        selectedReservationAssignedTable={selectedReservationAssignedTable}
+        selectedReservationAssignedTableId={selectedReservationAssignedTableId}
+        selectedTableAssignments={selectedTableAssignments}
+        selectedReservationPaymentDetails={selectedReservationPaymentDetails}
+        selectedReservationPreorderItems={selectedReservationPreorderItems}
+        selectedReservationSpecialRequest={selectedReservationSpecialRequest}
+        selectedPairDropState={selectedReservationAssignedTableDropState}
+        compatibleTables={compatibleTablesForSelectedReservation}
+        compatibleReservations={compatibleReservationsForSelectedTable}
+        onOpenChange={(open) => {
+          if (!open) {
+            clearServiceSelection();
+          }
+        }}
+        onClearSelection={clearServiceSelection}
+        onAssignReservationToTable={assignReservationToTable}
+        onReleaseReservation={clearReservationAssignment}
+        onSelectReservation={(reservationId) => {
+          setSelectedReservationId(reservationId);
+          const assignedTableId = draftAssignments[reservationId];
+          if (assignedTableId) {
+            setSelectedTableId(assignedTableId);
+          }
+        }}
+        onSelectTable={setSelectedTableId}
+      />
+      <Sheet open={leftSheetOpen && isTemplateMode} onOpenChange={setLeftSheetOpen}>
         <SheetContent side="left" className="flex w-[92vw] flex-col gap-0 overflow-hidden border-r border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(244,246,251,0.98))] p-0 sm:max-w-[430px]">
           <SheetHeader className="border-b border-slate-200 px-6 py-5">
-            <SheetTitle>Panneaux de travail</SheetTitle>
+            <SheetTitle>Palette studio</SheetTitle>
             <SheetDescription>
-              Accedez a la bibliotheque et aux reservations sans quitter le plan.
+              Ajoutez tables et mobilier sans quitter le canevas. Les r?glages d?taill?s restent dans l'inspecteur.
             </SheetDescription>
           </SheetHeader>
           <div className="flex min-h-0 flex-1 flex-col p-4">
-            <div className="mb-4 grid shrink-0 grid-cols-2 gap-2 rounded-[24px] border border-slate-200 bg-white/90 p-2 shadow-sm">
-              <Button
-                type="button"
-                variant={leftPanelView === "library" ? "default" : "ghost"}
-                className="h-11 rounded-2xl"
-                onClick={() => setLeftPanelView("library")}
-              >
-                <LayoutPanelTop className="mr-2 h-4 w-4" />
-                Bibliotheque
-              </Button>
-              <Button
-                type="button"
-                variant={leftPanelView === "reservations" ? "default" : "ghost"}
-                className="h-11 rounded-2xl"
-                onClick={() => setLeftPanelView("reservations")}
-              >
-                <CalendarClock className="mr-2 h-4 w-4" />
-                Reservations
-              </Button>
-            </div>
-
-            {leftPanelView === "library" ? (
-              <ScrollArea className="min-h-0 flex-1 pr-2">
-                <div className="space-y-4">
-                  {!isTemplateMode ? (
-                    <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-900">
-                      Passez en mode structure pour ajouter ou supprimer des elements.
-                    </div>
-                  ) : null}
-
-                  <Tabs value={libraryTab} onValueChange={(value) => setLibraryTab(value as "elements" | "structure" | "decoration")}>
-                    <TabsList className={`${SIDE_PANEL_TAB_LIST_CLASS} grid-cols-3`}>
-                      <TabsTrigger value="elements" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Elements</TabsTrigger>
-                      <TabsTrigger value="structure" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Structure</TabsTrigger>
-                      <TabsTrigger value="decoration" className={SIDE_PANEL_TAB_TRIGGER_CLASS}>Decoration</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="elements" className="mt-4 space-y-3">
-                      <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
-                        {libraryPresets.elements.map((preset) => (
-                          <PalettePresetButton
-                            key={preset.id}
-                            preset={preset}
-                            onClick={() => {
-                              addTableFromPreset(preset.id);
-                              setLeftSheetOpen(false);
-                            }}
-                            disabled={tablesLoading || !isTemplateMode}
-                          />
-                        ))}
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="structure" className="mt-4 space-y-3">
-                      <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
-                        {libraryPresets.structure.map((preset) => (
-                          <PalettePresetButton
-                            key={preset.id}
-                            preset={preset}
-                            onClick={() => {
-                              addTableFromPreset(preset.id);
-                              setLeftSheetOpen(false);
-                            }}
-                            disabled={tablesLoading || !isTemplateMode}
-                          />
-                        ))}
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="decoration" className="mt-4 space-y-3">
-                      <div className={SIDE_PANEL_PRESET_GRID_CLASS}>
-                        {libraryPresets.decoration.map((preset) => (
-                          <PalettePresetButton
-                            key={preset.id}
-                            preset={preset}
-                            onClick={() => {
-                              addTableFromPreset(preset.id);
-                              setLeftSheetOpen(false);
-                            }}
-                            disabled={tablesLoading || !isTemplateMode}
-                          />
-                        ))}
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-
-                  <div className="rounded-2xl border border-slate-200 bg-white/90 p-3">
-                    <Label htmlFor="new-sector-sheet" className="text-xs uppercase tracking-[0.18em] text-slate-500">Nouveau secteur</Label>
-                    <div className="mt-2 flex gap-2">
-                      <Input
-                        id="new-sector-sheet"
-                        value={newSectorName}
-                        placeholder="Terrasse, Salon VIP..."
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50"
-                        disabled={!isTemplateMode}
-                        onChange={(event) => setNewSectorName(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            addSector();
-                          }
-                        }}
-                      />
-                      <Button variant="outline" className="h-11 rounded-2xl border-slate-200 bg-white" onClick={addSector} disabled={!isTemplateMode}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Ajouter
-                      </Button>
-                    </div>
-                  </div>
-
-                  {selectedId ? (
-                    <div className="rounded-[24px] border border-slate-200 bg-white/90 p-1">
-                      <FloorPlanAIPanel
-                        restaurantId={selectedId}
-                        currentLayout={draftTables.map((t) => ({
-                          table_number: t.table_number,
-                          capacity: t.capacity,
-                          layout: { x: t.layout.x, y: t.layout.y, w: t.layout.w, h: t.layout.h, shape: t.layout.shape, kind: t.layout.kind },
-                        }))}
-                        canvasWidth={CANVAS_WIDTH}
-                        canvasHeight={CANVAS_HEIGHT}
-                        onApply={(layout) => {
-                          applyAILayout(layout);
-                          setLeftSheetOpen(false);
-                        }}
-                        disabled={!isTemplateMode}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-              </ScrollArea>
-            ) : (
-              <>
-                <div className="relative mb-4">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    value={reservationQuery}
-                    onChange={(event) => setReservationQuery(event.target.value)}
-                    placeholder="Rechercher un nom, numero, service..."
-                    className="h-11 rounded-2xl border-slate-200 bg-white pl-9"
-                  />
-                </div>
-                <ScrollArea className="min-h-0 flex-1 pr-2">
-                  <div className="space-y-3">
-                    {reservationsLoading ? (
-                      <p className="text-sm text-muted-foreground">Chargement des reservations...</p>
-                    ) : null}
-
-                    {filteredReservations.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Aucune reservation pour les filtres selectionnes.</p>
-                    ) : null}
-
-                    {filteredReservations.map((reservation) => {
-                      const assignedTableId = draftAssignments[reservation.id];
-                      const assignedTable = assignedTableId ? tableMap.get(assignedTableId) || null : null;
-                      const isSelected = reservation.id === selectedReservationId;
-                      const reservationService = getReservationService(reservation);
-                      const isZeroAttente = isZeroAttenteReservation(reservation);
-                      const preorderItems = getReservationPreorderItems(reservation);
-
-                      return (
-                        <div
-                          key={reservation.id}
-                          role="button"
-                          tabIndex={0}
-                          draggable
-                          onClick={() => {
-                            setSelectedReservationId(reservation.id);
-                            if (assignedTableId) {
-                              setSelectedTableId(assignedTableId);
-                            }
-                            setLeftSheetOpen(false);
-                          }}
-                          onDragStart={(event) => handleReservationDragStart(event, reservation.id)}
-                          onDragEnd={handleReservationDragEnd}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter" || event.key === " ") {
-                              event.preventDefault();
-                              setSelectedReservationId(reservation.id);
-                              if (assignedTableId) {
-                                setSelectedTableId(assignedTableId);
-                              }
-                              setLeftSheetOpen(false);
-                            }
-                          }}
-                          className={cn(
-                            "w-full cursor-grab rounded-2xl border p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing",
-                            isSelected && isZeroAttente && "border-teal-500 bg-teal-50 shadow-sm ring-2 ring-teal-200",
-                            isSelected && !isZeroAttente && "border-primary bg-primary/5 shadow-sm",
-                            !isSelected && isZeroAttente && "border-teal-200 bg-teal-50/60 hover:bg-teal-50",
-                            !isSelected && !isZeroAttente && "border-border bg-background hover:bg-muted/40",
-                            draggedReservationId === reservation.id && "scale-[0.99] opacity-60",
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-semibold">{getReservationCustomerLabel(reservation)}</span>
-                                {isZeroAttente ? (
-                                  <Badge className="border border-teal-200 bg-teal-100 text-teal-800">
-                                    Zero Attente
-                                  </Badge>
-                                ) : null}
-                                <Badge className={cn("border", getReservationStatusTone(reservation.status))}>
-                                  {reservation.status || "pending"}
-                                </Badge>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                                <span className="inline-flex items-center gap-1">
-                                  <Clock3 className="h-3.5 w-3.5" />
-                                  {getSafeTime(reservation.time)}
-                                </span>
-                                <span>{getShortDateLabel(reservation.date)}</span>
-                                <span>{reservation.party_size} pers.</span>
-                                <span>{getServicePeriodLabel(reservationService)}</span>
-                                {preorderItems.length > 0 ? (
-                                  <span>{preorderItems.length} produit(s)</span>
-                                ) : null}
-                              </div>
-                              {assignedTable ? (
-                                <Badge variant="outline" className="bg-background">
-                                  Affectee a {assignedTable.table_number}
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="border-amber-200 bg-background text-amber-700">
-                                  Sans table
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-              </>
-            )}
+            <StudioPalette
+              selectedId={selectedId}
+              selectedSector={selectedSector}
+              sectorOptions={sectorOptions}
+              libraryTab={libraryTab}
+              libraryQuery={libraryQuery}
+              draftTables={draftTables}
+              tablesLoading={tablesLoading}
+              newSectorName={newSectorName}
+              onLibraryTabChange={setLibraryTab}
+              onLibraryQueryChange={setLibraryQuery}
+              onPresetClick={(presetId) => {
+                addTableFromPreset(presetId);
+                setLeftSheetOpen(false);
+              }}
+              onSectorSelect={setSelectedSector}
+              onNewSectorNameChange={setNewSectorName}
+              onAddSector={addSector}
+              onApplyAILayout={(layout) => {
+                applyAILayout(layout);
+                setLeftSheetOpen(false);
+              }}
+              presetsByTab={filteredLibraryPresets}
+            />
           </div>
         </SheetContent>
       </Sheet>

@@ -76,6 +76,7 @@ export default function DashboardInvoiceSettings() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const selectedRestaurantRecord = restaurants.find((restaurant) => restaurant.id === selectedRestaurant) || null;
 
   useEffect(() => {
     if (restaurantIds.length && !selectedRestaurant) {
@@ -445,6 +446,13 @@ export default function DashboardInvoiceSettings() {
                   <div className="border-t pt-4">
                     <p className="text-xl font-bold">FACTURE</p>
                     <p className="text-xs text-gray-500">N deg FAC-202603-0001 - Date : 08.03.2026</p>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p className="text-[11px] uppercase tracking-wide text-gray-500">Restaurant concerne</p>
+                    <p className="mt-1 font-semibold text-gray-900">
+                      {selectedRestaurantRecord?.name || "Nom du restaurant"}
+                    </p>
                   </div>
 
                   <table className="w-full border-collapse text-left">

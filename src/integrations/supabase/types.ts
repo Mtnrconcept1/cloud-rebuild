@@ -4132,6 +4132,7 @@ export type Database = {
           payment_method: string | null
           preorder_items: Json
           reservation_time: string | null
+          reservation_fee_invoice_id: string | null
           restaurant_id: string
           restaurant_invoice_id: string | null
           special_requests: string | null
@@ -4161,6 +4162,7 @@ export type Database = {
           payment_method?: string | null
           preorder_items?: Json
           reservation_time?: string | null
+          reservation_fee_invoice_id?: string | null
           restaurant_id: string
           restaurant_invoice_id?: string | null
           special_requests?: string | null
@@ -4190,6 +4192,7 @@ export type Database = {
           payment_method?: string | null
           preorder_items?: Json
           reservation_time?: string | null
+          reservation_fee_invoice_id?: string | null
           restaurant_id?: string
           restaurant_invoice_id?: string | null
           special_requests?: string | null
@@ -4219,6 +4222,13 @@ export type Database = {
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_reservation_fee_invoice_id_fkey"
+            columns: ["reservation_fee_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_invoices"
             referencedColumns: ["id"]
           },
           {
@@ -4606,6 +4616,87 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "restaurant_invoices_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_invoice_line_items: {
+        Row: {
+          amount_ht: number
+          amount_ttc: number
+          amount_tva: number
+          base_amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          item_kind: string
+          metadata: Json
+          occurred_at: string
+          quantity: number
+          rate_label: string | null
+          rate_value: number | null
+          restaurant_id: string
+          source_id: string | null
+          source_label: string | null
+          source_table: string | null
+          unit_amount: number
+          updated_at: string
+        }
+        Insert: {
+          amount_ht?: number
+          amount_ttc?: number
+          amount_tva?: number
+          base_amount?: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          item_kind: string
+          metadata?: Json
+          occurred_at: string
+          quantity?: number
+          rate_label?: string | null
+          rate_value?: number | null
+          restaurant_id: string
+          source_id?: string | null
+          source_label?: string | null
+          source_table?: string | null
+          unit_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          amount_ht?: number
+          amount_ttc?: number
+          amount_tva?: number
+          base_amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          item_kind?: string
+          metadata?: Json
+          occurred_at?: string
+          quantity?: number
+          rate_label?: string | null
+          rate_value?: number | null
+          restaurant_id?: string
+          source_id?: string | null
+          source_label?: string | null
+          source_table?: string | null
+          unit_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_invoice_line_items_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
@@ -6350,6 +6441,14 @@ export type Database = {
         Args: { p_month?: string }
         Returns: number
       }
+      generate_tok_payable_invoice: {
+        Args: { p_month?: string; p_restaurant_id: string }
+        Returns: string
+      }
+      generate_tok_payable_invoices_all: {
+        Args: { p_month?: string }
+        Returns: number
+      }
       get_campaign_stats: {
         Args: { campaign_ids?: string[] }
         Returns: {
@@ -6415,6 +6514,26 @@ export type Database = {
           reservation_id: string
           reservation_time: string
           status: string
+        }[]
+      }
+      get_payable_invoice_lines: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          amount_ht: number
+          amount_ttc: number
+          amount_tva: number
+          base_amount: number
+          item_kind: string
+          line_id: string
+          metadata: Json
+          occurred_at: string
+          quantity: number
+          rate_label: string
+          rate_value: number | null
+          source_id: string | null
+          source_label: string | null
+          source_table: string | null
+          unit_amount: number
         }[]
       }
       get_restaurant_comparison: {

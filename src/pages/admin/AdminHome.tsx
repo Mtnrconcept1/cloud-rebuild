@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
+  ClipboardList,
   Crown,
   DollarSign,
   Layers,
@@ -43,6 +44,13 @@ const ADMIN_TOOLS = [
     href: "/admin/compta",
     feature: "admin-compta",
     color: "text-emerald-500",
+  },
+  {
+    title: "Commandes et reservations",
+    description: "Retrouver une commande ou une reservation avec le detail complet.",
+    icon: ClipboardList,
+    href: "/admin/commandes-reservations",
+    color: "text-orange-500",
   },
   {
     title: "Utilisateurs",
@@ -128,7 +136,7 @@ function statusColor(status: string) {
 export default function AdminHome() {
   const navigate = useNavigate();
   const activeFeatures = useActiveFeatures();
-  const visibleTools = ADMIN_TOOLS.filter((tool) => activeFeatures.has(tool.feature));
+  const visibleTools = ADMIN_TOOLS.filter((tool) => !tool.feature || activeFeatures.has(tool.feature));
 
   const { data: stats } = useQuery({
     queryKey: ["admin-stats"],

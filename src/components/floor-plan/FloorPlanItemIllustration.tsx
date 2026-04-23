@@ -372,7 +372,7 @@ export function FloorPlanItemIllustration({
   return (
     <svg
       viewBox="0 0 200 140"
-      className={cn("h-full w-full", className)}
+      className={cn("size-full", className)}
       fill="none"
       role={decorative ? "presentation" : "img"}
       aria-hidden={decorative}

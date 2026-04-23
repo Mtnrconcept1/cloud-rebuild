@@ -100,6 +100,7 @@ const AdminLaunchPacks = lazy(() => import("./pages/admin/AdminLaunchPacks"));
 const AdminCompta = lazy(() => import("./pages/admin/AdminCompta"));
 const AdminComptaInflow = lazy(() => import("./pages/admin/AdminComptaInflow"));
 const AdminComptaOutflow = lazy(() => import("./pages/admin/AdminComptaOutflow"));
+const AdminOrdersReservations = lazy(() => import("./pages/admin/AdminOrdersReservations"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -282,6 +283,7 @@ function AppShell() {
           <Route path="/admin/compta" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta/entrees" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaInflow /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta/sorties" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/commandes-reservations" element={<ProtectedRoute requiredRole="admin"><AdminOrdersReservations /></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />

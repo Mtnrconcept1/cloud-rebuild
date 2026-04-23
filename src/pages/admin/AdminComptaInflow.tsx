@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownRight, Coins, FileDown, RefreshCcw } from "lucide-react";
 
-import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
+import { TokPayableInvoiceDialog } from "@/components/invoices/TokPayableInvoiceDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
+import type { PayableInvoiceRow } from "@/lib/payableInvoice";
 import {
   formatAmount,
   formatDate,
@@ -27,12 +29,59 @@ function getErrorMessage(error: unknown) {
   return error ? String(error) : "";
 }
 
+function InvoiceTableRow({
+  invoice,
+  onMarkPaid,
+}: {
+  invoice: PayableInvoiceRow;
+  onMarkPaid: (invoice: PayableInvoiceRow) => Promise<void>;
+}) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
+
+  return (
+    <>
+      <TableRow key={invoice.id}>
+        <TableCell>
+          <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
+          <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
+          <div className="text-xs text-muted-foreground">
+            Facture adressee a : {invoice.restaurants?.name || "-"}
+          </div>
+        </TableCell>
+        <TableCell className="text-sm">{invoice.restaurants?.name || "-"}</TableCell>
+        <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
+        <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
+        <TableCell>
+          <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
+        </TableCell>
+        <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
+        <TableCell className="text-right">
+          <div className="flex flex-col items-end gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
+              Voir la facture
+            </Button>
+            {isPaid ? (
+              <span className="text-xs text-muted-foreground">Reglee</span>
+            ) : (
+              <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
+                Marquer payee
+              </Button>
+            )}
+          </div>
+        </TableCell>
+      </TableRow>
+      <TokPayableInvoiceDialog invoice={previewOpen ? invoice : null} open={previewOpen} onOpenChange={setPreviewOpen} />
+    </>
+  );
+}
+
 function InvoiceTable({
   invoices,
   onMarkPaid,
 }: {
-  invoices: AdminInvoiceRow[];
-  onMarkPaid: (invoice: AdminInvoiceRow) => Promise<void>;
+  invoices: PayableInvoiceRow[];
+  onMarkPaid: (invoice: PayableInvoiceRow) => Promise<void>;
 }) {
   if (invoices.length === 0) {
     return (
@@ -59,34 +108,9 @@ function InvoiceTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.map((invoice) => {
-            const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-
-            return (
-              <TableRow key={invoice.id}>
-                <TableCell>
-                  <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
-                  <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
-                </TableCell>
-                <TableCell className="text-sm">{invoice.restaurants?.name || "-"}</TableCell>
-                <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-                <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
-                <TableCell>
-                  <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
-                </TableCell>
-                <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
-                <TableCell className="text-right">
-                  {isPaid ? (
-                    <span className="text-xs text-muted-foreground">Reglee</span>
-                  ) : (
-                    <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
-                      Marquer payee
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {invoices.map((invoice) => (
+            <InvoiceTableRow key={invoice.id} invoice={invoice} onMarkPaid={onMarkPaid} />
+          ))}
         </TableBody>
       </Table>
     </div>
@@ -106,25 +130,24 @@ export default function AdminComptaInflow() {
   const {
     restaurants,
     summary,
-    reservationFeeAccrualAmount,
-    reservationFeeAccrualCount,
-    tokFeeInvoiceSections,
+    payableAccruals,
     miamzReimbursementsCount,
     miamzReimbursementsTotal,
     monthOptions,
+    payableInvoiceSections,
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
-  const totalReservationFeesOpen = summary.inflow.reservationFeesOutstanding + reservationFeeAccrualAmount;
+  const totalPayableOpen = summary.inflow.payableOutstanding + payableAccruals.totalAmount;
 
   const handleGenerateInvoices = async () => {
     setGenerating(true);
     try {
       const firstOfMonth = `${selectedMonth}-01`;
-      const { data, error: rpcError } = await (supabase.rpc as any)(
+      const { data, error: rpcError } = await supabase.rpc(
         selectedRestaurant === "all"
-          ? "generate_tok_reservation_fee_invoices_all"
-          : "generate_tok_reservation_fee_invoice",
+          ? "generate_tok_payable_invoices_all"
+          : "generate_tok_payable_invoice",
         selectedRestaurant === "all"
           ? { p_month: firstOfMonth }
           : { p_restaurant_id: selectedRestaurant, p_month: firstOfMonth },
@@ -141,8 +164,12 @@ export default function AdminComptaInflow() {
       });
 
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-fee-invoices-v2"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-payable-invoices-v3"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-payable-line-items-v1"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-orders-v2"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-payments-v2"] }),
         queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-fee-accruals-v1"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-paid-campaigns"] }),
       ]);
     } catch (generationError) {
       toast({
@@ -167,7 +194,7 @@ export default function AdminComptaInflow() {
     }
 
     toast({ title: "Facture marquee comme payee" });
-    await queryClient.invalidateQueries({ queryKey: ["admin-compta-reservation-fee-invoices-v2"] });
+    await queryClient.invalidateQueries({ queryKey: ["admin-compta-payable-invoices-v3"] });
   };
 
   return (
@@ -180,7 +207,7 @@ export default function AdminComptaInflow() {
           <div>
             <h1 className="font-display text-3xl font-bold">Factures faites aux restaurateurs</h1>
             <p className="text-sm text-muted-foreground">
-              Ecran dedie a ce qui entre chez TOK: commissions 10% par source et factures TOK encore a encaisser.
+              Ecran dedie a ce qui entre chez TOK: facture payable unique, commissions 10% et postes factures aux restaurateurs.
             </p>
           </div>
         </div>
@@ -248,12 +275,12 @@ export default function AdminComptaInflow() {
             </Card>
             <Card className="border-amber-200 bg-amber-50/80">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-amber-800">5.- non factures</CardTitle>
+                <CardTitle className="text-sm font-medium text-amber-800">Encours non facture</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-amber-950">{formatAmount(reservationFeeAccrualAmount)}</p>
+                <p className="text-3xl font-bold text-amber-950">{formatAmount(payableAccruals.totalAmount)}</p>
                 <p className="mt-1 text-xs text-amber-700">
-                  {reservationFeeAccrualCount} reservation{reservationFeeAccrualCount > 1 ? "s" : ""} confirmée{reservationFeeAccrualCount > 1 ? "s" : ""} encore sans facture TOK
+                  {payableAccruals.totalCount} ligne{payableAccruals.totalCount > 1 ? "s" : ""} payable{payableAccruals.totalCount > 1 ? "s" : ""} encore non facturee{payableAccruals.totalCount > 1 ? "s" : ""}
                 </p>
               </CardContent>
             </Card>
@@ -262,7 +289,7 @@ export default function AdminComptaInflow() {
                 <CardTitle className="text-sm font-medium text-orange-800">Factures a encaisser</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-orange-950">{formatAmount(summary.inflow.reservationFeesOutstanding)}</p>
+                <p className="text-3xl font-bold text-orange-950">{formatAmount(summary.inflow.payableOutstanding)}</p>
                 <p className="mt-1 text-xs text-orange-700">Factures TOK deja emises cote restaurateurs</p>
               </CardContent>
             </Card>
@@ -282,7 +309,7 @@ export default function AdminComptaInflow() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Deja encaisse</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">{formatAmount(summary.inflow.reservationFeesCollected)}</p>
+                <p className="text-3xl font-bold">{formatAmount(summary.inflow.payableCollected)}</p>
                 <p className="mt-1 text-xs text-muted-foreground">Historique regle sur les factures TOK</p>
               </CardContent>
             </Card>
@@ -291,9 +318,9 @@ export default function AdminComptaInflow() {
           <Card className="border-dashed">
             <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
               <div>
-                <p className="font-medium">Lecture des 5.- par reservation</p>
+                <p className="font-medium">Lecture de la facture payable unique</p>
                 <p className="text-muted-foreground">
-                  {formatAmount(totalReservationFeesOpen)} a encaisser au total: {formatAmount(reservationFeeAccrualAmount)} encore non factures et {formatAmount(summary.inflow.reservationFeesOutstanding)} deja factures.
+                  {formatAmount(totalPayableOpen)} a encaisser au total: {formatAmount(payableAccruals.totalAmount)} encore non factures et {formatAmount(summary.inflow.payableOutstanding)} deja factures.
                 </p>
               </div>
               <div className="text-right">
@@ -337,7 +364,7 @@ export default function AdminComptaInflow() {
                 </div>
               </CardHeader>
               <CardContent>
-                <InvoiceTable invoices={tokFeeInvoiceSections.actionable} onMarkPaid={handleMarkPaid} />
+                <InvoiceTable invoices={payableInvoiceSections.actionable as PayableInvoiceRow[]} onMarkPaid={handleMarkPaid} />
               </CardContent>
             </Card>
 
@@ -346,7 +373,7 @@ export default function AdminComptaInflow() {
                 <CardTitle className="text-base">Historique</CardTitle>
               </CardHeader>
               <CardContent>
-                <InvoiceTable invoices={tokFeeInvoiceSections.history} onMarkPaid={handleMarkPaid} />
+                <InvoiceTable invoices={payableInvoiceSections.history as PayableInvoiceRow[]} onMarkPaid={handleMarkPaid} />
               </CardContent>
             </Card>
           </div>

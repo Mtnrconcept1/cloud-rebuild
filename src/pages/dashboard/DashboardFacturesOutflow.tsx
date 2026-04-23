@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, Download, ReceiptText, Settings } from "lucide-react";
+import { ArrowUpRight, ReceiptText, Settings } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { TokPayableInvoiceDialog } from "@/components/invoices/TokPayableInvoiceDialog";
 import { useAuth } from "@/lib/auth";
+import type { PayableInvoiceRow } from "@/lib/payableInvoice";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +18,6 @@ import {
   formatDate,
   formatPeriod,
   getInvoiceStatusClass,
-  type RestaurantInvoiceRow,
   useDashboardFacturesData,
 } from "./dashboardFacturesShared";
 
@@ -26,14 +28,62 @@ function getErrorMessage(error: unknown) {
   return error ? String(error) : "";
 }
 
+function InvoiceTableRow({
+  invoice,
+  canMarkPaid,
+  onMarkPaid,
+  restaurantName,
+}: {
+  invoice: PayableInvoiceRow;
+  canMarkPaid: boolean;
+  onMarkPaid: (invoiceId: string) => Promise<void>;
+  restaurantName: string | null;
+}) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
+
+  return (
+    <>
+      <TableRow key={invoice.id}>
+        <TableCell>
+          <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
+          <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
+          <div className="text-xs text-muted-foreground">Restaurant concerne : {restaurantName || "-"}</div>
+        </TableCell>
+        <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
+        <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
+        <TableCell>
+          <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
+        </TableCell>
+        <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
+        <TableCell className="text-right">
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
+              Voir la facture
+            </Button>
+            {canMarkPaid && !isPaid ? (
+              <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
+                Marquer payee
+              </Button>
+            ) : null}
+          </div>
+        </TableCell>
+      </TableRow>
+      <TokPayableInvoiceDialog invoice={previewOpen ? invoice : null} open={previewOpen} onOpenChange={setPreviewOpen} />
+    </>
+  );
+}
+
 function InvoiceTable({
   invoices,
   canMarkPaid,
   onMarkPaid,
+  restaurantName,
 }: {
-  invoices: RestaurantInvoiceRow[];
+  invoices: PayableInvoiceRow[];
   canMarkPaid: boolean;
   onMarkPaid: (invoiceId: string) => Promise<void>;
+  restaurantName: string | null;
 }) {
   if (invoices.length === 0) {
     return (
@@ -59,41 +109,15 @@ function InvoiceTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.map((invoice) => {
-            const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-
-            return (
-              <TableRow key={invoice.id}>
-                <TableCell>
-                  <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
-                  <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
-                </TableCell>
-                <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-                <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
-                <TableCell>
-                  <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
-                </TableCell>
-                <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {invoice.pdf_url ? (
-                      <Button asChild size="sm" variant="outline">
-                        <a href={invoice.pdf_url} target="_blank" rel="noreferrer">
-                          <Download className="mr-2 h-4 w-4" />
-                          PDF
-                        </a>
-                      </Button>
-                    ) : null}
-                    {canMarkPaid && !isPaid ? (
-                      <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
-                        Marquer payee
-                      </Button>
-                    ) : null}
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {invoices.map((invoice) => (
+            <InvoiceTableRow
+              key={invoice.id}
+              invoice={invoice}
+              canMarkPaid={canMarkPaid}
+              onMarkPaid={onMarkPaid}
+              restaurantName={restaurantName}
+            />
+          ))}
         </TableBody>
       </Table>
     </div>
@@ -109,8 +133,8 @@ export default function DashboardFacturesOutflow() {
   const {
     selectedRestaurant,
     summary,
-    reservationFees,
-    tokFeeInvoiceSections,
+    payableAccruals,
+    payableInvoiceSections,
     isLoading,
     error,
   } = useDashboardFacturesData();
@@ -128,8 +152,11 @@ export default function DashboardFacturesOutflow() {
 
     toast({ title: "Facture marquee comme payee" });
     if (selectedRestaurant) {
-      await queryClient.invalidateQueries({ queryKey: ["dashboard-invoices-v2", selectedRestaurant.id] });
-      await queryClient.invalidateQueries({ queryKey: ["dashboard-reservation-fee-rows-v3", selectedRestaurant.id] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["dashboard-invoices-v2", selectedRestaurant.id] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-payable-line-items-v1", selectedRestaurant.id] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-reservation-fee-rows-v3", selectedRestaurant.id] }),
+      ]);
     }
   };
 
@@ -145,7 +172,7 @@ export default function DashboardFacturesOutflow() {
               <h1 className="font-display text-3xl font-bold">Factures recues de TOK</h1>
               <p className="text-sm text-muted-foreground">
                 {selectedRestaurant
-                  ? `Ce que ${selectedRestaurant.name} doit a TOK: factures ouvertes et frais reservation non encore emis.`
+                  ? `Ce que ${selectedRestaurant.name} doit a TOK: facture payable unique, factures ouvertes et encours non encore emis.`
                   : "Selectionnez un restaurant pour afficher ses sorties d'argent."}
               </p>
             </div>
@@ -195,12 +222,12 @@ export default function DashboardFacturesOutflow() {
               </Card>
               <Card className="border-amber-200 bg-amber-50/70">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-amber-800">Frais reservation non factures</CardTitle>
+                  <CardTitle className="text-sm font-medium text-amber-800">Encours non facture</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold text-amber-950">{formatAmount(reservationFees.amount)}</p>
+                  <p className="text-3xl font-bold text-amber-950">{formatAmount(payableAccruals.totalAmount)}</p>
                   <p className="mt-1 text-xs text-amber-700">
-                    {reservationFees.count} reservation{reservationFees.count > 1 ? "s" : ""} confirmee{reservationFees.count > 1 ? "s" : ""} en attente de facture
+                    {payableAccruals.totalCount} ligne{payableAccruals.totalCount > 1 ? "s" : ""} encore en attente de facture
                   </p>
                 </CardContent>
               </Card>
@@ -218,8 +245,8 @@ export default function DashboardFacturesOutflow() {
                   <CardTitle className="text-sm font-medium text-muted-foreground">Sortie ouverte totale</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">{formatAmount(summary.outflow.payableToTok + reservationFees.amount)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Factures TOK + frais encore non emis</p>
+                  <p className="text-3xl font-bold">{formatAmount(summary.outflow.totalOutstanding)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Factures TOK ouvertes + encours non encore emis</p>
                 </CardContent>
               </Card>
             </div>
@@ -235,7 +262,12 @@ export default function DashboardFacturesOutflow() {
                   <CardTitle className="text-base">A regler</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <InvoiceTable invoices={tokFeeInvoiceSections.actionable} canMarkPaid={isAdmin} onMarkPaid={handleMarkPaid} />
+                  <InvoiceTable
+                    invoices={payableInvoiceSections.actionable as PayableInvoiceRow[]}
+                    canMarkPaid={isAdmin}
+                    onMarkPaid={handleMarkPaid}
+                    restaurantName={selectedRestaurant?.name || null}
+                  />
                 </CardContent>
               </Card>
 
@@ -247,7 +279,12 @@ export default function DashboardFacturesOutflow() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <InvoiceTable invoices={tokFeeInvoiceSections.history} canMarkPaid={isAdmin} onMarkPaid={handleMarkPaid} />
+                  <InvoiceTable
+                    invoices={payableInvoiceSections.history as PayableInvoiceRow[]}
+                    canMarkPaid={isAdmin}
+                    onMarkPaid={handleMarkPaid}
+                    restaurantName={selectedRestaurant?.name || null}
+                  />
                 </CardContent>
               </Card>
             </div>

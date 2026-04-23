@@ -18,6 +18,10 @@ import { useCart } from "@/lib/cart";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useRef } from "react";
+import {
+  isAntiWasteOfferPubliclyVisible,
+  isFlashSalePubliclyVisible,
+} from "@/lib/specialOffers";
 
 const supabase = getSupabase();
 
@@ -151,6 +155,16 @@ export default function RestaurantDetail() {
     const sum = reviews.reduce((acc, r) => acc + (Number(r.rating) || 0), 0);
     return sum / reviews.length;
   }, [reviews, restaurant?.rating]);
+
+  const visibleFlashSales = useMemo(
+    () => (flashSales || []).filter((sale: any) => isFlashSalePubliclyVisible(sale)),
+    [flashSales],
+  );
+
+  const visibleAntiWasteOffers = useMemo(
+    () => (antiWasteOffers || []).filter((offer: any) => isAntiWasteOfferPubliclyVisible(offer)),
+    [antiWasteOffers],
+  );
 
   const reservationAvailable = reservationEnabled && !!restaurant?.supports_reservation;
   const takeawayAvailable = takeawayEnabled && !!restaurant?.supports_pickup;
@@ -418,11 +432,11 @@ export default function RestaurantDetail() {
                     </div>
                   </div>
                 )}
-                {flashSalesEnabled && flashSales && flashSales.length > 0 && (
+                {flashSalesEnabled && visibleFlashSales.length > 0 && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500 fill-amber-500" /><h2 className="font-display text-xl font-bold">Ventes Flash</h2><Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20 text-[10px]">{flashSales.length} offre{flashSales.length > 1 ? "s" : ""}</Badge></div>
+                    <div className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500 fill-amber-500" /><h2 className="font-display text-xl font-bold">Ventes Flash</h2><Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20 text-[10px]">{visibleFlashSales.length} offre{visibleFlashSales.length > 1 ? "s" : ""}</Badge></div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {flashSales.map((sale: any) => {
+                      {visibleFlashSales.map((sale: any) => {
                         const discount = sale.original_price > 0 ? Math.round((1 - Number(sale.discounted_price) / Number(sale.original_price)) * 100) : 0;
                         return (
                           <div key={sale.id} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-amber-500/20 bg-amber-500/5">
@@ -469,11 +483,11 @@ export default function RestaurantDetail() {
                     </div>
                   </div>
                 )}
-                {antiWasteEnabled && antiWasteOffers && antiWasteOffers.length > 0 && (
+                {antiWasteEnabled && visibleAntiWasteOffers.length > 0 && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-600" /><h2 className="font-display text-xl font-bold">Anti-gaspi</h2><Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 text-[10px]">{antiWasteOffers.length} offre{antiWasteOffers.length > 1 ? "s" : ""}</Badge></div>
+                    <div className="flex items-center gap-2"><Leaf className="h-5 w-5 text-emerald-600" /><h2 className="font-display text-xl font-bold">Anti-gaspi</h2><Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 text-[10px]">{visibleAntiWasteOffers.length} offre{visibleAntiWasteOffers.length > 1 ? "s" : ""}</Badge></div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {antiWasteOffers.map((offer: any) => (
+                      {visibleAntiWasteOffers.map((offer: any) => (
                         <AntiWasteCard
                           key={offer.id}
                           title={offer.title}

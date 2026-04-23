@@ -13,6 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Percent, Trash2, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDashboardRestaurant } from "./DashboardContext";
+import {
+  isSpecialOfferEffectivelyActive,
+  isSpecialOfferSoldOut,
+} from "@/lib/specialOffers";
 
 const supabase = getSupabase();
 
@@ -60,8 +64,16 @@ export default function DashboardVentesFlash() {
     enabled: !!selectedId,
   });
 
-  const toggleActive = async (id: string, current: boolean) => {
+  const toggleActive = async (id: string, current: boolean, isSoldOut: boolean) => {
     if (!selectedId) return;
+    if (isSoldOut) {
+      toast({
+        title: "Vente epuisee",
+        description: "Ajoutez a nouveau du stock avant de reactiver cette vente.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const { error } = await supabase
       .from("flash_sales")
@@ -148,6 +160,8 @@ export default function DashboardVentesFlash() {
         ) : (
           <div className="space-y-3">
             {sales.map((sale) => {
+              const isSoldOut = isSpecialOfferSoldOut(sale);
+              const isEffectivelyActive = isSpecialOfferEffectivelyActive(sale);
               const discount = sale.original_price > 0
                 ? Math.round((1 - sale.discounted_price / sale.original_price) * 100)
                 : 0;
@@ -161,7 +175,12 @@ export default function DashboardVentesFlash() {
                         <Badge className="border-amber-500/20 bg-amber-500/10 text-[10px] text-amber-700">
                           -{discount}%
                         </Badge>
-                        {!sale.is_active && (
+                        {isSoldOut && (
+                          <Badge variant="destructive" className="text-[10px]">
+                            Epuisee
+                          </Badge>
+                        )}
+                        {!isSoldOut && !sale.is_active && (
                           <Badge variant="secondary" className="text-[10px]">
                             Inactive
                           </Badge>
@@ -180,7 +199,11 @@ export default function DashboardVentesFlash() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Switch checked={sale.is_active} onCheckedChange={() => toggleActive(sale.id, sale.is_active)} />
+                      <Switch
+                        checked={isEffectivelyActive}
+                        disabled={isSoldOut}
+                        onCheckedChange={() => toggleActive(sale.id, isEffectivelyActive, isSoldOut)}
+                      />
                       <Button
                         size="icon"
                         variant="ghost"
