@@ -7,6 +7,9 @@ type LogContext = Record<string, unknown>;
 
 const TOKEN_PATTERN = /(sk-[a-zA-Z0-9_-]{20,}|sbp_[a-zA-Z0-9]{20,}|whsec_[a-zA-Z0-9]{20,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,})/g;
 const DEFAULT_ALLOWED_ORIGINS = [
+  "https://thetok.ch",
+  "https://www.thetok.ch",
+  "https://app.thetok.ch",
   "https://tok.ch",
   "https://www.tok.ch",
   "https://app.tok.ch",

@@ -1,0 +1,315 @@
+import type { PointerEvent, RefObject, WheelEvent } from "react";
+import { Grip, LayoutPanelTop, Minus, Move, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
+
+import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getFloorPlanItemTypeLabel, isReservableFloorPlanItem } from "@/lib/floorPlan";
+import { cn } from "@/lib/utils";
+
+import type { StudioDraftTable, StudioRenderedTableFrame } from "./studioShared";
+
+const CANVAS_HEIGHT = 680;
+const MIN_CANVAS_ZOOM = 0.1;
+const MAX_CANVAS_ZOOM = 1.8;
+const CANVAS_ZOOM_STEP = 0.1;
+
+type StudioCanvasProps = {
+  selectedSector: string;
+  canvasWidth: number;
+  canvasZoom: number;
+  canvasZoomLabel: string;
+  canvasRef: RefObject<HTMLDivElement | null>;
+  canvasViewportRef: RefObject<HTMLDivElement | null>;
+  visibleTables: StudioDraftTable[];
+  selectedTableId: string | null;
+  draggingTableId: string | null;
+  onTablePress: (tableId: string) => void;
+  onCanvasWheel: (event: WheelEvent<HTMLDivElement>) => void;
+  onCanvasBackgroundPress: () => void;
+  onStartDraggingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
+  onStartResizingTable: (event: PointerEvent<HTMLButtonElement>, tableId: string) => void;
+  onStartRotatingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
+  onUpdateCanvasZoom: (nextZoom: number) => void;
+  getRenderedFrame: (table: StudioDraftTable) => StudioRenderedTableFrame;
+};
+
+export default function StudioCanvas({
+  selectedSector,
+  canvasWidth,
+  canvasZoom,
+  canvasZoomLabel,
+  canvasRef,
+  canvasViewportRef,
+  visibleTables,
+  selectedTableId,
+  draggingTableId,
+  onTablePress,
+  onCanvasWheel,
+  onCanvasBackgroundPress,
+  onStartDraggingTable,
+  onStartResizingTable,
+  onStartRotatingTable,
+  onUpdateCanvasZoom,
+  getRenderedFrame,
+}: StudioCanvasProps) {
+  const recenterCanvas = () => {
+    onUpdateCanvasZoom(1);
+
+    const viewport = canvasViewportRef.current;
+    if (!viewport) return;
+
+    const nextLeft = Math.max(0, (canvasWidth - viewport.clientWidth) / 2);
+    const nextTop = Math.max(0, (CANVAS_HEIGHT - viewport.clientHeight) / 2);
+    viewport.scrollTo({
+      left: nextLeft,
+      top: nextTop,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
+      <CardHeader className="space-y-4 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <CardTitle className="text-[1.45rem] text-slate-950">{selectedSector}</CardTitle>
+            <CardDescription className="mt-1 text-slate-500">
+              Atelier de composition du template. Le canevas garde la priorité, les réglages passent en second plan.
+            </CardDescription>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
+              Template global
+            </Badge>
+            <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white px-1 py-1 shadow-sm">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-xl"
+                onClick={() => onUpdateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
+                disabled={canvasZoom <= MIN_CANVAS_ZOOM}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="min-w-14 text-center text-sm font-semibold">{canvasZoomLabel}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-xl"
+                onClick={() => onUpdateCanvasZoom(1)}
+                disabled={canvasZoom === 1}
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-xl"
+                onClick={() => onUpdateCanvasZoom(canvasZoom + CANVAS_ZOOM_STEP)}
+                disabled={canvasZoom >= MAX_CANVAS_ZOOM}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button type="button" variant="outline" className="rounded-2xl border-slate-200 bg-white" onClick={recenterCanvas}>
+              <Move className="mr-2 h-4 w-4" />
+              Recentrer
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="flex min-h-0 flex-1 flex-col p-4">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Elements</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950">{visibleTables.length}</p>
+          </div>
+          <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Tables</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950">
+              {visibleTables.filter((table) => isReservableFloorPlanItem(table.layout.kind)).length}
+            </p>
+          </div>
+          <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Mobilier</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950">
+              {visibleTables.filter((table) => !isReservableFloorPlanItem(table.layout.kind)).length}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(241,244,248,1))] p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                <LayoutPanelTop className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Plan du template</p>
+                <p className="text-sm text-slate-500">Glissez, redimensionnez ou configurez depuis l'inspecteur.</p>
+              </div>
+            </div>
+            <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
+              Scroll local actif
+            </Badge>
+          </div>
+
+          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto rounded-[26px] border border-slate-200/80 bg-white/80 p-3 shadow-inner">
+            <div className="flex min-h-full min-w-full items-start justify-start">
+              <div
+                ref={canvasRef}
+                className="relative overflow-hidden rounded-[28px] border border-slate-300/70 shadow-inner"
+                onWheelCapture={onCanvasWheel}
+                onClick={(event) => {
+                  if (event.target === event.currentTarget) {
+                    onCanvasBackgroundPress();
+                  }
+                }}
+                style={{
+                  width: canvasWidth,
+                  height: CANVAS_HEIGHT,
+                  backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)",
+                  backgroundSize: "36px 36px, 36px 36px",
+                  backgroundColor: "#f6f7fb",
+                }}
+              >
+                <div className="pointer-events-none absolute inset-[24px] rounded-[36px] border-[16px] border-[#36373d]" />
+                <div className="pointer-events-none absolute inset-[46px] rounded-[26px] bg-[linear-gradient(145deg,rgba(225,192,149,0.9),rgba(192,151,111,0.92))]" />
+                <div className="pointer-events-none absolute inset-[64px] rounded-[16px] border border-white/25" />
+
+                {visibleTables.length === 0 ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-slate-500">
+                    <LayoutPanelTop className="h-10 w-10 text-primary/60" />
+                    <div className="space-y-1">
+                      <p className="font-medium text-slate-900">Aucun element dans ce secteur</p>
+                      <p className="text-sm">Ajoutez des presets depuis la palette pour commencer a construire la salle.</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {visibleTables.map((table) => {
+                  const renderedFrame = getRenderedFrame(table);
+                  const isSelected = table.id === selectedTableId;
+                  const isReservable = isReservableFloorPlanItem(table.layout.kind);
+                  const typeLabel = getFloorPlanItemTypeLabel(table.layout.kind, table.layout.shape);
+
+                  return (
+                    <div
+                      key={table.id}
+                      className="absolute select-none focus:outline-none"
+                      style={{
+                        left: renderedFrame.x,
+                        top: renderedFrame.y,
+                        width: renderedFrame.w,
+                        height: renderedFrame.h,
+                        zIndex: isSelected ? 40 : 16,
+                        cursor: draggingTableId === table.id ? "grabbing" : "grab",
+                      }}
+                      onClick={() => onTablePress(table.id)}
+                    >
+                      <div className={cn(
+                        "pointer-events-none absolute inset-0 rounded-[26px] blur-[16px]",
+                        isSelected ? "bg-sky-300/55 opacity-95" : "bg-slate-300/35 opacity-70",
+                      )} />
+
+                      <div
+                        className="relative h-full w-full"
+                        style={{
+                          transform: `rotate(${table.layout.rotation}deg)`,
+                          transformOrigin: "center center",
+                        }}
+                      >
+                        <div className="absolute inset-0">
+                          <FloorPlanItemIllustration
+                            kind={table.layout.kind}
+                            shape={table.layout.shape}
+                            capacity={table.capacity}
+                            seatType={table.layout.seatType}
+                            seatPlacements={table.layout.seatPlacements}
+                            cornerBenchCorners={table.layout.cornerBenchCorners}
+                            cornerBenchConfigs={table.layout.cornerBenchConfigs}
+                            tableWidth={table.layout.tableWidth}
+                            tableHeight={table.layout.tableHeight}
+                            cornerBenchHorizontal={table.layout.cornerBenchHorizontal}
+                            cornerBenchVertical={table.layout.cornerBenchVertical}
+                            cornerBenchDepth={table.layout.cornerBenchDepth}
+                            className="h-full w-full"
+                          />
+                        </div>
+
+                        {isSelected ? (
+                          <div className="pointer-events-none absolute inset-[-3px] rounded-[24px] border-2 border-slate-950/70 shadow-[0_0_0_4px_rgba(255,255,255,0.6)]" />
+                        ) : null}
+
+                        <div className="pointer-events-none absolute inset-x-1 top-1 flex items-start justify-between gap-2">
+                          <div className="rounded-full border border-white/80 bg-white/92 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm">
+                            {table.table_number}
+                          </div>
+                          <div className="rounded-full border border-white/80 bg-white/92 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 shadow-sm">
+                            {isReservable ? `${table.capacity} pl.` : typeLabel}
+                          </div>
+                        </div>
+
+                        {isSelected ? (
+                          <button
+                            type="button"
+                            aria-label={`Deplacer ${table.table_number}`}
+                            className="absolute left-1 top-8 flex h-6 w-6 items-center justify-center rounded-full border border-slate-900/15 bg-white shadow-md"
+                            onPointerDown={(event) => onStartDraggingTable(event, table.id)}
+                          >
+                            <Grip className="h-3.5 w-3.5 text-slate-700" />
+                          </button>
+                        ) : null}
+
+                        {isSelected ? (
+                          <button
+                            type="button"
+                            aria-label={`Redimensionner ${table.table_number}`}
+                            className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border border-slate-900/15 bg-white shadow-sm"
+                            style={{ cursor: "nwse-resize" }}
+                            onPointerDown={(event) => onStartResizingTable(event, table.id)}
+                          />
+                        ) : null}
+                      </div>
+
+                      {isSelected ? (
+                        <div
+                          className="absolute flex items-center justify-center"
+                          style={{
+                            top: -28,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            cursor: "grab",
+                          }}
+                          onPointerDown={(event) => onStartRotatingTable(event, table.id)}
+                        >
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-900/15 bg-white shadow-md">
+                            <RotateCw className="h-3.5 w-3.5 text-slate-700" />
+                          </div>
+                          <div className="absolute top-6 h-2 w-px bg-slate-900/25" />
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-center">
+          <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2 text-xs text-slate-500 shadow-sm">
+            Le canevas garde son scroll local. Les panneaux se compactent avant de rogner la surface de travail.
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
