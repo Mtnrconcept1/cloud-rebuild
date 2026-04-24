@@ -108,11 +108,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: 2.92.1
-
       - name: Align repo to production Supabase target
         run: npm run supabase:target:prod
 
@@ -123,23 +118,22 @@ jobs:
         run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
 
       - name: Link Supabase production project
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+        run: npx supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Sync Supabase production secrets
-        run: supabase secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
+        run: npx supabase secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Push database migrations
-        run: supabase db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
+        run: npx supabase db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
 
       - name: Deploy Edge Functions
-        run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
+        run: npx supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
 
   deploy_frontend:
     runs-on: ubuntu-latest
     needs:
       - validate
       - deploy_supabase
-    if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
     environment: production
 
     env:
@@ -149,18 +143,22 @@ jobs:
 
     steps:
       - name: Checkout
+        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         uses: actions/checkout@v6
 
       - name: Setup Node
+        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Install dependencies
+        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         run: npm ci
 
       - name: Write production frontend env
+        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         run: node ./scripts/write-production-env.mjs --out=.env.production.local
         env:
           GITHUB_SHA: ${{ github.sha }}
@@ -177,7 +175,13 @@ jobs:
           VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
       - name: Pull Vercel project settings
+        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         run: npx vercel@latest pull --yes --environment=production
 
       - name: Deploy Vercel production output
+        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         run: npx vercel@latest --prod
+
+      - name: Skip frontend deploy when Vercel secrets are missing
+        if: ${{ env.VERCEL_TOKEN == '' || env.VERCEL_ORG_ID == '' || env.VERCEL_PROJECT_ID == '' }}
+        run: echo "Skipping frontend deploy because Vercel production secrets are not configured."

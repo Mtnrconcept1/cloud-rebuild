@@ -14,6 +14,8 @@ drift on this project.
 Rules for this repo:
 
 - `supabase/.temp/` is local-only and must never be committed.
+- The repo standardizes on the npm Supabase CLI via `npx supabase`. Do not rely on
+  ad-hoc local binaries under `.tools/`.
 - The default local target is development. Switch targets explicitly instead of
   reusing stale CLI link metadata.
 - Run `npm run supabase:target:dev` to reset local work to the development
@@ -22,6 +24,8 @@ Rules for this repo:
   your CLI needs it.
 - Run `npm run supabase:doctor` before `supabase db push` or `supabase functions deploy`.
 - Run `npm run supabase:doctor:prod` before any production deploy.
+- Prefer `npm run supabase:db:push:prod` for production migrations. It aligns the target,
+  runs the doctor, relinks the CLI, then pushes to the production project in one command.
 - If the doctor fails, align the frontend env and your local `supabase link`
   target before continuing.
 
@@ -102,6 +106,7 @@ Common commands:
 npm install
 npm run supabase:target:dev
 npm run supabase:doctor
+npm run supabase:db:push:prod
 npm run supabase:doctor:prod
 ```
 
