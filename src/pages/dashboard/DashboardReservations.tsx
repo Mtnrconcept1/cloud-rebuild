@@ -21,7 +21,7 @@ import {
   updateRestaurantReservationStatus,
 } from "@/lib/reservationMutations";
 import { getReservationStatusLockMessage } from "@/lib/statusLocks";
-import { AlertTriangle, Ban, Check, CreditCard, Dot, MoonStar, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
+import { AlertTriangle, Ban, Check, CreditCard, Dot, MoonStar, Search, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
@@ -103,6 +103,7 @@ export default function DashboardReservations() {
   const [isCompactMode, setIsCompactMode] = useState(false);
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
 
@@ -217,8 +218,9 @@ export default function DashboardReservations() {
     return ["all", ...uniqueStatuses];
   }, [reservations]);
 
-  const filteredReservations = useMemo(() => (
-    reservations.filter((reservation) => {
+  const filteredReservations = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return reservations.filter((reservation) => {
       // Hide only reservations whose Stripe checkout was abandoned. 'pending' is the
       // default state for classique reservations that the restaurateur still needs
       // to confirm - those MUST stay visible.
@@ -234,9 +236,25 @@ export default function DashboardReservations() {
         if (derivedService !== serviceFilter) return false;
       }
       if (statusFilter !== "all" && reservation.status !== statusFilter) return false;
+      if (normalizedSearch) {
+        const orderRef = (reservation.order_reference || "").toLowerCase();
+        const customerName = (reservation.customer?.full_name || "").toLowerCase();
+        const customerPhone = (reservation.customer?.phone || "").toLowerCase();
+        const reservationNotes = (reservation.notes || "").toLowerCase();
+        const reservationId = reservation.id.toLowerCase();
+        if (
+          !orderRef.includes(normalizedSearch) &&
+          !customerName.includes(normalizedSearch) &&
+          !customerPhone.includes(normalizedSearch) &&
+          !reservationNotes.includes(normalizedSearch) &&
+          !reservationId.startsWith(normalizedSearch)
+        ) {
+          return false;
+        }
+      }
       return true;
-    })
-  ), [referenceDate, reservations, serviceFilter, statusFilter, timeRange]);
+    });
+  }, [referenceDate, reservations, searchTerm, serviceFilter, statusFilter, timeRange]);
 
   const groupedReservations = useMemo(() => {
     const sorted = [...filteredReservations].sort((a, b) => {
@@ -334,7 +352,20 @@ export default function DashboardReservations() {
 
         {selectedRestaurant && !reservationsError ? (
           <>
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-6">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="N° réservation, client..."
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Periode</p>
                 <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
@@ -497,6 +528,9 @@ export default function DashboardReservations() {
                                       <div className="space-y-2">
                                         <div className="flex flex-wrap items-center gap-2">
                                           <span className="font-semibold">{reservation.customer?.full_name || "Client inconnu"}</span>
+                                          {reservation.order_reference ? (
+                                            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">{reservation.order_reference}</span>
+                                          ) : null}
                                           <OrderStatusBadge status={reservation.status} />
                                           <Badge variant="secondary">{reservation.party_size} pers.</Badge>
                                           <Badge variant="outline">{getServicePeriodLabel(servicePeriod)}</Badge>

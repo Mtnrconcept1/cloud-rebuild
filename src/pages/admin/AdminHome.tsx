@@ -85,8 +85,8 @@ const ADMIN_TOOLS = [
     color: "text-amber-500",
   },
   {
-    title: "Drops",
-    description: "Creer et gerer les ventes flash Chef's Table.",
+    title: "La Table du Chef",
+    description: "Creer et gerer les experiences exclusives La Table du Chef.",
     icon: UtensilsCrossed,
     href: "/admin/drops",
     feature: "admin-drops",

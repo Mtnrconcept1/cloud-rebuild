@@ -90,9 +90,9 @@ function renderMetadata(metadata: Record<string, unknown> | null) {
   }
 
   return (
-    <section className="space-y-2">
+    <section className="space-y-2 grid grid-cols-1">
       <h3 className="text-sm font-semibold">Metadata</h3>
-      <pre className="overflow-x-auto rounded-xl border bg-muted/30 p-3 text-xs leading-5 text-muted-foreground">
+      <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-xl border bg-muted/30 p-3 text-xs leading-5 text-muted-foreground">
         {JSON.stringify(metadata, null, 2)}
       </pre>
     </section>
@@ -135,7 +135,7 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
             </Badge>
           ) : null}
         </div>
-        <SheetTitle className="text-xl">
+        <SheetTitle className="break-words text-xl">
           {order.orderNumber || `Commande ${order.id.slice(0, 8)}`}
         </SheetTitle>
         <SheetDescription>
@@ -233,9 +233,9 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
           </section>
 
           {order.notes ? (
-            <section className="space-y-2">
+            <section className="space-y-2 grid grid-cols-1">
               <h3 className="text-sm font-semibold">Notes</h3>
-              <div className="rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
+              <div className="max-w-full whitespace-pre-wrap break-words rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
                 {order.notes}
               </div>
             </section>
@@ -259,7 +259,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           {feature ? <Badge className={feature.className}>{feature.label}</Badge> : null}
           <Badge className={getStatusBadgeClass(reservation.status)}>{reservation.status}</Badge>
         </div>
-        <SheetTitle className="text-xl">{reservation.reference}</SheetTitle>
+        <SheetTitle className="break-words text-xl">{reservation.reference}</SheetTitle>
         <SheetDescription>
           {reservation.restaurant.name} · {reservation.customer.displayName}
         </SheetDescription>
@@ -367,18 +367,18 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </section>
 
           {reservation.specialRequests ? (
-            <section className="space-y-2">
+            <section className="space-y-2 grid grid-cols-1">
               <h3 className="text-sm font-semibold">Demandes speciales</h3>
-              <div className="rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
+              <div className="max-w-full whitespace-pre-wrap break-words rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
                 {reservation.specialRequests}
               </div>
             </section>
           ) : null}
 
           {reservation.notes ? (
-            <section className="space-y-2">
+            <section className="space-y-2 grid grid-cols-1">
               <h3 className="text-sm font-semibold">Notes</h3>
-              <div className="rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
+              <div className="max-w-full whitespace-pre-wrap break-words rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
                 {reservation.notes}
               </div>
             </section>

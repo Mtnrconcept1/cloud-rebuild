@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard } from "lucide-react";
+import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard, Search } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
@@ -129,6 +129,7 @@ export default function DashboardCommandes() {
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
 
@@ -161,15 +162,33 @@ export default function DashboardCommandes() {
     enabled: !!selectedId,
   });
 
-  const filteredOrders = useMemo(() => (
-    (orders || []).filter((order) => {
+  const filteredOrders = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return (orders || []).filter((order) => {
       // Hide orders whose Stripe payment never completed - they are not actionable
       // for the restaurateur and would otherwise display a misleading "pending" badge.
       const status = String(order.status || "").toLowerCase();
       if (status === "pending" || status === "pending_payment" || status === "payment_failed") return false;
-      return isDateInDashboardTimeRange(order.created_at, timeRange, referenceDate);
-    })
-  ), [orders, referenceDate, timeRange]);
+      if (!isDateInDashboardTimeRange(order.created_at, timeRange, referenceDate)) return false;
+      if (normalizedSearch) {
+        const orderNum = (order.order_number || "").toLowerCase();
+        const customerName = (order.customer?.full_name || "").toLowerCase();
+        const customerPhone = (order.customer?.phone || "").toLowerCase();
+        const orderNotes = (order.notes || "").toLowerCase();
+        const orderId = order.id.toLowerCase();
+        if (
+          !orderNum.includes(normalizedSearch) &&
+          !customerName.includes(normalizedSearch) &&
+          !customerPhone.includes(normalizedSearch) &&
+          !orderNotes.includes(normalizedSearch) &&
+          !orderId.startsWith(normalizedSearch)
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [orders, referenceDate, timeRange, searchTerm]);
 
   const filteredOrdersRevenue = useMemo(() => (
     filteredOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0)
@@ -281,7 +300,20 @@ export default function DashboardCommandes() {
 
         {!restaurantsLoading && !restaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-2 xl:grid-cols-5">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="N° commande, client..."
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Periode</p>
                 <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
