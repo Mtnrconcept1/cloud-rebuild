@@ -177,10 +177,7 @@ jobs:
           VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
       - name: Pull Vercel project settings
-        run: npx vercel@latest pull --yes --environment=production --token="${VERCEL_TOKEN}"
-
-      - name: Build Vercel production output
-        run: npx vercel@latest build --prod --token="${VERCEL_TOKEN}"
+        run: npx vercel@latest pull --yes --environment=production
 
       - name: Deploy Vercel production output
-        run: npx vercel@latest deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
+        run: npx vercel@latest --prod
