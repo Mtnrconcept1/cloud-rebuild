@@ -88,6 +88,14 @@ Optional Vercel deploy secrets:
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
 
+Local production frontend deploy sequence:
+
+```sh
+node ./scripts/write-production-env.mjs --out=.env.production.local
+npx vercel@latest pull --yes --environment=production
+npx vercel@latest --prod
+```
+
 Common commands:
 
 ```sh
