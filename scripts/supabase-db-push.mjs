@@ -39,7 +39,38 @@ console.log(`Env files used: ${describeFiles(envInfo.loadedFiles)}`);
 runNodeScript("scripts/supabase-target.mjs", [`--mode=${MODE}`], childEnv);
 runSupabaseCli(["link", "--project-ref", envInfo.projectRef, "--password", dbPassword], childEnv);
 runNodeScript("scripts/supabase-doctor.mjs", [`--mode=${MODE}`], childEnv);
-runSupabaseCli(["db", "push", "--linked", "--yes", "--password", dbPassword, ...EXTRA_ARGS], childEnv);
+
+const poolerDbUrl = buildPoolerDbUrl(envInfo.projectRef, dbPassword);
+if (poolerDbUrl) {
+  console.log("Using Supabase pooler connection (IPv4-friendly) for db push.");
+  runSupabaseCli(["db", "push", "--db-url", poolerDbUrl, "--yes", ...EXTRA_ARGS], childEnv);
+} else {
+  console.warn("Could not resolve pooler URL from supabase/.temp; falling back to --linked.");
+  runSupabaseCli(["db", "push", "--linked", "--yes", "--password", dbPassword, ...EXTRA_ARGS], childEnv);
+}
+
+function buildPoolerDbUrl(projectRef, password) {
+  const poolerUrlPath = path.join(ROOT, "supabase", ".temp", "pooler-url");
+  if (!fs.existsSync(poolerUrlPath)) {
+    return null;
+  }
+
+  const rawUrl = fs.readFileSync(poolerUrlPath, "utf8").trim();
+  if (!rawUrl) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(rawUrl);
+    parsed.password = encodeURIComponent(password);
+    if (!parsed.username) {
+      parsed.username = `postgres.${projectRef}`;
+    }
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
 
 function readMode(args) {
   const modeArg = args.find((arg) => arg.startsWith("--mode="));
