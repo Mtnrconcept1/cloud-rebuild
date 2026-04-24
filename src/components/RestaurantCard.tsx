@@ -1,10 +1,11 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bike, Megaphone, Heart, Percent } from "lucide-react";
+import { ArrowRight, Bike, Clock3, Heart, MapPin, Megaphone, Percent } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
 import { trackSponsoredClick, trackSponsoredImpression, trackImpression, trackClick } from "@/lib/analytics";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useActiveFeatures } from "@/lib/featureFlags";
@@ -28,90 +29,77 @@ interface RestaurantCardProps {
 }
 
 const CUISINE_FALLBACKS: Record<string, string> = {
-  // Italien / Pizza / Pâtes
   italien: "/images/pasta-assortment.jpeg",
   pizza: "/images/pasta-assortment.jpeg",
-  pâtes: "/images/pasta-assortment.jpeg",
+  pates: "/images/pasta-assortment.jpeg",
   pasta: "/images/pasta-assortment.jpeg",
-  // Japonais / Sushi / Poké
   japonais: "/images/poke-bowls.jpeg",
   sushi: "/images/poke-bowls.jpeg",
   poke: "/images/poke-bowls.jpeg",
-  // Burgers
   burger: "/images/smash-burgers.jpeg",
   hamburger: "/images/gourmet-burgers.jpeg",
   smash: "/images/smash-burger-single.jpeg",
-  // Français / Gastronomique
-  français: "/images/octopus-fine-dining.jpeg",
+  francais: "/images/octopus-fine-dining.jpeg",
   gastronomique: "/images/octopus-fine-dining.jpeg",
   "fine dining": "/images/octopus-fine-dining.jpeg",
-  // Asiatique / Chinois
   chinois: "/images/thai-pad-thai.jpeg",
   asiatique: "/images/thai-pad-thai.jpeg",
   vietnamien: "/images/thai-pad-thai.jpeg",
-  // Thaï
-  thaï: "/images/thai-spread.jpeg",
   thai: "/images/thai-curry-spread.jpeg",
-  // Indien
   indien: "/images/indian-curry-bowls.jpeg",
   indian: "/images/indian-feast.jpeg",
   curry: "/images/indian-curry-bowls.jpeg",
-  // Kebab / Turc / Döner
   kebab: "/images/kebab-box-spread.jpeg",
   turc: "/images/doner-kebab-plate.jpeg",
-  döner: "/images/doner-kebab-plate.jpeg",
   doner: "/images/doner-kebab-plate.jpeg",
-  // Mexicain / Tex-Mex
   mexicain: "/images/mixed-grill-platter.jpeg",
   "tex-mex": "/images/mixed-grill-platter.jpeg",
-  // Poulet / Chicken
   poulet: "/images/chicken-bucket-fries.jpeg",
   chicken: "/images/crispy-chicken.jpeg",
-  rôtisserie: "/images/rotisserie-chicken.jpeg",
-  // Méditerranéen / Libanais / Grec
+  rotisserie: "/images/rotisserie-chicken.jpeg",
   libanais: "/images/lebanese-mezze.jpeg",
   grec: "/images/greek-gyros.jpeg",
-  méditerranéen: "/images/lebanese-mezze.jpeg",
+  mediterraneen: "/images/lebanese-mezze.jpeg",
   mediterrane: "/images/greek-gyros.jpeg",
-  // Fruits de mer / Poisson
   poisson: "/images/lobster-roll-fries.jpeg",
   "fruits de mer": "/images/lobster-roll-fries.jpeg",
   seafood: "/images/lobster-roll-fries.jpeg",
-  // Américain / Fast-food / Wings
-  américain: "/images/burgers-wings.jpeg",
+  americain: "/images/burgers-wings.jpeg",
   wings: "/images/burgers-wings.jpeg",
   "fast food": "/images/stack-shake-spread.jpeg",
   "fast-food": "/images/stack-shake-spread.jpeg",
-  // Salade / Healthy / Bowl
   salade: "/images/poke-bowls.jpeg",
   healthy: "/images/poke-bowls.jpeg",
   bowl: "/images/poke-bowls.jpeg",
-  // Grill / Viande / BBQ
   grill: "/images/mixed-grill-platter.jpeg",
   viande: "/images/mixed-grill-platter.jpeg",
   bbq: "/images/mixed-grill-platter.jpeg",
-  // Marocain / Oriental
   marocain: "/images/indian-feast.jpeg",
   oriental: "/images/lebanese-mezze.jpeg",
-  // Café / Dessert
-  café: "/images/lobster-roll-fries.jpeg",
+  cafe: "/images/lobster-roll-fries.jpeg",
   dessert: "/images/gfc-fried-chicken.jpeg",
-  // Default
   default: "/images/mixed-grill-platter.jpeg",
 };
 
+function normalizeCuisine(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 function getImageUrl(imageUrl: string, cuisine: string): string {
-  // If the restaurant has a real uploaded image, use it
   if (imageUrl && (imageUrl.startsWith("http") || imageUrl.startsWith("/images/"))) {
     return imageUrl;
   }
-  // Fallback to cuisine-based images
+
   if (cuisine) {
-    const lower = cuisine.toLowerCase();
+    const lower = normalizeCuisine(cuisine);
     for (const [key, url] of Object.entries(CUISINE_FALLBACKS)) {
       if (key !== "default" && lower.includes(key)) return url;
     }
   }
+
   return CUISINE_FALLBACKS.default;
 }
 
@@ -120,14 +108,28 @@ function getNextTimeSlots(): string[] {
   const currentHour = now.getHours();
   const currentMin = now.getMinutes();
   const allSlots = [
-    "11:30", "12:00", "12:15", "12:30", "12:45", "13:00", "13:15",
-    "18:30", "19:00", "19:15", "19:30", "20:00", "20:30", "21:00",
+    "11:30",
+    "12:00",
+    "12:15",
+    "12:30",
+    "12:45",
+    "13:00",
+    "13:15",
+    "18:30",
+    "19:00",
+    "19:15",
+    "19:30",
+    "20:00",
+    "20:30",
+    "21:00",
   ];
-  const futureSlots = allSlots.filter((slot) => {
-    const [h, m] = slot.split(":").map(Number);
-    return h > currentHour || (h === currentHour && m > currentMin);
-  });
-  return futureSlots.slice(0, 5);
+
+  return allSlots
+    .filter((slot) => {
+      const [h, m] = slot.split(":").map(Number);
+      return h > currentHour || (h === currentHour && m > currentMin);
+    })
+    .slice(0, 4);
 }
 
 function getRatingColor(rating: number): string {
@@ -139,8 +141,18 @@ function getRatingColor(rating: number): string {
 }
 
 export default function RestaurantCard({
-  id, name, cuisine, rating, reviewCount, imageUrl, priceRange,
-  deliveryAvailable, city, address, sponsoredCampaignId, sponsoredPromoImage,
+  id,
+  name,
+  cuisine,
+  rating,
+  reviewCount,
+  imageUrl,
+  priceRange,
+  deliveryAvailable,
+  city,
+  address,
+  sponsoredCampaignId,
+  sponsoredPromoImage,
 }: RestaurantCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -149,43 +161,65 @@ export default function RestaurantCard({
   const activeFeatures = useActiveFeatures();
   const resolvedImage = getImageUrl(sponsoredPromoImage || imageUrl, cuisine);
   const impressionTracked = useRef(false);
-  const isSponsored = !!sponsoredCampaignId;
+  const isSponsored = Boolean(sponsoredCampaignId);
   const showDelivery = activeFeatures.has("livraison") && deliveryAvailable;
 
   const { data: isFavorite } = useQuery({
     queryKey: ["favorite", id, user?.id],
     queryFn: async () => {
       if (!user) return false;
-      const { data } = await supabase.from("favorites").select("id").eq("restaurant_id", id).eq("user_id", user.id).maybeSingle();
-      return !!data;
+      const { data } = await supabase
+        .from("favorites")
+        .select("id")
+        .eq("restaurant_id", id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return Boolean(data);
     },
-    enabled: !!user,
+    enabled: Boolean(user),
   });
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!user) return toast({ title: "Connectez-vous pour ajouter des favoris", variant: "destructive" });
+    if (!user) {
+      toast({ title: "Connectez-vous pour ajouter des favoris", variant: "destructive" });
+      return;
+    }
+
     if (isFavorite) {
       await supabase.from("favorites").delete().eq("restaurant_id", id).eq("user_id", user.id);
     } else {
       await supabase.from("favorites").insert({ restaurant_id: id, user_id: user.id });
     }
+
     queryClient.invalidateQueries({ queryKey: ["favorite", id] });
   };
 
-  // Fetch best discount from meal_formulas for this restaurant
   const { data: bestDiscount = 0 } = useQuery({
     queryKey: ["restaurant-best-discount", id],
     queryFn: async () => {
-      const { data } = await supabase.from("meal_formulas").select("discount_percent").eq("restaurant_id", id).eq("is_active", true).order("discount_percent", { ascending: false }).limit(1);
+      const { data } = await supabase
+        .from("meal_formulas")
+        .select("discount_percent")
+        .eq("restaurant_id", id)
+        .eq("is_active", true)
+        .order("discount_percent", { ascending: false })
+        .limit(1);
       return data?.[0]?.discount_percent || 0;
     },
   });
+
   const timeSlots = useMemo(() => getNextTimeSlots(), []);
+  const visibleSlots = timeSlots.slice(0, 2);
+  const estimatedMinutes = useMemo(() => {
+    const base = 25 + Math.floor(Math.random() * 15);
+    return { min: base, max: base + 10 };
+  }, []);
 
   useEffect(() => {
     if (impressionTracked.current) return;
     impressionTracked.current = true;
+
     if (isSponsored && sponsoredCampaignId) {
       trackSponsoredImpression(sponsoredCampaignId, id, "restaurant_card");
     } else {
@@ -202,6 +236,11 @@ export default function RestaurantCard({
     navigate(`/restaurant/${id}`);
   };
 
+  const handleViewClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleCardClick();
+  };
+
   const handleSlotClick = (e: React.MouseEvent, slot: string) => {
     e.stopPropagation();
     if (isSponsored && sponsoredCampaignId) {
@@ -213,77 +252,119 @@ export default function RestaurantCard({
   const ratingNum = Math.min(rating, 10);
   const displayRating = ratingNum > 0 ? ratingNum.toFixed(1) : null;
 
-  // Estimated delivery time based on rating/popularity (simulated)
-  const estimatedMinutes = useMemo(() => {
-    const base = 25 + Math.floor(Math.random() * 15); // 25-40 min
-    return { min: base, max: base + 10 };
-  }, []);
-
   return (
-    <div onClick={handleCardClick} className="group block cursor-pointer h-full">
-      <div className="premium-card h-full rounded-2xl bg-card border shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-        <div className="flex flex-col sm:flex-row lg:flex-col">
-          <div className="relative w-full sm:w-44 md:w-52 lg:w-full shrink-0 aspect-[16/10] sm:aspect-auto sm:h-auto lg:aspect-[16/9] overflow-hidden">
-            <img src={resolvedImage} alt={name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent sm:bg-gradient-to-r" />
-            <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-              {isSponsored && (
-                <Badge className="bg-amber-500/90 backdrop-blur-md text-white text-[9px] gap-1 shadow-sm border-none uppercase font-bold">
-                  <Megaphone className="h-3 w-3" /> Sponsorisé
-                </Badge>
-              )}
-              {showDelivery && (
-                <Badge className="bg-primary/90 backdrop-blur-md text-white text-[9px] gap-1 shadow-sm border-none uppercase font-bold">
-                  <Bike className="h-3 w-3" /> Livraison
-                </Badge>
-              )}
-            </div>
-            <button className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors" onClick={toggleFavorite}>
-              <Heart className={isFavorite ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-muted-foreground"} />
-            </button>
+    <div onClick={handleCardClick} className="group block h-full cursor-pointer">
+      <div className="premium-card flex h-full flex-col overflow-hidden rounded-[26px] border border-border/70 bg-card/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(15,23,42,0.14)]">
+        <div className="relative aspect-[16/10] overflow-hidden">
+          <img
+            src={resolvedImage}
+            alt={name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/10 to-transparent" />
+
+          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+            {isSponsored ? (
+              <Badge className="gap-1 border-none bg-amber-500/95 text-[9px] font-bold uppercase text-white shadow-sm backdrop-blur-md">
+                <Megaphone className="h-3 w-3" /> Sponsorise
+              </Badge>
+            ) : null}
+            {showDelivery ? (
+              <Badge className="gap-1 border-none bg-primary/95 text-[9px] font-bold uppercase text-white shadow-sm backdrop-blur-md">
+                <Bike className="h-3 w-3" /> Livraison
+              </Badge>
+            ) : null}
           </div>
-          <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <h3 className="font-display font-bold text-sm sm:text-base leading-tight group-hover:text-primary transition-colors sm:truncate lg:overflow-visible lg:text-clip lg:whitespace-normal">{name}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5 sm:truncate lg:overflow-visible lg:text-clip lg:whitespace-normal">{address ? `${address}, ${city}` : city}</p>
+
+          <button
+            className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/88 backdrop-blur-sm transition-colors hover:bg-white"
+            onClick={toggleFavorite}
+          >
+            <Heart className={isFavorite ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-muted-foreground"} />
+          </button>
+
+          {bestDiscount > 0 ? (
+            <div className="absolute bottom-3 left-3">
+              <Badge className="gap-1 rounded-full border border-white/20 bg-white/90 px-3 py-1 text-[10px] font-bold text-emerald-700 shadow-sm backdrop-blur-md hover:bg-white">
+                <Percent className="h-3 w-3" /> Jusqu'a -{bestDiscount}%
+              </Badge>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex flex-1 flex-col p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 space-y-1">
+              <h3 className="font-display text-base font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
+                {name}
+              </h3>
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90">
+                {cuisine ? <span className="max-w-full truncate">{cuisine}</span> : null}
+                {cuisine ? <span className="text-border">/</span> : null}
+                <PriceRangeIcons range={priceRange} />
               </div>
-              {displayRating && (
-                <div className="text-right shrink-0">
-                  <div className={`inline-flex items-center justify-center min-w-[2.5rem] px-2 py-1 rounded-lg font-bold text-sm ${getRatingColor(ratingNum)}`}>{displayRating}</div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">({reviewCount})</p>
+            </div>
+
+            {displayRating ? (
+              <div className="shrink-0 text-right">
+                <div className={`inline-flex min-w-[2.7rem] items-center justify-center rounded-xl px-2.5 py-1.5 text-sm font-bold ${getRatingColor(ratingNum)}`}>
+                  {displayRating}
                 </div>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
-              <span>{cuisine}</span>
-              {cuisine && <span>·</span>}
-              <PriceRangeIcons range={priceRange} />
-              {showDelivery && (
-                <>
-                  <span>·</span>
-                  <span className="font-semibold text-foreground">{estimatedMinutes.min}-{estimatedMinutes.max} min</span>
-                </>
-              )}
-            </div>
-            {bestDiscount > 0 && (
-              <div className="mt-2">
-                <Badge className="bg-miamz-green/10 text-miamz-green border-miamz-green/20 text-[10px] font-bold gap-1 hover:bg-miamz-green/20">
-                  <Percent className="h-3 w-3" /> Jusqu'à -{bestDiscount}%
-                </Badge>
+                <p className="mt-1 text-[10px] text-muted-foreground">({reviewCount})</p>
               </div>
-            )}
-            <div className="flex-1" />
-            {timeSlots.length > 0 && (
-              <div className="flex gap-1.5 mt-3 overflow-x-auto">
-                {timeSlots.map((slot) => (
-                  <button key={slot} onClick={(e) => handleSlotClick(e, slot)} className="flex flex-col items-center shrink-0 group/slot">
-                    <span className="px-2.5 py-1.5 rounded-lg border-2 border-miamz-green/60 text-xs font-bold text-miamz-green bg-miamz-green/5 group-hover/slot:bg-miamz-green group-hover/slot:text-white transition-colors">{slot}</span>
-                    {bestDiscount > 0 && <span className="text-[9px] font-bold text-miamz-green mt-0.5">-{bestDiscount}%</span>}
-                  </button>
-                ))}
-              </div>
-            )}
+            ) : null}
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-primary/75" />
+              <span className="font-medium text-foreground/85">{city}</span>
+            </span>
+            {showDelivery ? (
+              <span className="inline-flex items-center gap-1.5">
+                <Clock3 className="h-3.5 w-3.5 text-primary/75" />
+                <span>{estimatedMinutes.min}-{estimatedMinutes.max} min</span>
+              </span>
+            ) : null}
+          </div>
+
+          {address ? (
+            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+              {address}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Ouvrez la fiche pour voir le menu, les disponibilites et les details.
+            </p>
+          )}
+
+          <div className="mt-auto pt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleViewClick}
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#21314b] px-4 text-sm font-bold text-white shadow-[0_10px_24px_rgba(33,49,75,0.22)] transition-all hover:bg-[#2a3d5d]"
+              >
+                Voir le restaurant
+                <ArrowRight className="h-4 w-4" />
+              </button>
+              {visibleSlots.map((slot) => (
+                <button
+                  key={slot}
+                  type="button"
+                  onClick={(e) => handleSlotClick(e, slot)}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-500/35 bg-emerald-50 px-3.5 text-sm font-bold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-500 hover:text-white"
+                >
+                  {slot}
+                </button>
+              ))}
+            </div>
+            {timeSlots.length > 0 ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Prochains creneaux visibles. Plus d'options sur la fiche.
+              </p>
+            ) : null}
           </div>
         </div>
       </div>

@@ -15,6 +15,7 @@ import {
   Moon,
   Repeat,
   Route,
+  Search,
   Shield,
   ShieldCheck,
   ShoppingBag,
@@ -85,6 +86,8 @@ export default function Navbar() {
   const reservationEnabled = activeFeatures.has("reservation");
   const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
+  const discoveryFeatures = visibleFeatures.slice(0, 3);
+  const showCartShortcut = user || itemCount > 0;
 
   const { data: notifications } = useQuery({
     queryKey: ["navbar-notifications", user?.id],
@@ -216,8 +219,9 @@ export default function Navbar() {
           <NavigationMenu className="hidden md:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link to="/" className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                  Restaurants
+                <Link to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <Search className="h-4 w-4" />
+                  Explorer
                 </Link>
               </NavigationMenuItem>
               {antiWasteEnabled ? (
@@ -241,17 +245,17 @@ export default function Navbar() {
                   Tok One
                 </Link>
               </NavigationMenuItem>
-              {visibleFeatures.length > 0 ? (
+              {discoveryFeatures.length > 0 ? (
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="bg-transparent text-sm font-medium">
                     <Sparkles className="mr-1 h-4 w-4 text-primary" />
-                    Exclusivites
+                    Plus
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="w-[min(680px,calc(100vw-3rem))] p-4 md:p-6">
                       <div className="mb-4 flex items-center gap-2 border-b pb-3">
                         <Sparkles className="h-5 w-5 text-primary" />
-                        <h3 className="font-display text-lg font-semibold">Fonctionnalites exclusives</h3>
+                        <h3 className="font-display text-lg font-semibold">Parcours a decouvrir</h3>
                         <Badge variant="secondary" className="border-none bg-primary/10 text-[10px] text-primary">
                           {visibleFeatures.length} active{visibleFeatures.length > 1 ? "s" : ""}
                         </Badge>
@@ -287,7 +291,7 @@ export default function Navbar() {
               <span className="sr-only">Mode sombre</span>
             </Button>
 
-            {user ? (
+            {showCartShortcut ? (
               <Button variant="ghost" size="icon" asChild className="relative">
                 <Link to="/panier">
                   <ShoppingCart className="h-5 w-5" />
@@ -437,7 +441,11 @@ export default function Navbar() {
 
                 <nav className="mt-6 flex flex-col gap-3">
                   <Link to="/" className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
-                    Restaurants
+                    Accueil
+                  </Link>
+                  <Link to="/recherche" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                    <Search className="h-4 w-4" />
+                    Explorer les restaurants
                   </Link>
                   {antiWasteEnabled ? (
                     <Link to="/anti-gaspi" className="text-sm font-medium text-accent" onClick={() => setMenuOpen(false)}>
@@ -449,13 +457,17 @@ export default function Navbar() {
                       Ventes Flash
                     </Link>
                   ) : null}
-                  <Link to="/recherche" className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
-                    Recherche
-                  </Link>
                   <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-violet-600" onClick={() => setMenuOpen(false)}>
                     <Crown className="h-4 w-4" />
                     Tok One
                   </Link>
+
+                  {!user && itemCount > 0 ? (
+                    <Link to="/panier" className="flex items-center gap-2 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
+                      <ShoppingCart className="h-4 w-4" />
+                      Voir mon panier ({itemCount})
+                    </Link>
+                  ) : null}
 
                   <div className="mt-2 border-t pt-4">
                     <Link to="/auth?type=restaurateur" className="flex items-center gap-2 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
@@ -468,7 +480,7 @@ export default function Navbar() {
                     <div className="mt-2 border-t pt-4">
                       <div className="mb-3 flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-primary" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-primary">Exclusivites</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-primary">Plus</span>
                       </div>
                       <div className="grid grid-cols-1 gap-1">
                         {visibleFeatures.map((feature) => (

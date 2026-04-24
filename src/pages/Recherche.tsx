@@ -1,15 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { Search, SlidersHorizontal, X } from "lucide-react";
+
 import { getSupabase } from "@/integrations/supabase/client";
 import CityAutocomplete from "@/components/CityAutocomplete";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import RestaurantCard from "@/components/RestaurantCard";
-import { Search, SlidersHorizontal, X } from "lucide-react";
-import CampaignBanner from "@/components/CampaignBanner";
 import { Badge } from "@/components/ui/badge";
+import RestaurantCard from "@/components/RestaurantCard";
+import CampaignBanner from "@/components/CampaignBanner";
 import { trackSearch, getActiveSponsoredRestaurants } from "@/lib/analytics";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 import {
@@ -21,7 +22,15 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 
 const supabase = getSupabase();
 
-type SortValue = "pertinence" | "note" | "promotion" | "prix" | "popularite" | "nouveaux" | "mieux_notes_mois" | "plus_reserves_mois";
+type SortValue =
+  | "pertinence"
+  | "note"
+  | "promotion"
+  | "prix"
+  | "popularite"
+  | "nouveaux"
+  | "mieux_notes_mois"
+  | "plus_reserves_mois";
 type SortDirection = "asc" | "desc";
 
 const SORT_OPTIONS: { value: SortValue; label: string }[] = [
@@ -29,29 +38,46 @@ const SORT_OPTIONS: { value: SortValue; label: string }[] = [
   { value: "note", label: "Note" },
   { value: "promotion", label: "Promotion" },
   { value: "prix", label: "Prix" },
-  { value: "popularite", label: "Popularité" },
+  { value: "popularite", label: "Popularite" },
   { value: "nouveaux", label: "Nouveaux restaurants" },
-  { value: "mieux_notes_mois", label: "Établissements les mieux notés du mois" },
-  { value: "plus_reserves_mois", label: "Établissements les plus réservés du mois" },
+  { value: "mieux_notes_mois", label: "Mieux notes du mois" },
+  { value: "plus_reserves_mois", label: "Plus reserves du mois" },
 ];
 
 const ORDER_OPTIONS: { value: SortDirection; label: string }[] = [
-  { value: "desc", label: "Décroissant" },
+  { value: "desc", label: "Decroissant" },
   { value: "asc", label: "Croissant" },
 ];
 
 interface SortContext {
-  sortBy: SortValue; sortDirection: SortDirection; query: string;
+  sortBy: SortValue;
+  sortDirection: SortDirection;
+  query: string;
   monthlyReservationsByRestaurant: Record<string, number>;
   monthlyOrdersByRestaurant: Record<string, number>;
   promotionScoreByRestaurant: Record<string, number>;
 }
 
-function getDefaultSortDirection(sortBy: SortValue): SortDirection { return sortBy === "prix" ? "asc" : "desc"; }
-function normalizeMinRating10(raw: string): number { if (!raw) return 0; const parsed = toNumber(raw, 0); if (parsed <= 0) return 0; return Math.max(0, Math.min(10, parsed <= 5 ? parsed * 2 : parsed)); }
-function toNumber(value: unknown, fallback = 0): number { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
-function toTimestamp(value: unknown): number { const ts = Date.parse(String(value || "")); return Number.isFinite(ts) ? ts : 0; }
-function isCancelledStatus(status: unknown): boolean { const s = String(status || "").toLowerCase(); return s.includes("cancel") || s.includes("annul"); }
+function getDefaultSortDirection(sortBy: SortValue): SortDirection {
+  return sortBy === "prix" ? "asc" : "desc";
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function toTimestamp(value: unknown): number {
+  const ts = Date.parse(String(value || ""));
+  return Number.isFinite(ts) ? ts : 0;
+}
+
+function normalizeMinRating10(raw: string): number {
+  if (!raw) return 0;
+  const parsed = toNumber(raw, 0);
+  if (parsed <= 0) return 0;
+  return Math.max(0, Math.min(10, parsed <= 5 ? parsed * 2 : parsed));
+}
 
 function getRelevanceScore(card: any, ctx: SortContext): number {
   const normalizedQuery = ctx.query.trim().toLowerCase();
@@ -61,15 +87,19 @@ function getRelevanceScore(card: any, ctx: SortContext): number {
   const cuisineType = String(card?.cuisine_type || "").toLowerCase();
   const address = String(card?.address || "").toLowerCase();
   const city = String(card?.city || "").toLowerCase();
-  const categoryBlob = (Array.isArray(card?._categories) ? card._categories.map((c: any) => String(c.name || "")).join(" ") : "").toLowerCase();
+  const categoryBlob = (
+    Array.isArray(card?._categories)
+      ? card._categories.map((c: any) => String(c.name || "")).join(" ")
+      : ""
+  ).toLowerCase();
   const rating = toNumber(card?.rating);
   const reviews = toNumber(card?.review_count);
   const monthlyReservations = toNumber(ctx.monthlyReservationsByRestaurant[id]);
   const monthlyOrders = toNumber(ctx.monthlyOrdersByRestaurant[id]);
   const promotion = Math.max(toNumber(ctx.promotionScoreByRestaurant[id]), card?.campaign_id ? 15 : 0);
+
   let score = 0;
   if (normalizedQuery) {
-    // Full query matching
     if (name === normalizedQuery) score += 220;
     else if (name.startsWith(normalizedQuery)) score += 170;
     else if (name.includes(normalizedQuery)) score += 120;
@@ -80,7 +110,6 @@ function getRelevanceScore(card: any, ctx: SortContext): number {
     if (city.includes(normalizedQuery)) score += 40;
     if (card?.matched_via_menu || card?._matchedViaMenu) score += 60;
 
-    // Token-level matching for multi-word queries
     const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
     if (tokens.length > 1) {
       for (const tk of tokens) {
@@ -95,17 +124,23 @@ function getRelevanceScore(card: any, ctx: SortContext): number {
   } else {
     score += rating * 18 + reviews * 0.9;
   }
+
   score += monthlyReservations * 4 + monthlyOrders * 3 + promotion * 1.4;
   if (card?.delivery_available) score += 6;
   return score;
 }
 
 function compareRestaurants(a: any, b: any, ctx: SortContext): number {
-  const aId = String(a?.id || ""); const bId = String(b?.id || "");
-  const aName = String(a?.name || ""); const bName = String(b?.name || "");
-  const aRating = toNumber(a?.rating); const bRating = toNumber(b?.rating);
-  const aReviews = toNumber(a?.review_count); const bReviews = toNumber(b?.review_count);
-  const aPrice = toNumber(a?.price_range, 99); const bPrice = toNumber(b?.price_range, 99);
+  const aId = String(a?.id || "");
+  const bId = String(b?.id || "");
+  const aName = String(a?.name || "");
+  const bName = String(b?.name || "");
+  const aRating = toNumber(a?.rating);
+  const bRating = toNumber(b?.rating);
+  const aReviews = toNumber(a?.review_count);
+  const bReviews = toNumber(b?.review_count);
+  const aPrice = toNumber(a?.price_range, 99);
+  const bPrice = toNumber(b?.price_range, 99);
   const aMonthlyReservations = toNumber(ctx.monthlyReservationsByRestaurant[aId]);
   const bMonthlyReservations = toNumber(ctx.monthlyReservationsByRestaurant[bId]);
   const aMonthlyOrders = toNumber(ctx.monthlyOrdersByRestaurant[aId]);
@@ -113,27 +148,42 @@ function compareRestaurants(a: any, b: any, ctx: SortContext): number {
   const aPromotion = Math.max(toNumber(ctx.promotionScoreByRestaurant[aId]), a?.campaign_id ? 15 : 0);
   const bPromotion = Math.max(toNumber(ctx.promotionScoreByRestaurant[bId]), b?.campaign_id ? 15 : 0);
   const defaultDirection = getDefaultSortDirection(ctx.sortBy);
-  const applyDirection = (value: number) => ctx.sortDirection === defaultDirection ? value : -value;
+  const applyDirection = (value: number) => (ctx.sortDirection === defaultDirection ? value : -value);
 
-  if (ctx.sortBy === "note") return applyDirection(bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
-  if (ctx.sortBy === "promotion") return applyDirection(bPromotion - aPromotion || bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
-  if (ctx.sortBy === "prix") return applyDirection(aPrice - bPrice || bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
+  if (ctx.sortBy === "note") {
+    return applyDirection(bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
+  }
+  if (ctx.sortBy === "promotion") {
+    return applyDirection(bPromotion - aPromotion || bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
+  }
+  if (ctx.sortBy === "prix") {
+    return applyDirection(aPrice - bPrice || bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
+  }
   if (ctx.sortBy === "popularite") {
     const aPopularity = aReviews + (aMonthlyReservations * 4) + (aMonthlyOrders * 3);
     const bPopularity = bReviews + (bMonthlyReservations * 4) + (bMonthlyOrders * 3);
     return applyDirection(bPopularity - aPopularity || bRating - aRating || aName.localeCompare(bName));
   }
   if (ctx.sortBy === "nouveaux") {
-    const aCreated = toTimestamp(a?.created_at); const bCreated = toTimestamp(b?.created_at);
+    const aCreated = toTimestamp(a?.created_at);
+    const bCreated = toTimestamp(b?.created_at);
     return applyDirection(bCreated - aCreated || bRating - aRating || aName.localeCompare(bName));
   }
   if (ctx.sortBy === "mieux_notes_mois") {
-    const aHasMonthly = aMonthlyReservations > 0 ? 1 : 0; const bHasMonthly = bMonthlyReservations > 0 ? 1 : 0;
-    return applyDirection(bHasMonthly - aHasMonthly || bRating - aRating || bMonthlyReservations - aMonthlyReservations || bReviews - aReviews || aName.localeCompare(bName));
+    const aHasMonthly = aMonthlyReservations > 0 ? 1 : 0;
+    const bHasMonthly = bMonthlyReservations > 0 ? 1 : 0;
+    return applyDirection(
+      bHasMonthly - aHasMonthly
+      || bRating - aRating
+      || bMonthlyReservations - aMonthlyReservations
+      || bReviews - aReviews
+      || aName.localeCompare(bName),
+    );
   }
   if (ctx.sortBy === "plus_reserves_mois") {
     return applyDirection(bMonthlyReservations - aMonthlyReservations || bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
   }
+
   const aRelevance = getRelevanceScore(a, ctx);
   const bRelevance = getRelevanceScore(b, ctx);
   return applyDirection(bRelevance - aRelevance || bRating - aRating || bReviews - aReviews || aName.localeCompare(bName));
@@ -142,11 +192,10 @@ function compareRestaurants(a: any, b: any, ctx: SortContext): number {
 function getRestaurantCuisineSummary(restaurant: any): string {
   return formatRestaurantCategorySummary(
     Array.isArray(restaurant?._categories) ? restaurant._categories.map((category: any) => category.name) : [],
-    restaurant?.cuisine_type || ""
+    restaurant?.cuisine_type || "",
   );
 }
 
-/** Map DB restaurant row to RestaurantCard props */
 function toCardProps(r: any) {
   return {
     id: r.id,
@@ -173,6 +222,7 @@ export default function Recherche() {
   const [query, setQuery] = useState(activeQuery);
   const cuisine = searchParams.get("cuisine") || "";
   const city = searchParams.get("city") || "";
+  const promo = searchParams.get("promo") || "";
   const price = searchParams.get("price") || "";
   const delivery = searchParams.get("delivery") || "";
   const minRatingParam = searchParams.get("rating") || "";
@@ -181,7 +231,11 @@ export default function Recherche() {
   const minRatingSelectValue = minRating10 > 0 ? String(minRating10) : "0";
   const sortParam = searchParams.get("sort");
   const orderParam = searchParams.get("order");
-  const sortBy: SortValue = SORT_OPTIONS.some((opt) => opt.value === sortParam) ? (sortParam as SortValue) : "pertinence";
+  const sortBy: SortValue = SORT_OPTIONS.some((opt) => opt.value === sortParam)
+    ? (sortParam as SortValue)
+    : promo === "true"
+      ? "promotion"
+      : "pertinence";
   const defaultSortDirection = getDefaultSortDirection(sortBy);
   const sortDirection: SortDirection = ORDER_OPTIONS.some((opt) => opt.value === orderParam) ? (orderParam as SortDirection) : defaultSortDirection;
 
@@ -247,17 +301,28 @@ export default function Recherche() {
     },
   });
 
+  const sortedCuisineOptions = useMemo(
+    () => [...cuisineOptions].sort((a: any, b: any) => String(a.name).localeCompare(String(b.name))),
+    [cuisineOptions],
+  );
+  const quickCuisineOptions = useMemo(() => sortedCuisineOptions.slice(0, 6), [sortedCuisineOptions]);
+
   const organicRestaurantById = useMemo(
     () => new Map((organicSearchResults || []).map((restaurant: any) => [String(restaurant.id), restaurant])),
-    [organicSearchResults]
+    [organicSearchResults],
   );
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams);
-    if (value) params.set(key, value); else params.delete(key);
+    if (value) params.set(key, value);
+    else params.delete(key);
     setSearchParams(params);
   };
 
+  const clearFilters = () => {
+    setSearchParams(new URLSearchParams());
+    setQuery("");
+  };
 
   const { data: sponsoredCampaigns } = useQuery({
     queryKey: ["sponsored-search"],
@@ -265,7 +330,10 @@ export default function Recherche() {
     enabled: campaignsEnabled,
   });
 
-  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); updateFilter("q", query); };
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateFilter("q", query);
+  };
 
   const matchesSponsoredFilters = (restaurant: any) => {
     const qText = activeQuery.trim().toLowerCase();
@@ -282,8 +350,15 @@ export default function Recherche() {
     });
     if (qText) {
       const tokens = qText.split(/\s+/).filter(Boolean);
-      const fullMatch = name.includes(qText) || description.includes(qText) || cuisineType.includes(qText) || addressValue.includes(qText) || cityValue.includes(qText) || matchesCategoryText || restaurant?._matchedViaMenu;
-      const tokenMatch = tokens.length > 1 && tokens.some((tk: string) => name.includes(tk) || description.includes(tk) || cuisineType.includes(tk) || addressValue.includes(tk) || cityValue.includes(tk));
+      const fullMatch = name.includes(qText)
+        || description.includes(qText)
+        || cuisineType.includes(qText)
+        || addressValue.includes(qText)
+        || cityValue.includes(qText)
+        || matchesCategoryText
+        || restaurant?._matchedViaMenu;
+      const tokenMatch = tokens.length > 1
+        && tokens.some((tk: string) => name.includes(tk) || description.includes(tk) || cuisineType.includes(tk) || addressValue.includes(tk) || cityValue.includes(tk));
       if (!fullMatch && !tokenMatch) return false;
     }
     if (cuisine && !matchesCategoryText) return false;
@@ -294,23 +369,40 @@ export default function Recherche() {
     return true;
   };
 
-  const sponsoredCards = (sponsoredCampaigns || []).map((camp: any) => {
-    const r = camp.restaurants;
-    if (!r) return null;
-    const enrichedRestaurant = organicRestaurantById.get(String(r.id));
-    return {
-      ...r,
-      ...enrichedRestaurant,
-      campaign_id: camp.id,
-      promo_image: camp.image_url || null,
-      _categories: enrichedRestaurant?._categories || [],
-    };
-  }).filter((r: any) => !!r && matchesSponsoredFilters(r)) as any[];
+  const sponsoredCards = (sponsoredCampaigns || [])
+    .map((camp: any) => {
+      const r = camp.restaurants;
+      if (!r) return null;
+      const enrichedRestaurant = organicRestaurantById.get(String(r.id));
+      return {
+        ...r,
+        ...enrichedRestaurant,
+        campaign_id: camp.id,
+        promo_image: camp.image_url || null,
+        _categories: enrichedRestaurant?._categories || [],
+      };
+    })
+    .filter((r: any) => !!r && matchesSponsoredFilters(r)) as any[];
 
   const mergedCards = useMemo(
     () => prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3 }),
-    [organicSearchResults, sponsoredCards]
+    [organicSearchResults, sponsoredCards],
   );
+
+  const activeFilterLabels = useMemo(() => {
+    const labels: string[] = [];
+    if (activeQuery) labels.push(`Recherche: ${activeQuery}`);
+    if (city) labels.push(`Ville: ${city}`);
+    if (cuisine) {
+      const option = sortedCuisineOptions.find((entry: any) => String(entry.slug || entry.name).toLowerCase() === cuisine);
+      labels.push(`Cuisine: ${option?.name || cuisine}`);
+    }
+    if (price) labels.push(`Budget: ${price === "1" ? "CHF" : price === "2" ? "CHF++" : "CHF+++"}`);
+    if (minRating10 > 0) labels.push(`Note: ${minRating10.toFixed(1)}/10+`);
+    if (deliveryEnabled && delivery === "true") labels.push("Livraison");
+    if (promo === "true") labels.push("Bons plans");
+    return labels;
+  }, [activeQuery, city, cuisine, sortedCuisineOptions, price, minRating10, deliveryEnabled, delivery, promo]);
 
   useEffect(() => {
     if (mergedCards.length > 0 && (activeQuery || cuisine || city)) {
@@ -320,71 +412,180 @@ export default function Recherche() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="container py-8 space-y-6">
+      <div className="container space-y-6 py-8">
+        <div className="rounded-[32px] border bg-card/70 p-5 shadow-sm md:p-6">
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Explorer</p>
+                <h1 className="font-display text-3xl font-bold">Trouvez le bon restaurant, plus vite</h1>
+                <p className="max-w-2xl text-sm text-muted-foreground">
+                  Recherchez par nom, cuisine ou ville, puis affinez uniquement si necessaire.
+                </p>
+              </div>
+              <div className="rounded-2xl bg-primary/5 px-4 py-3 text-right">
+                <p className="text-2xl font-bold text-primary">{mergedCards.length}</p>
+                <p className="text-xs text-muted-foreground">restaurant(s) visible(s)</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSearch} className="flex flex-col gap-3 md:flex-row">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Nom, cuisine, plat ou adresse..."
+                  className="h-12 rounded-full pl-10"
+                />
+              </div>
+              <Button type="submit" className="h-12 rounded-full px-6">Rechercher</Button>
+            </form>
+
+            {quickCuisineOptions.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {quickCuisineOptions.map((option: any) => {
+                  const value = String(option.slug || option.name).toLowerCase();
+                  const active = cuisine === value;
+                  return (
+                    <button
+                      key={option.id || option.slug || option.name}
+                      type="button"
+                      onClick={() => updateFilter("cuisine", active ? "" : value)}
+                      className={`rounded-full border px-4 py-2 text-sm transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-muted/40"}`}
+                    >
+                      {option.name}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            <div className="grid gap-3 xl:grid-cols-[1fr_auto]">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="mr-1 flex items-center gap-2 rounded-lg border border-secondary bg-secondary/50 px-3 py-1.5 text-xs font-bold uppercase tracking-tight text-muted-foreground">
+                  <SlidersHorizontal className="h-3 w-3" /> Filtres
+                </div>
+                <CityAutocomplete
+                  value={city}
+                  onValueChange={(value) => updateFilter("city", value)}
+                  onCitySelect={(selectedCity) => updateFilter("city", selectedCity)}
+                  placeholder="Ville..."
+                  className="w-40"
+                  inputClassName="h-9 text-xs"
+                />
+                <Select value={cuisine} onValueChange={(v) => updateFilter("cuisine", v)}>
+                  <SelectTrigger className="h-9 w-40 text-xs"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
+                  <SelectContent>
+                    {sortedCuisineOptions.map((entry: any) => (
+                      <SelectItem key={entry.id || entry.slug || entry.name} value={String(entry.slug || entry.name).toLowerCase()}>
+                        {entry.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={price} onValueChange={(v) => updateFilter("price", v)}>
+                  <SelectTrigger className="h-9 w-24 text-xs font-bold uppercase"><SelectValue placeholder="Budget" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">CHF</SelectItem>
+                    <SelectItem value="2">CHF++</SelectItem>
+                    <SelectItem value="3">CHF+++</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={minRatingSelectValue} onValueChange={(v) => updateFilter("rating", v)}>
+                  <SelectTrigger className="h-9 w-28 text-xs"><SelectValue placeholder="Note minimum" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Toutes les notes</SelectItem>
+                    <SelectItem value="9">9.0+/10</SelectItem>
+                    <SelectItem value="8">8.0+/10</SelectItem>
+                    <SelectItem value="7">7.0+/10</SelectItem>
+                  </SelectContent>
+                </Select>
+                {deliveryEnabled ? (
+                  <Button
+                    type="button"
+                    variant={delivery === "true" ? "default" : "outline"}
+                    onClick={() => updateFilter("delivery", delivery === "true" ? "" : "true")}
+                    className="h-9 gap-1 text-xs"
+                  >
+                    <Badge variant={delivery === "true" ? "secondary" : "default"} className="h-4 px-1 text-[10px]">Oui</Badge>
+                    Livraison
+                  </Button>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                <span className="whitespace-nowrap text-sm font-medium text-muted-foreground">Trier par :</span>
+                <Select value={sortBy} onValueChange={(v) => updateFilter("sort", v)}>
+                  <SelectTrigger className="h-9 bg-secondary/20 text-xs font-semibold xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={sortDirection} onValueChange={(v) => updateFilter("order", v)}>
+                  <SelectTrigger className="h-9 w-32 bg-secondary/20 text-xs"><SelectValue placeholder="Ordre" /></SelectTrigger>
+                  <SelectContent>
+                    {ORDER_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {activeFilterLabels.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2 border-t pt-4">
+                {activeFilterLabels.map((label) => (
+                  <span key={label} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground">
+                    {label}
+                  </span>
+                ))}
+                <Button type="button" variant="ghost" onClick={clearFilters} className="ml-auto h-9 gap-1 text-xs text-muted-foreground">
+                  <X className="h-3 w-3" />
+                  Effacer tout
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
         <CampaignBanner page="search" maxBanners={1} />
-        <h1 className="font-display text-3xl font-bold">Rechercher un restaurant</h1>
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom, cuisine, plat, adresse..." className="pl-10" />
-          </div>
-          <Button type="submit">Rechercher</Button>
-        </form>
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="flex items-center gap-2 mr-2 py-1.5 px-3 rounded-lg bg-secondary/50 border border-secondary text-xs font-bold uppercase tracking-tight text-muted-foreground shrink-0">
-            <SlidersHorizontal className="h-3 w-3" /> Filtres
-          </div>
-          <CityAutocomplete
-            value={city}
-            onValueChange={(value) => updateFilter("city", value)}
-            onCitySelect={(selectedCity) => updateFilter("city", selectedCity)}
-            placeholder="Ville..."
-            className="w-40"
-            inputClassName="h-9 text-xs"
-          />
-          <Select value={cuisine} onValueChange={(v) => updateFilter("cuisine", v)}>
-            <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
-            <SelectContent>{[...cuisineOptions].sort((a: any, b: any) => String(a.name).localeCompare(String(b.name))).map((c: any) => (<SelectItem key={c.id || c.slug || c.name} value={String(c.slug || c.name).toLowerCase()}>{c.name}</SelectItem>))}</SelectContent>
-          </Select>
-          <Select value={price} onValueChange={(v) => updateFilter("price", v)}>
-            <SelectTrigger className="w-24 h-9 text-xs uppercase font-bold"><SelectValue placeholder="Budget" /></SelectTrigger>
-            <SelectContent><SelectItem value="1">CHF</SelectItem><SelectItem value="2">CHF++</SelectItem><SelectItem value="3">CHF+++</SelectItem></SelectContent>
-          </Select>
-          <Select value={minRatingSelectValue} onValueChange={(v) => updateFilter("rating", v)}>
-            <SelectTrigger className="w-28 h-9 text-xs"><SelectValue placeholder="Note minimum" /></SelectTrigger>
-            <SelectContent><SelectItem value="0">Toutes les notes</SelectItem><SelectItem value="9">9.0+/10</SelectItem><SelectItem value="8">8.0+/10</SelectItem><SelectItem value="7">7.0+/10</SelectItem></SelectContent>
-          </Select>
-          {deliveryEnabled ? (
-            <Button variant={delivery === "true" ? "default" : "outline"} onClick={() => updateFilter("delivery", delivery === "true" ? "" : "true")} className="h-9 text-xs gap-1"><Badge variant={delivery === "true" ? "secondary" : "default"} className="px-1 text-[10px] h-4">Oui</Badge> Livraison</Button>
-          ) : null}
-          {(query || cuisine || city || price || (deliveryEnabled && delivery) || minRating10 > 0) && (
-            <Button variant="ghost" onClick={() => { setSearchParams(new URLSearchParams()); setQuery(""); }} className="h-9 text-xs text-muted-foreground ml-auto gap-1"><X className="h-3 w-3" /> Effacer</Button>
-          )}
-        </div>
-        <div className="flex items-center gap-4 border-b pb-4 mt-6">
-          <div className="flex-1 flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Trier par :</span>
-            <Select value={sortBy} onValueChange={(v) => updateFilter("sort", v)}>
-              <SelectTrigger className="h-9 text-xs font-semibold bg-secondary/20 border-transparent"><SelectValue placeholder="Pertinence" /></SelectTrigger>
-              <SelectContent>{SORT_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent>
-            </Select>
-            <Select value={sortDirection} onValueChange={(v) => updateFilter("order", v)}>
-              <SelectTrigger className="h-9 text-xs w-32 bg-secondary/20 border-transparent"><SelectValue placeholder="Ordre" /></SelectTrigger>
-              <SelectContent>{ORDER_OPTIONS.map((opt) => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent>
-            </Select>
-          </div>
-          <div className="text-sm font-medium text-muted-foreground"><span className="text-foreground">{mergedCards.length}</span> résultats</div>
-        </div>
+
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{[1, 2, 3, 4, 5, 6].map((i) => (<div key={i} className="h-[300px] rounded-2xl bg-muted animate-pulse" />))}</div>
-        ) : mergedCards.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mergedCards.map((restaurant: any) => (
-              <RestaurantCard key={restaurant.id} {...toCardProps(restaurant)} />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-[300px] animate-pulse rounded-2xl bg-muted" />
             ))}
           </div>
+        ) : mergedCards.length > 0 ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold">{promo === "true" ? "Bons plans disponibles" : "Selection disponible"}</p>
+                <p className="text-xs text-muted-foreground">
+                  {promo === "true"
+                    ? "Les promotions et activations remontees sont affichees en priorite."
+                    : "Affinez si necessaire, sinon ouvrez directement une fiche restaurant."}
+                </p>
+              </div>
+              <p className="text-sm font-medium text-muted-foreground"><span className="text-foreground">{mergedCards.length}</span> resultat(s)</p>
+            </div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {mergedCards.map((restaurant: any) => (
+                <RestaurantCard key={restaurant.id} {...toCardProps(restaurant)} />
+              ))}
+            </div>
+          </div>
         ) : (
-          <div className="text-center py-20 text-muted-foreground">Aucun restaurant trouvé pour vos critères.</div>
+          <div className="rounded-[28px] border border-dashed py-20 text-center text-muted-foreground">
+            <p className="text-lg font-semibold text-foreground">Aucun restaurant ne correspond a ces criteres</p>
+            <p className="mt-2 text-sm">Essayez une autre ville, une cuisine plus large ou reinitialisez les filtres.</p>
+            <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
+              Reinitialiser la recherche
+            </Button>
+          </div>
         )}
       </div>
     </main>

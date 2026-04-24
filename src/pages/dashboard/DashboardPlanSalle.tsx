@@ -2905,7 +2905,7 @@ export default function DashboardPlanSalle() {
                     onCanvasWheel={handleCanvasWheel}
                     onCanvasBackgroundPress={() => setSelectedTableId(null)}
                     onStartDraggingTable={startDraggingTable}
-                    onStartResizingTable={(event, tableId) => startResizingTable(event, tableId, PRIMARY_RESIZE_HANDLE.key)}
+                    onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
                     onStartRotatingTable={startRotatingTable}
                     onUpdateCanvasZoom={updateCanvasZoom}
                     getRenderedFrame={(table) => getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT)}

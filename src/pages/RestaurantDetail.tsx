@@ -1,4 +1,4 @@
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -18,6 +18,7 @@ import { useCart } from "@/lib/cart";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useRef } from "react";
+import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import {
   isAntiWasteOfferPubliclyVisible,
   isFlashSalePubliclyVisible,
@@ -34,6 +35,7 @@ export default function RestaurantDetail() {
   const activeFeatures = useActiveFeatures();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [reservationOpen, setReservationOpen] = useState(false);
   const [showReserveChoice, setShowReserveChoice] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -48,6 +50,7 @@ export default function RestaurantDetail() {
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const zeroWaitEnabled = activeFeatures.has("zero-attente");
+  const authRedirectTarget = buildAuthRedirectTarget(location.pathname, location.search);
 
   useEffect(() => {
     if (searchParams.get("reserve") === "true" && reservationEnabled) {
@@ -175,6 +178,14 @@ export default function RestaurantDetail() {
   const menuUnavailableReason = canOrderItems
     ? undefined
     : "Commande indisponible: livraison et emporter sont desactives pour ce restaurant.";
+  const cartItemsForCurrentRestaurant = useMemo(
+    () => cartItems.filter((item) => item.restaurantId === id),
+    [cartItems, id],
+  );
+  const cartCountForCurrentRestaurant = useMemo(
+    () => cartItemsForCurrentRestaurant.reduce((acc, item) => acc + item.quantity, 0),
+    [cartItemsForCurrentRestaurant],
+  );
 
   useEffect(() => {
     if (!reservationAvailable && reservationOpen) {
@@ -211,6 +222,20 @@ export default function RestaurantDetail() {
     setReservationOpen(true);
   };
 
+  const handleReservationAction = () => {
+    if (!user) {
+      navigate(authRedirectTarget);
+      return;
+    }
+
+    if (zeroWaitAvailable) {
+      setShowReserveChoice((current) => !current);
+      return;
+    }
+
+    setReservationOpen(true);
+  };
+
   return (
     <main className="min-h-screen bg-background">
       <div className="relative h-72 md:h-96">
@@ -237,18 +262,35 @@ export default function RestaurantDetail() {
           </div>
         </div>
       </div>
-      <div className="container py-6 md:py-8">
+      <div className="container py-6 pb-24 md:py-8 lg:pb-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 min-w-0 space-y-6">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground p-4 rounded-xl bg-card border">
               <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" />{restaurant.address}, {restaurant.city}</span>
               {restaurant.phone && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" />{restaurant.phone}</span>}
             </div>
-            {user ? (
-              <div className={`grid grid-cols-1 gap-3 ${(reservationAvailable && showDelivery && takeawayAvailable) ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+            <div className="rounded-2xl border bg-card/70 p-4 md:p-5">
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Choisissez votre parcours</p>
+                  <h2 className="mt-1 font-display text-xl font-bold">Commencez en quelques secondes</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {user
+                      ? "Selectionnez un mode puis ajoutez vos plats ou finalisez une reservation."
+                      : "Vous pouvez constituer votre panier maintenant. La connexion sera demandee juste avant le paiement ou pour confirmer une reservation."}
+                  </p>
+                </div>
+                {!user ? (
+                  <Button variant="outline" className="gap-2 self-start rounded-full" onClick={() => navigate(authRedirectTarget)}>
+                    <LogIn className="h-4 w-4" />
+                    Connexion rapide
+                  </Button>
+                ) : null}
+              </div>
+              <div className={`mt-4 grid grid-cols-1 gap-3 ${(reservationAvailable && showDelivery && takeawayAvailable) ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
                 <div className={reservationAvailable ? "relative" : "hidden"}>
-                  <button onClick={() => zeroWaitAvailable ? setShowReserveChoice(!showReserveChoice) : setReservationOpen(true)} className="group flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border-2 border-transparent hover:border-primary/50 hover:bg-secondary/50 transition-all w-full">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
+                  <button onClick={handleReservationAction} className="group flex w-full items-center gap-3 rounded-2xl border-2 border-transparent bg-secondary/30 p-4 transition-all hover:border-primary/50 hover:bg-secondary/50">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 transition-transform group-hover:scale-110"><Utensils className="h-5 w-5 text-primary" /></div>
                     <div className="text-left"><span className="font-bold text-sm block">Réserver une table</span><span className="text-[10px] text-muted-foreground">Garantie de place</span></div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
                   </button>
@@ -266,23 +308,29 @@ export default function RestaurantDetail() {
                   )}
                 </div>
                 {showDelivery ? (
-                  <button onClick={() => setOrderMode('delivery')} disabled={!showDelivery} className={`group flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${showDelivery ? orderMode === 'delivery' ? 'bg-blue-50 border-blue-200' : 'bg-secondary/30 border-transparent hover:border-primary/50 hover:bg-secondary/50' : 'bg-secondary/10 opacity-50 cursor-not-allowed'}`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 ${orderMode === 'delivery' ? 'bg-blue-500/20' : 'bg-blue-500/10'}`}><Bike className="h-5 w-5 text-blue-500" /></div>
-                    <div className="text-left"><span className="font-bold text-sm block">Livraison</span><span className="text-[10px] text-muted-foreground">{Number(restaurant.delivery_fee || 2.99).toFixed(2)} CHF</span></div>
+                  <button onClick={() => setOrderMode('delivery')} disabled={!showDelivery} className={`group flex items-center gap-3 rounded-2xl border-2 p-4 transition-all ${showDelivery ? orderMode === 'delivery' ? 'border-blue-200 bg-blue-50' : 'border-transparent bg-secondary/30 hover:border-primary/50 hover:bg-secondary/50' : 'cursor-not-allowed bg-secondary/10 opacity-50'}`}>
+                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform group-hover:scale-110 ${orderMode === 'delivery' ? 'bg-blue-500/20' : 'bg-blue-500/10'}`}><Bike className="h-5 w-5 text-blue-500" /></div>
+                    <div className="text-left"><span className="font-bold text-sm block">Livraison</span><span className="text-[11px] text-muted-foreground">A partir de {Number(restaurant.delivery_fee || 2.99).toFixed(2)} CHF</span></div>
                   </button>
                 ) : null}
-                <button onClick={() => setOrderMode('takeaway')} disabled={!takeawayAvailable} className={`${takeawayAvailable ? "group flex" : "hidden"} items-center gap-3 p-3 rounded-xl border-2 transition-all ${orderMode === 'takeaway' ? 'bg-miamz-green/10 border-miamz-green/30' : 'bg-secondary/30 border-transparent hover:border-miamz-green/50 hover:bg-secondary/50'}`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0 ${orderMode === 'takeaway' ? 'bg-miamz-green/20' : 'bg-miamz-green/10'}`}><ShoppingBag className="h-5 w-5 text-miamz-green" /></div>
-                  <div className="text-left"><span className="font-bold text-sm block">Emporter</span><span className="text-[10px] text-miamz-green font-bold">0.00 CHF</span></div>
+                <button onClick={() => setOrderMode('takeaway')} disabled={!takeawayAvailable} className={`${takeawayAvailable ? "group flex" : "hidden"} items-center gap-3 rounded-2xl border-2 p-4 transition-all ${orderMode === 'takeaway' ? 'border-miamz-green/30 bg-miamz-green/10' : 'border-transparent bg-secondary/30 hover:border-miamz-green/50 hover:bg-secondary/50'}`}>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform group-hover:scale-110 ${orderMode === 'takeaway' ? 'bg-miamz-green/20' : 'bg-miamz-green/10'}`}><ShoppingBag className="h-5 w-5 text-miamz-green" /></div>
+                  <div className="text-left"><span className="font-bold text-sm block">Emporter</span><span className="text-[11px] font-semibold text-miamz-green">Retrait sans frais</span></div>
                 </button>
               </div>
-            ) : (
-              <button onClick={() => navigate("/auth")} className="flex items-center gap-3 w-full p-4 rounded-xl bg-primary/5 border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/10 transition-all group">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"><LogIn className="h-5 w-5 text-primary" /></div>
-                <div className="text-left"><span className="font-bold text-sm block">Connectez-vous pour reserver ou commander</span><span className="text-[10px] text-muted-foreground">Reservation, livraison et emporter</span></div>
-                <ChevronRight className="h-4 w-4 text-primary ml-auto" />
-              </button>
-            )}
+              {!user && (reservationAvailable || canOrderItems) ? (
+                <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 md:flex-row md:items-center md:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">Panier invite actif</p>
+                    <p className="text-xs text-muted-foreground">Ajoutez vos plats maintenant. La connexion sera demandee uniquement pour finaliser la commande ou confirmer une reservation.</p>
+                  </div>
+                  <Button className="gap-2 self-start rounded-full" onClick={() => navigate(authRedirectTarget)}>
+                    <LogIn className="h-4 w-4" />
+                    Me connecter
+                  </Button>
+                </div>
+              ) : null}
+            </div>
             {!reservationAvailable && !showDelivery && !takeawayAvailable ? (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
                 Les parcours reservation, livraison et emporter sont actuellement indisponibles pour ce restaurant.
@@ -620,13 +668,18 @@ export default function RestaurantDetail() {
                   Les reservations sont actuellement indisponibles pour ce restaurant.
                 </div>
               )}
-              {cartItems.length > 0 && cartItems[0].restaurantId === id && (
-                <Button className="w-full h-14 text-lg font-bold shadow-xl" onClick={() => navigate("/panier")}><ShoppingCart className="mr-2 h-5 w-5" /> Voir mon panier ({cartItems.reduce((acc, item) => acc + item.quantity, 0)})</Button>
+              {cartItemsForCurrentRestaurant.length > 0 && (
+                <Button className="w-full h-14 text-lg font-bold shadow-xl" onClick={() => navigate("/panier")}><ShoppingCart className="mr-2 h-5 w-5" /> Voir mon panier ({cartCountForCurrentRestaurant})</Button>
               )}
             </div>
           </div>
         </div>
       </div>
+      {cartItemsForCurrentRestaurant.length > 0 ? (
+        <div className="fixed bottom-4 left-4 right-4 z-40 lg:hidden">
+          <Button className="h-14 w-full rounded-full text-base font-bold shadow-2xl" onClick={() => navigate("/panier")}><ShoppingCart className="mr-2 h-5 w-5" /> Voir mon panier ({cartCountForCurrentRestaurant})</Button>
+        </div>
+      ) : null}
       {reservationAvailable ? (
         <ReservationDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurantId={id!} restaurantName={restaurant.name} initialDate={reservationDefaults?.date} initialTime={reservationDefaults?.time} initialPartySize={reservationDefaults?.partySize} />
       ) : null}

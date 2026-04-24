@@ -48,6 +48,7 @@ export type RestaurantOrderRow = {
 
 export type RestaurantReservationPaymentRow = {
   id: string;
+  created_at: string;
   date: string;
   feature: string | null;
   metadata: Record<string, unknown> | null;
@@ -484,11 +485,11 @@ export function useDashboardFacturesData() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, date, feature, metadata, total_amount, status, restaurant_id, restaurant_invoice_id")
+        .select("id, created_at, date, feature, metadata, total_amount, status, restaurant_id, restaurant_invoice_id")
         .eq("restaurant_id", selectedId!)
         .gt("total_amount", 0)
         .not("status", "in", "(cancelled,no_show,pending)")
-        .order("date", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return (data || []) as RestaurantReservationPaymentRow[];

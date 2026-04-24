@@ -116,11 +116,11 @@ function getSignupValidationError(role: SignupRole, form: SignupFormState) {
   if (!form.fullName.trim()) return "Le nom complet est requis.";
   if (!form.email.trim()) return "L'email est requis.";
   if (!form.password.trim() || form.password.length < 6) return "Le mot de passe doit contenir au moins 6 caracteres.";
-  if (!form.phone.trim()) return "Le telephone est requis.";
-  if (!form.city.trim()) return "La ville est requise.";
-  if (!form.address.trim()) return "L'adresse est requise.";
 
   if (role === "restaurateur") {
+    if (!form.phone.trim()) return "Le telephone est requis.";
+    if (!form.city.trim()) return "La ville est requise.";
+    if (!form.address.trim()) return "L'adresse est requise.";
     if (!form.businessName.trim()) return "Le nom commercial est requis.";
     if (!form.legalName.trim()) return "La raison sociale est requise.";
     if (!form.businessRegistrationNumber.trim()) return "Le numero d'immatriculation est requis.";
@@ -129,6 +129,9 @@ function getSignupValidationError(role: SignupRole, form: SignupFormState) {
   }
 
   if (role === "courier") {
+    if (!form.phone.trim()) return "Le telephone est requis.";
+    if (!form.city.trim()) return "La ville est requise.";
+    if (!form.address.trim()) return "L'adresse est requise.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
     if (["scooter", "car"].includes(form.vehicleType) && !form.licensePlate.trim()) {
       return "La plaque d'immatriculation est requise pour ce vehicule.";
@@ -165,6 +168,9 @@ export default function Auth() {
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
     [roleMode, signupForm.vehicleType],
   );
+  const isClientSignup = !isLogin && roleMode === "client";
+  const showExtendedIdentityFields = !isLogin && roleMode !== "client";
+  const showDocumentSection = !isLogin && requiredDocuments.length > 0;
   const postAuthRedirectTarget = useMemo(() => {
     const redirectTarget = searchParams.get("redirect");
     if (!redirectTarget) return null;
@@ -279,7 +285,9 @@ export default function Auth() {
         toast({
           title: "Compte cree",
           description:
-            "Confirmez votre email puis reconnectez-vous pour finaliser l'envoi des documents de verification.",
+            roleMode === "client"
+              ? "Confirmez votre email puis reconnectez-vous pour finaliser votre parcours."
+              : "Confirmez votre email puis reconnectez-vous pour finaliser l'envoi des documents de verification.",
         });
         return;
       }
@@ -330,10 +338,17 @@ export default function Auth() {
       }
 
       toast({
-        title: "Inscription enregistree",
+        title: roleMode === "client" ? "Compte cree" : "Inscription enregistree",
         description:
-          "Votre compte et votre dossier documentaire ont ete transmis pour verification.",
+          roleMode === "client"
+            ? "Votre compte est actif. Vous pouvez continuer votre parcours."
+            : "Votre compte et votre dossier documentaire ont ete transmis pour verification.",
       });
+
+      if (roleMode === "client") {
+        navigate(postAuthRedirectTarget || "/");
+        return;
+      }
 
       setDocuments({});
       setSignupForm((current) => ({
@@ -353,7 +368,7 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
         <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="text-center space-y-2">
-            <img src={LOGO_URL} alt="Tok" className="mx-auto h-16 w-auto object-contain mb-2" />
+            <img src={LOGO_URL} alt="Tok" className="mx-auto h-18 w-auto object-contain mb-2" />
             <CardTitle className="font-display text-2xl">Bienvenue</CardTitle>
             <CardDescription>Choisissez votre espace pour continuer</CardDescription>
           </CardHeader>
@@ -393,15 +408,27 @@ export default function Auth() {
         <CardHeader className="text-center space-y-3">
           <img src={LOGO_URL} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
           <CardTitle className="font-display text-2xl">
-            {isLogin ? "Bon retour" : "Creer un compte verifie"}
+            {isLogin ? "Bon retour" : isClientSignup ? "Creer votre compte" : "Creer un compte verifie"}
           </CardTitle>
           <CardDescription>
             {isLogin
-              ? "Connectez-vous pour acceder a vos espaces client, restaurateur, livreur ou admin."
-              : "Choisissez un profil, renseignez vos informations et ajoutez les justificatifs requis."}
+              ? postAuthRedirectTarget
+                ? "Connectez-vous pour reprendre votre commande, reservation ou parcours en cours."
+                : "Connectez-vous pour acceder a vos espaces client, restaurateur, livreur ou admin."
+              : isClientSignup
+                ? "Inscription en moins d'une minute. Adresse et paiement seront demandes uniquement au bon moment."
+                : "Choisissez un profil, renseignez vos informations et ajoutez les justificatifs requis."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {isLogin && postAuthRedirectTarget ? (
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
+              <p className="font-medium">Connexion requise pour continuer</p>
+              <p className="pt-1 text-muted-foreground">
+                Une fois connecte, vous reviendrez automatiquement a votre parcours en cours.
+              </p>
+            </div>
+          ) : null}
           {!isLogin ? (
             <Tabs value={roleMode} onValueChange={(value) => setRoleMode(value as SignupRole)} className="w-full">
               <TabsList className="grid w-full grid-cols-3">
@@ -487,7 +514,7 @@ export default function Auth() {
                   />
                 </div>
 
-                {!isLogin ? (
+                {showExtendedIdentityFields ? (
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
@@ -536,6 +563,15 @@ export default function Auth() {
                   </>
                 ) : null}
               </div>
+
+              {isClientSignup ? (
+                <div className="rounded-2xl border bg-card/50 p-4 text-sm">
+                  <p className="font-medium">Inscription simplifiee</p>
+                  <p className="pt-1 text-muted-foreground">
+                    Aucun document d&apos;identite n&apos;est demande pour un compte client. Vos coordonnees de livraison seront renseignees plus tard, uniquement si necessaire.
+                  </p>
+                </div>
+              ) : null}
 
               {!isLogin && roleMode === "restaurateur" ? (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -650,7 +686,7 @@ export default function Auth() {
                 </div>
               ) : null}
 
-              {!isLogin ? (
+              {showDocumentSection ? (
                 <div className="space-y-4 rounded-2xl border bg-card p-4">
                   <div>
                     <p className="font-medium">Documents a fournir</p>
@@ -709,6 +745,8 @@ export default function Auth() {
                   </>
                 ) : isLogin ? (
                   "Se connecter"
+                ) : isClientSignup ? (
+                  "Creer mon compte"
                 ) : (
                   <>
                     <FileText className="mr-2 h-4 w-4" />

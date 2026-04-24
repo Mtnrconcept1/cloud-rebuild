@@ -6,6 +6,7 @@ import {
   clampFloorPlanLayout,
   ensureFloorPlanLayoutFitsCapacity,
   getMinimumTableSize,
+  getResolvedFloorPlanDimensions,
   isReservableFloorPlanItem,
   reservationsOverlap,
 } from "@/lib/floorPlan";
@@ -68,6 +69,35 @@ describe("floor plan helpers", () => {
     expect(plantLayout.seatLabels).toEqual([]);
     expect(plantLayout.w).toBeGreaterThanOrEqual(getMinimumTableSize(0, "round", "plant").w);
     expect(plantLayout.h).toBeGreaterThanOrEqual(getMinimumTableSize(0, "round", "plant").h);
+  });
+
+  it("resizes furniture with guided constraints instead of snapping everything to the preset minimum", () => {
+    const plant = ensureFloorPlanLayoutFitsCapacity(
+      { x: 40, y: 40, w: 144, h: 108, rotation: 0, shape: "round", seatLabels: [], kind: "plant" },
+      0,
+      "round",
+      "plant",
+    );
+    const divider = ensureFloorPlanLayoutFitsCapacity(
+      { x: 40, y: 40, w: 320, h: 120, rotation: 0, shape: "rect", seatLabels: [], kind: "divider" },
+      0,
+      "rect",
+      "divider",
+    );
+    const serviceStation = getResolvedFloorPlanDimensions({
+      capacity: 0,
+      kind: "service-station",
+      shape: "rect",
+      footprintWidth: 260,
+      footprintHeight: 120,
+    });
+
+    expect(plant.w).toBe(144);
+    expect(plant.h).toBe(144);
+    expect(divider.w).toBe(320);
+    expect(divider.h).toBeLessThanOrEqual(72);
+    expect(serviceStation.footprintWidth).toBe(260);
+    expect(serviceStation.footprintHeight).toBe(120);
   });
 
   it("detects overlapping reservations on the same service window", () => {

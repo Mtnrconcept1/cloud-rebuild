@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FloorPlanTablePreset } from "@/lib/floorPlan";
-import { getFloorPlanItemTypeLabel } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable, StudioLibraryTab } from "./studioShared";
@@ -45,29 +44,27 @@ function StudioPresetCard({
   onClick: () => void;
   disabled: boolean;
 }) {
-  const meta = preset.capacity
-    ? `${preset.capacity} pl.`
-    : getFloorPlanItemTypeLabel(preset.kind, preset.shape);
+  const meta = preset.capacity ? `${preset.capacity} pl.` : null;
   const tone = preset.category === "table"
-    ? "border-sky-200 bg-sky-50/70"
+    ? "border-sky-200/90 bg-[radial-gradient(circle_at_top,rgba(232,244,255,0.98),rgba(240,247,255,0.92)_55%,rgba(255,255,255,0.9)_100%)]"
     : preset.kind === "plant"
-      ? "border-emerald-200 bg-emerald-50/70"
-      : "border-slate-200 bg-slate-50/70";
+      ? "border-emerald-200/90 bg-[radial-gradient(circle_at_top,rgba(234,247,235,0.98),rgba(241,250,242,0.92)_55%,rgba(255,255,255,0.9)_100%)]"
+      : "border-slate-200/90 bg-[radial-gradient(circle_at_top,rgba(248,250,252,0.98),rgba(244,247,250,0.92)_58%,rgba(255,255,255,0.9)_100%)]";
 
   return (
     <button
       type="button"
-      className="h-auto min-w-0 whitespace-normal rounded-[26px] border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
+      className="h-auto min-w-0 whitespace-normal rounded-[28px] border border-slate-200/90 bg-white px-4 py-4 text-left shadow-[0_22px_44px_-34px_rgba(15,23,42,0.35)] transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_28px_56px_-36px_rgba(15,23,42,0.42)] disabled:pointer-events-none disabled:opacity-50"
       onClick={onClick}
       disabled={disabled}
     >
       <div className="w-full min-w-0 space-y-4">
-        <div className={cn("flex h-36 items-center justify-center overflow-hidden rounded-[24px] border px-3 shadow-sm", tone)}>
+        <div className={cn("flex h-40 items-center justify-center overflow-hidden rounded-[26px] border px-4 py-3 shadow-inner", tone)}>
           <FloorPlanItemIllustration
             kind={preset.kind}
             shape={preset.shape}
             capacity={preset.capacity > 0 ? preset.capacity : undefined}
-            className="size-full max-h-[10rem] max-w-[240px]"
+            className="block h-full w-full"
             decorative={false}
           />
         </div>
@@ -77,9 +74,11 @@ function StudioPresetCard({
             <span className="min-w-0 flex-1 break-words text-base font-semibold leading-6 text-slate-950">
               {preset.label}
             </span>
-            <Badge variant="outline" className="shrink-0 rounded-full border-slate-200 bg-slate-50 text-slate-600">
-              {meta}
-            </Badge>
+            {meta ? (
+              <Badge variant="outline" className="shrink-0 rounded-full border-slate-200 bg-slate-50 text-slate-600">
+                {meta}
+              </Badge>
+            ) : null}
           </div>
           <p className="break-words text-sm leading-5 text-slate-500">{preset.description}</p>
         </div>

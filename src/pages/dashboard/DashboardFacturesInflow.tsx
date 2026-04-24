@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDownRight, Download, FileUp, RefreshCcw, Settings } from "lucide-react";
+import { ArrowDownRight, Coins, Download, FileUp, Megaphone, RefreshCcw, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { InvoiceDetailAccordion } from "@/components/invoices/InvoiceDetailAccordion";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { useAuth } from "@/lib/auth";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -58,11 +58,13 @@ function InvoiceTableRow({
           <div className="text-xs text-muted-foreground">Restaurant concerne : {restaurantName || "-"}</div>
         </TableCell>
         <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-        <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
+        <TableCell className="text-right font-semibold whitespace-nowrap">{formatAmount(invoice.amount_ttc)}</TableCell>
         <TableCell>
-          <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
+          <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
+            {invoice.status || "draft"}
+          </span>
         </TableCell>
-        <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
+        <TableCell className="text-sm whitespace-nowrap">{formatDate(invoice.due_at)}</TableCell>
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
             {invoice.pdf_url ? (
@@ -126,33 +128,31 @@ function InvoiceTable({
 
   return (
     <div className="rounded-xl border">
-      <Table>
+      <Table className="min-w-[760px]">
         <TableHeader>
           <TableRow>
             <TableHead>Facture</TableHead>
             <TableHead>Periode</TableHead>
-            <TableHead className="text-right">Montant TTC</TableHead>
+            <TableHead className="text-right whitespace-nowrap">Montant TTC</TableHead>
             <TableHead>Statut</TableHead>
-            <TableHead>Echeance</TableHead>
+            <TableHead className="whitespace-nowrap">Echeance</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.map((invoice) => {
-            return (
-              <InvoiceTableRow
-                key={invoice.id}
-                invoice={invoice}
-                canMarkPaid={canMarkPaid}
-                isExpanded={expandedInvoiceId === invoice.id}
-                restaurantName={restaurantName}
-                onToggleDetail={(invoiceId) => {
-                  setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
-                }}
-                onMarkPaid={onMarkPaid}
-              />
-            );
-          })}
+          {invoices.map((invoice) => (
+            <InvoiceTableRow
+              key={invoice.id}
+              invoice={invoice}
+              canMarkPaid={canMarkPaid}
+              isExpanded={expandedInvoiceId === invoice.id}
+              restaurantName={restaurantName}
+              onToggleDetail={(invoiceId) => {
+                setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
+              }}
+              onMarkPaid={onMarkPaid}
+            />
+          ))}
         </TableBody>
       </Table>
     </div>
@@ -188,7 +188,6 @@ export default function DashboardFacturesInflow() {
         const uninvoiced = uninvoicedRestaurantShareBySource[source] || 0;
 
         return {
-          source,
           label: COMMISSION_SOURCE_LABELS[source],
           total,
           uninvoiced,
@@ -196,11 +195,6 @@ export default function DashboardFacturesInflow() {
         };
       }),
     [summary.inflow.bySource, uninvoicedRestaurantShareBySource],
-  );
-
-  const specialOrderBreakdown = useMemo(
-    () => inflowSourceBreakdown.filter(({ source }) => source === "flash_sales" || source === "anti_gaspi"),
-    [inflowSourceBreakdown],
   );
 
   const handleGenerateInvoices = async () => {
@@ -241,50 +235,49 @@ export default function DashboardFacturesInflow() {
     }
   };
 
+  const totalRestaurantShare = COMMISSION_SOURCE_ORDER.reduce(
+    (sum, source) => sum + summary.inflow.bySource[source],
+    0,
+  );
+  const totalOpenReceivable = summary.inflow.receivableFromTok + uninvoicedRestaurantShareTotal;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <Badge variant="outline" className="px-3 py-1 text-[11px] uppercase tracking-[0.25em]">
-              Entrees d&apos;argent
-            </Badge>
-            <div>
-              <h1 className="font-display text-3xl font-bold">Factures faites a TOK</h1>
-              <p className="text-sm text-muted-foreground">
-                {selectedRestaurant
-                  ? `Ce que TOK doit a ${selectedRestaurant.name}: factures emises, encours a facturer et ventilation par source.`
-                  : "Selectionnez un restaurant pour afficher ses entrees d'argent."}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/factures">Vue d&apos;ensemble</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/dashboard/factures/entrees">Entrees d&apos;argent</Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/factures/sorties">Sorties d&apos;argent</Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/factures/parametres">
-                <Settings className="mr-2 h-4 w-4" />
-                Parametres
-              </Link>
-            </Button>
-            {selectedRestaurant ? (
-              <Button size="sm" onClick={handleGenerateInvoices} disabled={generating || uninvoicedRestaurantShareTotal <= 0}>
-                <RefreshCcw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-                {uninvoicedRestaurantShareTotal > 0
-                  ? `Facturer l'encours (${formatAmount(uninvoicedRestaurantShareTotal)})`
-                  : "Rien a facturer"}
+        <AccountingHero
+          badge="Entrees d'argent"
+          title="Factures faites a TOK"
+          description={selectedRestaurant
+            ? `Commencez par les montants que vous devez encore facturer a TOK, puis par les factures deja emises et non reglees.`
+            : "Selectionnez un restaurant pour afficher ses entrees d'argent."}
+          actions={(
+            <>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/dashboard/factures">Vue d&apos;ensemble</Link>
               </Button>
-            ) : null}
-          </div>
-        </div>
+              <Button asChild size="sm">
+                <Link to="/dashboard/factures/entrees">Entrees d&apos;argent</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/dashboard/factures/sorties">Sorties d&apos;argent</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/dashboard/factures/parametres">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Parametres
+                </Link>
+              </Button>
+              {selectedRestaurant ? (
+                <Button size="sm" onClick={handleGenerateInvoices} disabled={generating || uninvoicedRestaurantShareTotal <= 0}>
+                  <RefreshCcw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
+                  {uninvoicedRestaurantShareTotal > 0
+                    ? `Facturer l'encours (${formatAmount(uninvoicedRestaurantShareTotal)})`
+                    : "Rien a facturer"}
+                </Button>
+              ) : null}
+            </>
+          )}
+        />
 
         {!selectedRestaurant && !isLoading ? (
           <Card>
@@ -299,211 +292,207 @@ export default function DashboardFacturesInflow() {
 
         {selectedRestaurant && !isLoading && !error ? (
           <>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-              <Card className="border-primary/20 bg-primary/5">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-primary">Factures emises en attente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-primary">{formatAmount(summary.inflow.receivableFromTok)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Montant deja facture a TOK et pas encore regle</p>
-                </CardContent>
-              </Card>
-              <Card className="border-emerald-200 bg-emerald-50/70">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-emerald-800">Encours non facture</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-emerald-950">{formatAmount(uninvoicedRestaurantShareTotal)}</p>
-                  <p className="mt-1 text-xs text-emerald-700">Part 90% deja gagnee mais pas encore emise</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Deja recu de TOK</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{formatAmount(summary.inflow.receivedFromTok)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Historique des reversements encaisses</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Part restaurant 90%</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">
-                    {formatAmount(COMMISSION_SOURCE_ORDER.reduce((sum, source) => sum + summary.inflow.bySource[source], 0))}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">Vue miroir par source de ce que TOK a encaisse</p>
-                </CardContent>
-              </Card>
-              <Card className="border-violet-200 bg-violet-50/80">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-violet-800">Remboursements Miamz</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-violet-950">{formatAmount(miamzReimbursementsTotal)}</p>
-                  <p className="mt-1 text-xs text-violet-700">
-                    {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz, dont {formatAmount(miamzReimbursementsOutstanding)} encore non facture
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <AccountingMetricCard
+                tone="primary"
+                icon={ArrowDownRight}
+                label="A recevoir de TOK"
+                value={formatAmount(totalOpenReceivable)}
+                description={`${formatAmount(summary.inflow.receivableFromTok)} deja facture et ${formatAmount(uninvoicedRestaurantShareTotal)} encore a emettre.`}
+              />
+              <AccountingMetricCard
+                tone="emerald"
+                icon={RefreshCcw}
+                label="Encore a facturer"
+                value={formatAmount(uninvoicedRestaurantShareTotal)}
+                description="Part 90% deja acquise mais pas encore emise a TOK."
+              />
+              <AccountingMetricCard
+                icon={Wallet}
+                label="Deja recu de TOK"
+                value={formatAmount(summary.inflow.receivedFromTok)}
+                description="Historique des factures de payout deja encaissees."
+              />
+              <AccountingMetricCard
+                tone="violet"
+                icon={Wallet}
+                label="Miamz rembourses"
+                value={formatAmount(miamzReimbursementsTotal)}
+                description={`${miamzReimbursementsCount} commande${miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz, dont ${formatAmount(miamzReimbursementsOutstanding)} encore non facture.`}
+              />
             </div>
 
-            <Card>
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-2">
-                  <ArrowDownRight className="h-5 w-5 text-primary" />
-                  <CardTitle>Origine des entrees restaurant</CardTitle>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <AccountingPanel
+                tone="primary"
+                icon={FileUp}
+                eyebrow="A faire maintenant"
+                title="Facturer l'encours"
+                description="La priorite est simple: emettre ce qui est deja du a votre restaurant avant de parcourir l'historique."
+                value={formatAmount(uninvoicedRestaurantShareTotal)}
+                valueLabel="Encours non facture"
+              >
+                <AccountingFactList
+                  tone="primary"
+                  items={[
+                    {
+                      label: "Part 90% deja gagnee",
+                      value: formatAmount(totalRestaurantShare),
+                    },
+                    {
+                      label: "Encore a emettre",
+                      value: formatAmount(uninvoicedRestaurantShareTotal),
+                      helper: "Ce montant peut partir en facture des maintenant",
+                    },
+                    {
+                      label: "Miamz encore non facture",
+                      value: formatAmount(miamzReimbursementsOutstanding),
+                    },
+                  ]}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={handleGenerateInvoices} disabled={generating || uninvoicedRestaurantShareTotal <= 0}>
+                    <RefreshCcw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
+                    Generer la facture
+                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  {specialOrderBreakdown.map((sourceDetail) => (
-                    <Card
-                      key={sourceDetail.source}
-                      className={sourceDetail.source === "flash_sales" ? "border-amber-200 bg-amber-50/60 shadow-none" : "border-emerald-200 bg-emerald-50/60 shadow-none"}
-                    >
-                      <CardContent className="space-y-3 py-5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground">{sourceDetail.label}</p>
-                            <p className="text-2xl font-bold">{formatAmount(sourceDetail.total)}</p>
-                          </div>
-                          <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-                            Commande speciale
-                          </Badge>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="rounded-lg border bg-background/80 p-3">
-                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Encours non facture</p>
-                            <p className="mt-1 text-lg font-semibold">{formatAmount(sourceDetail.uninvoiced)}</p>
-                          </div>
-                          <div className="rounded-lg border bg-background/80 p-3">
-                            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Deja emis ou encaisse</p>
-                            <p className="mt-1 text-lg font-semibold">{formatAmount(sourceDetail.alreadyInvoicedOrReceived)}</p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          La part restaurateur de cette source est detaillee separement pour rendre visibles les ventes flash et l&apos;anti-gaspi.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              </AccountingPanel>
 
-                <Card className="border-violet-200 bg-violet-50/60 shadow-none">
-                  <CardContent className="space-y-3 py-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Miamz rembourses par TOK</p>
-                        <p className="text-2xl font-bold">{formatAmount(miamzReimbursementsTotal)}</p>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-                        Inclus dans vos reversements
-                      </Badge>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-lg border bg-background/80 p-3">
-                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Encore non facture</p>
-                        <p className="mt-1 text-lg font-semibold">{formatAmount(miamzReimbursementsOutstanding)}</p>
-                      </div>
-                      <div className="rounded-lg border bg-background/80 p-3">
-                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Commandes avec Miamz</p>
-                        <p className="mt-1 text-lg font-semibold">{miamzReimbursementsCount}</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Ce montant correspond aux reductions Miamz avancees au client puis remboursees par TOK a votre restaurant.
-                    </p>
-                  </CardContent>
-                </Card>
+              <AccountingPanel
+                tone="emerald"
+                icon={ArrowDownRight}
+                eyebrow="A faire maintenant"
+                title="Suivre les factures deja emises"
+                description="Une fois la facture envoyee, l'etape suivante est le suivi du reglement cote TOK."
+                value={formatAmount(summary.inflow.receivableFromTok)}
+                valueLabel="Deja facture"
+              >
+                <AccountingFactList
+                  tone="emerald"
+                  items={[
+                    {
+                      label: "Factures ouvertes",
+                      value: String(payoutInvoiceSections.actionable.length),
+                      helper: "Documents deja emis et visibles plus bas",
+                    },
+                    {
+                      label: "Deja recu",
+                      value: formatAmount(summary.inflow.receivedFromTok),
+                    },
+                    {
+                      label: "Ouvert total cote entrees",
+                      value: formatAmount(totalOpenReceivable),
+                    },
+                  ]}
+                />
+              </AccountingPanel>
+            </div>
 
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                  {inflowSourceBreakdown.map((sourceDetail) => (
-                  <Card key={sourceDetail.source} className="shadow-none">
-                    <CardContent className="space-y-2 py-5">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium text-muted-foreground">{sourceDetail.label}</p>
-                        {sourceDetail.source === "flash_sales" || sourceDetail.source === "anti_gaspi" ? (
-                          <Badge variant="secondary" className="text-[10px]">
-                            Focus
-                          </Badge>
-                        ) : null}
-                      </div>
-                      <p className="text-2xl font-bold">{formatAmount(sourceDetail.total)}</p>
-                      <div className="space-y-1 text-xs text-muted-foreground">
-                        <p>Encours non facture: {formatAmount(sourceDetail.uninvoiced)}</p>
-                        <p>Deja emis ou encaisse: {formatAmount(sourceDetail.alreadyInvoicedOrReceived)}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid gap-4 xl:grid-cols-3">
+              <AccountingPanel
+                tone="emerald"
+                icon={Coins}
+                eyebrow="Comprendre les flux"
+                title="D'ou vient votre part 90%"
+                description="Chaque source montre a la fois le total gagne et ce qui reste encore a facturer."
+                value={formatAmount(totalRestaurantShare)}
+                valueLabel="Part restaurant"
+              >
+                <AccountingFactList
+                  tone="emerald"
+                  items={inflowSourceBreakdown.map((sourceDetail) => ({
+                    label: sourceDetail.label,
+                    value: formatAmount(sourceDetail.total),
+                    helper: `Encore a facturer: ${formatAmount(sourceDetail.uninvoiced)} | Deja emis ou recu: ${formatAmount(sourceDetail.alreadyInvoicedOrReceived)}`,
+                  }))}
+                />
+              </AccountingPanel>
 
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle>Depenses marketing</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Les campagnes publicitaires payees par votre restaurant sont suivies ici a part. Elles ne font pas partie des entrees restaurant ni de votre part 90%.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <Card className="border-orange-200 bg-orange-50/60 shadow-none">
-                  <CardContent className="space-y-2 py-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Campagnes publicitaires</p>
-                        <p className="text-2xl font-bold text-orange-950">{formatAmount(paidCampaignsTotal)}</p>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-                        Depense separee
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-orange-800">
-                      {paidCampaignsCount} campagne{paidCampaignsCount > 1 ? "s" : ""} payee{paidCampaignsCount > 1 ? "s" : ""} pour ce restaurant.
-                    </p>
-                  </CardContent>
-                </Card>
-              </CardContent>
-            </Card>
+              <AccountingPanel
+                tone="violet"
+                icon={Wallet}
+                eyebrow="Comprendre les flux"
+                title="Miamz rembourses par TOK"
+                description="Les reductions Miamz restent visibles a part pour conserver une lecture propre des entrees."
+                value={formatAmount(miamzReimbursementsTotal)}
+                valueLabel="Miamz"
+              >
+                <AccountingFactList
+                  tone="violet"
+                  items={[
+                    {
+                      label: "Encore non facture",
+                      value: formatAmount(miamzReimbursementsOutstanding),
+                    },
+                    {
+                      label: "Commandes avec Miamz",
+                      value: String(miamzReimbursementsCount),
+                    },
+                  ]}
+                />
+              </AccountingPanel>
+
+              <AccountingPanel
+                tone="amber"
+                icon={Megaphone}
+                eyebrow="Comprendre les flux"
+                title="Depenses marketing"
+                description="Les campagnes publicitaires restent a part pour ne pas polluer la lecture des reversements."
+                value={formatAmount(paidCampaignsTotal)}
+                valueLabel="Campagnes payees"
+              >
+                <AccountingFactList
+                  tone="amber"
+                  items={[
+                    {
+                      label: "Campagnes concernees",
+                      value: String(paidCampaignsCount),
+                    },
+                    {
+                      label: "Lecture comptable",
+                      value: "Depense separee",
+                      helper: "Ce flux ne fait pas partie de votre part 90%",
+                    },
+                  ]}
+                />
+              </AccountingPanel>
+            </div>
 
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                 <FileUp className="h-4 w-4" />
-                Factures faites a TOK
+                A encaisser et historique
               </div>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">A encaisser</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <InvoiceTable
-                    invoices={payoutInvoiceSections.actionable}
-                    canMarkPaid={isAdmin}
-                    onMarkPaid={handleMarkPaid}
-                    restaurantName={selectedRestaurant?.name || null}
-                  />
-                </CardContent>
-              </Card>
+              <div className="grid gap-4 2xl:grid-cols-2">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">A encaisser</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <InvoiceTable
+                      invoices={payoutInvoiceSections.actionable}
+                      canMarkPaid={isAdmin}
+                      onMarkPaid={handleMarkPaid}
+                      restaurantName={selectedRestaurant?.name || null}
+                    />
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Historique</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <InvoiceTable
-                    invoices={payoutInvoiceSections.history}
-                    canMarkPaid={isAdmin}
-                    onMarkPaid={handleMarkPaid}
-                    restaurantName={selectedRestaurant?.name || null}
-                  />
-                </CardContent>
-              </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Historique</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <InvoiceTable
+                      invoices={payoutInvoiceSections.history}
+                      canMarkPaid={isAdmin}
+                      onMarkPaid={handleMarkPaid}
+                      restaurantName={selectedRestaurant?.name || null}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </>
         ) : null}
