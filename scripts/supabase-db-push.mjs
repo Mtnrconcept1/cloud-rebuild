@@ -37,8 +37,8 @@ console.log(`Resolved project ref: ${envInfo.projectRef}`);
 console.log(`Env files used: ${describeFiles(envInfo.loadedFiles)}`);
 
 runNodeScript("scripts/supabase-target.mjs", [`--mode=${MODE}`], childEnv);
-runNodeScript("scripts/supabase-doctor.mjs", [`--mode=${MODE}`], childEnv);
 runSupabaseCli(["link", "--project-ref", envInfo.projectRef, "--password", dbPassword], childEnv);
+runNodeScript("scripts/supabase-doctor.mjs", [`--mode=${MODE}`], childEnv);
 runSupabaseCli(["db", "push", "--linked", "--yes", "--password", dbPassword, ...EXTRA_ARGS], childEnv);
 
 function readMode(args) {

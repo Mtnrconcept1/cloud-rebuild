@@ -26,7 +26,7 @@ console.log(`Aligned local Supabase target to ${MODE}.`);
 console.log(`Resolved project ref: ${envInfo.projectRef}`);
 console.log(`Env files used: ${describeFiles(envInfo.loadedFiles)}`);
 console.log("Cleared supabase/.temp so stale CLI link metadata cannot leak across targets.");
-console.log("Next step: run `npm run supabase:doctor` or relink with `supabase link` before deploy commands.");
+console.log("Supabase CLI link metadata will be recreated by the next `supabase link` or deploy wrapper command.");
 
 function readMode(args) {
   const modeArg = args.find((arg) => arg.startsWith("--mode="));
