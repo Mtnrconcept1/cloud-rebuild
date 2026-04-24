@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, FileUp, Receipt, Wallet } from "lucide-react";
+import { ArrowUpRight, Coins, FileUp, Receipt, Wallet } from "lucide-react";
 
+import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,11 +56,13 @@ function InvoiceTableRow({
         </TableCell>
         <TableCell className="text-sm">{invoice.restaurants?.name || "-"}</TableCell>
         <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-        <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
+        <TableCell className="text-right font-semibold whitespace-nowrap">{formatAmount(invoice.amount_ttc)}</TableCell>
         <TableCell>
-          <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
+          <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
+            {invoice.status || "draft"}
+          </span>
         </TableCell>
-        <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
+        <TableCell className="text-sm whitespace-nowrap">{formatDate(invoice.due_at)}</TableCell>
         <TableCell className="text-right">
           <div className="flex flex-col items-end gap-2">
             <Button size="sm" variant="ghost" onClick={() => onToggleDetail(invoice.id)}>
@@ -114,32 +116,30 @@ function InvoiceTable({
 
   return (
     <div className="rounded-xl border">
-      <Table>
+      <Table className="min-w-[820px]">
         <TableHeader>
           <TableRow>
             <TableHead>Facture</TableHead>
             <TableHead>Restaurant</TableHead>
             <TableHead>Periode</TableHead>
-            <TableHead className="text-right">Montant TTC</TableHead>
+            <TableHead className="text-right whitespace-nowrap">Montant TTC</TableHead>
             <TableHead>Statut</TableHead>
-            <TableHead>Echeance</TableHead>
+            <TableHead className="whitespace-nowrap">Echeance</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.map((invoice) => {
-            return (
-              <InvoiceTableRow
-                key={invoice.id}
-                invoice={invoice}
-                isExpanded={expandedInvoiceId === invoice.id}
-                onToggleDetail={(invoiceId) => {
-                  setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
-                }}
-                onMarkPaid={onMarkPaid}
-              />
-            );
-          })}
+          {invoices.map((invoice) => (
+            <InvoiceTableRow
+              key={invoice.id}
+              invoice={invoice}
+              isExpanded={expandedInvoiceId === invoice.id}
+              onToggleDetail={(invoiceId) => {
+                setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
+              }}
+              onMarkPaid={onMarkPaid}
+            />
+          ))}
         </TableBody>
       </Table>
     </div>
@@ -189,168 +189,228 @@ export default function AdminComptaOutflow() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-2">
-          <Badge variant="outline" className="px-3 py-1 text-[11px] uppercase tracking-[0.25em]">
-            Sorties d&apos;argent
-          </Badge>
-          <div>
-            <h1 className="font-display text-3xl font-bold">Factures recues des restaurateurs</h1>
-            <p className="text-sm text-muted-foreground">
-              Ecran dedie a ce qui sort de TOK: reversements dus aux restaurateurs et factures de payout a regler.
-            </p>
-          </div>
-        </div>
+      <AccountingHero
+        badge="Sorties d'argent"
+        title="Factures recues des restaurateurs"
+        description="Commencez par les reversements a regler, puis descendez vers l'explication des flux et enfin vers le detail facture par facture."
+        actions={(
+          <>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/admin/compta">Vue d&apos;ensemble</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/admin/compta/entrees">Entrees d&apos;argent</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link to="/admin/compta/sorties">Sorties d&apos;argent</Link>
+            </Button>
+          </>
+        )}
+      />
 
-        <div className="flex flex-wrap gap-2">
-          <Button asChild size="sm" variant="outline">
-            <Link to="/admin/compta">Vue d&apos;ensemble</Link>
-          </Button>
-          <Button asChild size="sm" variant="outline">
-            <Link to="/admin/compta/entrees">Entrees d&apos;argent</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link to="/admin/compta/sorties">Sorties d&apos;argent</Link>
-          </Button>
-        </div>
-      </div>
+      <Card className="border-dashed bg-muted/20">
+        <CardContent className="grid gap-3 p-4 md:grid-cols-2">
+          <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
+            <SelectTrigger>
+              <SelectValue placeholder="Restaurant" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les restaurateurs</SelectItem>
+              {restaurants.map((restaurant) => (
+                <SelectItem key={restaurant.id} value={restaurant.id}>
+                  {restaurant.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2">
-        <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-          <SelectTrigger>
-            <SelectValue placeholder="Restaurant" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les restaurateurs</SelectItem>
-            {restaurants.map((restaurant) => (
-              <SelectItem key={restaurant.id} value={restaurant.id}>
-                {restaurant.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-          <SelectTrigger>
-            <SelectValue placeholder="Mois" />
-          </SelectTrigger>
-          <SelectContent>
-            {monthOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger>
+              <SelectValue placeholder="Mois" />
+            </SelectTrigger>
+            <SelectContent>
+              {monthOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Chargement des donnees comptables...</p> : null}
       {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
 
       {!isLoading && !error ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <Card className="border-rose-200 bg-rose-50/80">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-rose-800">A reverser</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-rose-950">{formatAmount(summary.outflow.payoutsOutstanding)}</p>
-                <p className="mt-1 text-xs text-rose-700">Factures recues des restaurateurs encore ouvertes</p>
-              </CardContent>
-            </Card>
-            <Card className="border-violet-200 bg-violet-50/80">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-violet-800">Paiements Miamz</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-violet-950">{formatAmount(miamzReimbursementsTotal)}</p>
-                <p className="mt-1 text-xs text-violet-700">
-                  {miamzReimbursementsCount} commande{miamzReimbursementsCount > 1 ? "s" : ""} avec remise Miamz, dont {formatAmount(miamzReimbursementsOutstanding)} encore non facture
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Deja reverse</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{formatAmount(summary.outflow.payoutsPaid)}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Historique des reversements regles</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Part restaurants 90%</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{formatAmount(totalRestaurantShare)}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Ventilation miroir des paiements du mois</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Net comptable ouvert</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{formatAmount(summary.netOutstanding)}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Entrees ouvertes moins reversements ouverts</p>
-              </CardContent>
-            </Card>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <AccountingMetricCard
+              tone="rose"
+              icon={ArrowUpRight}
+              label="A regler maintenant"
+              value={formatAmount(summary.outflow.payoutsOutstanding)}
+              description={`${payoutInvoiceSections.actionable.length} facture${payoutInvoiceSections.actionable.length > 1 ? "s" : ""} de payout encore ouverte${payoutInvoiceSections.actionable.length > 1 ? "s" : ""}.`}
+            />
+            <AccountingMetricCard
+              icon={Wallet}
+              label="Deja reverse"
+              value={formatAmount(summary.outflow.payoutsPaid)}
+              description="Historique des reversements deja regles par TOK."
+            />
+            <AccountingMetricCard
+              tone="emerald"
+              icon={Coins}
+              label="Part restaurants 90%"
+              value={formatAmount(totalRestaurantShare)}
+              description="Vue miroir de la part restaurateur generee sur les paiements du mois."
+            />
+            <AccountingMetricCard
+              tone="violet"
+              icon={Wallet}
+              label="Miamz inclus"
+              value={formatAmount(miamzReimbursementsTotal)}
+              description={`${miamzReimbursementsCount} commande${miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz, dont ${formatAmount(miamzReimbursementsOutstanding)} encore non facture.`}
+            />
           </div>
 
-          <Card>
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-rose-600" />
-                <CardTitle>Origine des reversements restaurateurs</CardTitle>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Les reversements incluent la part 90% restaurant ainsi que les remboursements Miamz quand un client utilise ses points sur une commande.
-              </p>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-              {COMMISSION_SOURCE_ORDER.map((source) => (
-                <Card key={source} className="shadow-none">
-                  <CardContent className="space-y-2 py-5">
-                    <p className="text-sm font-medium text-muted-foreground">{COMMISSION_SOURCE_LABELS[source]}</p>
-                    <p className="text-2xl font-bold">{formatAmount(summary.outflow.bySource[source])}</p>
-                    <p className="text-xs text-muted-foreground">Part restaurateur provenant de cette source</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </CardContent>
-          </Card>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <AccountingPanel
+              tone="rose"
+              icon={FileUp}
+              eyebrow="A faire maintenant"
+              title="Reversements a regler"
+              description="Ce bloc condense ce qui doit etre regle par TOK avant de descendre dans le tableau detaille."
+              value={formatAmount(summary.outflow.payoutsOutstanding)}
+              valueLabel="A regler"
+            >
+              <AccountingFactList
+                tone="rose"
+                items={[
+                  {
+                    label: "Factures ouvertes",
+                    value: String(payoutInvoiceSections.actionable.length),
+                    helper: "Documents visibles dans la section A regler",
+                  },
+                  {
+                    label: "Deja regle",
+                    value: formatAmount(summary.outflow.payoutsPaid),
+                  },
+                  {
+                    label: "Net comptable ouvert",
+                    value: formatAmount(summary.netOutstanding),
+                  },
+                ]}
+              />
+            </AccountingPanel>
+
+            <AccountingPanel
+              tone="violet"
+              icon={Wallet}
+              eyebrow="A garder en tete"
+              title="Miamz dans les reversements"
+              description="Les remboursements Miamz ne doivent pas se perdre dans les reversements. Ils restent lisibles ici."
+              value={formatAmount(miamzReimbursementsTotal)}
+              valueLabel="Miamz"
+            >
+              <AccountingFactList
+                tone="violet"
+                items={[
+                  {
+                    label: "Encore non facture",
+                    value: formatAmount(miamzReimbursementsOutstanding),
+                  },
+                  {
+                    label: "Commandes concernees",
+                    value: String(miamzReimbursementsCount),
+                  },
+                  {
+                    label: "Lecture comptable",
+                    value: "Inclus dans les payouts",
+                  },
+                ]}
+              />
+            </AccountingPanel>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            <AccountingPanel
+              tone="emerald"
+              icon={Coins}
+              eyebrow="Comprendre les flux"
+              title="Origine des reversements restaurateurs"
+              description="La part restaurant reste detaillee par source pour garder une lecture simple du payout."
+              value={formatAmount(totalRestaurantShare)}
+              valueLabel="Part restaurant"
+            >
+              <AccountingFactList
+                tone="emerald"
+                items={COMMISSION_SOURCE_ORDER.map((source) => ({
+                  label: COMMISSION_SOURCE_LABELS[source],
+                  value: formatAmount(summary.outflow.bySource[source]),
+                }))}
+              />
+            </AccountingPanel>
+
+            <AccountingPanel
+              tone="slate"
+              icon={Receipt}
+              eyebrow="Comprendre les flux"
+              title="Lecture du mois"
+              description="Cette vue fait volontairement passer le pilotage avant le detail. L'historique reste accessible plus bas."
+              value={formatAmount(summary.outflow.payoutsOutstanding)}
+              valueLabel="Ouvert du mois"
+            >
+              <AccountingFactList
+                items={[
+                  {
+                    label: "A regler maintenant",
+                    value: formatAmount(summary.outflow.payoutsOutstanding),
+                  },
+                  {
+                    label: "Deja reverse",
+                    value: formatAmount(summary.outflow.payoutsPaid),
+                  },
+                  {
+                    label: "Net comptable ouvert",
+                    value: formatAmount(summary.netOutstanding),
+                  },
+                ]}
+              />
+            </AccountingPanel>
+          </div>
 
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-rose-700">
+            <div className="flex items-center gap-2 text-sm font-semibold text-rose-900">
               <ArrowUpRight className="h-4 w-4" />
-              Factures recues des restaurateurs
+              A regler et historique
             </div>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <FileUp className="h-4 w-4 text-rose-600" />
-                  <CardTitle className="text-base">A regler</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <InvoiceTable invoices={payoutInvoiceSections.actionable} onMarkPaid={handleMarkPaid} />
-              </CardContent>
-            </Card>
+            <div className="grid gap-4 2xl:grid-cols-2">
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <FileUp className="h-4 w-4 text-rose-700" />
+                    <CardTitle className="text-base">A regler</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <InvoiceTable invoices={payoutInvoiceSections.actionable} onMarkPaid={handleMarkPaid} />
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Receipt className="h-4 w-4 text-muted-foreground" />
-                  <CardTitle className="text-base">Historique</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <InvoiceTable invoices={payoutInvoiceSections.history} onMarkPaid={handleMarkPaid} />
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Receipt className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-base">Historique</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <InvoiceTable invoices={payoutInvoiceSections.history} onMarkPaid={handleMarkPaid} />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </>
       ) : null}

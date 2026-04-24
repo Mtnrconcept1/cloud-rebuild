@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, ReceiptText, Settings } from "lucide-react";
+import { ArrowUpRight, ReceiptText, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { TokPayableInvoiceDialog } from "@/components/invoices/TokPayableInvoiceDialog";
 import { useAuth } from "@/lib/auth";
 import type { PayableInvoiceRow } from "@/lib/payableInvoice";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -51,11 +51,13 @@ function InvoiceTableRow({
           <div className="text-xs text-muted-foreground">Restaurant concerne : {restaurantName || "-"}</div>
         </TableCell>
         <TableCell className="text-sm">{formatPeriod(invoice.period_start, invoice.period_end)}</TableCell>
-        <TableCell className="text-right font-semibold">{formatAmount(invoice.amount_ttc)}</TableCell>
+        <TableCell className="text-right font-semibold whitespace-nowrap">{formatAmount(invoice.amount_ttc)}</TableCell>
         <TableCell>
-          <Badge className={`text-[10px] ${getInvoiceStatusClass(invoice.status)}`}>{invoice.status || "draft"}</Badge>
+          <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
+            {invoice.status || "draft"}
+          </span>
         </TableCell>
-        <TableCell className="text-sm">{formatDate(invoice.due_at)}</TableCell>
+        <TableCell className="text-sm whitespace-nowrap">{formatDate(invoice.due_at)}</TableCell>
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
@@ -97,14 +99,14 @@ function InvoiceTable({
 
   return (
     <div className="rounded-xl border">
-      <Table>
+      <Table className="min-w-[760px]">
         <TableHeader>
           <TableRow>
             <TableHead>Facture</TableHead>
             <TableHead>Periode</TableHead>
-            <TableHead className="text-right">Montant TTC</TableHead>
+            <TableHead className="text-right whitespace-nowrap">Montant TTC</TableHead>
             <TableHead>Statut</TableHead>
-            <TableHead>Echeance</TableHead>
+            <TableHead className="whitespace-nowrap">Echeance</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
@@ -163,39 +165,32 @@ export default function DashboardFacturesOutflow() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <Badge variant="outline" className="px-3 py-1 text-[11px] uppercase tracking-[0.25em]">
-              Sorties d&apos;argent
-            </Badge>
-            <div>
-              <h1 className="font-display text-3xl font-bold">Factures recues de TOK</h1>
-              <p className="text-sm text-muted-foreground">
-                {selectedRestaurant
-                  ? `Ce que ${selectedRestaurant.name} doit a TOK: facture payable unique, factures ouvertes et encours non encore emis.`
-                  : "Selectionnez un restaurant pour afficher ses sorties d'argent."}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/factures">Vue d&apos;ensemble</Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/factures/entrees">Entrees d&apos;argent</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/dashboard/factures/sorties">Sorties d&apos;argent</Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/factures/parametres">
-                <Settings className="mr-2 h-4 w-4" />
-                Parametres
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <AccountingHero
+          badge="Sorties d'argent"
+          title="Factures recues de TOK"
+          description={selectedRestaurant
+            ? `Commencez par ce qui est deja facture par TOK, puis regardez ce qui risque d'arriver dans la prochaine facture.`
+            : "Selectionnez un restaurant pour afficher ses sorties d'argent."}
+          actions={(
+            <>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/dashboard/factures">Vue d&apos;ensemble</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/dashboard/factures/entrees">Entrees d&apos;argent</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link to="/dashboard/factures/sorties">Sorties d&apos;argent</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/dashboard/factures/parametres">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Parametres
+                </Link>
+              </Button>
+            </>
+          )}
+        />
 
         {!selectedRestaurant && !isLoading ? (
           <Card>
@@ -211,82 +206,156 @@ export default function DashboardFacturesOutflow() {
         {selectedRestaurant && !isLoading && !error ? (
           <>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <Card className="border-orange-200 bg-orange-50/80">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-orange-800">Factures TOK a payer</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-orange-950">{formatAmount(summary.outflow.payableToTok)}</p>
-                  <p className="mt-1 text-xs text-orange-700">Factures deja emises par TOK encore ouvertes</p>
-                </CardContent>
-              </Card>
-              <Card className="border-amber-200 bg-amber-50/70">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-amber-800">Encours non facture</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-amber-950">{formatAmount(payableAccruals.totalAmount)}</p>
-                  <p className="mt-1 text-xs text-amber-700">
-                    {payableAccruals.totalCount} ligne{payableAccruals.totalCount > 1 ? "s" : ""} encore en attente de facture
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Deja paye a TOK</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{formatAmount(summary.outflow.alreadyPaidToTok)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Historique des factures TOK reglees</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Sortie ouverte totale</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{formatAmount(summary.outflow.totalOutstanding)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Factures TOK ouvertes + encours non encore emis</p>
-                </CardContent>
-              </Card>
+              <AccountingMetricCard
+                tone="orange"
+                icon={ArrowUpRight}
+                label="Factures TOK a payer"
+                value={formatAmount(summary.outflow.payableToTok)}
+                description="Montants deja factures par TOK et encore ouverts."
+              />
+              <AccountingMetricCard
+                tone="amber"
+                icon={Wallet}
+                label="Encours non facture"
+                value={formatAmount(payableAccruals.totalAmount)}
+                description={`${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} attend${payableAccruals.totalCount > 1 ? "ent" : ""} encore une facture.`}
+              />
+              <AccountingMetricCard
+                icon={Wallet}
+                label="Deja paye a TOK"
+                value={formatAmount(summary.outflow.alreadyPaidToTok)}
+                description="Historique des factures TOK deja reglees."
+              />
+              <AccountingMetricCard
+                icon={ReceiptText}
+                label="Sortie ouverte totale"
+                value={formatAmount(summary.outflow.totalOutstanding)}
+                description="Factures TOK ouvertes plus encours non encore emis."
+              />
             </div>
 
+            <div className="grid gap-4 xl:grid-cols-2">
+              <AccountingPanel
+                tone="orange"
+                icon={ArrowUpRight}
+                eyebrow="A faire maintenant"
+                title="Regler les factures TOK deja emises"
+                description="La premiere lecture doit vous dire ce qui est deja payable, sans vous forcer a lire tous les details de composition."
+                value={formatAmount(summary.outflow.payableToTok)}
+                valueLabel="Deja facture"
+              >
+                <AccountingFactList
+                  tone="orange"
+                  items={[
+                    {
+                      label: "Factures ouvertes",
+                      value: String(payableInvoiceSections.actionable.length),
+                      helper: "Documents visibles dans la section A regler",
+                    },
+                    {
+                      label: "Deja paye a TOK",
+                      value: formatAmount(summary.outflow.alreadyPaidToTok),
+                    },
+                  ]}
+                />
+              </AccountingPanel>
+
+              <AccountingPanel
+                tone="amber"
+                icon={Wallet}
+                eyebrow="A faire maintenant"
+                title="Anticiper la prochaine facture"
+                description="Ce bloc montre le contenu potentiel de la prochaine facture TOK avant emission."
+                value={formatAmount(payableAccruals.totalAmount)}
+                valueLabel="Encours non facture"
+              >
+                <AccountingFactList
+                  tone="amber"
+                  items={[
+                    {
+                      label: "Commission commandes",
+                      value: formatAmount(payableAccruals.orderCommissionAmount),
+                    },
+                    {
+                      label: "Commission reservations",
+                      value: formatAmount(payableAccruals.reservationCommissionAmount),
+                    },
+                    {
+                      label: "Frais de reservation",
+                      value: formatAmount(payableAccruals.reservationFeeAmount),
+                    },
+                    {
+                      label: "Campagnes / autres postes",
+                      value: formatAmount(payableAccruals.campaignAmount),
+                    },
+                  ]}
+                />
+              </AccountingPanel>
+            </div>
+
+            <AccountingPanel
+              eyebrow="Comprendre les flux"
+              title="Lecture simple de vos sorties"
+              description="La sortie totale regroupe ce qui est deja facture et ce qui ne l'est pas encore. L'historique reste volontairement en bas pour ne pas polluer la lecture."
+              value={formatAmount(summary.outflow.totalOutstanding)}
+              valueLabel="Sortie ouverte totale"
+            >
+              <AccountingFactList
+                items={[
+                  {
+                    label: "Factures TOK deja emises",
+                    value: formatAmount(summary.outflow.payableToTok),
+                  },
+                  {
+                    label: "Encore non facture",
+                    value: formatAmount(payableAccruals.totalAmount),
+                  },
+                  {
+                    label: "Deja regle",
+                    value: formatAmount(summary.outflow.alreadyPaidToTok),
+                  },
+                ]}
+              />
+            </AccountingPanel>
+
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-orange-700">
+              <div className="flex items-center gap-2 text-sm font-semibold text-orange-900">
                 <ArrowUpRight className="h-4 w-4" />
-                Factures recues de TOK
+                A regler et historique
               </div>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">A regler</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <InvoiceTable
-                    invoices={payableInvoiceSections.actionable as PayableInvoiceRow[]}
-                    canMarkPaid={isAdmin}
-                    onMarkPaid={handleMarkPaid}
-                    restaurantName={selectedRestaurant?.name || null}
-                  />
-                </CardContent>
-              </Card>
+              <div className="grid gap-4 2xl:grid-cols-2">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">A regler</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <InvoiceTable
+                      invoices={payableInvoiceSections.actionable as PayableInvoiceRow[]}
+                      canMarkPaid={isAdmin}
+                      onMarkPaid={handleMarkPaid}
+                      restaurantName={selectedRestaurant?.name || null}
+                    />
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <ReceiptText className="h-4 w-4 text-muted-foreground" />
-                    <CardTitle className="text-base">Historique</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <InvoiceTable
-                    invoices={payableInvoiceSections.history as PayableInvoiceRow[]}
-                    canMarkPaid={isAdmin}
-                    onMarkPaid={handleMarkPaid}
-                    restaurantName={selectedRestaurant?.name || null}
-                  />
-                </CardContent>
-              </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <ReceiptText className="h-4 w-4 text-muted-foreground" />
+                      <CardTitle className="text-base">Historique</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <InvoiceTable
+                      invoices={payableInvoiceSections.history as PayableInvoiceRow[]}
+                      canMarkPaid={isAdmin}
+                      onMarkPaid={handleMarkPaid}
+                      restaurantName={selectedRestaurant?.name || null}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </>
         ) : null}

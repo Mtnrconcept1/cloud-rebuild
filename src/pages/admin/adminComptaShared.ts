@@ -37,6 +37,7 @@ export type AdminOrderRow = {
 
 export type AdminReservationPaymentRow = {
   id: string;
+  created_at: string;
   date: string;
   feature: string | null;
   metadata: Record<string, unknown> | null;
@@ -557,6 +558,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
         .from("reservations")
         .select(`
           id,
+          created_at,
           date,
           feature,
           metadata,
@@ -565,8 +567,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           restaurant_id,
           restaurants ( name )
         `)
-        .gte("date", monthBounds.monthStart)
-        .lte("date", monthBounds.monthEnd)
+        .gte("created_at", monthBounds.monthStartDate.toISOString())
+        .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
         .gt("total_amount", 0)
         .not("status", "in", "(cancelled,no_show,pending)");
 
@@ -574,7 +576,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
         query = query.eq("restaurant_id", selectedRestaurant);
       }
 
-      const { data, error } = await query.order("date", { ascending: false });
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []) as AdminReservationPaymentRow[];
     },
