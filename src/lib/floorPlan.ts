@@ -191,6 +191,27 @@ const MIN_FURNITURE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: numbe
   "service-station": { w: 140, h: 92, shape: "rect" },
 };
 
+type FloorPlanFurnitureResizeRule = {
+  mode: "free" | "uniform" | "width-dominant" | "ratio-range";
+  maxW?: number;
+  maxH?: number;
+  minRatio?: number;
+  maxRatio?: number;
+};
+
+const FURNITURE_RESIZE_RULES: Record<Exclude<FloorPlanItemKind, "table">, FloorPlanFurnitureResizeRule> = {
+  chair: { mode: "uniform" },
+  stool: { mode: "uniform" },
+  bar: { mode: "width-dominant", minRatio: 1.95, maxH: 184 },
+  "corner-bench": { mode: "ratio-range", minRatio: 1.05, maxRatio: 2.35 },
+  banquette: { mode: "width-dominant", minRatio: 1.6, maxH: 148 },
+  booth: { mode: "ratio-range", minRatio: 1.1, maxRatio: 2.05 },
+  "host-stand": { mode: "ratio-range", minRatio: 0.82, maxRatio: 1.45 },
+  divider: { mode: "width-dominant", minRatio: 2.8, maxH: 72 },
+  plant: { mode: "uniform" },
+  "service-station": { mode: "ratio-range", minRatio: 1.05, maxRatio: 2.2 },
+};
+
 const FOOTPRINT_BASE_PADDING = 14;
 const RECT_SIDE_CORNER_GAP = 18;
 const ROUND_SEAT_PADDING: Record<FloorPlanSeatType, number> = {
@@ -255,6 +276,44 @@ function roundDimension(value: number) {
 
 function clampDimension(value: number, min: number, max = Number.POSITIVE_INFINITY) {
   return roundDimension(Math.min(max, Math.max(min, value)));
+}
+
+function resolveFurnitureFootprint(
+  kind: Exclude<FloorPlanItemKind, "table">,
+  footprintWidth?: number | null,
+  footprintHeight?: number | null,
+) {
+  const minimum = MIN_FURNITURE_SIZE[kind];
+  const rule = FURNITURE_RESIZE_RULES[kind];
+  let width = clampDimension(parseNumber(footprintWidth) ?? minimum.w, minimum.w, rule.maxW);
+  let height = clampDimension(parseNumber(footprintHeight) ?? minimum.h, minimum.h, rule.maxH);
+
+  if (rule.mode === "uniform") {
+    const size = clampDimension(Math.max(width, height), Math.max(minimum.w, minimum.h), rule.maxW);
+    return { w: size, h: size };
+  }
+
+  if (rule.mode === "width-dominant") {
+    if (rule.minRatio && width / height < rule.minRatio) {
+      width = clampDimension(height * rule.minRatio, minimum.w, rule.maxW);
+    }
+
+    return { w: width, h: height };
+  }
+
+  if (rule.mode === "ratio-range") {
+    if (rule.minRatio && width / height < rule.minRatio) {
+      width = clampDimension(height * rule.minRatio, minimum.w, rule.maxW);
+    }
+
+    if (rule.maxRatio && width / height > rule.maxRatio) {
+      height = clampDimension(width / rule.maxRatio, minimum.h, rule.maxH);
+    }
+
+    return { w: width, h: height };
+  }
+
+  return { w: width, h: height };
 }
 
 function distributeSidesRect(capacity: number) {
@@ -760,12 +819,17 @@ export function getResolvedFloorPlanDimensions({
   cornerBenchDepth,
 }: ResolveFloorPlanDimensionsInput): FloorPlanResolvedDimensions {
   if (!isReservableFloorPlanItem(kind)) {
-    const furnitureSize = MIN_FURNITURE_SIZE[kind];
+    const furnitureFootprint = resolveFurnitureFootprint(
+      kind,
+      parseNumber(footprintWidth) ?? parseNumber(tableWidth),
+      parseNumber(footprintHeight) ?? parseNumber(tableHeight),
+    );
+
     return {
-      tableWidth: furnitureSize.w,
-      tableHeight: furnitureSize.h,
-      footprintWidth: furnitureSize.w,
-      footprintHeight: furnitureSize.h,
+      tableWidth: furnitureFootprint.w,
+      tableHeight: furnitureFootprint.h,
+      footprintWidth: furnitureFootprint.w,
+      footprintHeight: furnitureFootprint.h,
       paddingTop: 0,
       paddingRight: 0,
       paddingBottom: 0,

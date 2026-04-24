@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift, Crown, ChefHat } from "lucide-react";
+import { ArrowRight, LogIn, ShieldCheck, ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift, Crown, ChefHat } from "lucide-react";
 import { Link } from "react-router-dom";
 import FormulaDetector from "@/components/FormulaDetector";
 import PromotionDetector from "@/components/PromotionDetector";
@@ -47,6 +47,7 @@ import {
   useTokOneBenefits,
 } from "@/hooks/useTokOne";
 import { getFreshAccessToken, invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
+import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 
 const supabase = getSupabase();
 
@@ -71,8 +72,11 @@ export default function Panier() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const activeFeatures = useActiveFeatures();
+  const authRedirectTarget = buildAuthRedirectTarget(location.pathname, location.search);
+  const continueShoppingHref = restaurantId ? `/restaurant/${restaurantId}` : "/recherche";
   const deliveryFeatureEnabled = activeFeatures.has("livraison");
   const takeawayFeatureEnabled = activeFeatures.has("emporter");
   const [address, setAddress] = useState("");
@@ -442,7 +446,7 @@ export default function Panier() {
       return;
     }
 
-    if (!user) return navigate("/auth");
+    if (!user) return navigate(authRedirectTarget);
 
     setLoading(true);
     try {
@@ -1007,9 +1011,96 @@ export default function Panier() {
     );
   }
 
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-background">
+        <div className="container max-w-2xl space-y-6 py-8">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Panier pret</span>
+              <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">Connexion</span>
+              <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">Paiement</span>
+            </div>
+            <h1 className="font-display text-3xl font-bold">Votre panier est pret a continuer</h1>
+            <p className="text-sm text-muted-foreground">
+              Finalisez la connexion pour renseigner l&apos;adresse, activer vos avantages et confirmer le paiement.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border bg-card/70 p-5 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  Connexion demandee a l&apos;etape finale
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Votre panier reste intact. Une fois connecte, vous retrouverez automatiquement vos plats et pourrez terminer la commande.
+                </p>
+              </div>
+              <Button asChild size="lg" className="gap-2 rounded-full px-6">
+                <Link to={authRedirectTarget}>
+                  <LogIn className="h-4 w-4" />
+                  Me connecter pour continuer
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
+
+          <div className="rounded-3xl border bg-card/60 p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation Chef's Table" : items[0]?.restaurantName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {isChefsTableCheckout
+                    ? `${chefsTableReservationGroups.length} reservation(s) a confirmer`
+                    : orderMode === "delivery"
+                      ? "Mode selectionne: livraison"
+                      : "Mode selectionne: emporter"}
+                </p>
+              </div>
+              <Link to={continueShoppingHref} className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80">
+                Continuer mes achats
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="space-y-2 border-t pt-4 text-sm">
+              <div className="flex items-center justify-between">
+                <span>Sous-total</span>
+                <span>{total.toFixed(2)} CHF</span>
+              </div>
+              {!isChefsTableCheckout ? (
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>{orderMode === "delivery" ? "Estimation livraison" : "Retrait"}</span>
+                  <span>{orderMode === "delivery" ? `${deliveryFee.toFixed(2)} CHF` : "Sans frais"}</span>
+                </div>
+              ) : null}
+              <div className="flex items-center justify-between border-t pt-2 text-base font-bold">
+                <span>Total estime</span>
+                <span>{finalTotal.toFixed(2)} CHF</span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-muted/40 p-4 text-xs text-muted-foreground">
+              Les promotions, Miamz, Tok One, le choix du paiement et les informations de livraison apparaissent juste apres la connexion.
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+          <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Panier</span>
+          <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Paiement</span>
+          <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">Confirmation</span>
+        </div>
         <h1 className="font-display text-3xl font-bold">Votre panier</h1>
         <p className="text-sm text-muted-foreground">
           {isChefsTableCheckout

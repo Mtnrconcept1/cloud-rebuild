@@ -5,7 +5,7 @@ import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItem
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getFloorPlanItemTypeLabel, isReservableFloorPlanItem } from "@/lib/floorPlan";
+import { isReservableFloorPlanItem } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable, StudioRenderedTableFrame } from "./studioShared";
@@ -14,6 +14,12 @@ const CANVAS_HEIGHT = 680;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
+const STUDIO_RESIZE_HANDLES = [
+  { key: "nw", className: "-left-2.5 -top-2.5", cursor: "nwse-resize" },
+  { key: "ne", className: "-right-2.5 -top-2.5", cursor: "nesw-resize" },
+  { key: "se", className: "-right-2.5 -bottom-2.5", cursor: "nwse-resize" },
+  { key: "sw", className: "-left-2.5 -bottom-2.5", cursor: "nesw-resize" },
+] as const;
 
 type StudioCanvasProps = {
   selectedSector: string;
@@ -29,7 +35,11 @@ type StudioCanvasProps = {
   onCanvasWheel: (event: WheelEvent<HTMLDivElement>) => void;
   onCanvasBackgroundPress: () => void;
   onStartDraggingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
-  onStartResizingTable: (event: PointerEvent<HTMLButtonElement>, tableId: string) => void;
+  onStartResizingTable: (
+    event: PointerEvent<HTMLButtonElement>,
+    tableId: string,
+    handle: (typeof STUDIO_RESIZE_HANDLES)[number]["key"],
+  ) => void;
   onStartRotatingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
   onUpdateCanvasZoom: (nextZoom: number) => void;
   getRenderedFrame: (table: StudioDraftTable) => StudioRenderedTableFrame;
@@ -198,7 +208,6 @@ export default function StudioCanvas({
                   const renderedFrame = getRenderedFrame(table);
                   const isSelected = table.id === selectedTableId;
                   const isReservable = isReservableFloorPlanItem(table.layout.kind);
-                  const typeLabel = getFloorPlanItemTypeLabel(table.layout.kind, table.layout.shape);
 
                   return (
                     <div
@@ -215,8 +224,8 @@ export default function StudioCanvas({
                       onClick={() => onTablePress(table.id)}
                     >
                       <div className={cn(
-                        "pointer-events-none absolute inset-0 rounded-[26px] blur-[16px]",
-                        isSelected ? "bg-sky-300/55 opacity-95" : "bg-slate-300/35 opacity-70",
+                        "pointer-events-none absolute inset-1 rounded-[30px] blur-[18px]",
+                        isSelected ? "bg-sky-300/55 opacity-95" : "bg-slate-300/30 opacity-70",
                       )} />
 
                       <div
@@ -240,60 +249,70 @@ export default function StudioCanvas({
                             cornerBenchHorizontal={table.layout.cornerBenchHorizontal}
                             cornerBenchVertical={table.layout.cornerBenchVertical}
                             cornerBenchDepth={table.layout.cornerBenchDepth}
-                            className="h-full w-full"
+                            className="block h-full w-full"
                           />
                         </div>
 
                         {isSelected ? (
-                          <div className="pointer-events-none absolute inset-[-3px] rounded-[24px] border-2 border-slate-950/70 shadow-[0_0_0_4px_rgba(255,255,255,0.6)]" />
+                          <>
+                            <div className="pointer-events-none absolute inset-[-5px] rounded-[30px] border-2 border-sky-500/70 shadow-[0_0_0_4px_rgba(255,255,255,0.72)]" />
+                            <div className="pointer-events-none absolute inset-[8px] rounded-[20px] border border-white/55" />
+                          </>
                         ) : null}
 
-                        <div className="pointer-events-none absolute inset-x-1 top-1 flex items-start justify-between gap-2">
-                          <div className="rounded-full border border-white/80 bg-white/92 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm">
-                            {table.table_number}
+                        {isReservable ? (
+                          <div className="pointer-events-none absolute inset-x-3 top-2 flex justify-center">
+                            <div className="rounded-full border border-white/90 bg-white/92 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 shadow-[0_10px_24px_-16px_rgba(15,23,42,0.5)]">
+                              {table.table_number}
+                            </div>
                           </div>
-                          <div className="rounded-full border border-white/80 bg-white/92 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 shadow-sm">
-                            {isReservable ? `${table.capacity} pl.` : typeLabel}
-                          </div>
-                        </div>
+                        ) : null}
 
                         {isSelected ? (
                           <button
                             type="button"
                             aria-label={`Deplacer ${table.table_number}`}
-                            className="absolute left-1 top-8 flex h-6 w-6 items-center justify-center rounded-full border border-slate-900/15 bg-white shadow-md"
+                            className="absolute left-[-12px] top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-900/10 bg-white text-slate-700 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]"
                             onPointerDown={(event) => onStartDraggingTable(event, table.id)}
                           >
-                            <Grip className="h-3.5 w-3.5 text-slate-700" />
+                            <Grip className="h-4 w-4" />
                           </button>
                         ) : null}
 
-                        {isSelected ? (
-                          <button
-                            type="button"
-                            aria-label={`Redimensionner ${table.table_number}`}
-                            className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border border-slate-900/15 bg-white shadow-sm"
-                            style={{ cursor: "nwse-resize" }}
-                            onPointerDown={(event) => onStartResizingTable(event, table.id)}
-                          />
-                        ) : null}
+                        {isSelected
+                          ? STUDIO_RESIZE_HANDLES.map((handle) => (
+                            <button
+                              key={handle.key}
+                              type="button"
+                              aria-label={`Redimensionner ${table.table_number}`}
+                              className={cn(
+                                "absolute h-5 w-5 rounded-full border-2 border-white bg-slate-950 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)]",
+                                handle.className,
+                              )}
+                              style={{ cursor: handle.cursor }}
+                              onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
+                            >
+                              <span className="absolute inset-[4px] rounded-full bg-sky-300/90" />
+                            </button>
+                          ))
+                          : null}
                       </div>
 
                       {isSelected ? (
                         <div
                           className="absolute flex items-center justify-center"
                           style={{
-                            top: -28,
+                            top: -34,
                             left: "50%",
                             transform: "translateX(-50%)",
                             cursor: "grab",
                           }}
                           onPointerDown={(event) => onStartRotatingTable(event, table.id)}
                         >
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-900/15 bg-white shadow-md">
-                            <RotateCw className="h-3.5 w-3.5 text-slate-700" />
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/10 bg-white shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]">
+                            <RotateCw className="h-4 w-4 text-slate-700" />
                           </div>
-                          <div className="absolute top-6 h-2 w-px bg-slate-900/25" />
+                          <div className="absolute top-9 h-3 w-px bg-slate-900/20" />
                         </div>
                       ) : null}
                     </div>

@@ -81,7 +81,7 @@ export const SIGNUP_ROLE_META: Record<
 > = {
   client: {
     label: "Client",
-    description: "Commander, reserver et gerer votre identite client.",
+    description: "Creer un compte en quelques secondes pour commander et reserver. Adresse et paiement plus tard.",
   },
   restaurateur: {
     label: "Restaurateur",
@@ -118,7 +118,7 @@ const RESTAURATEUR_REQUIREMENTS: SignupDocumentRequirement[] = [
   },
 ];
 
-const CLIENT_REQUIREMENTS: SignupDocumentRequirement[] = [...BASE_REQUIREMENTS];
+const CLIENT_REQUIREMENTS: SignupDocumentRequirement[] = [];
 
 function getCourierRequirements(vehicleType: string | null | undefined): SignupDocumentRequirement[] {
   const requirements: SignupDocumentRequirement[] = [

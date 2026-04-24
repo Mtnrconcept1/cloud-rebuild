@@ -12,14 +12,24 @@ interface RestaurantSectionProps {
   restaurants: any[];
   bgClass?: string;
   linkText?: string;
+  linkTo?: string;
 }
 
-export default function RestaurantSection({ title, subtitle, icon: Icon, iconColor, restaurants, bgClass = "bg-background", linkText = "Voir tout" }: RestaurantSectionProps) {
+export default function RestaurantSection({
+  title,
+  subtitle,
+  icon: Icon,
+  iconColor,
+  restaurants,
+  bgClass = "bg-background",
+  linkText = "Voir tout",
+  linkTo = "/recherche",
+}: RestaurantSectionProps) {
   if (restaurants.length === 0) return null;
 
   return (
-    <section className={`py-20 ${bgClass}`}>
-      <div className="container space-y-8">
+    <section className={`py-12 md:py-16 ${bgClass}`}>
+      <div className="container space-y-6 md:space-y-8">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className={`flex items-center gap-2 ${iconColor} font-bold text-xs uppercase tracking-widest`}>
@@ -29,7 +39,7 @@ export default function RestaurantSection({ title, subtitle, icon: Icon, iconCol
             <h2 className="font-display text-2xl md:text-3xl font-bold">{title}</h2>
           </div>
           <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary gap-1" asChild>
-            <Link to="/recherche">{linkText} <ChevronRight className="h-4 w-4" /></Link>
+            <Link to={linkTo}>{linkText} <ChevronRight className="h-4 w-4" /></Link>
           </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

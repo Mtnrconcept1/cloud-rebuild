@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BadgePercent, ChevronRight, Heart, MapPinned, MoonStar, SunMedium, TrendingUp } from "lucide-react";
+import { BadgePercent, ChevronRight, Compass, Heart, MapPinned, MoonStar, ShoppingCart, Sparkles, SunMedium, TrendingUp, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -17,6 +17,7 @@ import FeaturesSection from "@/components/home/FeaturesSection";
 import FooterSection from "@/components/home/FooterSection";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getActiveSponsoredRestaurants, setAnalyticsUser, trackEvent } from "@/lib/analytics";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
@@ -70,6 +71,16 @@ async function fetchHomeRail(params: HomeRailParams) {
   return ((data || []) as any[]).map(mapSearchRailRestaurant);
 }
 
+function buildSearchLink(params: Record<string, string | null | undefined | boolean>) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === false || value === "") return;
+    searchParams.set(key, String(value));
+  });
+  const query = searchParams.toString();
+  return `/recherche${query ? `?${query}` : ""}`;
+}
+
 const sectionStagger = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.09 } },
@@ -85,6 +96,7 @@ const sectionBounce = {
 
 export default function Index() {
   const { user } = useAuth();
+  const { itemCount } = useCart();
   const activeFeatures = useActiveFeatures();
   const deliveryEnabled = activeFeatures.has("livraison");
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
@@ -142,7 +154,7 @@ export default function Index() {
     enabled: !!user?.id,
     queryFn: async () => {
       const [profileResponse, favoritesResponse, ordersResponse, reservationsResponse] = await Promise.all([
-        supabase.from("profiles").select("city").eq("user_id", user!.id).maybeSingle(),
+        supabase.from("profiles").select("city, full_name, phone").eq("user_id", user!.id).maybeSingle(),
         supabase
           .from("favorites")
           .select("restaurant_id, restaurants(*)")
@@ -206,6 +218,8 @@ export default function Index() {
 
       return {
         city: String(profileResponse.data?.city || "").trim(),
+        fullName: String(profileResponse.data?.full_name || "").trim(),
+        phone: String(profileResponse.data?.phone || "").trim(),
         personalRestaurants: [...favoriteRestaurants, ...recentRestaurants].slice(0, 4),
       };
     },
@@ -261,6 +275,114 @@ export default function Index() {
     maxItems: trendingRail.length || undefined,
   });
   const personalCards = (userContext?.personalRestaurants || []) as any[];
+  const hasSavedCity = Boolean(userContext?.city);
+  const hasProfileName = Boolean(userContext?.fullName);
+  const profileNeedsAttention = Boolean(user && (!hasSavedCity || !hasProfileName));
+  const currentHour = new Date().getHours();
+  const lunchFocus = currentHour < 16;
+  const primaryRail = lunchFocus
+    ? {
+      title: "Pour ce midi",
+      subtitle: deliveryEnabled ? "Rapide et fiable" : "Selection du midi",
+      icon: SunMedium,
+      iconColor: "text-amber-500",
+      restaurants: lunchCards,
+      linkText: "Voir plus pour le midi",
+      linkTo: buildSearchLink({
+        city: userContext?.city || null,
+        sort: "popularite",
+        delivery: deliveryEnabled ? "true" : undefined,
+      }),
+    }
+    : {
+      title: "Pour ce soir",
+      subtitle: "Reservations et plaisir",
+      icon: MoonStar,
+      iconColor: "text-indigo-500",
+      restaurants: dinnerCards,
+      linkText: "Voir plus pour le soir",
+      linkTo: buildSearchLink({
+        city: userContext?.city || null,
+        sort: "plus_reserves_mois",
+      }),
+    };
+  const secondaryRail = lunchFocus
+    ? {
+      title: "Pour ce soir",
+      subtitle: "Reservations et plaisir",
+      icon: MoonStar,
+      iconColor: "text-indigo-500",
+      restaurants: dinnerCards,
+      linkText: "Voir plus pour le soir",
+      linkTo: buildSearchLink({
+        city: userContext?.city || null,
+        sort: "plus_reserves_mois",
+      }),
+    }
+    : {
+      title: "Pour ce midi",
+      subtitle: deliveryEnabled ? "Rapide et fiable" : "Selection du midi",
+      icon: SunMedium,
+      iconColor: "text-amber-500",
+      restaurants: lunchCards,
+      linkText: "Voir plus pour le midi",
+      linkTo: buildSearchLink({
+        city: userContext?.city || null,
+        sort: "popularite",
+        delivery: deliveryEnabled ? "true" : undefined,
+      }),
+    };
+  const showSecondaryRail = secondaryRail.restaurants.length > 0 && (!user || (!personalCards.length && !cityRail.length));
+  const showTrendingRail = trendingCards.length > 0 && (!user || personalCards.length < 3);
+  const focusCards = [
+    itemCount > 0
+      ? {
+        key: "cart",
+        eyebrow: "A reprendre",
+        title: "Votre panier vous attend",
+        description: `Vous avez deja ${itemCount} article${itemCount > 1 ? "s" : ""} en attente. Reprenez le parcours au bon endroit.`,
+        cta: "Revenir au panier",
+        href: "/panier",
+        icon: ShoppingCart,
+        tint: "bg-primary/10 text-primary",
+      }
+      : null,
+    profileNeedsAttention
+      ? {
+        key: "profile",
+        eyebrow: "Personnalisation",
+        title: hasSavedCity ? "Finalisez votre profil" : "Choisissez votre ville",
+        description: hasSavedCity
+          ? "Ajoutez votre nom complet pour rendre vos confirmations et favoris plus clairs."
+          : "Ajoutez votre ville pour voir plus vite les bonnes adresses autour de vous.",
+        cta: "Completer mon profil",
+        href: "/profil?tab=infos",
+        icon: UserRound,
+        tint: "bg-sky-500/10 text-sky-600",
+      }
+      : null,
+    user && itemCount === 0 && personalCards.length === 0
+      ? {
+        key: "discover",
+        eyebrow: "Decouverte",
+        title: "Lancez votre premiere selection",
+        description: "Commencez par une recherche simple. Le reste du parcours restera ensuite beaucoup plus personnalise.",
+        cta: "Explorer les restaurants",
+        href: buildSearchLink({ city: userContext?.city || null }),
+        icon: Compass,
+        tint: "bg-emerald-500/10 text-emerald-600",
+      }
+      : null,
+  ].filter(Boolean) as Array<{
+    key: string;
+    eyebrow: string;
+    title: string;
+    description: string;
+    cta: string;
+    href: string;
+    icon: typeof ShoppingCart;
+    tint: string;
+  }>;
 
   return (
     <main className="min-h-screen pb-20">
@@ -272,14 +394,51 @@ export default function Index() {
         initial="hidden"
         animate={isVisible ? "visible" : "hidden"}
       >
-        <motion.div variants={sectionBounce}>
-          <section className="bg-miamz-warm/20 pt-4 pb-8 md:pt-6 md:pb-12">
-            <div className="container space-y-4 px-4">
-              <CampaignBanner page="home" maxBanners={1} />
-              <PromoCarousel />
-            </div>
-          </section>
-        </motion.div>
+        {focusCards.length > 0 ? (
+          <motion.div variants={sectionBounce}>
+            <section className="py-6 md:py-8">
+              <div className="container grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {focusCards.map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div
+                      key={card.key}
+                      className="rounded-[28px] border bg-card/85 p-5 shadow-[0_14px_32px_rgba(15,23,42,0.05)] backdrop-blur-sm"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${card.tint}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                            {card.eyebrow}
+                          </p>
+                          <h2 className="font-display text-xl font-bold leading-tight">
+                            {card.title}
+                          </h2>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                        {card.description}
+                      </p>
+                      <div className="mt-4 flex items-center justify-between gap-3">
+                        <Button className="rounded-full px-4" asChild>
+                          <Link to={card.href}>
+                            {card.cta}
+                            <ChevronRight className="ml-1 h-4 w-4" />
+                          </Link>
+                        </Button>
+                        {card.key === "cart" ? (
+                          <span className="text-xs font-medium text-muted-foreground">Retour direct au bon etat</span>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </motion.div>
+        ) : null}
 
         {user ? (
           <motion.div variants={sectionBounce}>
@@ -292,10 +451,6 @@ export default function Index() {
         ) : null}
 
         <motion.div variants={sectionBounce}>
-          <SolidaritySection donatedMeals={donatedMeals} donatedPoints={donatedPoints} />
-        </motion.div>
-
-        <motion.div variants={sectionBounce}>
           <RestaurantSection
             title="Vos habitudes"
             subtitle="Pour vous"
@@ -303,8 +458,10 @@ export default function Index() {
             iconColor="text-pink-500"
             restaurants={personalCards}
             linkText="Retrouver vos favoris"
+            linkTo="/profil?tab=favoris"
           />
         </motion.div>
+
         <motion.div variants={sectionBounce}>
           <RestaurantSection
             title={userContext?.city ? `Dans ${userContext.city}` : "Pres de chez vous"}
@@ -314,29 +471,42 @@ export default function Index() {
             restaurants={cityRail as any[]}
             bgClass="bg-secondary/10"
             linkText="Explorer votre ville"
+            linkTo={buildSearchLink({ city: userContext?.city || null })}
           />
         </motion.div>
+
         <motion.div variants={sectionBounce}>
           <RestaurantSection
-            title="Pour ce midi"
-            subtitle={deliveryEnabled ? "Rapide et fiable" : "Selection du midi"}
-            icon={SunMedium}
-            iconColor="text-amber-500"
-            restaurants={lunchCards}
-            linkText="Voir plus pour le midi"
+            title={primaryRail.title}
+            subtitle={primaryRail.subtitle}
+            icon={primaryRail.icon}
+            iconColor={primaryRail.iconColor}
+            restaurants={primaryRail.restaurants}
+            linkText={primaryRail.linkText}
+            linkTo={primaryRail.linkTo}
           />
         </motion.div>
+
         <motion.div variants={sectionBounce}>
-          <RestaurantSection
-            title="Pour ce soir"
-            subtitle="Reservations et plaisir"
-            icon={MoonStar}
-            iconColor="text-indigo-500"
-            restaurants={dinnerCards}
-            bgClass="bg-secondary/10"
-            linkText="Voir plus pour le soir"
-          />
+          <section className="bg-miamz-warm/10 py-8 md:py-10">
+            <div className="container space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">A ne pas manquer</p>
+                  <h2 className="font-display text-2xl font-bold">Promotions et activations du moment</h2>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <CampaignBanner page="home" maxBanners={1} />
+                <PromoCarousel />
+              </div>
+            </div>
+          </section>
         </motion.div>
+
         <motion.div variants={sectionBounce}>
           <RestaurantSection
             title="Bons plans du moment"
@@ -345,17 +515,37 @@ export default function Index() {
             iconColor="text-emerald-500"
             restaurants={offersCards}
             linkText="Voir toutes les offres"
+            linkTo={buildSearchLink({ sort: "promotion", promo: true, city: userContext?.city || null })}
           />
         </motion.div>
-        <motion.div variants={sectionBounce}>
-          <RestaurantSection
-            title="Tendances en ce moment"
-            subtitle="Tops"
-            icon={TrendingUp}
-            iconColor="text-primary"
-            restaurants={trendingCards}
-          />
-        </motion.div>
+
+        {showSecondaryRail ? (
+          <motion.div variants={sectionBounce}>
+            <RestaurantSection
+              title={secondaryRail.title}
+              subtitle={secondaryRail.subtitle}
+              icon={secondaryRail.icon}
+              iconColor={secondaryRail.iconColor}
+              restaurants={secondaryRail.restaurants}
+              bgClass="bg-secondary/10"
+              linkText={secondaryRail.linkText}
+              linkTo={secondaryRail.linkTo}
+            />
+          </motion.div>
+        ) : null}
+
+        {showTrendingRail ? (
+          <motion.div variants={sectionBounce}>
+            <RestaurantSection
+              title="Tendances en ce moment"
+              subtitle="Tops"
+              icon={TrendingUp}
+              iconColor="text-primary"
+              restaurants={trendingCards}
+              linkTo={buildSearchLink({ sort: "note", city: userContext?.city || null })}
+            />
+          </motion.div>
+        ) : null}
 
         <motion.div variants={sectionBounce}>
           <section className="py-10 md:py-14">
@@ -368,7 +558,7 @@ export default function Index() {
                   <h2 className="font-display text-xl font-semibold md:text-2xl">Restaurants a proximite</h2>
                 </div>
                 <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" asChild>
-                  <Link to="/recherche">
+                  <Link to={buildSearchLink({ city: userContext?.city || null })}>
                     Voir la liste <ChevronRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -376,6 +566,10 @@ export default function Index() {
               <NearbyRestaurantsMap restaurants={allRestaurants || []} />
             </div>
           </section>
+        </motion.div>
+
+        <motion.div variants={sectionBounce}>
+          <SolidaritySection donatedMeals={donatedMeals} donatedPoints={donatedPoints} />
         </motion.div>
 
         <motion.div variants={sectionBounce}>
