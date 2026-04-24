@@ -146,37 +146,30 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             <div className="absolute inset-0 rounded-[30px] bg-[linear-gradient(180deg,rgba(255,248,241,0.72)_0%,rgba(255,245,234,0.86)_35%,rgba(255,244,234,0.94)_100%)]" />
             <div className="absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_50%_24%,rgba(255,255,255,0.82),transparent_38%)]" />
 
-            <div className="relative z-10 p-5">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/88 px-3 py-1.5 shadow-sm backdrop-blur-md">
-                <img src="/logo.png" alt="Tok" className="h-9 w-auto object-contain" />
-                <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#5b6574]">Tok</span>
-              </div>
-
-              <div className="mt-5">
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none float-right ml-1 h-[19.75rem] w-[10.5rem] bg-[url('/chef.png')] bg-contain bg-right-bottom bg-no-repeat drop-shadow-[0_16px_28px_rgba(0,0,0,0.18)]"
-                  style={{
-                    shapeOutside: "url('/chef.png')",
-                    WebkitShapeOutside: "url('/chef.png')",
-                    shapeMargin: "1.4px",
-                    WebkitShapeMargin: "0.4px",
-                  }}
-                />
-                <div className="space-y-2">
+            <div className="relative z-10 p-5 pt-4">
+              <div className="mt-1 grid grid-cols-[minmax(0,1fr)_9.4rem] items-end gap-x-2 min-[381px]:grid-cols-[minmax(0,1fr)_10.8rem]">
+                <div className="min-w-0 space-y-1.5 pr-1">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#6b7280]">
                     Reservations, commandes, bons plans
                   </p>
-                  <h1 className="font-display text-[2rem] font-bold leading-[0.94] tracking-[-0.04em] text-[#21314b]">
+                  <h1 className="font-display text-[1.72rem] font-bold leading-[0.92] tracking-[-0.045em] text-[#21314b] min-[381px]:text-[2rem] min-[381px]:leading-[0.94]">
                     Trouvez votre prochaine table sans detour
                   </h1>
                   <p className="text-sm leading-6 text-[#394b67]">
                     Cherchez un resto, une cuisine ou une ville, puis ouvrez directement la meilleure fiche.
                   </p>
                 </div>
+                <div className="relative h-[11.25rem] self-end min-[381px]:h-[13rem]">
+                  <img
+                    aria-hidden="true"
+                    alt=""
+                    src="/chef.png"
+                    className="pointer-events-none absolute bottom-0 right-[-26px] w-[180px] max-w-none object-contain drop-shadow-[0_16px_28px_rgba(0,0,0,0.18)] min-[381px]:right-[-30px] min-[381px]:w-[220px]"
+                  />
+                </div>
               </div>
 
-              <motion.form variants={fadeUp} onSubmit={handleSearch} className="clear-right mt-0">
+              <motion.form variants={fadeUp} onSubmit={handleSearch} className="mt-0">
                 <div className="rounded-[26px] border border-white/90 bg-white/92 p-2 shadow-[0_14px_28px_rgba(109,71,30,0.12)] backdrop-blur-md">
                   <div className="flex items-center gap-2.5 rounded-[20px] border border-[#e7e2d9] bg-white px-4 py-3">
                     <Search className="h-4 w-4 shrink-0 text-muted-foreground" />

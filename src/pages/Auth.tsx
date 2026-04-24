@@ -368,7 +368,7 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
         <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="text-center space-y-2">
-            <img src={LOGO_URL} alt="Tok" className="mx-auto h-16 w-auto object-contain mb-2" />
+            <img src={LOGO_URL} alt="Tok" className="mx-auto h-18 w-auto object-contain mb-2" />
             <CardTitle className="font-display text-2xl">Bienvenue</CardTitle>
             <CardDescription>Choisissez votre espace pour continuer</CardDescription>
           </CardHeader>
