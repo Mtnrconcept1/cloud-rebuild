@@ -549,11 +549,37 @@ export async function finalizeChefsTableCheckout(input: {
 
       const restaurantOwnerId = dropMap.get(group.drops[0].dropId)?.restaurants?.owner_id || null;
       if (restaurantOwnerId) {
+        try {
+          await enqueueNotification({
+            adminClient,
+            userId: restaurantOwnerId,
+            title: "Nouvelle reservation La Table du Chef",
+            body: `${group.partySize} experience(s) reservee(s) pour le ${group.date} a ${group.time} - ${group.total.toFixed(2)} CHF`,
+            type: "reservation",
+            category: "transactional",
+            data: {
+              reservation_id: reservationId,
+              restaurant_id: group.restaurantId,
+              restaurant_name: group.restaurantName,
+              total_amount: group.total,
+              feature: "chefs_table",
+              url: "/dashboard/reservations",
+            },
+          });
+        } catch (error) {
+          log?.error?.("chefs_table_restaurant_notification_failed", {
+            reservation_id: reservationId,
+            message: error instanceof Error ? error.message : "unknown",
+          });
+        }
+      }
+
+      try {
         await enqueueNotification({
           adminClient,
-          userId: restaurantOwnerId,
-          title: "Nouvelle reservation La Table du Chef",
-          body: `${group.partySize} experience(s) reservee(s) pour le ${group.date} a ${group.time} - ${group.total.toFixed(2)} CHF`,
+          userId,
+          title: "Reservation La Table du Chef confirmee",
+          body: `Votre experience chez ${group.restaurantName} est confirmee le ${group.date} a ${group.time}.`,
           type: "reservation",
           category: "transactional",
           data: {
@@ -562,27 +588,15 @@ export async function finalizeChefsTableCheckout(input: {
             restaurant_name: group.restaurantName,
             total_amount: group.total,
             feature: "chefs_table",
-            url: "/dashboard/reservations",
+            url: "/reservations",
           },
         });
-      }
-
-      await enqueueNotification({
-        adminClient,
-        userId,
-        title: "Reservation La Table du Chef confirmee",
-        body: `Votre experience chez ${group.restaurantName} est confirmee le ${group.date} a ${group.time}.`,
-        type: "reservation",
-        category: "transactional",
-        data: {
+      } catch (error) {
+        log?.error?.("chefs_table_customer_notification_failed", {
           reservation_id: reservationId,
-          restaurant_id: group.restaurantId,
-          restaurant_name: group.restaurantName,
-          total_amount: group.total,
-          feature: "chefs_table",
-          url: "/reservations",
-        },
-      });
+          message: error instanceof Error ? error.message : "unknown",
+        });
+      }
     } catch (error) {
       for (const dropAllocation of decrementedDrops) {
         try {

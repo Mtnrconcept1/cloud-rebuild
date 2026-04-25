@@ -1148,7 +1148,9 @@ export default function Panier() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-foreground">Paiement visible et prioritaire</p>
-                  <p className="text-xs text-muted-foreground">Confirmez maintenant pour verrouiller vos places.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Les convives choisis dans La Table du Chef sont deja integres dans cette etape de paiement.
+                  </p>
                 </div>
                 <span className="font-display text-2xl font-bold text-foreground">{finalTotal.toFixed(2)} CHF</span>
               </div>
@@ -1443,12 +1445,20 @@ export default function Panier() {
           setPaymentMethod={setPaymentMethod}
           allowedMethods={allowedPaymentMethods}
           cashDescription="Le paiement en espèces n'est pas disponible pour ce parcours."
+          variant={isChefsTableCheckout ? "chef-table" : "default"}
           secureDescription={isChefsTableCheckout
             ? "Paiement sécurisé requis pour confirmer votre réservation La Table du Chef"
             : "Paiement sécurisé via Stripe"}
         />
 
-        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading || !hasJourneyAvailable || allowedPaymentMethods.length === 0}>
+        <Button
+          className={isChefsTableCheckout
+            ? "h-14 w-full rounded-2xl bg-amber-500 text-base font-semibold text-white shadow-[0_22px_55px_-28px_rgba(245,158,11,0.9)] hover:bg-amber-600"
+            : "w-full"}
+          size="lg"
+          onClick={handleCheckout}
+          disabled={loading || !hasJourneyAvailable || allowedPaymentMethods.length === 0}
+        >
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

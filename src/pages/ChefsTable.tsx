@@ -330,7 +330,7 @@ function ChefTableDropCard({
             ) : (
               <>
                 <ShoppingCart className="mr-2 h-4 w-4" />
-                Choisir le creneau
+                Choisir creneau et convives
               </>
             )}
           </Button>
@@ -842,7 +842,7 @@ export default function ChefsTable() {
                         </p>
                         <p className="flex items-center gap-1 text-xs text-white/70">
                           <Users className="h-3 w-3" />
-                          Paiement securise requis pour verrouiller vos creneaux et portions exclusives
+                          Paiement securise requis pour verrouiller {reservedGuestTotal} convive{reservedGuestTotal > 1 ? "s" : ""} et vos portions exclusives
                         </p>
                         <div className="grid gap-2 sm:grid-cols-2">
                           {reservedSummary.map((entry) => (
@@ -872,7 +872,7 @@ export default function ChefsTable() {
                       onClick={handleProceedToCheckout}
                       className="mt-4 h-12 w-full rounded-2xl bg-amber-500 text-base font-semibold text-white shadow-[0_20px_50px_-24px_rgba(245,158,11,0.92)] hover:bg-amber-600"
                     >
-                      Proceder au paiement securise
+                      Verifier et payer maintenant
                     </Button>
                   </div>
                 </div>
@@ -924,6 +924,8 @@ export default function ChefsTable() {
         chefName={slotDialogDrop?.chef ?? ""}
         restaurantName={slotDialogDrop?.restaurant ?? ""}
         serviceSettings={slotDialogDrop?.serviceSettings ?? getServiceSettings(null)}
+        pricePerGuest={slotDialogDrop?.price ?? null}
+        remainingPortions={slotDialogDrop?.remaining ?? null}
         initialDate={slotDialogDrop ? new Date(slotDialogDrop.dropTime) : null}
         initialTime={slotDialogPresetTime ?? slotDialogDrop?.serviceTimeLabel ?? null}
         initialPartySize={slotDialogPresetPartySize}
