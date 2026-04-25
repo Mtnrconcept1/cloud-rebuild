@@ -11,7 +11,7 @@ describe("campaignTargeting", () => {
   it("normalizes targeting payloads", () => {
     const criteria = normalizeAudienceCriteria({
       cuisines: ["Pizza", "pizza", " Italien "],
-      cities: ["Geneve", "geneve"],
+      cities: ["Genève", "geneve"],
       customerSegment: "loyal",
       journeyTypes: ["delivery", "delivery", "reservation"],
       serviceMoments: ["dinner", "weekend", "unknown" as any],
@@ -29,7 +29,7 @@ describe("campaignTargeting", () => {
       {
         ...DEFAULT_AUDIENCE_CRITERIA,
         cuisines: ["pizza"],
-        cities: ["geneve"],
+        cities: ["genève"],
         customerSegment: "loyal",
         favoritesOnly: true,
         journeyTypes: ["delivery"],
