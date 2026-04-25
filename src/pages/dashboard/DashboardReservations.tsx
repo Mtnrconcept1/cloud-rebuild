@@ -20,6 +20,10 @@ import {
   type CancellationReasonCode,
   updateRestaurantReservationStatus,
 } from "@/lib/reservationMutations";
+import {
+  getRemainingRefundAmount as getRefundRemainingAmount,
+  processRefund,
+} from "@/lib/refundMutations";
 import { getReservationStatusLockMessage } from "@/lib/statusLocks";
 import { AlertTriangle, Ban, Check, CreditCard, Dot, MoonStar, Search, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
@@ -65,6 +69,19 @@ const toNumber = (value: Json | undefined): number | undefined => {
     if (Number.isFinite(parsed)) return parsed;
   }
   return undefined;
+};
+
+const getReservationRefundSnapshot = (reservation: ReservationRow | ReservationWithProfile) => {
+  const dynamicReservation = reservation as ReservationRow & Record<string, unknown>;
+  const refundedAmount = Number(dynamicReservation.refunded_amount_chf || 0);
+  const refundStatus = String(dynamicReservation.refund_status || "").trim().toLowerCase();
+  const remainingAmount = getRefundRemainingAmount(reservation.total_amount, refundedAmount);
+
+  return {
+    refundedAmount,
+    remainingAmount,
+    eligible: remainingAmount > 0.009 && refundStatus !== "refunded",
+  };
 };
 
 const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
@@ -185,15 +202,27 @@ export default function DashboardReservations() {
       id,
       reasonCode,
       details,
+      refundNow,
+      refundEligible,
     }: {
       id: string;
       reasonCode: CancellationReasonCode;
       details: string | null;
+      refundNow: boolean;
+      refundEligible: boolean;
     }) => {
       const result = await cancelReservationByRestaurant(id, reasonCode, details);
       if (!result.ok) {
         throw new Error(result.errorMessage);
       }
+
+      const refundResult = refundNow && refundEligible
+        ? await processRefund({
+          targetType: "reservation",
+          targetId: id,
+          reason: details || reasonCode,
+        })
+        : null;
 
       try {
         await dispatchQueuedNotifications("dashboard-reservation-status");
@@ -201,10 +230,33 @@ export default function DashboardReservations() {
         console.error("Reservation cancellation notification dispatch failed:", dispatchError);
       }
 
-      return { id };
+      return {
+        id,
+        refundAttempted: refundNow && refundEligible,
+        refundEligible,
+        refundResult,
+      };
     },
-    onSuccess: () => {
-      toast({ title: "Reservation annulee", description: "La raison a ete enregistree." });
+    onSuccess: (data) => {
+      if (data.refundAttempted && data.refundResult?.ok) {
+        toast({
+          title: "Reservation annulee",
+          description: `Remboursement lance pour ${Number(data.refundResult.refundAmountChf || 0).toFixed(2)} CHF.`,
+        });
+      } else if (data.refundAttempted && !data.refundResult?.ok) {
+        toast({
+          title: "Reservation annulee, remboursement en attente",
+          description: data.refundResult?.errorMessage || "Le remboursement reste disponible dans la file admin.",
+          variant: "destructive",
+        });
+      } else if (data.refundEligible) {
+        toast({
+          title: "Reservation annulee",
+          description: "La demande de remboursement reste disponible dans la file admin.",
+        });
+      } else {
+        toast({ title: "Reservation annulee", description: "La raison a ete enregistree." });
+      }
       queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
       setCancelTarget(null);
     },
@@ -512,6 +564,7 @@ export default function DashboardReservations() {
                                 const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
                                 const compactBase = isCompactMode ? "p-3" : "p-4";
                                 const statusLockMessage = getReservationStatusLockMessage(reservation);
+                                const refundSnapshot = getReservationRefundSnapshot(reservation);
                                 const isArrived = reservation.status === "arrived";
                                 const isReservationLocked = Boolean(statusLockMessage);
                                 const isCardLocked = isReservationLocked || isArrived;
@@ -640,7 +693,8 @@ export default function DashboardReservations() {
                                           variant="outline"
                                           onClick={() => setCancelTarget(reservation)}
                                           disabled={
-                                            isCardLocked ||
+                                            isArrived ||
+                                            reservation.status === "cancelled" ||
                                             reservation.status === "no_show" ||
                                             cancelMutation.isPending
                                           }
@@ -649,6 +703,11 @@ export default function DashboardReservations() {
                                           <Ban className="mr-1 h-4 w-4" />
                                           Annuler
                                         </Button>
+                                        {refundSnapshot.eligible ? (
+                                          <p className="w-full text-xs text-destructive sm:text-right">
+                                            Remboursement possible: {refundSnapshot.remainingAmount.toFixed(2)} CHF
+                                          </p>
+                                        ) : null}
                                         <Button
                                           size="sm"
                                           variant="outline"
@@ -699,20 +758,32 @@ export default function DashboardReservations() {
       </div>
       <RestaurantCancellationDialog
         open={Boolean(cancelTarget)}
-        reservationLabel={
+        targetLabel={
           cancelTarget
             ? `${cancelTarget.customer?.full_name ?? "Client"} - ${cancelTarget.date} ${getSafeTime(cancelTarget.time)}`
             : undefined
         }
         submitting={cancelMutation.isPending}
+        refundEligible={cancelTarget ? getReservationRefundSnapshot(cancelTarget).eligible : false}
+        refundAmountChf={cancelTarget ? getReservationRefundSnapshot(cancelTarget).remainingAmount : 0}
+        refundHint={cancelTarget && getReservationRefundSnapshot(cancelTarget).eligible
+          ? "Decochez pour laisser le remboursement en file admin."
+          : null}
         onOpenChange={(open) => {
           if (!open) {
             setCancelTarget(null);
           }
         }}
-        onConfirm={(reasonCode, details) => {
+        onConfirm={({ reasonCode, details, refundNow }) => {
           if (!cancelTarget) return;
-          cancelMutation.mutate({ id: cancelTarget.id, reasonCode, details });
+          const refundSnapshot = getReservationRefundSnapshot(cancelTarget);
+          cancelMutation.mutate({
+            id: cancelTarget.id,
+            reasonCode,
+            details,
+            refundNow,
+            refundEligible: refundSnapshot.eligible,
+          });
         }}
       />
     </DashboardLayout>

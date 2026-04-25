@@ -24,12 +24,15 @@ export const COMMISSION_SOURCE_LABELS: Record<CommissionSource, string> = {
 type OrderLike = {
   payment_status?: string | null;
   metadata?: Record<string, unknown> | null;
+  total_amount?: number | string | null;
+  refunded_amount_chf?: number | string | null;
 };
 
 type ReservationLike = {
   feature?: string | null;
   metadata?: Record<string, unknown> | null;
   total_amount?: number | string | null;
+  refunded_amount_chf?: number | string | null;
   status?: string | null;
 };
 
@@ -82,6 +85,13 @@ export function getPointsDiscountAmount(metadata: Record<string, unknown> | null
   return toAmount(record.points_discount_amount ?? record.points_discount);
 }
 
+export function getNetAmountAfterRefund(
+  grossAmount: number | string | null | undefined,
+  refundedAmount: number | string | null | undefined,
+) {
+  return Math.max(0, toAmount(grossAmount) - toAmount(refundedAmount));
+}
+
 export function classifyOrderCommissionSource(order: OrderLike): CommissionSource | null {
   if (!isPaidStatus(order.payment_status)) {
     return null;
@@ -122,6 +132,15 @@ export function classifyOrderCommissionSource(order: OrderLike): CommissionSourc
   return "orders";
 }
 
+export function getNetOrderCommissionBase(order: OrderLike) {
+  if (!classifyOrderCommissionSource(order)) {
+    return 0;
+  }
+
+  const grossAmount = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
+  return getNetAmountAfterRefund(grossAmount, order.refunded_amount_chf);
+}
+
 export function classifyReservationCommissionSource(reservation: ReservationLike): CommissionSource | null {
   if (!isReservationEligible(reservation.status, reservation.total_amount)) {
     return null;
@@ -147,4 +166,12 @@ export function classifyReservationCommissionSource(reservation: ReservationLike
   }
 
   return null;
+}
+
+export function getNetReservationCommissionBase(reservation: ReservationLike) {
+  if (!classifyReservationCommissionSource(reservation)) {
+    return 0;
+  }
+
+  return getNetAmountAfterRefund(reservation.total_amount, reservation.refunded_amount_chf);
 }

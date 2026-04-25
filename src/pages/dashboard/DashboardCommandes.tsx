@@ -1,21 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
+import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard, Search } from "lucide-react";
+import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard, Search, Ban } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { getOrderStatusLockMessage } from "@/lib/statusLocks";
+import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
+import type { CancellationReasonCode } from "@/lib/reservationMutations";
+import {
+  cancelOrderByRestaurant,
+  getRemainingRefundAmount as getRefundRemainingAmount,
+  processRefund,
+} from "@/lib/refundMutations";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
   formatDashboardDateHeading,
@@ -69,6 +78,11 @@ type DashboardOrder = {
   order_number: string | null;
   created_at: string;
   status: string;
+  payment_status?: string | null;
+  cancelled_by?: string | null;
+  cancelled_at?: string | null;
+  refund_status?: string | null;
+  refunded_amount_chf?: number | string | null;
   total_amount: number | string;
   delivery_fee: number | string | null;
   delivery_address: string | null;
@@ -115,10 +129,33 @@ function getStatusOptions(order: DashboardOrder) {
   const baseStatuses: string[] = isDeliveryDashboardOrder(order)
     ? [...DELIVERY_STATUS_SEQUENCE]
     : [...TAKEAWAY_STATUS_SEQUENCE];
+  const nonCancellationStatuses = baseStatuses.filter((status) => status !== "cancelled");
 
-  return baseStatuses.includes(currentStatus)
-    ? baseStatuses
-    : [currentStatus, ...baseStatuses.filter((status) => status !== currentStatus)];
+  if (currentStatus === "cancelled") {
+    return [currentStatus];
+  }
+
+  return nonCancellationStatuses.includes(currentStatus)
+    ? nonCancellationStatuses
+    : [currentStatus, ...nonCancellationStatuses.filter((status) => status !== currentStatus)];
+}
+
+function getOrderRefundSnapshot(order: DashboardOrder) {
+  const paymentStatus = String(order.payment_status || order.metadata?.payment_status || "").trim().toLowerCase();
+  const refundStatus = String(order.refund_status || "").trim().toLowerCase();
+  const remainingAmount = getRefundRemainingAmount(order.total_amount, order.refunded_amount_chf);
+
+  return {
+    remainingAmount,
+    eligible: remainingAmount > 0.009
+      && refundStatus !== "refunded"
+      && (paymentStatus === "paid" || paymentStatus === "captured"),
+  };
+}
+
+function canCancelOrder(order: DashboardOrder) {
+  const status = String(normalizeOrderStatus(order.status));
+  return ["confirmed", "preparing", "ready", "delivering"].includes(status);
 }
 
 export default function DashboardCommandes() {
@@ -126,6 +163,7 @@ export default function DashboardCommandes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [expandedRouteOrderId, setExpandedRouteOrderId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<DashboardOrder | null>(null);
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>("all");
@@ -215,6 +253,85 @@ export default function DashboardCommandes() {
     }));
   }, [groupedOrders, referenceDate]);
 
+  const cancelMutation = useMutation({
+    mutationFn: async ({
+      id,
+      reasonCode,
+      details,
+      refundNow,
+      refundEligible,
+    }: {
+      id: string;
+      reasonCode: CancellationReasonCode;
+      details: string | null;
+      refundNow: boolean;
+      refundEligible: boolean;
+    }) => {
+      const result = await cancelOrderByRestaurant(id, reasonCode, details);
+      if (!result.ok) {
+        throw new Error(result.errorMessage || "Annulation impossible.");
+      }
+
+      const refundResult = refundNow && refundEligible
+        ? await processRefund({
+          targetType: "order",
+          targetId: id,
+          reason: details || reasonCode,
+        })
+        : null;
+
+      try {
+        await dispatchQueuedNotifications("dashboard-order-cancel");
+      } catch (dispatchError) {
+        console.error("Order cancellation notification dispatch failed:", dispatchError);
+      }
+
+      return {
+        id,
+        refundAttempted: refundNow && refundEligible,
+        refundEligible,
+        refundResult,
+      };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-all-orders", selectedId] });
+      setCancelTarget(null);
+
+      if (data.refundAttempted && data.refundResult?.ok) {
+        toast({
+          title: "Commande annulee",
+          description: `Remboursement lance pour ${Number(data.refundResult.refundAmountChf || 0).toFixed(2)} CHF.`,
+        });
+        return;
+      }
+
+      if (data.refundAttempted && !data.refundResult?.ok) {
+        toast({
+          title: "Commande annulee, remboursement en attente",
+          description: data.refundResult?.errorMessage || "Le remboursement reste disponible dans la file admin.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.refundEligible) {
+        toast({
+          title: "Commande annulee",
+          description: "La demande de remboursement reste disponible dans la file admin.",
+        });
+        return;
+      }
+
+      toast({
+        title: "Commande annulee",
+        description: "La raison a ete enregistree.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Annulation impossible", description: error.message, variant: "destructive" });
+    },
+  });
+
   const updateStatus = async (orderId: string, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
     const { data, error } = await invokeSupabaseFunction("restaurant-order-status", {
@@ -273,6 +390,16 @@ export default function DashboardCommandes() {
         : `La commande est maintenant "${STATUS_LABELS[String(normalizedStatus)] || normalizedStatus}".`;
 
     toast({ title: "Statut mis a jour", description });
+  };
+
+  const handleStatusSelection = (order: DashboardOrder, status: string) => {
+    const normalizedStatus = normalizeOrderStatus(status);
+    if (normalizedStatus === "cancelled") {
+      setCancelTarget(order);
+      return;
+    }
+
+    void updateStatus(order.id, normalizedStatus);
   };
 
   return (
@@ -393,6 +520,7 @@ export default function DashboardCommandes() {
                         const paymentMeta = (order.metadata || {}) as Record<string, any>;
                         const paymentBreakdown = getOrderPaymentBreakdown(order);
                         const orderStatusLockMessage = getOrderStatusLockMessage(order);
+                        const refundSnapshot = getOrderRefundSnapshot(order);
                         const isOrderStatusLocked = Boolean(orderStatusLockMessage);
                         const deliveryFlowStatus = String(order.dispatch_job?.status || tracking?.status || "");
                         const scheduledLabel = typeof paymentMeta.scheduled_delivery_label === "string" ? paymentMeta.scheduled_delivery_label : "";
@@ -472,8 +600,8 @@ export default function DashboardCommandes() {
                                 <div className="space-y-1">
                                   <Select
                                     value={normalizeOrderStatus(order.status)}
-                                    onValueChange={(value) => updateStatus(order.id, value)}
-                                    disabled={isOrderStatusLocked}
+                                    onValueChange={(value) => handleStatusSelection(order, value)}
+                                    disabled={isOrderStatusLocked || cancelMutation.isPending}
                                   >
                                     <SelectTrigger className="h-10 w-40 shadow-sm">
                                       <SelectValue />
@@ -492,6 +620,16 @@ export default function DashboardCommandes() {
                                     </p>
                                   ) : null}
                                 </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-10 text-destructive"
+                                  onClick={() => setCancelTarget(order)}
+                                  disabled={!canCancelOrder(order) || cancelMutation.isPending}
+                                >
+                                  <Ban className="mr-1 h-4 w-4" />
+                                  Annuler
+                                </Button>
                               </div>
                             </div>
 
@@ -556,6 +694,12 @@ export default function DashboardCommandes() {
                               </div>
                             ) : null}
 
+                            {refundSnapshot.eligible ? (
+                              <p className="text-xs text-destructive">
+                                Remboursement possible: {refundSnapshot.remainingAmount.toFixed(2)} CHF
+                              </p>
+                            ) : null}
+
                             {canPreviewRoute ? (
                               <div className="space-y-3 rounded-xl border bg-muted/20 p-3">
                                 <div className="flex items-center justify-between gap-3">
@@ -612,6 +756,36 @@ export default function DashboardCommandes() {
           </div>
         ) : null}
       </div>
+      <RestaurantCancellationDialog
+        open={Boolean(cancelTarget)}
+        targetLabel={
+          cancelTarget
+            ? `${cancelTarget.order_number || `#${cancelTarget.id.slice(0, 8)}`} - ${cancelTarget.total_amount} CHF`
+            : undefined
+        }
+        submitting={cancelMutation.isPending}
+        refundEligible={cancelTarget ? getOrderRefundSnapshot(cancelTarget).eligible : false}
+        refundAmountChf={cancelTarget ? getOrderRefundSnapshot(cancelTarget).remainingAmount : 0}
+        refundHint={cancelTarget && getOrderRefundSnapshot(cancelTarget).eligible
+          ? "Decochez pour laisser le remboursement en file admin."
+          : null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCancelTarget(null);
+          }
+        }}
+        onConfirm={({ reasonCode, details, refundNow }) => {
+          if (!cancelTarget) return;
+          const refundSnapshot = getOrderRefundSnapshot(cancelTarget);
+          cancelMutation.mutate({
+            id: cancelTarget.id,
+            reasonCode,
+            details,
+            refundNow,
+            refundEligible: refundSnapshot.eligible,
+          });
+        }}
+      />
     </DashboardLayout>
   );
 }

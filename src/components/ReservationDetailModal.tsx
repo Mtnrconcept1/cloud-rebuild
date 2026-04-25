@@ -30,7 +30,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import { cancelReservationByCustomer } from "@/lib/reservationMutations";
-import { getReservationStatusLockMessage } from "@/lib/statusLocks";
 
 export type Json =
   | string
@@ -209,8 +208,17 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
     minute: "2-digit",
   });
 
-  const statusLockMessage = getReservationStatusLockMessage(reservation);
-  const isCancellable = !statusLockMessage && canCancel(reservation);
+  const isCancelled = reservation.status === "cancelled";
+  const isNoShow = reservation.status === "no_show";
+  const isLateCancellation = !canCancel(reservation);
+  const cancellationLockMessage = isCancelled
+    ? "Cette reservation a deja ete annulee."
+    : isNoShow
+      ? "Cette reservation est deja terminee."
+      : isLateCancellation
+        ? "Annulation impossible moins de 2h avant la reservation."
+        : null;
+  const isCancellable = !isCancelled && !isNoShow && !isLateCancellation;
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -448,7 +456,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
           </p>
         </div>
 
-        {statusLockMessage ? (
+        {cancellationLockMessage ? (
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button
               variant="outline"
@@ -458,7 +466,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
               <X className="h-4 w-4 mr-2" />
               Annulation verrouillee
             </Button>
-            <p className="text-xs text-muted-foreground">{statusLockMessage}</p>
+            <p className="text-xs text-muted-foreground">{cancellationLockMessage}</p>
           </DialogFooter>
         ) : null}
 
