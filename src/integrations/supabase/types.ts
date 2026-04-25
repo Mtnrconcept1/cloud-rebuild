@@ -96,6 +96,7 @@ export type Database = {
           paid_at: string | null
           payment_method: string | null
           payment_status: string
+          pricing_strategy: string
           restaurant_id: string
           scheduled_at: string | null
           spent: number | null
@@ -131,6 +132,7 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string | null
           payment_status?: string
+          pricing_strategy?: string
           restaurant_id: string
           scheduled_at?: string | null
           spent?: number | null
@@ -166,6 +168,7 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string | null
           payment_status?: string
+          pricing_strategy?: string
           restaurant_id?: string
           scheduled_at?: string | null
           spent?: number | null

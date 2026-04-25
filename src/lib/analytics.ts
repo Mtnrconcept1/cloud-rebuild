@@ -6,6 +6,7 @@ import {
   type AudienceCriteria,
   type AudienceSnapshot,
 } from "@/lib/campaignTargeting";
+import { getCampaignStrategyPlacementBoost } from "@/lib/campaignPricing";
 import {
   estimateRestaurantCampaignAudience,
   listRestaurantCampaigns,
@@ -245,7 +246,9 @@ function selectPoolWeightedCampaigns(campaigns: any[], page: string): any[] {
 
   const weighted = pool.map((p) => ({
     ...p,
-    scoreFinal: (p.budgetRestant / sumBudgetRestant) * p.pacingFactor,
+    scoreFinal: (p.budgetRestant / sumBudgetRestant)
+      * p.pacingFactor
+      * getCampaignStrategyPlacementBoost((p.campaign as Record<string, unknown>)?.pricing_strategy, page),
   }));
 
   const totalScore = weighted.reduce((s, w) => s + w.scoreFinal, 0) || 1;
@@ -796,6 +799,7 @@ export async function getActiveSponsoredRestaurants(page: string) {
 export async function createCampaign(campaign: {
   restaurant_id: string;
   type: "boost" | "email" | "push" | "in_app";
+  pricing_strategy?: "visibility" | "traffic" | "conversion";
   title: string;
   body: string;
   image_url?: string;

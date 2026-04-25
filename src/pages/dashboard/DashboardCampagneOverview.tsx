@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { listRestaurantCampaigns, setRestaurantCampaignStatus } from "@/lib/campaigns";
-import { getCampaignObservedMetrics, getCampaignPricing } from "@/lib/campaignPricing";
+import {
+  getCampaignObservedMetrics,
+  getCampaignPricing,
+  getCampaignStrategyConfig,
+  normalizeCampaignPricingStrategy,
+} from "@/lib/campaignPricing";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 type Campaign = {
@@ -27,6 +32,7 @@ type Campaign = {
   daily_spent_date: string | null;
   cpc_rate: number | null;
   cpm_rate: number | null;
+  pricing_strategy: string | null;
   starts_at: string | null;
   ends_at: string | null;
   restaurant_id: string;
@@ -197,6 +203,8 @@ export default function DashboardCampagneOverview() {
             const budgetRestant = Math.max(0, budget - spent);
             const progress = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
             const canActivate = (campaign.payment_status || "unpaid") === "paid";
+            const pricingStrategy = normalizeCampaignPricingStrategy(campaign.pricing_strategy, "conversion");
+            const strategyConfig = getCampaignStrategyConfig(pricingStrategy);
 
             const budgetDaily = Number(campaign.budget_daily || 0);
             const today = new Date().toISOString().slice(0, 10);
@@ -211,7 +219,7 @@ export default function DashboardCampagneOverview() {
               cpmRate: Number(campaign.cpm_rate || 0),
               cpcRate: Number(campaign.cpc_rate || 0),
               conversionRate: Number(campaign.conversion_rate || 0),
-            });
+            }, pricingStrategy);
             const observed = getCampaignObservedMetrics({
               impressions: campaign.impressions,
               clicks: campaign.clicks,
@@ -228,6 +236,7 @@ export default function DashboardCampagneOverview() {
                       <Badge variant={statusVariant(campaign.status)}>{campaign.status || "draft"}</Badge>
                       <Badge variant="outline">{campaign.payment_status || "unpaid"}</Badge>
                       <Badge variant="outline" className="text-[10px]">{campaign.type}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{strategyConfig.shortLabel}</Badge>
                     </div>
                     <Button
                       size="sm"
@@ -317,6 +326,7 @@ export default function DashboardCampagneOverview() {
 
                   <div className="rounded-xl border bg-muted/25 p-3">
                     <div className="flex flex-wrap gap-2 text-[11px] font-medium">
+                      <span className="rounded-full bg-background px-2.5 py-1">Formule {strategyConfig.label}</span>
                       <span className="rounded-full bg-background px-2.5 py-1">Tarif {formatChf(pricing.cpmRate)} / 1k</span>
                       <span className="rounded-full bg-background px-2.5 py-1">Tarif {formatChf(pricing.cpcRate)} / clic</span>
                       <span className="rounded-full bg-background px-2.5 py-1">Tarif {formatChf(pricing.conversionRate)} / conv.</span>
