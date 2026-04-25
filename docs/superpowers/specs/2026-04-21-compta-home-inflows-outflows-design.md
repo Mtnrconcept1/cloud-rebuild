@@ -41,7 +41,7 @@ Cette commission doit etre ventilee par source. Les categories a distinguer sont
 
 - commandes classiques
 - Zero Attente
-- Chef's Table
+- La Table du Chef
 - ventes flash
 - anti-gaspi
 
@@ -76,7 +76,7 @@ Chaque source doit etre isolee avec son propre montant :
 
 - commandes classiques
 - Zero Attente
-- Chef's Table
+- La Table du Chef
 - ventes flash
 - anti-gaspi
 
@@ -137,7 +137,7 @@ La ventilation des 90% doit etre visible par source :
 
 - commandes classiques
 - Zero Attente
-- Chef's Table
+- La Table du Chef
 - ventes flash
 - anti-gaspi
 
@@ -176,7 +176,7 @@ La classification des commissions doit etre centralisee dans un helper unique pa
 Commandes payees qui ne sont ni :
 
 - Zero Attente
-- Chef's Table
+- La Table du Chef
 - ventes flash
 - anti-gaspi
 
@@ -184,7 +184,7 @@ Commandes payees qui ne sont ni :
 
 Paiements rattaches au parcours `zero-attente`.
 
-### Chef's Table
+### La Table du Chef
 
 Paiements rattaches a `feature = chefs_table`.
 

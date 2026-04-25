@@ -254,7 +254,13 @@ export default function Index() {
     .map((campaign: any) => {
       const restaurant = campaign.restaurants;
       if (!restaurant) return null;
-      return { ...restaurant, campaign_id: campaign.id, promo_image: campaign.image_url || null };
+      return {
+        ...restaurant,
+        campaign_id: campaign.id,
+        promo_image: campaign.image_url || null,
+        campaign_title: campaign.title || null,
+        campaign_body: campaign.body || null,
+      };
     })
     .filter(Boolean) as any[];
 

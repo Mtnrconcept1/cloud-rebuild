@@ -58,6 +58,8 @@ export default function RestaurantSection({
                 address={r.address || ""}
                 sponsoredCampaignId={r.campaign_id || undefined}
                 sponsoredPromoImage={r.promo_image || undefined}
+                sponsoredCampaignTitle={r.campaign_title || undefined}
+                sponsoredCampaignBody={r.campaign_body || undefined}
               />
             </div>
           ))}

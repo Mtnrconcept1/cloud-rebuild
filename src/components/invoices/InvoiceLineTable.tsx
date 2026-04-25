@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { format, parseISO, isValid } from "date-fns";
 import { fr } from "date-fns/locale";
 
 import { Badge } from "@/components/ui/badge";
+import { InvoiceOperationDetailDialog, type InvoiceOperationTarget } from "@/components/invoices/InvoiceOperationDetailDialog";
 import {
   Table,
   TableBody,
@@ -66,7 +68,7 @@ export type InvoiceLineTableProps = PayoutInvoiceLineTableProps | ReservationFee
 const SOURCE_PRESENTATION: Record<InvoiceDetailSource, { label: string; className: string }> = {
   orders: { label: "Commande", className: "bg-slate-100 text-slate-700" },
   zero_attente: { label: "Zero attente", className: "bg-cyan-100 text-cyan-700" },
-  chefs_table: { label: "Chef's Table", className: "bg-violet-100 text-violet-700" },
+  chefs_table: { label: "La Table du Chef", className: "bg-violet-100 text-violet-700" },
   flash_sales: { label: "Vente flash", className: "bg-amber-100 text-amber-700" },
   anti_gaspi: { label: "Anti-gaspi", className: "bg-emerald-100 text-emerald-700" },
   other: { label: "Autre", className: "bg-slate-100 text-slate-600" },
@@ -105,6 +107,12 @@ function formatTime(value: string) {
   return normalized || "-";
 }
 
+function getFallbackReference(target: InvoiceOperationTarget) {
+  return target.kind === "order"
+    ? `CMD-${target.id.slice(0, 8)}`
+    : `RES-${target.id.slice(0, 8)}`;
+}
+
 function getLineAmount(props: InvoiceLineTableProps, line: PayoutInvoiceDetailLine | ReservationFeeInvoiceDetailLine) {
   return props.mode === "payout"
     ? (line as PayoutInvoiceDetailLine).invoicedAmount
@@ -112,6 +120,7 @@ function getLineAmount(props: InvoiceLineTableProps, line: PayoutInvoiceDetailLi
 }
 
 export function InvoiceLineTable(props: InvoiceLineTableProps) {
+  const [selectedOperation, setSelectedOperation] = useState<InvoiceOperationTarget | null>(null);
   const total = props.lines.reduce((sum, line) => sum + getLineAmount(props, line), 0);
 
   return (
@@ -129,6 +138,7 @@ export function InvoiceLineTable(props: InvoiceLineTableProps) {
             </TableRow>
           ) : (
             <TableRow>
+              <TableHead>Reservation</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Heure</TableHead>
               <TableHead className="text-right">Couverts</TableHead>
@@ -142,6 +152,12 @@ export function InvoiceLineTable(props: InvoiceLineTableProps) {
             if (props.mode === "payout") {
               const payoutLine = line as PayoutInvoiceDetailLine;
               const source = SOURCE_PRESENTATION[payoutLine.source] || SOURCE_PRESENTATION.other;
+              const target: InvoiceOperationTarget = {
+                kind: payoutLine.lineType,
+                id: payoutLine.lineId,
+                reference: payoutLine.reference || "",
+              };
+              const displayReference = payoutLine.reference || getFallbackReference(target);
 
               return (
                 <TableRow key={payoutLine.lineId}>
@@ -152,9 +168,13 @@ export function InvoiceLineTable(props: InvoiceLineTableProps) {
                   </TableCell>
                   <TableCell className="max-w-[24rem]">
                     <div className="font-medium">{payoutLine.label}</div>
-                    {payoutLine.reference ? (
-                      <div className="text-xs text-muted-foreground">{payoutLine.reference}</div>
-                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOperation(target)}
+                      className="mt-1 text-left text-xs font-medium text-primary underline-offset-4 transition hover:underline"
+                    >
+                      {displayReference}
+                    </button>
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                     {formatDateTime(payoutLine.occurredAt)}
@@ -167,9 +187,23 @@ export function InvoiceLineTable(props: InvoiceLineTableProps) {
             }
 
             const reservationLine = line as ReservationFeeInvoiceDetailLine;
+            const target: InvoiceOperationTarget = {
+              kind: "reservation",
+              id: reservationLine.reservationId,
+              reference: `RES-${reservationLine.reservationId.slice(0, 8)}`,
+            };
 
             return (
               <TableRow key={reservationLine.reservationId}>
+                <TableCell className="whitespace-nowrap text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedOperation(target)}
+                    className="font-mono text-primary underline-offset-4 transition hover:underline"
+                  >
+                    {target.reference}
+                  </button>
+                </TableCell>
                 <TableCell className="whitespace-nowrap text-sm">{formatDate(reservationLine.reservationDate)}</TableCell>
                 <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                   {formatTime(reservationLine.reservationTime)}
@@ -183,7 +217,7 @@ export function InvoiceLineTable(props: InvoiceLineTableProps) {
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={props.mode === "payout" ? 5 : 4} className="text-right font-semibold">
+            <TableCell colSpan={props.mode === "payout" ? 5 : 5} className="text-right font-semibold">
               Total
             </TableCell>
             <TableCell className="text-right font-semibold">{formatCurrency(total)}</TableCell>
@@ -196,6 +230,13 @@ export function InvoiceLineTable(props: InvoiceLineTableProps) {
           {formatCurrency(props.roundingDelta)}
         </p>
       ) : null}
+      <InvoiceOperationDetailDialog
+        target={selectedOperation}
+        open={!!selectedOperation}
+        onOpenChange={(open) => {
+          if (!open) setSelectedOperation(null);
+        }}
+      />
     </div>
   );
 }

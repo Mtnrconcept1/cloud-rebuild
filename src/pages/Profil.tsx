@@ -225,7 +225,7 @@ export default function Profil() {
 
   const topics = [
     { id: "flash_sales", label: "Ventes Flash", desc: "Offres limitées en temps réel." },
-    { id: "chefs_table", label: "Chef's Table", desc: "Nouveaux drops exclusifs." },
+    { id: "chefs_table", label: "La Table du Chef", desc: "Nouveaux drops exclusifs." },
     { id: "anti_gaspi", label: "Anti-gaspi", desc: "Offres solidaires et anti-gaspi." },
   ];
 

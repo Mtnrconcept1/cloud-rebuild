@@ -24,6 +24,7 @@ type SponsoredEventPayload = {
   conversionType?: string;
   entityId?: string;
   paymentMethod?: string;
+  eventId?: string;
 };
 
 function normalizeText(value: unknown) {
@@ -97,6 +98,7 @@ Deno.serve(async (req) => {
     const page = String(payload.page || "");
     const entityId = String(payload.entityId || "");
     const paymentMethod = String(payload.paymentMethod || "");
+    const eventId = String(payload.eventId || "").trim();
     const conversionType = normalizeText(payload.conversionType);
 
     if (!VALID_EVENT_TYPES.has(eventType)) {
@@ -107,6 +109,9 @@ Deno.serve(async (req) => {
     }
     if (!viewerId || viewerId.length < 8) {
       throw new HttpError(400, "viewerId requis");
+    }
+    if (eventId && eventId.length < 8) {
+      throw new HttpError(400, "eventId invalide");
     }
     if (eventType === "conversion" && conversionType && !VALID_CONVERSION_TYPES.has(conversionType)) {
       throw new HttpError(400, "Type de conversion invalide");
@@ -164,20 +169,27 @@ Deno.serve(async (req) => {
       return jsonResponse({ recorded: false, deduped: false, ignored: true, reason: "campaign_not_eligible" }, 200, corsHeaders);
     }
 
-    const dedupeKey = await sha256(JSON.stringify({
-      campaignId,
-      restaurantId: campaign.restaurant_id,
-      eventType,
-      conversionType: conversionType || null,
-      entityId: entityId || null,
-      viewerId,
-      userId,
-      bucketKey: getBucketKey(eventType, entityId),
-      ip: getClientIp(req),
-      userAgent: req.headers.get("user-agent") || "",
-      source,
-      page,
-    }));
+    const dedupeKey = eventId
+      ? await sha256(JSON.stringify({
+        campaignId,
+        restaurantId: campaign.restaurant_id,
+        eventType,
+        eventId,
+      }))
+      : await sha256(JSON.stringify({
+        campaignId,
+        restaurantId: campaign.restaurant_id,
+        eventType,
+        conversionType: conversionType || null,
+        entityId: entityId || null,
+        viewerId,
+        userId,
+        bucketKey: getBucketKey(eventType, entityId),
+        ip: getClientIp(req),
+        userAgent: req.headers.get("user-agent") || "",
+        source,
+        page,
+      }));
 
     const { data: recorded, error: recordError } = await adminClient.rpc(
       "record_ad_campaign_event",
@@ -194,6 +206,7 @@ Deno.serve(async (req) => {
           viewer_id: viewerId,
           entity_id: entityId || null,
           payment_method: paymentMethod || null,
+          event_id: eventId || null,
         },
       },
     );

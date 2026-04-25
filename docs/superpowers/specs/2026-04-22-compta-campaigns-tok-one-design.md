@@ -22,7 +22,7 @@ Les flux sont separes en trois familles :
 1. `Commissions marketplace`
    - commandes
    - zero attente
-   - chef's table
+   - La Table du Chef
    - ventes flash
    - anti-gaspi
    - logique existante `10% TOK / 90% restaurateur`
@@ -200,7 +200,7 @@ Si `billing_period` n'est pas suffisamment renseigne de maniere fiable sur les a
 
 - commandes
 - zero attente
-- chef's table
+- La Table du Chef
 - ventes flash
 - anti-gaspi
 - reservations payantes deja prises en charge par la logique existante

@@ -474,7 +474,7 @@ export default function Panier() {
         if (paymentMethod === "cash") {
           return toast({
             title: "Paiement securise requis",
-            description: "Chef's Table doit etre regle a l'avance pour confirmer la reservation.",
+            description: "La Table du Chef doit etre regle a l'avance pour confirmer la reservation.",
             variant: "destructive",
           });
         }
@@ -511,7 +511,7 @@ export default function Panier() {
 
         if (checkoutError) throw new Error(checkoutError.message);
         if (checkoutData?.error) throw new Error(checkoutData.error);
-        if (!checkoutData?.url) throw new Error("Impossible de lancer le paiement Chef's Table.");
+        if (!checkoutData?.url) throw new Error("Impossible de lancer le paiement La Table du Chef.");
 
         window.location.assign(checkoutData.url);
         return;
@@ -565,133 +565,133 @@ export default function Panier() {
       }
       if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
 
-    const hasIncompatibleFlashMode = flashItems.some((item) => {
-      const canDelivery = item.metadata?.delivery_available !== false;
-      const canTakeaway = item.metadata?.takeaway_available !== false;
-      return orderMode === "delivery" ? !canDelivery : !canTakeaway;
-    });
-    if (hasIncompatibleFlashMode) return toast({ title: "Mode incompatible", description: "Certaines ventes flash du panier ne sont pas disponibles dans ce mode.", variant: "destructive" });
+      const hasIncompatibleFlashMode = flashItems.some((item) => {
+        const canDelivery = item.metadata?.delivery_available !== false;
+        const canTakeaway = item.metadata?.takeaway_available !== false;
+        return orderMode === "delivery" ? !canDelivery : !canTakeaway;
+      });
+      if (hasIncompatibleFlashMode) return toast({ title: "Mode incompatible", description: "Certaines ventes flash du panier ne sont pas disponibles dans ce mode.", variant: "destructive" });
 
-    if (orderMode === "delivery") {
-      if (!address.trim()) return toast({ title: "Adresse requise", variant: "destructive" });
-      if (deliverySelection?.latitude == null || deliverySelection?.longitude == null) {
-        return toast({
-          title: "Adresse invalide",
-          description: "Selectionnez une adresse dans la liste pour calculer correctement le trajet de livraison.",
-          variant: "destructive",
-        });
-      }
-      if (deliveryScheduleMode === "scheduled") {
-        if (!canScheduleDelivery) {
+      if (orderMode === "delivery") {
+        if (!address.trim()) return toast({ title: "Adresse requise", variant: "destructive" });
+        if (deliverySelection?.latitude == null || deliverySelection?.longitude == null) {
           return toast({
-            title: "Planification indisponible",
-            description: "La livraison planifiee est disponible pour une commande sur un seul restaurant.",
+            title: "Adresse invalide",
+            description: "Selectionnez une adresse dans la liste pour calculer correctement le trajet de livraison.",
             variant: "destructive",
           });
         }
-        if (!deliveryDate || !selectedDeliverySlot) {
-          return toast({
-            title: "Horaire requis",
-            description: "Choisissez une date et une heure de livraison valides.",
-            variant: "destructive",
-          });
+        if (deliveryScheduleMode === "scheduled") {
+          if (!canScheduleDelivery) {
+            return toast({
+              title: "Planification indisponible",
+              description: "La livraison planifiee est disponible pour une commande sur un seul restaurant.",
+              variant: "destructive",
+            });
+          }
+          if (!deliveryDate || !selectedDeliverySlot) {
+            return toast({
+              title: "Horaire requis",
+              description: "Choisissez une date et une heure de livraison valides.",
+              variant: "destructive",
+            });
+          }
+        }
+      } else if (!hasAntiGaspi && !hasTakeawayFlash) {
+        if (!pickupDate || !pickupTime) {
+          return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande." });
+        }
+        if (needsTakeawaySlots && !selectedPickupSlot) {
+          return toast({ title: "Horaire invalide", variant: "destructive", description: "Veuillez choisir un créneau de retrait pendant les heures de service du restaurant." });
         }
       }
-    } else if (!hasAntiGaspi && !hasTakeawayFlash) {
-      if (!pickupDate || !pickupTime) {
-        return toast({ title: "Date et heure requises", variant: "destructive", description: "Veuillez préciser quand vous passerez récupérer la commande." });
-      }
-      if (needsTakeawaySlots && !selectedPickupSlot) {
-        return toast({ title: "Horaire invalide", variant: "destructive", description: "Veuillez choisir un créneau de retrait pendant les heures de service du restaurant." });
-      }
-    }
 
-    const itemsByRestaurant = items.reduce((acc, item) => {
-      if (!acc[item.restaurantId]) acc[item.restaurantId] = [];
-      acc[item.restaurantId].push(item);
-      return acc;
-    }, {} as Record<string, any[]>);
+      const itemsByRestaurant = items.reduce((acc, item) => {
+        if (!acc[item.restaurantId]) acc[item.restaurantId] = [];
+        acc[item.restaurantId].push(item);
+        return acc;
+      }, {} as Record<string, any[]>);
 
-    const orderGroups = Object.entries(itemsByRestaurant).map(([resId, resItems]) => {
-      const qualityFeeItem = resItems.find(i => i.menuItemId === "garantie-qualite-fee");
-      const realItems = resItems.filter(i => i.menuItemId !== "garantie-qualite-fee");
-      const resSubtotal = realItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      return { resId, resItems, realItems, qualityFeeItem, resSubtotal };
-    }).filter((group) => group.realItems.length > 0);
-    const resCount = orderGroups.length;
-    const checkoutGroupId = crypto.randomUUID();
-    let firstOrderId: string | null = null;
-    let checkoutBenefitsOrderId: string | null = null;
-    let checkoutBenefitsPromoCodeId: string | null = null;
-    let checkoutBenefitsPromoDiscount = 0;
-    const orderReference = generateOrderReference();
-    const allocateAcrossGroups = (totalDiscount: number) => {
-      const baseTotal = orderGroups.reduce((sum, group) => sum + group.resSubtotal, 0);
-      let remaining = Math.round(totalDiscount * 100) / 100;
+      const orderGroups = Object.entries(itemsByRestaurant).map(([resId, resItems]) => {
+        const qualityFeeItem = resItems.find(i => i.menuItemId === "garantie-qualite-fee");
+        const realItems = resItems.filter(i => i.menuItemId !== "garantie-qualite-fee");
+        const resSubtotal = realItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+        return { resId, resItems, realItems, qualityFeeItem, resSubtotal };
+      }).filter((group) => group.realItems.length > 0);
+      const resCount = orderGroups.length;
+      const checkoutGroupId = crypto.randomUUID();
+      let firstOrderId: string | null = null;
+      let checkoutBenefitsOrderId: string | null = null;
+      let checkoutBenefitsPromoCodeId: string | null = null;
+      let checkoutBenefitsPromoDiscount = 0;
+      const orderReference = generateOrderReference();
+      const allocateAcrossGroups = (totalDiscount: number) => {
+        const baseTotal = orderGroups.reduce((sum, group) => sum + group.resSubtotal, 0);
+        let remaining = Math.round(totalDiscount * 100) / 100;
 
-      return new Map(orderGroups.map((group, index) => {
-        const share = baseTotal > 0 ? group.resSubtotal / baseTotal : (resCount > 0 ? 1 / resCount : 0);
-        const allocated = index === orderGroups.length - 1
-          ? Math.max(0, remaining)
-          : Math.round((totalDiscount * share) * 100) / 100;
-        remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
-        return [group.resId, allocated];
-      }));
-    };
-
-    const allocateEvenlyAcrossGroups = (totalAmount: number) => {
-      let remaining = Math.round(totalAmount * 100) / 100;
-      return new Map(orderGroups.map((group, index) => {
-        const allocated = index === orderGroups.length - 1
-          ? Math.max(0, remaining)
-          : Math.round((totalAmount / Math.max(orderGroups.length, 1)) * 100) / 100;
-        remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
-        return [group.resId, allocated];
-      }));
-    };
-
-    const pointsDiscountByRestaurant = allocateAcrossGroups(pointsDiscount);
-    const flexDiscountByRestaurant = allocateAcrossGroups(flexDiscount);
-    const tokOneDiscountByRestaurant = allocateAcrossGroups(tokOneDiscount);
-    const deliveryFeeByRestaurant = allocateEvenlyAcrossGroups(quotedDeliveryFee);
-    const tokOneDeliverySavedByRestaurant = allocateEvenlyAcrossGroups(tokOneDeliverySaved);
-    const validationPayloads = orderGroups.map((group, index) => buildOrderValidationPayload(
-      group,
-      index,
-      resCount,
-      orderReference,
-      checkoutGroupId,
-      deliveryFeeByRestaurant,
-      tokOneDeliverySavedByRestaurant,
-      tokOneDiscountByRestaurant,
-      pointsDiscountByRestaurant,
-      flexDiscountByRestaurant,
-    ));
-    const previewResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
-      const { data, error } = await withTimeout(
-        invokeSupabaseFunction("validate-order", {
-          accessToken,
-          body: {
-            ...body,
-            preview_only: true,
-          },
-        }),
-        ORDER_VALIDATION_TIMEOUT_MS,
-        "La verification du montant prend trop de temps. Reessayez dans quelques instants.",
-      );
-
-      if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
-
-      return {
-        resId,
-        verifiedTotal: Number(data?.verified_total || 0),
+        return new Map(orderGroups.map((group, index) => {
+          const share = baseTotal > 0 ? group.resSubtotal / baseTotal : (resCount > 0 ? 1 / resCount : 0);
+          const allocated = index === orderGroups.length - 1
+            ? Math.max(0, remaining)
+            : Math.round((totalDiscount * share) * 100) / 100;
+          remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
+          return [group.resId, allocated];
+        }));
       };
-    }));
-    const authoritativeTotal = roundMoney(
-      previewResults.reduce((sum, result) => sum + result.verifiedTotal, 0),
-    );
-    const authoritativeRequiresStripeCheckout = paymentMethod !== "cash" && authoritativeTotal > 0.01;
+
+      const allocateEvenlyAcrossGroups = (totalAmount: number) => {
+        let remaining = Math.round(totalAmount * 100) / 100;
+        return new Map(orderGroups.map((group, index) => {
+          const allocated = index === orderGroups.length - 1
+            ? Math.max(0, remaining)
+            : Math.round((totalAmount / Math.max(orderGroups.length, 1)) * 100) / 100;
+          remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
+          return [group.resId, allocated];
+        }));
+      };
+
+      const pointsDiscountByRestaurant = allocateAcrossGroups(pointsDiscount);
+      const flexDiscountByRestaurant = allocateAcrossGroups(flexDiscount);
+      const tokOneDiscountByRestaurant = allocateAcrossGroups(tokOneDiscount);
+      const deliveryFeeByRestaurant = allocateEvenlyAcrossGroups(quotedDeliveryFee);
+      const tokOneDeliverySavedByRestaurant = allocateEvenlyAcrossGroups(tokOneDeliverySaved);
+      const validationPayloads = orderGroups.map((group, index) => buildOrderValidationPayload(
+        group,
+        index,
+        resCount,
+        orderReference,
+        checkoutGroupId,
+        deliveryFeeByRestaurant,
+        tokOneDeliverySavedByRestaurant,
+        tokOneDiscountByRestaurant,
+        pointsDiscountByRestaurant,
+        flexDiscountByRestaurant,
+      ));
+      const previewResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
+        const { data, error } = await withTimeout(
+          invokeSupabaseFunction("validate-order", {
+            accessToken,
+            body: {
+              ...body,
+              preview_only: true,
+            },
+          }),
+          ORDER_VALIDATION_TIMEOUT_MS,
+          "La verification du montant prend trop de temps. Reessayez dans quelques instants.",
+        );
+
+        if (error) throw new Error(error.message);
+        if (data?.error) throw new Error(data.error);
+
+        return {
+          resId,
+          verifiedTotal: Number(data?.verified_total || 0),
+        };
+      }));
+      const authoritativeTotal = roundMoney(
+        previewResults.reduce((sum, result) => sum + result.verifiedTotal, 0),
+      );
+      const authoritativeRequiresStripeCheckout = paymentMethod !== "cash" && authoritativeTotal > 0.01;
 
       // For online payments with a remaining balance, redirect to Stripe
       if (authoritativeRequiresStripeCheckout) {
@@ -797,7 +797,7 @@ export default function Panier() {
       }
 
       // Cash payment flow or zero-balance online flow — create orders directly as confirmed
-        for (const { resId, body } of validationPayloads) {
+      for (const { resId, body } of validationPayloads) {
 
         const { data: validateResult, error: validateError } = await invokeSupabaseFunction("validate-order", {
           accessToken,
@@ -1052,7 +1052,7 @@ export default function Panier() {
           <div className="rounded-3xl border bg-card/60 p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation Chef's Table" : items[0]?.restaurantName}</p>
+                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Table du Chef" : items[0]?.restaurantName}</p>
                 <p className="text-xs text-muted-foreground">
                   {isChefsTableCheckout
                     ? `${chefsTableReservationGroups.length} reservation(s) a confirmer`
@@ -1104,7 +1104,7 @@ export default function Panier() {
         <h1 className="font-display text-3xl font-bold">Votre panier</h1>
         <p className="text-sm text-muted-foreground">
           {isChefsTableCheckout
-            ? `${chefsTableReservationGroups.length} reservation(s) Chef's Table a confirmer`
+            ? `${chefsTableReservationGroups.length} reservation(s) La Table du Chef a confirmer`
             : `Restaurant : ${items[0]?.restaurantName}`}
         </p>
 
@@ -1183,11 +1183,10 @@ export default function Panier() {
                   <button
                     type="button"
                     onClick={() => setDeliveryScheduleMode("asap")}
-                    className={`rounded-xl border px-4 py-3 text-left transition-colors ${
-                      deliveryScheduleMode === "asap"
+                    className={`rounded-xl border px-4 py-3 text-left transition-colors ${deliveryScheduleMode === "asap"
                         ? "border-primary bg-primary/5 text-foreground"
                         : "border-border bg-background hover:bg-muted/40"
-                    }`}
+                      }`}
                   >
                     <p className="font-semibold">Des que possible</p>
                     <p className="text-xs text-muted-foreground">Lancement immediat apres validation.</p>
@@ -1197,11 +1196,10 @@ export default function Panier() {
                     type="button"
                     onClick={() => setDeliveryScheduleMode("scheduled")}
                     disabled={!canScheduleDelivery}
-                    className={`rounded-xl border px-4 py-3 text-left transition-colors ${
-                      deliveryScheduleMode === "scheduled"
+                    className={`rounded-xl border px-4 py-3 text-left transition-colors ${deliveryScheduleMode === "scheduled"
                         ? "border-primary bg-primary/5 text-foreground"
                         : "border-border bg-background hover:bg-muted/40"
-                    } ${!canScheduleDelivery ? "cursor-not-allowed opacity-60" : ""}`}
+                      } ${!canScheduleDelivery ? "cursor-not-allowed opacity-60" : ""}`}
                   >
                     <p className="font-semibold">Programmer une heure</p>
                     <p className="text-xs text-muted-foreground">
@@ -1242,11 +1240,10 @@ export default function Panier() {
                                     setDeliveryTime(slot.time);
                                     setDeliveryService(slot.service);
                                   }}
-                                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                                    selectedDeliverySlot?.time === slot.time && selectedDeliverySlot?.service === slot.service
+                                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${selectedDeliverySlot?.time === slot.time && selectedDeliverySlot?.service === slot.service
                                       ? "border-primary bg-primary text-primary-foreground"
                                       : "border-border bg-background hover:bg-muted/40"
-                                  }`}
+                                    }`}
                                 >
                                   {slot.label}
                                 </button>
@@ -1324,11 +1321,10 @@ export default function Panier() {
                                   setPickupTime(slot.time);
                                   setPickupService(slot.service);
                                 }}
-                                className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                                  selectedPickupSlot?.time === slot.time && selectedPickupSlot?.service === slot.service
+                                className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${selectedPickupSlot?.time === slot.time && selectedPickupSlot?.service === slot.service
                                     ? "border-primary bg-primary text-primary-foreground"
                                     : "border-border bg-background hover:bg-muted/40"
-                                }`}
+                                  }`}
                               >
                                 {slot.label}
                               </button>
@@ -1429,7 +1425,7 @@ export default function Panier() {
           allowedMethods={allowedPaymentMethods}
           cashDescription="Le paiement en espèces n'est pas disponible pour ce parcours."
           secureDescription={isChefsTableCheckout
-            ? "Paiement sécurisé requis pour confirmer votre réservation Chef's Table"
+            ? "Paiement sécurisé requis pour confirmer votre réservation La Table du Chef"
             : "Paiement sécurisé via Stripe"}
         />
 

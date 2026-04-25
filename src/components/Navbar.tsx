@@ -65,7 +65,7 @@ const FEATURES = [
   { icon: Users, label: "Match groupes", desc: "Commandez ensemble, payez moins", to: "/match-groupes", feature: "match-groupes", color: "text-violet-500", bg: "bg-violet-500/10", hoverBg: "group-hover:bg-violet-500/20" },
   { icon: Route, label: "Multi-stop", desc: "Un trajet, plusieurs adresses", to: "/multi-stop", feature: "multi-stop", color: "text-orange-500", bg: "bg-orange-500/10", hoverBg: "group-hover:bg-orange-500/20" },
   { icon: Layers, label: "Multi-restos", desc: "Plats de differents restos", to: "/multi-restaurant", feature: "multi-restaurant", color: "text-pink-500", bg: "bg-pink-500/10", hoverBg: "group-hover:bg-pink-500/20" },
-  { icon: ChefHat, label: "Chef's Table", desc: "Plats off-menu exclusifs", to: "/chefs-table", feature: "chefs-table", color: "text-amber-500", bg: "bg-amber-500/10", hoverBg: "group-hover:bg-amber-500/20" },
+  { icon: ChefHat, label: "La Table du Chef", desc: "Plats off-menu exclusifs", to: "/chefs-table", feature: "chefs-table", color: "text-amber-500", bg: "bg-amber-500/10", hoverBg: "group-hover:bg-amber-500/20" },
   { icon: Timer, label: "Zero attente", desc: "Precommande synchronisee", to: "/zero-attente", feature: "zero-attente", color: "text-indigo-500", bg: "bg-indigo-500/10", hoverBg: "group-hover:bg-indigo-500/20" },
   { icon: ShieldCheck, label: "Garantie qualite", desc: "Chaud garanti ou rembourse", to: "/garantie-qualite", feature: "garantie-qualite", color: "text-teal-500", bg: "bg-teal-500/10", hoverBg: "group-hover:bg-teal-500/20" },
   { icon: Calculator, label: "Budget auto", desc: "Menus optimises par objectifs", to: "/budget-auto", feature: "budget-auto", color: "text-cyan-500", bg: "bg-cyan-500/10", hoverBg: "group-hover:bg-cyan-500/20" },
@@ -331,9 +331,8 @@ export default function Navbar() {
                           <DropdownMenuItem
                             key={notification.id}
                             asChild
-                            className={`cursor-pointer items-start rounded-none border-l-2 p-0 ${
-                              isRecent ? "border-l-primary bg-primary/5" : "border-l-transparent"
-                            }`}
+                            className={`cursor-pointer items-start rounded-none border-l-2 p-0 ${isRecent ? "border-l-primary bg-primary/5" : "border-l-transparent"
+                              }`}
                           >
                             <Link to={notification.data?.url || "/notifications"} className="flex w-full flex-col gap-1 px-3 py-2">
                               <div className="flex items-center gap-2">
@@ -373,11 +372,10 @@ export default function Navbar() {
                           <button
                             key={candidateRole}
                             onClick={() => switchRole(candidateRole)}
-                            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                              role === candidateRole
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${role === candidateRole
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
-                            }`}
+                              }`}
                           >
                             {{ client: "Client", restaurateur: "Restaurateur", admin: "Admin", courier: "Livreur" }[candidateRole]}
                           </button>
@@ -516,11 +514,10 @@ export default function Navbar() {
                                   switchRole(candidateRole);
                                   setMenuOpen(false);
                                 }}
-                                className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                                  role === candidateRole
+                                className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${role === candidateRole
                                     ? "bg-primary text-primary-foreground"
                                     : "bg-muted text-muted-foreground hover:bg-muted/80"
-                                }`}
+                                  }`}
                               >
                                 {{ client: "Client", restaurateur: "Restaurateur", admin: "Admin", courier: "Livreur" }[candidateRole]}
                               </button>

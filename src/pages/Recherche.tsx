@@ -210,6 +210,8 @@ function toCardProps(r: any) {
     address: r.address || "",
     sponsoredCampaignId: r.campaign_id || undefined,
     sponsoredPromoImage: r.promo_image || undefined,
+    sponsoredCampaignTitle: r.campaign_title || undefined,
+    sponsoredCampaignBody: r.campaign_body || undefined,
   };
 }
 
@@ -379,6 +381,8 @@ export default function Recherche() {
         ...enrichedRestaurant,
         campaign_id: camp.id,
         promo_image: camp.image_url || null,
+        campaign_title: camp.title || null,
+        campaign_body: camp.body || null,
         _categories: enrichedRestaurant?._categories || [],
       };
     })

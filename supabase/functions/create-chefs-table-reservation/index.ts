@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
 
     const checkoutKind = String(session.metadata?.checkout_kind || "");
     if (checkoutKind !== "chefs-table") {
-      throw new HttpError(400, "Session Stripe invalide pour Chef's Table.");
+      throw new HttpError(400, "Session Stripe invalide pour La Table du Chef.");
     }
 
     if (String(session.metadata?.user_id || "") !== actor.userId) {

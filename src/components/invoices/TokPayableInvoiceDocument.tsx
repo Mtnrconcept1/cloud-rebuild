@@ -75,7 +75,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
         <div className="space-y-8">
           <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)_300px] lg:items-start">
             <div className="flex justify-center lg:justify-start">
-              <div className="flex h-[240px] w-[240px] items-center justify-center overflow-hidden rounded-[36px] bg-[radial-gradient(circle_at_center,#fff4eb_0%,#fff7f0_44%,#ffffff_100%)]">
+              <div className="flex h-[240px] w-[240px] items-center justify-center overflow-hidden rounded-[36px]">
                 <img src={data.logoUrl} alt="TOK" className="h-full w-full object-contain" />
               </div>
             </div>

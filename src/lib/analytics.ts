@@ -43,6 +43,8 @@ const SPONSORED_ATTRIBUTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const SPONSORED_ROTATION_KEY = "miamz-sponsored-rotation-v1";
 const ANALYTICS_VIEWER_KEY = "miamz-analytics-viewer-v1";
 const SPONSORED_AUDIENCE_CACHE_MS = 5 * 60 * 1000;
+const SPONSORED_DISPLAY_DEDUPE_TTL_MS = 1500;
+const MAX_SPONSORED_DISPLAY_KEYS = 300;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed", "pending_payment"]);
@@ -67,6 +69,7 @@ let sponsoredAudienceSnapshotCache:
   | null = null;
 let audienceEstimateRpcUnavailable = false;
 let audienceEstimateRpcWarned = false;
+const sponsoredDisplayLedger = new Map<string, number>();
 
 function readSponsoredAttributions(): SponsoredAttributionMap {
   if (typeof window === "undefined") return {};
@@ -108,6 +111,42 @@ function getTrackingPage() {
   if (typeof window === "undefined") return "server";
   const pathname = window.location.pathname || "/";
   return pathname.replace(/^\/+/, "") || "home";
+}
+
+function pruneSponsoredDisplayLedger(now = Date.now()) {
+  for (const [key, timestamp] of sponsoredDisplayLedger.entries()) {
+    if ((now - timestamp) > SPONSORED_DISPLAY_DEDUPE_TTL_MS) {
+      sponsoredDisplayLedger.delete(key);
+    }
+  }
+
+  if (sponsoredDisplayLedger.size <= MAX_SPONSORED_DISPLAY_KEYS) return;
+
+  const oldestEntries = [...sponsoredDisplayLedger.entries()]
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, sponsoredDisplayLedger.size - MAX_SPONSORED_DISPLAY_KEYS);
+
+  oldestEntries.forEach(([key]) => sponsoredDisplayLedger.delete(key));
+}
+
+function createClientEventId() {
+  if (typeof window !== "undefined" && window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function createSponsoredImpressionEventId(placementKey: string) {
+  const now = Date.now();
+  pruneSponsoredDisplayLedger(now);
+  const lastSeenAt = sponsoredDisplayLedger.get(placementKey);
+
+  if (lastSeenAt && (now - lastSeenAt) < SPONSORED_DISPLAY_DEDUPE_TTL_MS) {
+    return null;
+  }
+
+  sponsoredDisplayLedger.set(placementKey, now);
+  return createClientEventId();
 }
 
 function rememberSponsoredAttribution(campaignId: string, restaurantId: string) {
@@ -517,6 +556,7 @@ async function trackSponsoredEvent(input: {
   conversionType?: SponsoredConversionType;
   entityId?: string | null;
   paymentMethod?: string | null;
+  eventId?: string | null;
 }): Promise<SponsoredTrackResult> {
   if (_sponsoredTrackingDisabled) return { recorded: false, deduped: false };
 
@@ -533,6 +573,7 @@ async function trackSponsoredEvent(input: {
         conversionType: input.conversionType || null,
         entityId: input.entityId || null,
         paymentMethod: input.paymentMethod || null,
+        eventId: input.eventId || null,
       },
     });
 
@@ -555,7 +596,8 @@ async function trackSponsoredEvent(input: {
 export async function trackSponsoredImpression(
   campaignId: string,
   restaurantId?: string,
-  source = "sponsored_impression"
+  source = "sponsored_impression",
+  eventId?: string | null,
 ) {
   if (!restaurantId) return false;
 
@@ -565,6 +607,7 @@ export async function trackSponsoredImpression(
       campaignId,
       restaurantId,
       source,
+      eventId: eventId || undefined,
     });
 
     void trackImpression("restaurant", restaurantId, source);
@@ -577,7 +620,8 @@ export async function trackSponsoredImpression(
 export async function trackSponsoredClick(
   campaignId: string,
   restaurantId: string,
-  source = "sponsored_click"
+  source = "sponsored_click",
+  eventId?: string | null,
 ) {
   rememberSponsoredAttribution(campaignId, restaurantId);
 
@@ -587,6 +631,7 @@ export async function trackSponsoredClick(
       campaignId,
       restaurantId,
       source,
+      eventId: eventId || createClientEventId(),
     });
 
     void trackClick("restaurant", restaurantId);

@@ -122,7 +122,7 @@ export default function CGU() {
             Tok propose un programme de fidélité permettant de cumuler des points à chaque commande. Ces points peuvent être convertis en réductions ou avantages selon les modalités en vigueur.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            L'abonnement Tok One est un service premium payant offrant des avantages exclusifs, notamment la livraison gratuite sur les restaurants éligibles, des réductions supplémentaires et un accès prioritaire aux événements gastronomiques (Chef's Tables). Les conditions spécifiques de l'abonnement sont détaillées lors de la souscription.
+            L'abonnement Tok One est un service premium payant offrant des avantages exclusifs, notamment la livraison gratuite sur les restaurants éligibles, des réductions supplémentaires et un accès prioritaire aux événements gastronomiques (La Table du Chefs). Les conditions spécifiques de l'abonnement sont détaillées lors de la souscription.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             L'abonnement Tok One est renouvelé automatiquement à chaque période. L'Utilisateur peut résilier son abonnement à tout moment depuis les paramètres de son compte, la résiliation prenant effet à la fin de la période en cours.

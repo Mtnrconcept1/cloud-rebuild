@@ -48,9 +48,9 @@ const BENEFITS = [
   },
   {
     icon: ChefHat,
-    title: "Acces prioritaire Chef's Table",
+    title: "Acces prioritaire La Table du Chef",
     desc: "Reservez en avant-premiere les evenements gastronomiques exclusifs.",
-    detail: "Les drops Chef's Table sont souvent complets en quelques minutes. En tant que membre Tok One, vous beneficiez d'un acces anticipe de 24h avant l'ouverture des reservations au grand public.",
+    detail: "Les drops La Table du Chef sont souvent complets en quelques minutes. En tant que membre Tok One, vous beneficiez d'un acces anticipe de 24h avant l'ouverture des reservations au grand public.",
     color: "text-orange-600",
     bg: "bg-orange-100",
   },
@@ -192,9 +192,8 @@ export default function TokOne() {
       </div>
 
       <div
-        className={`relative z-10 container max-w-5xl px-6 pb-20 ${
-          isActive ? "-mt-6 space-y-14 md:-mt-8" : "-mt-10 space-y-16"
-        }`}
+        className={`relative z-10 container max-w-5xl px-6 pb-20 ${isActive ? "-mt-6 space-y-14 md:-mt-8" : "-mt-10 space-y-16"
+          }`}
       >
         {/* Active subscription banner */}
         {isActive && activeSubscription && (
@@ -316,11 +315,10 @@ export default function TokOne() {
                   {/* Monthly */}
                   <button
                     onClick={() => setSelectedPeriod("monthly")}
-                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 ${
-                      selectedPeriod === "monthly"
+                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 ${selectedPeriod === "monthly"
                         ? "border-violet-500 bg-violet-50/50 shadow-lg shadow-violet-100"
                         : "border-muted hover:border-violet-200"
-                    }`}
+                      }`}
                   >
                     <h3 className="font-bold text-lg">Mensuel</h3>
                     <div className="flex items-baseline gap-1">
@@ -338,11 +336,10 @@ export default function TokOne() {
                   {/* Yearly */}
                   <button
                     onClick={() => setSelectedPeriod("yearly")}
-                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 ${
-                      selectedPeriod === "yearly"
+                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 ${selectedPeriod === "yearly"
                         ? "border-violet-500 bg-violet-50/50 shadow-lg shadow-violet-100"
                         : "border-muted hover:border-violet-200"
-                    }`}
+                      }`}
                   >
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white">
                       Le plus populaire
@@ -406,7 +403,7 @@ export default function TokOne() {
                 {[
                   { feature: "Frais de livraison", free: "1.00 – 2.50 CHF", tok: "Gratuit", tokHighlight: true },
                   { feature: "Reductions sur les plats", free: "Promos ponctuelles", tok: "Jusqu'a -20% permanent", tokHighlight: true },
-                  { feature: "Acces Chef's Table", free: "En meme temps que tous", tok: "24h en avance", tokHighlight: true },
+                  { feature: "Acces La Table du Chef", free: "En meme temps que tous", tok: "24h en avance", tokHighlight: true },
                   { feature: "Ventes flash", free: "A l'ouverture", tok: "Acces anticipe", tokHighlight: true },
                   { feature: "Support", free: "Standard (24h)", tok: "Prioritaire (<2h)", tokHighlight: true },
                   { feature: "Offres surprises mensuelles", free: "—", tok: "Incluses", tokHighlight: true },
