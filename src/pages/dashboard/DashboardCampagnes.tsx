@@ -48,10 +48,15 @@ import {
   type AudienceCriteria,
 } from "@/lib/campaignTargeting";
 import {
+  CAMPAIGN_STRATEGY_CONFIG,
   CAMPAIGN_MARKET_BENCHMARKS,
+  estimateCampaignPlan,
+  getCampaignStrategyConfig,
   getCampaignObservedMetrics,
   getCampaignPricing,
-  projectCampaignBenchmarkOutcomes,
+  normalizeCampaignPricingStrategy,
+  recommendCampaignStrategy,
+  type CampaignPricingStrategy,
 } from "@/lib/campaignPricing";
 import {
   deleteRestaurantCampaign,
@@ -118,12 +123,38 @@ function formatChf(value: number, digits = 2) {
   return `${Number(value || 0).toFixed(digits)} CHF`;
 }
 
+function getRecordStrategy(record?: Record<string, unknown> | null) {
+  return normalizeCampaignPricingStrategy(record?.pricing_strategy, "conversion");
+}
+
 function getRecordPricing(record?: Record<string, unknown> | null) {
+  const strategy = getRecordStrategy(record);
   return getCampaignPricing({
     cpmRate: Number(record?.cpm_rate || 0),
     cpcRate: Number(record?.cpc_rate || 0),
     conversionRate: Number(record?.conversion_rate || 0),
-  });
+  }, strategy);
+}
+
+function toDateInputValue(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getDefaultCampaignStartDate() {
+  return toDateInputValue(new Date());
+}
+
+function getDurationDays(start: string, end: string) {
+  const startAt = Date.parse(start);
+  const endAt = Date.parse(end);
+  if (!Number.isFinite(startAt) || !Number.isFinite(endAt) || endAt < startAt) return 7;
+  return Math.max(1, Math.round((endAt - startAt) / (24 * 60 * 60 * 1000)) + 1);
+}
+
+function addDaysToInputDate(value: string, days: number) {
+  const base = Number.isFinite(Date.parse(value)) ? new Date(value) : new Date();
+  base.setDate(base.getDate() + Math.max(0, days - 1));
+  return toDateInputValue(base);
 }
 
 export default function DashboardCampagnes() {
@@ -482,6 +513,8 @@ export default function DashboardCampagnes() {
               const pages = Array.isArray(campaign.target_pages) ? campaign.target_pages : [];
               const targetingParts = summarizeAudienceCriteria(campaign.target_criteria || DEFAULT_AUDIENCE_CRITERIA);
               const isPaid = (campaign.payment_status || "unpaid") === "paid";
+              const pricingStrategy = getRecordStrategy(campaign);
+              const strategyLabel = getCampaignStrategyConfig(pricingStrategy).shortLabel;
               const pricing = getRecordPricing(campaign);
               const observed = getCampaignObservedMetrics({
                 impressions: campaign.impressions,
@@ -505,6 +538,9 @@ export default function DashboardCampagnes() {
                             <Badge variant={paymentStatus.variant} className="text-[10px]">{paymentStatus.label}</Badge>
                             <Badge variant="outline" className="text-[10px]">
                               {CAMPAIGN_TYPES.find((type) => type.value === campaign.type)?.label || campaign.type}
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px]">
+                              {strategyLabel}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-2">
@@ -612,9 +648,14 @@ function CampaignForm({
     Array.isArray(initial?.target_pages) ? initial.target_pages : ["home", "search"]
   );
   const [totalBudget, setTotalBudget] = useState(initial?.total_budget?.toString() || "");
-  const [dailyBudget, setDailyBudget] = useState(initial?.budget_daily?.toString() || "");
-  const [startsAt, setStartsAt] = useState(initial?.starts_at?.split("T")[0] || "");
-  const [endsAt, setEndsAt] = useState(initial?.ends_at?.split("T")[0] || "");
+  const initialStartsAt = initial?.starts_at?.split("T")[0] || getDefaultCampaignStartDate();
+  const initialEndsAt = initial?.ends_at?.split("T")[0] || addDaysToInputDate(initialStartsAt, 7);
+  const [startsAt, setStartsAt] = useState(initialStartsAt);
+  const [durationDays, setDurationDays] = useState(getDurationDays(initialStartsAt, initialEndsAt));
+  const [selectedStrategy, setSelectedStrategy] = useState<CampaignPricingStrategy>(
+    getRecordStrategy(initial || null),
+  );
+  const [strategyTouched, setStrategyTouched] = useState(Boolean(initial?.pricing_strategy));
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>((initial?.payment_method as PaymentMethodId) || "card");
   const [targetCriteria, setTargetCriteria] = useState<AudienceCriteria>(
     normalizeAudienceCriteria(initial?.target_criteria || DEFAULT_AUDIENCE_CRITERIA)
@@ -626,13 +667,38 @@ function CampaignForm({
   const totalBudgetValue = Math.max(0, Number(totalBudget) || 0);
   const allowedPaymentMethods = useMemo(() => getAllowedPaymentMethods(activeFeatures, []), [activeFeatures]);
   const requiresCheckout = totalBudgetValue > 0 && !isPaidCampaign && paymentMethod !== "cash";
-  const pricing = useMemo(
-    () => getRecordPricing(initial || null),
-    [initial],
+  const recommendedStrategy = useMemo(
+    () => recommendCampaignStrategy({
+      type,
+      targetPages,
+      hasFlashSales: targetPages.includes("flash_sales"),
+      hasAntiWaste: targetPages.includes("anti_waste"),
+      hasPriorConversions: Number(initial?.conversions || 0) > 0,
+    }),
+    [initial?.conversions, targetPages, type],
   );
-  const benchmarkProjection = useMemo(
-    () => projectCampaignBenchmarkOutcomes(totalBudgetValue, pricing),
-    [pricing, totalBudgetValue],
+  const strategy = strategyTouched ? selectedStrategy : recommendedStrategy;
+  const strategyConfig = useMemo(
+    () => getCampaignStrategyConfig(strategy),
+    [strategy],
+  );
+  const pricing = useMemo(
+    () => getCampaignPricing(undefined, strategy),
+    [strategy],
+  );
+  const plannerEstimate = useMemo(
+    () => estimateCampaignPlan({
+      totalBudgetChf: totalBudgetValue,
+      durationDays,
+      strategy,
+      pricing,
+    }),
+    [durationDays, pricing, strategy, totalBudgetValue],
+  );
+  const dailyBudgetValue = plannerEstimate.dailyBudget;
+  const endsAt = useMemo(
+    () => addDaysToInputDate(startsAt, durationDays),
+    [durationDays, startsAt],
   );
 
   useEffect(() => {
@@ -640,6 +706,12 @@ function CampaignForm({
     const nextMethod = getFirstAvailablePaymentMethod(activeFeatures, [], "card");
     if (nextMethod) setPaymentMethod(nextMethod);
   }, [activeFeatures, allowedPaymentMethods, paymentMethod]);
+
+  useEffect(() => {
+    if (!strategyTouched) {
+      setSelectedStrategy(recommendedStrategy);
+    }
+  }, [recommendedStrategy, strategyTouched]);
 
   const togglePage = (page: string) => {
     setTargetPages((previous) =>
@@ -669,7 +741,6 @@ function CampaignForm({
       if (result.type) setType(result.type);
       if (result.target_pages) setTargetPages(result.target_pages);
       if (result.total_budget) setTotalBudget(String(result.total_budget));
-      if (result.budget_daily) setDailyBudget(String(result.budget_daily));
 
       toast({ title: "Campagne generee par l IA", description: "Relisez et ajustez le ciblage avant publication." });
     } catch (error) {
@@ -700,11 +771,12 @@ function CampaignForm({
       title,
       body,
       type,
+      pricing_strategy: strategy,
       image_url: imageUrl || null,
       target_pages: targetPages,
       target_criteria: normalizeAudienceCriteria(targetCriteria),
       total_budget: totalBudgetValue,
-      budget_daily: Math.max(0, Number(dailyBudget) || 0),
+      budget_daily: dailyBudgetValue,
       starts_at: startsAt ? new Date(startsAt).toISOString() : null,
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
       payment_method: paymentMethod,
@@ -815,62 +887,164 @@ function CampaignForm({
 
       <div className="rounded-2xl border bg-muted/20 p-4 space-y-4">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">Tarification TOK basee sur le marche</p>
+          <p className="text-sm font-semibold">Budget et objectif</p>
           <p className="text-xs text-muted-foreground">
-            Barème par defaut calibre entre les reseaux sociaux food, la recherche Google et les marketplaces restaurant.
+            Tout ce qui pilote le budget est reuni ici. TOK recommande automatiquement la meilleure formule selon votre campagne.
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl bg-background p-3 border">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Impressions</p>
-            <p className="mt-1 text-xl font-semibold">{formatChf(pricing.cpmRate)}</p>
-            <p className="text-xs text-muted-foreground">pour 1 000 affichages</p>
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Budget total (CHF)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={totalBudget}
+                onChange={(event) => setTotalBudget(event.target.value)}
+                disabled={isPaidCampaign}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Duree (jours)</Label>
+              <Input
+                type="number"
+                min={1}
+                step="1"
+                value={durationDays}
+                onChange={(event) => setDurationDays(Math.max(1, Math.round(Number(event.target.value) || 1)))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Date de debut</Label>
+              <Input type="date" value={startsAt} onChange={(event) => setStartsAt(event.target.value || getDefaultCampaignStartDate())} />
+            </div>
+            <div className="space-y-2">
+              <Label>Fin calculee</Label>
+              <Input type="date" value={endsAt} readOnly />
+            </div>
           </div>
-          <div className="rounded-xl bg-background p-3 border">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Clics</p>
-            <p className="mt-1 text-xl font-semibold">{formatChf(pricing.cpcRate)}</p>
-            <p className="text-xs text-muted-foreground">par clic qualifie</p>
-          </div>
-          <div className="rounded-xl bg-background p-3 border">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Conversions</p>
-            <p className="mt-1 text-xl font-semibold">{formatChf(pricing.conversionRate)}</p>
-            <p className="text-xs text-muted-foreground">par commande ou reservation attribuee</p>
+
+          <div className="rounded-xl border bg-background p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium">Recommendation TOK</p>
+                <p className="mt-1 text-lg font-semibold">{strategyConfig.label}</p>
+                <p className="text-xs text-muted-foreground">{strategyConfig.recommendationHint}</p>
+              </div>
+              <Badge variant="secondary" className="shrink-0">
+                {strategyTouched ? "Choisie manuellement" : "Recommandee"}
+              </Badge>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg bg-muted/40 p-3 text-center">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Budget / jour</p>
+                <p className="mt-1 text-lg font-semibold">{formatChf(dailyBudgetValue)}</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 p-3 text-center">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Personnes touchees</p>
+                <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedPeopleReached.toLocaleString()}</p>
+              </div>
+            </div>
           </div>
         </div>
 
+        <div className="grid gap-3 lg:grid-cols-3">
+          {(Object.keys(CAMPAIGN_STRATEGY_CONFIG) as CampaignPricingStrategy[]).map((entry) => {
+            const config = CAMPAIGN_STRATEGY_CONFIG[entry];
+            const estimate = estimateCampaignPlan({
+              totalBudgetChf: totalBudgetValue,
+              durationDays,
+              strategy: entry,
+            });
+            const isSelected = strategy === entry;
+            const isRecommended = recommendedStrategy === entry;
+
+            return (
+              <button
+                key={entry}
+                type="button"
+                onClick={() => {
+                  setSelectedStrategy(entry);
+                  setStrategyTouched(true);
+                }}
+                className={`rounded-2xl border p-4 text-left transition-all ${isSelected ? "border-primary bg-primary/5 shadow-sm" : "hover:border-primary/40 hover:bg-background"}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">{config.label}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{config.description}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    {isRecommended ? <Badge variant="secondary" className="text-[10px]">Recommandee</Badge> : null}
+                    {isSelected ? <Badge variant="default" className="text-[10px]">Active</Badge> : null}
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-lg bg-muted/40 px-2 py-3">
+                    <p className="text-sm font-semibold">{estimate.estimatedPeopleReached.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground">personnes</p>
+                  </div>
+                  <div className="rounded-lg bg-muted/40 px-2 py-3">
+                    <p className="text-sm font-semibold">{estimate.projectedClicks.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground">clics</p>
+                  </div>
+                  <div className="rounded-lg bg-muted/40 px-2 py-3">
+                    <p className="text-sm font-semibold">{estimate.projectedConversions}</p>
+                    <p className="text-[10px] text-muted-foreground">conv.</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                  <span className="rounded-full bg-background px-2.5 py-1">{formatChf(config.pricing.cpmRate)} / 1k</span>
+                  <span className="rounded-full bg-background px-2.5 py-1">{formatChf(config.pricing.cpcRate)} / clic</span>
+                  <span className="rounded-full bg-background px-2.5 py-1">{formatChf(config.pricing.conversionRate)} / conv.</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-xl border bg-background p-3">
+            <p className="text-xs font-medium">Performance estimee</p>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="rounded-lg bg-muted/40 px-3 py-3">
+                <p className="text-xs text-muted-foreground">Personnes touchees</p>
+                <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedPeopleReached.toLocaleString()}</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 px-3 py-3">
+                <p className="text-xs text-muted-foreground">Impressions</p>
+                <p className="mt-1 text-lg font-semibold">{plannerEstimate.projectedImpressions.toLocaleString()}</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 px-3 py-3">
+                <p className="text-xs text-muted-foreground">Clics</p>
+                <p className="mt-1 text-lg font-semibold">{plannerEstimate.projectedClicks.toLocaleString()}</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 px-3 py-3">
+                <p className="text-xs text-muted-foreground">Conversions</p>
+                <p className="mt-1 text-lg font-semibold">{plannerEstimate.projectedConversions}</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 px-3 py-3">
+                <p className="text-xs text-muted-foreground">CPC estime</p>
+                <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedCpc > 0 ? formatChf(plannerEstimate.estimatedCpc) : "—"}</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 px-3 py-3">
+                <p className="text-xs text-muted-foreground">CPA estime</p>
+                <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedCpa > 0 ? formatChf(plannerEstimate.estimatedCpa) : "—"}</p>
+              </div>
+            </div>
+          </div>
+
           <div className="rounded-xl border bg-background p-3">
             <p className="text-xs font-medium">Repères concurrence</p>
             <div className="mt-2 space-y-2 text-xs text-muted-foreground">
               <p>Meta Food & Beverage: env. {CAMPAIGN_MARKET_BENCHMARKS.metaFoodCpmUsd.toFixed(2)} USD CPM et {CAMPAIGN_MARKET_BENCHMARKS.metaFoodCpcUsd.toFixed(2)} USD CPC.</p>
               <p>Google Search Food: env. {CAMPAIGN_MARKET_BENCHMARKS.googleSearchFoodCpcUsd.toFixed(2)} USD CPC et {CAMPAIGN_MARKET_BENCHMARKS.googleSearchFoodCpaUsd.toFixed(2)} USD CPA.</p>
               <p>DoorDash: {CAMPAIGN_MARKET_BENCHMARKS.doordashPricingLabel}. Uber Eats: {CAMPAIGN_MARKET_BENCHMARKS.uberPricingLabel}.</p>
+              <p>La formule active applique un mix hybride reel de prix impression, clic et conversion.</p>
             </div>
-          </div>
-
-          <div className="rounded-xl border bg-background p-3">
-            <p className="text-xs font-medium">Projection benchmark</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Estimation calculee avec un CTR food de {(CAMPAIGN_MARKET_BENCHMARKS.benchmarkCtr * 100).toFixed(2)}% et un taux de conversion clic vers vente de {(CAMPAIGN_MARKET_BENCHMARKS.benchmarkCvr * 100).toFixed(1)}%.
-            </p>
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg bg-muted/40 px-2 py-3">
-                <p className="text-sm font-semibold">{benchmarkProjection.projectedImpressions.toLocaleString()}</p>
-                <p className="text-[10px] text-muted-foreground">impressions</p>
-              </div>
-              <div className="rounded-lg bg-muted/40 px-2 py-3">
-                <p className="text-sm font-semibold">{benchmarkProjection.projectedClicks.toLocaleString()}</p>
-                <p className="text-[10px] text-muted-foreground">clics</p>
-              </div>
-              <div className="rounded-lg bg-muted/40 px-2 py-3">
-                <p className="text-sm font-semibold">{benchmarkProjection.projectedConversions}</p>
-                <p className="text-[10px] text-muted-foreground">conversions</p>
-              </div>
-            </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              Coût blended estime: {formatChf(benchmarkProjection.blendedCostPerThousand)} / 1 000 impressions dans un scenario food moyen.
-            </p>
           </div>
         </div>
       </div>
@@ -890,34 +1064,6 @@ function CampaignForm({
       </div>
 
       <AudienceTargeting criteria={targetCriteria} onChange={setTargetCriteria} restaurantId={restaurantId} />
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Budget total (CHF)</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={totalBudget}
-            onChange={(event) => setTotalBudget(event.target.value)}
-            disabled={isPaidCampaign}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Budget quotidien (CHF)</Label>
-          <Input type="number" step="0.01" value={dailyBudget} onChange={(event) => setDailyBudget(event.target.value)} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Date debut</Label>
-          <Input type="date" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label>Date fin</Label>
-          <Input type="date" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} />
-        </div>
-      </div>
 
       <div className="rounded-xl border p-4 space-y-3">
         <div>

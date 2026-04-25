@@ -59,12 +59,19 @@ export const DEFAULT_AUDIENCE_CRITERIA: AudienceCriteria = {
   serviceMoments: [],
 };
 
-function normalizeToken(value: unknown) {
-  return String(value || "").trim().toLowerCase();
+const DIACRITICS_REGEX = /\p{Diacritic}/gu;
+
+export function normalizeAudienceToken(value: unknown) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .normalize("NFD")
+    .replace(DIACRITICS_REGEX, "")
+    .toLowerCase();
 }
 
 function uniqueNormalized(values: unknown[]) {
-  return Array.from(new Set((values || []).map(normalizeToken).filter(Boolean)));
+  return Array.from(new Set((values || []).map(normalizeAudienceToken).filter(Boolean)));
 }
 
 export function normalizeAudienceCriteria(raw: Partial<AudienceCriteria> | null | undefined): AudienceCriteria {
@@ -136,15 +143,15 @@ export function matchesAudienceCriteria(
   if (isDefaultAudienceCriteria(normalized)) return true;
   if (!snapshot) return false;
 
-  const favoriteRestaurantIds = new Set(snapshot.favoriteRestaurantIds.map(normalizeToken));
-  const cuisineSignals = new Set(snapshot.cuisineSignals.map(normalizeToken));
-  const journeyTypes = new Set(snapshot.journeyTypes.map(normalizeToken));
-  const serviceMoments = new Set(snapshot.serviceMoments.map(normalizeToken));
-  const city = normalizeToken(snapshot.city);
+  const favoriteRestaurantIds = new Set(snapshot.favoriteRestaurantIds.map(normalizeAudienceToken));
+  const cuisineSignals = new Set(snapshot.cuisineSignals.map(normalizeAudienceToken));
+  const journeyTypes = new Set(snapshot.journeyTypes.map(normalizeAudienceToken));
+  const serviceMoments = new Set(snapshot.serviceMoments.map(normalizeAudienceToken));
+  const city = normalizeAudienceToken(snapshot.city);
   const interactionCount = Math.max(0, Number(snapshot.interactionCount) || 0);
   const avgBasket = Math.max(0, Number(snapshot.avgBasket) || 0);
   const daysSinceLastActivity = snapshot.daysSinceLastActivity;
-  const normalizedRestaurantId = normalizeToken(restaurantId);
+  const normalizedRestaurantId = normalizeAudienceToken(restaurantId);
 
   if (normalized.cities.length > 0 && (!city || !normalized.cities.includes(city))) return false;
   if (normalized.cuisines.length > 0 && !normalized.cuisines.some((cuisine) => cuisineSignals.has(cuisine))) return false;

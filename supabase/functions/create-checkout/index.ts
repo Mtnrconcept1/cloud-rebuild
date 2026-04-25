@@ -327,10 +327,11 @@ Deno.serve(async (req) => {
 
       const dropMap = new Map((dropRows || []).map((row: any) => [row.id, row]));
       let authoritativeTotal = 0;
+      let totalPartySize = 0;
 
       for (const item of items as CheckoutItem[]) {
         const dropId = String(item?.metadata?.chef_table_drop_id || "");
-        const quantity = Math.max(1, Number(item?.quantity || 1));
+        const quantity = Math.max(1, Number(item?.metadata?.party_size || item?.quantity || 1));
         const drop = dropMap.get(dropId);
 
         if (!drop) {
@@ -358,6 +359,7 @@ Deno.serve(async (req) => {
                 chef_table_drop_id: drop.id,
                 restaurant_id: drop.restaurant_id,
                 drop_time: String(drop.drop_time || ""),
+                party_size: String(quantity),
                 source: "chef_table_drop",
               },
             },
@@ -367,12 +369,14 @@ Deno.serve(async (req) => {
         });
 
         authoritativeTotal += Number(drop.price || 0) * quantity;
+        totalPartySize += quantity;
       }
 
       sessionMetadata = {
         ...sessionMetadata,
         restaurant_id: String(order_metadata?.restaurant_id || ""),
         authoritative_total: authoritativeTotal.toFixed(2),
+        party_size: String(totalPartySize),
       };
     } else {
       const primaryRestaurantId = String(order_metadata?.restaurant_id || "");

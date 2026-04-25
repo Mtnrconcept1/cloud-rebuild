@@ -4,6 +4,9 @@ import {
   classifyOrderCommissionSource,
   classifyReservationCommissionSource,
   createEmptyCommissionBaseTotals,
+  getNetAmountAfterRefund,
+  getNetOrderCommissionBase,
+  getNetReservationCommissionBase,
   getPointsDiscountAmount,
 } from "@/lib/comptaCommissionSources";
 
@@ -104,5 +107,30 @@ describe("getPointsDiscountAmount", () => {
 
   it("falls back to the legacy points_discount key", () => {
     expect(getPointsDiscountAmount({ points_discount: 3 })).toBe(3);
+  });
+});
+
+describe("net refund helpers", () => {
+  it("subtracts refunded amounts without going negative", () => {
+    expect(getNetAmountAfterRefund(42, 10)).toBe(32);
+    expect(getNetAmountAfterRefund(10, 20)).toBe(0);
+  });
+
+  it("computes order commission bases on the net amount after refund", () => {
+    expect(getNetOrderCommissionBase({
+      total_amount: 50,
+      refunded_amount_chf: 15,
+      payment_status: "captured",
+      metadata: { type: "delivery", points_discount_amount: 5 },
+    })).toBe(40);
+  });
+
+  it("computes reservation commission bases on the net amount after refund", () => {
+    expect(getNetReservationCommissionBase({
+      feature: "chefs_table",
+      total_amount: 120,
+      refunded_amount_chf: 20,
+      status: "confirmed",
+    })).toBe(100);
   });
 });

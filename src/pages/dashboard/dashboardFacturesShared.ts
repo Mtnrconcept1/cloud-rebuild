@@ -8,10 +8,12 @@ import {
   classifyReservationCommissionSource,
   COMMISSION_SOURCE_ORDER,
   createEmptyCommissionBaseTotals,
-  getPointsDiscountAmount,
+  getNetOrderCommissionBase,
+  getNetReservationCommissionBase,
 } from "@/lib/comptaCommissionSources";
 import { buildRestaurantAccountingSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
+import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./DashboardContext";
 
@@ -39,6 +41,9 @@ export type RestaurantOrderRow = {
   created_at: string;
   total_amount: number | string | null;
   payment_status?: string | null;
+  refunded_amount_chf?: number | string | null;
+  refund_status?: string | null;
+  refunded_at?: string | null;
   status: string;
   order_number: string | null;
   metadata: Record<string, unknown> | null;
@@ -53,9 +58,21 @@ export type RestaurantReservationPaymentRow = {
   feature: string | null;
   metadata: Record<string, unknown> | null;
   total_amount: number | string | null;
+  refunded_amount_chf?: number | string | null;
+  refund_status?: string | null;
+  refunded_at?: string | null;
   status: string;
   restaurant_id: string;
   restaurant_invoice_id: string | null;
+};
+
+type RefundOperationRow = {
+  id: string;
+  restaurant_id: string;
+  total_amount: number | string | null;
+  refunded_amount_chf: number | string | null;
+  refund_status: string | null;
+  refunded_at: string | null;
 };
 
 type RestaurantReservationFeeRow = {
@@ -167,7 +184,7 @@ function getCampaignPaidAmount(campaign: Pick<RestaurantPaidCampaignRow, "paid_a
 
 function isBillableReservationFee(cancelledBy: string | null | undefined) {
   const normalized = String(cancelledBy || "").trim().toLowerCase();
-  return normalized === "" || (normalized !== "customer" && normalized !== "admin");
+  return normalized === "";
 }
 
 function createEmptyPayableAccrualSummary(): PayableAccrualSummary {
@@ -228,7 +245,7 @@ function buildPayableAccrualSummary(input: {
   input.orders.forEach((order) => {
     if (billedSourceLookup.orderCommissionIds.has(order.id)) return;
 
-    const commissionBase = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
+    const commissionBase = getNetOrderCommissionBase(order);
     const commissionAmount = commissionBase * 0.1;
     if (commissionAmount <= 0) return;
 
@@ -239,7 +256,7 @@ function buildPayableAccrualSummary(input: {
   input.reservationPayments.forEach((reservation) => {
     if (billedSourceLookup.reservationCommissionIds.has(reservation.id)) return;
 
-    const commissionAmount = toAmount(reservation.total_amount) * 0.1;
+    const commissionAmount = getNetReservationCommissionBase(reservation) * 0.1;
     if (commissionAmount <= 0) return;
 
     summary.reservationCommissionAmount += commissionAmount;
@@ -368,14 +385,13 @@ function buildCommissionBases(
     const source = classifyOrderCommissionSource(order);
     if (!source) return;
 
-    const grossAmount = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
-    totals[source] += grossAmount;
+    totals[source] += getNetOrderCommissionBase(order);
   });
 
   reservations.forEach((reservation) => {
     const source = classifyReservationCommissionSource(reservation);
     if (!source) return;
-    totals[source] += toAmount(reservation.total_amount);
+    totals[source] += getNetReservationCommissionBase(reservation);
   });
 
   return totals;
@@ -468,11 +484,24 @@ export function useDashboardFacturesData() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, created_at, total_amount, payment_status, status, order_number, metadata, restaurant_id, restaurant_invoice_id")
+        .select("id, created_at, total_amount, payment_status, refunded_amount_chf, refund_status, refunded_at, status, order_number, metadata, restaurant_id, restaurant_invoice_id")
         .eq("restaurant_id", selectedId!)
         .in("payment_status", ["paid", "captured"])
         .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)")
         .order("created_at", { ascending: false });
+
+      if (error && isRefundColumnsMissingError(error)) {
+        const fallback = await supabase
+          .from("orders")
+          .select("id, created_at, total_amount, payment_status, status, order_number, metadata, restaurant_id, restaurant_invoice_id")
+          .eq("restaurant_id", selectedId!)
+          .in("payment_status", ["paid", "captured"])
+          .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)")
+          .order("created_at", { ascending: false });
+
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as RestaurantOrderRow[];
+      }
 
       if (error) throw error;
       return (data || []) as RestaurantOrderRow[];
@@ -485,11 +514,24 @@ export function useDashboardFacturesData() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, created_at, date, feature, metadata, total_amount, status, restaurant_id, restaurant_invoice_id")
+        .select("id, created_at, date, feature, metadata, total_amount, refunded_amount_chf, refund_status, refunded_at, status, restaurant_id, restaurant_invoice_id")
         .eq("restaurant_id", selectedId!)
         .gt("total_amount", 0)
         .not("status", "in", "(cancelled,no_show,pending)")
         .order("created_at", { ascending: false });
+
+      if (error && isRefundColumnsMissingError(error)) {
+        const fallback = await supabase
+          .from("reservations")
+          .select("id, created_at, date, feature, metadata, total_amount, status, restaurant_id, restaurant_invoice_id")
+          .eq("restaurant_id", selectedId!)
+          .gt("total_amount", 0)
+          .not("status", "in", "(cancelled,no_show,pending)")
+          .order("created_at", { ascending: false });
+
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as RestaurantReservationPaymentRow[];
+      }
 
       if (error) throw error;
       return (data || []) as RestaurantReservationPaymentRow[];
@@ -508,6 +550,46 @@ export function useDashboardFacturesData() {
         .order("confirmed_at", { ascending: false });
       if (error) throw error;
       return (data || []) as RestaurantReservationFeeRow[];
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
+  const refundedOrdersQuery = useQuery({
+    queryKey: ["dashboard-refunded-orders-v1", selectedId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, restaurant_id, total_amount, refunded_amount_chf, refund_status, refunded_at")
+        .eq("restaurant_id", selectedId!)
+        .gt("refunded_amount_chf", 0)
+        .order("refunded_at", { ascending: false });
+
+      if (error && isRefundColumnsMissingError(error)) {
+        return [] as RefundOperationRow[];
+      }
+
+      if (error) throw error;
+      return (data || []) as RefundOperationRow[];
+    },
+    enabled: !!selectedId && !restaurantsLoading,
+  });
+
+  const refundedReservationsQuery = useQuery({
+    queryKey: ["dashboard-refunded-reservations-v1", selectedId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reservations")
+        .select("id, restaurant_id, total_amount, refunded_amount_chf, refund_status, refunded_at")
+        .eq("restaurant_id", selectedId!)
+        .gt("refunded_amount_chf", 0)
+        .order("refunded_at", { ascending: false });
+
+      if (error && isRefundColumnsMissingError(error)) {
+        return [] as RefundOperationRow[];
+      }
+
+      if (error) throw error;
+      return (data || []) as RefundOperationRow[];
     },
     enabled: !!selectedId && !restaurantsLoading,
   });
@@ -636,21 +718,29 @@ export function useDashboardFacturesData() {
     [paidCampaignsQuery.data],
   );
   const paidCampaignsCount = paidCampaignsQuery.data?.length || 0;
-  const miamzReimbursementsTotal = useMemo(
-    () => (ordersQuery.data || []).reduce((sum, order) => sum + getPointsDiscountAmount(order.metadata), 0),
-    [ordersQuery.data],
+  const refundOperations = useMemo(
+    () => [...(refundedOrdersQuery.data || []), ...(refundedReservationsQuery.data || [])],
+    [refundedOrdersQuery.data, refundedReservationsQuery.data],
   );
-  const miamzReimbursementsOutstanding = useMemo(
-    () => (ordersQuery.data || []).reduce((sum, order) => (
-      order.restaurant_invoice_id
-        ? sum
-        : sum + getPointsDiscountAmount(order.metadata)
-    ), 0),
-    [ordersQuery.data],
+  const refundsIssuedTotal = useMemo(
+    () => refundOperations.reduce((sum, item) => sum + toAmount(item.refunded_amount_chf), 0),
+    [refundOperations],
   );
-  const miamzReimbursementsCount = useMemo(
-    () => (ordersQuery.data || []).filter((order) => getPointsDiscountAmount(order.metadata) > 0).length,
-    [ordersQuery.data],
+  const refundsIssuedCount = refundOperations.length;
+  const refundsPendingAmount = useMemo(
+    () => refundOperations.reduce((sum, item) => {
+      const normalizedStatus = String(item.refund_status || "").trim().toLowerCase();
+      if (normalizedStatus === "refunded") {
+        return sum;
+      }
+
+      return sum + Math.max(0, toAmount(item.total_amount) - toAmount(item.refunded_amount_chf));
+    }, 0),
+    [refundOperations],
+  );
+  const refundsPendingCount = useMemo(
+    () => refundOperations.filter((item) => String(item.refund_status || "").trim().toLowerCase() !== "refunded").length,
+    [refundOperations],
   );
 
   return {
@@ -670,9 +760,10 @@ export function useDashboardFacturesData() {
     paidCampaigns: paidCampaignsQuery.data || [],
     paidCampaignsTotal,
     paidCampaignsCount,
-    miamzReimbursementsTotal,
-    miamzReimbursementsOutstanding,
-    miamzReimbursementsCount,
+    refundsIssuedTotal,
+    refundsIssuedCount,
+    refundsPendingAmount,
+    refundsPendingCount,
     commissionBases,
     uninvoicedCommissionBases,
     uninvoicedRestaurantShareBySource,
@@ -684,13 +775,17 @@ export function useDashboardFacturesData() {
       || reservationsQuery.isLoading
       || reservationFeeRowsQuery.isLoading
       || payableLineItemsQuery.isLoading
-      || paidCampaignsQuery.isLoading,
+      || paidCampaignsQuery.isLoading
+      || refundedOrdersQuery.isLoading
+      || refundedReservationsQuery.isLoading,
     error: restaurantsError
       || invoicesQuery.error
       || ordersQuery.error
       || reservationsQuery.error
       || reservationFeeRowsQuery.error
       || payableLineItemsQuery.error
-      || paidCampaignsQuery.error,
+      || paidCampaignsQuery.error
+      || refundedOrdersQuery.error
+      || refundedReservationsQuery.error,
   };
 }

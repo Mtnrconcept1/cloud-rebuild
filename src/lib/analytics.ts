@@ -1,11 +1,13 @@
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_AUDIENCE_CRITERIA,
-  matchesAudienceCriteria,
   normalizeAudienceCriteria,
+  normalizeAudienceToken,
   type AudienceCriteria,
   type AudienceSnapshot,
 } from "@/lib/campaignTargeting";
+import { getCampaignStrategyPlacementBoost } from "@/lib/campaignPricing";
+import { isCampaignVisibleForViewer } from "@/lib/campaignVisibility";
 import {
   estimateRestaurantCampaignAudience,
   listRestaurantCampaigns,
@@ -245,7 +247,9 @@ function selectPoolWeightedCampaigns(campaigns: any[], page: string): any[] {
 
   const weighted = pool.map((p) => ({
     ...p,
-    scoreFinal: (p.budgetRestant / sumBudgetRestant) * p.pacingFactor,
+    scoreFinal: (p.budgetRestant / sumBudgetRestant)
+      * p.pacingFactor
+      * getCampaignStrategyPlacementBoost((p.campaign as Record<string, unknown>)?.pricing_strategy, page),
   }));
 
   const totalScore = weighted.reduce((s, w) => s + w.scoreFinal, 0) || 1;
@@ -283,7 +287,7 @@ function isInvalidReservationStatus(status: unknown) {
 }
 
 function normalizeTextToken(value: unknown) {
-  return String(value || "").trim().toLowerCase();
+  return normalizeAudienceToken(value);
 }
 
 function deriveServiceMoment(value: unknown) {
@@ -762,33 +766,11 @@ export async function getActiveSponsoredRestaurants(page: string) {
   ]);
 
   const all = (campaignResponse.data || []) as any[];
-  const now = Date.now();
-  const activeCampaigns = all.filter((c: any) => {
-    if (c.starts_at) {
-      const startsAt = Date.parse(String(c.starts_at));
-      if (Number.isFinite(startsAt) && startsAt > now) return false;
-    }
-    if (c.ends_at) {
-      const endsAt = Date.parse(String(c.ends_at));
-      if (Number.isFinite(endsAt) && endsAt < now) return false;
-    }
-    if (Number(c.total_budget || 0) > 0 && Number(c.spent || 0) >= Number(c.total_budget || 0)) return false;
-
-    if (Number(c.budget_daily || 0) > 0) {
-      const today = new Date().toISOString().slice(0, 10);
-      const dailySpent = (String(c.daily_spent_date || "") === today)
-        ? Number(c.daily_spent || 0) : 0;
-      if (dailySpent >= Number(c.budget_daily)) return false;
-    }
-
-    const pages = c.target_pages;
-    if (!pages) return true;
-    if (Array.isArray(pages)) return pages.length === 0 || pages.includes(page);
-    return true;
-  }).filter((campaign: any) => {
-    const restaurantId = campaign?.restaurant_id || campaign?.restaurants?.id || null;
-    return matchesAudienceCriteria(campaign?.target_criteria || DEFAULT_AUDIENCE_CRITERIA, audienceSnapshot, restaurantId);
-  });
+  const activeCampaigns = all.filter((campaign: any) => isCampaignVisibleForViewer(campaign, {
+    page,
+    audienceSnapshot,
+    viewerUserId: currentUserId,
+  }));
 
   return selectPoolWeightedCampaigns(activeCampaigns, page);
 }
@@ -796,6 +778,7 @@ export async function getActiveSponsoredRestaurants(page: string) {
 export async function createCampaign(campaign: {
   restaurant_id: string;
   type: "boost" | "email" | "push" | "in_app";
+  pricing_strategy?: "visibility" | "traffic" | "conversion";
   title: string;
   body: string;
   image_url?: string;

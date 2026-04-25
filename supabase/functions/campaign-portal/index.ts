@@ -6,7 +6,11 @@ import {
   requireRestaurantAccess,
   writeAuditLog,
 } from "../_shared/auth.ts";
-import { DEFAULT_CAMPAIGN_PRICING, getCampaignPricing } from "../_shared/campaign-pricing.ts";
+import {
+  DEFAULT_CAMPAIGN_PRICING,
+  getCampaignPricing,
+  normalizeCampaignPricingStrategy,
+} from "../_shared/campaign-pricing.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
@@ -125,11 +129,17 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
     status = "draft";
   }
 
+  const pricingStrategy = normalizeCampaignPricingStrategy(
+    source.pricing_strategy ?? existingCampaign?.pricing_strategy,
+    "conversion",
+  );
+  const existingPricingStrategy = normalizeCampaignPricingStrategy(existingCampaign?.pricing_strategy, "conversion");
+  const resetPricingFromStrategy = !existingCampaign || pricingStrategy !== existingPricingStrategy;
   const pricing = getCampaignPricing({
-    cpmRate: clampPositiveRate(existingCampaign?.cpm_rate),
-    cpcRate: clampPositiveRate(existingCampaign?.cpc_rate),
-    conversionRate: clampPositiveRate(existingCampaign?.conversion_rate),
-  });
+    cpmRate: resetPricingFromStrategy ? 0 : clampPositiveRate(existingCampaign?.cpm_rate),
+    cpcRate: resetPricingFromStrategy ? 0 : clampPositiveRate(existingCampaign?.cpc_rate),
+    conversionRate: resetPricingFromStrategy ? 0 : clampPositiveRate(existingCampaign?.conversion_rate),
+  }, pricingStrategy);
 
   return {
     title,
@@ -145,6 +155,7 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
     payment_method: sanitizedPaymentMethod,
     payment_status: paymentStatus,
     status,
+    pricing_strategy: pricingStrategy,
     cpm_rate: pricing.cpmRate || DEFAULT_CAMPAIGN_PRICING.cpmRate,
     cpc_rate: pricing.cpcRate || DEFAULT_CAMPAIGN_PRICING.cpcRate,
     conversion_rate: pricing.conversionRate || DEFAULT_CAMPAIGN_PRICING.conversionRate,

@@ -42,6 +42,20 @@ type ChefTableDropRow = {
   } | null;
 };
 
+type ExistingChefReservationRow = {
+  id: string;
+  restaurant_id: string;
+  date: string;
+  time: string;
+  party_size: number;
+  status: string;
+  total_amount: number;
+  created_at: string;
+  notes: string | null;
+  metadata: Record<string, unknown> | null;
+  preorder_items: Array<Record<string, unknown>> | null;
+};
+
 function parseMoney(value: unknown, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -73,6 +87,61 @@ function buildReservationNote(input: {
 
 function buildReservationKey(input: { restaurantId: string; date: string; time: string }) {
   return `${input.restaurantId}:${input.date}:${input.time}`;
+}
+
+function normalizeExistingReservation(
+  reservation: ExistingChefReservationRow,
+  restaurantName: string,
+): ChefTableReservationRow {
+  return {
+    id: reservation.id,
+    restaurant_id: reservation.restaurant_id,
+    restaurant_name: restaurantName,
+    date: reservation.date,
+    time: reservation.time,
+    party_size: reservation.party_size,
+    status: reservation.status,
+    total_amount: Number(reservation.total_amount || 0),
+    created_at: reservation.created_at,
+    notes: reservation.notes,
+    metadata: (reservation.metadata || {}) as Record<string, unknown>,
+    preorder_items: (reservation.preorder_items || []) as Array<Record<string, unknown>>,
+  };
+}
+
+async function findExistingChefReservation(input: {
+  adminClient: any;
+  userId: string;
+  group: {
+    restaurantId: string;
+    restaurantName: string;
+    date: string;
+    time: string;
+  };
+  sessionId: string;
+}) {
+  const { adminClient, userId, group, sessionId } = input;
+  const { data, error } = await adminClient
+    .from("reservations")
+    .select("id, restaurant_id, date, time, party_size, status, total_amount, created_at, notes, metadata, preorder_items")
+    .eq("user_id", userId)
+    .eq("restaurant_id", group.restaurantId)
+    .eq("feature", "chefs_table")
+    .eq("date", group.date)
+    .eq("time", group.time)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data?.id) return null;
+
+  const metadata = (data.metadata || {}) as Record<string, unknown>;
+  const isPaid = Boolean(metadata.paid) || Number(data.total_amount || 0) > 0;
+  const sessionMatches = String(metadata.checkout_session_id || "") === sessionId;
+
+  if (!isPaid && !sessionMatches) return null;
+  return normalizeExistingReservation(data as ExistingChefReservationRow, group.restaurantName);
 }
 
 function buildChefTableLineItems(lineItems: Stripe.ApiList<Stripe.LineItem>) {
@@ -193,19 +262,7 @@ export async function finalizeChefsTableCheckout(input: {
     .filter("metadata->>checkout_session_id", "eq", session.id)
     .order("created_at", { ascending: true });
 
-  const existingReservations = (existingReservationsRaw || []) as Array<{
-    id: string;
-    restaurant_id: string;
-    date: string;
-    time: string;
-    party_size: number;
-    status: string;
-    total_amount: number;
-    created_at: string;
-    notes: string | null;
-    metadata: Record<string, unknown> | null;
-    preorder_items: Array<Record<string, unknown>> | null;
-  }>;
+  const existingReservations = (existingReservationsRaw || []) as ExistingChefReservationRow[];
 
   const existingReservationMap = new Map(
     existingReservations.map((reservation) => [
@@ -296,20 +353,7 @@ export async function finalizeChefsTableCheckout(input: {
     const existingReservation = existingReservationMap.get(group.reservationKey);
 
     if (existingReservation) {
-      finalizedReservations.push({
-        id: existingReservation.id,
-        restaurant_id: existingReservation.restaurant_id,
-        restaurant_name: group.restaurantName,
-        date: existingReservation.date,
-        time: existingReservation.time,
-        party_size: existingReservation.party_size,
-        status: existingReservation.status,
-        total_amount: Number(existingReservation.total_amount || 0),
-        created_at: existingReservation.created_at,
-        notes: existingReservation.notes,
-        metadata: (existingReservation.metadata || {}) as Record<string, unknown>,
-        preorder_items: (existingReservation.preorder_items || []) as Array<Record<string, unknown>>,
-      });
+      finalizedReservations.push(normalizeExistingReservation(existingReservation, group.restaurantName));
 
       await recordReservationChargeIfMissing({
         adminClient,
@@ -319,6 +363,35 @@ export async function finalizeChefsTableCheckout(input: {
         amount: group.total,
         currency: (session.currency || "chf").toLowerCase(),
         reservationId: existingReservation.id,
+        feature: "chefs_table",
+        metadata: {
+          restaurant_id: group.restaurantId,
+          payment_method: paymentMethod,
+          card_brand: cardBrand || null,
+          card_last4: cardLast4 || null,
+        },
+        log,
+      });
+      continue;
+    }
+
+    const existingReservationByKey = await findExistingChefReservation({
+      adminClient,
+      userId,
+      group,
+      sessionId: session.id,
+    });
+
+    if (existingReservationByKey) {
+      finalizedReservations.push(existingReservationByKey);
+      await recordReservationChargeIfMissing({
+        adminClient,
+        userId,
+        sessionId: session.id,
+        paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null,
+        amount: group.total,
+        currency: (session.currency || "chf").toLowerCase(),
+        reservationId: existingReservationByKey.id,
         feature: "chefs_table",
         metadata: {
           restaurant_id: group.restaurantId,
@@ -380,10 +453,47 @@ export async function finalizeChefsTableCheckout(input: {
       );
 
       if (reservationError || !reservationId) {
+        const fallbackReservation = await findExistingChefReservation({
+          adminClient,
+          userId,
+          group,
+          sessionId: session.id,
+        });
+
+        if (fallbackReservation) {
+          for (const dropAllocation of decrementedDrops) {
+            await incrementDropPortions({
+              adminClient,
+              dropId: dropAllocation.dropId,
+              quantity: dropAllocation.quantity,
+            });
+          }
+          decrementedDrops.length = 0;
+          finalizedReservations.push(fallbackReservation);
+          await recordReservationChargeIfMissing({
+            adminClient,
+            userId,
+            sessionId: session.id,
+            paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null,
+            amount: group.total,
+            currency: (session.currency || "chf").toLowerCase(),
+            reservationId: fallbackReservation.id,
+            feature: "chefs_table",
+            metadata: {
+              restaurant_id: group.restaurantId,
+              payment_method: paymentMethod,
+              card_brand: cardBrand || null,
+              card_last4: cardLast4 || null,
+            },
+            log,
+          });
+          continue;
+        }
+
         throw new Error(reservationError?.message || "Impossible de creer la reservation La Table du Chef.");
       }
 
-      await adminClient
+      const { error: statusUpdateError } = await adminClient
         .from("reservations")
         .update({
           status: "confirmed",
@@ -395,6 +505,13 @@ export async function finalizeChefsTableCheckout(input: {
           updated_at: new Date().toISOString(),
         })
         .eq("id", reservationId);
+
+      if (statusUpdateError) {
+        log?.warn?.("chefs_table_status_update_failed", {
+          reservation_id: reservationId,
+          message: statusUpdateError.message,
+        });
+      }
 
       await recordReservationChargeIfMissing({
         adminClient,
@@ -432,11 +549,37 @@ export async function finalizeChefsTableCheckout(input: {
 
       const restaurantOwnerId = dropMap.get(group.drops[0].dropId)?.restaurants?.owner_id || null;
       if (restaurantOwnerId) {
+        try {
+          await enqueueNotification({
+            adminClient,
+            userId: restaurantOwnerId,
+            title: "Nouvelle reservation La Table du Chef",
+            body: `${group.partySize} experience(s) reservee(s) pour le ${group.date} a ${group.time} - ${group.total.toFixed(2)} CHF`,
+            type: "reservation",
+            category: "transactional",
+            data: {
+              reservation_id: reservationId,
+              restaurant_id: group.restaurantId,
+              restaurant_name: group.restaurantName,
+              total_amount: group.total,
+              feature: "chefs_table",
+              url: "/dashboard/reservations",
+            },
+          });
+        } catch (error) {
+          log?.error?.("chefs_table_restaurant_notification_failed", {
+            reservation_id: reservationId,
+            message: error instanceof Error ? error.message : "unknown",
+          });
+        }
+      }
+
+      try {
         await enqueueNotification({
           adminClient,
-          userId: restaurantOwnerId,
-          title: "Nouvelle reservation La Table du Chef",
-          body: `${group.partySize} experience(s) reservee(s) pour le ${group.date} a ${group.time} - ${group.total.toFixed(2)} CHF`,
+          userId,
+          title: "Reservation La Table du Chef confirmee",
+          body: `Votre experience chez ${group.restaurantName} est confirmee le ${group.date} a ${group.time}.`,
           type: "reservation",
           category: "transactional",
           data: {
@@ -445,27 +588,15 @@ export async function finalizeChefsTableCheckout(input: {
             restaurant_name: group.restaurantName,
             total_amount: group.total,
             feature: "chefs_table",
-            url: "/dashboard/reservations",
+            url: "/reservations",
           },
         });
-      }
-
-      await enqueueNotification({
-        adminClient,
-        userId,
-        title: "Reservation La Table du Chef confirmee",
-        body: `Votre experience chez ${group.restaurantName} est confirmee le ${group.date} a ${group.time}.`,
-        type: "reservation",
-        category: "transactional",
-        data: {
+      } catch (error) {
+        log?.error?.("chefs_table_customer_notification_failed", {
           reservation_id: reservationId,
-          restaurant_id: group.restaurantId,
-          restaurant_name: group.restaurantName,
-          total_amount: group.total,
-          feature: "chefs_table",
-          url: "/reservations",
-        },
-      });
+          message: error instanceof Error ? error.message : "unknown",
+        });
+      }
     } catch (error) {
       for (const dropAllocation of decrementedDrops) {
         try {

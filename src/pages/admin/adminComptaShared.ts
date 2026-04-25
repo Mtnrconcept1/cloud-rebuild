@@ -8,11 +8,13 @@ import {
   classifyReservationCommissionSource,
   COMMISSION_SOURCE_ORDER,
   createEmptyCommissionBaseTotals,
-  getPointsDiscountAmount,
+  getNetOrderCommissionBase,
+  getNetReservationCommissionBase,
   type CommissionBaseTotals,
 } from "@/lib/comptaCommissionSources";
 import { buildTokAccountingSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
+import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
 import { getSupabase } from "@/integrations/supabase/client";
 
 const supabase = getSupabase();
@@ -27,6 +29,9 @@ export type AdminOrderRow = {
   created_at: string;
   total_amount: number | string | null;
   payment_status?: string | null;
+  refunded_amount_chf?: number | string | null;
+  refund_status?: string | null;
+  refunded_at?: string | null;
   status: string;
   order_number: string | null;
   metadata: Record<string, unknown> | null;
@@ -42,9 +47,21 @@ export type AdminReservationPaymentRow = {
   feature: string | null;
   metadata: Record<string, unknown> | null;
   total_amount: number | string | null;
+  refunded_amount_chf?: number | string | null;
+  refund_status?: string | null;
+  refunded_at?: string | null;
   status: string;
   restaurant_id: string;
   restaurants?: { name: string | null } | null;
+};
+
+type RefundOperationRow = {
+  id: string;
+  restaurant_id: string;
+  total_amount: number | string | null;
+  refunded_amount_chf: number | string | null;
+  refund_status: string | null;
+  refunded_at: string | null;
 };
 
 export type AdminInvoiceRow = {
@@ -287,14 +304,13 @@ function buildCommissionBases(orders: readonly AdminOrderRow[], reservations: re
     const source = classifyOrderCommissionSource(order);
     if (!source) return;
 
-    const grossAmount = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
-    totals[source] += grossAmount;
+    totals[source] += getNetOrderCommissionBase(order);
   });
 
   reservations.forEach((reservation) => {
     const source = classifyReservationCommissionSource(reservation);
     if (!source) return;
-    totals[source] += toAmount(reservation.total_amount);
+    totals[source] += getNetReservationCommissionBase(reservation);
   });
 
   return totals;
@@ -311,7 +327,7 @@ function getCampaignPaidAmount(campaign: Pick<AdminCampaignRow, "paid_amount" | 
 
 function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "cancelled_by" | "reservation_fee_invoice_id">) {
   const cancelledBy = String(row.cancelled_by || "").trim().toLowerCase();
-  if (!(cancelledBy === "" || (cancelledBy !== "customer" && cancelledBy !== "admin"))) {
+  if (cancelledBy !== "") {
     return false;
   }
 
@@ -376,7 +392,7 @@ function buildAdminPayableAccrualSummary(input: {
   input.orders.forEach((order) => {
     if (billedSourceLookup.orderCommissionIds.has(order.id)) return;
 
-    const commissionBase = toAmount(order.total_amount) + getPointsDiscountAmount(order.metadata);
+    const commissionBase = getNetOrderCommissionBase(order);
     const commissionAmount = commissionBase * 0.1;
     if (commissionAmount <= 0) return;
 
@@ -387,7 +403,7 @@ function buildAdminPayableAccrualSummary(input: {
   input.reservationPayments.forEach((reservation) => {
     if (billedSourceLookup.reservationCommissionIds.has(reservation.id)) return;
 
-    const commissionAmount = toAmount(reservation.total_amount) * 0.1;
+    const commissionAmount = getNetReservationCommissionBase(reservation) * 0.1;
     if (commissionAmount <= 0) return;
 
     summary.reservationCommissionAmount += commissionAmount;
@@ -500,6 +516,9 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           created_at,
           total_amount,
           payment_status,
+          refunded_amount_chf,
+          refund_status,
+          refunded_at,
           status,
           order_number,
           metadata,
@@ -517,6 +536,35 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
+      if (error && isRefundColumnsMissingError(error)) {
+        let fallbackQuery = supabase
+          .from("orders")
+          .select(`
+            id,
+            created_at,
+            total_amount,
+            payment_status,
+            status,
+            order_number,
+            metadata,
+            restaurant_id,
+            restaurant_invoice_id,
+            restaurants ( name )
+          `)
+          .gte("created_at", monthBounds.monthStartDate.toISOString())
+          .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+          .in("payment_status", ["paid", "captured"])
+          .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)");
+
+        if (selectedRestaurant !== "all") {
+          fallbackQuery = fallbackQuery.eq("restaurant_id", selectedRestaurant);
+        }
+
+        const fallback = await fallbackQuery.order("created_at", { ascending: false });
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as AdminOrderRow[];
+      }
+
       if (error) throw error;
       return (data || []) as AdminOrderRow[];
     },
@@ -563,6 +611,9 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
           feature,
           metadata,
           total_amount,
+          refunded_amount_chf,
+          refund_status,
+          refunded_at,
           status,
           restaurant_id,
           restaurants ( name )
@@ -577,6 +628,34 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
+      if (error && isRefundColumnsMissingError(error)) {
+        let fallbackQuery = supabase
+          .from("reservations")
+          .select(`
+            id,
+            created_at,
+            date,
+            feature,
+            metadata,
+            total_amount,
+            status,
+            restaurant_id,
+            restaurants ( name )
+          `)
+          .gte("created_at", monthBounds.monthStartDate.toISOString())
+          .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+          .gt("total_amount", 0)
+          .not("status", "in", "(cancelled,no_show,pending)");
+
+        if (selectedRestaurant !== "all") {
+          fallbackQuery = fallbackQuery.eq("restaurant_id", selectedRestaurant);
+        }
+
+        const fallback = await fallbackQuery.order("created_at", { ascending: false });
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as AdminReservationPaymentRow[];
+      }
+
       if (error) throw error;
       return (data || []) as AdminReservationPaymentRow[];
     },
@@ -706,6 +785,56 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     },
   });
 
+  const refundedOrdersQuery = useQuery({
+    queryKey: ["admin-compta-refunded-orders-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => {
+      let query = supabase
+        .from("orders")
+        .select("id, restaurant_id, total_amount, refunded_amount_chf, refund_status, refunded_at")
+        .gt("refunded_amount_chf", 0)
+        .gte("refunded_at", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("refunded_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("refunded_at", { ascending: false });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      const { data, error } = await query;
+      if (error && isRefundColumnsMissingError(error)) {
+        return [] as RefundOperationRow[];
+      }
+
+      if (error) throw error;
+      return (data || []) as RefundOperationRow[];
+    },
+  });
+
+  const refundedReservationsQuery = useQuery({
+    queryKey: ["admin-compta-refunded-reservations-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => {
+      let query = supabase
+        .from("reservations")
+        .select("id, restaurant_id, total_amount, refunded_amount_chf, refund_status, refunded_at")
+        .gt("refunded_amount_chf", 0)
+        .gte("refunded_at", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("refunded_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("refunded_at", { ascending: false });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      const { data, error } = await query;
+      if (error && isRefundColumnsMissingError(error)) {
+        return [] as RefundOperationRow[];
+      }
+
+      if (error) throw error;
+      return (data || []) as RefundOperationRow[];
+    },
+  });
+
   const commissionBases = useMemo(
     () => buildCommissionBases(ordersQuery.data || [], reservationsQuery.data || []),
     [ordersQuery.data, reservationsQuery.data],
@@ -761,21 +890,29 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     [campaignsQuery.data],
   );
   const paidCampaignsCount = campaignsQuery.data?.length || 0;
-  const miamzReimbursementsTotal = useMemo(
-    () => (ordersQuery.data || []).reduce((sum, order) => sum + getPointsDiscountAmount(order.metadata), 0),
-    [ordersQuery.data],
+  const refundOperations = useMemo(
+    () => [...(refundedOrdersQuery.data || []), ...(refundedReservationsQuery.data || [])],
+    [refundedOrdersQuery.data, refundedReservationsQuery.data],
   );
-  const miamzReimbursementsOutstanding = useMemo(
-    () => (ordersQuery.data || []).reduce((sum, order) => (
-      order.restaurant_invoice_id
-        ? sum
-        : sum + getPointsDiscountAmount(order.metadata)
-    ), 0),
-    [ordersQuery.data],
+  const refundsIssuedTotal = useMemo(
+    () => refundOperations.reduce((sum, item) => sum + toAmount(item.refunded_amount_chf), 0),
+    [refundOperations],
   );
-  const miamzReimbursementsCount = useMemo(
-    () => (ordersQuery.data || []).filter((order) => getPointsDiscountAmount(order.metadata) > 0).length,
-    [ordersQuery.data],
+  const refundsIssuedCount = refundOperations.length;
+  const refundsPendingAmount = useMemo(
+    () => refundOperations.reduce((sum, item) => {
+      const normalizedStatus = String(item.refund_status || "").trim().toLowerCase();
+      if (normalizedStatus === "refunded") {
+        return sum;
+      }
+
+      return sum + Math.max(0, toAmount(item.total_amount) - toAmount(item.refunded_amount_chf));
+    }, 0),
+    [refundOperations],
+  );
+  const refundsPendingCount = useMemo(
+    () => refundOperations.filter((item) => String(item.refund_status || "").trim().toLowerCase() !== "refunded").length,
+    [refundOperations],
   );
 
   return {
@@ -798,9 +935,10 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     reservationFeeAccrualAmount,
     paidCampaignsTotal,
     paidCampaignsCount,
-    miamzReimbursementsTotal,
-    miamzReimbursementsOutstanding,
-    miamzReimbursementsCount,
+    refundsIssuedTotal,
+    refundsIssuedCount,
+    refundsPendingAmount,
+    refundsPendingCount,
     monthOptions,
     isLoading: restaurantsQuery.isLoading
       || ordersQuery.isLoading
@@ -809,7 +947,9 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || campaignsQuery.isLoading
       || payoutInvoicesQuery.isLoading
       || payableInvoicesQuery.isLoading
-      || payableLineItemsQuery.isLoading,
+      || payableLineItemsQuery.isLoading
+      || refundedOrdersQuery.isLoading
+      || refundedReservationsQuery.isLoading,
     error: restaurantsQuery.error
       || ordersQuery.error
       || reservationsQuery.error
@@ -817,6 +957,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || campaignsQuery.error
       || payoutInvoicesQuery.error
       || payableInvoicesQuery.error
-      || payableLineItemsQuery.error,
+      || payableLineItemsQuery.error
+      || refundedOrdersQuery.error
+      || refundedReservationsQuery.error,
   };
 }

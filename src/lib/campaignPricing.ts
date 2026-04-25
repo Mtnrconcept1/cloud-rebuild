@@ -4,6 +4,8 @@ export type CampaignPricing = {
   conversionRate: number;
 };
 
+export type CampaignPricingStrategy = "visibility" | "traffic" | "conversion";
+
 export type CampaignBenchmarkSnapshot = {
   metaFoodCpmUsd: number;
   metaFoodCpcUsd: number;
@@ -11,14 +13,32 @@ export type CampaignBenchmarkSnapshot = {
   googleSearchFoodCpaUsd: number;
   doordashPricingLabel: string;
   uberPricingLabel: string;
-  benchmarkCtr: number;
-  benchmarkCvr: number;
 };
 
-export const DEFAULT_CAMPAIGN_PRICING: CampaignPricing = {
-  cpmRate: 8,
-  cpcRate: 0.85,
-  conversionRate: 9,
+export type CampaignStrategyConfig = {
+  key: CampaignPricingStrategy;
+  label: string;
+  shortLabel: string;
+  description: string;
+  recommendationHint: string;
+  pricing: CampaignPricing;
+  benchmarkCtr: number;
+  benchmarkCvr: number;
+  reachRatio: number;
+  pageBoosts: Record<string, number>;
+};
+
+export type CampaignPlannerEstimate = {
+  totalBudget: number;
+  durationDays: number;
+  dailyBudget: number;
+  estimatedPeopleReached: number;
+  projectedImpressions: number;
+  projectedClicks: number;
+  projectedConversions: number;
+  blendedCostPerThousand: number;
+  estimatedCpc: number;
+  estimatedCpa: number;
 };
 
 export const CAMPAIGN_MARKET_BENCHMARKS: CampaignBenchmarkSnapshot = {
@@ -28,8 +48,78 @@ export const CAMPAIGN_MARKET_BENCHMARKS: CampaignBenchmarkSnapshot = {
   googleSearchFoodCpaUsd: 43.46,
   doordashPricingLabel: "Pay-per-order",
   uberPricingLabel: "Bid-based sponsored listing",
-  benchmarkCtr: 0.0219,
-  benchmarkCvr: 0.037,
+};
+
+export const DEFAULT_CAMPAIGN_PRICING: CampaignPricing = {
+  cpmRate: 8,
+  cpcRate: 0.85,
+  conversionRate: 9,
+};
+
+export const CAMPAIGN_STRATEGY_CONFIG: Record<CampaignPricingStrategy, CampaignStrategyConfig> = {
+  visibility: {
+    key: "visibility",
+    label: "Visibilite",
+    shortLabel: "Visibilite",
+    description: "Touchez un maximum de personnes autour de votre restaurant.",
+    recommendationHint: "Ideal pour faire connaitre votre adresse et vos nouveautes.",
+    pricing: {
+      cpmRate: 6.5,
+      cpcRate: 1.05,
+      conversionRate: 12,
+    },
+    benchmarkCtr: 0.015,
+    benchmarkCvr: 0.022,
+    reachRatio: 0.72,
+    pageBoosts: {
+      home: 1.25,
+      search: 1,
+      flash_sales: 0.85,
+      anti_waste: 0.85,
+    },
+  },
+  traffic: {
+    key: "traffic",
+    label: "Trafic",
+    shortLabel: "Trafic",
+    description: "Faites venir plus de visiteurs sur votre fiche et vos offres.",
+    recommendationHint: "Bon compromis pour generer des ouvertures de fiche et des clics.",
+    pricing: {
+      cpmRate: 8,
+      cpcRate: 0.75,
+      conversionRate: 10,
+    },
+    benchmarkCtr: 0.028,
+    benchmarkCvr: 0.032,
+    reachRatio: 0.61,
+    pageBoosts: {
+      home: 1.05,
+      search: 1.3,
+      flash_sales: 0.95,
+      anti_waste: 0.95,
+    },
+  },
+  conversion: {
+    key: "conversion",
+    label: "Conversion",
+    shortLabel: "Conversion",
+    description: "Cherchez d abord des commandes et reservations attribuables.",
+    recommendationHint: "Le moteur privilegie les signaux qui menent a une action concrete.",
+    pricing: {
+      cpmRate: 9.5,
+      cpcRate: 0.95,
+      conversionRate: 7.5,
+    },
+    benchmarkCtr: 0.026,
+    benchmarkCvr: 0.052,
+    reachRatio: 0.52,
+    pageBoosts: {
+      home: 0.9,
+      search: 1.1,
+      flash_sales: 1.35,
+      anti_waste: 1.35,
+    },
+  },
 };
 
 function toPositiveNumber(value: unknown) {
@@ -42,15 +132,32 @@ function round(value: number, digits = 2) {
   return Math.round(value * factor) / factor;
 }
 
-export function getCampaignPricing(input?: Partial<CampaignPricing> | null): CampaignPricing {
+export function normalizeCampaignPricingStrategy(value: unknown, fallback: CampaignPricingStrategy = "conversion"): CampaignPricingStrategy {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "visibility" || normalized === "traffic" || normalized === "conversion") {
+    return normalized;
+  }
+  return fallback;
+}
+
+export function getCampaignStrategyConfig(strategy: CampaignPricingStrategy | unknown) {
+  const normalized = normalizeCampaignPricingStrategy(strategy);
+  return CAMPAIGN_STRATEGY_CONFIG[normalized];
+}
+
+export function getCampaignPricing(
+  input?: Partial<CampaignPricing> | null,
+  strategy: CampaignPricingStrategy | unknown = "conversion",
+): CampaignPricing {
+  const defaults = getCampaignStrategyConfig(strategy).pricing;
   const cpmRate = toPositiveNumber(input?.cpmRate);
   const cpcRate = toPositiveNumber(input?.cpcRate);
   const conversionRate = toPositiveNumber(input?.conversionRate);
 
   return {
-    cpmRate: cpmRate || DEFAULT_CAMPAIGN_PRICING.cpmRate,
-    cpcRate: cpcRate || DEFAULT_CAMPAIGN_PRICING.cpcRate,
-    conversionRate: conversionRate || DEFAULT_CAMPAIGN_PRICING.conversionRate,
+    cpmRate: cpmRate || defaults.cpmRate,
+    cpcRate: cpcRate || defaults.cpcRate,
+    conversionRate: conversionRate || defaults.conversionRate,
   };
 }
 
@@ -58,10 +165,11 @@ export function getCampaignEventUnitCost(
   eventType: "impression" | "click" | "conversion",
   pricing?: Partial<CampaignPricing> | null,
   billable = true,
+  strategy: CampaignPricingStrategy | unknown = "conversion",
 ) {
   if (!billable) return 0;
 
-  const normalized = getCampaignPricing(pricing);
+  const normalized = getCampaignPricing(pricing, strategy);
   if (eventType === "impression") return round(normalized.cpmRate / 1000, 6);
   if (eventType === "click") return normalized.cpcRate;
   return normalized.conversionRate;
@@ -85,38 +193,102 @@ export function getCampaignObservedMetrics(input: {
   };
 }
 
+export function estimateCampaignPlan(input: {
+  totalBudgetChf: number;
+  durationDays: number;
+  strategy: CampaignPricingStrategy | unknown;
+  pricing?: Partial<CampaignPricing> | null;
+}) {
+  const totalBudget = Math.max(0, Number(input.totalBudgetChf) || 0);
+  const durationDays = Math.max(1, Math.round(Number(input.durationDays) || 1));
+  const config = getCampaignStrategyConfig(input.strategy);
+  const pricing = getCampaignPricing(input.pricing, config.key);
+  const blendedCostPerImpression =
+    (pricing.cpmRate / 1000)
+    + (config.benchmarkCtr * pricing.cpcRate)
+    + (config.benchmarkCtr * config.benchmarkCvr * pricing.conversionRate);
+
+  if (totalBudget <= 0 || blendedCostPerImpression <= 0) {
+    return {
+      totalBudget,
+      durationDays,
+      dailyBudget: 0,
+      estimatedPeopleReached: 0,
+      projectedImpressions: 0,
+      projectedClicks: 0,
+      projectedConversions: 0,
+      blendedCostPerThousand: 0,
+      estimatedCpc: 0,
+      estimatedCpa: 0,
+    } satisfies CampaignPlannerEstimate;
+  }
+
+  const projectedImpressions = Math.floor(totalBudget / blendedCostPerImpression);
+  const projectedClicks = Math.floor(projectedImpressions * config.benchmarkCtr);
+  const projectedConversions = round(projectedClicks * config.benchmarkCvr, 1);
+  const estimatedPeopleReached = Math.floor(projectedImpressions * config.reachRatio);
+
+  return {
+    totalBudget,
+    durationDays,
+    dailyBudget: round(totalBudget / durationDays),
+    estimatedPeopleReached,
+    projectedImpressions,
+    projectedClicks,
+    projectedConversions,
+    blendedCostPerThousand: round(blendedCostPerImpression * 1000),
+    estimatedCpc: projectedClicks > 0 ? round(totalBudget / projectedClicks) : 0,
+    estimatedCpa: projectedConversions > 0 ? round(totalBudget / projectedConversions) : 0,
+  } satisfies CampaignPlannerEstimate;
+}
+
 export function projectCampaignBenchmarkOutcomes(
   budgetChf: number,
   pricing?: Partial<CampaignPricing> | null,
   benchmark = CAMPAIGN_MARKET_BENCHMARKS,
 ) {
-  const budget = Math.max(0, Number(budgetChf) || 0);
-  const normalized = getCampaignPricing(pricing);
-  const ctr = Math.max(0, Number(benchmark.benchmarkCtr) || 0);
-  const cvr = Math.max(0, Number(benchmark.benchmarkCvr) || 0);
+  return estimateCampaignPlan({
+    totalBudgetChf: budgetChf,
+    durationDays: 7,
+    strategy: "traffic",
+    pricing: {
+      cpmRate: pricing?.cpmRate || DEFAULT_CAMPAIGN_PRICING.cpmRate,
+      cpcRate: pricing?.cpcRate || DEFAULT_CAMPAIGN_PRICING.cpcRate,
+      conversionRate: pricing?.conversionRate || DEFAULT_CAMPAIGN_PRICING.conversionRate,
+    },
+  });
+}
 
-  const blendedCostPerImpression =
-    (normalized.cpmRate / 1000)
-    + (ctr * normalized.cpcRate)
-    + (ctr * cvr * normalized.conversionRate);
+export function getCampaignStrategyPlacementBoost(strategy: CampaignPricingStrategy | unknown, page: string) {
+  const config = getCampaignStrategyConfig(strategy);
+  return Number(config.pageBoosts[page] || 1);
+}
 
-  if (budget <= 0 || blendedCostPerImpression <= 0) {
-    return {
-      projectedImpressions: 0,
-      projectedClicks: 0,
-      projectedConversions: 0,
-      blendedCostPerThousand: 0,
-    };
+export function recommendCampaignStrategy(input: {
+  type?: string | null;
+  targetPages?: string[] | null;
+  hasFlashSales?: boolean;
+  hasAntiWaste?: boolean;
+  hasPriorConversions?: boolean;
+}) {
+  const type = String(input.type || "").trim().toLowerCase();
+  const pages = (input.targetPages || []).map((page) => String(page || "").trim().toLowerCase());
+
+  if (input.hasFlashSales || input.hasAntiWaste || pages.includes("flash_sales") || pages.includes("anti_waste")) {
+    return "conversion" as const;
   }
 
-  const projectedImpressions = Math.floor(budget / blendedCostPerImpression);
-  const projectedClicks = Math.floor(projectedImpressions * ctr);
-  const projectedConversions = round(projectedClicks * cvr, 1);
+  if (pages.includes("search")) {
+    return "traffic" as const;
+  }
 
-  return {
-    projectedImpressions,
-    projectedClicks,
-    projectedConversions,
-    blendedCostPerThousand: round(blendedCostPerImpression * 1000),
-  };
+  if (type === "banner" || pages.includes("home")) {
+    return "visibility" as const;
+  }
+
+  if (input.hasPriorConversions) {
+    return "conversion" as const;
+  }
+
+  return "traffic" as const;
 }

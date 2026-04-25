@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -62,6 +62,7 @@ interface ChefTableDropCardProps {
   index: number;
   isReserved: boolean;
   selectedTime: string | null;
+  selectedPartySize: number | null;
   onToggleReserve: (drop: FlashDrop) => void;
   onQuickTimeSelect: (drop: FlashDrop, time: string) => void;
 }
@@ -117,6 +118,7 @@ function ChefTableDropCard({
   index,
   isReserved,
   selectedTime,
+  selectedPartySize,
   onToggleReserve,
   onQuickTimeSelect,
 }: ChefTableDropCardProps) {
@@ -145,7 +147,7 @@ function ChefTableDropCard({
         <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4">
           <div className="flex flex-wrap gap-2">
             <Badge className="border-none bg-black/55 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-md">
-              Chef&apos;s Table
+              La Table du Chef
             </Badge>
             <Badge className="border-none bg-white/14 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md">
               {drop.cuisine}
@@ -271,6 +273,14 @@ function ChefTableDropCard({
                 {drop.remaining}/{drop.totalPortions}
               </span>
             </div>
+            {selectedPartySize ? (
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Selection</span>
+                <span className="font-medium text-foreground">
+                  {selectedPartySize} convive{selectedPartySize > 1 ? "s" : ""}
+                </span>
+              </div>
+            ) : null}
           </div>
 
           {drop.quickTimeSlots.length > 0 ? (
@@ -320,7 +330,7 @@ function ChefTableDropCard({
             ) : (
               <>
                 <ShoppingCart className="mr-2 h-4 w-4" />
-                Choisir un autre creneau
+                Choisir creneau et convives
               </>
             )}
           </Button>
@@ -343,6 +353,8 @@ export default function ChefsTable() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [slotDialogDrop, setSlotDialogDrop] = useState<FlashDrop | null>(null);
   const [slotDialogPresetTime, setSlotDialogPresetTime] = useState<string | null>(null);
+  const [slotDialogPresetPartySize, setSlotDialogPresetPartySize] = useState<number | null>(null);
+  const attemptedFinalizationRef = useRef<Set<string>>(new Set());
 
   const { data: drops = [] } = useQuery({
     queryKey: ["chefs-table-drops"],
@@ -451,6 +463,22 @@ export default function ChefsTable() {
     return map;
   }, [chefsTableCartItems]);
 
+  const selectedPartySizeByDropId = useMemo(() => {
+    const map = new Map<string, number>();
+    chefsTableCartItems.forEach((item) => {
+      const dropId = String(
+        item.metadata?.chef_table_drop_id || item.menuItemId.replace("chef-table-", ""),
+      );
+      map.set(dropId, Math.max(1, Number(item.metadata?.party_size || item.quantity || 1)));
+    });
+    return map;
+  }, [chefsTableCartItems]);
+
+  const reservedGuestTotal = useMemo(
+    () => chefsTableCartItems.reduce((sum, item) => sum + Math.max(1, Number(item.metadata?.party_size || item.quantity || 1)), 0),
+    [chefsTableCartItems],
+  );
+
   const reservedTotal = useMemo(
     () => chefsTableCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [chefsTableCartItems],
@@ -471,12 +499,24 @@ export default function ChefsTable() {
     () => new Set(chefsTableCartItems.map((item) => item.restaurantId)).size,
     [chefsTableCartItems],
   );
+  const reservedSummary = useMemo(
+    () =>
+      chefsTableCartItems.map((item) => ({
+        key: item.menuItemId,
+        name: item.name.replace("[La Table du Chef] ", ""),
+        restaurantName: item.restaurantName,
+        serviceTime: String(item.metadata?.service_time || "--:--"),
+        guestCount: Math.max(1, Number(item.metadata?.party_size || item.quantity || 1)),
+      })),
+    [chefsTableCartItems],
+  );
 
   const notifyAll = !!chefsSubscription;
   const confirmed = confirmedReservations.length > 0;
 
   const completePaidReservations = useCallback(async (sessionId: string) => {
     setIsFinalizingCheckout(true);
+    attemptedFinalizationRef.current.add(sessionId);
 
     try {
       const { data, error } = await supabase.functions.invoke("create-chefs-table-reservation", {
@@ -509,7 +549,7 @@ export default function ChefsTable() {
       });
     } catch (error) {
       toast({
-        title: "Erreur",
+        title: "Paiement en verification",
         description:
           error instanceof Error
             ? error.message
@@ -527,6 +567,7 @@ export default function ChefsTable() {
     const sessionId = params.get("session_id");
 
     if (status === "success" && sessionId) {
+      attemptedFinalizationRef.current.delete(sessionId);
       setPendingCheckoutSessionId(sessionId);
       window.history.replaceState({}, "", window.location.pathname);
       return;
@@ -545,8 +586,10 @@ export default function ChefsTable() {
 
   useEffect(() => {
     if (!pendingCheckoutSessionId || confirmed || authLoading || isFinalizingCheckout) return;
+    if (attemptedFinalizationRef.current.has(pendingCheckoutSessionId)) return;
 
     if (!user || !session?.access_token) {
+      attemptedFinalizationRef.current.add(pendingCheckoutSessionId);
       toast({
         title: "Reconnectez-vous",
         description: "Le paiement a ete valide. Reconnectez-vous pour recuperer votre reservation La Table du Chef.",
@@ -578,9 +621,10 @@ export default function ChefsTable() {
     return false;
   };
 
-  const upsertDropInCart = (drop: FlashDrop, selectedIso: string) => {
+  const upsertDropInCart = (drop: FlashDrop, selectedIso: string, partySize: number) => {
     const menuItemId = buildChefTableMenuItemId(drop.id);
     const selectedDate = new Date(selectedIso);
+    const safePartySize = Math.max(1, Math.round(partySize));
 
     if (selectedDropIds.has(drop.id)) {
       removeItem(menuItemId);
@@ -591,11 +635,13 @@ export default function ChefsTable() {
       menuItemId,
       name: `[La Table du Chef] ${drop.dish}`,
       price: drop.price,
+      quantity: safePartySize,
       restaurantId: drop.restaurantId,
       restaurantName: drop.restaurant,
       metadata: {
         is_chefs_table: true,
         chef_table_drop_id: drop.id,
+        party_size: safePartySize,
         chef_name: drop.chef,
         source: "chef_table_drop",
         original_price: drop.originalPrice,
@@ -608,7 +654,7 @@ export default function ChefsTable() {
     });
     toast({
       title: "Ajoute au panier",
-      description: `${drop.dish} - ${dropMomentFormatter.format(selectedDate)} est pret pour le paiement.`,
+      description: `${drop.dish} - ${dropMomentFormatter.format(selectedDate)} - ${safePartySize} convive(s) est pret pour le paiement.`,
     });
   };
 
@@ -626,21 +672,25 @@ export default function ChefsTable() {
       return;
     }
 
+    setSlotDialogPresetTime(null);
+    setSlotDialogPresetPartySize(selectedPartySizeByDropId.get(drop.id) ?? null);
     setSlotDialogDrop(drop);
   };
 
   const handleQuickTimeSelect = (drop: FlashDrop, time: string) => {
     if (!ensureCartIsAvailable()) return;
     setSlotDialogPresetTime(time);
+    setSlotDialogPresetPartySize(selectedPartySizeByDropId.get(drop.id) ?? null);
     setSlotDialogDrop(drop);
   };
 
-  const handleConfirmSlot = (selectedIso: string) => {
+  const handleConfirmSlot = (selectedIso: string, partySize: number) => {
     const drop = slotDialogDrop;
     if (!drop) return;
-    upsertDropInCart(drop, selectedIso);
+    upsertDropInCart(drop, selectedIso, partySize);
     setSlotDialogDrop(null);
     setSlotDialogPresetTime(null);
+    setSlotDialogPresetPartySize(null);
   };
 
   const handleProceedToCheckout = () => {
@@ -760,6 +810,7 @@ export default function ChefsTable() {
                       index={index}
                       isReserved={selectedDropIds.has(drop.id)}
                       selectedTime={selectedTimeByDropId.get(drop.id) ?? null}
+                      selectedPartySize={selectedPartySizeByDropId.get(drop.id) ?? null}
                       onToggleReserve={handleToggleReserve}
                       onQuickTimeSelect={handleQuickTimeSelect}
                     />
@@ -777,31 +828,41 @@ export default function ChefsTable() {
 
               {chefsTableCartItems.length > 0 ? (
                 <div className="sticky bottom-4 z-40">
-                  <div className="mx-4 rounded-[28px] border border-amber-500/40 bg-card/92 p-5 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+                  <div className="mx-4 rounded-[30px] border border-amber-300/70 bg-gradient-to-br from-stone-950 via-neutral-900 to-amber-950 p-5 text-white shadow-[0_28px_90px_-38px_rgba(15,23,42,0.72)] backdrop-blur-xl">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                       <div className="space-y-2">
-                        <p className="text-sm font-semibold text-foreground">
-                          {chefsTableCartItems.length} experience(s) dans votre panier
+                        <p className="font-display text-2xl font-bold leading-tight text-white">
+                          Votre Table du Chef est presque confirmee
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-white/72">
                           {reservedRestaurantCount} restaurant(s) · economie totale{" "}
                           <span className="font-semibold text-emerald-600">
                             {formatCurrency(reservedSavingsTotal)}
                           </span>
                         </p>
-                        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <p className="flex items-center gap-1 text-xs text-white/70">
                           <Users className="h-3 w-3" />
-                          Paiement securise avant confirmation definitive de la reservation
+                          Paiement securise requis pour verrouiller {reservedGuestTotal} convive{reservedGuestTotal > 1 ? "s" : ""} et vos portions exclusives
                         </p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {reservedSummary.map((entry) => (
+                            <div key={entry.key} className="rounded-2xl border border-white/10 bg-white/6 px-3 py-2">
+                              <p className="truncate text-sm font-medium text-white">{entry.name}</p>
+                              <p className="text-xs text-white/62">
+                                {entry.restaurantName} - {entry.serviceTime} - {entry.guestCount} convive{entry.guestCount > 1 ? "s" : ""}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                       <div className="text-left lg:text-right">
                         {reservedSavingsTotal > 0 ? (
-                          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                          <p className="text-xs uppercase tracking-[0.22em] text-white/55">
                             Au lieu de {formatCurrency(reservedOriginalTotal)}
                           </p>
                         ) : null}
-                        <p className="font-display text-3xl font-bold text-foreground">
+                        <p className="font-display text-3xl font-bold text-white">
                           {formatCurrency(reservedTotal)}
                         </p>
                       </div>
@@ -809,9 +870,9 @@ export default function ChefsTable() {
 
                     <Button
                       onClick={handleProceedToCheckout}
-                      className="mt-4 h-11 w-full rounded-xl bg-amber-500 font-semibold text-white hover:bg-amber-600"
+                      className="mt-4 h-12 w-full rounded-2xl bg-amber-500 text-base font-semibold text-white shadow-[0_20px_50px_-24px_rgba(245,158,11,0.92)] hover:bg-amber-600"
                     >
-                      Proceder au paiement
+                      Verifier et payer maintenant
                     </Button>
                   </div>
                 </div>
@@ -856,14 +917,18 @@ export default function ChefsTable() {
           if (!open) {
             setSlotDialogDrop(null);
             setSlotDialogPresetTime(null);
+            setSlotDialogPresetPartySize(null);
           }
         }}
         dishName={slotDialogDrop?.dish ?? ""}
         chefName={slotDialogDrop?.chef ?? ""}
         restaurantName={slotDialogDrop?.restaurant ?? ""}
         serviceSettings={slotDialogDrop?.serviceSettings ?? getServiceSettings(null)}
+        pricePerGuest={slotDialogDrop?.price ?? null}
+        remainingPortions={slotDialogDrop?.remaining ?? null}
         initialDate={slotDialogDrop ? new Date(slotDialogDrop.dropTime) : null}
         initialTime={slotDialogPresetTime ?? slotDialogDrop?.serviceTimeLabel ?? null}
+        initialPartySize={slotDialogPresetPartySize}
         onConfirm={handleConfirmSlot}
       />
     </>

@@ -406,6 +406,7 @@ export default function Panier() {
       serviceTime: string;
       items: typeof chefsTableItems;
       total: number;
+      guestCount: number;
     }>();
 
     for (const item of chefsTableItems) {
@@ -419,6 +420,7 @@ export default function Panier() {
       if (existing) {
         existing.items.push(item);
         existing.total += item.price * item.quantity;
+        existing.guestCount += Math.max(1, Number(item.metadata?.party_size || item.quantity || 1));
         continue;
       }
 
@@ -430,6 +432,7 @@ export default function Panier() {
         serviceTime,
         items: [item],
         total: item.price * item.quantity,
+        guestCount: Math.max(1, Number(item.metadata?.party_size || item.quantity || 1)),
       });
     }
 
@@ -464,6 +467,10 @@ export default function Panier() {
       }
 
       if (isChefsTableCheckout) {
+        const chefsTablePartySize = chefsTableItems.reduce(
+          (sum, item) => sum + Math.max(1, Number(item.metadata?.party_size || item.quantity || 1)),
+          0,
+        );
         if (allowedPaymentMethods.length === 0) {
           return toast({
             title: "Paiement indisponible",
@@ -501,7 +508,7 @@ export default function Panier() {
                 checkout_group_id: crypto.randomUUID(),
                 pre_discount_subtotal: total,
                 authoritative_total: finalTotal,
-                party_size: 1,
+                party_size: chefsTablePartySize,
               },
             },
           }),
@@ -1111,17 +1118,17 @@ export default function Panier() {
         <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
 
         {isChefsTableCheckout ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4 space-y-3">
+          <div className="rounded-3xl border border-amber-300 bg-gradient-to-br from-amber-100 via-white to-orange-50 p-5 shadow-[0_24px_70px_-38px_rgba(245,158,11,0.5)] space-y-4">
             <div className="flex items-center gap-2 text-amber-700">
               <ChefHat className="h-5 w-5" />
-              <p className="font-semibold">Reservation Chef&apos;s Table</p>
+              <p className="font-semibold">Reservation La Table du Chef</p>
             </div>
             <p className="text-sm text-muted-foreground">
-              Le paiement securise confirme la reservation et les plats precommandes. Chaque drop garde son horaire de service.
+              Le paiement securise confirme la reservation et les plats precommandes. Chaque drop garde son horaire de service et son nombre de convives.
             </p>
             <div className="space-y-3">
               {chefsTableReservationGroups.map((group) => (
-                <div key={group.key} className="rounded-xl border bg-background/80 p-3">
+                <div key={group.key} className="rounded-2xl border bg-background/90 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-medium">{group.restaurantName}</p>
                     <span className="text-sm font-semibold text-amber-700">{group.total.toFixed(2)} CHF</span>
@@ -1131,8 +1138,22 @@ export default function Panier() {
                       ? `${new Date(group.serviceDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} a ${group.serviceTime || "--:--"}`
                       : "Horaire defini par le drop"}
                   </p>
+                  <p className="mt-1 text-xs text-amber-700">
+                    {group.guestCount} convive{group.guestCount > 1 ? "s" : ""}
+                  </p>
                 </div>
               ))}
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-white/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Paiement visible et prioritaire</p>
+                  <p className="text-xs text-muted-foreground">
+                    Les convives choisis dans La Table du Chef sont deja integres dans cette etape de paiement.
+                  </p>
+                </div>
+                <span className="font-display text-2xl font-bold text-foreground">{finalTotal.toFixed(2)} CHF</span>
+              </div>
             </div>
           </div>
         ) : (
@@ -1424,12 +1445,20 @@ export default function Panier() {
           setPaymentMethod={setPaymentMethod}
           allowedMethods={allowedPaymentMethods}
           cashDescription="Le paiement en espèces n'est pas disponible pour ce parcours."
+          variant={isChefsTableCheckout ? "chef-table" : "default"}
           secureDescription={isChefsTableCheckout
             ? "Paiement sécurisé requis pour confirmer votre réservation La Table du Chef"
             : "Paiement sécurisé via Stripe"}
         />
 
-        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading || !hasJourneyAvailable || allowedPaymentMethods.length === 0}>
+        <Button
+          className={isChefsTableCheckout
+            ? "h-14 w-full rounded-2xl bg-amber-500 text-base font-semibold text-white shadow-[0_22px_55px_-28px_rgba(245,158,11,0.9)] hover:bg-amber-600"
+            : "w-full"}
+          size="lg"
+          onClick={handleCheckout}
+          disabled={loading || !hasJourneyAvailable || allowedPaymentMethods.length === 0}
+        >
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

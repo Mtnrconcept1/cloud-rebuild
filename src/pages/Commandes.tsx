@@ -35,7 +35,6 @@ import { useCart } from "@/lib/cart";
 import { cancelOrderByCustomer } from "@/lib/orderMutations";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { parseStripeReturnSearch } from "@/lib/stripeReturn";
-import { getOrderStatusLockMessage } from "@/lib/statusLocks";
 import { useToast } from "@/hooks/use-toast";
 
 const supabase = getSupabase();
@@ -292,9 +291,6 @@ export default function Commandes() {
                     {groupOrders.map((order) => {
                       const displayStatus = getDisplayStatus(order);
                       const checkoutSessionId = getCheckoutSessionId(order);
-                      const orderStatusLockMessage = displayStatus === "confirmed"
-                        ? getOrderStatusLockMessage(order)
-                        : null;
                       const isTrackableDelivery = Boolean(
                         order.delivery_address
                         && (order.metadata as any)?.feature !== "zero-attente"
@@ -347,13 +343,7 @@ export default function Commandes() {
                                 </Link>
                               </Button>
                             ) : null}
-                            {displayStatus === "confirmed" && orderStatusLockMessage ? (
-                              <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive" disabled>
-                                <XCircle className="mr-1 h-3 w-3" />
-                                Annuler
-                              </Button>
-                            ) : null}
-                            {displayStatus === "confirmed" && !orderStatusLockMessage ? (
+                            {displayStatus === "confirmed" ? (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:text-destructive">
@@ -387,9 +377,6 @@ export default function Commandes() {
                               </Button>
                             ) : null}
                           </div>
-                          {orderStatusLockMessage ? (
-                            <p className="text-xs text-muted-foreground">{orderStatusLockMessage}</p>
-                          ) : null}
                         </div>
                       );
                     })}

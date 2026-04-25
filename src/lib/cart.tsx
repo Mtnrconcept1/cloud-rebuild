@@ -11,15 +11,17 @@ export interface CartItem {
   metadata?: Record<string, any>;
 }
 
+type CartInputItem = Omit<CartItem, "quantity"> & { quantity?: number };
+
 export type CartConflict = {
   type: "restaurant" | "mode";
-  pendingItem?: Omit<CartItem, "quantity">;
+  pendingItem?: CartInputItem;
   pendingMode?: "delivery" | "takeaway";
 };
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: CartInputItem) => void;
   removeItem: (menuItemId: string) => void;
   updateQuantity: (menuItemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -55,7 +57,7 @@ const CartContext = createContext<CartContextType>({
 
 export const useCart = () => useContext(CartContext);
 
-function canItemBeOrderedInMode(item: Omit<CartItem, "quantity">, mode: "delivery" | "takeaway"): boolean {
+function canItemBeOrderedInMode(item: CartInputItem, mode: "delivery" | "takeaway"): boolean {
   if (item.metadata?.is_anti_waste) {
     return mode === "takeaway";
   }
@@ -67,7 +69,7 @@ function canItemBeOrderedInMode(item: Omit<CartItem, "quantity">, mode: "deliver
   return true;
 }
 
-function getRequiredModeForItem(item: Omit<CartItem, "quantity">): "delivery" | "takeaway" | null {
+function getRequiredModeForItem(item: CartInputItem): "delivery" | "takeaway" | null {
   if (item.metadata?.is_anti_waste) return "takeaway";
   if (item.metadata?.is_flash_sale) {
     const canDelivery = item.metadata?.delivery_available !== false;
@@ -135,7 +137,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const restaurantId = items.length > 0 ? items[0].restaurantId : null;
 
-  const addItem = (item: Omit<CartItem, "quantity">) => {
+  const addItem = (item: CartInputItem) => {
     const existingCartIsChefTable = items.length > 0 && items.every((cartItem) => cartItem.metadata?.is_chefs_table);
     const incomingItemIsChefTable = !!item.metadata?.is_chefs_table;
     const allowCrossRestaurant = cartMetadata.feature === "multi-restaurant"
@@ -160,6 +162,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const resolvedQuantity = Math.max(
+      1,
+      Math.round(Number(item.quantity ?? item.metadata?.party_size ?? 1) || 1),
+    );
+
     trackEvent({
       eventType: "add_to_cart",
       eventData: { item_name: item.name, price: item.price },
@@ -173,10 +180,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           return prev;
         }
         return prev.map((i) =>
-          (i.menuItemId === item.menuItemId && JSON.stringify(i.metadata) === JSON.stringify(item.metadata)) ? { ...i, quantity: i.quantity + 1 } : i
+          (i.menuItemId === item.menuItemId && JSON.stringify(i.metadata) === JSON.stringify(item.metadata))
+            ? { ...i, quantity: i.quantity + resolvedQuantity }
+            : i
         );
       }
-      return [...prev, { ...item, quantity: 1 }];
+      return [...prev, { ...item, quantity: resolvedQuantity }];
     });
   };
 
@@ -227,7 +236,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
           eventData: { item_name: pendingItem.name, price: pendingItem.price },
           restaurantId: pendingItem.restaurantId,
         });
-        setItems([{ ...pendingItem, quantity: 1 }]);
+        const resolvedQuantity = Math.max(
+          1,
+          Math.round(Number(pendingItem.quantity ?? pendingItem.metadata?.party_size ?? 1) || 1),
+        );
+        setItems([{ ...pendingItem, quantity: resolvedQuantity }]);
       }
     }
     setConflict(null);

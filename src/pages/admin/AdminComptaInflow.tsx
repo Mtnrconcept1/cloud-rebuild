@@ -133,10 +133,12 @@ export default function AdminComptaInflow() {
     restaurants,
     summary,
     payableAccruals,
-    miamzReimbursementsCount,
-    miamzReimbursementsTotal,
     monthOptions,
     payableInvoiceSections,
+    refundsIssuedCount,
+    refundsIssuedTotal,
+    refundsPendingAmount,
+    refundsPendingCount,
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
@@ -413,17 +415,25 @@ export default function AdminComptaInflow() {
               tone="violet"
               icon={Wallet}
               eyebrow="Comprendre les flux"
-              title="Paiements Miamz"
-              description="Les Miamz restent visibles en parallele pour ne pas les confondre avec la commission marketplace."
-              value={formatAmount(miamzReimbursementsTotal)}
-              valueLabel="Miamz sur la periode"
+              title="Remboursements clients"
+              description="Les remboursements sont separes des commissions et des factures TOK pour garder une lecture claire des encaissements."
+              value={formatAmount(refundsIssuedTotal)}
+              valueLabel="Remboursements"
             >
               <AccountingFactList
                 tone="violet"
                 items={[
                   {
-                    label: "Commandes avec Miamz",
-                    value: String(miamzReimbursementsCount),
+                    label: "Remboursements emis",
+                    value: String(refundsIssuedCount),
+                  },
+                  {
+                    label: "Encore a traiter",
+                    value: formatAmount(refundsPendingAmount),
+                  },
+                  {
+                    label: "Dossiers en attente",
+                    value: String(refundsPendingCount),
                   },
                   {
                     label: "Lecture comptable",
