@@ -163,6 +163,34 @@ export const validateServiceSettings = (settings: ServiceSettings): string | nul
   return null;
 };
 
+export const generateTimeSlotsForService = (
+  settings: ServiceSettings,
+  intervalMinutes = 30,
+): string[] => {
+  if (settings.service_closed || !settings.online_booking_enabled) return [];
+  const start = parseTime(settings.start_time);
+  const last = parseTime(settings.last_reservation_time);
+  if (start === null || last === null || start > last) return [];
+
+  const slots: string[] = [];
+  const step = Math.max(5, Math.round(intervalMinutes));
+  for (let minutes = start; minutes <= last; minutes += step) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    slots.push(`${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`);
+  }
+  return slots;
+};
+
+export const generateDailyTimeSlots = (
+  serviceSettings: ServiceSettingsMap,
+  intervalMinutes = 30,
+): { lunch: string[]; dinner: string[]; all: string[] } => {
+  const lunch = generateTimeSlotsForService(serviceSettings.lunch, intervalMinutes);
+  const dinner = generateTimeSlotsForService(serviceSettings.dinner, intervalMinutes);
+  return { lunch, dinner, all: [...lunch, ...dinner] };
+};
+
 export const isTimeWithinService = (time: string, settings: ServiceSettings): boolean => {
   const slot = parseTime(time);
   const start = parseTime(settings.start_time);

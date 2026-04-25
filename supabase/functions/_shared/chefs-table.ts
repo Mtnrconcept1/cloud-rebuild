@@ -354,6 +354,7 @@ export async function finalizeChefsTableCheckout(input: {
         card_brand: cardBrand || null,
         card_last4: cardLast4 || null,
         order_reference: String(session.metadata?.order_reference || `CT-${Date.now()}`),
+        stripe_payment_intent: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null,
       };
 
       const note = buildReservationNote({

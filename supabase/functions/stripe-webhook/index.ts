@@ -661,6 +661,7 @@ Deno.serve(async (req) => {
             card_last4: cardLast4,
             twint_phone_number: twintPhoneNumber || null,
             order_reference: orderReference,
+            stripe_payment_intent: typeof session.payment_intent === "string" ? session.payment_intent : null,
           };
           const storedReservationMetadata = { ...reservationPayload };
           delete storedReservationMetadata._internal_user_id;

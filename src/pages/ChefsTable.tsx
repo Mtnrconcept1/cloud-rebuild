@@ -22,6 +22,12 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
+import ChefTableSlotDialog from "@/components/ChefTableSlotDialog";
+import {
+  generateDailyTimeSlots,
+  getServiceSettings,
+  type ServiceSettingsMap,
+} from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
@@ -47,13 +53,17 @@ interface FlashDrop {
   serviceTimeLabel: string;
   dropMomentLabel: string;
   hasDiscount: boolean;
+  serviceSettings: ServiceSettingsMap;
+  quickTimeSlots: string[];
 }
 
 interface ChefTableDropCardProps {
   drop: FlashDrop;
   index: number;
   isReserved: boolean;
+  selectedTime: string | null;
   onToggleReserve: (drop: FlashDrop) => void;
+  onQuickTimeSelect: (drop: FlashDrop, time: string) => void;
 }
 
 interface ConfirmedChefReservation {
@@ -106,7 +116,9 @@ function ChefTableDropCard({
   drop,
   index,
   isReserved,
+  selectedTime,
   onToggleReserve,
+  onQuickTimeSelect,
 }: ChefTableDropCardProps) {
   const isAlmostSoldOut = drop.remaining <= Math.max(2, Math.ceil(drop.totalPortions * 0.25));
 
@@ -261,6 +273,35 @@ function ChefTableDropCard({
             </div>
           </div>
 
+          {drop.quickTimeSlots.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Creneaux rapides
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {drop.quickTimeSlots.map((time) => {
+                  const isActive = isReserved && selectedTime === time;
+                  return (
+                    <button
+                      key={`${drop.id}-${time}`}
+                      type="button"
+                      onClick={() => onQuickTimeSelect(drop, time)}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                        isActive
+                          ? "border-amber-500 bg-amber-500 text-white shadow"
+                          : "border-amber-200 bg-white text-amber-700 hover:bg-amber-50",
+                      )}
+                    >
+                      <Clock3 className="h-3 w-3" />
+                      {time}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           <Button
             onClick={() => onToggleReserve(drop)}
             variant={isReserved ? "outline" : "default"}
@@ -279,7 +320,7 @@ function ChefTableDropCard({
             ) : (
               <>
                 <ShoppingCart className="mr-2 h-4 w-4" />
-                Ajouter au panier
+                Choisir un autre creneau
               </>
             )}
           </Button>
@@ -300,13 +341,15 @@ export default function ChefsTable() {
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(null);
   const [confirmedReservations, setConfirmedReservations] = useState<ConfirmedChefReservation[]>([]);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [slotDialogDrop, setSlotDialogDrop] = useState<FlashDrop | null>(null);
+  const [slotDialogPresetTime, setSlotDialogPresetTime] = useState<string | null>(null);
 
   const { data: drops = [] } = useQuery({
     queryKey: ["chefs-table-drops"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("chef_table_drops" as any)
-        .select("*, restaurants (name, rating, cuisine_type, image_url, address, city)")
+        .select("*, restaurants (name, rating, cuisine_type, image_url, address, city, opening_hours)")
         .eq("is_active", true)
         .order("drop_time", { ascending: true });
 
@@ -320,6 +363,16 @@ export default function ChefsTable() {
           originalPrice > 0 && savingsAmount > 0
             ? Math.round((savingsAmount / originalPrice) * 100)
             : 0;
+
+        const serviceSettings = getServiceSettings(drop.restaurants?.opening_hours);
+        const slotsForService = generateDailyTimeSlots(serviceSettings, 30);
+        const dropTime = new Date(drop.drop_time);
+        const isLunchService = dropTime.getHours() < 16;
+        const referenceServiceSlots = isLunchService ? slotsForService.lunch : slotsForService.dinner;
+        const quickTimeSlots = (referenceServiceSlots.length > 0
+          ? referenceServiceSlots
+          : slotsForService.all
+        ).slice(0, 6);
 
         return {
           id: drop.id,
@@ -340,9 +393,11 @@ export default function ChefsTable() {
           rating: Number(drop.restaurants?.rating) || 0,
           cuisine: drop.restaurants?.cuisine_type || "Edition exclusive",
           dropTime: drop.drop_time,
-          serviceTimeLabel: serviceTimeFormatter.format(new Date(drop.drop_time)),
-          dropMomentLabel: dropMomentFormatter.format(new Date(drop.drop_time)),
+          serviceTimeLabel: serviceTimeFormatter.format(dropTime),
+          dropMomentLabel: dropMomentFormatter.format(dropTime),
           hasDiscount: savingsAmount > 0,
+          serviceSettings,
+          quickTimeSlots,
         } as FlashDrop;
       });
     },
@@ -376,6 +431,25 @@ export default function ChefsTable() {
       ),
     [chefsTableCartItems],
   );
+
+  const selectedTimeByDropId = useMemo(() => {
+    const map = new Map<string, string>();
+    chefsTableCartItems.forEach((item) => {
+      const dropId = String(
+        item.metadata?.chef_table_drop_id || item.menuItemId.replace("chef-table-", ""),
+      );
+      const dropTimeIso = item.metadata?.drop_time;
+      if (typeof dropTimeIso === "string") {
+        const parsed = new Date(dropTimeIso);
+        if (!Number.isNaN(parsed.getTime())) {
+          const hours = String(parsed.getHours()).padStart(2, "0");
+          const minutes = String(parsed.getMinutes()).padStart(2, "0");
+          map.set(dropId, `${hours}:${minutes}`);
+        }
+      }
+    });
+    return map;
+  }, [chefsTableCartItems]);
 
   const reservedTotal = useMemo(
     () => chefsTableCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -493,26 +567,23 @@ export default function ChefsTable() {
     user,
   ]);
 
-  const handleToggleReserve = (drop: FlashDrop) => {
-    if (hasForeignCartItems) {
-      toast({
-        title: "Panier deja en cours",
-        description: "Finalisez ou videz votre panier actuel avant d'ajouter une experience Chef's Table.",
-        variant: "destructive",
-      });
-      navigate("/panier");
-      return;
-    }
+  const ensureCartIsAvailable = () => {
+    if (!hasForeignCartItems) return true;
+    toast({
+      title: "Panier deja en cours",
+      description: "Finalisez ou videz votre panier actuel avant d'ajouter une experience Chef's Table.",
+      variant: "destructive",
+    });
+    navigate("/panier");
+    return false;
+  };
 
+  const upsertDropInCart = (drop: FlashDrop, selectedIso: string) => {
     const menuItemId = buildChefTableMenuItemId(drop.id);
+    const selectedDate = new Date(selectedIso);
 
     if (selectedDropIds.has(drop.id)) {
       removeItem(menuItemId);
-      toast({
-        title: "Retire du panier",
-        description: `${drop.dish} a ete retire de votre panier Chef's Table.`,
-      });
-      return;
     }
 
     updateCartMetadata({ feature: "chefs_table" });
@@ -529,16 +600,47 @@ export default function ChefsTable() {
         source: "chef_table_drop",
         original_price: drop.originalPrice,
         discount_percent: drop.discountPercent,
-        service_time: drop.serviceTimeLabel,
-        drop_time: drop.dropTime,
+        service_time: serviceTimeFormatter.format(selectedDate),
+        drop_time: selectedIso,
         restaurant_address: drop.restaurantAddress,
         cuisine: drop.cuisine,
       },
     });
     toast({
       title: "Ajoute au panier",
-      description: `${drop.dish} est pret pour le paiement.`,
+      description: `${drop.dish} - ${dropMomentFormatter.format(selectedDate)} est pret pour le paiement.`,
     });
+  };
+
+  const handleToggleReserve = (drop: FlashDrop) => {
+    if (!ensureCartIsAvailable()) return;
+
+    const menuItemId = buildChefTableMenuItemId(drop.id);
+
+    if (selectedDropIds.has(drop.id)) {
+      removeItem(menuItemId);
+      toast({
+        title: "Retire du panier",
+        description: `${drop.dish} a ete retire de votre panier Chef's Table.`,
+      });
+      return;
+    }
+
+    setSlotDialogDrop(drop);
+  };
+
+  const handleQuickTimeSelect = (drop: FlashDrop, time: string) => {
+    if (!ensureCartIsAvailable()) return;
+    setSlotDialogPresetTime(time);
+    setSlotDialogDrop(drop);
+  };
+
+  const handleConfirmSlot = (selectedIso: string) => {
+    const drop = slotDialogDrop;
+    if (!drop) return;
+    upsertDropInCart(drop, selectedIso);
+    setSlotDialogDrop(null);
+    setSlotDialogPresetTime(null);
   };
 
   const handleProceedToCheckout = () => {
@@ -657,7 +759,9 @@ export default function ChefsTable() {
                       drop={drop}
                       index={index}
                       isReserved={selectedDropIds.has(drop.id)}
+                      selectedTime={selectedTimeByDropId.get(drop.id) ?? null}
                       onToggleReserve={handleToggleReserve}
+                      onQuickTimeSelect={handleQuickTimeSelect}
                     />
                   ))}
                 </div>
@@ -744,6 +848,23 @@ export default function ChefsTable() {
             navigate("/reservations");
           }
         }}
+      />
+
+      <ChefTableSlotDialog
+        open={!!slotDialogDrop}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSlotDialogDrop(null);
+            setSlotDialogPresetTime(null);
+          }
+        }}
+        dishName={slotDialogDrop?.dish ?? ""}
+        chefName={slotDialogDrop?.chef ?? ""}
+        restaurantName={slotDialogDrop?.restaurant ?? ""}
+        serviceSettings={slotDialogDrop?.serviceSettings ?? getServiceSettings(null)}
+        initialDate={slotDialogDrop ? new Date(slotDialogDrop.dropTime) : null}
+        initialTime={slotDialogPresetTime ?? slotDialogDrop?.serviceTimeLabel ?? null}
+        onConfirm={handleConfirmSlot}
       />
     </>
   );
