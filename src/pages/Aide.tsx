@@ -276,8 +276,8 @@ const FAQS = [
         a: "Oui, si le restaurant propose des formules (entree + plat, plat + dessert, menu complet), elles sont applicables lors de la commande Zero Attente. La reduction de la formule sera appliquee automatiquement au total. Les details de la formule et la reduction apparaissent dans le recapitulatif.",
       },
       {
-        q: "Qu'est-ce qu'un Chef's Table ?",
-        a: "Un Chef's Table est un evenement gastronomique exclusif : le chef prepare des plats signature hors-carte en quantite ultra-limitee. Les portions disponibles sont affichees en temps reel et partent tres vite. Pour y participer, reservez une table au restaurant et selectionnez les plats Chef's Table disponibles. Les abonnes Tok One ont un acces prioritaire.",
+        q: "Qu'est-ce qu'un La Table du Chef ?",
+        a: "Un La Table du Chef est un evenement gastronomique exclusif : le chef prepare des plats signature hors-carte en quantite ultra-limitee. Les portions disponibles sont affichees en temps reel et partent tres vite. Pour y participer, reservez une table au restaurant et selectionnez les plats La Table du Chef disponibles. Les abonnes Tok One ont un acces prioritaire.",
       },
       {
         q: "Comment savoir si ma reservation est confirmee ?",
@@ -364,7 +364,7 @@ const FAQS = [
     questions: [
       {
         q: "Quels sont les avantages de Tok One ?",
-        a: "Tok One vous offre : la livraison gratuite sur tous les restaurants eligibles (sans minimum de commande), des reductions exclusives allant jusqu'a 20%, un acces prioritaire aux Chef's Tables et evenements gastronomiques, un acces anticipe aux ventes flash et offres speciales, un support client prioritaire avec temps de reponse accelere, et des offres surprises regulieres reservees aux membres.",
+        a: "Tok One vous offre : la livraison gratuite sur tous les restaurants eligibles (sans minimum de commande), des reductions exclusives allant jusqu'a 20%, un acces prioritaire aux La Table du Chefs et evenements gastronomiques, un acces anticipe aux ventes flash et offres speciales, un support client prioritaire avec temps de reponse accelere, et des offres surprises regulieres reservees aux membres.",
       },
       {
         q: "Combien coute l'abonnement Tok One ?",
@@ -549,10 +549,9 @@ export default function Aide() {
                 setSelectedCat(selectedCat === cat.id ? null : cat.id)
               }
               className={`p-4 rounded-2xl border bg-card shadow-sm transition-all text-left space-y-2
-                ${
-                  selectedCat === cat.id
-                    ? "ring-2 ring-primary border-transparent"
-                    : "hover:border-primary/20"
+                ${selectedCat === cat.id
+                  ? "ring-2 ring-primary border-transparent"
+                  : "hover:border-primary/20"
                 }`}
             >
               <div className={`${cat.bg} p-2 rounded-xl w-fit`}>

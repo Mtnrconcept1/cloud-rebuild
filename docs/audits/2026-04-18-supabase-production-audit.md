@@ -20,7 +20,7 @@ Date : 2026-04-18
 96 migrations appliquées, en sync avec le repo. Une régularisation a été faite pour la facturation des réservations (pipeline 90% restaurant→TOK + 5.-/resa TOK→restaurant) :
 - `20260417180419_reservation_billing_schema` — colonnes confirmation/annulation
 - `20260417220651_separate_reservation_fee_invoices` — type `payout` vs `reservation_fees`
-- `20260417225213_extend_payout_invoice_to_all_paid_reservations` — généralisation à toutes les features payées (Chef's Table, promo-formule, anti-gaspi…)
+- `20260417225213_extend_payout_invoice_to_all_paid_reservations` — généralisation à toutes les features payées (La Table du Chef, promo-formule, anti-gaspi…)
 - `20260418032807_reservations_confirmed_at_trigger` — trigger BEFORE UPDATE qui stamp `confirmed_at` peu importe le code path
 - `20260418033754_submit_verified_review_rpc` — RPC manquante pour le formulaire d'avis
 

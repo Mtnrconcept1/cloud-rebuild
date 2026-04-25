@@ -77,7 +77,7 @@ describe("invoice line detail helpers", () => {
   it("exposes presentation labels for all invoice detail sources", () => {
     expect(getInvoiceDetailSourcePresentation("orders")).toMatchObject({ label: "Commande" });
     expect(getInvoiceDetailSourcePresentation("zero_attente")).toMatchObject({ label: "Zero attente" });
-    expect(getInvoiceDetailSourcePresentation("chefs_table")).toMatchObject({ label: "Chef's Table" });
+    expect(getInvoiceDetailSourcePresentation("chefs_table")).toMatchObject({ label: "La Table du Chef" });
     expect(getInvoiceDetailSourcePresentation("flash_sales")).toMatchObject({ label: "Vente flash" });
     expect(getInvoiceDetailSourcePresentation("anti_gaspi")).toMatchObject({ label: "Anti-gaspi" });
     expect(getInvoiceDetailSourcePresentation("other")).toMatchObject({ label: "Autre" });

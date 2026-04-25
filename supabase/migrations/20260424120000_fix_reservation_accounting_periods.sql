@@ -1,5 +1,5 @@
 -- Align reservation accounting with the actual payable event timestamp instead of
--- the service date. This fixes Chef's Table (and any paid reservation created in
+-- the service date. This fixes La Table du Chef (and any paid reservation created in
 -- one month for a later service month) being omitted from admin monthly accounting
 -- and TOK payable invoice generation.
 

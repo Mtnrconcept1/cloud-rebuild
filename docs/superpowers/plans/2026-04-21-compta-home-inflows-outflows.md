@@ -70,7 +70,7 @@ describe("classifyOrderCommissionSource", () => {
     })).toBe("anti_gaspi");
   });
 
-  it("classifies chef's table orders explicitly", () => {
+  it("classifies La Table du Chef orders explicitly", () => {
     expect(classifyOrderCommissionSource({
       metadata: { feature: "chefs_table" },
       payment_status: "paid",
@@ -87,7 +87,7 @@ describe("classifyReservationCommissionSource", () => {
     })).toBe("zero_attente");
   });
 
-  it("classifies chef's table reservations separately", () => {
+  it("classifies La Table du Chef reservations separately", () => {
     expect(classifyReservationCommissionSource({
       feature: "chefs_table",
       total_amount: 120,
@@ -652,7 +652,7 @@ Check in browser:
 
 ```text
 1. /admin/compta starts on a summary page, not on long tables.
-2. /admin/compta shows 10 percent broken down by orders, Zero Attente, Chef's Table, ventes flash, anti-gaspi.
+2. /admin/compta shows 10 percent broken down by orders, Zero Attente, La Table du Chef, ventes flash, anti-gaspi.
 3. The two large admin buttons open two distinct routes: /admin/compta/entrees and /admin/compta/sorties.
 4. /admin/compta/entrees contains only money entering TOK.
 5. /admin/compta/sorties contains only money leaving TOK.

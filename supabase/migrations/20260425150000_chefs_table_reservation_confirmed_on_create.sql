@@ -1,4 +1,4 @@
--- Chef's Table reservations are paid up-front via Stripe before the row is created,
+-- La Table du Chef reservations are paid up-front via Stripe before the row is created,
 -- so they should be inserted directly with status = 'confirmed' (same pattern as
 -- zero-attente). Previously the RPC inserted them as 'pending' and a follow-up
 -- UPDATE in the edge function flipped them to 'confirmed', leaving a tiny
@@ -98,7 +98,7 @@ BEGIN
     v_status := 'confirmed';
   END IF;
 
-  -- Chef's Table reservations are pre-paid via Stripe before being created
+  -- La Table du Chef reservations are pre-paid via Stripe before being created
   -- by the edge function (service role). They should be confirmed immediately.
   IF v_feature_normalized = 'chefs_table' AND v_is_service_role AND v_paid AND v_checkout_session_id IS NOT NULL THEN
     v_status := 'confirmed';

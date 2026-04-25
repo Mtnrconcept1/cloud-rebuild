@@ -6,6 +6,7 @@ import {
   requireRestaurantAccess,
   writeAuditLog,
 } from "../_shared/auth.ts";
+import { DEFAULT_CAMPAIGN_PRICING, getCampaignPricing } from "../_shared/campaign-pricing.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
@@ -29,6 +30,11 @@ function normalizeLower(value: unknown) {
 
 function clampNonNegativeNumber(value: unknown) {
   return Math.max(0, Number(value) || 0);
+}
+
+function clampPositiveRate(value: unknown) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
 }
 
 function sanitizeStringArray(values: unknown, allowed?: Set<string>) {
@@ -119,6 +125,12 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
     status = "draft";
   }
 
+  const pricing = getCampaignPricing({
+    cpmRate: clampPositiveRate(existingCampaign?.cpm_rate),
+    cpcRate: clampPositiveRate(existingCampaign?.cpc_rate),
+    conversionRate: clampPositiveRate(existingCampaign?.conversion_rate),
+  });
+
   return {
     title,
     body,
@@ -133,6 +145,9 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
     payment_method: sanitizedPaymentMethod,
     payment_status: paymentStatus,
     status,
+    cpm_rate: pricing.cpmRate || DEFAULT_CAMPAIGN_PRICING.cpmRate,
+    cpc_rate: pricing.cpcRate || DEFAULT_CAMPAIGN_PRICING.cpcRate,
+    conversion_rate: pricing.conversionRate || DEFAULT_CAMPAIGN_PRICING.conversionRate,
   };
 }
 

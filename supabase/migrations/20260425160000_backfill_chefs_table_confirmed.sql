@@ -10,7 +10,7 @@
 -- this script reconciles the existing rows.
 --
 -- The trigger guard_locked_reservation_status blocks status changes on already
--- paid chef's table reservations (it lacks an exception for the pending →
+-- paid La Table du Chef reservations (it lacks an exception for the pending →
 -- confirmed transition). We disable it for the duration of the backfill, then
 -- re-enable it.
 

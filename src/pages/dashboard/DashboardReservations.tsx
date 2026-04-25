@@ -512,15 +512,21 @@ export default function DashboardReservations() {
                                 const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
                                 const compactBase = isCompactMode ? "p-3" : "p-4";
                                 const statusLockMessage = getReservationStatusLockMessage(reservation);
+                                const isArrived = reservation.status === "arrived";
                                 const isReservationLocked = Boolean(statusLockMessage);
+                                const isCardLocked = isReservationLocked || isArrived;
+                                const isConfirmedAck = reservation.status === "confirmed";
+                                const effectiveLockMessage = isArrived
+                                  ? "Carte verrouillee apres l'arrivee du client."
+                                  : statusLockMessage;
 
                                 const isZeroAttente = reservation.feature === "zero-attente";
                                 const isChefTable = reservation.feature === "chefs_table";
                                 const articleClass = isZeroAttente
                                   ? `rounded-xl border-2 border-indigo-300 bg-indigo-50/40 ${compactBase}`
                                   : isChefTable
-                                  ? `rounded-xl border-2 border-amber-300 bg-amber-50/40 ${compactBase}`
-                                  : `rounded-xl border bg-card ${compactBase}`;
+                                    ? `rounded-xl border-2 border-amber-300 bg-amber-50/40 ${compactBase}`
+                                    : `rounded-xl border bg-card ${compactBase}`;
 
                                 return (
                                   <article key={reservation.id} className={articleClass}>
@@ -538,7 +544,7 @@ export default function DashboardReservations() {
                                             <Badge className="border-indigo-300 bg-indigo-500 text-[10px] uppercase tracking-widest text-white">Zero Attente</Badge>
                                           )}
                                           {isChefTable && (
-                                            <Badge className="border-amber-300 bg-amber-500 text-[10px] uppercase tracking-widest text-white">Chef's Table</Badge>
+                                            <Badge className="border-amber-300 bg-amber-500 text-[10px] uppercase tracking-widest text-white">La Table du Chef</Badge>
                                           )}
                                         </div>
                                         {!isCompactMode ? (
@@ -623,7 +629,8 @@ export default function DashboardReservations() {
                                           size="sm"
                                           variant="outline"
                                           onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "arrived" })}
-                                          disabled={updateStatusMutation.isPending || isReservationLocked}
+                                          disabled={updateStatusMutation.isPending || isCardLocked}
+                                          className={isArrived ? "border-emerald-200 bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                                         >
                                           <UserCheck className="mr-1 h-4 w-4" />
                                           Arrivee
@@ -633,7 +640,7 @@ export default function DashboardReservations() {
                                           variant="outline"
                                           onClick={() => setCancelTarget(reservation)}
                                           disabled={
-                                            isReservationLocked ||
+                                            isCardLocked ||
                                             reservation.status === "no_show" ||
                                             cancelMutation.isPending
                                           }
@@ -646,7 +653,7 @@ export default function DashboardReservations() {
                                           size="sm"
                                           variant="outline"
                                           onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "no_show" })}
-                                          disabled={updateStatusMutation.isPending || isReservationLocked}
+                                          disabled={updateStatusMutation.isPending || isCardLocked}
                                           className="text-destructive"
                                         >
                                           <X className="mr-1 h-4 w-4" />
@@ -654,21 +661,22 @@ export default function DashboardReservations() {
                                         </Button>
                                         <Button
                                           size="sm"
-                                          onClick={() =>
-                                            updateStatusMutation.mutate({
-                                              id: reservation.id,
-                                              status: reservation.status === "confirmed" ? "pending" : "confirmed",
-                                            })
-                                          }
-                                          disabled={updateStatusMutation.isPending || isReservationLocked}
+                                          onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "confirmed" })}
+                                          disabled={updateStatusMutation.isPending || isCardLocked || isConfirmedAck}
+                                          className={isConfirmedAck ? "bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                                         >
                                           <Check className="mr-1 h-4 w-4" />
-                                          {reservation.status === "confirmed" ? "Reservee" : "Confirmee"}
+                                          Confirmee
+                                          {isConfirmedAck ? (
+                                            <span className="ml-2 rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                                              Vu
+                                            </span>
+                                          ) : null}
                                         </Button>
                                       </div>
-                                      {statusLockMessage ? (
+                                      {effectiveLockMessage ? (
                                         <p className="text-xs text-muted-foreground sm:text-right">
-                                          {statusLockMessage}
+                                          {effectiveLockMessage}
                                         </p>
                                       ) : null}
                                     </div>

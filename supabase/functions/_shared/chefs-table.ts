@@ -56,7 +56,7 @@ function buildReservationNote(input: {
   cardLast4?: string | null;
 }) {
   const parts = [
-    `[Chef's Table] ${input.count} experience(s) reservee(s)`,
+    `[La Table du Chef] ${input.count} experience(s) reservee(s)`,
     `Sous-total: ${input.subtotal.toFixed(2)} CHF`,
     `Total: ${input.total.toFixed(2)} CHF`,
     `Paiement: ${input.paymentMethod} (paye)`,
@@ -98,7 +98,7 @@ function buildChefTableLineItems(lineItems: Stripe.ApiList<Stripe.LineItem>) {
         serviceTime,
         quantity,
         unitPrice: unitAmount,
-        name: lineItem.description || product?.name || "Experience Chef's Table",
+        name: lineItem.description || product?.name || "Experience La Table du Chef",
       };
     })
     .filter((item) => item.dropId && item.restaurantId && item.serviceDate && item.serviceTime);
@@ -119,7 +119,7 @@ async function decrementDropPortions(input: {
 
   const remaining = Number(dropRow?.remaining_portions || 0);
   if (remaining < input.quantity) {
-    throw new Error("Certaines experiences Chef's Table ne sont plus disponibles.");
+    throw new Error("Certaines experiences La Table du Chef ne sont plus disponibles.");
   }
 
   const { error: updateError } = await input.adminClient
@@ -245,7 +245,7 @@ export async function finalizeChefsTableCheckout(input: {
   for (const item of reservationItems) {
     const drop = dropMap.get(item.dropId);
     if (!drop) {
-      throw new Error("Drop Chef's Table introuvable.");
+      throw new Error("Drop La Table du Chef introuvable.");
     }
 
     const reservationKey = buildReservationKey({
@@ -380,7 +380,7 @@ export async function finalizeChefsTableCheckout(input: {
       );
 
       if (reservationError || !reservationId) {
-        throw new Error(reservationError?.message || "Impossible de creer la reservation Chef's Table.");
+        throw new Error(reservationError?.message || "Impossible de creer la reservation La Table du Chef.");
       }
 
       await adminClient
@@ -435,7 +435,7 @@ export async function finalizeChefsTableCheckout(input: {
         await enqueueNotification({
           adminClient,
           userId: restaurantOwnerId,
-          title: "Nouvelle reservation Chef's Table",
+          title: "Nouvelle reservation La Table du Chef",
           body: `${group.partySize} experience(s) reservee(s) pour le ${group.date} a ${group.time} - ${group.total.toFixed(2)} CHF`,
           type: "reservation",
           category: "transactional",
@@ -453,7 +453,7 @@ export async function finalizeChefsTableCheckout(input: {
       await enqueueNotification({
         adminClient,
         userId,
-        title: "Reservation Chef's Table confirmee",
+        title: "Reservation La Table du Chef confirmee",
         body: `Votre experience chez ${group.restaurantName} est confirmee le ${group.date} a ${group.time}.`,
         type: "reservation",
         category: "transactional",

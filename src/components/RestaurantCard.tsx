@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Bike, Clock3, Heart, MapPin, Megaphone, Percent } from "lucide-react";
+import { ArrowRight, Bike, Clock3, Heart, MapPin, Percent, Sparkles } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
-import { trackSponsoredClick, trackSponsoredImpression, trackImpression, trackClick } from "@/lib/analytics";
+import { trackSponsoredClick, trackImpression, trackClick } from "@/lib/analytics";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useToast } from "@/hooks/use-toast";
+import { SponsoredBadge, SponsoredContextPill } from "@/components/campaigns/SponsoredVisual";
+import { useSponsoredImpressionOnView } from "@/hooks/useSponsoredImpressionOnView";
+import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
 
@@ -26,6 +29,8 @@ interface RestaurantCardProps {
   address?: string;
   sponsoredCampaignId?: string;
   sponsoredPromoImage?: string;
+  sponsoredCampaignTitle?: string;
+  sponsoredCampaignBody?: string;
 }
 
 const CUISINE_FALLBACKS: Record<string, string> = {
@@ -153,6 +158,8 @@ export default function RestaurantCard({
   address,
   sponsoredCampaignId,
   sponsoredPromoImage,
+  sponsoredCampaignTitle,
+  sponsoredCampaignBody,
 }: RestaurantCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -160,9 +167,16 @@ export default function RestaurantCard({
   const queryClient = useQueryClient();
   const activeFeatures = useActiveFeatures();
   const resolvedImage = getImageUrl(sponsoredPromoImage || imageUrl, cuisine);
-  const impressionTracked = useRef(false);
+  const organicImpressionTracked = useRef(false);
   const isSponsored = Boolean(sponsoredCampaignId);
   const showDelivery = activeFeatures.has("livraison") && deliveryAvailable;
+  const sponsoredImpressionRef = useSponsoredImpressionOnView({
+    campaignId: sponsoredCampaignId,
+    restaurantId: id,
+    source: "restaurant_card",
+    placementKey: `restaurant_card:${id}:${sponsoredCampaignId || "organic"}`,
+    enabled: isSponsored && Boolean(sponsoredCampaignId),
+  });
 
   const { data: isFavorite } = useQuery({
     queryKey: ["favorite", id, user?.id],
@@ -217,12 +231,10 @@ export default function RestaurantCard({
   }, []);
 
   useEffect(() => {
-    if (impressionTracked.current) return;
-    impressionTracked.current = true;
-
-    if (isSponsored && sponsoredCampaignId) {
-      trackSponsoredImpression(sponsoredCampaignId, id, "restaurant_card");
-    } else {
+    if (isSponsored && sponsoredCampaignId) return;
+    if (organicImpressionTracked.current) return;
+    organicImpressionTracked.current = true;
+    if (!isSponsored) {
       trackImpression("restaurant", id);
     }
   }, [id, isSponsored, sponsoredCampaignId]);
@@ -251,10 +263,32 @@ export default function RestaurantCard({
 
   const ratingNum = Math.min(rating, 10);
   const displayRating = ratingNum > 0 ? ratingNum.toFixed(1) : null;
+  const sponsoredHeading = sponsoredCampaignTitle || "Adresse mise en avant";
+  const sponsoredDescription =
+    sponsoredCampaignBody || `${name} profite actuellement d'une mise en avant premium sur Tok.`;
+
+  useEffect(() => {
+    organicImpressionTracked.current = false;
+  }, [id]);
 
   return (
     <div onClick={handleCardClick} className="group block h-full cursor-pointer">
-      <div className="premium-card flex h-full flex-col overflow-hidden rounded-[26px] border border-border/70 bg-card/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(15,23,42,0.14)]">
+      <div
+        ref={isSponsored ? sponsoredImpressionRef : undefined}
+        className={cn(
+          "premium-card flex h-full flex-col overflow-hidden rounded-[26px] border transition-all duration-300 hover:-translate-y-1",
+          isSponsored
+            ? "border-amber-200/85 bg-[linear-gradient(180deg,rgba(255,248,238,0.98),rgba(255,255,255,0.98))] shadow-[0_18px_46px_rgba(249,115,22,0.16)] hover:shadow-[0_24px_54px_rgba(249,115,22,0.22)]"
+            : "border-border/70 bg-card/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] hover:shadow-[0_20px_48px_rgba(15,23,42,0.14)]",
+        )}
+      >
+        {isSponsored ? (
+          <>
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-1.5 bg-gradient-to-r from-[#ff7a18] via-[#ffb347] to-[#ff5f6d]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(249,115,22,0.12),transparent_24%)]" />
+          </>
+        ) : null}
+
         <div className="relative aspect-[16/10] overflow-hidden">
           <img
             src={resolvedImage}
@@ -266,9 +300,10 @@ export default function RestaurantCard({
 
           <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
             {isSponsored ? (
-              <Badge className="gap-1 border-none bg-amber-500/95 text-[9px] font-bold uppercase text-white shadow-sm backdrop-blur-md">
-                <Megaphone className="h-3 w-3" /> Sponsorise
-              </Badge>
+              <>
+                <SponsoredBadge tone="restaurant" />
+                <SponsoredContextPill tone="restaurant" />
+              </>
             ) : null}
             {showDelivery ? (
               <Badge className="gap-1 border-none bg-primary/95 text-[9px] font-bold uppercase text-white shadow-sm backdrop-blur-md">
@@ -339,14 +374,40 @@ export default function RestaurantCard({
             </p>
           )}
 
+          {isSponsored ? (
+            <div className="mt-3 rounded-[22px] border border-amber-200/85 bg-[linear-gradient(135deg,rgba(255,248,230,0.95),rgba(255,255,255,0.94))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffedd5] via-[#fff7ed] to-[#fef3c7] text-amber-600 shadow-[0_10px_22px_rgba(249,115,22,0.14)]">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-600">
+                    Campagne active
+                  </p>
+                  <p className="mt-1 line-clamp-1 text-sm font-semibold text-slate-900">
+                    {sponsoredHeading}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">
+                    {sponsoredDescription}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="mt-auto pt-4">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={handleViewClick}
-                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#21314b] px-4 text-sm font-bold text-white shadow-[0_10px_24px_rgba(33,49,75,0.22)] transition-all hover:bg-[#2a3d5d]"
+                className={cn(
+                  "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition-all",
+                  isSponsored
+                    ? "bg-gradient-to-r from-primary via-orange-500 to-orange-600 shadow-[0_14px_30px_rgba(249,115,22,0.26)] hover:brightness-105"
+                    : "bg-[#21314b] shadow-[0_10px_24px_rgba(33,49,75,0.22)] hover:bg-[#2a3d5d]",
+                )}
               >
-                Voir le restaurant
+                {isSponsored ? "Decouvrir l'offre" : "Voir le restaurant"}
                 <ArrowRight className="h-4 w-4" />
               </button>
               {visibleSlots.map((slot) => (

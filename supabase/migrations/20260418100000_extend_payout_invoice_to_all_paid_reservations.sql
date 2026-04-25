@@ -1,5 +1,5 @@
 -- Generalize generate_restaurant_payout_invoice so it covers ALL paid reservations
--- (Zero attente, Chef's Table, promo formules, anti-gaspi, etc.) instead of being
+-- (Zero attente, La Table du Chef, promo formules, anti-gaspi, etc.) instead of being
 -- limited to feature='zero-attente'. Any reservation with total_amount > 0 was paid
 -- by the customer through Stripe and must therefore be re-invoiced to TOK at 90%.
 
@@ -97,7 +97,7 @@ BEGIN
     AND lower(COALESCE(status, '')) NOT IN ('cancelled', 'refused', 'payment_failed', 'pending');
 
   -- Generalized: any paid reservation (not just feature='zero-attente') is now linked
-  -- to the payout invoice. Chef's Table, promo formules, anti-gaspi etc. all qualify.
+  -- to the payout invoice. La Table du Chef, promo formules, anti-gaspi etc. all qualify.
   UPDATE reservations
   SET restaurant_invoice_id = inv_id
   WHERE restaurant_id = p_restaurant_id

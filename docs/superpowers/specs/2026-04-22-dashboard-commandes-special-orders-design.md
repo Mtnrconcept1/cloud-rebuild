@@ -78,7 +78,7 @@ Elle continue d'afficher la ventilation par source :
 
 - `Commandes`
 - `Zero Attente`
-- `Chef's Table`
+- `La Table du Chef`
 - `Ventes flash`
 - `Anti-gaspi`
 

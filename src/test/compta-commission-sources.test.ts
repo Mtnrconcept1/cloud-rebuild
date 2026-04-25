@@ -36,7 +36,7 @@ describe("classifyOrderCommissionSource", () => {
     })).toBe("anti_gaspi");
   });
 
-  it("classifies chef's table orders explicitly", () => {
+  it("classifies La Table du Chef orders explicitly", () => {
     expect(classifyOrderCommissionSource({
       metadata: { feature: "chefs_table" },
       payment_status: "paid",
@@ -60,7 +60,7 @@ describe("classifyReservationCommissionSource", () => {
     })).toBe("zero_attente");
   });
 
-  it("classifies chef's table reservations separately", () => {
+  it("classifies La Table du Chef reservations separately", () => {
     expect(classifyReservationCommissionSource({
       feature: "chefs_table",
       total_amount: 120,

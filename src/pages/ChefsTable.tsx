@@ -484,7 +484,7 @@ export default function ChefsTable() {
       });
 
       if (error) {
-        throw new Error(error.message || "Impossible de finaliser la reservation Chef's Table.");
+        throw new Error(error.message || "Impossible de finaliser la reservation La Table du Chef.");
       }
 
       const reservations = Array.isArray(data?.reservations)
@@ -504,8 +504,8 @@ export default function ChefsTable() {
         title: "Paiement confirme",
         description:
           reservations.length > 1
-            ? `${reservations.length} reservations Chef's Table ont ete confirmees.`
-            : "Votre reservation Chef's Table est confirmee.",
+            ? `${reservations.length} reservations La Table du Chef ont ete confirmees.`
+            : "Votre reservation La Table du Chef est confirmee.",
       });
     } catch (error) {
       toast({
@@ -513,7 +513,7 @@ export default function ChefsTable() {
         description:
           error instanceof Error
             ? error.message
-            : "Impossible de finaliser la reservation Chef's Table.",
+            : "Impossible de finaliser la reservation La Table du Chef.",
         variant: "destructive",
       });
     } finally {
@@ -549,7 +549,7 @@ export default function ChefsTable() {
     if (!user || !session?.access_token) {
       toast({
         title: "Reconnectez-vous",
-        description: "Le paiement a ete valide. Reconnectez-vous pour recuperer votre reservation Chef's Table.",
+        description: "Le paiement a ete valide. Reconnectez-vous pour recuperer votre reservation La Table du Chef.",
         variant: "destructive",
       });
       return;
@@ -571,7 +571,7 @@ export default function ChefsTable() {
     if (!hasForeignCartItems) return true;
     toast({
       title: "Panier deja en cours",
-      description: "Finalisez ou videz votre panier actuel avant d'ajouter une experience Chef's Table.",
+      description: "Finalisez ou videz votre panier actuel avant d'ajouter une experience La Table du Chef.",
       variant: "destructive",
     });
     navigate("/panier");
@@ -589,7 +589,7 @@ export default function ChefsTable() {
     updateCartMetadata({ feature: "chefs_table" });
     addItem({
       menuItemId,
-      name: `[Chef's Table] ${drop.dish}`,
+      name: `[La Table du Chef] ${drop.dish}`,
       price: drop.price,
       restaurantId: drop.restaurantId,
       restaurantName: drop.restaurant,
@@ -621,7 +621,7 @@ export default function ChefsTable() {
       removeItem(menuItemId);
       toast({
         title: "Retire du panier",
-        description: `${drop.dish} a ete retire de votre panier Chef's Table.`,
+        description: `${drop.dish} a ete retire de votre panier La Table du Chef.`,
       });
       return;
     }
@@ -659,25 +659,25 @@ export default function ChefsTable() {
 
   const detailForModal = confirmedReservations.length > 0
     ? {
-        id: confirmedReservations[0].id,
-        date: confirmedReservations[0].date,
-        time: confirmedReservations[0].time,
-        party_size: confirmedReservations[0].party_size,
-        status: confirmedReservations[0].status,
-        feature: "chefs_table",
-        notes: confirmedReservations[0].notes,
-        total_amount: confirmedReservations[0].total_amount,
-        created_at: confirmedReservations[0].created_at,
-        metadata: confirmedReservations[0].metadata as any,
-        preorder_items: confirmedReservations[0].preorder_items as any,
-        restaurant_name: confirmedReservations[0].restaurant_name,
-      }
+      id: confirmedReservations[0].id,
+      date: confirmedReservations[0].date,
+      time: confirmedReservations[0].time,
+      party_size: confirmedReservations[0].party_size,
+      status: confirmedReservations[0].status,
+      feature: "chefs_table",
+      notes: confirmedReservations[0].notes,
+      total_amount: confirmedReservations[0].total_amount,
+      created_at: confirmedReservations[0].created_at,
+      metadata: confirmedReservations[0].metadata as any,
+      preorder_items: confirmedReservations[0].preorder_items as any,
+      restaurant_name: confirmedReservations[0].restaurant_name,
+    }
     : null;
 
   return (
     <>
       <FeatureWizard
-        title="Chef's Table"
+        title="La Table du Chef"
         subtitle="Plats off-menu en edition ultra-limitee"
         icon={ChefHat}
         colorClass="amber-500"
@@ -716,7 +716,7 @@ export default function ChefsTable() {
 
               queryClient.invalidateQueries({ queryKey: ["chefs-table-subscription", user.id] });
               toast({
-                title: notifyAll ? "Alertes desactivees" : "Alertes Chef's Table activees",
+                title: notifyAll ? "Alertes desactivees" : "Alertes La Table du Chef activees",
               });
             }}
             className="gap-2"
@@ -748,7 +748,7 @@ export default function ChefsTable() {
                   <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
                   <h2 className="mt-4 font-display text-2xl font-bold">Paiement recu</h2>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                    Nous finalisons vos reservations Chef's Table. Cela prend seulement quelques secondes.
+                    Nous finalisons vos reservations La Table du Chef. Cela prend seulement quelques secondes.
                   </p>
                 </div>
               ) : drops.length > 0 ? (
@@ -824,7 +824,7 @@ export default function ChefsTable() {
                 <h2 className="font-display text-xl font-bold">Reservation confirmee !</h2>
                 <p className="text-sm text-muted-foreground">
                   {confirmedReservations.length > 1
-                    ? `${confirmedReservations.length} reservations Chef's Table ont ete confirmees apres paiement.`
+                    ? `${confirmedReservations.length} reservations La Table du Chef ont ete confirmees apres paiement.`
                     : "Votre table et vos plats exclusifs sont reserves apres paiement."}
                 </p>
               </div>

@@ -302,7 +302,7 @@ Deno.serve(async (req) => {
       };
     } else if (effectiveKind === "chefs-table") {
       if (!Array.isArray(items) || items.length === 0) {
-        throw new HttpError(400, "Aucune experience Chef's Table.");
+        throw new HttpError(400, "Aucune experience La Table du Chef.");
       }
 
       auditTargetEntityType = "chef_table_drops";
@@ -315,7 +315,7 @@ Deno.serve(async (req) => {
       ));
 
       if (dropIds.length === 0) {
-        throw new HttpError(400, "Drop Chef's Table introuvable.");
+        throw new HttpError(400, "Drop La Table du Chef introuvable.");
       }
 
       const { data: dropRows, error: dropsError } = await actor.adminClient
@@ -334,10 +334,10 @@ Deno.serve(async (req) => {
         const drop = dropMap.get(dropId);
 
         if (!drop) {
-          throw new HttpError(404, "Drop Chef's Table introuvable.");
+          throw new HttpError(404, "Drop La Table du Chef introuvable.");
         }
         if (!drop.is_active) {
-          throw new HttpError(409, "Ce drop Chef's Table n'est plus disponible.");
+          throw new HttpError(409, "Ce drop La Table du Chef n'est plus disponible.");
         }
         if (Number(drop.remaining_portions || 0) < quantity) {
           throw new HttpError(409, "Le nombre de portions disponibles a change pour ce drop.");
@@ -345,15 +345,15 @@ Deno.serve(async (req) => {
 
         const unitAmount = Math.round(Number(drop.price || 0) * 100);
         if (unitAmount <= 0) {
-          throw new HttpError(400, "Prix Chef's Table invalide.");
+          throw new HttpError(400, "Prix La Table du Chef invalide.");
         }
 
         lineItems.push({
           price_data: {
             currency: "chf",
             product_data: {
-              name: String(drop.dish_name || item?.name || "Experience Chef's Table"),
-              description: String(drop.restaurants?.name || item?.restaurant_name || "Chef's Table"),
+              name: String(drop.dish_name || item?.name || "Experience La Table du Chef"),
+              description: String(drop.restaurants?.name || item?.restaurant_name || "La Table du Chef"),
               metadata: {
                 chef_table_drop_id: drop.id,
                 restaurant_id: drop.restaurant_id,

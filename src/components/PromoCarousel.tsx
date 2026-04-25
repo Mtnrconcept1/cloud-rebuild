@@ -27,7 +27,7 @@ const PROMOS = [
     icon: Sparkles,
   },
   {
-    title: "Chef's Table",
+    title: "La Table du Chef",
     desc: "Decouvrez des plats exclusifs en edition limitee.",
     img: "/images/octopus-fine-dining.jpeg",
     link: "/chefs-table",

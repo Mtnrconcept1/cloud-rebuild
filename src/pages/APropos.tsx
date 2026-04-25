@@ -12,7 +12,7 @@ const STATS = [
 const VALUES = [
   { icon: ChefHat, title: "Qualité", desc: "Nous sélectionnons rigoureusement nos partenaires pour garantir des repas frais, savoureux et préparés avec soin. Chaque restaurant passe par un processus de vérification avant de rejoindre notre plateforme." },
   { icon: Leaf, title: "Éco-responsabilité", desc: "Notre programme anti-gaspi sauve des milliers de repas chaque mois. Nous privilégions les emballages éco-responsables et optimisons les itinéraires de livraison pour réduire notre empreinte carbone." },
-  { icon: Users, title: "Communauté", desc: "Nous favorisons les échanges entre restaurateurs et clients, créant un écosystème où chacun trouve sa place. Nos événements Chef's Tables rassemblent les passionnés de gastronomie." },
+  { icon: Users, title: "Communauté", desc: "Nous favorisons les échanges entre restaurateurs et clients, créant un écosystème où chacun trouve sa place. Nos événements La Table du Chefs rassemblent les passionnés de gastronomie." },
   { icon: Heart, title: "Passion", desc: "Nous mettons tout notre cœur dans chaque aspect de nos services. De l'interface utilisateur au service client, chaque détail est pensé pour offrir la meilleure expérience possible." },
 ];
 

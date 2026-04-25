@@ -88,7 +88,7 @@ const getFeatureLabel = (feature: string) => {
     case "zero-attente":
       return { label: "Zéro Attente", icon: Timer, color: "text-indigo-600 bg-indigo-50 border-indigo-200" };
     case "chefs_table":
-      return { label: "Chef's Table", icon: ChefHat, color: "text-amber-600 bg-amber-50 border-amber-200" };
+      return { label: "La Table du Chef", icon: ChefHat, color: "text-amber-600 bg-amber-50 border-amber-200" };
     case "promo-formule":
       return { label: "Formule promo", icon: Utensils, color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
     case "promo-offre":

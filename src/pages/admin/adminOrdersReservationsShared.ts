@@ -220,7 +220,7 @@ export function getReservationFeaturePresentation(feature: string | null | undef
     case "zero-attente":
       return { label: "Zero attente", className: "border-cyan-200 bg-cyan-100 text-cyan-800" };
     case "chefs_table":
-      return { label: "Chef's Table", className: "border-violet-200 bg-violet-100 text-violet-800" };
+      return { label: "La Table du Chef", className: "border-violet-200 bg-violet-100 text-violet-800" };
     case "promo-formule":
       return { label: "Formule promo", className: "border-emerald-200 bg-emerald-100 text-emerald-800" };
     case "promo-offre":

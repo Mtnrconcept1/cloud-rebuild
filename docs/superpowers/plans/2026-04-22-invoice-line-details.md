@@ -176,7 +176,7 @@ These helpers should be pure and testable.
 Add a mapping for source badge labels and styles:
 - `orders` => `Commande`
 - `zero_attente` => `Zero attente`
-- `chefs_table` => `Chef's Table`
+- `chefs_table` => `La Table du Chef`
 - `flash_sales` => `Vente flash`
 - `anti_gaspi` => `Anti-gaspi`
 

@@ -213,7 +213,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "chefs-table",
-    label: "Chef's Table",
+    label: "La Table du Chef",
     description: "Active les experiences exclusives et leurs pages associees.",
     defaultEnabled: true,
     group: "client_features",
