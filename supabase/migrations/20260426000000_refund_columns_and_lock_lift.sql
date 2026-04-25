@@ -2,6 +2,7 @@
 
 ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS cancelled_by text,
+  ADD COLUMN IF NOT EXISTS cancelled_at timestamptz,
   ADD COLUMN IF NOT EXISTS refund_status text,
   ADD COLUMN IF NOT EXISTS refunded_amount_chf numeric(12,2) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS refunded_at timestamptz,
@@ -48,6 +49,11 @@ CREATE INDEX IF NOT EXISTS idx_orders_refund_queue
 CREATE INDEX IF NOT EXISTS idx_reservations_refund_queue
   ON public.reservations (status, refund_status, cancelled_by)
   WHERE status = 'cancelled';
+
+UPDATE public.orders
+SET cancelled_at = COALESCE(cancelled_at, updated_at, created_at)
+WHERE lower(COALESCE(status, '')) = 'cancelled'
+  AND cancelled_at IS NULL;
 
 -- Lift the lock for service_role and admin contexts so RPCs marked SECURITY DEFINER
 -- can flip status to cancelled / update refund columns even on paid-special items.
