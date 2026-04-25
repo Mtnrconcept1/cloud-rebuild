@@ -5,6 +5,7 @@ import {
   createAdminClient,
   jsonResponse,
 } from "../_shared/auth.ts";
+import { getCampaignEventUnitCost, getCampaignPricing } from "../_shared/campaign-pricing.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
@@ -122,7 +123,7 @@ Deno.serve(async (req) => {
 
     const { data: campaign, error: campaignError } = await adminClient
       .from("ad_campaigns")
-      .select("id, restaurant_id, status, starts_at, ends_at, total_budget, spent, budget_daily, daily_spent, daily_spent_date, cpm_rate")
+      .select("id, restaurant_id, status, starts_at, ends_at, total_budget, spent, budget_daily, daily_spent, daily_spent_date, cpm_rate, cpc_rate, conversion_rate")
       .eq("id", campaignId)
       .maybeSingle();
 
@@ -140,8 +141,19 @@ Deno.serve(async (req) => {
     const now = Date.now();
     const startsAt = campaign.starts_at ? Date.parse(String(campaign.starts_at)) : Number.NaN;
     const endsAt = campaign.ends_at ? Date.parse(String(campaign.ends_at)) : Number.NaN;
-    const exhausted = Number(campaign.total_budget || 0) > 0 &&
-      Number(campaign.spent || 0) >= Number(campaign.total_budget || 0);
+    const pricing = getCampaignPricing({
+      cpmRate: Number(campaign.cpm_rate || 0),
+      cpcRate: Number((campaign as Record<string, unknown>).cpc_rate || 0),
+      conversionRate: Number((campaign as Record<string, unknown>).conversion_rate || 0),
+    });
+    const totalBudget = Number(campaign.total_budget || 0);
+    const spent = Number(campaign.spent || 0);
+    const eventCost = getCampaignEventUnitCost(
+      eventType as "impression" | "click" | "conversion",
+      pricing,
+      totalBudget > 0,
+    );
+    const exhausted = totalBudget > 0 && (spent + eventCost) > totalBudget;
 
     if (eventType !== "conversion") {
       if (String(campaign.status || "") !== "active") {
@@ -161,7 +173,7 @@ Deno.serve(async (req) => {
         const today = new Date().toISOString().slice(0, 10);
         const dailySpentDate = campaign.daily_spent_date ? String(campaign.daily_spent_date) : null;
         const dailySpent = (dailySpentDate === today) ? Number(campaign.daily_spent || 0) : 0;
-        if (dailySpent >= budgetDaily) {
+        if ((dailySpent + eventCost) > budgetDaily) {
           return jsonResponse({ recorded: false, deduped: false, ignored: true, reason: "daily_budget_exhausted" }, 200, corsHeaders);
         }
       }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { listRestaurantCampaigns, setRestaurantCampaignStatus } from "@/lib/campaigns";
+import { getCampaignObservedMetrics, getCampaignPricing } from "@/lib/campaignPricing";
 import { useDashboardRestaurant } from "./DashboardContext";
 
 type Campaign = {
@@ -21,8 +22,10 @@ type Campaign = {
   spent: number | null;
   total_budget: number | null;
   budget_daily: number | null;
+  conversion_rate: number | null;
   daily_spent: number | null;
   daily_spent_date: string | null;
+  cpc_rate: number | null;
   cpm_rate: number | null;
   starts_at: string | null;
   ends_at: string | null;
@@ -54,6 +57,10 @@ function computePacingStatus(campaign: Campaign): { label: string; color: string
   return { label: "Dans les temps", color: "text-green-500" };
 }
 
+function formatChf(value: number, digits = 2) {
+  return `${Number(value || 0).toFixed(digits)} CHF`;
+}
+
 export default function DashboardCampagneOverview() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -77,6 +84,12 @@ export default function DashboardCampagneOverview() {
   const totalConversions = campaigns.reduce((sum, campaign) => sum + (campaign.conversions || 0), 0);
   const totalSpent = campaigns.reduce((sum, campaign) => sum + Number(campaign.spent || 0), 0);
   const ctr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(1) : "0";
+  const observedTotals = getCampaignObservedMetrics({
+    impressions: totalImpressions,
+    clicks: totalClicks,
+    conversions: totalConversions,
+    spent: totalSpent,
+  });
 
   const activeCampaigns = campaigns.filter((c) => c.status === "active");
   const poolBudgetRestant = activeCampaigns.reduce((sum, c) => {
@@ -122,7 +135,7 @@ export default function DashboardCampagneOverview() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           <Card>
             <CardContent className="pt-4 text-center">
               <Eye className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
@@ -157,6 +170,18 @@ export default function DashboardCampagneOverview() {
               <p className="text-xs text-muted-foreground">Depense</p>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold">{observedTotals.effectiveCpc > 0 ? observedTotals.effectiveCpc.toFixed(2) : "—"}</p>
+              <p className="text-xs text-muted-foreground">CPC moyen (CHF)</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 text-center">
+              <p className="text-2xl font-bold">{observedTotals.effectiveCpa > 0 ? observedTotals.effectiveCpa.toFixed(2) : "—"}</p>
+              <p className="text-xs text-muted-foreground">CPA moyen (CHF)</p>
+            </CardContent>
+          </Card>
         </div>
 
         {loadingRestaurants || loading ? <p className="text-muted-foreground">Chargement...</p> : null}
@@ -182,6 +207,17 @@ export default function DashboardCampagneOverview() {
             const pacing = computePacingStatus(campaign);
             const indiceVsMoyenne = moyennePool > 0 && campaign.status === "active"
               ? (budgetRestant / moyennePool) : null;
+            const pricing = getCampaignPricing({
+              cpmRate: Number(campaign.cpm_rate || 0),
+              cpcRate: Number(campaign.cpc_rate || 0),
+              conversionRate: Number(campaign.conversion_rate || 0),
+            });
+            const observed = getCampaignObservedMetrics({
+              impressions: campaign.impressions,
+              clicks: campaign.clicks,
+              conversions: campaign.conversions,
+              spent: campaign.spent,
+            });
 
             return (
               <Card key={campaign.id}>
@@ -278,6 +314,19 @@ export default function DashboardCampagneOverview() {
                       {campaign.ends_at ? new Date(campaign.ends_at).toLocaleDateString("fr-FR") : "-"}
                     </p>
                   ) : null}
+
+                  <div className="rounded-xl border bg-muted/25 p-3">
+                    <div className="flex flex-wrap gap-2 text-[11px] font-medium">
+                      <span className="rounded-full bg-background px-2.5 py-1">Tarif {formatChf(pricing.cpmRate)} / 1k</span>
+                      <span className="rounded-full bg-background px-2.5 py-1">Tarif {formatChf(pricing.cpcRate)} / clic</span>
+                      <span className="rounded-full bg-background px-2.5 py-1">Tarif {formatChf(pricing.conversionRate)} / conv.</span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-4 text-[11px] text-muted-foreground">
+                      <span>eCPM {observed.effectiveCpm > 0 ? formatChf(observed.effectiveCpm) : "—"}</span>
+                      <span>CPC obs. {observed.effectiveCpc > 0 ? formatChf(observed.effectiveCpc) : "—"}</span>
+                      <span>CPA obs. {observed.effectiveCpa > 0 ? formatChf(observed.effectiveCpa) : "—"}</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             );

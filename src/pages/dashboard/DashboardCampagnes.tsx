@@ -48,6 +48,12 @@ import {
   type AudienceCriteria,
 } from "@/lib/campaignTargeting";
 import {
+  CAMPAIGN_MARKET_BENCHMARKS,
+  getCampaignObservedMetrics,
+  getCampaignPricing,
+  projectCampaignBenchmarkOutcomes,
+} from "@/lib/campaignPricing";
+import {
   deleteRestaurantCampaign,
   listRestaurantCampaigns,
   saveRestaurantCampaign,
@@ -107,6 +113,18 @@ const EMPTY_CONVERSIONS: ConversionByType = {
   zeroAttente: 0,
   total: 0,
 };
+
+function formatChf(value: number, digits = 2) {
+  return `${Number(value || 0).toFixed(digits)} CHF`;
+}
+
+function getRecordPricing(record?: Record<string, unknown> | null) {
+  return getCampaignPricing({
+    cpmRate: Number(record?.cpm_rate || 0),
+    cpcRate: Number(record?.cpc_rate || 0),
+    conversionRate: Number(record?.conversion_rate || 0),
+  });
+}
 
 export default function DashboardCampagnes() {
   const { selectedId, restaurants } = useDashboardRestaurant();
@@ -314,6 +332,18 @@ export default function DashboardCampagnes() {
                         <span className="font-medium">{Number(paidCampaign.budget_daily).toFixed(2)} CHF</span>
                       </div>
                     )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tarif 1k impressions</span>
+                      <span className="font-medium">{formatChf(getRecordPricing(paidCampaign).cpmRate)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tarif par clic</span>
+                      <span className="font-medium">{formatChf(getRecordPricing(paidCampaign).cpcRate)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tarif par conversion</span>
+                      <span className="font-medium">{formatChf(getRecordPricing(paidCampaign).conversionRate)}</span>
+                    </div>
                     {(paidCampaign.start_date || paidCampaign.end_date) && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Periode</span>
@@ -452,6 +482,13 @@ export default function DashboardCampagnes() {
               const pages = Array.isArray(campaign.target_pages) ? campaign.target_pages : [];
               const targetingParts = summarizeAudienceCriteria(campaign.target_criteria || DEFAULT_AUDIENCE_CRITERIA);
               const isPaid = (campaign.payment_status || "unpaid") === "paid";
+              const pricing = getRecordPricing(campaign);
+              const observed = getCampaignObservedMetrics({
+                impressions: campaign.impressions,
+                clicks: campaign.clicks,
+                conversions: campaign.conversions,
+                spent: campaign.spent,
+              });
 
               return (
                 <Card key={campaign.id}>
@@ -527,8 +564,21 @@ export default function DashboardCampagnes() {
                           <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{campaign.impressions || 0} impressions</span>
                           <span className="flex items-center gap-1"><MousePointer className="h-3 w-3" />{campaign.clicks || 0} clics</span>
                           <span className="flex items-center gap-1"><ShoppingCart className="h-3 w-3" />{campaign.conversions || 0} conversions</span>
-                          <span>Budget: {Number(campaign.spent || 0).toFixed(2)}/{Number(campaign.total_budget || 0).toFixed(2)} CHF</span>
-                          <span>Paye: {Number(campaign.paid_amount || 0).toFixed(2)} CHF</span>
+                          <span>Budget: {formatChf(Number(campaign.spent || 0))}/{formatChf(Number(campaign.total_budget || 0))}</span>
+                          <span>Paye: {formatChf(Number(campaign.paid_amount || 0))}</span>
+                        </div>
+
+                        <div className="mt-3 rounded-xl border bg-muted/30 p-3">
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-foreground/80">
+                            <span className="rounded-full bg-background px-2.5 py-1">TOK: {formatChf(pricing.cpmRate)} / 1k impressions</span>
+                            <span className="rounded-full bg-background px-2.5 py-1">TOK: {formatChf(pricing.cpcRate)} / clic</span>
+                            <span className="rounded-full bg-background px-2.5 py-1">TOK: {formatChf(pricing.conversionRate)} / conversion</span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-4 text-[11px] text-muted-foreground">
+                            <span>Observe: eCPM {observed.effectiveCpm > 0 ? formatChf(observed.effectiveCpm) : "—"}</span>
+                            <span>Observe: CPC {observed.effectiveCpc > 0 ? formatChf(observed.effectiveCpc) : "—"}</span>
+                            <span>Observe: CPA {observed.effectiveCpa > 0 ? formatChf(observed.effectiveCpa) : "—"}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -576,6 +626,14 @@ function CampaignForm({
   const totalBudgetValue = Math.max(0, Number(totalBudget) || 0);
   const allowedPaymentMethods = useMemo(() => getAllowedPaymentMethods(activeFeatures, []), [activeFeatures]);
   const requiresCheckout = totalBudgetValue > 0 && !isPaidCampaign && paymentMethod !== "cash";
+  const pricing = useMemo(
+    () => getRecordPricing(initial || null),
+    [initial],
+  );
+  const benchmarkProjection = useMemo(
+    () => projectCampaignBenchmarkOutcomes(totalBudgetValue, pricing),
+    [pricing, totalBudgetValue],
+  );
 
   useEffect(() => {
     if (allowedPaymentMethods.includes(paymentMethod)) return;
@@ -753,6 +811,68 @@ function CampaignForm({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="rounded-2xl border bg-muted/20 p-4 space-y-4">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold">Tarification TOK basee sur le marche</p>
+          <p className="text-xs text-muted-foreground">
+            Barème par defaut calibre entre les reseaux sociaux food, la recherche Google et les marketplaces restaurant.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl bg-background p-3 border">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Impressions</p>
+            <p className="mt-1 text-xl font-semibold">{formatChf(pricing.cpmRate)}</p>
+            <p className="text-xs text-muted-foreground">pour 1 000 affichages</p>
+          </div>
+          <div className="rounded-xl bg-background p-3 border">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Clics</p>
+            <p className="mt-1 text-xl font-semibold">{formatChf(pricing.cpcRate)}</p>
+            <p className="text-xs text-muted-foreground">par clic qualifie</p>
+          </div>
+          <div className="rounded-xl bg-background p-3 border">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Conversions</p>
+            <p className="mt-1 text-xl font-semibold">{formatChf(pricing.conversionRate)}</p>
+            <p className="text-xs text-muted-foreground">par commande ou reservation attribuee</p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-xl border bg-background p-3">
+            <p className="text-xs font-medium">Repères concurrence</p>
+            <div className="mt-2 space-y-2 text-xs text-muted-foreground">
+              <p>Meta Food & Beverage: env. {CAMPAIGN_MARKET_BENCHMARKS.metaFoodCpmUsd.toFixed(2)} USD CPM et {CAMPAIGN_MARKET_BENCHMARKS.metaFoodCpcUsd.toFixed(2)} USD CPC.</p>
+              <p>Google Search Food: env. {CAMPAIGN_MARKET_BENCHMARKS.googleSearchFoodCpcUsd.toFixed(2)} USD CPC et {CAMPAIGN_MARKET_BENCHMARKS.googleSearchFoodCpaUsd.toFixed(2)} USD CPA.</p>
+              <p>DoorDash: {CAMPAIGN_MARKET_BENCHMARKS.doordashPricingLabel}. Uber Eats: {CAMPAIGN_MARKET_BENCHMARKS.uberPricingLabel}.</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border bg-background p-3">
+            <p className="text-xs font-medium">Projection benchmark</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Estimation calculee avec un CTR food de {(CAMPAIGN_MARKET_BENCHMARKS.benchmarkCtr * 100).toFixed(2)}% et un taux de conversion clic vers vente de {(CAMPAIGN_MARKET_BENCHMARKS.benchmarkCvr * 100).toFixed(1)}%.
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg bg-muted/40 px-2 py-3">
+                <p className="text-sm font-semibold">{benchmarkProjection.projectedImpressions.toLocaleString()}</p>
+                <p className="text-[10px] text-muted-foreground">impressions</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 px-2 py-3">
+                <p className="text-sm font-semibold">{benchmarkProjection.projectedClicks.toLocaleString()}</p>
+                <p className="text-[10px] text-muted-foreground">clics</p>
+              </div>
+              <div className="rounded-lg bg-muted/40 px-2 py-3">
+                <p className="text-sm font-semibold">{benchmarkProjection.projectedConversions}</p>
+                <p className="text-[10px] text-muted-foreground">conversions</p>
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Coût blended estime: {formatChf(benchmarkProjection.blendedCostPerThousand)} / 1 000 impressions dans un scenario food moyen.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">

@@ -79,8 +79,10 @@ export type Database = {
           activated_at: string | null
           body: string | null
           budget_daily: number | null
+          conversion_rate: number
           channels: Json | null
           clicks: number | null
+          cpc_rate: number
           conversions: number | null
           cpm_rate: number
           created_at: string | null
@@ -112,8 +114,10 @@ export type Database = {
           activated_at?: string | null
           body?: string | null
           budget_daily?: number | null
+          conversion_rate?: number
           channels?: Json | null
           clicks?: number | null
+          cpc_rate?: number
           conversions?: number | null
           cpm_rate?: number
           created_at?: string | null
@@ -145,8 +149,10 @@ export type Database = {
           activated_at?: string | null
           body?: string | null
           budget_daily?: number | null
+          conversion_rate?: number
           channels?: Json | null
           clicks?: number | null
+          cpc_rate?: number
           conversions?: number | null
           cpm_rate?: number
           created_at?: string | null

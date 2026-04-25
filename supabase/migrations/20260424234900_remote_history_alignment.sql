@@ -1,0 +1,5 @@
+-- This migration exists only to align local migration history with the
+-- remote production history table.
+--
+-- The corresponding version was already applied remotely before this
+-- workspace recovered the current migrations directory.
