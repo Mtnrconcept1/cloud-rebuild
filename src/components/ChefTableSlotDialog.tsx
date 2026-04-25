@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, ChefHat, Clock3 } from "lucide-react";
+import { CalendarIcon, ChefHat, Clock3, Minus, Plus, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  detectServiceFromTime,
   generateDailyTimeSlots,
   type ServiceSettingsMap,
 } from "@/lib/serviceSettings";
@@ -28,7 +29,8 @@ interface ChefTableSlotDialogProps {
   serviceSettings: ServiceSettingsMap;
   initialDate?: Date | null;
   initialTime?: string | null;
-  onConfirm: (selectedIso: string) => void;
+  initialPartySize?: number | null;
+  onConfirm: (selectedIso: string, partySize: number) => void;
 }
 
 function startOfDay(value: Date) {
@@ -53,29 +55,50 @@ export default function ChefTableSlotDialog({
   serviceSettings,
   initialDate,
   initialTime,
+  initialPartySize,
   onConfirm,
 }: ChefTableSlotDialogProps) {
   const today = useMemo(() => startOfDay(new Date()), []);
   const [selectedDate, setSelectedDate] = useState<Date>(today);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [partySize, setPartySize] = useState(1);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const slots = useMemo(() => generateDailyTimeSlots(serviceSettings, 30), [serviceSettings]);
+  const selectedService = useMemo(
+    () => detectServiceFromTime(selectedTime || initialTime || serviceSettings.dinner.start_time),
+    [initialTime, selectedTime, serviceSettings.dinner.start_time],
+  );
+  const partyBounds = serviceSettings[selectedService];
 
   useEffect(() => {
     if (!open) return;
     const baseDate = initialDate ? startOfDay(initialDate) : today;
     setSelectedDate(baseDate < today ? today : baseDate);
-    if (initialTime && slots.all.includes(initialTime)) {
-      setSelectedTime(initialTime);
-    } else {
-      setSelectedTime(slots.dinner[0] ?? slots.lunch[0] ?? null);
-    }
-  }, [open, initialDate, initialTime, slots, today]);
+
+    const nextTime = initialTime && slots.all.includes(initialTime)
+      ? initialTime
+      : slots.dinner[0] ?? slots.lunch[0] ?? null;
+    setSelectedTime(nextTime);
+
+    const nextService = detectServiceFromTime(nextTime || serviceSettings.dinner.start_time);
+    const nextSettings = serviceSettings[nextService];
+    const nextPartySize = Math.max(
+      nextSettings.min_party_size,
+      Math.min(initialPartySize || 1, nextSettings.max_party_size),
+    );
+    setPartySize(nextPartySize);
+  }, [open, initialDate, initialPartySize, initialTime, serviceSettings, slots, today]);
+
+  useEffect(() => {
+    setPartySize((current) =>
+      Math.max(partyBounds.min_party_size, Math.min(current, partyBounds.max_party_size)),
+    );
+  }, [partyBounds.max_party_size, partyBounds.min_party_size]);
 
   const handleConfirm = () => {
     if (!selectedTime) return;
-    onConfirm(buildIsoFromDateAndTime(selectedDate, selectedTime));
+    onConfirm(buildIsoFromDateAndTime(selectedDate, selectedTime), partySize);
     onOpenChange(false);
   };
 
@@ -115,46 +138,83 @@ export default function ChefTableSlotDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ChefHat className="h-5 w-5 text-amber-500" />
-            Choisissez votre creneau
+            Reservez votre Table du Chef
           </DialogTitle>
           <DialogDescription>
-            <span className="font-medium text-foreground">{dishName}</span> par {chefName} —{" "}
-            {restaurantName}
+            <span className="font-medium text-foreground">{dishName}</span> par {chefName} - {restaurantName}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">Date</label>
-            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-              <PopoverTrigger asChild>
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Date</label>
+              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      if (date) setSelectedDate(startOfDay(date));
+                      setPopoverOpen(false);
+                    }}
+                    disabled={(date) => startOfDay(date) < today}
+                    fromDate={today}
+                    locale={fr}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-amber-800">
+                <Users className="h-4 w-4" />
+                Nombre de convives
+              </div>
+              <p className="mt-1 text-xs leading-5 text-amber-700/80">
+                Ce nombre determine la reservation et le nombre d'experiences facturees.
+              </p>
+              <div className="mt-4 flex items-center justify-between rounded-2xl bg-white p-2 shadow-sm">
                 <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-xl"
+                  onClick={() => setPartySize((current) => Math.max(partyBounds.min_party_size, current - 1))}
+                  disabled={partySize <= partyBounds.min_party_size}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
+                  <Minus className="h-4 w-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) setSelectedDate(startOfDay(date));
-                    setPopoverOpen(false);
-                  }}
-                  disabled={(date) => startOfDay(date) < today}
-                  fromDate={today}
-                  locale={fr}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+                <div className="text-center">
+                  <p className="font-display text-3xl font-bold text-foreground">{partySize}</p>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">convive{partySize > 1 ? "s" : ""}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-xl"
+                  onClick={() => setPartySize((current) => Math.min(partyBounds.max_party_size, current + 1))}
+                  disabled={partySize >= partyBounds.max_party_size}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                Limites du service {selectedService === "lunch" ? "midi" : "soir"} : {partyBounds.min_party_size} a {partyBounds.max_party_size} convives
+              </p>
+            </div>
           </div>
 
           {hasAnySlot ? (
@@ -173,12 +233,8 @@ export default function ChefTableSlotDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={!selectedTime}
-            className="bg-amber-500 text-white hover:bg-amber-600"
-          >
-            Ajouter au panier
+          <Button onClick={handleConfirm} disabled={!selectedTime} className="bg-amber-500 text-white hover:bg-amber-600">
+            Ajouter {partySize} convive{partySize > 1 ? "s" : ""} au panier
           </Button>
         </div>
       </DialogContent>

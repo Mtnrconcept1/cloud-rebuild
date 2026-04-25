@@ -57,6 +57,56 @@ export type PerformanceSummary = {
   hasActivity: boolean;
 };
 
+export type PerformanceTodaySnapshot = {
+  dayKey: string;
+  totalOrders: number;
+  validOrdersCount: number;
+  invalidOrdersCount: number;
+  totalRevenue: number;
+  avgTicket: number;
+  totalReservations: number;
+  cancelRate: number;
+  avgSatisfaction: number;
+  reviewsCount: number;
+};
+
+export type PerformanceAlert = {
+  id: string;
+  tone: "warning" | "positive" | "neutral";
+  title: string;
+  description: string;
+};
+
+export type PerformanceInsight = {
+  id: string;
+  label: string;
+  value: string;
+  description: string;
+};
+
+export type PerformanceServiceSnapshot = Record<ServicePeriod, {
+  count: number;
+  covers: number;
+  revenue: number;
+}>;
+
+export type PerformanceServiceSummary = {
+  lunch: PerformanceServiceSnapshot["lunch"];
+  dinner: PerformanceServiceSnapshot["dinner"];
+  strongestService: ServicePeriod | null;
+  weakestService: ServicePeriod | null;
+};
+
+export type PerformanceActivityItem = {
+  key: string;
+  kind: "order" | "reservation";
+  title: string;
+  subtitle: string;
+  occurredAt: string;
+  statusLabel: string;
+  amount: number;
+};
+
 type DailyAccumulator = {
   ordersCount: number;
   validOrdersCount: number;
@@ -116,6 +166,30 @@ function createDailyAccumulator(): DailyAccumulator {
     reviewScoreTotal: 0,
     reviewsCount: 0,
   };
+}
+
+function getOrderAmount(metadata: unknown, amount: number) {
+  const source = isRecord(metadata) ? metadata : {};
+  const verifiedTotal = toNumber(source.verified_total);
+  return verifiedTotal > 0 ? verifiedTotal : amount;
+}
+
+function formatCompactDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatReservationDateTime(dayKey: string, timeValue?: string | null) {
+  const composed = `${dayKey}T${String(timeValue || "12:00")}:00`;
+  const date = new Date(composed);
+  if (Number.isNaN(date.getTime())) return `${dayKey} ${String(timeValue || "").trim()}`.trim();
+  return formatCompactDateTime(date.toISOString());
 }
 
 export function listDateKeysInclusive(fromDay: string, toDay: string) {
@@ -307,5 +381,249 @@ export function buildPerformanceSummary({
       total: totalDiscounts,
     },
     hasActivity,
+  };
+}
+
+export function getTodayPerformanceSnapshot(summary: PerformanceSummary, dayKey: string): PerformanceTodaySnapshot {
+  const row = summary.dailyRows.find((entry) => entry.kpi_date === dayKey);
+
+  return {
+    dayKey,
+    totalOrders: row?.orders_count || 0,
+    validOrdersCount: row?.valid_orders_count || 0,
+    invalidOrdersCount: (row?.orders_count || 0) - (row?.valid_orders_count || 0),
+    totalRevenue: row?.revenue || 0,
+    avgTicket: row?.avg_ticket || 0,
+    totalReservations: row?.reservations_count || 0,
+    cancelRate: row?.cancel_rate || 0,
+    avgSatisfaction: row?.satisfaction_score || 0,
+    reviewsCount: row?.reviews_count || 0,
+  };
+}
+
+export function buildTodayServiceSummary(
+  reservations: ReservationPerformanceRow[],
+  dayKey: string,
+): PerformanceServiceSummary {
+  return buildReservationServiceSummaryForRange(reservations, dayKey, dayKey);
+}
+
+export function buildPeriodServiceSummary(
+  reservations: ReservationPerformanceRow[],
+  fromDay: string,
+  toDay: string,
+): PerformanceServiceSummary {
+  return buildReservationServiceSummaryForRange(reservations, fromDay, toDay);
+}
+
+function buildReservationServiceSummaryForRange(
+  reservations: ReservationPerformanceRow[],
+  fromDay: string,
+  toDay: string,
+): PerformanceServiceSummary {
+  const summary: PerformanceServiceSnapshot = {
+    lunch: { count: 0, covers: 0, revenue: 0 },
+    dinner: { count: 0, covers: 0, revenue: 0 },
+  };
+
+  for (const reservation of reservations) {
+    if (compareDateKeys(reservation.date, fromDay) < 0 || compareDateKeys(reservation.date, toDay) > 0) continue;
+    if (INVALID_RESERVATION_STATUSES.has(normalizeStatus(reservation.status))) continue;
+
+    const periodKey = getServicePeriodFromMetadata(reservation.metadata, reservation.time || null);
+    summary[periodKey].count += 1;
+    summary[periodKey].covers += Number(reservation.party_size || 0);
+    summary[periodKey].revenue += toNumber(reservation.total_amount);
+  }
+
+  const ranking = (Object.entries(summary) as Array<[ServicePeriod, PerformanceServiceSnapshot["lunch"]]>)
+    .sort((left, right) => right[1].count - left[1].count);
+
+  return {
+    lunch: summary.lunch,
+    dinner: summary.dinner,
+    strongestService: ranking.find(([, value]) => value.count > 0)?.[0] || null,
+    weakestService: ranking.filter(([, value]) => value.count > 0).slice(-1)[0]?.[0] || null,
+  };
+}
+
+export function buildPerformanceAlerts(input: {
+  summary: PerformanceSummary;
+  today: PerformanceTodaySnapshot;
+  todayServices: PerformanceServiceSummary;
+}): PerformanceAlert[] {
+  const { summary, today, todayServices } = input;
+  const previousRows = summary.dailyRows.filter((row) => row.kpi_date !== today.dayKey);
+  const rowsWithOrders = previousRows.filter((row) => row.valid_orders_count > 0);
+  const averageOrders = rowsWithOrders.length > 0
+    ? rowsWithOrders.reduce((sum, row) => sum + row.valid_orders_count, 0) / rowsWithOrders.length
+    : 0;
+
+  const alerts: PerformanceAlert[] = [];
+
+  if (today.invalidOrdersCount > 0 && today.cancelRate >= 20) {
+    alerts.push({
+      id: "cancel-rate",
+      tone: "warning",
+      title: "Annulations elevees aujourd'hui",
+      description: `${today.invalidOrdersCount} commande(s) perdues, soit ${today.cancelRate.toFixed(1)}% des commandes du jour.`,
+    });
+  }
+
+  if (today.avgSatisfaction > 0 && today.avgSatisfaction < 4) {
+    alerts.push({
+      id: "satisfaction",
+      tone: "warning",
+      title: "Satisfaction a surveiller",
+      description: `La note du jour est a ${today.avgSatisfaction.toFixed(1)}/5. Verifiez rapidement les retours clients.`,
+    });
+  }
+
+  if (averageOrders > 0 && today.validOrdersCount > 0 && today.validOrdersCount < averageOrders * 0.7) {
+    alerts.push({
+      id: "order-drop",
+      tone: "warning",
+      title: "Rythme de commandes en baisse",
+      description: `${today.validOrdersCount} commande(s) valides aujourd'hui contre ${averageOrders.toFixed(1)} en moyenne sur la periode.`,
+    });
+  }
+
+  if (today.totalReservations === 0) {
+    alerts.push({
+      id: "no-reservation",
+      tone: "neutral",
+      title: "Aucune reservation enregistree aujourd'hui",
+      description: "Surveillez vos disponibilites et vos campagnes pour remplir le service restant.",
+    });
+  } else if (todayServices.strongestService && todayServices.weakestService && todayServices.strongestService !== todayServices.weakestService) {
+    const weak = todayServices[todayServices.weakestService];
+    alerts.push({
+      id: "service-gap",
+      tone: "neutral",
+      title: "Un service reste plus faible",
+      description: `${todayServices.weakestService === "lunch" ? "Le midi" : "Le soir"} ne compte que ${weak.count} reservation(s) aujourd'hui.`,
+    });
+  }
+
+  if (!alerts.length && (today.totalOrders > 0 || today.totalReservations > 0)) {
+    alerts.push({
+      id: "healthy-day",
+      tone: "positive",
+      title: "Rien d'anormal aujourd'hui",
+      description: "Les principaux indicateurs du jour restent dans une zone saine.",
+    });
+  }
+
+  return alerts.slice(0, 3);
+}
+
+export function buildPerformanceInsights(summary: PerformanceSummary): PerformanceInsight[] {
+  const insights: PerformanceInsight[] = [];
+  const totalCovers = summary.reservationServiceBreakdown.lunch.covers + summary.reservationServiceBreakdown.dinner.covers;
+
+  if (totalCovers > 0) {
+    const dinnerShare = (summary.reservationServiceBreakdown.dinner.covers / totalCovers) * 100;
+    const focusService = dinnerShare >= 50 ? "soir" : "midi";
+    insights.push({
+      id: "service-share",
+      label: "Service dominant",
+      value: focusService,
+      description: `Le ${focusService} concentre ${Math.max(dinnerShare, 100 - dinnerShare).toFixed(0)}% des couverts sur la periode.`,
+    });
+  }
+
+  if (summary.discounts.total > 0) {
+    const entries = [
+      { key: "formules", value: summary.discounts.formula },
+      { key: "promotions", value: summary.discounts.promo },
+      { key: "fidelite", value: summary.discounts.loyalty },
+      { key: "flex", value: summary.discounts.flex },
+    ].sort((left, right) => right.value - left.value);
+    const top = entries[0];
+    insights.push({
+      id: "discount-driver",
+      label: "Remise dominante",
+      value: top.key,
+      description: `${top.key.charAt(0).toUpperCase()}${top.key.slice(1)} representent ${((top.value / summary.discounts.total) * 100).toFixed(0)}% des remises.`,
+    });
+  }
+
+  if (summary.dailyRows.length >= 6) {
+    const midpoint = Math.floor(summary.dailyRows.length / 2);
+    const firstHalf = summary.dailyRows.slice(0, midpoint);
+    const secondHalf = summary.dailyRows.slice(midpoint);
+    const avgFirst = firstHalf.reduce((sum, row) => sum + row.avg_ticket, 0) / Math.max(1, firstHalf.length);
+    const avgSecond = secondHalf.reduce((sum, row) => sum + row.avg_ticket, 0) / Math.max(1, secondHalf.length);
+
+    if (avgFirst > 0 && avgSecond > 0) {
+      const delta = ((avgSecond - avgFirst) / avgFirst) * 100;
+      insights.push({
+        id: "ticket-trend",
+        label: "Ticket moyen",
+        value: `${delta >= 0 ? "+" : ""}${delta.toFixed(0)}%`,
+        description: `Le panier moyen est ${delta >= 0 ? "plus haut" : "plus bas"} sur la seconde moitie de periode.`,
+      });
+    }
+  }
+
+  if (summary.avgSatisfaction > 0) {
+    insights.push({
+      id: "satisfaction-level",
+      label: "Satisfaction",
+      value: `${summary.avgSatisfaction.toFixed(1)}/5`,
+      description: summary.avgSatisfaction >= 4.5
+        ? "Les avis restent tres positifs sur la periode."
+        : "La satisfaction merite un suivi plus fin sur la periode.",
+    });
+  }
+
+  return insights.slice(0, 3);
+}
+
+export function buildTodayActivity(input: {
+  orders: OrderPerformanceRow[];
+  reservations: ReservationPerformanceRow[];
+  dayKey: string;
+}) {
+  const recentOrders = input.orders
+    .filter((order) => dayKeyFromIso(order.created_at) === input.dayKey)
+    .sort((left, right) => Date.parse(String(right.created_at)) - Date.parse(String(left.created_at)))
+    .slice(0, 4)
+    .map((order, index) => {
+      const amount = getOrderAmount(order.metadata, toNumber(order.total_amount));
+      const status = normalizeStatus(order.status) || "inconnu";
+      return {
+        key: `order-${index}-${order.created_at}`,
+        kind: "order" as const,
+        title: `Commande ${amount > 0 ? `${amount.toFixed(2)} CHF` : "en cours"}`,
+        subtitle: formatCompactDateTime(order.created_at),
+        occurredAt: order.created_at,
+        statusLabel: status,
+        amount,
+      } satisfies PerformanceActivityItem;
+    });
+
+  const recentReservations = input.reservations
+    .filter((reservation) => reservation.date === input.dayKey)
+    .filter((reservation) => !INVALID_RESERVATION_STATUSES.has(normalizeStatus(reservation.status)))
+    .sort((left, right) => String(right.time || "").localeCompare(String(left.time || "")))
+    .slice(0, 4)
+    .map((reservation, index) => {
+      const partySize = Number(reservation.party_size || 0);
+      const status = normalizeStatus(reservation.status) || "inconnu";
+      return {
+        key: `reservation-${index}-${reservation.date}-${reservation.time}`,
+        kind: "reservation" as const,
+        title: `${partySize || 0} couvert(s)`,
+        subtitle: formatReservationDateTime(reservation.date, reservation.time),
+        occurredAt: `${reservation.date}T${String(reservation.time || "00:00")}:00`,
+        statusLabel: status,
+        amount: toNumber(reservation.total_amount),
+      } satisfies PerformanceActivityItem;
+    });
+
+  return {
+    recentOrders,
+    recentReservations,
   };
 }
