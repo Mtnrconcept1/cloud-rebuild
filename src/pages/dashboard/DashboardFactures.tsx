@@ -20,13 +20,14 @@ export default function DashboardFactures() {
   const {
     selectedRestaurant,
     commissionBases,
-    miamzReimbursementsCount,
-    miamzReimbursementsOutstanding,
-    miamzReimbursementsTotal,
     payableAccruals,
     summary,
     paidCampaignsCount,
     paidCampaignsTotal,
+    refundsIssuedCount,
+    refundsIssuedTotal,
+    refundsPendingAmount,
+    refundsPendingCount,
     uninvoicedRestaurantShareTotal,
     isLoading,
     error,
@@ -112,9 +113,9 @@ export default function DashboardFactures() {
               <AccountingMetricCard
                 tone="violet"
                 icon={Wallet}
-                label="Remboursements Miamz"
-                value={formatAmount(miamzReimbursementsTotal)}
-                description={`${miamzReimbursementsCount} commande${miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz, dont ${formatAmount(miamzReimbursementsOutstanding)} encore non facture.`}
+                label="Remboursements clients"
+                value={formatAmount(refundsIssuedTotal)}
+                description={`${refundsIssuedCount} remboursement${refundsIssuedCount > 1 ? "s" : ""} emis, dont ${formatAmount(refundsPendingAmount)} encore a traiter sur ${refundsPendingCount} dossier${refundsPendingCount > 1 ? "s" : ""}.`}
               />
             </div>
 
@@ -205,21 +206,25 @@ export default function DashboardFactures() {
                 tone="violet"
                 icon={Wallet}
                 eyebrow="Comprendre les flux"
-                title="Miamz rembourses par TOK"
-                description="Les reductions Miamz avancees au client sont remboursees a part puis reintegrees a vos reversements."
-                value={formatAmount(miamzReimbursementsTotal)}
-                valueLabel="Miamz"
+                title="Remboursements emis"
+                description="Les annulations remboursees restent visibles a part pour suivre ce qui a deja ete rembourse et ce qui attend encore un traitement."
+                value={formatAmount(refundsIssuedTotal)}
+                valueLabel="Remboursements"
               >
                 <AccountingFactList
                   tone="violet"
                   items={[
                     {
-                      label: "Encore non facture",
-                      value: formatAmount(miamzReimbursementsOutstanding),
+                      label: "Encore a traiter",
+                      value: formatAmount(refundsPendingAmount),
                     },
                     {
-                      label: "Commandes avec Miamz",
-                      value: String(miamzReimbursementsCount),
+                      label: "Dossiers en attente",
+                      value: String(refundsPendingCount),
+                    },
+                    {
+                      label: "Remboursements emis",
+                      value: String(refundsIssuedCount),
                     },
                   ]}
                 />

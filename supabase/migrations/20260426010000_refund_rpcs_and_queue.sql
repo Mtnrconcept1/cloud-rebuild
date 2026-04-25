@@ -711,6 +711,8 @@ REVOKE EXECUTE ON FUNCTION public.admin_get_refund_queue() FROM anon;
 GRANT EXECUTE ON FUNCTION public.admin_get_refund_queue() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_get_refund_queue() TO service_role;
 
+DROP FUNCTION IF EXISTS public.get_customer_orders_dashboard();
+
 CREATE OR REPLACE FUNCTION public.get_customer_orders_dashboard()
 RETURNS TABLE (
   id uuid,
@@ -817,6 +819,8 @@ BEGIN
   ORDER BY o.created_at DESC;
 END;
 $$;
+
+DROP FUNCTION IF EXISTS public.get_restaurant_orders_dashboard(uuid);
 
 CREATE OR REPLACE FUNCTION public.get_restaurant_orders_dashboard(p_restaurant_id uuid)
 RETURNS TABLE (

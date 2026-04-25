@@ -157,12 +157,13 @@ export default function AdminComptaOutflow() {
 
   const {
     restaurants,
-    miamzReimbursementsCount,
-    miamzReimbursementsOutstanding,
-    miamzReimbursementsTotal,
     summary,
     payoutInvoiceSections,
     monthOptions,
+    refundsIssuedCount,
+    refundsIssuedTotal,
+    refundsPendingAmount,
+    refundsPendingCount,
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
@@ -268,9 +269,9 @@ export default function AdminComptaOutflow() {
             <AccountingMetricCard
               tone="violet"
               icon={Wallet}
-              label="Miamz inclus"
-              value={formatAmount(miamzReimbursementsTotal)}
-              description={`${miamzReimbursementsCount} commande${miamzReimbursementsCount > 1 ? "s" : ""} avec Miamz, dont ${formatAmount(miamzReimbursementsOutstanding)} encore non facture.`}
+              label="Remboursements clients"
+              value={formatAmount(refundsIssuedTotal)}
+              description={`${refundsIssuedCount} remboursement${refundsIssuedCount > 1 ? "s" : ""} emis, ${formatAmount(refundsPendingAmount)} encore a traiter.`}
             />
           </div>
 
@@ -308,25 +309,29 @@ export default function AdminComptaOutflow() {
               tone="violet"
               icon={Wallet}
               eyebrow="A garder en tete"
-              title="Miamz dans les reversements"
-              description="Les remboursements Miamz ne doivent pas se perdre dans les reversements. Ils restent lisibles ici."
-              value={formatAmount(miamzReimbursementsTotal)}
-              valueLabel="Miamz"
+              title="Remboursements clients"
+              description="Les remboursements restent lisibles a part pour distinguer ce qui a deja ete emis de ce qui attend encore un traitement."
+              value={formatAmount(refundsIssuedTotal)}
+              valueLabel="Remboursements"
             >
               <AccountingFactList
                 tone="violet"
                 items={[
                   {
-                    label: "Encore non facture",
-                    value: formatAmount(miamzReimbursementsOutstanding),
+                    label: "Encore a traiter",
+                    value: formatAmount(refundsPendingAmount),
                   },
                   {
-                    label: "Commandes concernees",
-                    value: String(miamzReimbursementsCount),
+                    label: "Dossiers en attente",
+                    value: String(refundsPendingCount),
+                  },
+                  {
+                    label: "Remboursements emis",
+                    value: String(refundsIssuedCount),
                   },
                   {
                     label: "Lecture comptable",
-                    value: "Inclus dans les payouts",
+                    value: "Sortie distincte",
                   },
                 ]}
               />

@@ -1,6 +1,7 @@
 -- Adds refund tracking columns and lifts paid-special locks for service_role/admin contexts.
 
 ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS cancelled_by text,
   ADD COLUMN IF NOT EXISTS refund_status text,
   ADD COLUMN IF NOT EXISTS refunded_amount_chf numeric(12,2) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS refunded_at timestamptz,

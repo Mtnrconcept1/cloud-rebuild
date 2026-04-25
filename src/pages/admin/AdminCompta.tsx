@@ -32,10 +32,11 @@ export default function AdminCompta() {
     paidEventGross,
     paidCampaignsCount,
     paidCampaignsTotal,
-    miamzReimbursementsCount,
-    miamzReimbursementsOutstanding,
-    miamzReimbursementsTotal,
     monthOptions,
+    refundsIssuedCount,
+    refundsIssuedTotal,
+    refundsPendingAmount,
+    refundsPendingCount,
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
@@ -221,22 +222,22 @@ export default function AdminCompta() {
               tone="violet"
               icon={Wallet}
               eyebrow="Comprendre les flux"
-              title="Miamz rembourses aux restaurateurs"
-              description="Les reductions Miamz restent visibles a part meme si elles sont reintegrees aux reversements."
-              value={formatAmount(miamzReimbursementsTotal)}
-              valueLabel="Remboursements Miamz"
+              title="Remboursements emis"
+              description="Les remboursements clients sont suivis a part pour distinguer le deja rembourse du restant a traiter."
+              value={formatAmount(refundsIssuedTotal)}
+              valueLabel="Remboursements"
             >
               <AccountingFactList
                 tone="violet"
                 items={[
                   {
-                    label: "Encore non facture",
-                    value: formatAmount(miamzReimbursementsOutstanding),
-                    helper: "Part des Miamz pas encore refacturee dans les flux ouverts",
+                    label: "Encore a traiter",
+                    value: formatAmount(refundsPendingAmount),
+                    helper: `${refundsPendingCount} dossier${refundsPendingCount > 1 ? "s" : ""} encore ouvert${refundsPendingCount > 1 ? "s" : ""}`,
                   },
                   {
-                    label: "Commandes concernees",
-                    value: String(miamzReimbursementsCount),
+                    label: "Remboursements emis",
+                    value: String(refundsIssuedCount),
                   },
                 ]}
               />

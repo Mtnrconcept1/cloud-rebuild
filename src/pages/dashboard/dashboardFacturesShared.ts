@@ -10,10 +10,10 @@ import {
   createEmptyCommissionBaseTotals,
   getNetOrderCommissionBase,
   getNetReservationCommissionBase,
-  getPointsDiscountAmount,
 } from "@/lib/comptaCommissionSources";
 import { buildRestaurantAccountingSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
+import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./DashboardContext";
 
@@ -490,6 +490,19 @@ export function useDashboardFacturesData() {
         .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)")
         .order("created_at", { ascending: false });
 
+      if (error && isRefundColumnsMissingError(error)) {
+        const fallback = await supabase
+          .from("orders")
+          .select("id, created_at, total_amount, payment_status, status, order_number, metadata, restaurant_id, restaurant_invoice_id")
+          .eq("restaurant_id", selectedId!)
+          .in("payment_status", ["paid", "captured"])
+          .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)")
+          .order("created_at", { ascending: false });
+
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as RestaurantOrderRow[];
+      }
+
       if (error) throw error;
       return (data || []) as RestaurantOrderRow[];
     },
@@ -506,6 +519,19 @@ export function useDashboardFacturesData() {
         .gt("total_amount", 0)
         .not("status", "in", "(cancelled,no_show,pending)")
         .order("created_at", { ascending: false });
+
+      if (error && isRefundColumnsMissingError(error)) {
+        const fallback = await supabase
+          .from("reservations")
+          .select("id, created_at, date, feature, metadata, total_amount, status, restaurant_id, restaurant_invoice_id")
+          .eq("restaurant_id", selectedId!)
+          .gt("total_amount", 0)
+          .not("status", "in", "(cancelled,no_show,pending)")
+          .order("created_at", { ascending: false });
+
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as RestaurantReservationPaymentRow[];
+      }
 
       if (error) throw error;
       return (data || []) as RestaurantReservationPaymentRow[];
@@ -538,6 +564,10 @@ export function useDashboardFacturesData() {
         .gt("refunded_amount_chf", 0)
         .order("refunded_at", { ascending: false });
 
+      if (error && isRefundColumnsMissingError(error)) {
+        return [] as RefundOperationRow[];
+      }
+
       if (error) throw error;
       return (data || []) as RefundOperationRow[];
     },
@@ -553,6 +583,10 @@ export function useDashboardFacturesData() {
         .eq("restaurant_id", selectedId!)
         .gt("refunded_amount_chf", 0)
         .order("refunded_at", { ascending: false });
+
+      if (error && isRefundColumnsMissingError(error)) {
+        return [] as RefundOperationRow[];
+      }
 
       if (error) throw error;
       return (data || []) as RefundOperationRow[];

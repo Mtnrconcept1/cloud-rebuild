@@ -10,11 +10,11 @@ import {
   createEmptyCommissionBaseTotals,
   getNetOrderCommissionBase,
   getNetReservationCommissionBase,
-  getPointsDiscountAmount,
   type CommissionBaseTotals,
 } from "@/lib/comptaCommissionSources";
 import { buildTokAccountingSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
+import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
 import { getSupabase } from "@/integrations/supabase/client";
 
 const supabase = getSupabase();
@@ -327,7 +327,7 @@ function getCampaignPaidAmount(campaign: Pick<AdminCampaignRow, "paid_amount" | 
 
 function isBillableReservationFee(row: Pick<AdminReservationFeeAccrualRow, "cancelled_by" | "reservation_fee_invoice_id">) {
   const cancelledBy = String(row.cancelled_by || "").trim().toLowerCase();
-  if (!(cancelledBy === "" || (cancelledBy !== "customer" && cancelledBy !== "admin"))) {
+  if (cancelledBy !== "") {
     return false;
   }
 
@@ -536,6 +536,35 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
+      if (error && isRefundColumnsMissingError(error)) {
+        let fallbackQuery = supabase
+          .from("orders")
+          .select(`
+            id,
+            created_at,
+            total_amount,
+            payment_status,
+            status,
+            order_number,
+            metadata,
+            restaurant_id,
+            restaurant_invoice_id,
+            restaurants ( name )
+          `)
+          .gte("created_at", monthBounds.monthStartDate.toISOString())
+          .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+          .in("payment_status", ["paid", "captured"])
+          .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)");
+
+        if (selectedRestaurant !== "all") {
+          fallbackQuery = fallbackQuery.eq("restaurant_id", selectedRestaurant);
+        }
+
+        const fallback = await fallbackQuery.order("created_at", { ascending: false });
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as AdminOrderRow[];
+      }
+
       if (error) throw error;
       return (data || []) as AdminOrderRow[];
     },
@@ -599,6 +628,34 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
+      if (error && isRefundColumnsMissingError(error)) {
+        let fallbackQuery = supabase
+          .from("reservations")
+          .select(`
+            id,
+            created_at,
+            date,
+            feature,
+            metadata,
+            total_amount,
+            status,
+            restaurant_id,
+            restaurants ( name )
+          `)
+          .gte("created_at", monthBounds.monthStartDate.toISOString())
+          .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+          .gt("total_amount", 0)
+          .not("status", "in", "(cancelled,no_show,pending)");
+
+        if (selectedRestaurant !== "all") {
+          fallbackQuery = fallbackQuery.eq("restaurant_id", selectedRestaurant);
+        }
+
+        const fallback = await fallbackQuery.order("created_at", { ascending: false });
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as AdminReservationPaymentRow[];
+      }
+
       if (error) throw error;
       return (data || []) as AdminReservationPaymentRow[];
     },
@@ -744,6 +801,10 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       }
 
       const { data, error } = await query;
+      if (error && isRefundColumnsMissingError(error)) {
+        return [] as RefundOperationRow[];
+      }
+
       if (error) throw error;
       return (data || []) as RefundOperationRow[];
     },
@@ -765,6 +826,10 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       }
 
       const { data, error } = await query;
+      if (error && isRefundColumnsMissingError(error)) {
+        return [] as RefundOperationRow[];
+      }
+
       if (error) throw error;
       return (data || []) as RefundOperationRow[];
     },
