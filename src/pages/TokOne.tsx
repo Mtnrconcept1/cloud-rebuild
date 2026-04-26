@@ -19,6 +19,9 @@ import {
   ShieldCheck,
   CalendarCheck,
   ArrowRight,
+  Clock3,
+  Flame,
+  Wallet,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -78,6 +81,18 @@ const BENEFITS = [
     color: "text-pink-600",
     bg: "bg-pink-100",
   },
+];
+
+const TRUST_PILLS = [
+  { icon: ShieldCheck, label: "Paiement securise Stripe" },
+  { icon: Clock3, label: "Activation en moins de 2 min" },
+  { icon: Wallet, label: "Annulation a tout moment" },
+];
+
+const VALUE_METRICS = [
+  { value: "2.50 CHF", label: "frais de livraison moyens economises / commande" },
+  { value: "20%", label: "de remise sur une selection de plats" },
+  { value: "24h", label: "d'acces anticipe a La Table du Chef" },
 ];
 
 export default function TokOne() {
@@ -169,10 +184,12 @@ export default function TokOne() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-violet-50/40 via-background to-background">
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white">
         <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-5" />
+        <div className="absolute -top-24 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-indigo-300/20 blur-3xl" />
         <div className="relative container max-w-5xl px-6 pb-24 pt-20 text-center space-y-6 md:pb-28">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-2 text-sm font-medium">
             <Crown className="h-4 w-4 text-yellow-300" />
@@ -188,6 +205,17 @@ export default function TokOne() {
             <Star className="h-3.5 w-3.5 mr-1.5" />
             14 jours d'essai gratuit
           </Badge>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            {TRUST_PILLS.map((pill) => (
+              <span
+                key={pill.label}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/85 backdrop-blur"
+              >
+                <pill.icon className="h-3.5 w-3.5" />
+                {pill.label}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -241,6 +269,16 @@ export default function TokOne() {
           </div>
         )}
 
+        {/* Value metrics */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          {VALUE_METRICS.map((metric) => (
+            <div key={metric.label} className="rounded-2xl border border-violet-100 bg-white/90 p-4 text-center shadow-sm">
+              <p className="text-2xl font-bold text-violet-700">{metric.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{metric.label}</p>
+            </div>
+          ))}
+        </div>
+
         {/* Benefits grid with detailed explanations */}
         <div className="space-y-8">
           <div className="text-center space-y-2">
@@ -256,7 +294,7 @@ export default function TokOne() {
               <button
                 key={benefit.title}
                 onClick={() => setExpandedBenefit(expandedBenefit === i ? null : i)}
-                className={`text-left p-6 rounded-2xl border bg-card shadow-sm space-y-3 hover:shadow-md transition-all ${expandedBenefit === i ? "ring-2 ring-violet-300 shadow-md" : ""}`}
+                className={`group text-left p-6 rounded-2xl border bg-card shadow-sm space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all ${expandedBenefit === i ? "ring-2 ring-violet-300 shadow-md" : ""}`}
               >
                 <div className={`w-12 h-12 rounded-xl ${benefit.bg} flex items-center justify-center`}>
                   <benefit.icon className={`h-6 w-6 ${benefit.color}`} />
@@ -311,15 +349,19 @@ export default function TokOne() {
               <p className="text-center text-muted-foreground">Aucun plan disponible pour le moment.</p>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                   {/* Monthly */}
                   <button
                     onClick={() => setSelectedPeriod("monthly")}
-                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 ${selectedPeriod === "monthly"
+                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 bg-white/90 ${selectedPeriod === "monthly"
                         ? "border-violet-500 bg-violet-50/50 shadow-lg shadow-violet-100"
                         : "border-muted hover:border-violet-200"
                       }`}
                   >
+                    <div className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[10px] text-muted-foreground">
+                      <Flame className="h-3 w-3" />
+                      Souple
+                    </div>
                     <h3 className="font-bold text-lg">Mensuel</h3>
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-bold">{monthlyPrice.toFixed(2)}</span>
@@ -336,7 +378,7 @@ export default function TokOne() {
                   {/* Yearly */}
                   <button
                     onClick={() => setSelectedPeriod("yearly")}
-                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 ${selectedPeriod === "yearly"
+                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 bg-white/90 ${selectedPeriod === "yearly"
                         ? "border-violet-500 bg-violet-50/50 shadow-lg shadow-violet-100"
                         : "border-muted hover:border-violet-200"
                       }`}
@@ -344,6 +386,10 @@ export default function TokOne() {
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white">
                       Le plus populaire
                     </Badge>
+                    <div className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-1 text-[10px] text-violet-700">
+                      <Wallet className="h-3 w-3" />
+                      Le plus rentable
+                    </div>
                     <h3 className="font-bold text-lg">Annuel</h3>
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-bold">{yearlyPrice.toFixed(2)}</span>
