@@ -223,7 +223,7 @@ function AppShell() {
           <Route path="/zero-attente" element={<FeatureSwitch enabled={hasFeature("zero-attente")}><ZeroAttente /></FeatureSwitch>} />
           <Route path="/garantie-qualite" element={<FeatureSwitch enabled={hasFeature("garantie-qualite")}><GarantieQualite /></FeatureSwitch>} />
           <Route path="/budget-auto" element={<FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch>} />
-          <Route path="/abonnement" element={<FeatureSwitch enabled={hasFeature("abonnement")}><Abonnement /></FeatureSwitch>} />
+          <Route path="/abonnement" element={<Abonnement />} />
           <Route path="/tok-one" element={<TokOne />} />
           <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />

@@ -85,7 +85,7 @@ export default function Navbar() {
   const courierEnabled = activeFeatures.has("espace-livreur");
   const reservationEnabled = activeFeatures.has("reservation");
   const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
-  const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
+  const visibleFeatures = FEATURES.filter((feature) => feature.feature === "abonnement" || activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showCartShortcut = user || itemCount > 0;
 

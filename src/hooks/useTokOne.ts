@@ -264,7 +264,7 @@ export function useTokOnePlans() {
       const { data } = await supabase
         .from("user_subscription_plans")
         .select("*")
-        .eq("status", "active")
+        .in("status", ["active", "available", "live"])
         .order("price_monthly", { ascending: true });
       return (data || []) as TokOnePlan[];
     },
