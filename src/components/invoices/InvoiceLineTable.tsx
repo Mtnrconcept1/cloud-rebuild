@@ -122,108 +122,111 @@ function getLineAmount(props: InvoiceLineTableProps, line: PayoutInvoiceDetailLi
 export function InvoiceLineTable(props: InvoiceLineTableProps) {
   const [selectedOperation, setSelectedOperation] = useState<InvoiceOperationTarget | null>(null);
   const total = props.lines.reduce((sum, line) => sum + getLineAmount(props, line), 0);
+  const minWidthClassName = props.mode === "payout" ? "min-w-[760px]" : "min-w-[680px]";
 
   return (
     <div className={cn("space-y-3", props.className)}>
-      <Table>
-        <TableHeader>
-          {props.mode === "payout" ? (
-            <TableRow>
-              <TableHead>Source</TableHead>
-              <TableHead>Libelle</TableHead>
-              <TableHead>Date / heure</TableHead>
-              <TableHead className="text-right">Montant brut</TableHead>
-              <TableHead className="text-right">Taux</TableHead>
-              <TableHead className="text-right">Montant facture</TableHead>
-            </TableRow>
-          ) : (
-            <TableRow>
-              <TableHead>Reservation</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Heure</TableHead>
-              <TableHead className="text-right">Couverts</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Montant</TableHead>
-            </TableRow>
-          )}
-        </TableHeader>
-        <TableBody>
-          {props.lines.map((line) => {
-            if (props.mode === "payout") {
-              const payoutLine = line as PayoutInvoiceDetailLine;
-              const source = SOURCE_PRESENTATION[payoutLine.source] || SOURCE_PRESENTATION.other;
+      <div className="overflow-x-auto">
+        <Table className={minWidthClassName}>
+          <TableHeader>
+            {props.mode === "payout" ? (
+              <TableRow>
+                <TableHead>Source</TableHead>
+                <TableHead>Libelle</TableHead>
+                <TableHead>Date / heure</TableHead>
+                <TableHead className="text-right">Montant brut</TableHead>
+                <TableHead className="text-right">Taux</TableHead>
+                <TableHead className="text-right">Montant facture</TableHead>
+              </TableRow>
+            ) : (
+              <TableRow>
+                <TableHead>Reservation</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Heure</TableHead>
+                <TableHead className="text-right">Couverts</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="text-right">Montant</TableHead>
+              </TableRow>
+            )}
+          </TableHeader>
+          <TableBody>
+            {props.lines.map((line) => {
+              if (props.mode === "payout") {
+                const payoutLine = line as PayoutInvoiceDetailLine;
+                const source = SOURCE_PRESENTATION[payoutLine.source] || SOURCE_PRESENTATION.other;
+                const target: InvoiceOperationTarget = {
+                  kind: payoutLine.lineType,
+                  id: payoutLine.lineId,
+                  reference: payoutLine.reference || "",
+                };
+                const displayReference = payoutLine.reference || getFallbackReference(target);
+
+                return (
+                  <TableRow key={payoutLine.lineId}>
+                    <TableCell>
+                      <Badge variant="outline" className={cn("border-none", source.className)}>
+                        {source.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-[24rem]">
+                      <div className="font-medium">{payoutLine.label}</div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOperation(target)}
+                        className="mt-1 text-left text-xs font-medium text-primary underline-offset-4 transition hover:underline"
+                      >
+                        {displayReference}
+                      </button>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                      {formatDateTime(payoutLine.occurredAt)}
+                    </TableCell>
+                    <TableCell className="text-right">{formatCurrency(payoutLine.grossAmount)}</TableCell>
+                    <TableCell className="text-right">{formatPercentage(payoutLine.rateApplied)}</TableCell>
+                    <TableCell className="text-right font-semibold">{formatCurrency(payoutLine.invoicedAmount)}</TableCell>
+                  </TableRow>
+                );
+              }
+
+              const reservationLine = line as ReservationFeeInvoiceDetailLine;
               const target: InvoiceOperationTarget = {
-                kind: payoutLine.lineType,
-                id: payoutLine.lineId,
-                reference: payoutLine.reference || "",
+                kind: "reservation",
+                id: reservationLine.reservationId,
+                reference: `RES-${reservationLine.reservationId.slice(0, 8)}`,
               };
-              const displayReference = payoutLine.reference || getFallbackReference(target);
 
               return (
-                <TableRow key={payoutLine.lineId}>
-                  <TableCell>
-                    <Badge variant="outline" className={cn("border-none", source.className)}>
-                      {source.label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-[24rem]">
-                    <div className="font-medium">{payoutLine.label}</div>
+                <TableRow key={reservationLine.reservationId}>
+                  <TableCell className="whitespace-nowrap text-sm">
                     <button
                       type="button"
                       onClick={() => setSelectedOperation(target)}
-                      className="mt-1 text-left text-xs font-medium text-primary underline-offset-4 transition hover:underline"
+                      className="font-mono text-primary underline-offset-4 transition hover:underline"
                     >
-                      {displayReference}
+                      {target.reference}
                     </button>
                   </TableCell>
+                  <TableCell className="whitespace-nowrap text-sm">{formatDate(reservationLine.reservationDate)}</TableCell>
                   <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                    {formatDateTime(payoutLine.occurredAt)}
+                    {formatTime(reservationLine.reservationTime)}
                   </TableCell>
-                  <TableCell className="text-right">{formatCurrency(payoutLine.grossAmount)}</TableCell>
-                  <TableCell className="text-right">{formatPercentage(payoutLine.rateApplied)}</TableCell>
-                  <TableCell className="text-right font-semibold">{formatCurrency(payoutLine.invoicedAmount)}</TableCell>
+                  <TableCell className="text-right">{reservationLine.partySize}</TableCell>
+                  <TableCell className="text-sm">{reservationLine.status || "-"}</TableCell>
+                  <TableCell className="text-right font-semibold">{formatCurrency(reservationLine.billingFeeChf)}</TableCell>
                 </TableRow>
               );
-            }
-
-            const reservationLine = line as ReservationFeeInvoiceDetailLine;
-            const target: InvoiceOperationTarget = {
-              kind: "reservation",
-              id: reservationLine.reservationId,
-              reference: `RES-${reservationLine.reservationId.slice(0, 8)}`,
-            };
-
-            return (
-              <TableRow key={reservationLine.reservationId}>
-                <TableCell className="whitespace-nowrap text-sm">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedOperation(target)}
-                    className="font-mono text-primary underline-offset-4 transition hover:underline"
-                  >
-                    {target.reference}
-                  </button>
-                </TableCell>
-                <TableCell className="whitespace-nowrap text-sm">{formatDate(reservationLine.reservationDate)}</TableCell>
-                <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                  {formatTime(reservationLine.reservationTime)}
-                </TableCell>
-                <TableCell className="text-right">{reservationLine.partySize}</TableCell>
-                <TableCell className="text-sm">{reservationLine.status || "-"}</TableCell>
-                <TableCell className="text-right font-semibold">{formatCurrency(reservationLine.billingFeeChf)}</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={props.mode === "payout" ? 5 : 5} className="text-right font-semibold">
-              Total
-            </TableCell>
-            <TableCell className="text-right font-semibold">{formatCurrency(total)}</TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+            })}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={props.mode === "payout" ? 5 : 5} className="text-right font-semibold">
+                Total
+              </TableCell>
+              <TableCell className="text-right font-semibold">{formatCurrency(total)}</TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </div>
       {typeof props.roundingDelta === "number" && Math.abs(props.roundingDelta) >= 0.005 ? (
         <p className="text-xs text-muted-foreground">
           Ecart d&apos;arrondi: {props.roundingDelta > 0 ? "+" : ""}

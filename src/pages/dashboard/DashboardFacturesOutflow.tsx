@@ -98,7 +98,7 @@ function InvoiceTable({
   }
 
   return (
-    <div className="rounded-xl border">
+    <div className="overflow-x-auto rounded-xl border">
       <Table className="min-w-[760px]">
         <TableHeader>
           <TableRow>
