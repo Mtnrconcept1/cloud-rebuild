@@ -97,7 +97,7 @@ function InvoiceTable({
 
   return (
     <div className="overflow-x-auto rounded-xl border">
-      <Table className="min-w-[820px]">
+      <Table className="min-w-full md:min-w-[820px] [&_th]:px-2 [&_td]:px-2 md:[&_th]:px-4 md:[&_td]:px-4">
         <TableHeader>
           <TableRow>
             <TableHead>Facture</TableHead>
