@@ -121,21 +121,20 @@ function openPrintWindow(title: string, content: string) {
       body {
         margin: 0;
         background: white;
+        display: flex;
+        justify-content: center;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
       .tok-print-shell {
-        padding: 24px;
+        width: fit-content;
+        max-width: 190mm;
+        margin: 0 auto;
         background: white;
       }
       @page {
         size: A4;
         margin: 10mm;
-      }
-      @media print {
-        .tok-print-shell {
-          padding: 0;
-        }
       }
     </style>
   </head>
@@ -208,7 +207,7 @@ export function TokPayableInvoiceDialog({
   open,
   onOpenChange,
 }: TokPayableInvoiceDialogProps) {
-  const documentRef = useRef<HTMLDivElement | null>(null);
+  const printDocumentRef = useRef<HTMLDivElement | null>(null);
   const query = useTokPayableInvoiceDocumentData(invoice, open);
   const dialogTitle = useMemo(
     () => invoice?.invoice_number || invoice?.id.slice(0, 8) || "Facture TOK",
@@ -216,30 +215,30 @@ export function TokPayableInvoiceDialog({
   );
 
   const handlePrint = () => {
-    if (!documentRef.current || !query.data) return;
-    openPrintWindow(dialogTitle, documentRef.current.outerHTML);
+    if (!printDocumentRef.current || !query.data) return;
+    openPrintWindow(dialogTitle, printDocumentRef.current.outerHTML);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[96vh] w-[calc(100vw-1rem)] max-w-[1240px] overflow-hidden rounded-[28px] border border-white/60 bg-[linear-gradient(180deg,rgba(250,250,249,0.98),rgba(244,246,250,0.98))] p-0 shadow-[0_40px_140px_-44px_rgba(15,23,42,0.48)]">
-        <div className="flex h-full max-h-[96vh] flex-col">
-          <DialogHeader className="border-b border-slate-200/80 px-6 py-5 text-left sm:px-8">
+      <DialogContent className="max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-[1240px] overflow-hidden rounded-[20px] border border-white/60 bg-[linear-gradient(180deg,rgba(250,250,249,0.98),rgba(244,246,250,0.98))] p-0 shadow-[0_40px_140px_-44px_rgba(15,23,42,0.48)] sm:max-h-[96vh] sm:w-[calc(100vw-1rem)] sm:rounded-[28px]">
+        <div className="flex h-full max-h-[calc(100dvh-0.75rem)] flex-col sm:max-h-[96vh]">
+          <DialogHeader className="border-b border-slate-200/80 px-4 py-4 text-left sm:px-8 sm:py-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1 pr-8">
-                <DialogTitle className="font-display text-2xl">Facture recue de TOK</DialogTitle>
-                <DialogDescription>
+              <div className="min-w-0 space-y-1 sm:pr-8">
+                <DialogTitle className="font-display text-xl sm:text-2xl">Facture recue de TOK</DialogTitle>
+                <DialogDescription className="text-sm">
                   Apercu admin/dashboard restaurateur de la facture payable canonique.
                 </DialogDescription>
               </div>
-              <Button onClick={handlePrint} disabled={!query.data}>
+              <Button className="w-full justify-center sm:w-auto" onClick={handlePrint} disabled={!query.data}>
                 <Download className="mr-2 h-4 w-4" />
-                Imprimer / PDF
+                <span>Imprimer / PDF</span>
               </Button>
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-3 py-3 sm:px-6 sm:py-6">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 sm:px-6 sm:py-6">
             {query.isLoading ? (
               <div className="flex min-h-[420px] items-center justify-center text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -254,7 +253,12 @@ export function TokPayableInvoiceDialog({
             ) : null}
 
             {!query.isLoading && !query.error && query.data ? (
-              <TokPayableInvoiceDocument ref={documentRef} data={query.data} />
+              <>
+                <TokPayableInvoiceDocument data={query.data} />
+                <div className="pointer-events-none fixed left-[-200vw] top-0 opacity-0" aria-hidden="true">
+                  <TokPayableInvoiceDocument ref={printDocumentRef} data={query.data} mode="print" />
+                </div>
+              </>
             ) : null}
           </div>
         </div>
