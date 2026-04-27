@@ -98,49 +98,9 @@ function InvoiceTable({
   return (
     <>
       <div className="space-y-3 md:hidden">
-        {invoices.map((invoice) => {
-          const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-          return (
-            <Card key={invoice.id}>
-              <CardContent className="space-y-3 p-4">
-                <div>
-                  <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
-                  <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
-                  <div className="text-xs text-muted-foreground">Restaurant : {invoice.restaurants?.name || "-"}</div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <p className="text-muted-foreground">Periode</p>
-                    <p>{formatPeriod(invoice.period_start, invoice.period_end)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Echeance</p>
-                    <p>{formatDate(invoice.due_at)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Montant TTC</p>
-                    <p className="font-semibold">{formatAmount(invoice.amount_ttc)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Statut</p>
-                    <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
-                      {invoice.status || "draft"}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {!isPaid ? (
-                    <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
-                      Marquer payee
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">Reglee</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {invoices.map((invoice) => (
+          <MobileInvoiceCard key={invoice.id} invoice={invoice} onMarkPaid={onMarkPaid} />
+        ))}
       </div>
       <div className="hidden overflow-x-auto rounded-xl border md:block">
         <Table className="min-w-full md:min-w-[820px] [&_th]:px-2 [&_td]:px-2 md:[&_th]:px-4 md:[&_td]:px-4">
@@ -162,6 +122,64 @@ function InvoiceTable({
           </TableBody>
         </Table>
       </div>
+    </>
+  );
+}
+
+function MobileInvoiceCard({
+  invoice,
+  onMarkPaid,
+}: {
+  invoice: PayableInvoiceRow;
+  onMarkPaid: (invoice: PayableInvoiceRow) => Promise<void>;
+}) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
+
+  return (
+    <>
+      <Card>
+        <CardContent className="space-y-3 p-4">
+          <div>
+            <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
+            <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
+            <div className="text-xs text-muted-foreground">Restaurant : {invoice.restaurants?.name || "-"}</div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <p className="text-muted-foreground">Periode</p>
+              <p>{formatPeriod(invoice.period_start, invoice.period_end)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Echeance</p>
+              <p>{formatDate(invoice.due_at)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Montant TTC</p>
+              <p className="font-semibold">{formatAmount(invoice.amount_ttc)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Statut</p>
+              <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${getInvoiceStatusClass(invoice.status)}`}>
+                {invoice.status || "draft"}
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
+              Voir la facture
+            </Button>
+            {!isPaid ? (
+              <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
+                Marquer payee
+              </Button>
+            ) : (
+              <span className="text-xs text-muted-foreground">Reglee</span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      <TokPayableInvoiceDialog invoice={previewOpen ? invoice : null} open={previewOpen} onOpenChange={setPreviewOpen} />
     </>
   );
 }
