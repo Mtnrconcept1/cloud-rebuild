@@ -10,6 +10,7 @@ import {
   getResolvedFloorPlanDimensions,
 } from "@/lib/floorPlan";
 import { type SeatPosition } from "./seatPositioning";
+import { FLOOR_PLAN_ASSETS } from "./floorPlanAssets";
 
 const tableStroke = "#7d6545";
 const seatStroke = "#73563a";
@@ -74,30 +75,62 @@ function TableSvgDefs() {
   );
 }
 
+function SvgAsset({
+  assetId,
+  x,
+  y,
+  width,
+  height,
+  rotation,
+  rotationCenterX,
+  rotationCenterY,
+  preserveAspectRatio = "none",
+  opacity = 1,
+}: {
+  assetId: keyof typeof FLOOR_PLAN_ASSETS;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+  rotationCenterX?: number;
+  rotationCenterY?: number;
+  preserveAspectRatio?: string;
+  opacity?: number;
+}) {
+  const asset = FLOOR_PLAN_ASSETS[assetId];
+  const centerX = rotationCenterX ?? (x + width / 2);
+  const centerY = rotationCenterY ?? (y + height / 2);
+
+  return (
+    <image
+      href={asset.src}
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      opacity={opacity}
+      preserveAspectRatio={preserveAspectRatio}
+      transform={rotation == null ? undefined : `rotate(${rotation} ${centerX} ${centerY})`}
+    />
+  );
+}
+
 function ChairRound({ pos, r }: { pos: SeatPosition; r: number }) {
-  const a = ((pos.angleDeg - 90) * Math.PI) / 180;
-  const cos = Math.cos(a);
-  const sin = Math.sin(a);
-  const x1 = pos.x + r * (-sin);
-  const y1 = pos.y + r * cos;
-  const x2 = pos.x + r * sin;
-  const y2 = pos.y + r * (-cos);
+  const width = r * 2.6;
+  const height = r * 3.1;
 
   return (
     <>
-      <ellipse cx={pos.x} cy={pos.y + 1.3} rx={r * 0.92} ry={r * 0.56} fill={shadowFill} />
-      <path
-        d={`M${x1},${y1} A${r},${r} 0 0,1 ${x2},${y2} Z`}
-        fill="url(#fp-seat-surface)"
-        stroke={seatStroke}
-        strokeWidth="2.2"
-      />
-      <path
-        d={`M${pos.x + r * 0.72 * (-sin)},${pos.y + r * 0.72 * cos} A${r * 0.72},${r * 0.72} 0 0,1 ${pos.x + r * 0.72 * sin},${pos.y + r * 0.72 * (-cos)}`}
-        fill="none"
-        opacity="0.55"
-        stroke="#f6e7d1"
-        strokeWidth="1.25"
+      <ellipse cx={pos.x} cy={pos.y + r * 0.78} rx={r * 0.92} ry={r * 0.5} fill={shadowFill} />
+      <SvgAsset
+        assetId="chair"
+        x={pos.x - width / 2}
+        y={pos.y - height / 2}
+        width={width}
+        height={height}
+        rotation={pos.angleDeg}
+        preserveAspectRatio="xMidYMid meet"
       />
     </>
   );
@@ -169,61 +202,55 @@ function CornerBenchShape({
 }) {
   const { x, y, w, h } = tableRect;
   const { corner, horizontal, vertical, depth } = config;
-  const pathByCorner: Record<FloorPlanCornerBenchCorner, string> = {
-    "top-left": [
-      `M${x - depth},${y - depth}`,
-      `L${x + horizontal},${y - depth}`,
-      `L${x + horizontal},${y}`,
-      `L${x},${y}`,
-      `L${x},${y + vertical}`,
-      `L${x - depth},${y + vertical}`,
-      "Z",
-    ].join(" "),
-    "top-right": [
-      `M${x + w - horizontal},${y - depth}`,
-      `L${x + w + depth},${y - depth}`,
-      `L${x + w + depth},${y + vertical}`,
-      `L${x + w},${y + vertical}`,
-      `L${x + w},${y}`,
-      `L${x + w - horizontal},${y}`,
-      "Z",
-    ].join(" "),
-    "bottom-right": [
-      `M${x + w},${y + h - vertical}`,
-      `L${x + w + depth},${y + h - vertical}`,
-      `L${x + w + depth},${y + h + depth}`,
-      `L${x + w - horizontal},${y + h + depth}`,
-      `L${x + w - horizontal},${y + h}`,
-      `L${x + w},${y + h}`,
-      "Z",
-    ].join(" "),
-    "bottom-left": [
-      `M${x - depth},${y + h - vertical}`,
-      `L${x},${y + h - vertical}`,
-      `L${x},${y + h}`,
-      `L${x + horizontal},${y + h}`,
-      `L${x + horizontal},${y + h + depth}`,
-      `L${x - depth},${y + h + depth}`,
-      "Z",
-    ].join(" "),
+  const frameByCorner: Record<FloorPlanCornerBenchCorner, { x: number; y: number; width: number; height: number; rotation: number }> = {
+    "top-left": {
+      x: x - depth,
+      y: y - depth,
+      width: horizontal + depth,
+      height: vertical + depth,
+      rotation: 270,
+    },
+    "top-right": {
+      x: x + w - horizontal,
+      y: y - depth,
+      width: horizontal + depth,
+      height: vertical + depth,
+      rotation: 0,
+    },
+    "bottom-right": {
+      x: x + w - horizontal,
+      y: y + h - vertical,
+      width: horizontal + depth,
+      height: vertical + depth,
+      rotation: 90,
+    },
+    "bottom-left": {
+      x: x - depth,
+      y: y + h - vertical,
+      width: horizontal + depth,
+      height: vertical + depth,
+      rotation: 180,
+    },
   };
+  const frame = frameByCorner[corner];
 
   return (
     <>
-      <path
-        d={pathByCorner[corner]}
-        fill="url(#fp-bench-surface)"
-        stroke={benchStroke}
-        strokeWidth="2"
-        strokeLinejoin="round"
+      <ellipse
+        cx={frame.x + frame.width / 2}
+        cy={frame.y + frame.height / 2 + Math.min(4, frame.height * 0.06)}
+        rx={frame.width * 0.42}
+        ry={frame.height * 0.24}
+        fill={shadowFill}
+        opacity={0.68}
       />
-      <path
-        d={pathByCorner[corner]}
-        fill="none"
-        opacity="0.28"
-        stroke="url(#fp-bench-inset)"
-        strokeWidth="5"
-        strokeLinejoin="round"
+      <SvgAsset
+        assetId="corner-bench"
+        x={frame.x}
+        y={frame.y}
+        width={frame.width}
+        height={frame.height}
+        rotation={frame.rotation}
       />
     </>
   );
@@ -257,26 +284,21 @@ function RectBenchStrip({
 
     return (
       <>
-        <rect
+        <ellipse
+          cx={x + width / 2}
+          cy={y + height / 2 + Math.min(3, height * 0.06)}
+          rx={width * 0.38}
+          ry={height * 0.34}
+          fill={shadowFill}
+          opacity={0.62}
+        />
+        <SvgAsset
+          assetId="banquette-straight"
           x={x}
           y={y}
           width={width}
           height={height}
-          rx={height / 2}
-          fill="url(#fp-bench-surface)"
-          stroke={benchStroke}
-          strokeWidth="2"
-        />
-        <rect
-          x={x + 5}
-          y={y + 4}
-          width={Math.max(width - 10, 0)}
-          height={Math.max(height - 8, 0)}
-          rx={Math.max((height - 8) / 2, 2)}
-          fill="none"
-          opacity="0.26"
-          stroke="url(#fp-bench-inset)"
-          strokeWidth="2"
+          rotation={side === "top" ? 0 : 180}
         />
       </>
     );
@@ -292,26 +314,21 @@ function RectBenchStrip({
 
   return (
     <>
-      <rect
+      <ellipse
+        cx={x + width / 2}
+        cy={y + height / 2 + Math.min(3, height * 0.04)}
+        rx={width * 0.42}
+        ry={height * 0.34}
+        fill={shadowFill}
+        opacity={0.62}
+      />
+      <SvgAsset
+        assetId="banquette-straight"
         x={x}
         y={y}
         width={width}
         height={height}
-        rx={width / 2}
-        fill="url(#fp-bench-surface)"
-        stroke={benchStroke}
-        strokeWidth="2"
-      />
-      <rect
-        x={x + 4}
-        y={y + 5}
-        width={Math.max(width - 8, 0)}
-        height={Math.max(height - 10, 0)}
-        rx={Math.max((width - 8) / 2, 2)}
-        fill="none"
-        opacity="0.26"
-        stroke="url(#fp-bench-inset)"
-        strokeWidth="2"
+        rotation={side === "left" ? 270 : 90}
       />
     </>
   );
@@ -487,9 +504,14 @@ function DynamicRoundTable({ resolved }: { resolved: FloorPlanResolvedDimensions
       })}
 
       <ellipse cx={cx} cy={cy + tableRadius * 0.14} rx={tableRadius * 0.96} ry={tableRadius * 0.7} fill={shadowFill} />
-      <circle cx={cx} cy={cy} r={tableRadius} fill="url(#fp-table-surface)" stroke={tableStroke} strokeWidth="3.1" />
-      <circle cx={cx} cy={cy} r={tableRadius * 0.72} fill="url(#fp-table-inset)" opacity="0.9" />
-      <circle cx={cx} cy={cy} r={tableRadius * 0.18} fill="#f6e4c8" opacity="0.75" stroke="#c89f6a" strokeWidth="1.25" />
+      <SvgAsset
+        assetId="round-table-top"
+        x={cx - tableRadius}
+        y={cy - tableRadius}
+        width={tableRadius * 2}
+        height={tableRadius * 2}
+        preserveAspectRatio="xMidYMid meet"
+      />
     </>
   );
 }
@@ -568,33 +590,23 @@ function DynamicRectTable({ resolved }: { resolved: FloorPlanResolvedDimensions 
         ry={tableRect.h * 0.36}
         fill={shadowFill}
       />
+      <SvgAsset
+        assetId="rect-table-top"
+        x={tableRect.x}
+        y={tableRect.y}
+        width={tableRect.w}
+        height={tableRect.h}
+      />
       <rect
         x={tableRect.x}
         y={tableRect.y}
         width={tableRect.w}
         height={tableRect.h}
         rx={rx}
-        fill="url(#fp-table-surface)"
+        fill="none"
         stroke={tableStroke}
-        strokeWidth="3"
-      />
-      <rect
-        x={tableRect.x + 7}
-        y={tableRect.y + 7}
-        width={Math.max(tableRect.w - 14, 0)}
-        height={Math.max(tableRect.h - 14, 0)}
-        rx={Math.max(rx - 4, 4)}
-        fill="url(#fp-table-inset)"
-        opacity="0.92"
-      />
-      <line
-        x1={tableRect.x + tableRect.w * 0.18}
-        y1={tableRect.y + tableRect.h / 2}
-        x2={tableRect.x + tableRect.w * 0.82}
-        y2={tableRect.y + tableRect.h / 2}
-        stroke="#f4dfbf"
-        strokeWidth="1.4"
-        opacity="0.54"
+        strokeOpacity="0.18"
+        strokeWidth="1.8"
       />
     </>
   );
