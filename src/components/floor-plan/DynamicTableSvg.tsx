@@ -547,14 +547,6 @@ function DynamicRectTable({ resolved }: { resolved: FloorPlanResolvedDimensions 
         ));
       })}
 
-      <SvgAsset
-        assetId="rect-table-top"
-        x={tableRect.x}
-        y={tableRect.y}
-        width={tableRect.w}
-        height={tableRect.h}
-      />
-
       {resolved.cornerBenchConfigs.map((config) => (
         <CornerBenchShape
           key={config.corner}
@@ -568,6 +560,14 @@ function DynamicRectTable({ resolved }: { resolved: FloorPlanResolvedDimensions 
           scale={scale}
         />
       ))}
+
+      <SvgAsset
+        assetId="rect-table-top"
+        x={tableRect.x}
+        y={tableRect.y}
+        width={tableRect.w}
+        height={tableRect.h}
+      />
     </>
   );
 }

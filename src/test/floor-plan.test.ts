@@ -207,10 +207,10 @@ describe("floor plan helpers", () => {
     expect(fiveSeatCorner.cornerBenchConfigs[0].vertical).toBeGreaterThan(twoSeatCorner.cornerBenchConfigs[0].vertical);
   });
 
-  it("renders added corner bench seats flush with the corner image at the same height", () => {
+  it("renders corner bench seats below the table image with the same height as the corner", () => {
     const markup = renderToStaticMarkup(createElement(DynamicTableSvg, {
       shape: "rect",
-      capacity: 3,
+      capacity: 4,
       seatType: "corner-bench",
       seatPlacements: [],
       cornerBenchConfigs: [{
@@ -219,22 +219,30 @@ describe("floor plan helpers", () => {
         vertical: 86,
         depth: 56,
         horizontalSeats: 2,
-        verticalSeats: 1,
+        verticalSeats: 2,
       }],
     }));
     const images = getRenderedImageAttributes(markup);
     const tableIndex = images.findIndex((image) => image.href.includes("plan-de-salle_0014_Calque-12.png"));
     const cornerIndex = images.findIndex((image) => image.href.includes("plan-de-salle_0009_Calque-10.png"));
-    const horizontalSeatIndex = images.findIndex((image) => image.href.includes("plan-de-salle_0010_Calque-11.png"));
+    const straightSeatIndices = images
+      .map((image, index) => image.href.includes("plan-de-salle_0010_Calque-11.png") ? index : -1)
+      .filter((index) => index >= 0);
+    const straightSeatImages = images.filter((image) => image.href.includes("plan-de-salle_0010_Calque-11.png"));
+    const horizontalSeatImage = straightSeatImages[0];
     const cornerImage = images[cornerIndex];
-    const horizontalSeatImage = images[horizontalSeatIndex];
 
     expect(tableIndex).toBeGreaterThanOrEqual(0);
-    expect(cornerIndex).toBeGreaterThan(tableIndex);
-    expect(horizontalSeatIndex).toBeGreaterThan(cornerIndex);
+    expect(cornerIndex).toBeGreaterThanOrEqual(0);
+    expect(cornerIndex).toBeLessThan(tableIndex);
     expect(cornerImage.href).toContain("plan-de-salle_0009_Calque-10.png");
-    expect(horizontalSeatImage.href).toContain("plan-de-salle_0010_Calque-11.png");
-    expect(horizontalSeatImage.height).toBe(cornerImage.height);
+    expect(straightSeatImages).toHaveLength(2);
+    straightSeatIndices.forEach((straightSeatIndex) => {
+      expect(straightSeatIndex).toBeLessThan(tableIndex);
+    });
+    straightSeatImages.forEach((straightSeatImage) => {
+      expect(straightSeatImage.height).toBe(cornerImage.height);
+    });
     expect(horizontalSeatImage.y).toBe(cornerImage.y);
     expect((horizontalSeatImage.x || 0) + (horizontalSeatImage.width || 0)).toBeCloseTo(cornerImage.x || 0, 5);
   });
