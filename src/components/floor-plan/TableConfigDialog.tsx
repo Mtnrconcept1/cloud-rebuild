@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Armchair, ChevronDown, ChevronUp, Footprints, Ruler, Sofa, Sparkles } from "lucide-react";
+import { Armchair, ChevronDown, ChevronUp, Footprints, Sofa, Sparkles } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -26,8 +26,9 @@ import {
   CORNER_BENCH_CORNERS,
   CORNER_BENCH_LABELS,
   getConfiguredTableCapacity,
+  getCornerBenchCapacity,
   getDefaultBenchDimensions,
-  getDefaultCornerBenchDimensions,
+  getCornerBenchDimensionsFromSeatCounts,
   getResolvedFloorPlanDimensions,
   RECT_SEAT_ZONES,
   RECT_SEAT_ZONE_LABELS,
@@ -75,9 +76,8 @@ type ZoneSeatState = {
 
 type CornerBenchState = {
   enabled: boolean;
-  horizontal: number;
-  vertical: number;
-  depth: number;
+  horizontalSeats: number;
+  verticalSeats: number;
 };
 
 type TableLayoutPreset = "balanced" | "stools" | "bench-one-side" | "bench-two-sides" | "corner" | "custom";
@@ -173,25 +173,20 @@ function createZoneSeatState(
 
 function createCornerBenchState(
   configs: FloorPlanCornerBenchConfig[],
-  tableWidth: number,
-  tableHeight: number,
 ) {
-  const defaults = getDefaultCornerBenchDimensions(tableWidth, tableHeight);
   const state = Object.fromEntries(
     CORNER_BENCH_CORNERS.map((corner) => [corner, {
       enabled: false,
-      horizontal: defaults.cornerBenchHorizontal,
-      vertical: defaults.cornerBenchVertical,
-      depth: defaults.cornerBenchDepth,
+      horizontalSeats: 1,
+      verticalSeats: 1,
     }]),
   ) as Record<FloorPlanCornerBenchCorner, CornerBenchState>;
 
   configs.forEach((config) => {
     state[config.corner] = {
       enabled: true,
-      horizontal: config.horizontal,
-      vertical: config.vertical,
-      depth: config.depth,
+      horizontalSeats: Math.max(1, Math.round(config.horizontalSeats || 1)),
+      verticalSeats: Math.max(1, Math.round(config.verticalSeats || 1)),
     };
   });
 
@@ -229,12 +224,18 @@ function buildCornerBenchConfigs(
 
   return CORNER_BENCH_CORNERS.flatMap((corner) => {
     const config = cornerState[corner];
+    const dimensions = getCornerBenchDimensionsFromSeatCounts(
+      config.horizontalSeats,
+      config.verticalSeats,
+    );
     return config.enabled
       ? [{
         corner,
-        horizontal: Math.max(40, Math.round(config.horizontal)),
-        vertical: Math.max(40, Math.round(config.vertical)),
-        depth: Math.max(20, Math.round(config.depth)),
+        horizontal: dimensions.horizontal,
+        vertical: dimensions.vertical,
+        depth: dimensions.depth,
+        horizontalSeats: dimensions.horizontalSeats,
+        verticalSeats: dimensions.verticalSeats,
       }]
       : [];
   });
@@ -390,29 +391,21 @@ function buildAutomaticConfiguration({
   }
 
   if (preset === "corner") {
-    const defaults = getDefaultCornerBenchDimensions(tableWidth, tableHeight);
-    const remaining = Math.max(0, safeCapacity - 2);
-    const seatPlacements: FloorPlanSeatPlacement[] = [];
-
-    if (remaining > 0) {
-      const bottomCount = Math.min(2, remaining);
-      seatPlacements.push({ zone: "bottom", type: "chair", count: bottomCount });
-      const extra = remaining - bottomCount;
-      if (extra > 0) {
-        const rightCount = Math.ceil(extra / 2);
-        const leftCount = Math.max(0, extra - rightCount);
-        if (rightCount > 0) seatPlacements.push({ zone: "right", type: "chair", count: rightCount });
-        if (leftCount > 0) seatPlacements.push({ zone: "left", type: "chair", count: leftCount });
-      }
-    }
+    const cornerCapacity = Math.max(2, safeCapacity);
+    const extraSeats = Math.max(0, cornerCapacity - 2);
+    const horizontalSeats = 1 + Math.ceil(extraSeats / 2);
+    const verticalSeats = 1 + Math.floor(extraSeats / 2);
+    const dimensions = getCornerBenchDimensionsFromSeatCounts(horizontalSeats, verticalSeats);
 
     return {
-      seatPlacements,
+      seatPlacements: [] as FloorPlanSeatPlacement[],
       cornerBenchConfigs: [{
-        corner: "top-left",
-        horizontal: defaults.cornerBenchHorizontal,
-        vertical: defaults.cornerBenchVertical,
-        depth: defaults.cornerBenchDepth,
+        corner: "top-left" as FloorPlanCornerBenchCorner,
+        horizontal: dimensions.horizontal,
+        vertical: dimensions.vertical,
+        depth: dimensions.depth,
+        horizontalSeats: dimensions.horizontalSeats,
+        verticalSeats: dimensions.verticalSeats,
       }],
     };
   }
@@ -423,14 +416,16 @@ function buildAutomaticConfiguration({
   };
 }
 
-function DimensionInput({
+function SeatCountInput({
   label,
   value,
   onChange,
+  suffix = "pl.",
 }: {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  suffix?: string;
 }) {
   return (
     <div className="min-w-0 space-y-2">
@@ -444,7 +439,7 @@ function DimensionInput({
           onChange={(event) => onChange(clampInput(Number(event.target.value), value))}
           className="h-11 min-w-0 rounded-2xl border-slate-200 bg-white pr-10 text-base font-semibold text-slate-900"
         />
-        <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-slate-400">cm</span>
+        <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-slate-400">{suffix}</span>
       </div>
     </div>
   );
@@ -496,16 +491,12 @@ function ZoneSeatCard({
   onToggle,
   onTypeChange,
   onCountChange,
-  onBenchLengthChange,
-  onBenchDepthChange,
 }: {
   label: string;
   state: ZoneSeatState;
   onToggle: (checked: boolean) => void;
   onTypeChange: (type: FloorPlanLinearSeatType) => void;
   onCountChange: (count: number) => void;
-  onBenchLengthChange: (value: number) => void;
-  onBenchDepthChange: (value: number) => void;
 }) {
   return (
     <div className={cn(
@@ -551,10 +542,9 @@ function ZoneSeatCard({
       </div>
 
       {state.enabled && state.type === "bench" ? (
-        <div className="mt-4 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(148px,1fr))]">
-          <DimensionInput label="Longueur" value={state.benchLength} onChange={onBenchLengthChange} />
-          <DimensionInput label="Profondeur" value={state.benchDepth} onChange={onBenchDepthChange} />
-        </div>
+        <p className="mt-3 text-xs leading-5 text-slate-500">
+          La longueur de la banquette est calculee automatiquement depuis le nombre de places.
+        </p>
       ) : null}
     </div>
   );
@@ -564,17 +554,17 @@ function CornerBenchCard({
   label,
   state,
   onModeChange,
-  onHorizontalChange,
-  onVerticalChange,
-  onDepthChange,
+  onHorizontalSeatsChange,
+  onVerticalSeatsChange,
 }: {
   label: string;
   state: CornerBenchState;
   onModeChange: (enabled: boolean) => void;
-  onHorizontalChange: (value: number) => void;
-  onVerticalChange: (value: number) => void;
-  onDepthChange: (value: number) => void;
+  onHorizontalSeatsChange: (value: number) => void;
+  onVerticalSeatsChange: (value: number) => void;
 }) {
+  const capacity = Math.max(2, state.horizontalSeats + state.verticalSeats);
+
   return (
     <div className={cn(
       "min-w-0 overflow-hidden rounded-[22px] border p-4 transition",
@@ -583,7 +573,9 @@ function CornerBenchCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="break-words text-sm font-semibold leading-5 text-slate-900">{label}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Le coin garde sa propre profondeur et sa propre longueur pour rester lisible.</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            2 places utilisent uniquement l'image d'angle. Les places en plus ajoutent des modules droits.
+          </p>
         </div>
         <Sofa className={cn("h-4 w-4", state.enabled ? "text-amber-600" : "text-slate-300")} />
       </div>
@@ -601,11 +593,15 @@ function CornerBenchCard({
       </div>
 
       {state.enabled ? (
-        <div className="mt-4 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(126px,1fr))]">
-          <DimensionInput label="Côté" value={state.horizontal} onChange={onHorizontalChange} />
-          <DimensionInput label="Retour" value={state.vertical} onChange={onVerticalChange} />
-          <DimensionInput label="Profondeur" value={state.depth} onChange={onDepthChange} />
-        </div>
+        <>
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-white/80 px-3 py-2 text-sm font-semibold text-amber-800">
+            Capacite du banc: {capacity} places
+          </div>
+          <div className="mt-4 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(126px,1fr))]">
+            <SeatCountInput label="Horizontal" value={state.horizontalSeats} onChange={onHorizontalSeatsChange} />
+            <SeatCountInput label="Vertical" value={state.verticalSeats} onChange={onVerticalSeatsChange} />
+          </div>
+        </>
       ) : null}
     </div>
   );
@@ -631,7 +627,7 @@ export default function TableConfigDialog({
     () => createZoneSeatState(defaults.seatPlacements, defaults.tableWidth, defaults.tableHeight),
   );
   const [cornerBenchState, setCornerBenchState] = useState<Record<FloorPlanCornerBenchCorner, CornerBenchState>>(
-    () => createCornerBenchState(defaults.cornerBenchConfigs, defaults.tableWidth, defaults.tableHeight),
+    () => createCornerBenchState(defaults.cornerBenchConfigs),
   );
 
   useEffect(() => {
@@ -644,7 +640,7 @@ export default function TableConfigDialog({
     setTableWidth(defaults.tableWidth);
     setTableHeight(defaults.tableHeight);
     setZoneState(createZoneSeatState(defaults.seatPlacements, defaults.tableWidth, defaults.tableHeight));
-    setCornerBenchState(createCornerBenchState(defaults.cornerBenchConfigs, defaults.tableWidth, defaults.tableHeight));
+    setCornerBenchState(createCornerBenchState(defaults.cornerBenchConfigs));
   }, [defaults, open]);
 
   useEffect(() => {
@@ -665,7 +661,7 @@ export default function TableConfigDialog({
     });
 
     setZoneState(createZoneSeatState(automatic.seatPlacements, tableWidth, tableHeight));
-    setCornerBenchState(createCornerBenchState(automatic.cornerBenchConfigs, tableWidth, tableHeight));
+    setCornerBenchState(createCornerBenchState(automatic.cornerBenchConfigs));
   }, [layoutPreset, shape, targetCapacity, tableWidth, tableHeight]);
 
   const seatPlacements = useMemo(
@@ -697,6 +693,8 @@ export default function TableConfigDialog({
   const availablePresets = shape === "round" ? ROUND_LAYOUT_PRESETS : RECT_LAYOUT_PRESETS;
   const canSubmit = configuredCapacity > 0;
   const presetCopy = LAYOUT_PRESET_COPY[layoutPreset];
+  const activeZoneCount = seatPlacements.length + cornerBenchConfigs.length;
+  const cornerBenchCapacity = getCornerBenchCapacity(cornerBenchConfigs);
 
   const handleShapeChange = (nextShape: FloorPlanTableShape) => {
     setShape(nextShape);
@@ -810,21 +808,19 @@ export default function TableConfigDialog({
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
                       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                        <Ruler className="h-3.5 w-3.5" />
-                        Plateau
+                        <Footprints className="h-3.5 w-3.5" />
+                        Zones
                       </div>
-                      <p className="mt-2 text-lg font-semibold text-slate-900">
-                        {resolved.tableWidth} x {resolved.tableHeight} cm
-                      </p>
+                      <p className="mt-2 text-lg font-semibold text-slate-900">{activeZoneCount}</p>
+                      <p className="mt-1 text-sm text-slate-500">zones actives</p>
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
                       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                        <Footprints className="h-3.5 w-3.5" />
-                        Emprise
+                        <Sofa className="h-3.5 w-3.5" />
+                        Angles
                       </div>
-                      <p className="mt-2 text-lg font-semibold text-slate-900">
-                        {resolved.footprintWidth} x {resolved.footprintHeight} cm
-                      </p>
+                      <p className="mt-2 text-lg font-semibold text-slate-900">{cornerBenchConfigs.length}</p>
+                      <p className="mt-1 text-sm text-slate-500">{cornerBenchCapacity} pl.</p>
                     </div>
                   </div>
                 </div>
@@ -838,7 +834,7 @@ export default function TableConfigDialog({
                 <div className="rounded-[26px] border border-slate-200 bg-white/80 p-4 sm:p-5">
                   <div className="mb-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">1. Base</p>
-                    <p className="mt-1 text-sm text-slate-500">Choisissez la forme, la capacité cible et la taille du plateau. Le reste se recalcule autour.</p>
+                    <p className="mt-1 text-sm text-slate-500">Choisissez la forme et la capacite cible. Les dimensions se calculent automatiquement.</p>
                   </div>
 
                   <div className="space-y-4">
@@ -875,21 +871,6 @@ export default function TableConfigDialog({
                         </div>
                       </div>
 
-                      {shape === "round" ? (
-                        <DimensionInput
-                          label="Diamètre"
-                          value={tableWidth}
-                          onChange={(value) => {
-                            setTableWidth(value);
-                            setTableHeight(value);
-                          }}
-                        />
-                      ) : (
-                        <>
-                          <DimensionInput label="Largeur" value={tableWidth} onChange={setTableWidth} />
-                          <DimensionInput label="Profondeur" value={tableHeight} onChange={setTableHeight} />
-                        </>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -962,8 +943,6 @@ export default function TableConfigDialog({
                               onToggle={(checked) => updateZone(zone, (current) => ({ ...current, enabled: checked }))}
                               onTypeChange={(type) => updateZone(zone, (current) => ({ ...current, type }))}
                               onCountChange={(count) => updateZone(zone, (current) => ({ ...current, count }))}
-                              onBenchLengthChange={(value) => updateZone(zone, (current) => ({ ...current, benchLength: value }))}
-                              onBenchDepthChange={(value) => updateZone(zone, (current) => ({ ...current, benchDepth: value }))}
                             />
                           ))}
                         </div>
@@ -985,9 +964,8 @@ export default function TableConfigDialog({
                                 label={CORNER_BENCH_LABELS[corner]}
                                 state={cornerBenchState[corner]}
                                 onModeChange={(enabled) => updateCornerBench(corner, (current) => ({ ...current, enabled }))}
-                                onHorizontalChange={(value) => updateCornerBench(corner, (current) => ({ ...current, horizontal: value }))}
-                                onVerticalChange={(value) => updateCornerBench(corner, (current) => ({ ...current, vertical: value }))}
-                                onDepthChange={(value) => updateCornerBench(corner, (current) => ({ ...current, depth: value }))}
+                                onHorizontalSeatsChange={(value) => updateCornerBench(corner, (current) => ({ ...current, horizontalSeats: value }))}
+                                onVerticalSeatsChange={(value) => updateCornerBench(corner, (current) => ({ ...current, verticalSeats: value }))}
                               />
                             ))}
                           </div>

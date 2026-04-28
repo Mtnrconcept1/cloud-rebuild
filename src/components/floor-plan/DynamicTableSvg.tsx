@@ -12,15 +12,17 @@ import {
 import { type SeatPosition } from "./seatPositioning";
 import { FLOOR_PLAN_ASSETS } from "./floorPlanAssets";
 
-const tableStroke = "#7d6545";
-const seatStroke = "#73563a";
-const benchStroke = "#8a603f";
-const shadowFill = "rgba(15,23,42,0.12)";
-
 const VIEWBOX_WIDTH = 200;
 const VIEWBOX_HEIGHT = 140;
 const VIEWBOX_PADDING = 6;
 const RECT_CORNER_GAP = 10;
+const CORNER_BENCH_BASE_HORIZONTAL = 92;
+const CORNER_BENCH_BASE_VERTICAL = 86;
+const CORNER_BENCH_SEAT_SPAN = 52;
+const CORNER_BENCH_ASPECT_RATIO = 162 / 135;
+const STRAIGHT_BENCH_ASPECT_RATIO = 71 / 112;
+const CORNER_BENCH_INNER_X_RATIO = 55 / 162;
+const CORNER_BENCH_INNER_Y_RATIO = 115 / 135;
 
 const ROUND_ZONE_POLAR_ANGLES: Record<FloorPlanRoundSeatZone, number> = {
   north: -90,
@@ -46,34 +48,6 @@ type DynamicTableSvgProps = {
   cornerBenchVertical?: number;
   cornerBenchDepth?: number;
 };
-
-function TableSvgDefs() {
-  return (
-    <defs>
-      <linearGradient id="fp-table-surface" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#dfc093" />
-        <stop offset="52%" stopColor="#c6a477" />
-        <stop offset="100%" stopColor="#b48b5c" />
-      </linearGradient>
-      <linearGradient id="fp-table-inset" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#f2ddbc" />
-        <stop offset="100%" stopColor="#d9b585" />
-      </linearGradient>
-      <linearGradient id="fp-seat-surface" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#fff8f0" />
-        <stop offset="100%" stopColor="#efd7b8" />
-      </linearGradient>
-      <linearGradient id="fp-bench-surface" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#d5a77d" />
-        <stop offset="100%" stopColor="#b97e53" />
-      </linearGradient>
-      <linearGradient id="fp-bench-inset" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#f5e6d4" stopOpacity="0.75" />
-        <stop offset="100%" stopColor="#f5e6d4" stopOpacity="0.18" />
-      </linearGradient>
-    </defs>
-  );
-}
 
 function SvgAsset({
   assetId,
@@ -121,28 +95,31 @@ function ChairRound({ pos, r }: { pos: SeatPosition; r: number }) {
   const height = r * 3.1;
 
   return (
-    <>
-      <ellipse cx={pos.x} cy={pos.y + r * 0.78} rx={r * 0.92} ry={r * 0.5} fill={shadowFill} />
-      <SvgAsset
-        assetId="chair"
-        x={pos.x - width / 2}
-        y={pos.y - height / 2}
-        width={width}
-        height={height}
-        rotation={pos.angleDeg}
-        preserveAspectRatio="xMidYMid meet"
-      />
-    </>
+    <SvgAsset
+      assetId="chair"
+      x={pos.x - width / 2}
+      y={pos.y - height / 2}
+      width={width}
+      height={height}
+      rotation={pos.angleDeg}
+      preserveAspectRatio="xMidYMid meet"
+    />
   );
 }
 
 function StoolRound({ pos, r }: { pos: SeatPosition; r: number }) {
+  const size = r * 2.45;
+
   return (
-    <>
-      <ellipse cx={pos.x} cy={pos.y + 1.2} rx={r * 0.78} ry={r * 0.48} fill={shadowFill} />
-      <circle cx={pos.x} cy={pos.y} r={r * 0.78} fill="url(#fp-seat-surface)" stroke={seatStroke} strokeWidth="2.2" />
-      <circle cx={pos.x} cy={pos.y} r={r * 0.38} fill="none" stroke="#eed8b7" strokeWidth="1.35" opacity="0.9" />
-    </>
+    <SvgAsset
+      assetId="stool"
+      x={pos.x - size / 2}
+      y={pos.y - size / 2}
+      width={size}
+      height={size}
+      rotation={pos.angleDeg}
+      preserveAspectRatio="xMidYMid meet"
+    />
   );
 }
 
@@ -157,102 +134,124 @@ function BenchRoundArc({
   arcSpan: number;
   depth: number;
 }) {
-  const halfArc = (arcSpan / 2) * (Math.PI / 180);
   const centerAngle = ((pos.angleDeg - 90) * Math.PI) / 180;
-  const outerRadius = r;
-  const innerRadius = Math.max(outerRadius - depth, outerRadius * 0.55);
-
-  const a1 = centerAngle - halfArc;
-  const a2 = centerAngle + halfArc;
-  const ox1 = pos.x + outerRadius * Math.cos(a1);
-  const oy1 = pos.y + outerRadius * Math.sin(a1);
-  const ox2 = pos.x + outerRadius * Math.cos(a2);
-  const oy2 = pos.y + outerRadius * Math.sin(a2);
-  const ix1 = pos.x + innerRadius * Math.cos(a2);
-  const iy1 = pos.y + innerRadius * Math.sin(a2);
-  const ix2 = pos.x + innerRadius * Math.cos(a1);
-  const iy2 = pos.y + innerRadius * Math.sin(a1);
-  const accentRadius = Math.max(innerRadius + depth * 0.4, innerRadius);
+  const arcWidth = Math.max(depth * 2.1, r * arcSpan * (Math.PI / 180));
+  const centerRadius = Math.max(0, r - depth * 0.42);
+  const centerX = pos.x + centerRadius * Math.cos(centerAngle);
+  const centerY = pos.y + centerRadius * Math.sin(centerAngle);
 
   return (
-    <>
-      <path
-        d={`M${ox1},${oy1} A${outerRadius},${outerRadius} 0 0,1 ${ox2},${oy2} L${ix1},${iy1} A${innerRadius},${innerRadius} 0 0,0 ${ix2},${iy2} Z`}
-        fill="url(#fp-bench-surface)"
-        stroke={benchStroke}
-        strokeWidth="1.7"
-      />
-      <path
-        d={`M${pos.x + accentRadius * Math.cos(a1)},${pos.y + accentRadius * Math.sin(a1)} A${accentRadius},${accentRadius} 0 0,1 ${pos.x + accentRadius * Math.cos(a2)},${pos.y + accentRadius * Math.sin(a2)}`}
-        fill="none"
-        opacity="0.42"
-        stroke="url(#fp-bench-inset)"
-        strokeWidth="2"
-      />
-    </>
+    <SvgAsset
+      assetId="banquette-straight"
+      x={centerX - arcWidth / 2}
+      y={centerY - depth / 2}
+      width={arcWidth}
+      height={depth}
+      rotation={pos.angleDeg}
+    />
   );
 }
 
 function CornerBenchShape({
   config,
   tableRect,
+  scale,
 }: {
   config: FloorPlanCornerBenchConfig;
   tableRect: { x: number; y: number; w: number; h: number };
+  scale: number;
 }) {
   const { x, y, w, h } = tableRect;
-  const { corner, horizontal, vertical, depth } = config;
-  const frameByCorner: Record<FloorPlanCornerBenchCorner, { x: number; y: number; width: number; height: number; rotation: number }> = {
+  const { corner, depth } = config;
+  const horizontalSeats = Math.max(1, Math.round(config.horizontalSeats || 1));
+  const verticalSeats = Math.max(1, Math.round(config.verticalSeats || 1));
+  const baseVertical = CORNER_BENCH_BASE_VERTICAL * scale;
+  const cornerHeight = baseVertical + depth;
+  const cornerWidth = cornerHeight * CORNER_BENCH_ASPECT_RATIO;
+  const moduleHeight = cornerHeight;
+  const moduleWidth = Math.max(CORNER_BENCH_SEAT_SPAN * scale, moduleHeight * STRAIGHT_BENCH_ASPECT_RATIO);
+  const innerX = cornerWidth * CORNER_BENCH_INNER_X_RATIO;
+  const innerY = cornerHeight * CORNER_BENCH_INNER_Y_RATIO;
+  const extraHorizontalSeats = Math.max(0, horizontalSeats - 1);
+  const extraVerticalSeats = Math.max(0, verticalSeats - 1);
+  const placementByCorner: Record<FloorPlanCornerBenchCorner, { x: number; y: number; scaleX: number; scaleY: number }> = {
     "top-left": {
-      x: x - depth,
-      y: y - depth,
-      width: horizontal + depth,
-      height: vertical + depth,
-      rotation: 270,
+      x,
+      y,
+      scaleX: -1,
+      scaleY: 1,
     },
     "top-right": {
-      x: x + w - horizontal,
-      y: y - depth,
-      width: horizontal + depth,
-      height: vertical + depth,
-      rotation: 0,
+      x: x + w,
+      y,
+      scaleX: 1,
+      scaleY: 1,
     },
     "bottom-right": {
-      x: x + w - horizontal,
-      y: y + h - vertical,
-      width: horizontal + depth,
-      height: vertical + depth,
-      rotation: 90,
+      x: x + w,
+      y: y + h,
+      scaleX: 1,
+      scaleY: -1,
     },
     "bottom-left": {
-      x: x - depth,
-      y: y + h - vertical,
-      width: horizontal + depth,
-      height: vertical + depth,
-      rotation: 180,
+      x,
+      y: y + h,
+      scaleX: -1,
+      scaleY: -1,
     },
   };
-  const frame = frameByCorner[corner];
+  const placement = placementByCorner[corner];
+  const horizontalModules = Array.from({ length: extraHorizontalSeats }, (_, index) => {
+    return { x: -(index + 1) * moduleWidth, y: 0, width: moduleWidth, height: moduleHeight };
+  });
+  const verticalModules = Array.from({ length: extraVerticalSeats }, (_, index) => {
+    return {
+      x: cornerWidth - moduleHeight,
+      y: cornerHeight + index * moduleWidth,
+      width: moduleWidth,
+      height: moduleHeight,
+    };
+  });
+  const groupTransform = [
+    `translate(${placement.x} ${placement.y})`,
+    `scale(${placement.scaleX} ${placement.scaleY})`,
+    `translate(${-innerX} ${-innerY})`,
+  ].join(" ");
 
   return (
-    <>
-      <ellipse
-        cx={frame.x + frame.width / 2}
-        cy={frame.y + frame.height / 2 + Math.min(4, frame.height * 0.06)}
-        rx={frame.width * 0.42}
-        ry={frame.height * 0.24}
-        fill={shadowFill}
-        opacity={0.68}
-      />
+    <g transform={groupTransform}>
       <SvgAsset
         assetId="corner-bench"
-        x={frame.x}
-        y={frame.y}
-        width={frame.width}
-        height={frame.height}
-        rotation={frame.rotation}
+        x={0}
+        y={0}
+        width={cornerWidth}
+        height={cornerHeight}
       />
-    </>
+      {horizontalModules.map((module, index) => (
+        <SvgAsset
+          key={`${corner}-horizontal-${index}`}
+          assetId="banquette-straight"
+          x={module.x}
+          y={module.y}
+          width={module.width}
+          height={module.height}
+        />
+      ))}
+      {verticalModules.map((module, index) => (
+        <g
+          key={`${corner}-vertical-${index}`}
+          transform={`translate(${module.x + module.height} ${module.y}) rotate(90)`}
+        >
+          <SvgAsset
+            assetId="banquette-straight"
+            x={0}
+            y={0}
+            width={module.width}
+            height={module.height}
+          />
+        </g>
+      ))}
+    </g>
   );
 }
 
@@ -283,24 +282,14 @@ function RectBenchStrip({
       : tableRect.y + tableRect.h + offset - height / 2;
 
     return (
-      <>
-        <ellipse
-          cx={x + width / 2}
-          cy={y + height / 2 + Math.min(3, height * 0.06)}
-          rx={width * 0.38}
-          ry={height * 0.34}
-          fill={shadowFill}
-          opacity={0.62}
-        />
-        <SvgAsset
-          assetId="banquette-straight"
-          x={x}
-          y={y}
-          width={width}
-          height={height}
-          rotation={side === "top" ? 0 : 180}
-        />
-      </>
+      <SvgAsset
+        assetId="banquette-straight"
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        rotation={side === "top" ? 0 : 180}
+      />
     );
   }
 
@@ -313,24 +302,14 @@ function RectBenchStrip({
   const y = tableRect.y + startInset + (available - height) / 2;
 
   return (
-    <>
-      <ellipse
-        cx={x + width / 2}
-        cy={y + height / 2 + Math.min(3, height * 0.04)}
-        rx={width * 0.42}
-        ry={height * 0.34}
-        fill={shadowFill}
-        opacity={0.62}
-      />
-      <SvgAsset
-        assetId="banquette-straight"
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        rotation={side === "left" ? 270 : 90}
-      />
-    </>
+    <SvgAsset
+      assetId="banquette-straight"
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      rotation={side === "left" ? 270 : 90}
+    />
   );
 }
 
@@ -497,13 +476,12 @@ function DynamicRoundTable({ resolved }: { resolved: FloorPlanResolvedDimensions
           <Seat
             key={`${zone}-${placement.type}-${index}`}
             pos={position}
-            seatType={placement.type}
+            seatType={placement.type === "stool" ? "stool" : "chair"}
             seatSize={seatSize}
           />
         ));
       })}
 
-      <ellipse cx={cx} cy={cy + tableRadius * 0.14} rx={tableRadius * 0.96} ry={tableRadius * 0.7} fill={shadowFill} />
       <SvgAsset
         assetId="round-table-top"
         x={cx - tableRadius}
@@ -519,23 +497,9 @@ function DynamicRoundTable({ resolved }: { resolved: FloorPlanResolvedDimensions
 function DynamicRectTable({ resolved }: { resolved: FloorPlanResolvedDimensions }) {
   const { scale, tableRect } = getScaledFrame(resolved);
   const seatSize = Math.max(8, Math.min(14, Math.min(tableRect.w, tableRect.h) * 0.12));
-  const rx = Math.min(12, tableRect.w * 0.1, tableRect.h * 0.1);
 
   return (
     <>
-      {resolved.cornerBenchConfigs.map((config) => (
-        <CornerBenchShape
-          key={config.corner}
-          config={{
-            ...config,
-            horizontal: config.horizontal * scale,
-            vertical: config.vertical * scale,
-            depth: config.depth * scale,
-          }}
-          tableRect={tableRect}
-        />
-      ))}
-
       {resolved.seatPlacements.map((placement) => {
         const side = placement.zone as FloorPlanRectSeatZone;
         const insets = getRectCornerInset(side, resolved.cornerBenchConfigs.map((config) => ({
@@ -577,19 +541,12 @@ function DynamicRectTable({ resolved }: { resolved: FloorPlanResolvedDimensions 
           <Seat
             key={`${side}-${placement.type}-${index}`}
             pos={position}
-            seatType={placement.type}
+            seatType={placement.type === "stool" ? "stool" : "chair"}
             seatSize={seatSize}
           />
         ));
       })}
 
-      <ellipse
-        cx={tableRect.x + tableRect.w / 2}
-        cy={tableRect.y + tableRect.h / 2 + Math.min(6, tableRect.h * 0.1)}
-        rx={tableRect.w * 0.48}
-        ry={tableRect.h * 0.36}
-        fill={shadowFill}
-      />
       <SvgAsset
         assetId="rect-table-top"
         x={tableRect.x}
@@ -597,17 +554,20 @@ function DynamicRectTable({ resolved }: { resolved: FloorPlanResolvedDimensions 
         width={tableRect.w}
         height={tableRect.h}
       />
-      <rect
-        x={tableRect.x}
-        y={tableRect.y}
-        width={tableRect.w}
-        height={tableRect.h}
-        rx={rx}
-        fill="none"
-        stroke={tableStroke}
-        strokeOpacity="0.18"
-        strokeWidth="1.8"
-      />
+
+      {resolved.cornerBenchConfigs.map((config) => (
+        <CornerBenchShape
+          key={config.corner}
+          config={{
+            ...config,
+            horizontal: config.horizontal * scale,
+            vertical: config.vertical * scale,
+            depth: config.depth * scale,
+          }}
+          tableRect={tableRect}
+          scale={scale}
+        />
+      ))}
     </>
   );
 }
@@ -641,7 +601,6 @@ export default function DynamicTableSvg({
 
   return (
     <>
-      <TableSvgDefs />
       {shape === "round"
         ? <DynamicRoundTable resolved={resolved} />
         : <DynamicRectTable resolved={resolved} />}

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 import {
   buildDraftFloorPlanLayout,
@@ -9,7 +11,28 @@ import {
   getResolvedFloorPlanDimensions,
   isReservableFloorPlanItem,
   reservationsOverlap,
+  resizeFloorPlanLayoutToFootprint,
+  resizeRenderedFloorPlanFrame,
 } from "@/lib/floorPlan";
+import DynamicTableSvg from "@/components/floor-plan/DynamicTableSvg";
+
+function getRenderedImageAttributes(markup: string) {
+  return Array.from(markup.matchAll(/<image\b([^>]*)>/g)).map((match) => {
+    const attributes = match[1];
+    const getNumber = (name: string) => {
+      const value = attributes.match(new RegExp(`${name}="([^"]+)"`))?.[1];
+      return value == null ? null : Number(value);
+    };
+
+    return {
+      href: attributes.match(/href="([^"]+)"/)?.[1] || "",
+      x: getNumber("x"),
+      y: getNumber("y"),
+      width: getNumber("width"),
+      height: getNumber("height"),
+    };
+  });
+}
 
 describe("floor plan helpers", () => {
   it("builds balanced seat labels for round and rectangular tables", () => {
@@ -45,7 +68,7 @@ describe("floor plan helpers", () => {
     const smallRound = getMinimumTableSize(2, "round");
     const largeRound = getMinimumTableSize(8, "round");
     const fitted = ensureFloorPlanLayoutFitsCapacity(
-      { x: 40, y: 40, w: 120, h: 120, rotation: 0, shape: "rect", seatLabels: [1, 1] },
+      { x: 40, y: 40, w: 120, h: 120, rotation: 0, shape: "rect", seatLabels: [1, 1], kind: "table" },
       10,
       "rect",
     );
@@ -71,7 +94,7 @@ describe("floor plan helpers", () => {
     expect(plantLayout.h).toBeGreaterThanOrEqual(getMinimumTableSize(0, "round", "plant").h);
   });
 
-  it("resizes furniture with guided constraints instead of snapping everything to the preset minimum", () => {
+  it("keeps furniture resize free on each axis like an image", () => {
     const plant = ensureFloorPlanLayoutFitsCapacity(
       { x: 40, y: 40, w: 144, h: 108, rotation: 0, shape: "round", seatLabels: [], kind: "plant" },
       0,
@@ -93,11 +116,127 @@ describe("floor plan helpers", () => {
     });
 
     expect(plant.w).toBe(144);
-    expect(plant.h).toBe(144);
+    expect(plant.h).toBe(108);
     expect(divider.w).toBe(320);
-    expect(divider.h).toBeLessThanOrEqual(72);
+    expect(divider.h).toBe(120);
     expect(serviceStation.footprintWidth).toBe(260);
     expect(serviceStation.footprintHeight).toBe(120);
+  });
+
+  it("resizes rendered frames by axis and keeps corner handles proportional", () => {
+    const frame = { x: 100, y: 80, w: 200, h: 100 };
+
+    expect(resizeRenderedFloorPlanFrame(frame, "e", 60, 75, 80, 60)).toEqual({
+      x: 100,
+      y: 80,
+      w: 260,
+      h: 100,
+    });
+    expect(resizeRenderedFloorPlanFrame(frame, "s", 60, 75, 80, 60)).toEqual({
+      x: 100,
+      y: 80,
+      w: 200,
+      h: 175,
+    });
+    expect(resizeRenderedFloorPlanFrame(frame, "nw", -40, 0, 80, 60)).toEqual({
+      x: 60,
+      y: 60,
+      w: 240,
+      h: 120,
+    });
+  });
+
+  it("resizes table footprints without recalculating the inner drawing", () => {
+    const layout = ensureFloorPlanLayoutFitsCapacity(
+      { x: 40, y: 40, w: 176, h: 112, rotation: 0, shape: "rect", seatLabels: [1, 1, 1, 1], kind: "table" },
+      4,
+      "rect",
+    );
+    const before = getResolvedFloorPlanDimensions({
+      capacity: 4,
+      shape: layout.shape,
+      kind: layout.kind,
+      seatPlacements: layout.seatPlacements,
+      tableWidth: layout.tableWidth,
+      tableHeight: layout.tableHeight,
+      footprintWidth: layout.w,
+      footprintHeight: layout.h,
+    });
+
+    const resized = resizeFloorPlanLayoutToFootprint(layout, 4, layout.w * 2, layout.h, "rect", "table");
+
+    expect(resized.w).toBe(layout.w * 2);
+    expect(resized.h).toBe(layout.h);
+    expect(resized.tableWidth).toBe(before.tableWidth);
+    expect(resized.tableHeight).toBe(before.tableHeight);
+  });
+
+  it("derives corner bench capacity from horizontal and vertical seat counts", () => {
+    const twoSeatCorner = getResolvedFloorPlanDimensions({
+      capacity: 2,
+      shape: "rect",
+      seatPlacements: [],
+      cornerBenchConfigs: [{
+        corner: "top-left",
+        horizontalSeats: 1,
+        verticalSeats: 1,
+      } as never],
+    });
+    const fiveSeatCorner = getResolvedFloorPlanDimensions({
+      capacity: 2,
+      shape: "rect",
+      seatPlacements: [],
+      cornerBenchConfigs: [{
+        corner: "top-left",
+        horizontalSeats: 3,
+        verticalSeats: 2,
+      } as never],
+    });
+
+    expect(twoSeatCorner.capacity).toBe(2);
+    expect(twoSeatCorner.cornerBenchConfigs[0]).toMatchObject({
+      horizontalSeats: 1,
+      verticalSeats: 1,
+    });
+    expect(fiveSeatCorner.capacity).toBe(5);
+    expect(fiveSeatCorner.cornerBenchConfigs[0]).toMatchObject({
+      horizontalSeats: 3,
+      verticalSeats: 2,
+    });
+    expect(fiveSeatCorner.cornerBenchConfigs[0].horizontal).toBeGreaterThan(twoSeatCorner.cornerBenchConfigs[0].horizontal);
+    expect(fiveSeatCorner.cornerBenchConfigs[0].vertical).toBeGreaterThan(twoSeatCorner.cornerBenchConfigs[0].vertical);
+  });
+
+  it("renders added corner bench seats flush with the corner image at the same height", () => {
+    const markup = renderToStaticMarkup(createElement(DynamicTableSvg, {
+      shape: "rect",
+      capacity: 3,
+      seatType: "corner-bench",
+      seatPlacements: [],
+      cornerBenchConfigs: [{
+        corner: "top-left",
+        horizontal: 144,
+        vertical: 86,
+        depth: 56,
+        horizontalSeats: 2,
+        verticalSeats: 1,
+      }],
+    }));
+    const images = getRenderedImageAttributes(markup);
+    const tableIndex = images.findIndex((image) => image.href.includes("plan-de-salle_0014_Calque-12.png"));
+    const cornerIndex = images.findIndex((image) => image.href.includes("plan-de-salle_0009_Calque-10.png"));
+    const horizontalSeatIndex = images.findIndex((image) => image.href.includes("plan-de-salle_0010_Calque-11.png"));
+    const cornerImage = images[cornerIndex];
+    const horizontalSeatImage = images[horizontalSeatIndex];
+
+    expect(tableIndex).toBeGreaterThanOrEqual(0);
+    expect(cornerIndex).toBeGreaterThan(tableIndex);
+    expect(horizontalSeatIndex).toBeGreaterThan(cornerIndex);
+    expect(cornerImage.href).toContain("plan-de-salle_0009_Calque-10.png");
+    expect(horizontalSeatImage.href).toContain("plan-de-salle_0010_Calque-11.png");
+    expect(horizontalSeatImage.height).toBe(cornerImage.height);
+    expect(horizontalSeatImage.y).toBe(cornerImage.y);
+    expect((horizontalSeatImage.x || 0) + (horizontalSeatImage.width || 0)).toBeCloseTo(cornerImage.x || 0, 5);
   });
 
   it("detects overlapping reservations on the same service window", () => {

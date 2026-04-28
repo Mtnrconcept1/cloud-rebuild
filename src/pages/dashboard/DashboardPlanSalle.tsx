@@ -69,8 +69,11 @@ import {
   normalizeFloorPlanLayout,
   reservationsOverlap,
   resizeFloorPlanLayoutToFootprint,
+  resizeRenderedFloorPlanFrame,
   type FloorPlanCornerBenchConfig,
   type FloorPlanItemKind,
+  type FloorPlanRenderedFrame,
+  type FloorPlanResizeHandle,
   type FloorPlanSeatPlacement,
   type FloorPlanSeatType,
   type FloorPlanTableLayout,
@@ -169,14 +172,14 @@ type DraftTable = {
 
 type ServiceFilter = "all" | "lunch" | "dinner";
 type SortBy = "time" | "party_size" | "status";
-type ResizeHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
+type ResizeHandle = FloorPlanResizeHandle;
 type FloorPlanEditMode = "service" | "template";
 type SaveMutationOptions = {
   silent?: boolean;
   source?: "manual" | "auto-layout";
   layoutSignature?: string | null;
 };
-type RenderedTableFrame = { x: number; y: number; w: number; h: number };
+type RenderedTableFrame = FloorPlanRenderedFrame;
 type TableDensity = "tight" | "compact" | "regular";
 
 const DEFAULT_SECTOR = "Salle principale";
@@ -192,11 +195,6 @@ const EMPTY_TABLES: TableRow[] = [];
 const EMPTY_RESERVATIONS: ReservationWithCustomer[] = [];
 const EMPTY_SLOTS: SlotRow[] = [];
 const EMPTY_LAYOUT_OVERRIDES: LayoutOverrideRow[] = [];
-const PRIMARY_RESIZE_HANDLE: { key: ResizeHandle; className: string; cursor: string } = {
-  key: "se",
-  className: "bottom-2 right-2",
-  cursor: "nwse-resize",
-};
 const SIDE_PANEL_TAB_LIST_CLASS = "grid h-auto min-h-12 w-full gap-1 rounded-2xl bg-slate-100 p-1";
 const SIDE_PANEL_TAB_TRIGGER_CLASS = "min-w-0 whitespace-normal rounded-xl px-2 py-2 text-[10px] leading-tight uppercase tracking-[0.14em] sm:text-[11px]";
 const SIDE_PANEL_PRESET_GRID_CLASS = "grid [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))] gap-3";
@@ -537,40 +535,6 @@ function getNextPresetLabel(tables: DraftTable[], preset: FloorPlanTablePreset) 
 
 function clampCanvasZoom(value: number) {
   return Math.min(MAX_CANVAS_ZOOM, Math.max(MIN_CANVAS_ZOOM, Number(value.toFixed(2))));
-}
-
-function resizeRenderedTableFrame(
-  frame: RenderedTableFrame,
-  handle: ResizeHandle,
-  deltaX: number,
-  deltaY: number,
-  minimumWidth: number,
-  minimumHeight: number,
-) {
-  let nextLeft = frame.x;
-  let nextTop = frame.y;
-  let nextRight = frame.x + frame.w;
-  let nextBottom = frame.y + frame.h;
-
-  if (handle.includes("e")) {
-    nextRight = Math.max(nextLeft + minimumWidth, nextRight + deltaX);
-  }
-  if (handle.includes("s")) {
-    nextBottom = Math.max(nextTop + minimumHeight, nextBottom + deltaY);
-  }
-  if (handle.includes("w")) {
-    nextLeft = Math.min(nextRight - minimumWidth, nextLeft + deltaX);
-  }
-  if (handle.includes("n")) {
-    nextTop = Math.min(nextBottom - minimumHeight, nextTop + deltaY);
-  }
-
-  return {
-    x: nextLeft,
-    y: nextTop,
-    w: nextRight - nextLeft,
-    h: nextBottom - nextTop,
-  };
 }
 
 function getTableContentPadding(
@@ -1343,7 +1307,7 @@ export default function DashboardPlanSalle() {
             cornerBenchVertical: resizeState.startLayout.cornerBenchVertical,
             cornerBenchDepth: resizeState.startLayout.cornerBenchDepth,
           });
-          const resizedFrame = resizeRenderedTableFrame(
+          const resizedFrame = resizeRenderedFloorPlanFrame(
             resizeState.startFrame,
             resizeState.handle,
             deltaX,
@@ -3121,7 +3085,7 @@ export default function DashboardPlanSalle() {
                   onCanvasDragLeave={handleCanvasDragLeave}
                   onCanvasBackgroundPress={clearServiceSelection}
                   onStartDraggingTable={startDraggingTable}
-                  onStartResizingTable={(event, tableId) => startResizingTable(event, tableId, PRIMARY_RESIZE_HANDLE.key)}
+                  onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
                   onStartRotatingTable={startRotatingTable}
                   onUpdateCanvasZoom={updateCanvasZoom}
                   getReservationDropState={getReservationDropState}

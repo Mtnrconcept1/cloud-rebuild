@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { FloorPlanResizeHandle } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import {
@@ -46,7 +47,7 @@ type ServiceBoardProps = {
   onCanvasDragLeave: (event: DragEvent<HTMLDivElement>) => void;
   onCanvasBackgroundPress: () => void;
   onStartDraggingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
-  onStartResizingTable: (event: PointerEvent<HTMLButtonElement>, tableId: string) => void;
+  onStartResizingTable: (event: PointerEvent<HTMLButtonElement>, tableId: string, handle: FloorPlanResizeHandle) => void;
   onStartRotatingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
   onUpdateCanvasZoom: (nextZoom: number) => void;
   getReservationDropState: (reservationId: string, tableId: string) => ReservationDropState;
@@ -62,6 +63,16 @@ const CANVAS_HEIGHT = 680;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
+const SERVICE_RESIZE_HANDLES: Array<{ key: FloorPlanResizeHandle; className: string; cursor: string }> = [
+  { key: "nw", className: "-left-1.5 -top-1.5", cursor: "nwse-resize" },
+  { key: "n", className: "left-1/2 -top-1.5 -translate-x-1/2", cursor: "ns-resize" },
+  { key: "ne", className: "-right-1.5 -top-1.5", cursor: "nesw-resize" },
+  { key: "e", className: "-right-1.5 top-1/2 -translate-y-1/2", cursor: "ew-resize" },
+  { key: "se", className: "-right-1.5 -bottom-1.5", cursor: "nwse-resize" },
+  { key: "s", className: "-bottom-1.5 left-1/2 -translate-x-1/2", cursor: "ns-resize" },
+  { key: "sw", className: "-left-1.5 -bottom-1.5", cursor: "nesw-resize" },
+  { key: "w", className: "-left-1.5 top-1/2 -translate-y-1/2", cursor: "ew-resize" },
+];
 
 function getSurfaceState({
   isReservable,
@@ -346,6 +357,7 @@ export default function ServiceBoard({
                               cornerBenchVertical={table.layout.cornerBenchVertical}
                               cornerBenchDepth={table.layout.cornerBenchDepth}
                               className="h-full w-full"
+                              preserveAspectRatio="none"
                             />
                           </div>
 
@@ -477,15 +489,21 @@ export default function ServiceBoard({
                             </button>
                           ) : null}
 
-                          {isSelected ? (
-                            <button
-                              type="button"
-                              aria-label={`Redimensionner ${table.table_number}`}
-                              className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border border-slate-900/15 bg-white shadow-sm"
-                              style={{ cursor: "nwse-resize" }}
-                              onPointerDown={(event) => onStartResizingTable(event, table.id)}
-                            />
-                          ) : null}
+                          {isSelected
+                            ? SERVICE_RESIZE_HANDLES.map((handle) => (
+                              <button
+                                key={handle.key}
+                                type="button"
+                                aria-label={`Redimensionner ${table.table_number}`}
+                                className={cn(
+                                  "absolute h-3.5 w-3.5 rounded-full border border-slate-900/15 bg-white shadow-sm",
+                                  handle.className,
+                                )}
+                                style={{ cursor: handle.cursor }}
+                                onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
+                              />
+                            ))
+                            : null}
                         </div>
 
                         {isSelected ? (

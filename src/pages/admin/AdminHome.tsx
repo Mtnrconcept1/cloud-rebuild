@@ -402,9 +402,9 @@ export default function AdminHome() {
             <ScrollArea className="h-64">
               <div className="space-y-2">
                 {recentOrders?.map((order: any) => (
-                  <div key={order.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
-                    <div>
-                      <p className="font-medium">{order.total_amount?.toFixed(2)} CHF</p>
+                  <div key={order.id} className="flex items-start justify-between gap-3 rounded-lg border p-2 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words font-medium">{order.total_amount?.toFixed(2)} CHF</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString("fr-CH", {
                           day: "2-digit",
@@ -414,7 +414,7 @@ export default function AdminHome() {
                         })}
                       </p>
                     </div>
-                    <Badge variant="secondary" className={statusColor(order.status)}>
+                    <Badge variant="secondary" className={`${statusColor(order.status)} shrink-0 self-start`}>
                       {order.status}
                     </Badge>
                   </div>
@@ -429,12 +429,12 @@ export default function AdminHome() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-amber-500" />
                 <CardTitle>Journal d'audit</CardTitle>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/admin/audit")}>
+              <Button variant="ghost" size="sm" className="self-stretch sm:self-auto" onClick={() => navigate("/admin/audit")}>
                 Voir tout
               </Button>
             </div>
@@ -443,9 +443,9 @@ export default function AdminHome() {
             <ScrollArea className="h-64">
               <div className="space-y-2">
                 {auditLogs?.map((log: any) => (
-                  <div key={log.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
-                    <div>
-                      <p className="font-medium">
+                  <div key={log.id} className="flex items-start justify-between gap-3 rounded-lg border p-2 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium leading-5 break-words [overflow-wrap:anywhere]">
                         {log.action} - <span className="text-muted-foreground">{log.entity_type}</span>
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -465,7 +465,7 @@ export default function AdminHome() {
                             ? "secondary"
                             : "outline"
                       }
-                      className="text-xs"
+                      className="shrink-0 self-start text-xs"
                     >
                       {log.status}
                     </Badge>

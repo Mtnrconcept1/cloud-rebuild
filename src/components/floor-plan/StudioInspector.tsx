@@ -140,29 +140,27 @@ export default function StudioInspector({
               </Select>
             </div>
 
-            {selectedTableIsReservable && selectedTableDimensions ? (
+            {selectedTableIsReservable ? (
               <div className="grid gap-3 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                  <Ruler className="h-3.5 w-3.5" />
-                  Dimensions
+                  <Armchair className="h-3.5 w-3.5" />
+                  Assises
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Plateau</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900">
-                      {selectedTableDimensions.tableWidth} x {selectedTableDimensions.tableHeight} cm
-                    </p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Capacite</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-900">{selectedTable.capacity} couverts</p>
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Emprise</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Zones</p>
                     <p className="mt-1 text-sm font-semibold text-slate-900">
-                      {selectedTableDimensions.footprintWidth} x {selectedTableDimensions.footprintHeight} cm
+                      {(selectedTable.layout.seatPlacements?.length || 0) + (selectedTable.layout.cornerBenchConfigs?.length || 0)} actives
                     </p>
                   </div>
                 </div>
                 <Button type="button" variant="outline" className="justify-start rounded-2xl" onClick={onConfigureTable}>
                   <Armchair className="mr-2 h-4 w-4" />
-                  Configurer dimensions et assises
+                  Configurer les assises
                 </Button>
               </div>
             ) : (

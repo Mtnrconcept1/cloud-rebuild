@@ -16,9 +16,13 @@ const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
 const STUDIO_RESIZE_HANDLES = [
   { key: "nw", className: "-left-2.5 -top-2.5", cursor: "nwse-resize" },
+  { key: "n", className: "left-1/2 -top-2.5 -translate-x-1/2", cursor: "ns-resize" },
   { key: "ne", className: "-right-2.5 -top-2.5", cursor: "nesw-resize" },
+  { key: "e", className: "-right-2.5 top-1/2 -translate-y-1/2", cursor: "ew-resize" },
   { key: "se", className: "-right-2.5 -bottom-2.5", cursor: "nwse-resize" },
+  { key: "s", className: "-bottom-2.5 left-1/2 -translate-x-1/2", cursor: "ns-resize" },
   { key: "sw", className: "-left-2.5 -bottom-2.5", cursor: "nesw-resize" },
+  { key: "w", className: "-left-2.5 top-1/2 -translate-y-1/2", cursor: "ew-resize" },
 ] as const;
 
 type StudioCanvasProps = {
@@ -250,6 +254,7 @@ export default function StudioCanvas({
                             cornerBenchVertical={table.layout.cornerBenchVertical}
                             cornerBenchDepth={table.layout.cornerBenchDepth}
                             className="block h-full w-full"
+                            preserveAspectRatio="none"
                           />
                         </div>
 

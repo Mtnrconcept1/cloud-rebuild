@@ -1,5 +1,6 @@
 export type FloorPlanAssetId =
   | "chair"
+  | "stool"
   | "banquette-end"
   | "banquette-straight"
   | "corner-bench"
@@ -10,6 +11,8 @@ export type FloorPlanAssetId =
   | "round-table-top"
   | "rect-table-top"
   | "bar-top"
+  | "host-stand"
+  | "service-station"
   | "planter-banquette";
 
 type FloorPlanAsset = {
@@ -25,6 +28,11 @@ export const FLOOR_PLAN_ASSETS: Record<FloorPlanAssetId, FloorPlanAsset> = {
     src: buildAssetPath("plan-de-salle_0000_Calque-1.png"),
     width: 151,
     height: 194,
+  },
+  stool: {
+    src: buildAssetPath("generated-stool.png"),
+    width: 220,
+    height: 220,
   },
   "banquette-end": {
     src: buildAssetPath("plan-de-salle_0002_Calque-15.png"),
@@ -63,13 +71,23 @@ export const FLOOR_PLAN_ASSETS: Record<FloorPlanAssetId, FloorPlanAsset> = {
   },
   "banquette-straight": {
     src: buildAssetPath("plan-de-salle_0010_Calque-11.png"),
-    width: 75,
-    height: 113,
+    width: 71,
+    height: 112,
   },
   "bar-top": {
     src: buildAssetPath("plan-de-salle_0012_Supprimer-les-modifications-de-l\u2019outil.png"),
     width: 369,
     height: 91,
+  },
+  "host-stand": {
+    src: buildAssetPath("generated-host-stand.png"),
+    width: 240,
+    height: 240,
+  },
+  "service-station": {
+    src: buildAssetPath("generated-service-station.png"),
+    width: 320,
+    height: 220,
   },
   "round-table-top": {
     src: buildAssetPath("plan-de-salle_0013_Calque-14.png"),
