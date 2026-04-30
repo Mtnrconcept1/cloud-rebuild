@@ -17,5 +17,7 @@ createRoot(document.getElementById("root")!).render(<App />);
 
 // Initialize native plugins after first render
 if (isNative()) {
-  initCapacitorPlugins();
+  void initCapacitorPlugins().catch((error) => {
+    console.warn("Native plugin initialization failed", error);
+  });
 }

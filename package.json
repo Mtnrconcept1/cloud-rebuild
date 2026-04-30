@@ -33,7 +33,12 @@
     "cap:ios": "vite build && npx cap sync ios && npx cap open ios",
     "cap:android": "vite build && npx cap sync android && npx cap open android",
     "cap:dev:ios": "vite build --mode development && npx cap sync ios && npx cap open ios",
-    "cap:dev:android": "vite build --mode development && npx cap sync android && npx cap open android"
+    "cap:dev:android": "vite build --mode development && npx cap sync android && npx cap open android",
+    "mobile:sync": "npm run build && npx cap sync android ios",
+    "mobile:build:android:debug": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mobile-android-build.ps1 Debug",
+    "mobile:build:android:release": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mobile-android-build.ps1 Release",
+    "mobile:build:ios:release": "node ./scripts/mobile-verify.mjs ios-release",
+    "mobile:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mobile-android-build.ps1 Debug"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.0",

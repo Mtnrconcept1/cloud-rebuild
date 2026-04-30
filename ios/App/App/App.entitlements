@@ -2,6 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:tok.ch</string>
+		<string>applinks:www.tok.ch</string>
+		<string>applinks:app.tok.ch</string>
+		<string>applinks:thetok.ch</string>
+		<string>applinks:www.thetok.ch</string>
+		<string>applinks:app.thetok.ch</string>
+	</array>
 	<key>aps-environment</key>
 	<string>development</string>
 </dict>

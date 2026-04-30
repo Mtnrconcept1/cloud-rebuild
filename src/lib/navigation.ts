@@ -1,3 +1,5 @@
+import { isAllowedAppLinkHost } from "@/lib/mobile-domains";
+
 function ensureLeadingSlash(value: string) {
   return value.startsWith("/") ? value : `/${value.replace(/^\/+/, "")}`;
 }
@@ -26,6 +28,8 @@ export function getNavigationTargetFromAppUrl(rawUrl: string, fallback = "/") {
     const url = new URL(rawUrl);
 
     if (url.protocol === "http:" || url.protocol === "https:") {
+      if (!isAllowedAppLinkHost(url.hostname)) return fallback;
+
       return normalizeInternalNavigationTarget(
         `${url.pathname || "/"}${url.search}${url.hash}`,
         fallback,

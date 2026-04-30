@@ -1,6 +1,6 @@
 /* global importScripts, firebase */
 
-const FIREBASE_VERSION = "11.7.1";
+const FIREBASE_VERSION = "12.10.0";
 let messagingInitialized = false;
 
 function readFirebaseConfig(search) {

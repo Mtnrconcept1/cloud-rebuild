@@ -25,6 +25,15 @@ describe("getNavigationTargetFromAppUrl", () => {
   });
 
   it("keeps same-origin https routes internal", () => {
-    expect(getNavigationTargetFromAppUrl("https://example.com/profil?mode=edit", "/")).toBe("/profil?mode=edit");
+    expect(getNavigationTargetFromAppUrl("https://tok.ch/profil?mode=edit", "/")).toBe("/profil?mode=edit");
+  });
+
+  it("keeps supported Tok domains internal", () => {
+    expect(getNavigationTargetFromAppUrl("https://www.thetok.ch/courier/jobs", "/")).toBe("/courier/jobs");
+    expect(getNavigationTargetFromAppUrl("https://app.tok.ch/notifications", "/")).toBe("/notifications");
+  });
+
+  it("rejects https app links from untrusted domains", () => {
+    expect(getNavigationTargetFromAppUrl("https://evil.example/profil?mode=edit", "/notifications")).toBe("/notifications");
   });
 });

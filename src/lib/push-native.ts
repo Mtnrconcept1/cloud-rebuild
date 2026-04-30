@@ -1,9 +1,14 @@
 import { PushNotifications } from "@capacitor/push-notifications";
+import type { PushNotificationSchema } from "@capacitor/push-notifications";
+import type { PluginListenerHandle } from "@capacitor/core";
+import { toast } from "sonner";
 import { getSupabase } from "@/integrations/supabase/client";
 import { getPlatform } from "@/lib/platform";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 
-let nativePushListenersInitialized = false;
+const PUSH_REGISTRATION_TIMEOUT_MS = 15000;
+
+let nativePushListenerHandles: Array<Promise<PluginListenerHandle>> = [];
 
 type DeviceTokenMutation = {
   user_id: string;
@@ -14,7 +19,53 @@ type DeviceTokenMutation = {
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === "object" && error !== null && "error" in error) {
+    const message = (error as { error?: unknown }).error;
+    if (typeof message === "string" && message) return message;
+  }
+
   return error instanceof Error ? error.message : fallback;
+}
+
+function cleanupListenerHandles(handles: Array<Promise<PluginListenerHandle>>) {
+  for (const handlePromise of handles) {
+    void handlePromise
+      .then((handle) => handle.remove())
+      .catch((error) => {
+        console.warn("Unable to remove native push listener", error);
+      });
+  }
+}
+
+function getNotificationTarget(notification: PushNotificationSchema, fallback = "/notifications") {
+  const data = notification.data && typeof notification.data === "object" ? notification.data : {};
+  const rawUrl =
+    typeof data.url === "string"
+      ? data.url
+      : typeof data.deepLink === "string"
+        ? data.deepLink
+        : typeof notification.link === "string"
+          ? notification.link
+          : null;
+
+  return normalizeInternalNavigationTarget(rawUrl, fallback);
+}
+
+function showForegroundPushToast(
+  notification: PushNotificationSchema,
+  navigateFn: (url: string) => void,
+) {
+  const title = notification.title || "Nouvelle notification Tok";
+  const description = notification.body || notification.subtitle || undefined;
+  const target = getNotificationTarget(notification);
+
+  toast.info(title, {
+    description,
+    action: {
+      label: "Ouvrir",
+      onClick: () => navigateFn(target),
+    },
+  });
 }
 
 export async function registerNativePush(userId: string): Promise<{ ok: boolean; reason?: string }> {
@@ -24,10 +75,19 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
       return { ok: false, reason: "Permission refusee." };
     }
 
-    await PushNotifications.register();
-
     return new Promise((resolve) => {
-      PushNotifications.addListener("registration", async (token) => {
+      let settled = false;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      const finish = (result: { ok: boolean; reason?: string }) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutId) clearTimeout(timeoutId);
+        cleanupListenerHandles([registrationHandle, registrationErrorHandle]);
+        resolve(result);
+      };
+
+      const registrationHandle = PushNotifications.addListener("registration", async (token) => {
         const platform = getPlatform();
 
         const { error } = await getSupabase()
@@ -44,14 +104,22 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
           );
 
         if (error) {
-          resolve({ ok: false, reason: error.message });
+          finish({ ok: false, reason: error.message });
         } else {
-          resolve({ ok: true });
+          finish({ ok: true });
         }
       });
 
-      PushNotifications.addListener("registrationError", (error) => {
-        resolve({ ok: false, reason: getErrorMessage(error, "Erreur d'enregistrement push.") });
+      const registrationErrorHandle = PushNotifications.addListener("registrationError", (error) => {
+        finish({ ok: false, reason: getErrorMessage(error, "Erreur d'enregistrement push.") });
+      });
+
+      timeoutId = setTimeout(() => {
+        finish({ ok: false, reason: "Delai d'enregistrement push depasse." });
+      }, PUSH_REGISTRATION_TIMEOUT_MS);
+
+      void PushNotifications.register().catch((error) => {
+        finish({ ok: false, reason: getErrorMessage(error, "Erreur d'enregistrement push.") });
       });
     });
   } catch (error: unknown) {
@@ -60,6 +128,10 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
 }
 
 export async function unregisterNativePush(userId: string): Promise<{ ok: boolean; reason?: string }> {
+  await PushNotifications.unregister().catch((error) => {
+    console.warn("Unable to unregister native push token", error);
+  });
+
   const platform = getPlatform();
   const { error } = await getSupabase()
     .from("device_tokens")
@@ -72,19 +144,27 @@ export async function unregisterNativePush(userId: string): Promise<{ ok: boolea
 }
 
 export function setupNativePushListeners(navigateFn: (url: string) => void) {
-  if (nativePushListenersInitialized) return;
-  nativePushListenersInitialized = true;
+  cleanupNativePushListeners();
 
-  PushNotifications.addListener("pushNotificationReceived", (notification) => {
-    console.log("Push received in foreground:", notification);
-  });
+  const handles = [
+    PushNotifications.addListener("pushNotificationReceived", (notification) => {
+      showForegroundPushToast(notification, navigateFn);
+    }),
 
-  PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
-    const data = action.notification.data;
-    const url = normalizeInternalNavigationTarget(
-      typeof data?.url === "string" ? data.url : null,
-      "/notifications",
-    );
-    navigateFn(url);
-  });
+    PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+      navigateFn(getNotificationTarget(action.notification));
+    }),
+  ];
+
+  nativePushListenerHandles = handles;
+
+  return () => {
+    if (nativePushListenerHandles === handles) cleanupNativePushListeners();
+  };
+}
+
+export function cleanupNativePushListeners() {
+  const handles = nativePushListenerHandles;
+  nativePushListenerHandles = [];
+  cleanupListenerHandles(handles);
 }

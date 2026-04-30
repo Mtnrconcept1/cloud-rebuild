@@ -28,10 +28,6 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>armv7</string>
-	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -49,8 +45,6 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Tok utilise votre position pour trouver les restaurants proches et suivre vos livraisons.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Tok utilise votre position en arriere-plan pour le suivi des livraisons en temps reel.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Tok utilise la camera pour la preuve de livraison.</string>
 	<key>CFBundleURLTypes</key>

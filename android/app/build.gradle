@@ -6,6 +6,12 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def readReleaseValue = { key, fallback ->
+    def propertyValue = project.findProperty(key)
+    def envValue = System.getenv(key)
+    return (propertyValue ?: envValue ?: fallback).toString()
+}
+
 android {
     namespace = "com.tok.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -13,8 +19,8 @@ android {
         applicationId "com.tok.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode readReleaseValue("TOK_VERSION_CODE", "1").toInteger()
+        versionName readReleaseValue("TOK_VERSION_NAME", "1.0")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

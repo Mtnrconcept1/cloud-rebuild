@@ -8,6 +8,8 @@ import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+    private static final String ORDERS_CHANNEL_ID = "tok_orders";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -17,11 +19,12 @@ public class MainActivity extends BridgeActivity {
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                "tok_orders",
+                ORDERS_CHANNEL_ID,
                 "Commandes Tok",
                 NotificationManager.IMPORTANCE_HIGH
             );
             channel.setDescription("Notifications de commandes et livraisons");
+
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }

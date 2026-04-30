@@ -3,5 +3,5 @@
     <string name="app_name">Tok</string>
     <string name="title_activity_main">Tok</string>
     <string name="package_name">com.tok.app</string>
-    <string name="custom_url_scheme">com.tok.app</string>
+    <string name="custom_url_scheme">tok</string>
 </resources>

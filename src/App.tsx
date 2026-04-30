@@ -117,12 +117,22 @@ function NativeIntegration() {
 
   useEffect(() => {
     if (!isNative()) return;
-    setupDeepLinks((path) => navigate(path));
+
+    const cleanups: Array<() => void> = [
+      setupDeepLinks((path) => navigate(path)),
+    ];
+    let disposed = false;
 
     // Setup native push notification tap handler
     import("@/lib/push-native").then(({ setupNativePushListeners }) => {
-      setupNativePushListeners((url) => navigate(url));
+      if (disposed) return;
+      cleanups.push(setupNativePushListeners((url) => navigate(url)));
     });
+
+    return () => {
+      disposed = true;
+      for (const cleanup of cleanups.splice(0)) cleanup();
+    };
   }, [navigate]);
 
   return null;
