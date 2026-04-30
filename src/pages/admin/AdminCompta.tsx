@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDownRight, ArrowUpRight, Building2, Coins, Megaphone, Receipt, Store, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Building2, Coins, Megaphone, Percent, Receipt, Store, Wallet } from "lucide-react";
 
 import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
@@ -32,6 +32,11 @@ export default function AdminCompta() {
     paidEventGross,
     paidCampaignsCount,
     paidCampaignsTotal,
+    reservationFeeRevenueAmount,
+    tokOneSubscriptionAmount,
+    tokOneSubscriptionCount,
+    totalRevenue,
+    developerReservedShare,
     monthOptions,
     refundsIssuedCount,
     refundsIssuedTotal,
@@ -111,6 +116,25 @@ export default function AdminCompta() {
 
       {!isLoading && !error ? (
         <>
+          <div className="grid gap-4 md:grid-cols-2">
+            <AccountingMetricCard
+              tone="emerald"
+              icon={Coins}
+              label="Revenu total"
+              value={formatAmount(totalRevenue)}
+              description={selectedRestaurant === "all"
+                ? `Commissions 10%, frais de réservation (${formatAmount(reservationFeeRevenueAmount)}), campagnes pub (${formatAmount(paidCampaignsTotal)}) et abonnements Tok One (${tokOneSubscriptionCount} encaissement${tokOneSubscriptionCount > 1 ? "s" : ""}, ${formatAmount(tokOneSubscriptionAmount)}).`
+                : "Commissions 10%, frais de réservation et campagnes pub du restaurateur sélectionné. Tok One n'est pas rattaché à un restaurateur."}
+            />
+            <AccountingMetricCard
+              tone="primary"
+              icon={Percent}
+              label="Part réservée au développeur"
+              value={formatAmount(developerReservedShare)}
+              description="6% du chiffre d'affaires total affiché sur la période et la portée courantes."
+            />
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <AccountingMetricCard
               tone="sky"

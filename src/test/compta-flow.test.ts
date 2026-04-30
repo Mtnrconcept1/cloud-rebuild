@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildTokRevenueSummary,
   buildRestaurantAccountingSummary,
   buildTokAccountingSummary,
 } from "@/lib/comptaFlow";
@@ -38,6 +39,20 @@ describe("buildTokAccountingSummary", () => {
     expect(summary.outflow.payoutsOutstanding).toBe(90);
     expect(summary.outflow.payoutsPaid).toBe(60);
     expect(summary.inflow.totalOutstanding).toBe(25);
+  });
+});
+
+describe("buildTokRevenueSummary", () => {
+  it("adds final platform revenue streams and reserves 6% for the developer", () => {
+    const summary = buildTokRevenueSummary({
+      commissionAmount: 120,
+      reservationFeeAmount: 25,
+      campaignAmount: 80,
+      tokOneSubscriptionAmount: 15,
+    });
+
+    expect(summary.totalRevenue).toBe(240);
+    expect(summary.developerReservedShare).toBe(14.4);
   });
 });
 

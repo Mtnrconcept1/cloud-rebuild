@@ -11,10 +11,15 @@ export type InvoiceBuckets<T extends MoneyLike = MoneyLike> = {
 
 const COMMISSION_RATE = 0.1;
 const RESTAURANT_SHARE_RATE = 0.9;
+const DEVELOPER_RESERVED_SHARE_RATE = 0.06;
 
 function toAmount(value: number | string | null | undefined) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function roundCurrency(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
 function sumInvoices(invoices: readonly MoneyLike[]) {
@@ -66,6 +71,23 @@ export function buildTokAccountingSummary(input: {
       totalPaid: payoutsPaid,
     },
     netOutstanding: payableOutstanding + payablePendingInvoice - payoutsOutstanding,
+  };
+}
+
+export function buildTokRevenueSummary(input: {
+  commissionAmount: number | string | null | undefined;
+  reservationFeeAmount: number | string | null | undefined;
+  campaignAmount: number | string | null | undefined;
+  tokOneSubscriptionAmount: number | string | null | undefined;
+}) {
+  const totalRevenue = roundCurrency(toAmount(input.commissionAmount)
+    + toAmount(input.reservationFeeAmount)
+    + toAmount(input.campaignAmount)
+    + toAmount(input.tokOneSubscriptionAmount));
+
+  return {
+    totalRevenue,
+    developerReservedShare: roundCurrency(totalRevenue * DEVELOPER_RESERVED_SHARE_RATE),
   };
 }
 

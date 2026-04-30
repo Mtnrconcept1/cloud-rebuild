@@ -12,7 +12,7 @@ import {
   getNetReservationCommissionBase,
   type CommissionBaseTotals,
 } from "@/lib/comptaCommissionSources";
-import { buildTokAccountingSummary } from "@/lib/comptaFlow";
+import { buildTokAccountingSummary, buildTokRevenueSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
 import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -91,6 +91,15 @@ export type AdminCampaignRow = {
   total_budget: number | null;
   title: string;
   restaurants?: { name: string | null } | null;
+};
+
+type AdminTokOnePaymentRow = {
+  id: string;
+  created_at: string;
+  amount: number | string | null;
+  status: string;
+  type: string;
+  metadata: unknown;
 };
 
 export type AdminReservationFeeAccrualRow = {
@@ -595,7 +604,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       const { data, error } = await query.order("confirmed_at", { ascending: false });
       if (error) throw error;
 
-      return ((data || []) as AdminReservationFeeAccrualRow[]).filter(isBillableReservationFee);
+      return (data || []) as AdminReservationFeeAccrualRow[];
     },
   });
 
@@ -785,6 +794,23 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     },
   });
 
+  const tokOnePaymentsQuery = useQuery({
+    queryKey: ["admin-compta-tok-one-payments-v1", selectedMonth],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("payment_transactions")
+        .select("id, created_at, amount, status, type, metadata")
+        .eq("type", "subscription")
+        .in("status", ["paid", "succeeded"])
+        .gte("created_at", monthBounds.monthStartDate.toISOString())
+        .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as AdminTokOnePaymentRow[];
+    },
+  });
+
   const refundedOrdersQuery = useQuery({
     queryKey: ["admin-compta-refunded-orders-v1", selectedRestaurant, selectedMonth],
     queryFn: async () => {
@@ -839,6 +865,10 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     () => buildCommissionBases(ordersQuery.data || [], reservationsQuery.data || []),
     [ordersQuery.data, reservationsQuery.data],
   );
+  const reservationFeeAccruals = useMemo(
+    () => (reservationFeeAccrualsQuery.data || []).filter(isBillableReservationFee),
+    [reservationFeeAccrualsQuery.data],
+  );
 
   const payoutInvoiceSections = useMemo(
     () => splitInvoicesByPaymentState(payoutInvoicesQuery.data || []),
@@ -852,7 +882,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     () => buildAdminPayableAccrualSummary({
       orders: ordersQuery.data || [],
       reservationPayments: reservationsQuery.data || [],
-      reservationFeeAccruals: reservationFeeAccrualsQuery.data || [],
+      reservationFeeAccruals,
       paidCampaigns: campaignsQuery.data || [],
       billedLineItems: payableLineItemsQuery.data || [],
     }),
@@ -860,7 +890,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       campaignsQuery.data,
       ordersQuery.data,
       payableLineItemsQuery.data,
-      reservationFeeAccrualsQuery.data,
+      reservationFeeAccruals,
       reservationsQuery.data,
     ],
   );
@@ -880,9 +910,18 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     () => sumBySource(commissionBases, 1),
     [commissionBases],
   );
-  const reservationFeeAccrualCount = reservationFeeAccrualsQuery.data?.length || 0;
+  const reservationFeeAccrualCount = reservationFeeAccruals.length;
   const reservationFeeAccrualAmount = useMemo(
-    () => (reservationFeeAccrualsQuery.data || []).reduce((sum, row) => sum + toAmount(row.billing_fee_chf), 0),
+    () => reservationFeeAccruals.reduce((sum, row) => sum + toAmount(row.billing_fee_chf), 0),
+    [reservationFeeAccruals],
+  );
+  const reservationFeeRevenueAmount = useMemo(
+    () => (reservationFeeAccrualsQuery.data || []).reduce((sum, row) => {
+      const cancelledBy = String(row.cancelled_by || "").trim().toLowerCase();
+      if (cancelledBy !== "") return sum;
+
+      return sum + toAmount(row.billing_fee_chf);
+    }, 0),
     [reservationFeeAccrualsQuery.data],
   );
   const paidCampaignsTotal = useMemo(
@@ -890,6 +929,37 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     [campaignsQuery.data],
   );
   const paidCampaignsCount = campaignsQuery.data?.length || 0;
+  const tokOneRevenue = useMemo(() => {
+    if (selectedRestaurant !== "all") {
+      return { amount: 0, count: 0 };
+    }
+
+    return (tokOnePaymentsQuery.data || []).reduce((accumulator, payment) => {
+      const metadata = payment.metadata;
+      const isTokOnePayment = metadata
+        && typeof metadata === "object"
+        && !Array.isArray(metadata)
+        && String((metadata as Record<string, unknown>).checkout_kind || "").trim().toLowerCase() === "tok-one";
+
+      if (!isTokOnePayment) {
+        return accumulator;
+      }
+
+      return {
+        amount: accumulator.amount + toAmount(payment.amount),
+        count: accumulator.count + 1,
+      };
+    }, { amount: 0, count: 0 });
+  }, [selectedRestaurant, tokOnePaymentsQuery.data]);
+  const totalRevenueSummary = useMemo(
+    () => buildTokRevenueSummary({
+      commissionAmount: summary.inflow.totalCommissions,
+      reservationFeeAmount: reservationFeeRevenueAmount,
+      campaignAmount: paidCampaignsTotal,
+      tokOneSubscriptionAmount: tokOneRevenue.amount,
+    }),
+    [paidCampaignsTotal, reservationFeeRevenueAmount, summary.inflow.totalCommissions, tokOneRevenue.amount],
+  );
   const refundOperations = useMemo(
     () => [...(refundedOrdersQuery.data || []), ...(refundedReservationsQuery.data || [])],
     [refundedOrdersQuery.data, refundedReservationsQuery.data],
@@ -919,7 +989,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     restaurants: restaurantsQuery.data || [],
     orders: ordersQuery.data || [],
     reservationPayments: reservationsQuery.data || [],
-    reservationFeeAccruals: reservationFeeAccrualsQuery.data || [],
+    reservationFeeAccruals,
     payableAccruals,
     paidCampaigns: campaignsQuery.data || [],
     payoutInvoices: payoutInvoicesQuery.data || [],
@@ -933,8 +1003,13 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     paidEventGross,
     reservationFeeAccrualCount,
     reservationFeeAccrualAmount,
+    reservationFeeRevenueAmount,
     paidCampaignsTotal,
     paidCampaignsCount,
+    tokOneSubscriptionAmount: tokOneRevenue.amount,
+    tokOneSubscriptionCount: tokOneRevenue.count,
+    totalRevenue: totalRevenueSummary.totalRevenue,
+    developerReservedShare: totalRevenueSummary.developerReservedShare,
     refundsIssuedTotal,
     refundsIssuedCount,
     refundsPendingAmount,
@@ -945,6 +1020,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || reservationsQuery.isLoading
       || reservationFeeAccrualsQuery.isLoading
       || campaignsQuery.isLoading
+      || tokOnePaymentsQuery.isLoading
       || payoutInvoicesQuery.isLoading
       || payableInvoicesQuery.isLoading
       || payableLineItemsQuery.isLoading
@@ -955,6 +1031,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || reservationsQuery.error
       || reservationFeeAccrualsQuery.error
       || campaignsQuery.error
+      || tokOnePaymentsQuery.error
       || payoutInvoicesQuery.error
       || payableInvoicesQuery.error
       || payableLineItemsQuery.error
