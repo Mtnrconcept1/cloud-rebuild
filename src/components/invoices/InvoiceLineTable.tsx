@@ -4,15 +4,6 @@ import { fr } from "date-fns/locale";
 
 import { Badge } from "@/components/ui/badge";
 import { InvoiceOperationDetailDialog, type InvoiceOperationTarget } from "@/components/invoices/InvoiceOperationDetailDialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 export type InvoiceDetailLineType = "order" | "reservation";
@@ -35,6 +26,7 @@ export type PayoutInvoiceDetailLine = {
   grossAmount: number;
   rateApplied: number;
   invoicedAmount: number;
+  tokCoveredMiamzAmount?: number;
 };
 
 export type ReservationFeeInvoiceDetailLine = {
@@ -119,113 +111,130 @@ function getLineAmount(props: InvoiceLineTableProps, line: PayoutInvoiceDetailLi
     : (line as ReservationFeeInvoiceDetailLine).billingFeeChf;
 }
 
+function AmountDetail({
+  label,
+  value,
+  emphasized = false,
+}: {
+  label: string;
+  value: string;
+  emphasized?: boolean;
+}) {
+  return (
+    <div className="min-w-0 rounded-lg bg-muted/30 px-3 py-2">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={cn("mt-1 break-words text-sm", emphasized && "font-semibold text-foreground")}>{value}</p>
+    </div>
+  );
+}
+
 export function InvoiceLineTable(props: InvoiceLineTableProps) {
   const [selectedOperation, setSelectedOperation] = useState<InvoiceOperationTarget | null>(null);
   const total = props.lines.reduce((sum, line) => sum + getLineAmount(props, line), 0);
-  const minWidthClassName = props.mode === "payout" ? "min-w-[760px]" : "min-w-[680px]";
 
   return (
     <div className={cn("space-y-3", props.className)}>
-      <div className="overflow-x-auto">
-        <Table className={minWidthClassName}>
-          <TableHeader>
-            {props.mode === "payout" ? (
-              <TableRow>
-                <TableHead>Source</TableHead>
-                <TableHead>Libelle</TableHead>
-                <TableHead>Date / heure</TableHead>
-                <TableHead className="text-right">Montant brut</TableHead>
-                <TableHead className="text-right">Taux</TableHead>
-                <TableHead className="text-right">Montant facture</TableHead>
-              </TableRow>
-            ) : (
-              <TableRow>
-                <TableHead>Reservation</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Heure</TableHead>
-                <TableHead className="text-right">Couverts</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Montant</TableHead>
-              </TableRow>
-            )}
-          </TableHeader>
-          <TableBody>
-            {props.lines.map((line) => {
-              if (props.mode === "payout") {
-                const payoutLine = line as PayoutInvoiceDetailLine;
-                const source = SOURCE_PRESENTATION[payoutLine.source] || SOURCE_PRESENTATION.other;
-                const target: InvoiceOperationTarget = {
-                  kind: payoutLine.lineType,
-                  id: payoutLine.lineId,
-                  reference: payoutLine.reference || "",
-                };
-                const displayReference = payoutLine.reference || getFallbackReference(target);
+      <div className="space-y-2">
+        {props.lines.map((line) => {
+          if (props.mode === "payout") {
+            const payoutLine = line as PayoutInvoiceDetailLine;
+            const source = SOURCE_PRESENTATION[payoutLine.source] || SOURCE_PRESENTATION.other;
+            const target: InvoiceOperationTarget = {
+              kind: payoutLine.lineType,
+              id: payoutLine.lineId,
+              reference: payoutLine.reference || "",
+            };
+            const displayReference = payoutLine.reference || getFallbackReference(target);
+            const tokCoveredMiamzAmount = Math.max(0, Number(payoutLine.tokCoveredMiamzAmount || 0));
 
-                return (
-                  <TableRow key={payoutLine.lineId}>
-                    <TableCell>
+            return (
+              <div key={payoutLine.lineId} className="rounded-xl border bg-background p-3">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline" className={cn("border-none", source.className)}>
                         {source.label}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[24rem]">
-                      <div className="font-medium">{payoutLine.label}</div>
+                      {tokCoveredMiamzAmount > 0 ? (
+                        <Badge className="border-none bg-fuchsia-100 text-fuchsia-800">Miamz Tok</Badge>
+                      ) : null}
+                    </div>
+                    <div>
+                      <p className="break-words font-medium">{payoutLine.label}</p>
                       <button
                         type="button"
                         onClick={() => setSelectedOperation(target)}
-                        className="mt-1 text-left text-xs font-medium text-primary underline-offset-4 transition hover:underline"
+                        className="mt-1 break-all text-left text-xs font-medium text-primary underline-offset-4 transition hover:underline"
                       >
                         {displayReference}
                       </button>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                      {formatDateTime(payoutLine.occurredAt)}
-                    </TableCell>
-                    <TableCell className="text-right">{formatCurrency(payoutLine.grossAmount)}</TableCell>
-                    <TableCell className="text-right">{formatPercentage(payoutLine.rateApplied)}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatCurrency(payoutLine.invoicedAmount)}</TableCell>
-                  </TableRow>
-                );
-              }
+                    </div>
+                  </div>
+                  <div className="shrink-0 lg:text-right">
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Montant facture</p>
+                    <p className="mt-1 text-base font-semibold">{formatCurrency(payoutLine.invoicedAmount)}</p>
+                  </div>
+                </div>
 
-              const reservationLine = line as ReservationFeeInvoiceDetailLine;
-              const target: InvoiceOperationTarget = {
-                kind: "reservation",
-                id: reservationLine.reservationId,
-                reference: `RES-${reservationLine.reservationId.slice(0, 8)}`,
-              };
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  <AmountDetail label="Date / heure" value={formatDateTime(payoutLine.occurredAt)} />
+                  <AmountDetail label="Montant brut" value={formatCurrency(payoutLine.grossAmount)} />
+                  <AmountDetail label="Taux" value={formatPercentage(payoutLine.rateApplied)} />
+                  <AmountDetail label="Facture" value={formatCurrency(payoutLine.invoicedAmount)} emphasized />
+                </div>
 
-              return (
-                <TableRow key={reservationLine.reservationId}>
-                  <TableCell className="whitespace-nowrap text-sm">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedOperation(target)}
-                      className="font-mono text-primary underline-offset-4 transition hover:underline"
-                    >
-                      {target.reference}
-                    </button>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">{formatDate(reservationLine.reservationDate)}</TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                    {formatTime(reservationLine.reservationTime)}
-                  </TableCell>
-                  <TableCell className="text-right">{reservationLine.partySize}</TableCell>
-                  <TableCell className="text-sm">{reservationLine.status || "-"}</TableCell>
-                  <TableCell className="text-right font-semibold">{formatCurrency(reservationLine.billingFeeChf)}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={props.mode === "payout" ? 5 : 5} className="text-right font-semibold">
-                Total
-              </TableCell>
-              <TableCell className="text-right font-semibold">{formatCurrency(total)}</TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
+                {tokCoveredMiamzAmount > 0 ? (
+                  <div className="mt-3 rounded-lg border border-fuchsia-200 bg-fuchsia-50 px-3 py-2 text-sm">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="font-medium text-fuchsia-900">Miamz pris en charge par Tok</span>
+                      <span className="font-semibold text-fuchsia-900">{formatCurrency(tokCoveredMiamzAmount)}</span>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            );
+          }
+
+          const reservationLine = line as ReservationFeeInvoiceDetailLine;
+          const target: InvoiceOperationTarget = {
+            kind: "reservation",
+            id: reservationLine.reservationId,
+            reference: `RES-${reservationLine.reservationId.slice(0, 8)}`,
+          };
+
+          return (
+            <div key={reservationLine.reservationId} className="rounded-xl border bg-background p-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Reservation</p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedOperation(target)}
+                    className="mt-1 break-all font-mono text-sm text-primary underline-offset-4 transition hover:underline"
+                  >
+                    {target.reference}
+                  </button>
+                </div>
+                <div className="shrink-0 lg:text-right">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Montant</p>
+                  <p className="mt-1 text-base font-semibold">{formatCurrency(reservationLine.billingFeeChf)}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+                <AmountDetail label="Date" value={formatDate(reservationLine.reservationDate)} />
+                <AmountDetail label="Heure" value={formatTime(reservationLine.reservationTime)} />
+                <AmountDetail label="Couverts" value={String(reservationLine.partySize)} />
+                <AmountDetail label="Statut" value={reservationLine.status || "-"} />
+                <AmountDetail label="Montant" value={formatCurrency(reservationLine.billingFeeChf)} emphasized />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex flex-col gap-1 rounded-xl border bg-muted/30 px-3 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+        <span className="font-medium text-muted-foreground">Total</span>
+        <span className="font-semibold">{formatCurrency(total)}</span>
       </div>
       {typeof props.roundingDelta === "number" && Math.abs(props.roundingDelta) >= 0.005 ? (
         <p className="text-xs text-muted-foreground">

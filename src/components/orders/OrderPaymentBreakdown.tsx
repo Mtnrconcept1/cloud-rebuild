@@ -214,9 +214,12 @@ export default function OrderPaymentBreakdown({
       ) : null}
       {pointsDiscount > 0 ? (
         <div className="flex justify-between text-emerald-600">
-          <span className="flex items-center gap-1">
+          <span className="flex items-start gap-1">
             <Gift className="h-3 w-3" />
-            Points fidelite
+            <span>
+              <span className="block">Miamz pris en charge par Tok</span>
+              <span className="block text-[10px] leading-4 text-muted-foreground">Reduction fidelite appliquee</span>
+            </span>
           </span>
           <span>-{pointsDiscount.toFixed(2)} CHF</span>
         </div>

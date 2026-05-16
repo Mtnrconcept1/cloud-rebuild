@@ -144,6 +144,72 @@ export function AccountingMetricCard({
   );
 }
 
+type AccountingDigestItem = {
+  label: string;
+  value: string;
+  helper?: string;
+  tone?: AccountingTone;
+  icon?: LucideIcon;
+};
+
+type AccountingDigestCardProps = {
+  title: string;
+  description?: string;
+  items: AccountingDigestItem[];
+  actions?: ReactNode;
+  className?: string;
+};
+
+export function AccountingDigestCard({
+  title,
+  description,
+  items,
+  actions,
+  className,
+}: AccountingDigestCardProps) {
+  return (
+    <Card className={cn("border-border/70 bg-card", className)}>
+      <CardHeader className="space-y-2 pb-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-semibold tracking-tight">{title}</CardTitle>
+            {description ? <CardDescription className="max-w-3xl leading-6">{description}</CardDescription> : null}
+          </div>
+          {actions ? <div className="flex flex-wrap gap-2 sm:justify-end">{actions}</div> : null}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {items.map((item) => {
+            const toneClasses = TONE_CLASSES[item.tone ?? "slate"];
+            const Icon = item.icon;
+
+            return (
+              <div
+                key={`${item.label}-${item.value}`}
+                className={cn("min-w-0 rounded-lg border px-3 py-3", toneClasses.soft)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1">
+                    <p className={cn("text-xs font-medium uppercase tracking-wide", toneClasses.label)}>{item.label}</p>
+                    <p className={cn("break-words text-2xl font-bold tracking-tight", toneClasses.value)}>{item.value}</p>
+                  </div>
+                  {Icon ? (
+                    <div className={cn("rounded-md p-2", toneClasses.icon)}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                  ) : null}
+                </div>
+                {item.helper ? <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.helper}</p> : null}
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 type AccountingPanelProps = {
   title: string;
   description?: string;

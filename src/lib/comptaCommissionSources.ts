@@ -85,6 +85,22 @@ export function getPointsDiscountAmount(metadata: Record<string, unknown> | null
   return toAmount(record.points_discount_amount ?? record.points_discount);
 }
 
+export function getTokCoveredMiamzAmount(order: OrderLike) {
+  if (!classifyOrderCommissionSource(order)) {
+    return 0;
+  }
+
+  const pointsDiscount = getPointsDiscountAmount(order.metadata);
+  if (pointsDiscount <= 0) {
+    return 0;
+  }
+
+  const grossAmount = toAmount(order.total_amount) + pointsDiscount;
+  const netAmount = getNetAmountAfterRefund(grossAmount, order.refunded_amount_chf);
+
+  return Math.min(pointsDiscount, netAmount);
+}
+
 export function getNetAmountAfterRefund(
   grossAmount: number | string | null | undefined,
   refundedAmount: number | string | null | undefined,

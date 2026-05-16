@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { ArrowDownRight, ArrowUpRight, Coins, Megaphone, ReceiptText, Settings, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Coins, HandCoins, Megaphone, ReceiptText, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
-import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +28,8 @@ export default function DashboardFactures() {
     refundsIssuedTotal,
     refundsPendingAmount,
     refundsPendingCount,
+    tokCoveredMiamzAmount,
+    tokCoveredMiamzCount,
     uninvoicedRestaurantShareTotal,
     isLoading,
     error,
@@ -43,15 +45,16 @@ export default function DashboardFactures() {
   );
   const totalReceivable = summary.inflow.receivableFromTok + uninvoicedRestaurantShareTotal;
   const totalPayable = summary.outflow.totalOutstanding;
+  const netOpen = totalReceivable - totalPayable;
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <AccountingHero
           badge="Comptabilite restaurateur"
-          title="Piloter votre compta"
+          title="Vue comptable"
           description={selectedRestaurant
-            ? `Commencez par ce que TOK vous doit, puis par ce que vous devez a TOK. La lecture detaillee des flux reste visible plus bas sans encombrer l'ecran.`
+            ? "Les chiffres essentiels: ce que Tok vous doit, ce que vous devez a Tok, les Miamz pris en charge et le net ouvert."
             : "Selectionnez un restaurant depuis la barre laterale pour ouvrir la comptabilite."}
           actions={(
             <>
@@ -59,10 +62,10 @@ export default function DashboardFactures() {
                 <Link to="/dashboard/factures">Vue d&apos;ensemble</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link to="/dashboard/factures/entrees">Entrees d&apos;argent</Link>
+                <Link to="/dashboard/factures/entrees">Entrees</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link to="/dashboard/factures/sorties">Sorties d&apos;argent</Link>
+                <Link to="/dashboard/factures/sorties">Sorties</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
                 <Link to="/dashboard/factures/parametres">
@@ -88,44 +91,48 @@ export default function DashboardFactures() {
 
         {selectedRestaurant && !isLoading && !error ? (
           <>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <AccountingMetricCard
-                tone="primary"
-                icon={ArrowDownRight}
-                label="A recevoir de TOK"
-                value={formatAmount(totalReceivable)}
-                description={`${formatAmount(summary.inflow.receivableFromTok)} deja facture et ${formatAmount(uninvoicedRestaurantShareTotal)} encore a facturer.`}
-              />
-              <AccountingMetricCard
-                tone="orange"
-                icon={ArrowUpRight}
-                label="A payer a TOK"
-                value={formatAmount(totalPayable)}
-                description={`${formatAmount(summary.outflow.payableToTok)} deja facture et ${formatAmount(payableAccruals.totalAmount)} encore non facture.`}
-              />
-              <AccountingMetricCard
-                tone="emerald"
-                icon={Coins}
-                label="Part restaurant 90%"
-                value={formatAmount(totalRestaurantShare)}
-                description="Ce que votre restaurant a deja genere sur les paiements encaisses via TOK."
-              />
-              <AccountingMetricCard
-                tone="violet"
-                icon={Wallet}
-                label="Remboursements clients"
-                value={formatAmount(refundsIssuedTotal)}
-                description={`${refundsIssuedCount} remboursement${refundsIssuedCount > 1 ? "s" : ""} emis, dont ${formatAmount(refundsPendingAmount)} encore a traiter sur ${refundsPendingCount} dossier${refundsPendingCount > 1 ? "s" : ""}.`}
-              />
-            </div>
+            <AccountingDigestCard
+              title="A lire en premier"
+              description="Une lecture courte pour savoir quoi encaisser, quoi payer et ce que Tok finance en Miamz."
+              items={[
+                {
+                  tone: "primary",
+                  icon: ArrowDownRight,
+                  label: "A recevoir de Tok",
+                  value: formatAmount(totalReceivable),
+                  helper: `${formatAmount(summary.inflow.receivableFromTok)} deja facture, ${formatAmount(uninvoicedRestaurantShareTotal)} a facturer.`,
+                },
+                {
+                  tone: "orange",
+                  icon: ArrowUpRight,
+                  label: "A payer a Tok",
+                  value: formatAmount(totalPayable),
+                  helper: `${formatAmount(summary.outflow.payableToTok)} facture, ${formatAmount(payableAccruals.totalAmount)} en attente.`,
+                },
+                {
+                  tone: "violet",
+                  icon: HandCoins,
+                  label: "Miamz pris en charge",
+                  value: formatAmount(tokCoveredMiamzAmount),
+                  helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec reduction Miamz remboursee par Tok.`,
+                },
+                {
+                  tone: netOpen >= 0 ? "emerald" : "rose",
+                  icon: Wallet,
+                  label: "Net ouvert",
+                  value: formatAmount(netOpen),
+                  helper: "A recevoir moins a payer.",
+                },
+              ]}
+            />
 
             <div className="grid gap-4 xl:grid-cols-2">
               <AccountingPanel
                 tone="primary"
                 icon={ArrowDownRight}
-                eyebrow="A faire maintenant"
-                title="Ce que TOK vous doit"
-                description="Ce bloc reunit le suivi immediat des montants que vous pouvez attendre ou encore faire emettre."
+                eyebrow="Action"
+                title="Ce que Tok vous doit"
+                description="La part restaurant a recuperer, separee entre facture deja emise et encours."
                 value={formatAmount(totalReceivable)}
                 valueLabel="Entrees ouvertes"
               >
@@ -135,28 +142,29 @@ export default function DashboardFactures() {
                     {
                       label: "Deja facture et en attente",
                       value: formatAmount(summary.inflow.receivableFromTok),
-                      helper: "Factures de payout deja emises par votre restaurant",
                     },
                     {
                       label: "Encore a facturer",
                       value: formatAmount(uninvoicedRestaurantShareTotal),
-                      helper: "Part 90% deja acquise mais pas encore emise",
+                      helper: "Part 90% deja acquise mais pas encore emise.",
+                    },
+                    {
+                      label: "Deja recu de Tok",
+                      value: formatAmount(summary.inflow.receivedFromTok),
                     },
                   ]}
                 />
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild>
-                    <Link to="/dashboard/factures/entrees">Ouvrir les entrees</Link>
-                  </Button>
-                </div>
+                <Button asChild>
+                  <Link to="/dashboard/factures/entrees">Ouvrir les entrees</Link>
+                </Button>
               </AccountingPanel>
 
               <AccountingPanel
                 tone="orange"
                 icon={ArrowUpRight}
-                eyebrow="A faire maintenant"
-                title="Ce que vous devez a TOK"
-                description="Retrouvez ici ce qui est deja facture par TOK et ce qui risque d'arriver dans la prochaine facture."
+                eyebrow="Action"
+                title="Ce que vous devez a Tok"
+                description="Les factures Tok ouvertes et les lignes qui arriveront dans une prochaine facture."
                 value={formatAmount(totalPayable)}
                 valueLabel="Sorties ouvertes"
               >
@@ -164,117 +172,89 @@ export default function DashboardFactures() {
                   tone="orange"
                   items={[
                     {
-                      label: "Factures deja emises par TOK",
+                      label: "Factures Tok deja emises",
                       value: formatAmount(summary.outflow.payableToTok),
-                      helper: "Montants deja ouverts sur vos factures TOK",
                     },
                     {
-                      label: "Encours non encore facture",
+                      label: "Encours non facture",
                       value: formatAmount(payableAccruals.totalAmount),
-                      helper: `${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} encore en attente de facture`,
+                      helper: `${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} en attente.`,
+                    },
+                    {
+                      label: "Deja paye a Tok",
+                      value: formatAmount(summary.outflow.alreadyPaidToTok),
                     },
                   ]}
                 />
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild variant="outline">
-                    <Link to="/dashboard/factures/sorties">Ouvrir les sorties</Link>
-                  </Button>
-                </div>
+                <Button asChild variant="outline">
+                  <Link to="/dashboard/factures/sorties">Ouvrir les sorties</Link>
+                </Button>
               </AccountingPanel>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-3">
+            <div className="grid gap-4 xl:grid-cols-2">
               <AccountingPanel
                 tone="emerald"
                 icon={Coins}
-                eyebrow="Comprendre les flux"
-                title="D'ou vient votre part 90%"
-                description="La ventilation reste visible par source, mais dans un bloc compact plus lisible."
+                title="Ce qui explique vos entrees"
+                description="La base client, la part restaurant et le montant Miamz finance par Tok."
                 value={formatAmount(totalRestaurantShare)}
                 valueLabel="Part restaurant"
               >
                 <AccountingFactList
                   tone="emerald"
-                  items={COMMISSION_SOURCE_ORDER.map((source) => ({
-                    label: COMMISSION_SOURCE_LABELS[source],
-                    value: formatAmount(summary.inflow.bySource[source]),
-                  }))}
+                  items={[
+                    {
+                      label: "Paiements clients via Tok",
+                      value: formatAmount(totalPaidThroughTok),
+                      helper: "Base avant separation 10% Tok / 90% restaurant.",
+                    },
+                    {
+                      label: "Part restaurant 90%",
+                      value: formatAmount(totalRestaurantShare),
+                    },
+                    {
+                      label: "Miamz pris en charge par Tok",
+                      value: formatAmount(tokCoveredMiamzAmount),
+                      helper: "Reduction client ajoutee a votre base de reversement.",
+                    },
+                    ...COMMISSION_SOURCE_ORDER.map((source) => ({
+                      label: COMMISSION_SOURCE_LABELS[source],
+                      value: formatAmount(summary.inflow.bySource[source]),
+                    })),
+                  ]}
                 />
               </AccountingPanel>
 
               <AccountingPanel
                 tone="violet"
-                icon={Wallet}
-                eyebrow="Comprendre les flux"
-                title="Remboursements emis"
-                description="Les annulations remboursees restent visibles a part pour suivre ce qui a deja ete rembourse et ce qui attend encore un traitement."
-                value={formatAmount(refundsIssuedTotal)}
-                valueLabel="Remboursements"
+                icon={Megaphone}
+                title="Autres lignes a surveiller"
+                description="Les couts et remboursements qui doivent rester visibles sans dominer la page."
+                value={formatAmount(paidCampaignsTotal + refundsIssuedTotal)}
+                valueLabel="Suivi"
               >
                 <AccountingFactList
                   tone="violet"
                   items={[
                     {
-                      label: "Encore a traiter",
+                      label: "Campagnes payees",
+                      value: formatAmount(paidCampaignsTotal),
+                      helper: `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""}.`,
+                    },
+                    {
+                      label: "Remboursements clients emis",
+                      value: formatAmount(refundsIssuedTotal),
+                      helper: `${refundsIssuedCount} remboursement${refundsIssuedCount > 1 ? "s" : ""}.`,
+                    },
+                    {
+                      label: "Remboursements encore a traiter",
                       value: formatAmount(refundsPendingAmount),
-                    },
-                    {
-                      label: "Dossiers en attente",
-                      value: String(refundsPendingCount),
-                    },
-                    {
-                      label: "Remboursements emis",
-                      value: String(refundsIssuedCount),
+                      helper: `${refundsPendingCount} dossier${refundsPendingCount > 1 ? "s" : ""} ouvert${refundsPendingCount > 1 ? "s" : ""}.`,
                     },
                   ]}
                 />
               </AccountingPanel>
-
-              <AccountingPanel
-                tone="amber"
-                icon={Megaphone}
-                eyebrow="Comprendre les flux"
-                title="Depenses marketing"
-                description="Les campagnes publicitaires restent visibles a part pour ne pas brouiller vos flux de marketplace."
-                value={formatAmount(paidCampaignsTotal)}
-                valueLabel="Campagnes payees"
-              >
-                <AccountingFactList
-                  tone="amber"
-                  items={[
-                    {
-                      label: "Campagnes concernees",
-                      value: String(paidCampaignsCount),
-                    },
-                    {
-                      label: "Lecture comptable",
-                      value: "Hors part 90%",
-                      helper: "Ce flux n'entre ni dans vos reversements ni dans les commissions marketplace",
-                    },
-                  ]}
-                />
-              </AccountingPanel>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <AccountingMetricCard
-                icon={Coins}
-                label="Paiements clients via TOK"
-                value={formatAmount(totalPaidThroughTok)}
-                description="Base globale avant separation entre la part restaurant et la commission TOK."
-              />
-              <AccountingMetricCard
-                icon={Wallet}
-                label="Deja recu de TOK"
-                value={formatAmount(summary.inflow.receivedFromTok)}
-                description="Historique des reversements deja encaisses par votre restaurant."
-              />
-              <AccountingMetricCard
-                icon={ReceiptText}
-                label="Net ouvert"
-                value={formatAmount(totalReceivable - totalPayable)}
-                description="Difference entre ce que TOK vous doit et ce que vous devez encore a TOK."
-              />
             </div>
           </>
         ) : null}

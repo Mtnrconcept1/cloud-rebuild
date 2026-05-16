@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDownRight, ArrowUpRight, Building2, Coins, Megaphone, Percent, Receipt, Store, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Coins, HandCoins, Megaphone, Percent, Receipt, Store, Wallet } from "lucide-react";
 
-import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +35,8 @@ export default function AdminCompta() {
     reservationFeeRevenueAmount,
     tokOneSubscriptionAmount,
     tokOneSubscriptionCount,
+    tokCoveredMiamzAmount,
+    tokCoveredMiamzCount,
     totalRevenue,
     developerReservedShare,
     monthOptions,
@@ -45,40 +47,41 @@ export default function AdminCompta() {
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
+
   const totalPayableOpen = summary.inflow.payableOutstanding + payableAccruals.totalAmount;
+  const netOpen = totalPayableOpen - summary.outflow.payoutsOutstanding;
+  const selectedRestaurantName = selectedRestaurant === "all"
+    ? "Tous les restaurateurs"
+    : restaurants.find((restaurant) => restaurant.id === selectedRestaurant)?.name || "Restaurateur";
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-7xl space-y-5 px-4 py-6">
       <AccountingHero
         badge="Comptabilite TOK"
-        title="Cockpit comptable"
-        description="Pilotez d'abord ce qui doit etre facture ou regle, puis seulement les explications et l'historique. Cette vue synthétise les montants ouverts entre TOK et les restaurateurs."
+        title="Vue comptable admin"
+        description="Lecture courte: revenu Tok, montants ouverts, reversements et prises en charge. Les details restent limites aux lignes utiles pour agir."
         actions={(
           <>
             <Button asChild size="sm">
               <Link to="/admin/compta">Vue d&apos;ensemble</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link to="/admin/compta/entrees">Entrees d&apos;argent</Link>
+              <Link to="/admin/compta/entrees">Entrees</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link to="/admin/compta/sorties">Sorties d&apos;argent</Link>
+              <Link to="/admin/compta/sorties">Sorties</Link>
             </Button>
           </>
         )}
       />
 
-      <Card className="border-dashed bg-muted/20">
+      <Card className="border-border/70 bg-card">
         <CardContent className="grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_220px_220px]">
-          <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-background/90 px-4 py-3">
+          <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/20 px-4 py-3">
             <Store className="h-5 w-5 text-primary" />
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Portee</p>
-              <p className="truncate text-sm font-semibold">
-                {selectedRestaurant === "all"
-                  ? "Tous les restaurateurs"
-                  : restaurants.find((restaurant) => restaurant.id === selectedRestaurant)?.name || "Restaurateur"}
-              </p>
+              <p className="truncate text-sm font-semibold">{selectedRestaurantName}</p>
             </div>
           </div>
 
@@ -116,202 +119,168 @@ export default function AdminCompta() {
 
       {!isLoading && !error ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2">
-            <AccountingMetricCard
-              tone="emerald"
-              icon={Coins}
-              label="Revenu total"
-              value={formatAmount(totalRevenue)}
-              description={selectedRestaurant === "all"
-                ? `Commissions 10%, frais de réservation (${formatAmount(reservationFeeRevenueAmount)}), campagnes pub (${formatAmount(paidCampaignsTotal)}) et abonnements Tok One (${tokOneSubscriptionCount} encaissement${tokOneSubscriptionCount > 1 ? "s" : ""}, ${formatAmount(tokOneSubscriptionAmount)}).`
-                : "Commissions 10%, frais de réservation et campagnes pub du restaurateur sélectionné. Tok One n'est pas rattaché à un restaurateur."}
-            />
-            <AccountingMetricCard
-              tone="primary"
-              icon={Percent}
-              label="Part réservée au développeur"
-              value={formatAmount(developerReservedShare)}
-              description="6% du chiffre d'affaires total affiché sur la période et la portée courantes."
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <AccountingMetricCard
-              tone="sky"
-              icon={Coins}
-              label="Volume encaisse via TOK"
-              value={formatAmount(paidEventGross)}
-              description="Base client du filtre courant avant separation entre la commission TOK et la part restaurant."
-            />
-            <AccountingMetricCard
-              tone="amber"
-              icon={ArrowDownRight}
-              label="A encaisser des restaurateurs"
-              value={formatAmount(totalPayableOpen)}
-              description={`${formatAmount(summary.inflow.payableOutstanding)} deja facture et ${formatAmount(payableAccruals.totalAmount)} encore a facturer.`}
-            />
-            <AccountingMetricCard
-              tone="rose"
-              icon={ArrowUpRight}
-              label="A reverser aux restaurateurs"
-              value={formatAmount(summary.outflow.payoutsOutstanding)}
-              description="Reversements deja emis par les restaurants et encore ouverts du cote TOK."
-            />
-          </div>
+          <AccountingDigestCard
+            title="A lire en premier"
+            description="Les chiffres prioritaires pour piloter le mois sans parcourir toutes les factures."
+            items={[
+              {
+                tone: "emerald",
+                icon: Coins,
+                label: "Revenu Tok",
+                value: formatAmount(totalRevenue),
+                helper: "Commissions, frais reservation, campagnes et Tok One.",
+              },
+              {
+                tone: "primary",
+                icon: Percent,
+                label: "Part developpeur",
+                value: formatAmount(developerReservedShare),
+                helper: "6% du revenu Tok affiche.",
+              },
+              {
+                tone: "violet",
+                icon: HandCoins,
+                label: "Miamz pris en charge",
+                value: formatAmount(tokCoveredMiamzAmount),
+                helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec reduction Miamz financee par Tok.`,
+              },
+              {
+                tone: netOpen >= 0 ? "amber" : "rose",
+                icon: Wallet,
+                label: "Net ouvert",
+                value: formatAmount(netOpen),
+                helper: "A encaisser moins a reverser.",
+              },
+            ]}
+          />
 
           <div className="grid gap-4 xl:grid-cols-2">
             <AccountingPanel
               tone="amber"
-              icon={Receipt}
-              eyebrow="A faire maintenant"
-              title="Suivi des factures faites aux restaurateurs"
-              description="Commencez ici pour savoir ce qui doit etre facture ou encaisse sans parcourir toute la comptabilite."
+              icon={ArrowDownRight}
+              eyebrow="Action"
+              title="Encaisser les restaurateurs"
+              description="Le montant a suivre cote entrees, separe entre facture deja emise et encours a facturer."
               value={formatAmount(totalPayableOpen)}
-              valueLabel="Ouvert cote entrees"
+              valueLabel="A encaisser"
             >
               <AccountingFactList
                 tone="amber"
                 items={[
                   {
-                    label: "Encore non facture",
+                    label: "Encore a facturer",
                     value: formatAmount(payableAccruals.totalAmount),
-                    helper: `${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} en attente de facture`,
+                    helper: `${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} non facturee${payableAccruals.totalCount > 1 ? "s" : ""}`,
                   },
                   {
-                    label: "Deja facture, encore a encaisser",
+                    label: "Facture, pas encore encaisse",
                     value: formatAmount(summary.inflow.payableOutstanding),
-                    helper: `${payableInvoiceSections.actionable.length} facture${payableInvoiceSections.actionable.length > 1 ? "s" : ""} a suivre`,
+                    helper: `${payableInvoiceSections.actionable.length} facture${payableInvoiceSections.actionable.length > 1 ? "s" : ""} ouverte${payableInvoiceSections.actionable.length > 1 ? "s" : ""}`,
+                  },
+                  {
+                    label: "Deja encaisse",
+                    value: formatAmount(summary.inflow.payableCollected),
                   },
                 ]}
               />
-              <div className="flex flex-wrap gap-2">
-                <Button asChild>
-                  <Link to="/admin/compta/entrees">Ouvrir les entrees</Link>
-                </Button>
-              </div>
+              <Button asChild>
+                <Link to="/admin/compta/entrees">Ouvrir les entrees</Link>
+              </Button>
             </AccountingPanel>
 
             <AccountingPanel
               tone="rose"
-              icon={Wallet}
-              eyebrow="A faire maintenant"
-              title="Suivi des reversements restaurateurs"
-              description="Ce bloc montre ce qui doit sortir de TOK et ce qui a deja ete regle."
+              icon={ArrowUpRight}
+              eyebrow="Action"
+              title="Reverser aux restaurateurs"
+              description="Le montant a sortir de Tok et les remboursements clients a garder visibles."
               value={formatAmount(summary.outflow.payoutsOutstanding)}
-              valueLabel="Ouvert cote sorties"
+              valueLabel="A reverser"
             >
               <AccountingFactList
                 tone="rose"
                 items={[
                   {
+                    label: "Reversements ouverts",
+                    value: formatAmount(summary.outflow.payoutsOutstanding),
+                  },
+                  {
                     label: "Deja reverse",
                     value: formatAmount(summary.outflow.payoutsPaid),
-                    helper: "Historique regle sur les factures de payout",
-                  },
-                  {
-                    label: "Net comptable ouvert",
-                    value: formatAmount(summary.netOutstanding),
-                    helper: "Ecart entre les entrees ouvertes et les sorties ouvertes",
-                  },
-                ]}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline">
-                  <Link to="/admin/compta/sorties">Ouvrir les sorties</Link>
-                </Button>
-              </div>
-            </AccountingPanel>
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-3">
-            <AccountingPanel
-              tone="emerald"
-              icon={Coins}
-              eyebrow="Comprendre les flux"
-              title="Ce qui entre chez TOK"
-              description="La ventilation ci-dessous explique d'ou viennent les 10% TOK sans melanger les sources."
-              value={formatAmount(summary.inflow.totalCommissions)}
-              valueLabel="Commission TOK"
-            >
-              <AccountingFactList
-                tone="emerald"
-                items={COMMISSION_SOURCE_ORDER.map((source) => ({
-                  label: COMMISSION_SOURCE_LABELS[source],
-                  value: formatAmount(summary.inflow.bySource[source]),
-                }))}
-              />
-            </AccountingPanel>
-
-            <AccountingPanel
-              tone="violet"
-              icon={Wallet}
-              eyebrow="Comprendre les flux"
-              title="Remboursements emis"
-              description="Les remboursements clients sont suivis a part pour distinguer le deja rembourse du restant a traiter."
-              value={formatAmount(refundsIssuedTotal)}
-              valueLabel="Remboursements"
-            >
-              <AccountingFactList
-                tone="violet"
-                items={[
-                  {
-                    label: "Encore a traiter",
-                    value: formatAmount(refundsPendingAmount),
-                    helper: `${refundsPendingCount} dossier${refundsPendingCount > 1 ? "s" : ""} encore ouvert${refundsPendingCount > 1 ? "s" : ""}`,
                   },
                   {
                     label: "Remboursements emis",
-                    value: String(refundsIssuedCount),
+                    value: formatAmount(refundsIssuedTotal),
+                    helper: `${refundsIssuedCount} emis, ${formatAmount(refundsPendingAmount)} encore a traiter sur ${refundsPendingCount} dossier${refundsPendingCount > 1 ? "s" : ""}.`,
+                  },
+                ]}
+              />
+              <Button asChild variant="outline">
+                <Link to="/admin/compta/sorties">Ouvrir les sorties</Link>
+              </Button>
+            </AccountingPanel>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            <AccountingPanel
+              tone="emerald"
+              icon={Receipt}
+              title="Composition du revenu Tok"
+              description="Uniquement les flux qui forment le chiffre d'affaires final de Tok."
+              value={formatAmount(totalRevenue)}
+              valueLabel="Revenu total"
+            >
+              <AccountingFactList
+                tone="emerald"
+                items={[
+                  {
+                    label: "Commissions marketplace 10%",
+                    value: formatAmount(summary.inflow.totalCommissions),
+                    helper: `${formatAmount(paidEventGross)} encaisses via Tok avant separation 10% / 90%.`,
+                  },
+                  {
+                    label: "Frais de reservation",
+                    value: formatAmount(reservationFeeRevenueAmount),
+                    helper: "Frais fixes factures sur les reservations confirmees.",
+                  },
+                  {
+                    label: "Campagnes publicitaires",
+                    value: formatAmount(paidCampaignsTotal),
+                    helper: `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""} payee${paidCampaignsCount > 1 ? "s" : ""}.`,
+                  },
+                  {
+                    label: "Abonnements Tok One",
+                    value: formatAmount(tokOneSubscriptionAmount),
+                    helper: `${tokOneSubscriptionCount} encaissement${tokOneSubscriptionCount > 1 ? "s" : ""}.`,
                   },
                 ]}
               />
             </AccountingPanel>
 
             <AccountingPanel
-              tone="primary"
+              tone="sky"
               icon={Megaphone}
-              eyebrow="Comprendre les flux"
-              title="Encaissements hors marketplace"
-              description="Les campagnes publicitaires sont volontairement separees des commissions marketplace pour garder la lecture propre."
-              value={formatAmount(paidCampaignsTotal)}
-              valueLabel="Campagnes payees"
+              title="Controles utiles"
+              description="Les lignes qui expliquent les ecarts sans alourdir la page."
+              value={formatAmount(tokCoveredMiamzAmount)}
+              valueLabel="Miamz Tok"
             >
               <AccountingFactList
-                tone="primary"
+                tone="sky"
                 items={[
+                  ...COMMISSION_SOURCE_ORDER.map((source) => ({
+                    label: COMMISSION_SOURCE_LABELS[source],
+                    value: formatAmount(summary.inflow.bySource[source]),
+                    helper: "Commission Tok 10%",
+                  })),
                   {
-                    label: "Campagnes reglees",
-                    value: String(paidCampaignsCount),
-                  },
-                  {
-                    label: "Lecture comptable",
-                    value: "Hors 10% / 90%",
-                    helper: "Ce flux ne fait pas partie des commissions marketplace",
+                    label: "Miamz pris en charge par Tok",
+                    value: formatAmount(tokCoveredMiamzAmount),
+                    helper: "Reduction client ajoutee a la base de reversement restaurant, hors revenu Tok.",
                   },
                 ]}
               />
             </AccountingPanel>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <AccountingMetricCard
-              icon={Building2}
-              label="Factures TOK deja encaissees"
-              value={formatAmount(summary.inflow.payableCollected)}
-              description="Montants deja recuperes cote facture payable unique."
-            />
-            <AccountingMetricCard
-              icon={Wallet}
-              label="Reversements deja envoyes"
-              value={formatAmount(summary.outflow.payoutsPaid)}
-              description="Montants deja regles aux restaurateurs sur les factures de payout."
-            />
-            <AccountingMetricCard
-              icon={Receipt}
-              label="Net comptable ouvert"
-              value={formatAmount(summary.netOutstanding)}
-              description="Vision synthetique du solde encore ouvert sur les deux sens de flux."
-            />
           </div>
         </>
       ) : null}
