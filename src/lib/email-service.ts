@@ -74,7 +74,7 @@ RÉCAPITULATIF FINANCIER :
 Sous-total : ${details.subtotal.toFixed(2)} CHF
 ${details.formulaDiscount ? `Réduction Formule (${details.formulaName}) : -${details.formulaDiscount.toFixed(2)} CHF` : ""}
 Frais : ${details.deliveryFee.toFixed(2)} CHF
-${details.pointsDiscount ? `Réduction Fidélité : -${details.pointsDiscount.toFixed(2)} CHF` : ""}
+${details.pointsDiscount ? `Miamz pris en charge par Tok : -${details.pointsDiscount.toFixed(2)} CHF` : ""}
 TOTAL : ${details.finalTotal.toFixed(2)} CHF
 
 Merci d'avoir accordé votre confiance à Tok !

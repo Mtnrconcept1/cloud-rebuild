@@ -3,6 +3,7 @@ import {
   CalendarDays,
   Clock3,
   CreditCard,
+  HandCoins,
   MapPin,
   Phone,
   Receipt,
@@ -18,9 +19,9 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { getPointsDiscountAmount } from "@/lib/comptaCommissionSources";
 import {
   getOrderTypePresentation,
   getReservationFeaturePresentation,
@@ -131,6 +132,8 @@ function SummaryBlock({
 
 function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
   const orderType = getOrderTypePresentation(order.orderType);
+  const tokCoveredMiamzAmount = getPointsDiscountAmount(order.metadata);
+  const hasTokCoveredMiamz = tokCoveredMiamzAmount > 0;
 
   return (
     <>
@@ -139,6 +142,11 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
           <Badge variant="outline">Commande</Badge>
           {orderType.label ? <Badge className={orderType.className}>{orderType.label}</Badge> : null}
           <Badge className={getStatusBadgeClass(order.status)}>{order.status}</Badge>
+          {hasTokCoveredMiamz ? (
+            <Badge className="bg-fuchsia-100 text-fuchsia-800">
+              Miamz Tok {formatAmount(tokCoveredMiamzAmount)}
+            </Badge>
+          ) : null}
           {order.paymentStatus ? (
             <Badge variant="secondary" className={getStatusBadgeClass(order.paymentStatus)}>
               Paiement {order.paymentStatus}
@@ -153,14 +161,40 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
         </p>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className="space-y-6 px-6 py-6">
           <div className="grid gap-3 sm:grid-cols-2">
             <SummaryBlock icon={Receipt} label="Montant" value={formatAmount(order.totalAmount)} />
             <SummaryBlock icon={CalendarDays} label="Date" value={formatDateTime(order.createdAt)} />
             <SummaryBlock icon={Store} label="Restaurant" value={order.restaurant.name} />
             <SummaryBlock icon={UserRound} label="Client" value={order.customer.displayName} />
+            {hasTokCoveredMiamz ? (
+              <SummaryBlock
+                icon={HandCoins}
+                label="Miamz pris en charge"
+                value={formatAmount(tokCoveredMiamzAmount)}
+              />
+            ) : null}
           </div>
+
+          {hasTokCoveredMiamz ? (
+            <section className="rounded-xl border border-fuchsia-200 bg-fuchsia-50 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex gap-3">
+                  <HandCoins className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-700" />
+                  <div>
+                    <h3 className="text-sm font-semibold text-fuchsia-950">Miamz pris en charge par Tok</h3>
+                    <p className="mt-1 text-sm text-fuchsia-900">
+                      Reduction fidelite appliquee au client et financee par Tok sur cette commande.
+                    </p>
+                  </div>
+                </div>
+                <p className="shrink-0 text-base font-semibold text-fuchsia-950">
+                  {formatAmount(tokCoveredMiamzAmount)}
+                </p>
+              </div>
+            </section>
+          ) : null}
 
           <section className="space-y-3">
             <h3 className="text-sm font-semibold">Coordonnees</h3>
@@ -253,7 +287,7 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
 
           {renderMetadata(order.metadata)}
         </div>
-      </ScrollArea>
+      </div>
     </>
   );
 }
@@ -275,7 +309,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
         </p>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className="space-y-6 px-6 py-6">
           <div className="grid gap-3 sm:grid-cols-2">
             <SummaryBlock icon={Users} label="Couverts" value={`${reservation.partySize} pers.`} />
@@ -396,7 +430,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
 
           {renderMetadata(reservation.metadata)}
         </div>
-      </ScrollArea>
+      </div>
     </>
   );
 }
@@ -541,7 +575,7 @@ export function InvoiceOperationDetailDialog({ target, open, onOpenChange }: Pro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-[760px] flex-col gap-0 overflow-hidden p-0">
+      <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] min-h-0 w-[calc(100vw-1rem)] max-w-[760px] flex-col gap-0 overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
         <DialogTitle className="sr-only">
           {target?.kind === "order" ? "Detail de commande" : "Detail de reservation"}
         </DialogTitle>

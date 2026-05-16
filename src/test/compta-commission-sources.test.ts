@@ -8,6 +8,7 @@ import {
   getNetOrderCommissionBase,
   getNetReservationCommissionBase,
   getPointsDiscountAmount,
+  getTokCoveredMiamzAmount,
 } from "@/lib/comptaCommissionSources";
 
 describe("classifyOrderCommissionSource", () => {
@@ -107,6 +108,33 @@ describe("getPointsDiscountAmount", () => {
 
   it("falls back to the legacy points_discount key", () => {
     expect(getPointsDiscountAmount({ points_discount: 3 })).toBe(3);
+  });
+});
+
+describe("getTokCoveredMiamzAmount", () => {
+  it("reports Miamz discounts paid by Tok for valid paid orders", () => {
+    expect(getTokCoveredMiamzAmount({
+      total_amount: 30,
+      payment_status: "paid",
+      metadata: { type: "delivery", points_discount_amount: "4.5" },
+    })).toBe(4.5);
+  });
+
+  it("caps Tok-covered Miamz after refunds", () => {
+    expect(getTokCoveredMiamzAmount({
+      total_amount: 5,
+      refunded_amount_chf: 7,
+      payment_status: "captured",
+      metadata: { type: "delivery", points_discount_amount: 4 },
+    })).toBe(2);
+  });
+
+  it("ignores unpaid orders", () => {
+    expect(getTokCoveredMiamzAmount({
+      total_amount: 30,
+      payment_status: "pending",
+      metadata: { type: "delivery", points_discount_amount: 4 },
+    })).toBe(0);
   });
 });
 

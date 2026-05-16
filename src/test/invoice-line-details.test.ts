@@ -27,6 +27,7 @@ describe("invoice line detail helpers", () => {
         grossAmount: 50,
         rateApplied: 0.9,
         invoicedAmount: 45,
+        tokCoveredMiamzAmount: 0,
       },
       {
         lineId: "order-1",
@@ -38,6 +39,7 @@ describe("invoice line detail helpers", () => {
         grossAmount: 20,
         rateApplied: 0.9,
         invoicedAmount: 18,
+        tokCoveredMiamzAmount: 0,
       },
     ];
 

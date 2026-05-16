@@ -8,8 +8,10 @@ import {
   classifyReservationCommissionSource,
   COMMISSION_SOURCE_ORDER,
   createEmptyCommissionBaseTotals,
+  getPointsDiscountAmount,
   getNetOrderCommissionBase,
   getNetReservationCommissionBase,
+  getTokCoveredMiamzAmount,
   type CommissionBaseTotals,
 } from "@/lib/comptaCommissionSources";
 import { buildTokAccountingSummary, buildTokRevenueSummary } from "@/lib/comptaFlow";
@@ -159,6 +161,7 @@ export type PayoutInvoiceDetailLine = {
   grossAmount: number;
   rateApplied: number;
   invoicedAmount: number;
+  tokCoveredMiamzAmount: number;
 };
 
 export type ReservationFeeInvoiceDetailLine = {
@@ -458,17 +461,48 @@ export function useAdminPayoutInvoiceDetailLines(invoiceId: string | null) {
       const { data, error } = await supabase.rpc("get_payout_invoice_lines", { p_invoice_id: invoiceId });
       if (error) throw error;
 
-      return (data || []).map((row) => ({
-        lineId: String(row.line_id),
-        lineType: normalizeInvoiceDetailLineType(row.line_type),
-        source: normalizeInvoiceDetailSource(row.source),
-        reference: String(row.reference || ""),
-        label: String(row.label || ""),
-        occurredAt: String(row.occurred_at || ""),
-        grossAmount: toAmount(row.gross_amount),
-        rateApplied: toAmount(row.rate_applied),
-        invoicedAmount: toAmount(row.invoiced_amount),
-      })) as PayoutInvoiceDetailLine[];
+      const rows = data || [];
+      const orderIds = Array.from(new Set(
+        rows
+          .filter((row) => String(row.line_type || "").trim().toLowerCase() === "order")
+          .map((row) => String(row.line_id || "").trim())
+          .filter(Boolean),
+      ));
+      let tokCoveredMiamzByOrderId = new Map<string, number>();
+
+      if (orderIds.length > 0) {
+        const ordersQuery = await supabase
+          .from("orders")
+          .select("id, metadata")
+          .in("id", orderIds);
+
+        if (ordersQuery.error) throw ordersQuery.error;
+
+        tokCoveredMiamzByOrderId = new Map(
+          (ordersQuery.data || []).map((order) => [
+            String(order.id),
+            getPointsDiscountAmount(order.metadata as Record<string, unknown> | null),
+          ]),
+        );
+      }
+
+      return rows.map((row) => {
+        const lineId = String(row.line_id);
+        const lineType = normalizeInvoiceDetailLineType(row.line_type);
+
+        return {
+          lineId,
+          lineType,
+          source: normalizeInvoiceDetailSource(row.source),
+          reference: String(row.reference || ""),
+          label: String(row.label || ""),
+          occurredAt: String(row.occurred_at || ""),
+          grossAmount: toAmount(row.gross_amount),
+          rateApplied: toAmount(row.rate_applied),
+          invoicedAmount: toAmount(row.invoiced_amount),
+          tokCoveredMiamzAmount: lineType === "order" ? tokCoveredMiamzByOrderId.get(lineId) || 0 : 0,
+        };
+      }) as PayoutInvoiceDetailLine[];
     },
     enabled: !!invoiceId,
   });
@@ -929,6 +963,20 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     [campaignsQuery.data],
   );
   const paidCampaignsCount = campaignsQuery.data?.length || 0;
+  const tokCoveredMiamz = useMemo(
+    () => (ordersQuery.data || []).reduce((accumulator, order) => {
+      const amount = getTokCoveredMiamzAmount(order);
+      if (amount <= 0) {
+        return accumulator;
+      }
+
+      return {
+        amount: accumulator.amount + amount,
+        count: accumulator.count + 1,
+      };
+    }, { amount: 0, count: 0 }),
+    [ordersQuery.data],
+  );
   const tokOneRevenue = useMemo(() => {
     if (selectedRestaurant !== "all") {
       return { amount: 0, count: 0 };
@@ -1006,6 +1054,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     reservationFeeRevenueAmount,
     paidCampaignsTotal,
     paidCampaignsCount,
+    tokCoveredMiamzAmount: tokCoveredMiamz.amount,
+    tokCoveredMiamzCount: tokCoveredMiamz.count,
     tokOneSubscriptionAmount: tokOneRevenue.amount,
     tokOneSubscriptionCount: tokOneRevenue.count,
     totalRevenue: totalRevenueSummary.totalRevenue,
