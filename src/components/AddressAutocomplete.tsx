@@ -84,6 +84,7 @@ export default function AddressAutocomplete({
   const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const isCityMode = mode === "city";
 
   useEffect(() => {
@@ -103,6 +104,7 @@ export default function AddressAutocomplete({
 
   useEffect(() => () => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    abortControllerRef.current?.abort();
   }, []);
 
   const fetchSuggestions = async (query: string) => {
@@ -112,12 +114,17 @@ export default function AddressAutocomplete({
       return;
     }
 
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=fr`,
+        `/api/photon?q=${encodeURIComponent(query)}&limit=5&lang=fr`,
+        { signal: controller.signal },
       );
       if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
@@ -166,10 +173,11 @@ export default function AddressAutocomplete({
 
       setSuggestions(formatted);
       setIsOpen(true);
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setError("Erreur de recherche");
     } finally {
-      setIsLoading(false);
+      if (abortControllerRef.current === controller) setIsLoading(false);
     }
   };
 

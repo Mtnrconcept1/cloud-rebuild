@@ -25,6 +25,13 @@ export default defineConfig(({ mode }) => {
       hmr: {
         overlay: false,
       },
+      proxy: {
+        "/api/photon": {
+          target: "https://photon.komoot.io",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/photon/, "/api"),
+        },
+      },
     },
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
     resolve: {

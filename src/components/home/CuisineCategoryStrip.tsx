@@ -61,43 +61,51 @@ function CuisinePhoto({
   isActive: boolean;
 }) {
   return (
-    <div
-      className={[
-        "relative h-[101px] w-[101px] overflow-hidden rounded-[35px] md:h-[117px] md:w-[117px] md:rounded-[40px]",
-        "transition-all duration-300",
-        isActive
-          ? "scale-105 ring-2 ring-[#E63900]/70 shadow-[0_10px_24px_rgba(230,57,0,0.24)]"
-          : "ring-1 ring-black/5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] group-hover:-translate-y-1 group-hover:shadow-[0_12px_28px_rgba(15,23,42,0.14)]",
-      ].join(" ")}
-    >
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        loading="lazy"
-        decoding="async"
-        className={[
-          "h-full w-full object-cover transition-transform duration-500 ease-out",
-          isActive ? "scale-110" : "group-hover:scale-110",
-        ].join(" ")}
-      />
+    <div className="relative h-[101px] w-[101px] md:h-[117px] md:w-[117px]">
       <div
         className={[
-          "absolute inset-0 bg-gradient-to-b transition-opacity duration-300",
+          "relative h-full w-full overflow-hidden rounded-[35px] md:rounded-[40px]",
+          "transition-all duration-300",
           isActive
-            ? "from-white/8 via-transparent to-[#E63900]/22"
-            : "from-white/18 via-transparent to-black/20 group-hover:to-black/28",
+            ? "scale-105 ring-2 ring-[#E63900]/70 shadow-[0_10px_24px_rgba(230,57,0,0.24)]"
+            : "ring-1 ring-black/5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] group-hover:-translate-y-1 group-hover:shadow-[0_12px_28px_rgba(15,23,42,0.14)]",
         ].join(" ")}
-      />
-      <div className="absolute inset-[8px] rounded-[27px] border border-white/35 md:inset-[9px] md:rounded-[32px]" />
+      >
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          className={[
+            "h-full w-full object-cover transition-transform duration-500 ease-out",
+            isActive ? "scale-110" : "group-hover:scale-110",
+          ].join(" ")}
+        />
+        <div
+          className={[
+            "absolute inset-0 bg-gradient-to-b transition-opacity duration-300",
+            isActive
+              ? "from-white/8 via-transparent to-[#E63900]/22"
+              : "from-white/18 via-transparent to-black/20 group-hover:to-black/28",
+          ].join(" ")}
+        />
+        <div className="absolute inset-[8px] rounded-[27px] border border-white/35 md:inset-[9px] md:rounded-[32px]" />
+      </div>
 
-      <div className="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 md:top-0.5">
+      <div
+        className={[
+          "pointer-events-none absolute left-1/2 top-[-18px] z-10 ml-4 -translate-x-1/2 md:top-[-22px] md:ml-5",
+          "origin-bottom-left transition-transform duration-300 ease-out",
+          "group-hover:scale-110 group-hover:-rotate-[8deg]",
+        ].join(" ")}
+      >
         <span
           className={[
             "inline-flex items-center justify-center bg-no-repeat",
             "px-3.5 pt-2 pb-5 md:px-4 md:pt-2.5 md:pb-6",
             "text-center text-[12px] leading-none tracking-wide antialiased md:text-[14px]",
-            "whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
+            "whitespace-nowrap drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]",
             isActive ? "text-[#E63900]" : "text-stone-900",
           ].join(" ")}
           style={{
@@ -157,7 +165,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
 
         <div
           ref={scrollRef}
-          className="-mt-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 pt-1 scrollbar-hide md:gap-5"
+          className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 pt-8 scrollbar-hide md:gap-5 md:pt-10"
         >
           {CUISINE_CATEGORIES.map((cat, index) => {
             const isActive = cat.slug === activeSlug;
