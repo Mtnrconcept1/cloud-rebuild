@@ -38,7 +38,7 @@ describe("MobileLogoIntro", () => {
     expect(overlay).toHaveClass("fixed", "inset-0", "z-[9999]", "bg-black");
     expect(video).toHaveAttribute(
       "src",
-      "/higgsfield/hf_20260518_042910_98da3ceb-a1f6-403f-b859-02b809cb2624.mp4",
+      "/higgsfield/intro.mp4",
     );
     expect(video).toHaveAttribute("autoplay");
     expect(videoFrame).toHaveClass("relative", "w-screen", "max-h-dvh", "overflow-hidden");

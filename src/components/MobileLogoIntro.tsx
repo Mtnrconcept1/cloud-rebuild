@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const MOBILE_BREAKPOINT = 768;
-const LOGO_INTRO_VIDEO_SRC = "/higgsfield/hf_20260518_042910_98da3ceb-a1f6-403f-b859-02b809cb2624.mp4";
+const LOGO_INTRO_VIDEO_SRC = "/higgsfield/intro.mp4";
 
 function isMobileViewport() {
   if (typeof window === "undefined") return false;
