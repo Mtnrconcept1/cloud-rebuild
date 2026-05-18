@@ -10,85 +10,113 @@ type CuisineCategory = {
 };
 
 const CUISINE_CATEGORIES: CuisineCategory[] = [
-  { slug: "gastronomique", label: "Gastronomique", imageSrc: "/images/octopus-fine-dining.jpeg" },
-  { slug: "italien", label: "Italien", imageSrc: "/images/prosciutto e rucola.avif" },
-  { slug: "pizza", label: "Pizza", imageSrc: "/images/pizza diavola.avif" },
-  { slug: "sushi", label: "Sushi", imageSrc: "/images/california roll.jpg" },
-  { slug: "bistro", label: "Bistro", imageSrc: "/images/octopus-fine-dining.jpeg" },
-  { slug: "burger", label: "Burger", imageSrc: "/images/gourmet-burgers.jpeg" },
-  { slug: "japonais", label: "Japonais", imageSrc: "/images/salmon roll.webp" },
-  { slug: "francais", label: "Français", imageSrc: "/images/filets de perche.jpg" },
-  { slug: "ramen", label: "Ramen", imageSrc: "/images/ramen miso.jpg" },
-  { slug: "chinois", label: "Chinois", imageSrc: "/images/gyoza porc.webp" },
-  { slug: "thai", label: "Thaï", imageSrc: "/images/thai-pad-thai.jpeg" },
-  { slug: "indien", label: "Indien", imageSrc: "/images/indian-feast.jpeg" },
-  { slug: "libanais", label: "Libanais", imageSrc: "/images/lebanese-mezze.jpeg" },
-  { slug: "turc", label: "Turc", imageSrc: "/images/greek-gyros.jpeg" },
-  { slug: "kebab", label: "Kebab", imageSrc: "/images/doner-kebab-plate.jpeg" },
-  { slug: "tacos", label: "Tacos", imageSrc: "/images/tacos carnitas.webp" },
-  { slug: "mexicain", label: "Mexicain", imageSrc: "/images/quesadillas.jpeg" },
-  { slug: "marocain", label: "Marocain", imageSrc: "/images/mixed-grill-platter.jpeg" },
-  { slug: "mediterraneen", label: "Méditerranéen", imageSrc: "/images/lebanese-mezze.jpeg" },
-  { slug: "africain", label: "Africain", imageSrc: "/images/rotisserie-chicken.jpeg" },
-  { slug: "creole", label: "Créole", imageSrc: "/images/mixed-grill-platter.jpeg" },
-  { slug: "americain", label: "Américain", imageSrc: "/images/burgers-wings.jpeg" },
-  { slug: "suisse", label: "Suisse", imageSrc: "/images/raclette.jpg" },
-  { slug: "pates", label: "Pâtes", imageSrc: "/images/pasta-assortment.jpeg" },
-  { slug: "grillades", label: "Grillades", imageSrc: "/images/mixed-grill-platter.jpeg" },
-  { slug: "pakistanais", label: "Pakistanais", imageSrc: "/images/byriani.jpg" },
-  { slug: "halal", label: "Halal", imageSrc: "/images/rotisserie-chicken.jpeg" },
-  { slug: "vegetarien", label: "Végétarien", imageSrc: "/images/veggie burger.jpg" },
-  { slug: "vegan", label: "Végan", imageSrc: "/images/acai bowl.jpg" },
-  { slug: "healthy", label: "Healthy", imageSrc: "/images/poke-bowls.jpeg" },
-  { slug: "salades", label: "Salades", imageSrc: "/images/fattouche.webp" },
-  { slug: "poke", label: "Poké", imageSrc: "/images/poke-bowls.jpeg" },
-  { slug: "brunch", label: "Brunch", imageSrc: "/images/acai bowl.jpg" },
-  { slug: "petit-dejeuner", label: "Petit-déj", imageSrc: "/images/acai bowl.jpg" },
-  { slug: "boulangerie", label: "Boulangerie", imageSrc: "/images/naan.jpeg" },
-  { slug: "patisserie", label: "Pâtisserie", imageSrc: "/images/tarte aux noix.webp" },
-  { slug: "desserts", label: "Desserts", imageSrc: "/images/1.webp" },
-  { slug: "cafe", label: "Café", imageSrc: "/images/1.webp" },
-  { slug: "sandwich", label: "Sandwich", imageSrc: "/images/falafel wrap.jpeg" },
-  { slug: "street-food", label: "Street Food", imageSrc: "/images/lobster-roll-fries.jpeg" },
+  { slug: "gastronomique", label: "Gastronomique", imageSrc: "/images/miniatures/12_gastronomique.png" },
+  { slug: "italien", label: "Italien", imageSrc: "/images/miniatures/17_italien.png" },
+  { slug: "pizza", label: "Pizza", imageSrc: "/images/miniatures/25_pizza.png" },
+  { slug: "sushi", label: "Sushi", imageSrc: "/images/miniatures/26_sushi.png" },
+  { slug: "bistro", label: "Bistro", imageSrc: "/images/miniatures/03_bistro.png" },
+  { slug: "burger", label: "Burger", imageSrc: "/images/miniatures/06_burger.png" },
+  { slug: "japonais", label: "Japonais", imageSrc: "/images/miniatures/18_japonais.png" },
+  { slug: "francais", label: "Français", imageSrc: "/images/miniatures/11_francais.png" },
+  { slug: "ramen", label: "Ramen", imageSrc: "/images/miniatures/27_ramen.png" },
+  { slug: "chinois", label: "Chinois", imageSrc: "/images/miniatures/08_chinois.png" },
+  { slug: "thai", label: "Thaï", imageSrc: "/images/miniatures/28_thai.png" },
+  { slug: "indien", label: "Indien", imageSrc: "/images/miniatures/16_indien.png" },
+  { slug: "libanais", label: "Libanais", imageSrc: "/images/miniatures/20_libanais.png" },
+  { slug: "turc", label: "Turc", imageSrc: "/images/miniatures/29_turc.png" },
+  { slug: "kebab", label: "Kebab", imageSrc: "/images/miniatures/19_kebab.png" },
+  { slug: "mexicain", label: "Mexicain", imageSrc: "/images/miniatures/23_mexicain.png" },
+  { slug: "marocain", label: "Marocain", imageSrc: "/images/miniatures/21_marocain.png" },
+  { slug: "mediterraneen", label: "Méditerranéen", imageSrc: "/images/miniatures/22_mediterranee.png" },
+  { slug: "africain", label: "Africain", imageSrc: "/images/miniatures/01_africain.png" },
+  { slug: "creole", label: "Créole", imageSrc: "/images/miniatures/09_creole.png" },
+  { slug: "americain", label: "Américain", imageSrc: "/images/miniatures/02_americain.png" },
+  { slug: "suisse", label: "Fondue Suisse", imageSrc: "/images/miniatures/34_fondue-suisse.png" },
+  { slug: "pates", label: "Pâtes", imageSrc: "/images/miniatures/33_pates.png" },
+  { slug: "grillades", label: "Grillades", imageSrc: "/images/miniatures/13_grillades.png" },
+  { slug: "pakistanais", label: "Pakistanais", imageSrc: "/images/miniatures/24_pakistanais.png" },
+  { slug: "halal", label: "Halal", imageSrc: "/images/miniatures/14_halal.png" },
+  { slug: "vegetarien", label: "Végétarien", imageSrc: "/images/miniatures/38_vegetarien.png" },
+  { slug: "vegan", label: "Vegan", imageSrc: "/images/miniatures/39_vegan.png" },
+  { slug: "healthy", label: "Healthy", imageSrc: "/images/miniatures/15_healthy.png" },
+  { slug: "salades", label: "Salades", imageSrc: "/images/miniatures/30_salades.png" },
+  { slug: "poke", label: "Poké", imageSrc: "/images/miniatures/31_poke.png" },
+  { slug: "brunch", label: "Brunch", imageSrc: "/images/miniatures/05_brunch.png" },
+  { slug: "petit-dejeuner", label: "Petit-déjeuner", imageSrc: "/images/miniatures/32_petit-dejeuner.png" },
+  { slug: "boulangerie", label: "Boulangerie", imageSrc: "/images/miniatures/04_boulangerie.png" },
+  { slug: "patisserie", label: "Pâtisserie", imageSrc: "/images/miniatures/35_patisserie.png" },
+  { slug: "desserts", label: "Desserts", imageSrc: "/images/miniatures/10_desserts.png" },
+  { slug: "cafe", label: "Café", imageSrc: "/images/miniatures/07_cafe.png" },
+  { slug: "sandwich", label: "Sandwich", imageSrc: "/images/miniatures/36_sandwich.png" },
+  { slug: "street-food", label: "Street-food", imageSrc: "/images/miniatures/37_street-food.png" },
 ].sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
 function CuisinePhoto({
   src,
+  label,
   isActive,
 }: {
   src: string;
+  label: string;
   isActive: boolean;
 }) {
   return (
-    <div
-      className={[
-        "relative h-[76px] w-[76px] overflow-hidden rounded-[26px] md:h-[88px] md:w-[88px] md:rounded-[30px]",
-        "transition-all duration-300",
-        isActive
-          ? "scale-105 ring-2 ring-[#E63900]/70 shadow-[0_10px_24px_rgba(230,57,0,0.24)]"
-          : "ring-1 ring-black/5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] group-hover:-translate-y-1 group-hover:shadow-[0_12px_28px_rgba(15,23,42,0.14)]",
-      ].join(" ")}
-    >
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        loading="lazy"
-        decoding="async"
-        className={[
-          "h-full w-full object-cover transition-transform duration-500 ease-out",
-          isActive ? "scale-110" : "group-hover:scale-110",
-        ].join(" ")}
-      />
+    <div className="relative h-[101px] w-[101px] md:h-[117px] md:w-[117px]">
       <div
         className={[
-          "absolute inset-0 bg-gradient-to-b transition-opacity duration-300",
+          "relative h-full w-full overflow-hidden rounded-[35px] md:rounded-[40px]",
+          "transition-all duration-300",
           isActive
-            ? "from-white/8 via-transparent to-[#E63900]/22"
-            : "from-white/18 via-transparent to-black/20 group-hover:to-black/28",
+            ? "scale-105 ring-2 ring-[#E63900]/70 shadow-[0_10px_24px_rgba(230,57,0,0.24)]"
+            : "ring-1 ring-black/5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] group-hover:-translate-y-1 group-hover:shadow-[0_12px_28px_rgba(15,23,42,0.14)]",
         ].join(" ")}
-      />
-      <div className="absolute inset-[6px] rounded-[20px] border border-white/35 md:inset-[7px] md:rounded-[24px]" />
+      >
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          className={[
+            "h-full w-full object-cover transition-transform duration-500 ease-out",
+            isActive ? "scale-110" : "group-hover:scale-110",
+          ].join(" ")}
+        />
+        <div
+          className={[
+            "absolute inset-0 bg-gradient-to-b transition-opacity duration-300",
+            isActive
+              ? "from-white/8 via-transparent to-[#E63900]/22"
+              : "from-white/18 via-transparent to-black/20 group-hover:to-black/28",
+          ].join(" ")}
+        />
+        <div className="absolute inset-[8px] rounded-[27px] border border-white/35 md:inset-[9px] md:rounded-[32px]" />
+      </div>
+
+      <div
+        className={[
+          "pointer-events-none absolute left-1/2 top-[-18px] z-10 ml-4 -translate-x-1/2 md:top-[-22px] md:ml-5",
+          "origin-bottom-left transition-transform duration-300 ease-out",
+          "group-hover:scale-110 group-hover:-rotate-[8deg]",
+        ].join(" ")}
+      >
+        <span
+          className={[
+            "inline-flex items-center justify-center bg-no-repeat",
+            "px-3.5 pt-2 pb-5 md:px-4 md:pt-2.5 md:pb-6",
+            "text-center text-[12px] leading-none tracking-wide antialiased md:text-[14px]",
+            "whitespace-nowrap drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]",
+            isActive ? "text-[#E63900]" : "text-stone-900",
+          ].join(" ")}
+          style={{
+            backgroundImage: "url(/images/miniatures/bulle.png)",
+            backgroundSize: "100% 100%",
+            fontFamily: "'Bubblegum Sans', cursive",
+          }}
+        >
+          {label}
+        </span>
+      </div>
     </div>
   );
 }
@@ -137,7 +165,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
 
         <div
           ref={scrollRef}
-          className="-mt-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 pt-1 scrollbar-hide md:gap-5"
+          className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 pt-8 scrollbar-hide md:gap-5 md:pt-10"
         >
           {CUISINE_CATEGORIES.map((cat, index) => {
             const isActive = cat.slug === activeSlug;
@@ -151,12 +179,12 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ delay: index * 0.03, type: "spring", stiffness: 260, damping: 20 }}
                 className="group flex shrink-0 snap-start flex-col items-center gap-2.5"
-                style={{ minWidth: 84 }}
+                style={{ minWidth: 112 }}
               >
-                <CuisinePhoto src={cat.imageSrc} isActive={isActive} />
+                <CuisinePhoto src={cat.imageSrc} label={cat.label} isActive={isActive} />
                 <span
                   className={[
-                    "w-full max-w-[88px] text-center text-[12px] font-bold transition-colors line-clamp-1 md:text-[14px]",
+                    "w-full max-w-[117px] text-center text-[12px] font-bold transition-colors line-clamp-1 md:text-[14px]",
                     isActive ? "text-[#E63900]" : "text-stone-600 group-hover:text-[#E63900] dark:text-stone-300",
                   ].join(" ")}
                 >

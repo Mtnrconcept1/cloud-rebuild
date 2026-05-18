@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/photon",
+      "destination": "https://photon.komoot.io/api"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
