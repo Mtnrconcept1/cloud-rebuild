@@ -1,0 +1,665 @@
+[
+  {
+    "index": 1,
+    "label": "Africain",
+    "row": 1,
+    "column": 1,
+    "source_bbox": [
+      6,
+      8,
+      186,
+      188
+    ],
+    "filename": "01_africain.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 2,
+    "label": "Américain",
+    "row": 1,
+    "column": 2,
+    "source_bbox": [
+      192,
+      8,
+      372,
+      188
+    ],
+    "filename": "02_americain.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 3,
+    "label": "Bistro",
+    "row": 1,
+    "column": 3,
+    "source_bbox": [
+      378,
+      8,
+      558,
+      188
+    ],
+    "filename": "03_bistro.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 4,
+    "label": "Boulangerie",
+    "row": 1,
+    "column": 4,
+    "source_bbox": [
+      563,
+      8,
+      743,
+      188
+    ],
+    "filename": "04_boulangerie.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 5,
+    "label": "Brunch",
+    "row": 1,
+    "column": 5,
+    "source_bbox": [
+      748,
+      8,
+      928,
+      188
+    ],
+    "filename": "05_brunch.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 6,
+    "label": "Burger",
+    "row": 1,
+    "column": 6,
+    "source_bbox": [
+      934,
+      8,
+      1114,
+      188
+    ],
+    "filename": "06_burger.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 7,
+    "label": "Café",
+    "row": 2,
+    "column": 1,
+    "source_bbox": [
+      6,
+      190,
+      186,
+      370
+    ],
+    "filename": "07_cafe.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 8,
+    "label": "Chinois",
+    "row": 2,
+    "column": 2,
+    "source_bbox": [
+      192,
+      190,
+      372,
+      370
+    ],
+    "filename": "08_chinois.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 9,
+    "label": "Créole",
+    "row": 2,
+    "column": 3,
+    "source_bbox": [
+      378,
+      190,
+      558,
+      370
+    ],
+    "filename": "09_creole.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 10,
+    "label": "Desserts",
+    "row": 2,
+    "column": 4,
+    "source_bbox": [
+      563,
+      190,
+      743,
+      370
+    ],
+    "filename": "10_desserts.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 11,
+    "label": "Français",
+    "row": 2,
+    "column": 5,
+    "source_bbox": [
+      748,
+      190,
+      928,
+      370
+    ],
+    "filename": "11_francais.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 12,
+    "label": "Gastronomique",
+    "row": 2,
+    "column": 6,
+    "source_bbox": [
+      934,
+      190,
+      1114,
+      370
+    ],
+    "filename": "12_gastronomique.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 13,
+    "label": "Grillades",
+    "row": 3,
+    "column": 1,
+    "source_bbox": [
+      6,
+      374,
+      186,
+      554
+    ],
+    "filename": "13_grillades.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 14,
+    "label": "Halal",
+    "row": 3,
+    "column": 2,
+    "source_bbox": [
+      192,
+      374,
+      372,
+      554
+    ],
+    "filename": "14_halal.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 15,
+    "label": "Healthy",
+    "row": 3,
+    "column": 3,
+    "source_bbox": [
+      378,
+      374,
+      558,
+      554
+    ],
+    "filename": "15_healthy.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 16,
+    "label": "Indien",
+    "row": 3,
+    "column": 4,
+    "source_bbox": [
+      563,
+      374,
+      743,
+      554
+    ],
+    "filename": "16_indien.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 17,
+    "label": "Italien",
+    "row": 3,
+    "column": 5,
+    "source_bbox": [
+      748,
+      374,
+      928,
+      554
+    ],
+    "filename": "17_italien.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 18,
+    "label": "Japonais",
+    "row": 3,
+    "column": 6,
+    "source_bbox": [
+      934,
+      374,
+      1114,
+      554
+    ],
+    "filename": "18_japonais.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 19,
+    "label": "Kebab",
+    "row": 4,
+    "column": 1,
+    "source_bbox": [
+      6,
+      556,
+      186,
+      736
+    ],
+    "filename": "19_kebab.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 20,
+    "label": "Libanais",
+    "row": 4,
+    "column": 2,
+    "source_bbox": [
+      192,
+      556,
+      372,
+      736
+    ],
+    "filename": "20_libanais.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 21,
+    "label": "Marocain",
+    "row": 4,
+    "column": 3,
+    "source_bbox": [
+      378,
+      556,
+      558,
+      736
+    ],
+    "filename": "21_marocain.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 22,
+    "label": "Méditerranée",
+    "row": 4,
+    "column": 4,
+    "source_bbox": [
+      563,
+      556,
+      743,
+      736
+    ],
+    "filename": "22_mediterranee.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 23,
+    "label": "Mexicain",
+    "row": 4,
+    "column": 5,
+    "source_bbox": [
+      748,
+      556,
+      928,
+      736
+    ],
+    "filename": "23_mexicain.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 24,
+    "label": "Pakistanais",
+    "row": 4,
+    "column": 6,
+    "source_bbox": [
+      934,
+      556,
+      1114,
+      736
+    ],
+    "filename": "24_pakistanais.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 25,
+    "label": "Pizza",
+    "row": 5,
+    "column": 1,
+    "source_bbox": [
+      6,
+      738,
+      186,
+      918
+    ],
+    "filename": "25_pizza.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 26,
+    "label": "Sushi",
+    "row": 5,
+    "column": 2,
+    "source_bbox": [
+      192,
+      738,
+      372,
+      918
+    ],
+    "filename": "26_sushi.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 27,
+    "label": "Ramen",
+    "row": 5,
+    "column": 3,
+    "source_bbox": [
+      378,
+      738,
+      558,
+      918
+    ],
+    "filename": "27_ramen.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 28,
+    "label": "Thaï",
+    "row": 5,
+    "column": 4,
+    "source_bbox": [
+      563,
+      738,
+      743,
+      918
+    ],
+    "filename": "28_thai.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 29,
+    "label": "Turc",
+    "row": 5,
+    "column": 5,
+    "source_bbox": [
+      748,
+      738,
+      928,
+      918
+    ],
+    "filename": "29_turc.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 30,
+    "label": "Salades",
+    "row": 5,
+    "column": 6,
+    "source_bbox": [
+      934,
+      738,
+      1114,
+      918
+    ],
+    "filename": "30_salades.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 31,
+    "label": "Poké",
+    "row": 6,
+    "column": 1,
+    "source_bbox": [
+      6,
+      920,
+      186,
+      1100
+    ],
+    "filename": "31_poke.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 32,
+    "label": "Petit-déjeuner",
+    "row": 6,
+    "column": 2,
+    "source_bbox": [
+      192,
+      920,
+      372,
+      1100
+    ],
+    "filename": "32_petit-dejeuner.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 33,
+    "label": "Pâtes",
+    "row": 6,
+    "column": 3,
+    "source_bbox": [
+      378,
+      920,
+      558,
+      1100
+    ],
+    "filename": "33_pates.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 34,
+    "label": "Fondue Suisse",
+    "row": 6,
+    "column": 4,
+    "source_bbox": [
+      563,
+      920,
+      743,
+      1100
+    ],
+    "filename": "34_fondue-suisse.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 35,
+    "label": "Pâtisserie",
+    "row": 6,
+    "column": 5,
+    "source_bbox": [
+      748,
+      920,
+      928,
+      1100
+    ],
+    "filename": "35_patisserie.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 36,
+    "label": "Sandwich",
+    "row": 6,
+    "column": 6,
+    "source_bbox": [
+      934,
+      920,
+      1114,
+      1100
+    ],
+    "filename": "36_sandwich.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 37,
+    "label": "Street-food",
+    "row": 7,
+    "column": 2,
+    "source_bbox": [
+      192,
+      1106,
+      372,
+      1286
+    ],
+    "filename": "37_street-food.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 38,
+    "label": "Végétarien",
+    "row": 7,
+    "column": 3,
+    "source_bbox": [
+      378,
+      1106,
+      558,
+      1286
+    ],
+    "filename": "38_vegetarien.png",
+    "size": [
+      180,
+      180
+    ]
+  },
+  {
+    "index": 39,
+    "label": "Vegan",
+    "row": 7,
+    "column": 4,
+    "source_bbox": [
+      563,
+      1106,
+      743,
+      1286
+    ],
+    "filename": "39_vegan.png",
+    "size": [
+      180,
+      180
+    ]
+  }
+]
