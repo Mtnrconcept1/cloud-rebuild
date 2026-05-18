@@ -67,8 +67,8 @@ function CuisinePhoto({
           "relative h-full w-full overflow-hidden rounded-[35px] md:rounded-[40px]",
           "transition-all duration-300",
           isActive
-            ? "scale-105 ring-2 ring-[#E63900]/70 shadow-[0_10px_24px_rgba(230,57,0,0.24)]"
-            : "ring-1 ring-black/5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] group-hover:-translate-y-1 group-hover:shadow-[0_12px_28px_rgba(15,23,42,0.14)]",
+            ? "scale-105 ring-2 ring-[#E63900]/70 shadow-[0_10px_24px_rgba(230,57,0,0.24)] dark:ring-orange-300/80 dark:shadow-[0_0_34px_rgba(249,115,22,0.34)]"
+            : "ring-1 ring-black/5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] group-hover:-translate-y-1 group-hover:shadow-[0_12px_28px_rgba(15,23,42,0.14)] dark:ring-white/12 dark:shadow-[0_16px_42px_rgba(0,0,0,0.42)] dark:group-hover:shadow-[0_0_32px_rgba(249,115,22,0.20)]",
         ].join(" ")}
       >
         <img
@@ -86,8 +86,8 @@ function CuisinePhoto({
           className={[
             "absolute inset-0 bg-gradient-to-b transition-opacity duration-300",
             isActive
-              ? "from-white/8 via-transparent to-[#E63900]/22"
-              : "from-white/18 via-transparent to-black/20 group-hover:to-black/28",
+              ? "from-white/8 via-transparent to-[#E63900]/22 dark:to-orange-500/36"
+              : "from-white/18 via-transparent to-black/20 group-hover:to-black/28 dark:from-white/8 dark:to-black/44 dark:group-hover:to-orange-950/42",
           ].join(" ")}
         />
         <div className="absolute inset-[8px] rounded-[27px] border border-white/35 md:inset-[9px] md:rounded-[32px]" />
@@ -106,7 +106,7 @@ function CuisinePhoto({
             "px-3.5 pt-2 pb-5 md:px-4 md:pt-2.5 md:pb-6",
             "text-center text-[12px] leading-none tracking-wide antialiased md:text-[14px]",
             "whitespace-nowrap drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]",
-            isActive ? "text-[#E63900]" : "text-stone-900",
+            isActive ? "text-[#E63900]" : "text-stone-900 dark:text-slate-950",
           ].join(" ")}
           style={{
             backgroundImage: "url(/images/miniatures/bulle.png)",
@@ -139,15 +139,15 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
   };
 
   return (
-    <section className="relative overflow-hidden bg-background py-4 md:py-6">
+    <section className="relative overflow-hidden bg-background py-4 dark:bg-[radial-gradient(circle_at_20%_0%,rgba(249,115,22,0.10),transparent_24rem)] md:py-6">
       <div className="container px-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-base font-bold text-foreground md:text-xl">Explorer par cuisine</h2>
+          <h2 className="font-display text-base font-bold text-foreground dark:text-white md:text-xl">Explorer par cuisine</h2>
           <div className="hidden items-center gap-1.5 md:flex">
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+              className="neon-chip grid h-9 w-9 place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
               aria-label="Défiler à gauche"
             >
               <ChevronLeft className="h-4.5 w-4.5" />
@@ -155,7 +155,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+              className="neon-chip grid h-9 w-9 place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
               aria-label="Défiler à droite"
             >
               <ChevronRight className="h-4.5 w-4.5" />
@@ -185,7 +185,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
                 <span
                   className={[
                     "w-full max-w-[117px] text-center text-[12px] font-bold transition-colors line-clamp-1 md:text-[14px]",
-                    isActive ? "text-[#E63900]" : "text-stone-600 group-hover:text-[#E63900] dark:text-stone-300",
+                    isActive ? "text-[#E63900] dark:text-orange-300 dark:drop-shadow-[0_0_14px_rgba(249,115,22,0.36)]" : "text-stone-600 group-hover:text-[#E63900] dark:text-slate-200 dark:group-hover:text-orange-300",
                   ].join(" ")}
                 >
                   {cat.label}

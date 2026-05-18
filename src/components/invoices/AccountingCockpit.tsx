@@ -15,60 +15,60 @@ const TONE_CLASSES: Record<AccountingTone, {
   soft: string;
 }> = {
   slate: {
-    card: "border-border/70 bg-card",
-    value: "text-foreground",
-    label: "text-muted-foreground",
-    icon: "bg-muted text-foreground",
-    soft: "border-border/70 bg-muted/30",
+    card: "border-border/70 bg-card dark:border-white/20 dark:bg-slate-950/90 dark:shadow-[0_0_34px_rgba(148,163,184,0.10)]",
+    value: "text-foreground dark:text-white",
+    label: "text-muted-foreground dark:text-slate-200/90",
+    icon: "bg-muted text-foreground dark:bg-white/10 dark:text-slate-100",
+    soft: "border-border/70 bg-muted/30 dark:border-white/20 dark:bg-slate-900/80 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
   },
   sky: {
-    card: "border-sky-200 bg-sky-50/80",
-    value: "text-sky-950",
-    label: "text-sky-800",
-    icon: "bg-sky-100 text-sky-700",
-    soft: "border-sky-200 bg-background/90",
+    card: "border-sky-200 bg-sky-50/80 dark:border-sky-300/25 dark:bg-sky-950/30 dark:shadow-[0_0_36px_rgba(14,165,233,0.12)]",
+    value: "text-sky-950 dark:text-sky-50",
+    label: "text-sky-800 dark:text-sky-100/90",
+    icon: "bg-sky-100 text-sky-700 dark:bg-sky-300/20 dark:text-sky-100",
+    soft: "border-sky-200 bg-background/90 dark:border-sky-300/20 dark:bg-sky-950/40",
   },
   emerald: {
-    card: "border-emerald-200 bg-emerald-50/80",
-    value: "text-emerald-950",
-    label: "text-emerald-800",
-    icon: "bg-emerald-100 text-emerald-700",
-    soft: "border-emerald-200 bg-background/90",
+    card: "border-emerald-200 bg-emerald-50/80 dark:border-emerald-300/25 dark:bg-emerald-950/30 dark:shadow-[0_0_36px_rgba(16,185,129,0.14)]",
+    value: "text-emerald-950 dark:text-emerald-50",
+    label: "text-emerald-800 dark:text-emerald-100/90",
+    icon: "bg-emerald-100 text-emerald-700 dark:bg-emerald-300/20 dark:text-emerald-100",
+    soft: "border-emerald-200 bg-background/90 dark:border-emerald-300/20 dark:bg-emerald-950/40",
   },
   amber: {
-    card: "border-amber-200 bg-amber-50/80",
-    value: "text-amber-950",
-    label: "text-amber-900",
-    icon: "bg-amber-100 text-amber-700",
-    soft: "border-amber-200 bg-background/90",
+    card: "border-amber-200 bg-amber-50/80 dark:border-amber-300/30 dark:bg-amber-950/30 dark:shadow-[0_0_38px_rgba(245,158,11,0.15)]",
+    value: "text-amber-950 dark:text-amber-50",
+    label: "text-amber-900 dark:text-amber-100/90",
+    icon: "bg-amber-100 text-amber-700 dark:bg-amber-300/20 dark:text-amber-100",
+    soft: "border-amber-200 bg-background/90 dark:border-amber-300/20 dark:bg-amber-950/40",
   },
   orange: {
-    card: "border-orange-200 bg-orange-50/80",
-    value: "text-orange-950",
-    label: "text-orange-900",
-    icon: "bg-orange-100 text-orange-700",
-    soft: "border-orange-200 bg-background/90",
+    card: "border-orange-200 bg-orange-50/80 dark:border-orange-300/30 dark:bg-orange-950/30 dark:shadow-[0_0_38px_rgba(249,115,22,0.16)]",
+    value: "text-orange-950 dark:text-orange-50",
+    label: "text-orange-900 dark:text-orange-100/90",
+    icon: "bg-orange-100 text-orange-700 dark:bg-orange-300/20 dark:text-orange-100",
+    soft: "border-orange-200 bg-background/90 dark:border-orange-300/20 dark:bg-orange-950/40",
   },
   violet: {
-    card: "border-violet-200 bg-violet-50/80",
-    value: "text-violet-950",
-    label: "text-violet-800",
-    icon: "bg-violet-100 text-violet-700",
-    soft: "border-violet-200 bg-background/90",
+    card: "border-violet-200 bg-violet-50/80 dark:border-violet-300/25 dark:bg-violet-950/30 dark:shadow-[0_0_38px_rgba(139,92,246,0.16)]",
+    value: "text-violet-950 dark:text-violet-50",
+    label: "text-violet-800 dark:text-violet-100/90",
+    icon: "bg-violet-100 text-violet-700 dark:bg-violet-300/20 dark:text-violet-100",
+    soft: "border-violet-200 bg-background/90 dark:border-violet-300/20 dark:bg-violet-950/40",
   },
   rose: {
-    card: "border-rose-200 bg-rose-50/80",
-    value: "text-rose-950",
-    label: "text-rose-800",
-    icon: "bg-rose-100 text-rose-700",
-    soft: "border-rose-200 bg-background/90",
+    card: "border-rose-200 bg-rose-50/80 dark:border-rose-300/25 dark:bg-rose-950/30 dark:shadow-[0_0_38px_rgba(244,63,94,0.15)]",
+    value: "text-rose-950 dark:text-rose-50",
+    label: "text-rose-800 dark:text-rose-100/90",
+    icon: "bg-rose-100 text-rose-700 dark:bg-rose-300/20 dark:text-rose-100",
+    soft: "border-rose-200 bg-background/90 dark:border-rose-300/20 dark:bg-rose-950/40",
   },
   primary: {
-    card: "border-primary/20 bg-primary/5",
-    value: "text-primary",
-    label: "text-primary",
-    icon: "bg-primary/10 text-primary",
-    soft: "border-primary/20 bg-background/90",
+    card: "border-primary/20 bg-primary/5 dark:border-orange-300/30 dark:bg-orange-950/30 dark:shadow-[0_0_38px_rgba(249,115,22,0.16)]",
+    value: "text-primary dark:text-orange-50",
+    label: "text-primary dark:text-orange-100/90",
+    icon: "bg-primary/10 text-primary dark:bg-orange-300/20 dark:text-orange-100",
+    soft: "border-primary/20 bg-background/90 dark:border-orange-300/20 dark:bg-orange-950/40",
   },
 };
 
@@ -200,7 +200,7 @@ export function AccountingDigestCard({
                     </div>
                   ) : null}
                 </div>
-                {item.helper ? <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.helper}</p> : null}
+                {item.helper ? <p className="mt-2 text-xs leading-5 text-muted-foreground dark:text-slate-200/75">{item.helper}</p> : null}
               </div>
             );
           })}
@@ -288,10 +288,10 @@ export function AccountingFactList({
       {items.map((item) => (
         <div key={`${item.label}-${item.value}`} className={cn("flex items-start justify-between gap-4 rounded-xl border px-3 py-3", toneClasses.soft)}>
           <div className="min-w-0 space-y-1">
-            <p className="text-sm font-medium leading-5">{item.label}</p>
-            {item.helper ? <p className="text-xs leading-5 text-muted-foreground">{item.helper}</p> : null}
+            <p className={cn("text-sm font-semibold leading-5", toneClasses.value)}>{item.label}</p>
+            {item.helper ? <p className="text-xs leading-5 text-muted-foreground dark:text-slate-200/75">{item.helper}</p> : null}
           </div>
-          <div className="whitespace-nowrap text-sm font-semibold">{item.value}</div>
+          <div className={cn("whitespace-nowrap text-sm font-bold", toneClasses.value)}>{item.value}</div>
         </div>
       ))}
     </div>

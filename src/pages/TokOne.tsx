@@ -184,7 +184,7 @@ export default function TokOne() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-violet-50/40 via-background to-background">
+    <div className="min-h-screen bg-gradient-to-b from-violet-50/40 via-background to-background dark:from-slate-950 dark:via-slate-950 dark:to-black">
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white">
         <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-5" />
@@ -209,7 +209,7 @@ export default function TokOne() {
             {TRUST_PILLS.map((pill) => (
               <span
                 key={pill.label}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/85 backdrop-blur"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/90 backdrop-blur"
               >
                 <pill.icon className="h-3.5 w-3.5" />
                 {pill.label}
@@ -225,7 +225,7 @@ export default function TokOne() {
       >
         {/* Active subscription banner */}
         {isActive && activeSubscription && (
-          <div className="rounded-[28px] border border-violet-200/80 bg-white/96 p-6 shadow-[0_22px_60px_-28px_rgba(109,40,217,0.42)] backdrop-blur md:p-7 space-y-4">
+          <div className="rounded-[28px] border border-violet-200/80 bg-white/95 p-6 shadow-[0_22px_60px_-28px_rgba(109,40,217,0.42)] backdrop-blur md:p-7 space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100">
@@ -259,7 +259,7 @@ export default function TokOne() {
                 { icon: Percent, label: "Reductions actives", active: true },
                 { icon: ShieldCheck, label: "Support prioritaire", active: true },
               ].map((perk) => (
-                <div key={perk.label} className="flex min-w-0 items-center gap-2 rounded-2xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700">
+              <div key={perk.label} className="flex min-w-0 items-center gap-2 rounded-2xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700 dark:border-violet-300/25 dark:bg-violet-400/20 dark:text-violet-100">
                   <perk.icon className="h-4 w-4" />
                   <span className="truncate">{perk.label}</span>
                   <Check className="h-3.5 w-3.5 text-emerald-500 ml-auto" />
@@ -272,9 +272,9 @@ export default function TokOne() {
         {/* Value metrics */}
         <div className="grid gap-4 sm:grid-cols-3">
           {VALUE_METRICS.map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-violet-100 bg-white/90 p-4 text-center shadow-sm">
-              <p className="text-2xl font-bold text-violet-700">{metric.value}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{metric.label}</p>
+            <div key={metric.label} className="rounded-2xl border border-violet-100 bg-white/90 p-4 text-center shadow-sm dark:border-violet-300/30 dark:bg-slate-950/90 dark:shadow-[0_0_34px_rgba(139,92,246,0.20),inset_0_1px_0_rgba(255,255,255,0.07)]">
+              <p className="text-2xl font-bold text-violet-700 dark:text-violet-50">{metric.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground dark:text-slate-200/90">{metric.label}</p>
             </div>
           ))}
         </div>
@@ -294,7 +294,7 @@ export default function TokOne() {
               <button
                 key={benefit.title}
                 onClick={() => setExpandedBenefit(expandedBenefit === i ? null : i)}
-                className={`group text-left p-6 rounded-2xl border bg-card shadow-sm space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all ${expandedBenefit === i ? "ring-2 ring-violet-300 shadow-md" : ""}`}
+                className={`group text-left p-6 rounded-2xl border bg-card shadow-sm space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all dark:border-white/20 dark:bg-slate-950/90 dark:shadow-[0_0_28px_rgba(139,92,246,0.10)] ${expandedBenefit === i ? "ring-2 ring-violet-300 shadow-md dark:ring-violet-300/50" : ""}`}
               >
                 <div className={`w-12 h-12 rounded-xl ${benefit.bg} flex items-center justify-center`}>
                   <benefit.icon className={`h-6 w-6 ${benefit.color}`} />
@@ -442,7 +442,7 @@ export default function TokOne() {
                 <tr>
                   <th className="text-left p-3 border-b font-medium text-muted-foreground">Avantage</th>
                   <th className="p-3 border-b font-medium text-muted-foreground text-center">Sans abonnement</th>
-                  <th className="p-3 border-b font-bold text-violet-700 text-center bg-violet-50 rounded-t-xl">Tok One</th>
+                  <th className="p-3 border-b font-bold text-violet-700 text-center bg-violet-50 rounded-t-xl dark:border-white/10 dark:bg-violet-400/20 dark:text-violet-100">Tok One</th>
                 </tr>
               </thead>
               <tbody>
@@ -457,7 +457,7 @@ export default function TokOne() {
                   <tr key={row.feature}>
                     <td className="p-3 border-b font-medium">{row.feature}</td>
                     <td className="p-3 border-b text-center text-muted-foreground">{row.free}</td>
-                    <td className={`p-3 border-b text-center font-medium bg-violet-50 ${row.tokHighlight ? "text-violet-700" : ""}`}>{row.tok}</td>
+                    <td className={`p-3 border-b text-center font-medium bg-violet-50 dark:border-white/10 dark:bg-violet-400/10 ${row.tokHighlight ? "text-violet-700 dark:text-violet-100" : ""}`}>{row.tok}</td>
                   </tr>
                 ))}
               </tbody>

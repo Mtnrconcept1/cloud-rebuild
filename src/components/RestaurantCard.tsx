@@ -276,9 +276,9 @@ export default function RestaurantCard({
       <div
         ref={isSponsored ? sponsoredImpressionRef : undefined}
         className={cn(
-          "premium-card flex h-full flex-col overflow-hidden rounded-[26px] border transition-all duration-300 hover:-translate-y-1",
+          "premium-card neon-card flex h-full flex-col overflow-hidden rounded-[26px] border transition-all duration-300 hover:-translate-y-1",
           isSponsored
-            ? "border-amber-200/85 bg-[linear-gradient(180deg,rgba(255,248,238,0.98),rgba(255,255,255,0.98))] shadow-[0_18px_46px_rgba(249,115,22,0.16)] hover:shadow-[0_24px_54px_rgba(249,115,22,0.22)]"
+            ? "neon-card-sponsored border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,248,238,0.98),rgba(255,255,255,0.98))] shadow-[0_18px_46px_rgba(249,115,22,0.16)] hover:shadow-[0_24px_54px_rgba(249,115,22,0.22)]"
             : "border-border/70 bg-card/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] hover:shadow-[0_20px_48px_rgba(15,23,42,0.14)]",
         )}
       >
@@ -296,7 +296,7 @@ export default function RestaurantCard({
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent dark:from-slate-950/80 dark:via-slate-950/25" />
 
           <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
             {isSponsored ? (
@@ -313,15 +313,15 @@ export default function RestaurantCard({
           </div>
 
           <button
-            className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/88 backdrop-blur-sm transition-colors hover:bg-white"
+            className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white dark:border dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_0_22px_rgba(255,255,255,0.08)] dark:hover:bg-slate-900"
             onClick={toggleFavorite}
           >
-            <Heart className={isFavorite ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-muted-foreground"} />
+            <Heart className={isFavorite ? "h-4 w-4 fill-red-500 text-red-500" : "h-4 w-4 text-muted-foreground dark:text-white/80"} />
           </button>
 
           {bestDiscount > 0 ? (
             <div className="absolute bottom-3 left-3">
-              <Badge className="gap-1 rounded-full border border-white/20 bg-white/90 px-3 py-1 text-[10px] font-bold text-emerald-700 shadow-sm backdrop-blur-md hover:bg-white">
+              <Badge className="gap-1 rounded-full border border-white/20 bg-white/90 px-3 py-1 text-[10px] font-bold text-emerald-700 shadow-sm ring-1 ring-black/5 backdrop-blur-md hover:bg-white dark:border-emerald-200/70 dark:bg-emerald-950/95 dark:text-emerald-50 dark:ring-emerald-200/20 dark:shadow-[0_0_24px_rgba(16,185,129,0.36),0_10px_24px_rgba(0,0,0,0.35)] dark:hover:bg-emerald-900">
                 <Percent className="h-3 w-3" /> Jusqu'a -{bestDiscount}%
               </Badge>
             </div>
@@ -331,10 +331,10 @@ export default function RestaurantCard({
         <div className="flex flex-1 flex-col p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-1">
-              <h3 className="font-display text-base font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
+              <h3 className="font-display text-base font-bold leading-tight text-foreground transition-colors group-hover:text-primary dark:text-white dark:drop-shadow-[0_0_18px_rgba(255,255,255,0.12)]">
                 {name}
               </h3>
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90 dark:text-slate-200/90">
                 {cuisine ? <span className="max-w-full truncate">{cuisine}</span> : null}
                 {cuisine ? <span className="text-border">/</span> : null}
                 <PriceRangeIcons range={priceRange} />
@@ -346,15 +346,15 @@ export default function RestaurantCard({
                 <div className={`inline-flex min-w-[2.7rem] items-center justify-center rounded-xl px-2.5 py-1.5 text-sm font-bold ${getRatingColor(ratingNum)}`}>
                   {displayRating}
                 </div>
-                <p className="mt-1 text-[10px] text-muted-foreground">({reviewCount})</p>
+                <p className="mt-1 text-[10px] text-muted-foreground dark:text-slate-300/90">({reviewCount})</p>
               </div>
             ) : null}
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground dark:text-slate-300">
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-primary/75" />
-              <span className="font-medium text-foreground/85">{city}</span>
+              <span className="font-medium text-foreground/90 dark:text-white/90">{city}</span>
             </span>
             {showDelivery ? (
               <span className="inline-flex items-center gap-1.5">
@@ -365,29 +365,29 @@ export default function RestaurantCard({
           </div>
 
           {address ? (
-            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+            <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground dark:text-slate-300/90">
               {address}
             </p>
           ) : (
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm leading-6 text-muted-foreground dark:text-slate-300/90">
               Ouvrez la fiche pour voir le menu, les disponibilites et les details.
             </p>
           )}
 
           {isSponsored ? (
-            <div className="mt-3 rounded-[22px] border border-amber-200/85 bg-[linear-gradient(135deg,rgba(255,248,230,0.95),rgba(255,255,255,0.94))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+            <div className="mt-3 rounded-[22px] border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,248,230,0.95),rgba(255,255,255,0.94))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(251,191,36,0.16),rgba(15,23,42,0.88))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0_28px_rgba(249,115,22,0.16)]">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffedd5] via-[#fff7ed] to-[#fef3c7] text-amber-600 shadow-[0_10px_22px_rgba(249,115,22,0.14)]">
+                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffedd5] via-[#fff7ed] to-[#fef3c7] text-amber-600 shadow-[0_10px_22px_rgba(249,115,22,0.14)] dark:from-amber-400/25 dark:via-orange-500/20 dark:to-slate-900 dark:text-amber-200 dark:shadow-[0_0_26px_rgba(249,115,22,0.25)]">
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-600">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-600 dark:text-amber-300">
                     Campagne active
                   </p>
-                  <p className="mt-1 line-clamp-1 text-sm font-semibold text-slate-900">
+                  <p className="mt-1 line-clamp-1 text-sm font-semibold text-slate-900 dark:text-white">
                     {sponsoredHeading}
                   </p>
-                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
                     {sponsoredDescription}
                   </p>
                 </div>
@@ -404,7 +404,7 @@ export default function RestaurantCard({
                   "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition-all",
                   isSponsored
                     ? "bg-gradient-to-r from-primary via-orange-500 to-orange-600 shadow-[0_14px_30px_rgba(249,115,22,0.26)] hover:brightness-105"
-                    : "bg-[#21314b] shadow-[0_10px_24px_rgba(33,49,75,0.22)] hover:bg-[#2a3d5d]",
+                    : "bg-[#21314b] shadow-[0_10px_24px_rgba(33,49,75,0.22)] hover:bg-[#2a3d5d] dark:bg-gradient-to-r dark:from-slate-100 dark:to-white dark:text-slate-950 dark:shadow-[0_0_32px_rgba(255,255,255,0.16)] dark:hover:brightness-110",
                 )}
               >
                 {isSponsored ? "Decouvrir l'offre" : "Voir le restaurant"}
@@ -415,14 +415,14 @@ export default function RestaurantCard({
                   key={slot}
                   type="button"
                   onClick={(e) => handleSlotClick(e, slot)}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-500/35 bg-emerald-50 px-3.5 text-sm font-bold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-500 hover:text-white"
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-500/35 bg-emerald-50 px-3.5 text-sm font-bold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-500 hover:text-white dark:bg-emerald-400/10 dark:text-emerald-200 dark:shadow-[0_0_20px_rgba(16,185,129,0.14)]"
                 >
                   {slot}
                 </button>
               ))}
             </div>
             {timeSlots.length > 0 ? (
-              <p className="mt-2 text-xs text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground dark:text-slate-300/90">
                 Prochains creneaux visibles. Plus d'options sur la fiche.
               </p>
             ) : null}

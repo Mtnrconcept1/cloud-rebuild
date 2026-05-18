@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { BadgePercent, ChevronRight, Compass, Heart, MapPinned, MoonStar, ShoppingCart, Sparkles, SunMedium, TrendingUp, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import PromoCarousel from "@/components/PromoCarousel";
 import CampaignBanner from "@/components/CampaignBanner";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
-import NearbyRestaurantsMap from "@/components/NearbyRestaurantsMap";
 import HeroSection from "@/components/home/HeroSection";
 import CuisineCategoryStrip from "@/components/home/CuisineCategoryStrip";
 import SolidaritySection from "@/components/home/SolidaritySection";
@@ -24,6 +23,7 @@ import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 
 const supabase = getSupabase();
+const NearbyRestaurantsMap = lazy(() => import("@/components/NearbyRestaurantsMap"));
 
 type SearchSort =
   | "pertinence"
@@ -101,11 +101,36 @@ export default function Index() {
   const deliveryEnabled = activeFeatures.has("livraison");
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
   const [isVisible, setIsVisible] = useState(false);
+  const [shouldLoadMap, setShouldLoadMap] = useState(false);
+  const mapSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (shouldLoadMap) return;
+
+    const node = mapSectionRef.current;
+    if (!node) return;
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoadMap(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldLoadMap(true);
+        observer.disconnect();
+      },
+      { rootMargin: "600px 0px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [shouldLoadMap]);
 
   useEffect(() => {
     setAnalyticsUser(user?.id || null);
@@ -120,6 +145,7 @@ export default function Index() {
 
   const { data: allRestaurants } = useQuery({
     queryKey: ["all-restaurants-map"],
+    enabled: shouldLoadMap,
     queryFn: async () => {
       const { data } = await supabase
         .from("restaurants")
@@ -554,7 +580,7 @@ export default function Index() {
         ) : null}
 
         <motion.div variants={sectionBounce}>
-          <section className="py-10 md:py-14">
+          <section ref={mapSectionRef} className="py-10 md:py-14">
             <div className="container space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -569,7 +595,19 @@ export default function Index() {
                   </Link>
                 </Button>
               </div>
-              <NearbyRestaurantsMap restaurants={allRestaurants || []} />
+              {shouldLoadMap ? (
+                <Suspense
+                  fallback={
+                    <div className="flex h-[380px] items-center justify-center rounded-2xl border bg-muted/30 text-sm font-medium text-muted-foreground">
+                      Chargement de la carte...
+                    </div>
+                  }
+                >
+                  <NearbyRestaurantsMap restaurants={allRestaurants || []} />
+                </Suspense>
+              ) : (
+                <div className="h-[380px] rounded-2xl border bg-muted/30" aria-hidden="true" />
+              )}
             </div>
           </section>
         </motion.div>

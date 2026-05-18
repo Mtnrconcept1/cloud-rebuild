@@ -198,7 +198,7 @@ export default function Navbar() {
   return (
     <>
       {/* ─── Top utility bar ─── */}
-      <div className="hidden w-full border-b border-border/60 bg-muted/40 md:block">
+      <div className="hidden w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 md:block">
         <div className="container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground">
           <Link to="/auth?type=restaurateur" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
             <Store className="h-3.5 w-3.5" />
@@ -210,10 +210,10 @@ export default function Navbar() {
       </div>
 
       {/* ─── Main header ─── */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/10 dark:bg-slate-950/78 dark:shadow-[0_10px_30px_rgba(0,0,0,0.28)]">
+      <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]">
         <div className="container flex h-16 items-center justify-between md:h-20">
           <Link to="/" className="flex items-center gap-2">
-            <img src={LOGO_URL} alt="Tok" className="h-12 w-auto object-contain md:h-16" />
+            <img src={LOGO_URL} alt="Tok" className="h-12 w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16" />
           </Link>
 
           <NavigationMenu className="hidden md:flex">

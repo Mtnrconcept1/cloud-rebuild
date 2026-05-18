@@ -332,7 +332,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
             </div>
           )}
 
-          {reservation.total_amount > 0 && (() => {
+          {(reservation.total_amount > 0 || (isJsonRecord(reservation.metadata) && Number(reservation.metadata.points_discount_amount || reservation.metadata.points_discount || 0) > 0)) && (() => {
             const meta = isJsonRecord(reservation.metadata) ? reservation.metadata : {};
             const paymentMethod = String(meta.payment_method || "card");
             const formulaDiscountPercent = Number(meta.formula_discount_percent || 0);
@@ -344,6 +344,8 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
             const promoDiscountAmount = Number(meta.promo_discount_amount || meta.promo_discount_value || 0);
             const tokOneDiscountAmount = Number(meta.tok_one_discount_amount || meta.tok_one_total_saved || 0);
             const tokOneDiscountPercent = Number(meta.tok_one_discount_percent || 0);
+            const pointsDiscountAmount = Number(meta.points_discount_amount || meta.points_discount || 0);
+            const pointsRedeemed = Number(meta.points_redeemed || meta.points_to_redeem || 0);
             const formulaName = readString(meta.formula_applied);
             const cardBrand = readString(meta.card_brand);
             const cardLast4 = readString(meta.card_last4);
@@ -407,6 +409,12 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
                         {tokOneDiscountPercent > 0 ? ` (-${tokOneDiscountPercent.toFixed(0)}%)` : ""}
                       </span>
                       <span>-{tokOneDiscountAmount.toFixed(2)} CHF</span>
+                    </div>
+                  )}
+                  {pointsDiscountAmount > 0 && (
+                    <div className="flex justify-between text-pink-500">
+                      <span>Miamz utilisÃ©s{pointsRedeemed > 0 ? ` (${pointsRedeemed} pts)` : ""}</span>
+                      <span>-{pointsDiscountAmount.toFixed(2)} CHF</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-foreground pt-1 border-t">

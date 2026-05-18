@@ -35,14 +35,14 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
   if (visibleFeatures.length === 0) return null;
 
   return (
-    <section className="bg-gradient-to-b from-background to-secondary/20 py-10 md:py-14">
+    <section className="bg-gradient-to-b from-background to-secondary/20 py-10 dark:from-background dark:via-slate-950/40 dark:to-orange-950/10 md:py-14">
       <div className="container space-y-6">
         <div className="space-y-2 text-center">
           <div className="flex items-center justify-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h2 className="font-display text-2xl font-bold md:text-3xl">Fonctionnalites exclusives</h2>
+            <Sparkles className="h-5 w-5 text-primary dark:drop-shadow-[0_0_16px_rgba(249,115,22,0.55)]" />
+            <h2 className="font-display text-2xl font-bold dark:text-white md:text-3xl">Fonctionnalites exclusives</h2>
           </div>
-          <p className="mx-auto max-w-lg text-sm text-muted-foreground">
+          <p className="mx-auto max-w-lg text-sm text-muted-foreground dark:text-slate-300">
             Des innovations uniques pour une experience food inedite
           </p>
         </div>
@@ -53,13 +53,13 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
               <Link
                 key={feature.to}
                 to={feature.to}
-                className="group space-y-2 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className="neon-card group space-y-2 rounded-xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/20 dark:bg-card/90"
               >
                 <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${feature.bg}`}>
                   <Icon className={`h-5 w-5 ${feature.fg}`} />
                 </div>
-                <h3 className="text-sm font-semibold leading-tight">{feature.label}</h3>
-                <p className="text-[11px] leading-snug text-muted-foreground">{feature.desc}</p>
+                <h3 className="text-sm font-semibold leading-tight dark:text-white">{feature.label}</h3>
+                <p className="text-[11px] leading-snug text-muted-foreground dark:text-slate-300">{feature.desc}</p>
               </Link>
             );
           })}

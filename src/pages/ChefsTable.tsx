@@ -131,7 +131,7 @@ function ChefTableDropCard({
       whileHover={{ y: -6 }}
       transition={{ duration: 0.32, delay: index * 0.04 }}
       className={cn(
-        "group overflow-hidden rounded-[28px] border border-amber-200/70 bg-card shadow-[0_22px_70px_-34px_rgba(15,23,42,0.45)]",
+        "group overflow-hidden rounded-[28px] border border-amber-200/70 bg-card shadow-[0_22px_70px_-34px_rgba(15,23,42,0.45)] dark:border-amber-300/25 dark:bg-slate-950/95 dark:shadow-[0_30px_90px_rgba(0,0,0,0.58),0_0_42px_rgba(245,158,11,0.14)]",
         isReserved && "ring-2 ring-amber-500 ring-offset-2 ring-offset-background",
       )}
     >
@@ -146,10 +146,10 @@ function ChefTableDropCard({
 
         <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4">
           <div className="flex flex-wrap gap-2">
-            <Badge className="border-none bg-black/55 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-md">
+            <Badge className="border-none bg-black/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-md">
               La Table du Chef
             </Badge>
-            <Badge className="border-none bg-white/14 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+            <Badge className="border-none bg-white/20 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md">
               {drop.cuisine}
             </Badge>
           </div>
@@ -173,18 +173,18 @@ function ChefTableDropCard({
             </div>
 
             <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/14 px-3 py-1.5 backdrop-blur-md">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 backdrop-blur-md">
                 <ChefHat className="h-3.5 w-3.5" />
                 <span>{drop.chef}</span>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/14 px-3 py-1.5 backdrop-blur-md">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 backdrop-blur-md">
                 <Clock3 className="h-3.5 w-3.5" />
                 <span>Service {drop.serviceTimeLabel}</span>
               </div>
 
               {drop.rating > 0 ? (
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/14 px-3 py-1.5 backdrop-blur-md">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 backdrop-blur-md">
                   <Star className="h-3.5 w-3.5 fill-current" />
                   <span>{drop.rating.toFixed(1)}</span>
                 </div>
@@ -196,13 +196,13 @@ function ChefTableDropCard({
 
       <div className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1.3fr)_240px] lg:items-end">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50/60 p-4">
+          <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50/60 p-4 dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(120,53,15,0.24),rgba(15,23,42,0.92))] dark:shadow-[0_0_28px_rgba(245,158,11,0.12),inset_0_1px_0_rgba(255,255,255,0.07)]">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground dark:text-amber-100/75">
                   Restaurant
                 </p>
-                <p className="text-lg font-semibold text-foreground">{drop.restaurant}</p>
+                <p className="text-lg font-semibold text-foreground dark:text-white">{drop.restaurant}</p>
               </div>
 
               <Badge
@@ -210,8 +210,8 @@ function ChefTableDropCard({
                 className={cn(
                   "rounded-full border px-3 py-1 text-xs font-semibold",
                   isAlmostSoldOut
-                    ? "border-rose-200 bg-rose-50 text-rose-700"
-                    : "border-amber-200 bg-white/80 text-amber-700",
+                    ? "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-300/40 dark:bg-rose-400/20 dark:text-rose-100"
+                    : "border-amber-200 bg-white/80 text-amber-700 dark:border-amber-300/40 dark:bg-amber-400/20 dark:text-amber-100",
                 )}
               >
                 {isAlmostSoldOut
@@ -220,31 +220,31 @@ function ChefTableDropCard({
               </Badge>
             </div>
 
-            <p className="mt-3 flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <p className="mt-3 flex items-start gap-2 text-sm leading-6 text-muted-foreground dark:text-slate-200/90">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
               <span className="line-clamp-2">{drop.restaurantAddress}</span>
             </p>
           </div>
 
-          <p className="text-sm leading-6 text-muted-foreground">{drop.description}</p>
+          <p className="text-sm leading-6 text-muted-foreground dark:text-slate-100/90">{drop.description}</p>
 
           <div className="flex flex-wrap gap-2">
             <Badge
               variant="outline"
-              className="rounded-full border-amber-200 bg-amber-50/80 px-3 py-1 text-xs font-medium text-amber-800"
+              className="rounded-full border-amber-200 bg-amber-50/80 px-3 py-1 text-xs font-medium text-amber-800 dark:border-amber-300/30 dark:bg-amber-400/20 dark:text-amber-100"
             >
               {drop.dropMomentLabel}
             </Badge>
 
             {drop.savingsAmount > 0 ? (
-              <Badge className="rounded-full border-none bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/10">
+              <Badge className="rounded-full border-none bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/10 dark:bg-emerald-400/20 dark:text-emerald-100 dark:hover:bg-emerald-400/20">
                 Vous economisez {formatCurrency(drop.savingsAmount)}
               </Badge>
             ) : null}
           </div>
         </div>
 
-        <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/25 p-4">
+        <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/25 p-4 dark:border-white/20 dark:bg-slate-950/75 dark:shadow-[0_0_30px_rgba(245,158,11,0.12),inset_0_1px_0_rgba(255,255,255,0.06)]">
           <div className="space-y-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
               Prix exclusif
@@ -262,7 +262,7 @@ function ChefTableDropCard({
             ) : null}
           </div>
 
-          <div className="space-y-2 rounded-xl bg-background/80 p-3 text-xs">
+          <div className="space-y-2 rounded-xl bg-background/80 p-3 text-xs dark:border dark:border-white/10 dark:bg-black/30">
             <div className="flex items-center justify-between gap-4">
               <span className="text-muted-foreground">Chef</span>
               <span className="font-medium text-foreground">{drop.chef}</span>
@@ -299,8 +299,8 @@ function ChefTableDropCard({
                       className={cn(
                         "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition",
                         isActive
-                          ? "border-amber-500 bg-amber-500 text-white shadow"
-                          : "border-amber-200 bg-white text-amber-700 hover:bg-amber-50",
+                          ? "border-amber-500 bg-amber-500 text-white shadow dark:border-amber-300 dark:text-slate-950"
+                          : "border-amber-200 bg-white text-amber-700 hover:bg-amber-50 dark:border-amber-200/40 dark:bg-amber-100/10 dark:text-amber-100 dark:hover:bg-amber-400/20",
                       )}
                     >
                       <Clock3 className="h-3 w-3" />
@@ -316,21 +316,21 @@ function ChefTableDropCard({
             onClick={() => onToggleReserve(drop)}
             variant={isReserved ? "outline" : "default"}
             className={cn(
-              "h-11 w-full rounded-xl font-semibold",
+              "min-h-11 h-auto w-full whitespace-normal rounded-xl px-3 py-2 text-center text-sm font-semibold leading-tight",
               isReserved
-                ? "border-amber-400 text-amber-700 hover:bg-amber-50"
-                : "bg-amber-500 text-white shadow-[0_18px_40px_-24px_rgba(245,158,11,1)] hover:bg-amber-600",
+                ? "border-amber-400 text-amber-700 hover:bg-amber-50 dark:border-amber-300/60 dark:bg-amber-400/20 dark:text-amber-100 dark:hover:bg-amber-400/20"
+                : "bg-amber-500 text-white shadow-[0_18px_40px_-24px_rgba(245,158,11,1)] hover:bg-amber-600 dark:bg-amber-400 dark:text-slate-950 dark:shadow-[0_0_28px_rgba(245,158,11,0.26)] dark:hover:bg-amber-300",
             )}
           >
             {isReserved ? (
               <>
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Retirer du panier
+                <CheckCircle2 className="mr-2 h-4 w-4 shrink-0" />
+                <span className="min-w-0">Retirer du panier</span>
               </>
             ) : (
               <>
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Choisir creneau et convives
+                <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
+                <span className="min-w-0">Choisir creneau et convives</span>
               </>
             )}
           </Button>
@@ -834,7 +834,7 @@ export default function ChefsTable() {
                         <p className="font-display text-2xl font-bold leading-tight text-white">
                           Votre Table du Chef est presque confirmee
                         </p>
-                        <p className="text-sm text-white/72">
+                        <p className="text-sm text-white/75">
                           {reservedRestaurantCount} restaurant(s) · economie totale{" "}
                           <span className="font-semibold text-emerald-600">
                             {formatCurrency(reservedSavingsTotal)}
@@ -846,9 +846,9 @@ export default function ChefsTable() {
                         </p>
                         <div className="grid gap-2 sm:grid-cols-2">
                           {reservedSummary.map((entry) => (
-                            <div key={entry.key} className="rounded-2xl border border-white/10 bg-white/6 px-3 py-2">
+                            <div key={entry.key} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
                               <p className="truncate text-sm font-medium text-white">{entry.name}</p>
-                              <p className="text-xs text-white/62">
+                              <p className="text-xs text-white/60">
                                 {entry.restaurantName} - {entry.serviceTime} - {entry.guestCount} convive{entry.guestCount > 1 ? "s" : ""}
                               </p>
                             </div>
@@ -858,7 +858,7 @@ export default function ChefsTable() {
 
                       <div className="text-left lg:text-right">
                         {reservedSavingsTotal > 0 ? (
-                          <p className="text-xs uppercase tracking-[0.22em] text-white/55">
+                          <p className="text-xs uppercase tracking-[0.22em] text-white/60">
                             Au lieu de {formatCurrency(reservedOriginalTotal)}
                           </p>
                         ) : null}

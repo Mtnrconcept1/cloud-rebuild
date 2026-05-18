@@ -403,7 +403,9 @@ Deno.serve(async (req) => {
 
       const restaurantIds = Array.from(groupedItems.keys());
       const totalDeliveryFee = toMoney(order_metadata?.delivery_fee);
-      const totalPointsDiscount = toMoney(order_metadata?.points_discount_amount || order_metadata?.points_discount);
+      const requestedPointsToRedeem = Math.max(0, Math.floor(Number(order_metadata?.points_to_redeem || 0)));
+      const requestedPointsDiscount = toMoney(order_metadata?.points_discount_amount || order_metadata?.points_discount);
+      const totalPointsDiscount = Math.min(requestedPointsDiscount, requestedPointsToRedeem / 100);
       const totalFlexDiscount = toMoney(order_metadata?.flex_discount_amount || order_metadata?.flex_discount);
       const pointsByRestaurant = new Map<string, number>();
       const flexByRestaurant = new Map<string, number>();

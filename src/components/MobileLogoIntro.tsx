@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 const MOBILE_BREAKPOINT = 768;
-const LOGO_INTRO_VIDEO_SRC = "/higgsfield/intro.mp4";
+const LOGO_INTRO_IMAGE_SRC = "/logo.png";
+const LOGO_INTRO_VISIBLE_MS = 900;
 
 function isMobileViewport() {
   if (typeof window === "undefined") return false;
@@ -9,15 +10,25 @@ function isMobileViewport() {
   return window.innerWidth < MOBILE_BREAKPOINT;
 }
 
+function isHomePath() {
+  if (typeof window === "undefined") return false;
+
+  return window.location.pathname === "/";
+}
+
+function shouldShowIntro() {
+  return isMobileViewport() && isHomePath();
+}
+
 export default function MobileLogoIntro() {
-  const [visible, setVisible] = useState(() => isMobileViewport());
+  const [visible, setVisible] = useState(() => shouldShowIntro());
   const [fadingOut, setFadingOut] = useState(false);
-  const endedRef = useRef(false);
+  const dismissedRef = useRef(false);
 
   useEffect(() => {
     const onResize = () => {
-      if (!endedRef.current) {
-        setVisible(isMobileViewport());
+      if (!dismissedRef.current) {
+        setVisible(shouldShowIntro());
       }
     };
 
@@ -36,6 +47,16 @@ export default function MobileLogoIntro() {
     };
   }, [visible]);
 
+  useEffect(() => {
+    if (!visible) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setFadingOut(true);
+    }, LOGO_INTRO_VISIBLE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [visible]);
+
   if (!visible) return null;
 
   return (
@@ -48,36 +69,21 @@ export default function MobileLogoIntro() {
       data-testid="mobile-logo-intro"
       onTransitionEnd={() => {
         if (fadingOut) {
+          dismissedRef.current = true;
           setVisible(false);
         }
       }}
     >
       <div
-        className="relative w-screen max-h-dvh overflow-hidden"
-        data-testid="mobile-logo-intro-video-frame"
+        className="relative grid h-dvh w-screen place-items-center overflow-hidden"
+        data-testid="mobile-logo-intro-logo-frame"
       >
-        <video
-          autoPlay
-          className="block w-full h-auto max-h-dvh object-contain pointer-events-none select-none"
-          controls={false}
-          controlsList="nodownload nofullscreen noplaybackrate noremoteplayback"
-          data-testid="mobile-logo-intro-video"
-          disablePictureInPicture
-          disableRemotePlayback
-          muted
-          onContextMenu={(event) => event.preventDefault()}
-          onEnded={() => {
-            endedRef.current = true;
-            setFadingOut(true);
-          }}
-          onPause={(event) => {
-            if (!endedRef.current && !event.currentTarget.ended) {
-              void event.currentTarget.play().catch(() => undefined);
-            }
-          }}
-          playsInline
-          preload="auto"
-          src={LOGO_INTRO_VIDEO_SRC}
+        <img
+          alt=""
+          className="h-40 w-40 object-contain drop-shadow-[0_18px_44px_rgba(255,107,28,0.36)]"
+          data-testid="mobile-logo-intro-logo"
+          decoding="async"
+          src={LOGO_INTRO_IMAGE_SRC}
         />
         <div
           className="pointer-events-none absolute inset-0"

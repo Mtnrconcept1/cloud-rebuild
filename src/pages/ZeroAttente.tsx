@@ -14,6 +14,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal, { type ReservationDetail } from "@/components/ReservationDetailModal";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import LoyaltySection from "@/components/cart/LoyaltySection";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
 import { formatMissingCoursesText, roundCurrency } from "@/lib/meal-formulas";
@@ -40,6 +41,8 @@ type PricingSummary = {
   formulaName: string | null;
   tokOneDiscount: number;
   tokOneDiscountPercent: number;
+  pointsToRedeem: number;
+  pointsDiscount: number;
   total: number;
 };
 
@@ -105,6 +108,9 @@ export default function ZeroAttente() {
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
+  const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
+  const [pointsToRedeemInput, setPointsToRedeemInput] = useState(0);
+  const [donateEarnedXp, setDonateEarnedXp] = useState(false);
   const [confirmedPricing, setConfirmedPricing] = useState<PricingSummary | null>(null);
   const [confirmedReservationDetail, setConfirmedReservationDetail] = useState<ReservationDetail | null>(null);
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState<string | null>(() => readPendingZeroAttenteSessionId());
@@ -112,6 +118,14 @@ export default function ZeroAttente() {
   const authPromptKeyRef = useRef<string | null>(null);
   const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
   const { data: tokOneBenefits } = useTokOneBenefits(tokOneSubscription?.plan_id);
+  const { data: profile } = useQuery({
+    queryKey: ["profile-loyalty", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles" as any).select("loyalty_points").eq("user_id", user?.id).single();
+      return data as any;
+    },
+    enabled: !!user,
+  });
   const allowedPaymentMethods = useMemo(() => {
     const disabled = (selectedRestaurant as Record<string, unknown>)?.disabled_payment_methods as string[] || [];
     return getAllowedPaymentMethods(activeFeatures, disabled).filter((method) => method !== "cash");
@@ -231,9 +245,29 @@ export default function ZeroAttente() {
     () => (isTokOneMember ? roundCurrency((subtotal * tokOneDiscountPercent) / 100) : 0),
     [isTokOneMember, roundCurrency, subtotal, tokOneDiscountPercent],
   );
-  const totalAfterDiscount = useMemo(
+  const totalBeforeMiamz = useMemo(
     () => roundCurrency(Math.max(0, subtotal - formulaDiscount - tokOneDiscount)),
     [formulaDiscount, roundCurrency, subtotal, tokOneDiscount],
+  );
+  const loyaltyPoints = Math.max(0, Number(profile?.loyalty_points || 0));
+  const maxPointsDiscount = loyaltyPoints / 100;
+  const maxPointsRedeemable = Math.min(loyaltyPoints, Math.floor(totalBeforeMiamz * 100));
+
+  useEffect(() => {
+    if (!useLoyaltyPoints && pointsToRedeemInput !== 0) {
+      setPointsToRedeemInput(0);
+      return;
+    }
+    if (useLoyaltyPoints && pointsToRedeemInput > maxPointsRedeemable) {
+      setPointsToRedeemInput(maxPointsRedeemable);
+    }
+  }, [useLoyaltyPoints, pointsToRedeemInput, maxPointsRedeemable]);
+
+  const pointsToRedeem = useLoyaltyPoints ? Math.min(pointsToRedeemInput, maxPointsRedeemable) : 0;
+  const pointsDiscount = roundCurrency(pointsToRedeem / 100);
+  const totalAfterDiscount = useMemo(
+    () => roundCurrency(Math.max(0, totalBeforeMiamz - pointsDiscount)),
+    [pointsDiscount, roundCurrency, totalBeforeMiamz],
   );
   const currentPricing: PricingSummary = useMemo(
     () => ({
@@ -244,9 +278,11 @@ export default function ZeroAttente() {
       formulaName,
       tokOneDiscount,
       tokOneDiscountPercent: roundCurrency(tokOneDiscountPercent),
+      pointsToRedeem,
+      pointsDiscount,
       total: totalAfterDiscount,
     }),
-    [count, subtotal, formulaDiscount, formulaDiscountPercent, formulaName, tokOneDiscount, tokOneDiscountPercent, totalAfterDiscount]
+    [count, subtotal, formulaDiscount, formulaDiscountPercent, formulaName, tokOneDiscount, tokOneDiscountPercent, pointsToRedeem, pointsDiscount, totalAfterDiscount]
   );
 
   const handlePayAndReserve = async () => {
@@ -337,9 +373,12 @@ export default function ZeroAttente() {
             tok_one_member: isTokOneMember,
             tok_one_discount_amount: pricingForCheckout.tokOneDiscount,
             tok_one_discount_percent: pricingForCheckout.tokOneDiscountPercent,
+            points_to_redeem: pricingForCheckout.pointsToRedeem,
+            points_discount: pricingForCheckout.pointsDiscount,
+            points_discount_amount: pricingForCheckout.pointsDiscount,
             pre_discount_subtotal: pricingForCheckout.subtotal,
             authoritative_total: pricingForCheckout.total,
-            discount_amount: pricingForCheckout.formulaDiscount + pricingForCheckout.tokOneDiscount,
+            discount_amount: pricingForCheckout.formulaDiscount + pricingForCheckout.tokOneDiscount + pricingForCheckout.pointsDiscount,
           },
         },
       });
@@ -462,6 +501,8 @@ export default function ZeroAttente() {
         formulaName: metadata.formula_applied || null,
         tokOneDiscount: roundCurrency(Number(metadata.tok_one_discount_amount || metadata.tok_one_total_saved || 0)),
         tokOneDiscountPercent: roundCurrency(Number(metadata.tok_one_discount_percent || 0)),
+        pointsToRedeem: Math.max(0, Number(metadata.points_redeemed || metadata.points_to_redeem || 0)),
+        pointsDiscount: roundCurrency(Number(metadata.points_discount_amount || metadata.points_discount || 0)),
         total: roundCurrency(Number(reservationRecord.total_amount || metadata.total_amount || 0)),
       });
       setReservationId(reservationIdValue);
@@ -710,6 +751,9 @@ export default function ZeroAttente() {
       tok_one_member: isTokOneMember,
       tok_one_discount_amount: displayPricing.tokOneDiscount,
       tok_one_discount_percent: displayPricing.tokOneDiscountPercent,
+      points_to_redeem: displayPricing.pointsToRedeem,
+      points_discount: displayPricing.pointsDiscount,
+      points_discount_amount: displayPricing.pointsDiscount,
       total_amount: displayPricing.total,
     } as any,
     preorder_items: preorderItemsForModal as any,
@@ -888,6 +932,12 @@ export default function ZeroAttente() {
                       <span>-{tokOneDiscount.toFixed(2)} CHF</span>
                     </div>
                   )}
+                  {pointsDiscount > 0 && (
+                    <div className="flex justify-between text-sm font-medium text-pink-500">
+                      <span>Miamz ({pointsToRedeem} pts)</span>
+                      <span>-{pointsDiscount.toFixed(2)} CHF</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm font-semibold border-t pt-2">
                     <span>Total</span>
                     <span>{totalAfterDiscount.toFixed(2)} CHF</span>
@@ -945,11 +995,30 @@ export default function ZeroAttente() {
                     <span>-{tokOneDiscount.toFixed(2)} CHF</span>
                   </div>
                 )}
+                {pointsDiscount > 0 && (
+                  <div className="flex justify-between text-sm font-medium text-pink-500">
+                    <span>Miamz ({pointsToRedeem} pts)</span>
+                    <span>-{pointsDiscount.toFixed(2)} CHF</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold border-t pt-2 mt-2">
                   <span>Total à payer</span>
                   <span>{totalAfterDiscount.toFixed(2)} CHF</span>
                 </div>
               </div>
+
+              <LoyaltySection
+                loyaltyPoints={loyaltyPoints}
+                maxPointsDiscount={maxPointsDiscount}
+                useLoyaltyPoints={useLoyaltyPoints}
+                setUseLoyaltyPoints={setUseLoyaltyPoints}
+                pointsToRedeemInput={pointsToRedeemInput}
+                setPointsToRedeemInput={setPointsToRedeemInput}
+                maxPointsRedeemable={maxPointsRedeemable}
+                earnedXp={0}
+                donateEarnedXp={donateEarnedXp}
+                setDonateEarnedXp={setDonateEarnedXp}
+              />
 
               {/* Payment method selector */}
               <PaymentMethodSelector
@@ -1009,6 +1078,12 @@ export default function ZeroAttente() {
                       Tok One{displayPricing.tokOneDiscountPercent > 0 ? ` (${displayPricing.tokOneDiscountPercent.toFixed(0)}%)` : ""}
                     </span>
                     <span className="font-medium text-violet-600">-{displayPricing.tokOneDiscount.toFixed(2)} CHF</span>
+                  </div>
+                )}
+                {displayPricing.pointsDiscount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Miamz utilisÃ©s</span>
+                    <span className="font-medium text-pink-500">-{displayPricing.pointsDiscount.toFixed(2)} CHF</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2">
