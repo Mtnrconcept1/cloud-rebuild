@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import CityMultiSelect from "@/components/CityMultiSelect";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -170,14 +171,19 @@ export default function AdminNotifications() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Bell className="h-6 w-6 text-primary" />
-          <div>
-            <h1 className="font-display text-3xl font-bold">Campagnes de notifications</h1>
-            <p className="text-sm text-muted-foreground">Creer, cibler et envoyer les notifications depuis l'admin.</p>
-          </div>
-        </div>
+      <DashboardPageHero
+        badge="Communication"
+        title="Campagnes de notifications"
+        description="Creer, cibler et envoyer les notifications depuis l'admin, avec suivi des canaux in-app, email et push."
+        icon={Bell}
+        tone="sky"
+        visualLabel="Notifications"
+        stats={[
+          { label: "Campagnes", value: campaigns.length, icon: Bell },
+          { label: "Planifiees", value: campaigns.filter((campaign) => campaign.status === "scheduled").length, icon: Mail },
+          { label: "Envoyees", value: campaigns.filter((campaign) => campaign.status === "sent").length, icon: Send },
+        ]}
+        actions={(
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
@@ -197,7 +203,8 @@ export default function AdminNotifications() {
             />
           </DialogContent>
         </Dialog>
-      </div>
+        )}
+      />
 
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map((index) => <div key={index} className="h-28 bg-muted animate-pulse rounded-xl" />)}</div>

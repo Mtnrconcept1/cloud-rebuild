@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
@@ -143,22 +144,25 @@ export default function AdminPlatformConfig() {
 
   return (
     <div className="container space-y-6 py-8">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Settings2 className="h-6 w-6 text-primary" />
-            <h1 className="font-display text-3xl font-bold">Configuration plateforme</h1>
-          </div>
-          <p className="max-w-3xl text-sm text-muted-foreground">
-            Ces toggles s'appliquent globalement. Lorsqu'un flag est coupe ici, l'UI est masquee, la route est
-            protegee et les nouvelles actions backend sont refusees.
-          </p>
-        </div>
+      <DashboardPageHero
+        badge="Feature flags"
+        title="Configuration plateforme"
+        description="Ces toggles s'appliquent globalement. Lorsqu'un flag est coupe ici, l'UI est masquee, la route est protegee et les nouvelles actions backend sont refusees."
+        icon={Settings2}
+        tone="amber"
+        visualLabel="Flags"
+        stats={[
+          { label: "Flags", value: flags.length, icon: Power },
+          { label: "Actifs", value: flags.filter((flag) => flag.effectiveEnabled).length, icon: CheckCircle2 },
+          { label: "Critiques", value: flags.filter((flag) => CRITICAL_FLAGS.has(flag.name)).length, icon: AlertTriangle },
+        ]}
+        actions={(
         <Button onClick={handleActivateAll} disabled={loading || submitting} className="gap-2">
           <Rocket className="h-4 w-4" />
           Tout reactiver
         </Button>
-      </div>
+        )}
+      />
 
       <Card>
         <CardContent className="flex flex-col gap-3 py-6 lg:flex-row lg:items-center lg:justify-between">

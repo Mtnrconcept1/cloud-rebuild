@@ -7,6 +7,7 @@ import {
   DollarSign,
   Layers,
   MessageSquareText,
+  Newspaper,
   Rocket,
   Settings2,
   Shield,
@@ -22,6 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useActiveFeatures } from "@/lib/featureFlags";
@@ -99,6 +101,14 @@ const ADMIN_TOOLS = [
     href: "/admin/notifications",
     feature: "admin-notifications",
     color: "text-orange-500",
+  },
+  {
+    title: "Actualites sociales",
+    description: "Moderation du fil restaurateurs et des signalements.",
+    icon: Newspaper,
+    href: "/admin/actualites",
+    feature: "admin-actualites",
+    color: "text-sky-500",
   },
   {
     title: "Audit et securite",
@@ -270,18 +280,25 @@ export default function AdminHome() {
 
   return (
     <div className="container space-y-6 py-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Administration</h1>
-          <p className="text-sm text-muted-foreground">
-            Tableau de bord global et acces aux modules admin actifs.
-          </p>
-        </div>
+      <DashboardPageHero
+        badge="Back-office TOK"
+        title="Administration"
+        description="Tableau de bord global pour piloter les restaurants, les commandes, les reservations, la configuration et les modules admin actifs."
+        icon={Settings2}
+        tone="orange"
+        visualLabel="Admin"
+        stats={[
+          { label: "Restaurants", value: stats?.restaurants || 0, icon: UtensilsCrossed },
+          { label: "Commandes", value: stats?.orders || 0, icon: ShoppingCart },
+          { label: "Reservations", value: stats?.reservations || 0, icon: CalendarDays },
+        ]}
+        actions={(
         <Button onClick={() => navigate("/admin/platform")} className="gap-2">
           <Settings2 className="h-4 w-4" />
           Configuration plateforme
         </Button>
-      </div>
+        )}
+      />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         <Card>

@@ -13,6 +13,7 @@ import {
   Menu,
   MessageCircle,
   Moon,
+  Newspaper,
   Repeat,
   Route,
   Search,
@@ -82,6 +83,7 @@ export default function Navbar() {
 
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
+  const actualitesEnabled = activeFeatures.has("actualites-sociales");
   const courierEnabled = activeFeatures.has("espace-livreur");
   const reservationEnabled = activeFeatures.has("reservation");
   const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
@@ -236,6 +238,14 @@ export default function Navbar() {
                 <NavigationMenuItem>
                   <Link to="/ventes-flash" className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     Ventes flash
+                  </Link>
+                </NavigationMenuItem>
+              ) : null}
+              {actualitesEnabled ? (
+                <NavigationMenuItem>
+                  <Link to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                    <Newspaper className="h-4 w-4" />
+                    Actualites
                   </Link>
                 </NavigationMenuItem>
               ) : null}
@@ -453,6 +463,12 @@ export default function Navbar() {
                   {flashSalesEnabled ? (
                     <Link to="/ventes-flash" className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                       Ventes Flash
+                    </Link>
+                  ) : null}
+                  {actualitesEnabled ? (
+                    <Link to="/actualites" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                      <Newspaper className="h-4 w-4" />
+                      Actualites
                     </Link>
                   ) : null}
                   <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-violet-600" onClick={() => setMenuOpen(false)}>

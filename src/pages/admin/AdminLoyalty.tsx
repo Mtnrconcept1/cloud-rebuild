@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Crown, ShieldCheck, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -187,10 +188,19 @@ export default function AdminLoyalty() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div>
-        <h1 className="font-display text-3xl font-bold">Fidelite et abonnement</h1>
-        <p className="text-muted-foreground">Configurez les forfaits Miamz+ et les paliers de fidelite.</p>
-      </div>
+      <DashboardPageHero
+        badge="Fidelite"
+        title="Fidelite et abonnement"
+        description="Configurez les forfaits Miamz+ et les paliers de fidelite avec une lecture rapide des plans actifs."
+        icon={Crown}
+        tone="amber"
+        visualLabel="Loyalty"
+        stats={[
+          { label: "Forfaits", value: subscriptionPlans.length, icon: ShieldCheck },
+          { label: "Paliers", value: tiers.length, icon: Crown },
+          { label: "Actifs", value: subscriptionPlans.filter((plan: any) => plan.status === "active").length, icon: ShieldCheck },
+        ]}
+      />
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>

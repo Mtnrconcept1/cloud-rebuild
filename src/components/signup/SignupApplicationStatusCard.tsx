@@ -23,13 +23,23 @@ export default function SignupApplicationStatusCard({
 }: SignupApplicationStatusCardProps) {
   if (!application) {
     return (
-      <Card className="border-dashed">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldCheck className="h-4 w-4 text-primary" />
+      <Card className="tok-verification-card relative overflow-hidden rounded-3xl border-dashed border-primary/55 bg-card">
+        <div className="pointer-events-none absolute right-6 top-1/2 hidden -translate-y-1/2 opacity-55 sm:block">
+          <div className="relative h-28 w-32">
+            <FileText className="absolute right-8 top-2 h-20 w-20 rotate-6 text-slate-400/45 dark:text-slate-200/28" />
+            <div className="absolute bottom-1 right-2 flex h-12 w-12 items-center justify-center rounded-full border border-[#ff9f1c]/50 bg-[#ff6a1a]/18 text-[#ffb15c] shadow-[0_0_32px_rgba(255,106,26,0.42)]">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+          </div>
+        </div>
+        <CardHeader className="relative z-10 p-6 sm:p-8">
+          <CardTitle className="flex items-center gap-4 text-xl font-bold">
+            <span className="tok-kpi-icon tok-tone-orange flex h-14 w-14 items-center justify-center rounded-2xl">
+              <ShieldCheck className="h-6 w-6" />
+            </span>
             {title}
           </CardTitle>
-          <CardDescription>{emptyDescription}</CardDescription>
+          <CardDescription className="max-w-2xl text-base leading-7 dark:text-slate-100/80">{emptyDescription}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -39,7 +49,7 @@ export default function SignupApplicationStatusCard({
   const documents = application.signup_application_documents || [];
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
+    <Card className="tok-dashboard-section relative overflow-hidden rounded-3xl border border-primary/25 bg-primary/5">
       <CardHeader className="space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>

@@ -237,6 +237,171 @@
     color: hsl(var(--foreground));
     box-shadow: 0 0 24px rgba(249, 115, 22, 0.10);
   }
+  .tok-dashboard-shell {
+    background: hsl(var(--background));
+  }
+  .dark .tok-dashboard-shell {
+    background:
+      radial-gradient(circle at 7% 3%, rgba(255, 106, 26, 0.16), transparent 20rem),
+      radial-gradient(circle at 92% 4%, rgba(30, 74, 160, 0.22), transparent 28rem),
+      radial-gradient(circle at 48% 38%, rgba(33, 150, 243, 0.10), transparent 34rem),
+      linear-gradient(180deg, #010716 0%, #020b1f 44%, #010612 100%);
+  }
+  .dark .tok-dashboard-sidebar {
+    border-color: rgba(88, 117, 165, 0.22);
+    background:
+      radial-gradient(circle at 10% 0%, rgba(255, 106, 26, 0.08), transparent 18rem),
+      linear-gradient(180deg, rgba(1, 7, 22, 0.98), rgba(3, 12, 30, 0.98));
+    box-shadow: 12px 0 56px rgba(0, 0, 0, 0.34);
+  }
+  .tok-dashboard-section,
+  .tok-dashboard-panel,
+  .tok-dashboard-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .dark .tok-dashboard-section,
+  .dark .tok-dashboard-panel,
+  .dark .tok-dashboard-hero {
+    border-color: rgba(105, 132, 179, 0.38);
+    background:
+      radial-gradient(circle at 0% 0%, rgba(47, 84, 160, 0.22), transparent 26rem),
+      radial-gradient(circle at 100% 0%, rgba(255, 106, 26, 0.10), transparent 24rem),
+      linear-gradient(145deg, rgba(8, 19, 43, 0.98), rgba(5, 13, 31, 0.98) 54%, rgba(3, 9, 24, 0.99));
+    box-shadow:
+      0 26px 74px rgba(0, 0, 0, 0.52),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 0 42px rgba(52, 95, 190, 0.14);
+  }
+  .dark .tok-dashboard-hero {
+    background:
+      radial-gradient(circle at 86% 55%, rgba(255, 106, 26, 0.26), transparent 18rem),
+      radial-gradient(circle at 12% 4%, rgba(70, 121, 255, 0.18), transparent 28rem),
+      radial-gradient(circle at 0% 100%, rgba(130, 82, 255, 0.10), transparent 24rem),
+      linear-gradient(145deg, rgba(8, 19, 43, 0.99), rgba(5, 13, 31, 0.98) 54%, rgba(21, 12, 25, 0.99));
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.56),
+      inset 0 1px 0 rgba(255, 255, 255, 0.10),
+      0 0 54px rgba(255, 106, 26, 0.16);
+  }
+  .dark .tok-dashboard-section::after,
+  .dark .tok-dashboard-panel::after,
+  .dark .tok-dashboard-hero::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.075), transparent 38%);
+  }
+  .tok-tone-slate { --tok-accent-rgb: 132 158 205; --tok-accent-soft-rgb: 38 58 96; }
+  .tok-tone-sky { --tok-accent-rgb: 34 163 255; --tok-accent-soft-rgb: 16 78 130; }
+  .tok-tone-emerald { --tok-accent-rgb: 76 246 211; --tok-accent-soft-rgb: 12 118 99; }
+  .tok-tone-amber { --tok-accent-rgb: 255 176 42; --tok-accent-soft-rgb: 142 78 10; }
+  .tok-tone-orange,
+  .tok-tone-primary { --tok-accent-rgb: 255 106 26; --tok-accent-soft-rgb: 138 57 17; }
+  .tok-tone-violet { --tok-accent-rgb: 168 100 255; --tok-accent-soft-rgb: 80 44 164; }
+  .tok-tone-rose { --tok-accent-rgb: 255 76 121; --tok-accent-soft-rgb: 146 25 64; }
+  .tok-dashboard-kpi {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid rgba(226, 232, 240, 0.70);
+    background: rgba(255, 255, 255, 0.92);
+  }
+  .dark .tok-dashboard-kpi {
+    border-color: rgba(var(--tok-accent-rgb), 0.54);
+    background:
+      radial-gradient(circle at 0% 50%, rgba(var(--tok-accent-rgb), 0.21), transparent 22rem),
+      radial-gradient(circle at 100% 10%, rgba(var(--tok-accent-rgb), 0.12), transparent 16rem),
+      linear-gradient(100deg, rgba(var(--tok-accent-soft-rgb), 0.32), rgba(7, 17, 39, 0.96) 36%, rgba(4, 11, 28, 0.98));
+    box-shadow:
+      0 18px 52px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 0 38px rgba(var(--tok-accent-rgb), 0.22);
+  }
+  .dark .tok-dashboard-kpi::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 34%);
+  }
+  .dark .tok-tone-overlay {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(var(--tok-accent-rgb), 0.24), transparent 36%),
+      linear-gradient(110deg, rgba(var(--tok-accent-rgb), 0.10), transparent 62%);
+  }
+  .tok-kpi-icon {
+    color: rgb(var(--tok-accent-rgb));
+    background: rgba(var(--tok-accent-rgb), 0.13);
+  }
+  .dark .tok-kpi-icon {
+    border: 1px solid rgba(var(--tok-accent-rgb), 0.36);
+    color: rgb(var(--tok-accent-rgb));
+    background:
+      radial-gradient(circle at 35% 20%, rgba(var(--tok-accent-rgb), 0.26), transparent 60%),
+      rgba(var(--tok-accent-soft-rgb), 0.38);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.10),
+      0 0 28px rgba(var(--tok-accent-rgb), 0.26);
+  }
+  .tok-kpi-label {
+    color: rgb(var(--tok-accent-rgb));
+  }
+  .tok-kpi-value {
+    color: hsl(var(--foreground));
+  }
+  .dark .tok-kpi-value {
+    color: #f8fbff;
+    text-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
+  }
+  .tok-action-primary {
+    background: linear-gradient(135deg, #ff6a1a 0%, #ff7c22 46%, #ff9f1c 100%);
+    color: white;
+    box-shadow: 0 18px 44px rgba(255, 106, 26, 0.32), 0 0 28px rgba(255, 106, 26, 0.20);
+  }
+  .dark .tok-action-secondary {
+    border-color: rgba(115, 145, 190, 0.40);
+    background: rgba(4, 12, 28, 0.72);
+    color: #f8fbff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 26px rgba(52, 95, 190, 0.10);
+  }
+  .tok-action-row > a,
+  .tok-action-row > button {
+    height: 3.5rem;
+    border-radius: 1rem;
+    padding-inline: 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+  .tok-action-row > a:first-child,
+  .tok-action-row > button:first-child {
+    background: linear-gradient(135deg, #ff6a1a 0%, #ff7c22 46%, #ff9f1c 100%);
+    color: white;
+    box-shadow: 0 18px 44px rgba(255, 106, 26, 0.32), 0 0 28px rgba(255, 106, 26, 0.20);
+  }
+  .dark .tok-action-row > a:not(:first-child),
+  .dark .tok-action-row > button:not(:first-child) {
+    border-color: rgba(115, 145, 190, 0.40);
+    background: rgba(4, 12, 28, 0.72);
+    color: #f8fbff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 26px rgba(52, 95, 190, 0.10);
+  }
+  .dark .tok-verification-card {
+    border-color: rgba(255, 106, 26, 0.72);
+    background:
+      radial-gradient(circle at 92% 52%, rgba(255, 106, 26, 0.21), transparent 15rem),
+      radial-gradient(circle at 10% 0%, rgba(70, 121, 255, 0.16), transparent 24rem),
+      linear-gradient(135deg, rgba(10, 18, 40, 0.96), rgba(5, 12, 29, 0.98));
+    box-shadow:
+      0 22px 68px rgba(0, 0, 0, 0.46),
+      0 0 40px rgba(255, 106, 26, 0.14);
+  }
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }

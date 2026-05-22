@@ -55,7 +55,7 @@ export default function AdminCompta() {
     : restaurants.find((restaurant) => restaurant.id === selectedRestaurant)?.name || "Restaurateur";
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 px-4 py-6">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 text-foreground dark:text-slate-100">
       <AccountingHero
         badge="Comptabilite TOK"
         title="Vue comptable admin"
@@ -75,18 +75,20 @@ export default function AdminCompta() {
         )}
       />
 
-      <Card className="border-border/70 bg-card">
-        <CardContent className="grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_220px_220px]">
-          <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/20 px-4 py-3">
-            <Store className="h-5 w-5 text-primary" />
+      <Card className="tok-dashboard-section rounded-3xl border border-border/70">
+        <CardContent className="grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_220px_220px] md:p-6">
+          <div className="tok-dashboard-kpi tok-tone-orange flex items-center gap-4 rounded-2xl px-4 py-4">
+            <div className="tok-kpi-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl">
+              <Store className="h-5 w-5" />
+            </div>
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Portee</p>
-              <p className="truncate text-sm font-semibold">{selectedRestaurantName}</p>
+              <p className="tok-kpi-label text-xs font-bold uppercase tracking-[0.22em]">Portee</p>
+              <p className="tok-kpi-value truncate text-base font-bold">{selectedRestaurantName}</p>
             </div>
           </div>
 
           <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-            <SelectTrigger>
+            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <SelectValue placeholder="Restaurant" />
             </SelectTrigger>
             <SelectContent>
@@ -100,7 +102,7 @@ export default function AdminCompta() {
           </Select>
 
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger>
+            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <SelectValue placeholder="Mois" />
             </SelectTrigger>
             <SelectContent>

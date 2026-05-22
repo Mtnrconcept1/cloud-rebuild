@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -111,11 +112,19 @@ export default function DashboardVentesFlash() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Zap className="h-6 w-6 text-amber-500" />
-            <h1 className="font-display text-3xl font-bold">Ventes Flash</h1>
-          </div>
+        <DashboardPageHero
+          badge="Ventes courtes"
+          title="Ventes Flash"
+          description="Declenchez des offres limitees dans le temps, suivez le stock restant et gardez la mise en ligne sous controle."
+          icon={Zap}
+          tone="amber"
+          visualLabel="Flash"
+          stats={[
+            { label: "Ventes", value: sales?.length || 0, icon: Zap },
+            { label: "Actives", value: sales?.filter((sale) => isSpecialOfferEffectivelyActive(sale)).length || 0, icon: Percent },
+            { label: "Restaurant", value: selectedId ? "Selectionne" : "Aucun", icon: Zap },
+          ]}
+          actions={(
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2" disabled={!selectedId}>
@@ -137,7 +146,8 @@ export default function DashboardVentesFlash() {
               />
             </DialogContent>
           </Dialog>
-        </div>
+          )}
+        />
 
         {!selectedId ? (
           <Card>

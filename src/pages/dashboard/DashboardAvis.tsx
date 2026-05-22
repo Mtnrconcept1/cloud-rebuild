@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import { MessageSquareText, Star, Store } from "lucide-react";
 
 const supabase = getSupabase();
 
@@ -109,7 +111,19 @@ export default function DashboardAvis() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-3xl font-bold">Avis clients</h1>
+        <DashboardPageHero
+          badge="Relation client"
+          title="Avis clients"
+          description="Suivez les retours, gardez les notes visibles et preparez les reponses sans melanger moderation et lecture operationnelle."
+          icon={MessageSquareText}
+          tone="sky"
+          visualLabel="Reputation"
+          stats={[
+            { label: "Avis charges", value: items.length, icon: Star },
+            { label: "Restaurants", value: restaurants.length, icon: Store },
+            { label: "Mode", value: editingId ? "Edition" : "Creation", icon: MessageSquareText },
+          ]}
+        />
         <Card>
           <CardHeader><CardTitle>{editingId ? "Modifier un avis" : "Créer un avis test"}</CardTitle></CardHeader>
           <CardContent>

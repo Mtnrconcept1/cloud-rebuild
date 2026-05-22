@@ -1,15 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
+import type { ComponentType } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
-import { CalendarDays, ShoppingCart, SunMedium, MoonStar, TrendingUp } from "lucide-react";
+import { ArrowRight, CalendarDays, FileText, LayoutDashboard, MoonStar, ShoppingCart, SunMedium, TrendingUp } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
 import { useDashboardRestaurant } from "./DashboardContext";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
+import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
 
@@ -29,6 +32,83 @@ type UpcomingReservationRow = {
   status: string;
   metadata: unknown;
 };
+
+type DashboardTone = "violet" | "orange" | "emerald" | "amber" | "sky";
+
+const DASHBOARD_TONES: Record<DashboardTone, {
+  card: string;
+  icon: string;
+  label: string;
+  glow: string;
+}> = {
+  violet: {
+    card: "tok-tone-violet",
+    icon: "tok-kpi-icon",
+    label: "tok-kpi-label",
+    glow: "tok-tone-overlay",
+  },
+  orange: {
+    card: "tok-tone-orange",
+    icon: "tok-kpi-icon",
+    label: "tok-kpi-label",
+    glow: "tok-tone-overlay",
+  },
+  emerald: {
+    card: "tok-tone-emerald",
+    icon: "tok-kpi-icon",
+    label: "tok-kpi-label",
+    glow: "tok-tone-overlay",
+  },
+  amber: {
+    card: "tok-tone-amber",
+    icon: "tok-kpi-icon",
+    label: "tok-kpi-label",
+    glow: "tok-tone-overlay",
+  },
+  sky: {
+    card: "tok-tone-sky",
+    icon: "tok-kpi-icon",
+    label: "tok-kpi-label",
+    glow: "tok-tone-overlay",
+  },
+};
+
+function DashboardStatCard({
+  label,
+  value,
+  icon: Icon,
+  tone,
+}: {
+  label: string;
+  value: string;
+  icon: ComponentType<{ className?: string }>;
+  tone: DashboardTone;
+}) {
+  const toneClasses = DASHBOARD_TONES[tone];
+
+  return (
+    <div className={cn(
+      "tok-dashboard-kpi relative overflow-hidden rounded-3xl p-5 transition-transform hover:-translate-y-0.5",
+      toneClasses.card,
+    )}>
+      <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 dark:opacity-100", toneClasses.glow)} />
+      <div className="relative z-10 flex items-center justify-between gap-5">
+        <div className="flex min-w-0 items-center gap-5">
+          <div className={cn("flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl sm:h-20 sm:w-20", toneClasses.icon)}>
+            <Icon className="h-8 w-8" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-lg font-semibold text-foreground dark:text-slate-100">{label}</p>
+            <p className="tok-kpi-value mt-2 break-words text-4xl font-bold tracking-tight">{value}</p>
+          </div>
+        </div>
+        <div className={cn("hidden h-14 w-14 shrink-0 items-center justify-center rounded-2xl sm:flex", toneClasses.icon)}>
+          <ArrowRight className="h-6 w-6" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { selectedId } = useDashboardRestaurant();
@@ -162,7 +242,19 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-3xl font-bold">Bonjour, {restaurant.name}</h1>
+        <DashboardPageHero
+          badge="Dashboard restaurateur"
+          title={<>Bonjour, <span className="text-[#ff6a1a]">{restaurant.name}</span></>}
+          description="Vue courte de l'activite du restaurant: commandes, reservations, service du jour et revenu du mois restent visibles sans chercher dans les onglets."
+          icon={LayoutDashboard}
+          tone="orange"
+          visualLabel="Accueil"
+          stats={[
+            { label: "Commandes validees", value: totalOrders, icon: ShoppingCart },
+            { label: "Reservations a venir", value: totalUpcomingReservations, icon: CalendarDays },
+            { label: "Revenus du mois", value: `${monthlyRevenue.toFixed(2)} CHF`, icon: TrendingUp },
+          ]}
+        />
 
         <SignupApplicationStatusCard
           application={signupApplication}
@@ -170,50 +262,52 @@ export default function Dashboard() {
           emptyDescription="Aucun dossier restaurateur n'a encore ete soumis."
         />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Commandes validees</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalOrders}</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Reservations a venir</CardTitle>
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent><p className="text-2xl font-bold">{totalUpcomingReservations}</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Revenus du mois</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent><p className="text-2xl font-bold">{monthlyRevenue.toFixed(2)} CHF</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Midi aujourd'hui</CardTitle>
-              <SunMedium className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent><p className="text-2xl font-bold">{todayServiceCounts.lunch}</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Soir aujourd'hui</CardTitle>
-              <MoonStar className="h-4 w-4 text-sky-500" />
-            </CardHeader>
-            <CardContent><p className="text-2xl font-bold">{todayServiceCounts.dinner}</p></CardContent>
-          </Card>
+        <div className="space-y-4">
+          <DashboardStatCard
+            label="Commandes validees"
+            value={String(totalOrders)}
+            icon={ShoppingCart}
+            tone="violet"
+          />
+          <DashboardStatCard
+            label="Reservations a venir"
+            value={String(totalUpcomingReservations)}
+            icon={CalendarDays}
+            tone="orange"
+          />
+          <DashboardStatCard
+            label="Revenus du mois"
+            value={`${monthlyRevenue.toFixed(2)} CHF`}
+            icon={TrendingUp}
+            tone="emerald"
+          />
+          <DashboardStatCard
+            label="Midi aujourd'hui"
+            value={String(todayServiceCounts.lunch)}
+            icon={SunMedium}
+            tone="amber"
+          />
+          <DashboardStatCard
+            label="Soir aujourd'hui"
+            value={String(todayServiceCounts.dinner)}
+            icon={MoonStar}
+            tone="sky"
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Commandes recentes</CardTitle></CardHeader>
+          <Card className="tok-dashboard-section rounded-3xl border border-border/70">
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                <span className="tok-kpi-icon tok-tone-sky flex h-12 w-12 items-center justify-center rounded-2xl">
+                  <FileText className="h-6 w-6" />
+                </span>
+                Commandes recentes
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-3">
               {recentOrders?.map((order) => (
-                <div key={order.id} className="flex items-center justify-between text-sm">
+                <div key={order.id} className="flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm dark:border-[#5f7aad]/22 dark:bg-[#07142b]/72 dark:text-slate-100">
                   <span>{new Date(order.created_at).toLocaleDateString("fr-FR")}</span>
                   <span className="font-bold">{Number(order.total_amount).toFixed(2)} CHF</span>
                   <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
@@ -222,13 +316,20 @@ export default function Dashboard() {
               {(!recentOrders || recentOrders.length === 0) ? <p className="text-sm text-muted-foreground">Aucune commande</p> : null}
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Reservations a venir</CardTitle></CardHeader>
+          <Card className="tok-dashboard-section rounded-3xl border border-border/70">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                <span className="tok-kpi-icon tok-tone-orange flex h-12 w-12 items-center justify-center rounded-2xl">
+                  <CalendarDays className="h-6 w-6" />
+                </span>
+                Reservations a venir
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-3">
               {typedUpcomingReservations.map((reservation) => {
                 const period = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
                 return (
-                  <div key={reservation.id} className="flex items-center justify-between gap-3 text-sm">
+                  <div key={reservation.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm dark:border-[#5f7aad]/22 dark:bg-[#07142b]/72 dark:text-slate-100">
                     <div className="flex items-center gap-2">
                       <span>{new Date(reservation.date).toLocaleDateString("fr-FR")} a {reservation.time}</span>
                       <Badge variant="outline" className="text-[10px]">{getServicePeriodLabel(period)}</Badge>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -105,16 +106,25 @@ export default function DashboardRecommandations() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Lightbulb className="h-7 w-7 text-primary" />
-            <h1 className="font-display text-3xl font-bold">Recommandations</h1>
-          </div>
+        <DashboardPageHero
+          badge="Conseils operationnels"
+          title="Recommandations"
+          description="Traitez les opportunites de revenu, qualite et risque avec une liste priorisee par restaurant."
+          icon={Lightbulb}
+          tone="amber"
+          visualLabel="Conseils"
+          stats={[
+            { label: "A traiter", value: items.length, icon: Lightbulb },
+            { label: "Restaurants", value: restaurants.length, icon: Star },
+            { label: "Priorite haute", value: items.filter((item) => Number(item.priority) <= 2).length, icon: AlertTriangle },
+          ]}
+          actions={(
           <Button variant="outline" onClick={refreshRecommendations} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
             Actualiser
           </Button>
-        </div>
+          )}
+        />
 
         {loadingRestaurants || loading ? (
           <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />)}</div>

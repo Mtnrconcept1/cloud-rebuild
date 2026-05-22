@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import AudienceTargeting from "@/components/AudienceTargeting";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ImageUpload from "@/components/ImageUpload";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import { Badge } from "@/components/ui/badge";
@@ -407,19 +408,22 @@ export default function DashboardCampagnes() {
       </AlertDialog>
 
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Megaphone className="h-6 w-6 text-primary" />
-            <div className="min-w-0">
-              <h1 className="font-display text-3xl font-bold">Campagnes publicitaires</h1>
-              <p className="text-sm text-muted-foreground">
-                {selectedRestaurant ? `Pilotage de ${selectedRestaurant.name}` : "Selectionnez un restaurant dans la barre laterale."}
-              </p>
-            </div>
-          </div>
+        <DashboardPageHero
+          badge="Acquisition"
+          title="Campagnes publicitaires"
+          description={selectedRestaurant ? `Pilotage de ${selectedRestaurant.name}: ciblage, budget, conversions et statut de paiement restent regroupes.` : "Selectionnez un restaurant dans la barre laterale pour preparer ses campagnes."}
+          icon={Megaphone}
+          tone="rose"
+          visualLabel="Ads"
+          stats={[
+            { label: "Campagnes", value: campaigns?.length || 0, icon: Megaphone },
+            { label: "Conversions", value: loadingConversions ? "..." : conversionsByType.total, icon: Target },
+            { label: "Periode", value: `${periodDays} jours`, icon: CalendarDays },
+          ]}
+          actions={(
           <div className="flex items-center gap-2">
             <Select value={periodDays} onValueChange={(value) => setPeriodDays(value as "7" | "30" | "90")}>
-              <SelectTrigger className="w-28">
+              <SelectTrigger className="h-14 w-32 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -460,7 +464,8 @@ export default function DashboardCampagnes() {
               </DialogContent>
             </Dialog>
           </div>
-        </div>
+          )}
+        />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card>

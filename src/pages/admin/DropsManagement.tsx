@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -126,15 +127,19 @@ export default function DropsManagement() {
 
   return (
     <div className="container py-8 space-y-8">
-      <div className="flex items-center gap-3">
-        <UtensilsCrossed className="h-8 w-8 text-pink-500" />
-        <div>
-          <h1 className="text-3xl font-bold font-display">La Table du Chef</h1>
-          <p className="text-sm text-muted-foreground">
-            Creez, modifiez et desactivez les experiences exclusives proposees par vos chefs.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHero
+        badge="Experiences"
+        title="La Table du Chef"
+        description="Creez, modifiez et desactivez les experiences exclusives proposees par vos chefs avec une vue claire des drops actifs."
+        icon={UtensilsCrossed}
+        tone="rose"
+        visualLabel="Chef"
+        stats={[
+          { label: "Experiences", value: drops.length, icon: UtensilsCrossed },
+          { label: "Actives", value: drops.filter((drop: any) => drop.is_active).length, icon: Plus },
+          { label: "Restaurants", value: restaurants.length, icon: UtensilsCrossed },
+        ]}
+      />
 
       <Card>
         <CardHeader>

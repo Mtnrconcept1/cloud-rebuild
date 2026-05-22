@@ -198,7 +198,7 @@ export default function AdminComptaOutflow() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 text-foreground dark:text-slate-100">
       <AccountingHero
         badge="Sorties d'argent"
         title="Factures recues des restaurateurs"
@@ -218,10 +218,10 @@ export default function AdminComptaOutflow() {
         )}
       />
 
-      <Card className="border-dashed bg-muted/20">
-        <CardContent className="grid gap-3 p-4 md:grid-cols-2">
+      <Card className="tok-dashboard-section rounded-3xl border border-dashed border-border/70 bg-muted/20">
+        <CardContent className="grid gap-4 p-5 md:grid-cols-2 md:p-6">
           <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-            <SelectTrigger>
+            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <SelectValue placeholder="Restaurant" />
             </SelectTrigger>
             <SelectContent>
@@ -235,7 +235,7 @@ export default function AdminComptaOutflow() {
           </Select>
 
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger>
+            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <SelectValue placeholder="Mois" />
             </SelectTrigger>
             <SelectContent>

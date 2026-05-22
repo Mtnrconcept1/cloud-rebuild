@@ -2,6 +2,7 @@ import { BarChart3, Clock, Eye, MousePointerClick, Pause, Play, TrendingUp, Wall
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -134,12 +135,19 @@ export default function DashboardCampagneOverview() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Vue d ensemble des campagnes</h1>
-          <p className="text-sm text-muted-foreground">
-            {selectedRestaurant ? `Synthese de ${selectedRestaurant.name}` : "Selectionnez un restaurant dans la barre laterale."}
-          </p>
-        </div>
+        <DashboardPageHero
+          badge="Marketing restaurant"
+          title="Vue d ensemble des campagnes"
+          description={selectedRestaurant ? `Synthese de ${selectedRestaurant.name}: depenses, rythme, clics et conversions restent visibles avant le detail des campagnes.` : "Selectionnez un restaurant dans la barre laterale pour afficher la synthese marketing."}
+          icon={BarChart3}
+          tone="rose"
+          visualLabel="Marketing"
+          stats={[
+            { label: "Campagnes actives", value: activeCampaigns.length, icon: Play },
+            { label: "Depense totale", value: formatChf(totalSpent), icon: Wallet },
+            { label: "CTR", value: `${ctr}%`, icon: MousePointerClick },
+          ]}
+        />
 
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           <Card>

@@ -3,6 +3,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -405,7 +406,19 @@ export default function DashboardCommandes() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-3xl font-bold">Commandes</h1>
+        <DashboardPageHero
+          badge="Operations restaurant"
+          title="Commandes"
+          description="Pilotez les commandes par jour, source et statut avec les informations client, paiement et livraison au meme endroit."
+          icon={ClipboardList}
+          tone="violet"
+          visualLabel="Flux commandes"
+          stats={[
+            { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: ClipboardList },
+            { label: "Commandes visibles", value: filteredOrders.length, icon: Package2 },
+            { label: "Jours ouverts", value: groupedOrders.length, icon: Search },
+          ]}
+        />
 
         {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
         {restaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p> : null}
@@ -414,12 +427,6 @@ export default function DashboardCommandes() {
         ) : null}
         {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
           <p className="text-muted-foreground">Selectionnez un restaurant depuis la barre laterale pour afficher les commandes.</p>
-        ) : null}
-        {selectedRestaurant ? (
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Restaurant actif</p>
-            <p className="text-sm font-semibold">{selectedRestaurant.name}</p>
-          </div>
         ) : null}
         {ordersError ? (
           <p className="text-destructive">Erreur lors du chargement des commandes : {(ordersError as Error).message}</p>

@@ -13,6 +13,7 @@ import {
   Menu,
   MessageSquareText,
   Megaphone,
+  Newspaper,
   ReceiptText,
   Scale,
   Share2,
@@ -71,6 +72,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/dashboard/campagne-overview", label: "Campagnes", icon: Megaphone, feature: "dashboard-campagne-overview" },
       { to: "/dashboard/reseaux-sociaux", label: "Reseaux sociaux", icon: Share2, feature: "dashboard-reseaux-sociaux" },
+      { to: "/dashboard/actualites", label: "Actualites", icon: Newspaper, feature: "dashboard-actualites" },
       { to: "/dashboard/campagnes", label: "Campagnes avancees", icon: Megaphone, feature: "dashboard-campagnes" },
     ],
   },
@@ -126,11 +128,11 @@ function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
   const selected = restaurants.find((r) => r.id === selectedId);
 
   return (
-    <div ref={ref} className="relative mb-2">
+    <div ref={ref} className="relative mb-3 px-2">
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex w-full items-center rounded-xl border bg-sidebar-accent/50 text-sm font-semibold",
+          "flex w-full items-center rounded-2xl border bg-sidebar-accent/50 text-sm font-semibold transition-colors dark:border-[#5f7aad]/28 dark:bg-[#07142b]/78 dark:text-slate-100 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_22px_rgba(30,74,160,0.12)] dark:hover:bg-[#0c1b38]",
           collapsed ? "justify-center px-2 py-2" : "px-3 py-2"
         )}
       >
@@ -144,7 +146,7 @@ function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-xl border bg-white shadow-lg">
+        <div className="absolute left-2 right-2 z-50 mt-2 rounded-2xl border bg-white shadow-lg dark:border-[#5f7aad]/28 dark:bg-[#07142b] dark:shadow-[0_24px_60px_rgba(0,0,0,0.55),0_0_28px_rgba(30,74,160,0.14)]">
           {restaurants.map((r) => (
             <button
               key={r.id}
@@ -152,7 +154,7 @@ function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
                 setSelectedId(r.id);
                 setOpen(false);
               }}
-              className="block w-full px-3 py-2 text-left hover:bg-muted"
+              className="block w-full px-3 py-2 text-left hover:bg-muted dark:text-slate-100 dark:hover:bg-white/10"
             >
               {r.name}
             </button>
@@ -178,7 +180,7 @@ function NavItems({
     <>
       {sections.map((section) => (
         <div key={section.title}>
-          {!collapsed && <p className="px-3 text-xs text-muted-foreground">{section.title}</p>}
+          {!collapsed && <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground dark:text-slate-400">{section.title}</p>}
           {section.items.map((item) => {
             const isLocked = !!(item.feature && disabledFeatures?.has(item.feature));
 
@@ -186,7 +188,7 @@ function NavItems({
               return (
                 <div
                   key={item.to}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed select-none"
+                  className="flex items-center gap-3 rounded-xl px-3 py-2 opacity-40 cursor-not-allowed select-none"
                   title="Non inclus dans votre pack"
                 >
                   <item.icon className="h-4 w-4" />
@@ -205,10 +207,10 @@ function NavItems({
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg",
+                  "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
                   pathname.startsWith(item.to)
-                    ? "bg-primary/10 text-primary"
-                    : "hover:bg-muted"
+                    ? "bg-primary/10 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] dark:shadow-[0_0_28px_rgba(255,106,26,0.22)]"
+                    : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72"
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -295,25 +297,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   });
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="tok-dashboard-shell flex min-h-screen flex-col text-foreground md:flex-row">
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
         className={cn(
-          "hidden overflow-y-auto md:flex md:flex-col border-r bg-sidebar transition-all",
+          "tok-dashboard-sidebar hidden overflow-y-auto border-r bg-sidebar transition-all md:flex md:flex-col",
           collapsed ? "w-[80px]" : "w-72"
         )}
       >
         <div className="flex items-center justify-between p-3">
-          {!collapsed && <h2 className="font-semibold">Dashboard</h2>}
-          <Button size="icon" variant="ghost" onClick={() => setCollapsed(!collapsed)}>
+          {!collapsed && (
+            <h2 className="font-display text-xl font-bold text-foreground dark:text-white">
+              Dashboard
+            </h2>
+          )}
+          <Button size="icon" variant="ghost" className="rounded-xl dark:hover:bg-white/10" onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
         </div>
 
         <RestaurantSelector collapsed={collapsed} />
 
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1 px-2 pb-6">
           <NavItems pathname={pathname} sections={sections} collapsed={collapsed} disabledFeatures={disabledFeatures} />
         </nav>
       </aside>
@@ -325,14 +331,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Button
               variant="ghost"
               className={cn(
-                "pointer-events-auto h-14 rounded-full border border-border/70 bg-background/95 px-2 pr-4 text-foreground shadow-[0_14px_32px_rgba(15,23,42,0.14)] backdrop-blur-md transition-all hover:bg-background",
+                "pointer-events-auto h-14 rounded-full border border-border/70 bg-background/95 px-2 pr-4 text-foreground shadow-[0_14px_32px_rgba(15,23,42,0.14)] backdrop-blur-md transition-all hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.18)]",
                 mobileMenuOpen && "border-primary/25 bg-primary text-primary-foreground hover:bg-primary"
               )}
               aria-label="Ouvrir le menu du dashboard"
             >
               <span
                 className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors",
+                  "flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors dark:bg-gradient-to-br dark:from-[#ff6a1a] dark:to-[#ff9f1c] dark:shadow-[0_0_24px_rgba(255,106,26,0.46)]",
                   mobileMenuOpen && "bg-white/15 text-current shadow-none"
                 )}
               >
@@ -353,7 +359,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </span>
             </Button>
           </SheetTrigger>
-          <SheetContent className="flex h-full flex-col overflow-hidden p-0">
+          <SheetContent className="flex h-full flex-col overflow-hidden p-0 dark:border-[#5f7aad]/30 dark:bg-[#010716]">
             <SheetHeader className="border-b px-6 pb-4 pt-6 pr-14">
               <SheetTitle>Dashboard</SheetTitle>
             </SheetHeader>
@@ -368,7 +374,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* MAIN */}
-      <main className="flex-1 p-6 pb-28 md:p-6">{children}</main>
+      <main className="relative flex-1 overflow-hidden p-5 pb-28 md:p-6">
+        <div className="pointer-events-none absolute inset-0 hidden dark:block">
+          <div className="absolute -left-36 top-10 h-96 w-96 rounded-full bg-[#ff6a1a]/12 blur-3xl" />
+          <div className="absolute right-0 top-1/4 h-[28rem] w-[28rem] rounded-full bg-[#1e4aa0]/18 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-[#8b55ff]/10 blur-3xl" />
+        </div>
+        <div className="relative z-10 mx-auto w-full max-w-7xl">{children}</div>
+      </main>
     </div>
   );
 }

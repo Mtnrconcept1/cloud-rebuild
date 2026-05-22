@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Percent, UtensilsCrossed, CakeSlice, Salad, Loader2 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -212,15 +213,19 @@ export default function DashboardFormules() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Percent className="h-6 w-6 text-primary" />
-          <div>
-            <h1 className="font-display text-3xl font-bold">Formules & Menus</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Activez vos formules et choisissez precisement les services midi et soir.
-            </p>
-          </div>
-        </div>
+        <DashboardPageHero
+          badge="Offre menu"
+          title="Formules & Menus"
+          description="Activez vos formules et choisissez precisement les services midi et soir pour guider les paniers sans complexifier la carte."
+          icon={Percent}
+          tone="orange"
+          visualLabel="Formules"
+          stats={[
+            { label: "Modeles", value: PRESET_FORMULAS.length, icon: UtensilsCrossed },
+            { label: "Configurees", value: formulas?.length || 0, icon: Percent },
+            { label: "Restaurant", value: selectedId ? "Selectionne" : "Aucun", icon: Salad },
+          ]}
+        />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">

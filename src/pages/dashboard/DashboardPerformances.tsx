@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, TrendingUp } from "lucide-react";
+import { AlertTriangle, BarChart3, TrendingUp } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import PerformanceBusinessTab from "@/components/dashboard/performance/PerformanceBusinessTab";
 import PerformanceTodayTab from "@/components/dashboard/performance/PerformanceTodayTab";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -192,18 +192,21 @@ export default function DashboardPerformances() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-2">
-            <h1 className="font-display text-3xl font-bold">Performances</h1>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{selectedRestaurant?.name || "Aucun restaurant selectionne"}</Badge>
-              <span className="text-sm text-muted-foreground">
-                Lecture du {formatDayLabel(fromDay)} au {formatDayLabel(toDay)}.
-              </span>
-            </div>
-          </div>
+        <DashboardPageHero
+          badge="Analyse restaurateur"
+          title="Performances"
+          description={`Lecture du ${formatDayLabel(fromDay)} au ${formatDayLabel(toDay)} pour suivre le service du jour, le chiffre d'affaires, les annulations et les signaux business.`}
+          icon={BarChart3}
+          tone="sky"
+          visualLabel="Performance"
+          stats={[
+            { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: BarChart3 },
+            { label: "Commandes", value: summary.validOrdersCount, icon: TrendingUp },
+            { label: "CA periode", value: `${summary.totalRevenue.toFixed(2)} CHF`, icon: TrendingUp },
+          ]}
+          actions={(
           <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="h-14 w-36 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -212,7 +215,8 @@ export default function DashboardPerformances() {
               <SelectItem value="90">90 jours</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+          )}
+        />
 
         {!selectedId && !loadingRestaurants ? (
           <Card>

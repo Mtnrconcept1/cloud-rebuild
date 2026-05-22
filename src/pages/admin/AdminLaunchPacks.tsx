@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -504,18 +505,27 @@ export default function AdminLaunchPacks() {
 
   return (
     <div className="container max-w-6xl mx-auto py-6 px-4 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <Link to="/admin">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Package className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Packs de lancement</h1>
-        </div>
-      </div>
+      <DashboardPageHero
+        badge="Services admin"
+        title="Packs de lancement"
+        description="Suivez les packs achetes, les activations de fonctionnalites et l'avancement des services promis aux restaurants."
+        icon={Package}
+        tone="violet"
+        visualLabel="Packs"
+        stats={[
+          { label: "Total", value: stats.total, icon: Package },
+          { label: "En cours", value: stats.in_progress, icon: Clock },
+          { label: "Completes", value: stats.completed, icon: CheckCircle2 },
+        ]}
+        actions={(
+          <Button asChild variant="outline">
+            <Link to="/admin">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Retour admin
+            </Link>
+          </Button>
+        )}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import AdminOperationDetailSheet from "@/components/admin/AdminOperationDetailSheet";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -489,17 +490,19 @@ export default function AdminOrdersReservations() {
 
   return (
     <div className="container space-y-6 py-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Commandes et Reservations</h1>
-          <p className="text-sm text-muted-foreground">
-            Historique admin des operations clients, avec recherche par client, restaurant, reference et details complets par operation.
-          </p>
-        </div>
-        <Badge variant="outline" className="px-3 py-1 text-[11px] uppercase tracking-[0.25em]">
-          Admin
-        </Badge>
-      </div>
+      <DashboardPageHero
+        badge="Operations admin"
+        title="Commandes et Reservations"
+        description="Historique admin des operations clients, avec recherche par client, restaurant, reference et details complets par operation."
+        icon={ShoppingCart}
+        tone="violet"
+        visualLabel="Operations"
+        stats={[
+          { label: "Commandes", value: orders.length, icon: ShoppingCart },
+          { label: "Reservations", value: reservations.length, icon: CalendarDays },
+          { label: "Remboursements", value: refundQueue.length, icon: RotateCcw },
+        ]}
+      />
 
       <Card>
         <CardContent className="space-y-4 py-4">

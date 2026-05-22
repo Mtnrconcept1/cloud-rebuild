@@ -4,6 +4,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
@@ -110,14 +111,19 @@ export default function AdminRestaurants() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Gestion des restaurants</h1>
-          <p className="text-sm text-muted-foreground">
-            Activez les restaurants, gerez leur visibilite et leurs options de service.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHero
+        badge="Admin restaurants"
+        title="Gestion des restaurants"
+        description="Activez les restaurants, gerez leur visibilite, leurs options de service et les mises en avant depuis une vue de pilotage."
+        icon={Store}
+        tone="emerald"
+        visualLabel="Restaurants"
+        stats={[
+          { label: "Restaurants", value: stats.total, icon: Store },
+          { label: "Actifs", value: stats.active, icon: Sparkles },
+          { label: "Reservations", value: stats.reservationReady, icon: CalendarDays },
+        ]}
+      />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>

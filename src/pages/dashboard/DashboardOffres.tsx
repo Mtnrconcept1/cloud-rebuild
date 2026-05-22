@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -122,11 +123,19 @@ export default function DashboardOffres() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Leaf className="h-6 w-6 text-green-600" />
-            <h1 className="font-display text-3xl font-bold">Offres Anti-gaspi</h1>
-          </div>
+        <DashboardPageHero
+          badge="Offres restaurant"
+          title="Offres Anti-gaspi"
+          description="Publiez les stocks courts, surveillez les offres epuisees et gardez la disponibilite client sous controle."
+          icon={Leaf}
+          tone="emerald"
+          visualLabel="Anti-gaspi"
+          stats={[
+            { label: "Offres", value: offers?.length || 0, icon: Leaf },
+            { label: "Actives", value: offers?.filter((offer) => isSpecialOfferEffectivelyActive(offer)).length || 0, icon: Percent },
+            { label: "Restaurant", value: selectedId ? "Selectionne" : "Aucun", icon: Leaf },
+          ]}
+          actions={(
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2" disabled={!selectedId}>
@@ -148,7 +157,8 @@ export default function DashboardOffres() {
               />
             </DialogContent>
           </Dialog>
-        </div>
+          )}
+        />
 
         {!selectedId ? (
           <Card>

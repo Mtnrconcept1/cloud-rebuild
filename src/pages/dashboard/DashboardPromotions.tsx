@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,11 +65,19 @@ export default function DashboardPromotions() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <BadgePercent className="h-6 w-6 text-primary" />
-            <h1 className="font-display text-3xl font-bold">Promotions</h1>
-          </div>
+        <DashboardPageHero
+          badge="Activation client"
+          title="Promotions"
+          description="Creez et suivez les remises par audience pour relancer la demande sans perdre le controle des campagnes."
+          icon={BadgePercent}
+          tone="orange"
+          visualLabel="Promos"
+          stats={[
+            { label: "Promotions", value: promotions?.length || 0, icon: BadgePercent },
+            { label: "Actives", value: promotions?.filter((promo: any) => promo.active).length || 0, icon: Plus },
+            { label: "Restaurants", value: restaurantIds.length, icon: BadgePercent },
+          ]}
+          actions={(
           <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setEditing(null); }}>
             <DialogTrigger asChild>
               <Button className="gap-2"><Plus className="h-4 w-4" /> Nouvelle promotion</Button>
@@ -87,7 +96,8 @@ export default function DashboardPromotions() {
               />
             </DialogContent>
           </Dialog>
-        </div>
+          )}
+        />
 
         {isLoading ? (
           <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-20 bg-muted animate-pulse rounded-xl" />)}</div>

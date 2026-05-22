@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -167,12 +168,19 @@ export default function AdminAvis() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div>
-        <h1 className="font-display text-3xl font-bold">Moderation des avis</h1>
-        <p className="text-sm text-muted-foreground">
-          Controlez la visibilite des avis et publiez des reponses admin.
-        </p>
-      </div>
+      <DashboardPageHero
+        badge="Moderation"
+        title="Moderation des avis"
+        description="Controlez la visibilite des avis, les signalements et les reponses admin sans perdre le contexte restaurant."
+        icon={MessageSquareText}
+        tone="sky"
+        visualLabel="Avis"
+        stats={[
+          { label: "Avis", value: stats.total, icon: MessageSquareText },
+          { label: "Masques", value: stats.hidden, icon: EyeOff },
+          { label: "A revoir", value: stats.flagged, icon: ShieldAlert },
+        ]}
+      />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
