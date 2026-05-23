@@ -15,6 +15,12 @@ function statusBadge(status: string) {
   return "bg-secondary text-secondary-foreground";
 }
 
+function reportPriority(report: any) {
+  if (typeof report.priority === "number") return report.priority;
+  if (report.status === "open") return 2;
+  return 0;
+}
+
 export default function AdminActualites() {
   const moderation = useAdminSocialModeration();
   const moderate = useModerateSocialContent();
@@ -95,7 +101,11 @@ export default function AdminActualites() {
               <Card key={report.id} className="rounded-lg">
                 <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
                   <div>
-                    <CardTitle className="text-base">{report.reason}</CardTitle>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CardTitle className="text-base">{report.reason}</CardTitle>
+                      {report.category ? <Badge variant="outline">{report.category}</Badge> : null}
+                      <Badge variant="secondary">Priorite {reportPriority(report)}</Badge>
+                    </div>
                     <p className="mt-1 text-sm text-muted-foreground">{report.target_type} - {report.target_id}</p>
                   </div>
                   <Badge className={statusBadge(report.status)}>{report.status}</Badge>
@@ -103,6 +113,42 @@ export default function AdminActualites() {
                 <CardContent className="space-y-4">
                   {report.details ? <p className="text-sm">{report.details}</p> : null}
                   <div className="flex flex-wrap gap-2">
+                    {["post", "comment", "repost"].includes(report.target_type) ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() =>
+                            moderate.mutate({
+                              type: report.target_type,
+                              id: report.target_id,
+                              status: "hidden",
+                              reason: report.reason || "Signalement admin",
+                            })
+                          }
+                        >
+                          <EyeOff className="h-4 w-4" />
+                          Masquer cible
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="gap-2"
+                          onClick={() =>
+                            moderate.mutate({
+                              type: report.target_type,
+                              id: report.target_id,
+                              status: "deleted",
+                              reason: report.reason || "Signalement admin",
+                            })
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Supprimer cible
+                        </Button>
+                      </>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="outline"

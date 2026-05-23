@@ -1,99 +1,112 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Crown,
-  Truck,
-  Percent,
-  ChefHat,
-  Zap,
-  Headphones,
-  Gift,
-  Check,
-  Star,
-  Loader2,
-  ShieldCheck,
-  CalendarCheck,
-  ArrowRight,
-  Clock3,
-  Flame,
-  Wallet,
-} from "lucide-react";
+import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  CalendarCheck,
+  Check,
+  ChefHat,
+  Clock3,
+  Crown,
+  Flame,
+  Gift,
+  Headphones,
+  Loader2,
+  Percent,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Truck,
+  Wallet,
+  X,
+  Zap,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   isTokOneSubscriptionActive,
   useTokOnePlans,
   useTokOneSubscription,
 } from "@/hooks/useTokOne";
+import { getSupabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
+
+const HERO_IMAGE = "/images/octopus-fine-dining.jpeg";
 
 const BENEFITS = [
   {
     icon: Truck,
     title: "Livraison gratuite",
     desc: "Sur tous les restaurants eligibles, sans minimum de commande.",
-    detail: "En tant que membre Tok One, les frais de livraison (express, standard ou flex) sont automatiquement offerts sur chacune de vos commandes. L'economie est appliquee directement dans votre panier — aucune action requise de votre part.",
-    color: "text-blue-600",
-    bg: "bg-blue-100",
+    detail: "Les frais de livraison express, standard ou flex sont automatiquement retires dans le panier.",
+    tone: "from-[#715bff] to-[#3137c9]",
   },
   {
     icon: Percent,
     title: "Reductions exclusives",
-    desc: "Jusqu'a 20% de reduction sur vos plats preferes.",
-    detail: "Des remises permanentes sur une selection de plats chez nos restaurants partenaires. Ces reductions sont cumulables avec les codes promo et les formules dejeuner. Le montant exact varie selon les restaurants et les periodes.",
-    color: "text-emerald-600",
-    bg: "bg-emerald-100",
+    desc: "Jusqu'a 20% de reduction sur une selection de plats chaque semaine.",
+    detail: "Les remises Tok One se cumulent avec les codes promo et les offres speciales disponibles.",
+    tone: "from-[#35c778] to-[#12603f]",
   },
   {
     icon: ChefHat,
     title: "Acces prioritaire La Table du Chef",
-    desc: "Reservez en avant-premiere les evenements gastronomiques exclusifs.",
-    detail: "Les drops La Table du Chef sont souvent complets en quelques minutes. En tant que membre Tok One, vous beneficiez d'un acces anticipe de 24h avant l'ouverture des reservations au grand public.",
-    color: "text-orange-600",
-    bg: "bg-orange-100",
+    desc: "Reservez en avant-premiere les meilleures tables des chefs.",
+    detail: "Les drops gastronomiques sont debloques 24h avant l'ouverture publique.",
+    tone: "from-[#ffb34f] to-[#bf4c0a]",
   },
   {
     icon: Zap,
     title: "Ventes flash en avance",
-    desc: "Acces anticipe aux offres speciales avant tout le monde.",
-    detail: "Les ventes flash proposent des plats a prix reduit en quantites limitees. Les membres Tok One recoivent une notification en avance et peuvent commander avant le lancement officiel, garantissant l'acces aux meilleures offres.",
-    color: "text-amber-600",
-    bg: "bg-amber-100",
+    desc: "Acces anticipe aux offres limitees avant le lancement officiel.",
+    detail: "Recevez les alertes prioritaires et commandez avant que les quantites ne partent.",
+    tone: "from-[#facc15] to-[#b45309]",
   },
   {
     icon: Headphones,
     title: "Support prioritaire",
-    desc: "Temps de reponse accelere de notre equipe de support.",
-    detail: "Votre demande est traitee en priorite par notre equipe. Temps de reponse moyen pour les membres Tok One : moins de 2 heures, contre 24h en standard. Accessible via le chat en ligne et par email.",
-    color: "text-purple-600",
-    bg: "bg-purple-100",
+    desc: "Un temps de reponse accelere quand vous avez besoin d'aide.",
+    detail: "Les demandes Tok One passent en file prioritaire avec une prise en charge renforcee.",
+    tone: "from-[#a78bfa] to-[#5b21b6]",
   },
   {
     icon: Gift,
     title: "Offres surprises",
-    desc: "Des recompenses et avantages reguliers reserves aux membres.",
-    detail: "Chaque mois, recevez des surprises : desserts offerts, livraisons express gratuites, points de fidelite bonus, invitations a des degustations privees. Les offres changent et sont adaptees a vos habitudes de commande.",
-    color: "text-pink-600",
-    bg: "bg-pink-100",
+    desc: "Des attentions regulieres reservees aux membres.",
+    detail: "Desserts offerts, points bonus et invitations culinaires selon vos habitudes.",
+    tone: "from-[#fb7185] to-[#be123c]",
   },
 ];
 
 const TRUST_PILLS = [
   { icon: ShieldCheck, label: "Paiement securise Stripe" },
   { icon: Clock3, label: "Activation en moins de 2 min" },
-  { icon: Wallet, label: "Annulation a tout moment" },
+  { icon: X, label: "Annulation a tout moment" },
 ];
 
 const VALUE_METRICS = [
-  { value: "2.50 CHF", label: "frais de livraison moyens economises / commande" },
-  { value: "20%", label: "de remise sur une selection de plats" },
-  { value: "24h", label: "d'acces anticipe a La Table du Chef" },
+  { icon: Gift, value: "2.50 CHF", label: "de livraison offerte sur chaque commande", tone: "text-[#7897ff]" },
+  { icon: Percent, value: "20%", label: "de remise sur une selection de plats exclusifs", tone: "text-[#37d27d]" },
+  { icon: Clock3, value: "24h", label: "d'acces anticipe a La Table du Chef", tone: "text-[#ffad42]" },
 ];
+
+const FAQS = [
+  { q: "L'essai gratuit m'engage-t-il ?", a: "Non. Vous pouvez resilier pendant les 14 jours sans etre facture." },
+  { q: "Puis-je changer de formule ?", a: "Oui, la formule mensuelle ou annuelle se gere depuis votre profil." },
+  { q: "Les avantages sont-ils cumulables ?", a: "Oui. Les avantages Tok One se cumulent avec les promos disponibles." },
+  { q: "Comment resilier ?", a: "Depuis Profil > Mon abonnement. Les avantages restent actifs jusqu'a la fin de la periode." },
+];
+
+const heroMotion = {
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export default function TokOne() {
   const { user } = useAuth();
@@ -102,9 +115,8 @@ export default function TokOne() {
   const queryClient = useQueryClient();
   const [selectedPeriod, setSelectedPeriod] = useState<"monthly" | "yearly">("yearly");
   const [subscribing, setSubscribing] = useState(false);
-  const [expandedBenefit, setExpandedBenefit] = useState<number | null>(null);
+  const [expandedBenefit, setExpandedBenefit] = useState<number | null>(0);
 
-  // Handle Stripe return
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
@@ -121,12 +133,13 @@ export default function TokOne() {
   const { data: plans, isLoading: plansLoading } = useTokOnePlans();
   const { data: activeSubscription } = useTokOneSubscription();
   const isActive = isTokOneSubscriptionActive(activeSubscription);
-
-  // Use the first active plan from the DB (single Tok One tier)
   const plan = plans?.[0];
   const monthlyPrice = plan ? Number(plan.price_monthly) : 0;
   const yearlyPrice = plan ? Number(plan.price_yearly) : 0;
-  const yearlySavings = monthlyPrice > 0 ? (monthlyPrice * 12 - yearlyPrice) : 0;
+  const yearlySavings = monthlyPrice > 0 ? monthlyPrice * 12 - yearlyPrice : 0;
+
+  const selectedPriceLabel =
+    selectedPeriod === "yearly" ? `${yearlyPrice.toFixed(2)} CHF/an` : `${monthlyPrice.toFixed(2)} CHF/mois`;
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -184,314 +197,340 @@ export default function TokOne() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-violet-50/40 via-background to-background dark:from-slate-950 dark:via-slate-950 dark:to-black">
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white">
-        <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-5" />
-        <div className="absolute -top-24 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-indigo-300/20 blur-3xl" />
-        <div className="relative container max-w-5xl px-6 pb-24 pt-20 text-center space-y-6 md:pb-28">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-2 text-sm font-medium">
-            <Crown className="h-4 w-4 text-yellow-300" />
-            Abonnement Premium
-          </div>
-          <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tight">
-            Tok <span className="text-yellow-300">One</span>
-          </h1>
-          <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
-            L'experience ultime de la livraison gastronomique. Livraison gratuite, reductions exclusives et acces VIP aux evenements culinaires.
-          </p>
-          <Badge className="bg-yellow-400/20 text-yellow-200 border-yellow-400/30 text-sm px-4 py-1">
-            <Star className="h-3.5 w-3.5 mr-1.5" />
-            14 jours d'essai gratuit
-          </Badge>
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-            {TRUST_PILLS.map((pill) => (
-              <span
-                key={pill.label}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/90 backdrop-blur"
+    <main className="min-h-screen overflow-hidden bg-[#05031d] text-white">
+      <section className="relative isolate min-h-[calc(100svh-4rem)] overflow-hidden border-b border-white/10">
+        <div className="absolute inset-0 bg-[linear-gradient(125deg,#05031d_0%,#0a0735_44%,#250057_74%,#05031d_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:92px_92px] opacity-15" />
+
+        <div className="container relative z-10 grid min-h-[calc(100svh-4rem)] max-w-7xl items-center gap-10 px-6 py-12 lg:grid-cols-[minmax(0,0.93fr)_minmax(24rem,1fr)] lg:py-16">
+          <motion.div
+            className="max-w-2xl space-y-7"
+            initial="hidden"
+            animate="visible"
+            transition={{ staggerChildren: 0.08 }}
+          >
+            <motion.div variants={heroMotion} className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.09] px-4 py-3 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur">
+              <Crown className="h-4 w-4 text-[#f6c453]" />
+              Abonnement Premium
+            </motion.div>
+
+            <motion.div variants={heroMotion} className="space-y-5">
+              <h1 className="font-display text-6xl font-black tracking-tight text-white md:text-8xl lg:text-9xl">
+                Tok <span className="bg-gradient-to-b from-[#ffe38a] via-[#f6c453] to-[#d89a13] bg-clip-text text-transparent">One</span>
+              </h1>
+              <p className="max-w-xl text-2xl leading-[1.35] text-white/88 md:text-3xl">
+                L'experience ultime de la livraison gastronomique. Livraison gratuite, reductions exclusives et acces VIP aux evenements culinaires.
+              </p>
+            </motion.div>
+
+            <motion.div variants={heroMotion} className="flex flex-wrap gap-3">
+              {TRUST_PILLS.map((pill) => (
+                <span key={pill.label} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-[#100a35]/80 px-4 py-3 text-sm text-white/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                  <pill.icon className={cn("h-4 w-4", pill.icon === X ? "text-white/80" : "text-[#f6c453]")} />
+                  {pill.label}
+                </span>
+              ))}
+            </motion.div>
+
+            <motion.div variants={heroMotion} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {isActive ? (
+                <div className="rounded-2xl border border-[#f6c453]/45 bg-[#f6c453]/10 px-5 py-4">
+                  <p className="font-bold text-[#ffe38a]">Tok One est actif</p>
+                  <p className="text-sm text-white/72">
+                    Jusqu'au {activeSubscription ? new Date(activeSubscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : ""}
+                  </p>
+                </div>
+              ) : (
+                <Button
+                  size="lg"
+                  className="h-16 rounded-2xl bg-gradient-to-r from-[#ffd66b] via-[#f6c453] to-[#e59f1f] px-10 text-lg font-black text-[#10091f] shadow-[0_20px_60px_rgba(246,196,83,0.28)] hover:from-[#ffe38a] hover:to-[#f6b73d]"
+                  onClick={handleSubscribe}
+                  disabled={subscribing || plansLoading}
+                >
+                  {subscribing ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : null}
+                  Choisir Tok One
+                  <ArrowRight className="ml-3 h-5 w-5" />
+                </Button>
+              )}
+              <span className="text-sm text-white/58">14 jours d'essai, sans engagement.</span>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            className="relative min-h-[28rem]"
+            initial={{ opacity: 0, x: 36, scale: 0.98 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
+            <div className="absolute inset-x-8 bottom-2 h-16 rounded-full bg-black/50 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-white/6 shadow-[0_36px_110px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.10)]">
+              <img src={HERO_IMAGE} alt="Plat gastronomique Tok One" className="h-[32rem] w-full object-cover brightness-[0.72] contrast-110 saturate-125" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#05031d]/80 via-transparent to-transparent" />
+              <motion.div
+                className="absolute left-6 right-6 top-10 w-auto rounded-[1.5rem] border border-white/12 bg-[#150c3d]/88 p-6 text-center shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl sm:left-1/2 sm:right-auto sm:top-16 sm:w-[17rem] sm:-translate-x-1/2"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <pill.icon className="h-3.5 w-3.5" />
-                {pill.label}
-              </span>
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#f6c453] text-[#160d2c]">
+                  <ShieldCheck className="h-7 w-7" />
+                </div>
+                <p className="text-3xl font-black">+2 000</p>
+                <p className="text-sm text-white/78">membres deja conquis</p>
+                <div className="mt-4 flex justify-center -space-x-2">
+                  {["A", "M", "L", "S", "R", "J"].map((initial, index) => (
+                    <span key={initial} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#150c3d] bg-gradient-to-br from-[#ffcf72] to-[#7c2d12] text-xs font-bold" style={{ zIndex: 10 - index }}>
+                      {initial}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center justify-center gap-1 text-[#f6c453]">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Star key={index} className="h-4 w-4 fill-current" />
+                  ))}
+                  <span className="ml-2 text-white/82">4,9/5</span>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="relative z-20 -mt-8 px-6">
+        <div className="container max-w-6xl rounded-[1.5rem] border border-white/12 bg-white/[0.075] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
+          <div className="grid gap-6 md:grid-cols-3 md:divide-x md:divide-white/18">
+            {VALUE_METRICS.map((metric) => (
+              <div key={metric.value} className="flex items-center gap-5 px-2 py-2 md:px-8">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                  <metric.icon className={cn("h-7 w-7", metric.tone)} />
+                </div>
+                <div>
+                  <p className="text-3xl font-black">{metric.value}</p>
+                  <p className="max-w-[13rem] text-sm leading-6 text-white/78">{metric.label}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div
-        className={`relative z-10 container max-w-5xl px-6 pb-20 ${isActive ? "-mt-6 space-y-14 md:-mt-8" : "-mt-10 space-y-16"
-          }`}
-      >
-        {/* Active subscription banner */}
-        {isActive && activeSubscription && (
-          <div className="rounded-[28px] border border-violet-200/80 bg-white/95 p-6 shadow-[0_22px_60px_-28px_rgba(109,40,217,0.42)] backdrop-blur md:p-7 space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100">
-                  <Crown className="h-6 w-6 text-violet-600" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-violet-900">Vous etes membre Tok One</h3>
-                  <p className="text-sm text-violet-600">
-                    Plan : {activeSubscription.user_subscription_plans?.name || "Premium"}
-                  </p>
-                  <p className="text-xs text-violet-500">
-                    Actif jusqu'au {new Date(activeSubscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                    {activeSubscription.cancel_at_period_end && " (non renouvele)"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/profil?tab=abonnement">Gerer</Link>
-                </Button>
-                {!activeSubscription.cancel_at_period_end && (
-                  <Button variant="ghost" size="sm" className="text-destructive" onClick={handleCancel}>
-                    Resilier
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-              {[
-                { icon: Truck, label: "Livraison gratuite", active: true },
-                { icon: Percent, label: "Reductions actives", active: true },
-                { icon: ShieldCheck, label: "Support prioritaire", active: true },
-              ].map((perk) => (
-              <div key={perk.label} className="flex min-w-0 items-center gap-2 rounded-2xl border border-violet-100 bg-violet-50/60 px-3 py-2 text-sm text-violet-700 dark:border-violet-300/25 dark:bg-violet-400/20 dark:text-violet-100">
-                  <perk.icon className="h-4 w-4" />
-                  <span className="truncate">{perk.label}</span>
-                  <Check className="h-3.5 w-3.5 text-emerald-500 ml-auto" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+      <section className="container max-w-6xl space-y-8 px-6 py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-display text-4xl font-black md:text-5xl">Vos avantages exclusifs</h2>
+          <p className="mt-3 text-lg leading-8 text-white/68">
+            Chaque avantage est automatiquement applique a votre compte. Pas de code a saisir, pas de manipulation, tout est inclus.
+          </p>
+        </div>
 
-        {/* Value metrics */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          {VALUE_METRICS.map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-violet-100 bg-white/90 p-4 text-center shadow-sm dark:border-violet-300/30 dark:bg-slate-950/90 dark:shadow-[0_0_34px_rgba(139,92,246,0.20),inset_0_1px_0_rgba(255,255,255,0.07)]">
-              <p className="text-2xl font-bold text-violet-700 dark:text-violet-50">{metric.value}</p>
-              <p className="mt-1 text-xs text-muted-foreground dark:text-slate-200/90">{metric.label}</p>
-            </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {BENEFITS.slice(0, 3).map((benefit, index) => (
+            <button
+              key={benefit.title}
+              type="button"
+              onClick={() => setExpandedBenefit(expandedBenefit === index ? null : index)}
+              className="group flex min-h-52 flex-col items-start gap-5 rounded-[1.35rem] border border-white/10 bg-white/[0.065] p-7 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:-translate-y-1 hover:bg-white/[0.09] sm:flex-row"
+            >
+              <span className={cn("flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br", benefit.tone)}>
+                <benefit.icon className="h-8 w-8 text-white" />
+              </span>
+              <span className="min-w-0 flex-1 space-y-2">
+                <span className="block text-xl font-black">{benefit.title}</span>
+                <span className="block text-base leading-7 text-white/70">{benefit.desc}</span>
+                <span className={cn("block overflow-hidden text-sm leading-6 text-[#ffe38a] transition-all", expandedBenefit === index ? "max-h-32 opacity-100" : "max-h-0 opacity-0")}>
+                  {benefit.detail}
+                </span>
+              </span>
+              <ArrowRight className="ml-auto mt-6 h-6 w-6 shrink-0 text-white/55 transition group-hover:translate-x-1" />
+            </button>
           ))}
         </div>
 
-        {/* Benefits grid with detailed explanations */}
-        <div className="space-y-8">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-display font-bold">
-              Vos avantages exclusifs
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Chaque avantage est automatiquement applique a votre compte. Pas de code a saisir, pas de manipulation — tout est inclus.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {BENEFITS.map((benefit, i) => (
+        <div className="grid gap-4 md:grid-cols-3">
+          {BENEFITS.slice(3).map((benefit, offset) => {
+            const index = offset + 3;
+            return (
               <button
                 key={benefit.title}
-                onClick={() => setExpandedBenefit(expandedBenefit === i ? null : i)}
-                className={`group text-left p-6 rounded-2xl border bg-card shadow-sm space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all dark:border-white/20 dark:bg-slate-950/90 dark:shadow-[0_0_28px_rgba(139,92,246,0.10)] ${expandedBenefit === i ? "ring-2 ring-violet-300 shadow-md dark:ring-violet-300/50" : ""}`}
+                type="button"
+                onClick={() => setExpandedBenefit(expandedBenefit === index ? null : index)}
+                className="rounded-[1.25rem] border border-white/10 bg-white/[0.045] p-6 text-left transition hover:bg-white/[0.075]"
               >
-                <div className={`w-12 h-12 rounded-xl ${benefit.bg} flex items-center justify-center`}>
-                  <benefit.icon className={`h-6 w-6 ${benefit.color}`} />
-                </div>
-                <h3 className="font-bold">{benefit.title}</h3>
-                <p className="text-sm text-muted-foreground">{benefit.desc}</p>
-                {expandedBenefit === i && (
-                  <div className="pt-2 border-t text-sm text-foreground/80 leading-relaxed animate-in fade-in slide-in-from-top-2 duration-200">
-                    {benefit.detail}
-                  </div>
-                )}
-                <span className="text-xs text-violet-500 font-medium flex items-center gap-1">
-                  {expandedBenefit === i ? "Reduire" : "En savoir plus"} <ArrowRight className={`h-3 w-3 transition-transform ${expandedBenefit === i ? "rotate-90" : ""}`} />
+                <span className={cn("mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br", benefit.tone)}>
+                  <benefit.icon className="h-6 w-6 text-white" />
                 </span>
+                <span className="block font-bold">{benefit.title}</span>
+                <span className="mt-2 block text-sm leading-6 text-white/64">{expandedBenefit === index ? benefit.detail : benefit.desc}</span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
+      </section>
 
-        {/* How it works */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-display font-bold text-center">Comment ca marche ?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { step: "1", title: "Abonnez-vous", desc: "Choisissez votre formule mensuelle ou annuelle. Le paiement est securise par Stripe.", icon: Crown },
-              { step: "2", title: "Commandez normalement", desc: "Parcourez les restaurants, ajoutez vos plats au panier. La livraison gratuite et les reductions s'appliquent automatiquement.", icon: CalendarCheck },
-              { step: "3", title: "Profitez de vos avantages", desc: "Acces VIP aux evenements, support prioritaire, et surprises mensuelles. Tout est inclus, sans effort.", icon: Gift },
-            ].map((s) => (
-              <div key={s.step} className="text-center space-y-3 p-6">
-                <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-700 font-bold flex items-center justify-center mx-auto">
-                  {s.step}
-                </div>
-                <h3 className="font-bold">{s.title}</h3>
-                <p className="text-sm text-muted-foreground">{s.desc}</p>
+      {!isActive ? (
+        <section className="container max-w-5xl px-6 pb-16">
+          <div className="rounded-[1.75rem] border border-[#f6c453]/35 bg-[#11092f]/82 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.30)] md:p-8">
+            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <Badge className="mb-3 bg-[#f6c453]/15 text-[#ffe38a] hover:bg-[#f6c453]/20">
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                  Essai gratuit
+                </Badge>
+                <h2 className="font-display text-3xl font-black">Essayez Tok One gratuitement</h2>
+                <p className="mt-2 text-white/68">14 jours d'essai, sans engagement. Choisissez votre rythme.</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Pricing — from DB */}
-        {!isActive && (
-          <div className="space-y-8">
-            <h2 className="text-3xl font-display font-bold text-center">
-              Choisissez votre formule
-            </h2>
+              <Button
+                size="lg"
+                className="h-14 rounded-full bg-[#f6c453] px-8 font-black text-[#10091f] hover:bg-[#ffe38a]"
+                onClick={handleSubscribe}
+                disabled={subscribing || plansLoading}
+              >
+                {subscribing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+                Continuer
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
 
             {plansLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#f6c453]" />
               </div>
             ) : !plan ? (
-              <p className="text-center text-muted-foreground">Aucun plan disponible pour le moment.</p>
+              <p className="text-center text-white/68">Aucun plan disponible pour le moment.</p>
             ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                  {/* Monthly */}
-                  <button
-                    onClick={() => setSelectedPeriod("monthly")}
-                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 bg-white/90 ${selectedPeriod === "monthly"
-                        ? "border-violet-500 bg-violet-50/50 shadow-lg shadow-violet-100"
-                        : "border-muted hover:border-violet-200"
-                      }`}
-                  >
-                    <div className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[10px] text-muted-foreground">
-                      <Flame className="h-3 w-3" />
-                      Souple
-                    </div>
-                    <h3 className="font-bold text-lg">Mensuel</h3>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">{monthlyPrice.toFixed(2)}</span>
-                      <span className="text-muted-foreground">CHF/mois</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Sans engagement — resiliez a tout moment.</p>
-                    {selectedPeriod === "monthly" && (
-                      <div className="absolute top-4 right-4">
-                        <Check className="h-5 w-5 text-violet-600" />
-                      </div>
-                    )}
-                  </button>
-
-                  {/* Yearly */}
-                  <button
-                    onClick={() => setSelectedPeriod("yearly")}
-                    className={`relative p-6 rounded-2xl border-2 text-left transition-all space-y-4 bg-white/90 ${selectedPeriod === "yearly"
-                        ? "border-violet-500 bg-violet-50/50 shadow-lg shadow-violet-100"
-                        : "border-muted hover:border-violet-200"
-                      }`}
-                  >
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white">
-                      Le plus populaire
-                    </Badge>
-                    <div className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-1 text-[10px] text-violet-700">
-                      <Wallet className="h-3 w-3" />
-                      Le plus rentable
-                    </div>
-                    <h3 className="font-bold text-lg">Annuel</h3>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">{yearlyPrice.toFixed(2)}</span>
-                      <span className="text-muted-foreground">CHF/an</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Soit {(yearlyPrice / 12).toFixed(2)} CHF/mois
-                    </p>
-                    {yearlySavings > 0 && (
-                      <p className="text-sm font-medium text-violet-600">
-                        Economisez {yearlySavings.toFixed(2)} CHF
-                      </p>
-                    )}
-                    {selectedPeriod === "yearly" && (
-                      <div className="absolute top-4 right-4">
-                        <Check className="h-5 w-5 text-violet-600" />
-                      </div>
-                    )}
-                  </button>
-                </div>
-
-                <div className="text-center space-y-4">
-                  <Button
-                    size="lg"
-                    className="bg-violet-600 hover:bg-violet-700 text-white px-10"
-                    onClick={handleSubscribe}
-                    disabled={subscribing}
-                  >
-                    {subscribing ? (
-                      <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Redirection...</>
-                    ) : (
-                      <><Crown className="mr-2 h-5 w-5" />S'abonner — {selectedPeriod === "yearly" ? `${yearlyPrice.toFixed(2)} CHF/an` : `${monthlyPrice.toFixed(2)} CHF/mois`}</>
-                    )}
-                  </Button>
-                  <p className="text-xs text-muted-foreground">
-                    Annulation possible a tout moment pendant la periode d'essai. Aucun frais si vous resiliez avant la fin des 14 jours.
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Comparison table */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-display font-bold text-center">Avec et sans Tok One</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr>
-                  <th className="text-left p-3 border-b font-medium text-muted-foreground">Avantage</th>
-                  <th className="p-3 border-b font-medium text-muted-foreground text-center">Sans abonnement</th>
-                  <th className="p-3 border-b font-bold text-violet-700 text-center bg-violet-50 rounded-t-xl dark:border-white/10 dark:bg-violet-400/20 dark:text-violet-100">Tok One</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { feature: "Frais de livraison", free: "1.00 – 2.50 CHF", tok: "Gratuit", tokHighlight: true },
-                  { feature: "Reductions sur les plats", free: "Promos ponctuelles", tok: "Jusqu'a -20% permanent", tokHighlight: true },
-                  { feature: "Acces La Table du Chef", free: "En meme temps que tous", tok: "24h en avance", tokHighlight: true },
-                  { feature: "Ventes flash", free: "A l'ouverture", tok: "Acces anticipe", tokHighlight: true },
-                  { feature: "Support", free: "Standard (24h)", tok: "Prioritaire (<2h)", tokHighlight: true },
-                  { feature: "Offres surprises mensuelles", free: "—", tok: "Incluses", tokHighlight: true },
-                ].map((row) => (
-                  <tr key={row.feature}>
-                    <td className="p-3 border-b font-medium">{row.feature}</td>
-                    <td className="p-3 border-b text-center text-muted-foreground">{row.free}</td>
-                    <td className={`p-3 border-b text-center font-medium bg-violet-50 dark:border-white/10 dark:bg-violet-400/10 ${row.tokHighlight ? "text-violet-700 dark:text-violet-100" : ""}`}>{row.tok}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* FAQ mini */}
-        <div className="space-y-4 max-w-2xl mx-auto">
-          <h2 className="text-2xl font-display font-bold text-center">Questions frequentes</h2>
-          <div className="space-y-3">
-            {[
-              { q: "L'essai gratuit m'engage-t-il ?", a: "Non. Vous pouvez resilier a tout moment pendant les 14 jours sans etre facture." },
-              { q: "Puis-je changer de formule ?", a: "Oui. Passez du mensuel a l'annuel (ou inversement) a tout moment depuis votre profil." },
-              { q: "Les avantages sont-ils cumulables avec les promos ?", a: "Oui ! La livraison gratuite et les reductions Tok One se cumulent avec les codes promo et offres speciales." },
-              { q: "Comment resilier ?", a: "Depuis Profil > Mon abonnement > Resilier. La resiliation prend effet a la fin de la periode en cours." },
-              { q: "Comment fonctionne la livraison gratuite ?", a: "Des que vous etes membre Tok One, les frais de livraison (express, standard ou flex) sont automatiquement retires de votre panier. Aucun code a saisir." },
-              { q: "Les reductions s'appliquent-elles a tous les restaurants ?", a: "Les reductions permanentes concernent les restaurants partenaires du programme. La livraison gratuite s'applique a toutes les commandes en livraison." },
-            ].map((faq) => (
-              <div key={faq.q} className="p-4 rounded-xl border bg-card">
-                <h4 className="font-semibold text-sm">{faq.q}</h4>
-                <p className="text-sm text-muted-foreground mt-1">{faq.a}</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <PricingButton
+                  active={selectedPeriod === "monthly"}
+                  eyebrow="Souple"
+                  title="Mensuel"
+                  price={`${monthlyPrice.toFixed(2)} CHF`}
+                  suffix="/mois"
+                  helper="Sans engagement, resiliez a tout moment."
+                  icon={Flame}
+                  onClick={() => setSelectedPeriod("monthly")}
+                />
+                <PricingButton
+                  active={selectedPeriod === "yearly"}
+                  eyebrow="Le plus populaire"
+                  title="Annuel"
+                  price={`${yearlyPrice.toFixed(2)} CHF`}
+                  suffix="/an"
+                  helper={`Soit ${(yearlyPrice / 12).toFixed(2)} CHF/mois${yearlySavings > 0 ? `, ${yearlySavings.toFixed(2)} CHF economises` : ""}.`}
+                  icon={Wallet}
+                  onClick={() => setSelectedPeriod("yearly")}
+                />
               </div>
-            ))}
+            )}
+            {plan ? <p className="mt-5 text-center text-sm text-white/58">Selection actuelle: {selectedPriceLabel}</p> : null}
           </div>
-        </div>
+        </section>
+      ) : (
+        <section className="container max-w-5xl px-6 pb-16">
+          <div className="flex flex-col gap-4 rounded-[1.75rem] border border-[#f6c453]/35 bg-[#f6c453]/10 p-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-display text-2xl font-black text-[#ffe38a]">Votre abonnement Tok One est actif</p>
+              <p className="mt-1 text-white/68">
+                {activeSubscription?.cancel_at_period_end
+                  ? "Le renouvellement est resilie, vos avantages restent actifs jusqu'a la fin de la periode."
+                  : "Vos avantages sont automatiquement appliques dans le panier."}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" asChild>
+                <Link to="/profil?tab=abonnement">Gerer</Link>
+              </Button>
+              {!activeSubscription?.cancel_at_period_end ? (
+                <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={handleCancel}>
+                  Resilier
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      )}
 
-        {/* CTA footer */}
-        <div className="text-center space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Des questions ? <Link to="/aide" className="text-primary underline">Consultez notre FAQ</Link> ou contactez-nous a support@tok.ch
-          </p>
+      <section className="container grid max-w-6xl gap-10 px-6 pb-20 lg:grid-cols-[0.8fr_1fr]">
+        <div>
+          <h2 className="font-display text-3xl font-black">Comment ca marche ?</h2>
+          <p className="mt-3 text-white/64">Tok One reste invisible quand tout va bien: vous commandez normalement, les avantages s'appliquent seuls.</p>
         </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            { step: "1", title: "Activez", desc: "Souscription securisee en quelques secondes.", icon: Crown },
+            { step: "2", title: "Commandez", desc: "Restaurants, paniers et reservations restent inchanges.", icon: CalendarCheck },
+            { step: "3", title: "Economisez", desc: "Livraison, remises et acces VIP sont appliques.", icon: Gift },
+          ].map((item) => (
+            <div key={item.step} className="rounded-[1.25rem] border border-white/10 bg-white/[0.045] p-5">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 font-black text-[#f6c453]">{item.step}</div>
+              <item.icon className="mb-3 h-6 w-6 text-[#f6c453]" />
+              <h3 className="font-bold">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-white/62">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="container max-w-5xl space-y-4 px-6 pb-20">
+        <h2 className="text-center font-display text-3xl font-black">Questions frequentes</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          {FAQS.map((faq) => (
+            <div key={faq.q} className="rounded-[1.1rem] border border-white/10 bg-white/[0.045] p-5">
+              <h3 className="font-bold">{faq.q}</h3>
+              <p className="mt-2 text-sm leading-6 text-white/62">{faq.a}</p>
+            </div>
+          ))}
+        </div>
+        <p className="pt-4 text-center text-sm text-white/54">
+          Besoin d'aide ? <Link to="/aide" className="text-[#ffe38a] underline">Consultez la FAQ Tok</Link>.
+        </p>
+      </section>
+    </main>
+  );
+}
+
+function PricingButton({
+  active,
+  eyebrow,
+  title,
+  price,
+  suffix,
+  helper,
+  icon: Icon,
+  onClick,
+}: {
+  active: boolean;
+  eyebrow: string;
+  title: string;
+  price: string;
+  suffix: string;
+  helper: string;
+  icon: typeof Crown;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative rounded-[1.35rem] border p-6 text-left transition",
+        active
+          ? "border-[#f6c453] bg-[#f6c453]/12 shadow-[0_18px_60px_rgba(246,196,83,0.14)]"
+          : "border-white/10 bg-white/[0.045] hover:bg-white/[0.075]",
+      )}
+    >
+      <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3 py-1.5 text-xs text-white/70">
+        <Icon className="h-3.5 w-3.5 text-[#f6c453]" />
+        {eyebrow}
       </div>
-    </div>
+      <h3 className="text-xl font-black">{title}</h3>
+      <div className="mt-3 flex items-end gap-2">
+        <span className="text-4xl font-black">{price}</span>
+        <span className="pb-1 text-white/58">{suffix}</span>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-white/64">{helper}</p>
+      {active ? (
+        <span className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#f6c453] text-[#10091f]">
+          <Check className="h-5 w-5" />
+        </span>
+      ) : null}
+    </button>
   );
 }

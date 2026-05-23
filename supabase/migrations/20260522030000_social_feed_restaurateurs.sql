@@ -718,7 +718,9 @@ CREATE TRIGGER notify_social_repost_insert
   AFTER INSERT ON public.social_post_reposts
   FOR EACH ROW EXECUTE FUNCTION public.notify_social_repost();
 
-CREATE OR REPLACE FUNCTION public.get_social_feed(
+DROP FUNCTION IF EXISTS public.get_social_feed(integer, timestamptz);
+
+CREATE FUNCTION public.get_social_feed(
   p_limit integer DEFAULT 20,
   p_cursor timestamptz DEFAULT NULL
 )
@@ -759,7 +761,7 @@ AS $$
     LIMIT 1
   ),
   preferred_cuisines AS (
-    SELECT COALESCE(array_agg(lower(trim(value))), ARRAY[]::text[]) AS values
+    SELECT COALESCE(array_agg(lower(trim(value))), ARRAY[]::text[]) AS cuisines
     FROM public.user_preferences up, viewer v
     CROSS JOIN LATERAL unnest(COALESCE(up.favorite_cuisines, up.dietary_tags, ARRAY[]::text[])) AS value
     WHERE up.user_id = v.uid
@@ -856,7 +858,11 @@ AS $$
         + CASE WHEN EXISTS (
           SELECT 1 FROM interacted_restaurants ir WHERE ir.restaurant_id = scoped.restaurant_id
         ) THEN 18 ELSE 0 END
-        + CASE WHEN lower(COALESCE(scoped.cuisine_type, '')) = ANY ((SELECT values FROM preferred_cuisines)) THEN 35 ELSE 0 END
+        + CASE WHEN EXISTS (
+          SELECT 1
+          FROM preferred_cuisines pc
+          WHERE lower(COALESCE(scoped.cuisine_type, '')) = ANY (pc.cuisines)
+        ) THEN 35 ELSE 0 END
         + CASE WHEN lower(COALESCE(scoped.city, '')) = lower(COALESCE((SELECT city FROM viewer_profile), '')) AND COALESCE(scoped.city, '') <> '' THEN 22 ELSE 0 END
       )::numeric AS computed_score
     FROM scoped
