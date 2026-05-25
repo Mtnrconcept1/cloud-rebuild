@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDownRight, ArrowUpRight, Coins, HandCoins, Megaphone, Percent, Receipt, Store, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, HandCoins, Megaphone, Percent, Receipt, Store, Wallet } from "lucide-react";
 
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
@@ -44,6 +44,7 @@ export default function AdminCompta() {
     refundsIssuedTotal,
     refundsPendingAmount,
     refundsPendingCount,
+    financialHealth,
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
@@ -118,6 +119,24 @@ export default function AdminCompta() {
 
       {isLoading ? <p className="text-sm text-muted-foreground">Chargement des donnees comptables...</p> : null}
       {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
+      {!isLoading && !error && !financialHealth.healthy ? (
+        <Card className="border-amber-200 bg-amber-50 text-amber-950">
+          <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+              <div className="space-y-1">
+                <p className="font-semibold">Ecart financier a verifier</p>
+                <p className="text-sm text-amber-900">
+                  {financialHealth.confirmedNotCaptured} capture manquante, {financialHealth.refundPending} remboursement en attente, {financialHealth.failedPayments} paiement echoue.
+                </p>
+              </div>
+            </div>
+            <Button asChild variant="outline" className="border-amber-300 bg-white text-amber-950 hover:bg-amber-100">
+              <Link to="/admin/commandes-reservations">Ouvrir les operations</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {!isLoading && !error ? (
         <>

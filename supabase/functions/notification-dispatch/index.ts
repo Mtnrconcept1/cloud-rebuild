@@ -29,6 +29,11 @@ Deno.serve(async (req) => {
       : "notification-dispatch";
     const canProcessGlobally = actor.isAdmin || actor.isServiceRole || actor.authMode === "scheduler_secret";
     const scopedUserId = canProcessGlobally ? null : actor.userId;
+    const dispatchDueCampaigns = canProcessGlobally && payload?.dispatch_due_campaigns !== false;
+    const dueCampaignLimit = typeof payload?.due_campaign_limit === "number"
+      ? Math.max(1, Math.min(100, Math.trunc(payload.due_campaign_limit)))
+      : 25;
+    let dueCampaigns: unknown[] = [];
 
     if (!canProcessGlobally && !scopedUserId) {
       throw new HttpError(401, "Unauthorized");
@@ -36,6 +41,19 @@ Deno.serve(async (req) => {
 
     if (!canProcessGlobally && payload?.user_id) {
       throw new HttpError(403, "Forbidden");
+    }
+
+    if (dispatchDueCampaigns) {
+      const { data: dueCampaignData, error: dueCampaignError } = await actor.adminClient.rpc(
+        "dispatch_due_notification_campaigns",
+        { p_limit: dueCampaignLimit },
+      );
+
+      if (dueCampaignError) {
+        throw dueCampaignError;
+      }
+
+      dueCampaigns = Array.isArray(dueCampaignData) ? dueCampaignData : [];
     }
 
     const dispatchResult = await triggerNotificationDispatch({
@@ -58,6 +76,7 @@ Deno.serve(async (req) => {
         email,
         source,
         scoped_user_id: scopedUserId,
+        due_campaigns: dueCampaigns.length,
         attempted_channels: dispatchResult.attemptedChannels,
         failed_channels: dispatchResult.failedChannels,
       },
@@ -69,6 +88,7 @@ Deno.serve(async (req) => {
       email,
       source,
       scoped_user_id: scopedUserId,
+      due_campaigns: dueCampaigns,
       attempted_channels: dispatchResult.attemptedChannels,
       channel_errors: dispatchResult.failedChannels,
     }, 200, corsHeaders);

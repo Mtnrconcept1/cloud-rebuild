@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   CalendarDays,
   RotateCcw,
   Search,
@@ -29,6 +30,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { summarizeDispatchHealth, type DispatchHealthRow } from "@/lib/dispatchHealth";
+import { summarizeReservationInventoryHealth, type ReservationInventoryRow } from "@/lib/reservationInventoryHealth";
 import {
   fetchAdminRefundQueue,
   markRefundApplied,
@@ -293,6 +296,54 @@ async function fetchReservationHistory(
   return reservationRows.map((row) => normalizeReservationHistoryRow(row, profileMap));
 }
 
+async function fetchDispatchHealthRows() {
+  const { data, error } = await (supabase as any)
+    .from("dispatch_jobs")
+    .select("id, status, created_at, courier_id")
+    .not("status", "in", "(delivered,cancelled,canceled,completed)")
+    .order("created_at", { ascending: false })
+    .limit(250);
+
+  if (error) throw error;
+  return (data || []) as DispatchHealthRow[];
+}
+
+async function fetchReservationInventoryRows() {
+  const { data, error } = await (supabase as any)
+    .from("reservation_slots")
+    .select(`
+      reservation_id,
+      table_id,
+      reservations (
+        id,
+        restaurant_id,
+        date,
+        time,
+        reservation_time,
+        status
+      )
+    `)
+    .limit(1000);
+
+  if (error) throw error;
+
+  return ((data || []) as any[])
+    .map((row): ReservationInventoryRow | null => {
+      const reservation = Array.isArray(row.reservations) ? row.reservations[0] : row.reservations;
+      if (!reservation?.id) return null;
+
+      return {
+        id: String(reservation.id),
+        restaurant_id: reservation.restaurant_id ? String(reservation.restaurant_id) : null,
+        date: reservation.date ? String(reservation.date) : null,
+        time: reservation.time || reservation.reservation_time ? String(reservation.time || reservation.reservation_time) : null,
+        table_id: row.table_id ? String(row.table_id) : null,
+        status: reservation.status ? String(reservation.status) : null,
+      };
+    })
+    .filter((row): row is ReservationInventoryRow => Boolean(row));
+}
+
 export default function AdminOrdersReservations() {
   const defaultFilters = useMemo(() => getDefaultAdminHistoryFilters(), []);
   const queryClient = useQueryClient();
@@ -345,6 +396,14 @@ export default function AdminOrdersReservations() {
   } = useQuery({
     queryKey: ["admin-refund-queue"],
     queryFn: fetchAdminRefundQueue,
+  });
+  const { data: dispatchHealthRows = [] } = useQuery({
+    queryKey: ["admin-dispatch-health-rows"],
+    queryFn: fetchDispatchHealthRows,
+  });
+  const { data: reservationInventoryRows = [] } = useQuery({
+    queryKey: ["admin-reservation-inventory-health-rows"],
+    queryFn: fetchReservationInventoryRows,
   });
 
   useEffect(() => {
@@ -424,6 +483,15 @@ export default function AdminOrdersReservations() {
       covers: filteredReservations.reduce((sum, reservation) => sum + reservation.partySize, 0),
     };
   }, [activeTab, filteredOrders, filteredRefunds, filteredReservations]);
+  const dispatchHealth = useMemo(
+    () => summarizeDispatchHealth(dispatchHealthRows),
+    [dispatchHealthRows],
+  );
+  const reservationInventoryHealth = useMemo(
+    () => summarizeReservationInventoryHealth(reservationInventoryRows),
+    [reservationInventoryRows],
+  );
+  const hasOperationalRisk = !dispatchHealth.healthy || !reservationInventoryHealth.healthy;
 
   const activeError = activeTab === "orders"
     ? ordersError
@@ -557,6 +625,25 @@ export default function AdminOrdersReservations() {
           </div>
         </CardContent>
       </Card>
+
+      {hasOperationalRisk ? (
+        <Card className="border-amber-200 bg-amber-50 text-amber-950">
+          <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+              <div className="space-y-1">
+                <p className="font-semibold">Cockpit operations a surveiller</p>
+                <p className="text-sm text-amber-900">
+                  {dispatchHealth.searchingOverTenMinutes} dispatch sans coursier depuis plus de 10 min, {dispatchHealth.activeWithoutCourier} dispatch actif sans coursier, {reservationInventoryHealth.overbookedTables} conflit de table.
+                </p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="w-fit bg-white text-amber-900">
+              {dispatchHealth.affectedIds.length + reservationInventoryHealth.conflicts.length} dossier(s)
+            </Badge>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <MetricsCard

@@ -7,6 +7,7 @@ import {
   DollarSign,
   Layers,
   MessageSquareText,
+  MapPin,
   Newspaper,
   Rocket,
   Settings2,
@@ -27,6 +28,7 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { scoreMarketplaceLiquidity } from "@/lib/marketplaceLiquidity";
 
 const supabase = getSupabase();
 
@@ -141,6 +143,22 @@ function statusColor(status: string) {
     default:
       return "bg-secondary text-secondary-foreground";
   }
+}
+
+function liquidityStatusClass(status: string) {
+  switch (status) {
+    case "green":
+      return "bg-emerald-100 text-emerald-800";
+    case "yellow":
+      return "bg-amber-100 text-amber-800";
+    default:
+      return "bg-red-100 text-red-800";
+  }
+}
+
+function getOrderCity(row: any) {
+  const restaurant = Array.isArray(row.restaurants) ? row.restaurants[0] : row.restaurants;
+  return String(restaurant?.city || "Ville inconnue").trim() || "Ville inconnue";
 }
 
 export default function AdminHome() {
@@ -278,6 +296,95 @@ export default function AdminHome() {
     },
   });
 
+  const { data: cityLiquidity = [] } = useQuery({
+    queryKey: ["admin-city-liquidity"],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const [restaurantsResponse, couriersResponse, ordersResponse, dispatchResponse] = await Promise.all([
+        supabase
+          .from("restaurants")
+          .select("id, city")
+          .eq("is_active", true),
+        supabase
+          .from("couriers")
+          .select("id, is_online, status"),
+        (supabase as any)
+          .from("orders")
+          .select("id, status, restaurant_id, restaurants ( city )")
+          .gte("created_at", since)
+          .limit(1000),
+        (supabase as any)
+          .from("dispatch_jobs")
+          .select("id, status, courier_id")
+          .gte("created_at", since)
+          .limit(1000),
+      ]);
+
+      if (restaurantsResponse.error) throw restaurantsResponse.error;
+      if (couriersResponse.error) throw couriersResponse.error;
+      if (ordersResponse.error) throw ordersResponse.error;
+      if (dispatchResponse.error) throw dispatchResponse.error;
+
+      const aggregates = new Map<string, {
+        activeRestaurants: number;
+        openOrders: number;
+        successfulDeliveries: number;
+      }>();
+      const ensureCity = (city: string) => {
+        if (!aggregates.has(city)) {
+          aggregates.set(city, { activeRestaurants: 0, openOrders: 0, successfulDeliveries: 0 });
+        }
+        return aggregates.get(city)!;
+      };
+
+      for (const restaurant of restaurantsResponse.data || []) {
+        ensureCity(String(restaurant.city || "Ville inconnue")).activeRestaurants += 1;
+      }
+
+      const openStatuses = new Set(["confirmed", "accepted", "preparing", "ready", "out_for_delivery"]);
+      const successfulStatuses = new Set(["delivered", "completed"]);
+      for (const order of ordersResponse.data || []) {
+        const city = getOrderCity(order);
+        const aggregate = ensureCity(city);
+        const status = String(order.status || "").trim().toLowerCase();
+
+        if (openStatuses.has(status)) {
+          aggregate.openOrders += 1;
+        }
+        if (successfulStatuses.has(status)) {
+          aggregate.successfulDeliveries += 1;
+        }
+      }
+
+      const activeCouriers = (couriersResponse.data || []).filter((courier) => {
+        const status = String(courier.status || "").trim().toLowerCase();
+        return courier.is_online && !["blocked", "suspended", "inactive"].includes(status);
+      }).length;
+      const noCourierJobs = ((dispatchResponse.data || []) as any[]).filter((job) => {
+        const status = String(job.status || "").trim().toLowerCase();
+        return ["searching", "assigned", "accepted", "pickup", "picked_up", "en_route", "delivering", "in_progress"].includes(status)
+          && !String(job.courier_id || "").trim();
+      }).length;
+
+      return Array.from(aggregates.entries())
+        .map(([city, aggregate]) => ({
+          ...scoreMarketplaceLiquidity({
+            city,
+            activeRestaurants: aggregate.activeRestaurants,
+            activeCouriers,
+            openOrders: aggregate.openOrders,
+            noCourierJobs: aggregate.openOrders > 0 ? noCourierJobs : 0,
+            successfulDeliveries: aggregate.successfulDeliveries,
+          }),
+          ...aggregate,
+          activeCouriers,
+          noCourierJobs,
+        }))
+        .sort((left, right) => left.score - right.score)
+        .slice(0, 5);
+    },
+  });
+
   return (
     <div className="container space-y-6 py-8">
       <DashboardPageHero
@@ -376,6 +483,40 @@ export default function AdminHome() {
           <Button variant="secondary" onClick={() => navigate("/admin/platform")}>
             Ouvrir la configuration
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-primary" />
+            <CardTitle>Liquidite par ville</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {cityLiquidity.map((city) => (
+              <div key={city.city} className="flex flex-col gap-3 rounded-lg border p-3 text-sm md:flex-row md:items-center md:justify-between">
+                <div className="min-w-0">
+                  <p className="font-semibold">{city.city}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {city.activeRestaurants} restaurants actifs, {city.activeCouriers} coursiers en ligne, {city.openOrders} commande(s) ouverte(s)
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className={liquidityStatusClass(city.status)}>
+                    {city.score}/100
+                  </Badge>
+                  {city.blockers.length > 0 ? (
+                    <Badge variant="outline">{city.blockers.length} blocage(s)</Badge>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+            {cityLiquidity.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">Aucune ville active a afficher</p>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 
