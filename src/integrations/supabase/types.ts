@@ -6218,6 +6218,21 @@ export type Database = {
           recipients: number
         }[]
       }
+      dispatch_due_notification_campaigns: {
+        Args: { p_limit?: number }
+        Returns: {
+          campaign_id: string
+          deliveries_failed: number
+          deliveries_queued: number
+          deliveries_sent: number
+          deliveries_total: number
+          email_total: number
+          in_app_total: number
+          notifications_count: number
+          push_total: number
+          recipients: number
+        }[]
+      }
       admin_get_cancellation_fraud_metrics: {
         Args: { p_month: string }
         Returns: {

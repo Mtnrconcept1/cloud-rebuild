@@ -132,6 +132,7 @@ function buildReservationNote(input: {
   formulaDiscount: number;
   tokOneDiscount: number;
   tokOneDiscountPercent: number;
+  pointsDiscount: number;
   total: number;
   paymentMethod: string;
   cardBrand?: string;
@@ -144,6 +145,9 @@ function buildReservationNote(input: {
     `Reduction formule: ${input.formulaDiscount.toFixed(2)} CHF`,
     ...(input.tokOneDiscount > 0
       ? [`Reduction Tok One${input.tokOneDiscountPercent > 0 ? ` (${input.tokOneDiscountPercent.toFixed(0)}%)` : ""}: ${input.tokOneDiscount.toFixed(2)} CHF`]
+      : []),
+    ...(input.pointsDiscount > 0
+      ? [`Miamz: ${input.pointsDiscount.toFixed(2)} CHF`]
       : []),
     `Total: ${input.total.toFixed(2)} CHF`,
     `Paiement: ${input.paymentMethod} (paye)`,
@@ -608,6 +612,8 @@ Deno.serve(async (req) => {
             tokOneDiscount + tokOneDeliverySaved,
           );
           const tokOneMember = String(session.metadata?.tok_one_member || "").toLowerCase() === "true";
+          const pointsToRedeem = Math.max(0, Number(session.metadata?.points_to_redeem || 0));
+          const pointsDiscount = parseMoney(session.metadata?.points_discount_amount || session.metadata?.points_discount);
           const total = parseMoney(session.metadata?.authoritative_total, (session.amount_total || 0) / 100);
           const orderReference = String(session.metadata?.order_reference || `ZA-${Date.now()}`);
 
@@ -631,6 +637,7 @@ Deno.serve(async (req) => {
             formulaDiscount,
             tokOneDiscount,
             tokOneDiscountPercent,
+            pointsDiscount,
             total,
             paymentMethod,
             cardBrand,
@@ -651,6 +658,9 @@ Deno.serve(async (req) => {
             tok_one_discount_percent: tokOneDiscountPercent,
             tok_one_delivery_saved: tokOneDeliverySaved,
             tok_one_total_saved: tokOneTotalSaved,
+            points_to_redeem: pointsToRedeem,
+            points_discount: pointsDiscount,
+            points_discount_amount: pointsDiscount,
             total_amount: total,
             arrival_date: arrivalDate,
             arrival_time: arrivalTime,
@@ -735,9 +745,24 @@ Deno.serve(async (req) => {
               tok_one_discount_percent: tokOneDiscountPercent,
               tok_one_delivery_saved: tokOneDeliverySaved,
               tok_one_total_saved: tokOneTotalSaved,
+              points_to_redeem: pointsToRedeem,
+              points_discount_amount: pointsDiscount,
             },
             log,
           });
+
+          if (pointsToRedeem > 0 && reservationId) {
+            const { error: pointsError } = await supabaseAdmin.rpc("apply_reservation_loyalty_points", {
+              p_user_id: userId,
+              p_reservation_id: reservationId,
+              p_points_to_redeem: pointsToRedeem,
+              p_description: `Paiement Zero Attente ${orderReference}`,
+            });
+
+            if (pointsError) {
+              throw pointsError;
+            }
+          }
 
           const { data: zaRestaurant } = await supabaseAdmin
             .from("restaurants")

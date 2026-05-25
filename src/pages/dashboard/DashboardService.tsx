@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,14 +140,20 @@ export default function DashboardService() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <DashboardPageHero
+          badge="Services restaurant"
+          title="Pilotage de service"
+          description="Scindez distinctement le service du midi et le service du soir pour les reservations, la capacite et les options de livraison."
+          icon={Settings}
+          tone="amber"
+          visualLabel="Service"
+          stats={[
+            { label: "Midi", value: serviceSettings.lunch.service_closed ? "Ferme" : "Actif", icon: SunMedium },
+            { label: "Soir", value: serviceSettings.dinner.service_closed ? "Ferme" : "Actif", icon: MoonStar },
+            { label: "Livraison", value: deliveryAvailable ? "Active" : "Coupee", icon: Store },
+          ]}
+        />
         <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <Settings className="h-6 w-6 text-primary" />
-            <h1 className="font-display text-3xl font-bold">Pilotage de service</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Scindez distinctement le service du midi et le service du soir pour les reservations.
-          </p>
           {!reservationEnabled ? (
             <p className="text-sm text-muted-foreground">
               Les reservations sont actuellement coupees globalement. Les reglages ci-dessous restent editables mais ne

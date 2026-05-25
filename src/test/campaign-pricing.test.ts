@@ -48,13 +48,13 @@ describe("campaign pricing helpers", () => {
       strategy: "traffic",
     })).toMatchObject({
       dailyBudget: 12,
-      estimatedPeopleReached: 2019,
-      projectedImpressions: 3311,
-      projectedClicks: 92,
-      projectedConversions: 2.9,
-      blendedCostPerThousand: 36.24,
-      estimatedCpc: 1.3,
-      estimatedCpa: 41.38,
+      estimatedPeopleReached: 1928,
+      projectedImpressions: 3161,
+      projectedClicks: 88,
+      projectedConversions: 2.8,
+      blendedCostPerThousand: 37.96,
+      estimatedCpc: 1.36,
+      estimatedCpa: 42.86,
     });
   });
 

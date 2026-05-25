@@ -28,7 +28,7 @@ export default function RestaurantSection({
   if (restaurants.length === 0) return null;
 
   return (
-    <section className={`py-12 md:py-16 ${bgClass}`}>
+    <section className={`py-12 dark:bg-[radial-gradient(circle_at_88%_10%,rgba(34,211,238,0.08),transparent_22rem)] md:py-16 ${bgClass}`}>
       <div className="container space-y-6 md:space-y-8">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -36,9 +36,9 @@ export default function RestaurantSection({
               <Icon className="h-3.5 w-3.5 fill-current" />
               {subtitle}
             </div>
-            <h2 className="font-display text-2xl md:text-3xl font-bold">{title}</h2>
+            <h2 className="font-display text-2xl font-bold dark:text-white md:text-3xl">{title}</h2>
           </div>
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary gap-1" asChild>
+          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-primary dark:text-slate-300 dark:hover:text-orange-300" asChild>
             <Link to={linkTo}>{linkText} <ChevronRight className="h-4 w-4" /></Link>
           </Button>
         </div>

@@ -1,0 +1,83 @@
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+
+import { inspectReleaseReadiness } from "../../scripts/release-readiness.mjs";
+
+const fixtures: string[] = [];
+
+function makeFixture(name: string) {
+  const root = path.join(process.cwd(), ".tmp", `release-readiness-${name}-${Date.now()}`);
+  fixtures.push(root);
+  mkdirSync(path.join(root, "public", ".well-known"), { recursive: true });
+  mkdirSync(path.join(root, "android"), { recursive: true });
+  return root;
+}
+
+function writeJson(root: string, relativePath: string, value: unknown) {
+  writeFileSync(path.join(root, relativePath), `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+afterEach(() => {
+  for (const fixture of fixtures.splice(0)) {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+describe("release readiness inspection", () => {
+  it("flags missing mobile association files and production credentials", () => {
+    const root = makeFixture("missing");
+
+    const result = inspectReleaseReadiness({
+      root,
+      env: {},
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContain("Missing public/.well-known/apple-app-site-association for iOS Universal Links.");
+    expect(result.errors).toContain("Missing public/.well-known/assetlinks.json for Android App Links.");
+    expect(result.errors).toContain("Missing Android release keystore config at android/keystore.properties.");
+    expect(result.errors).toContain("Missing STRIPE_WEBHOOK_SECRET for production payment capture.");
+  });
+
+  it("accepts configured app links, mobile signing, and critical production secrets", () => {
+    const root = makeFixture("ready");
+    writeJson(root, "public/.well-known/apple-app-site-association", {
+      applinks: {
+        apps: [],
+        details: [{ appIDs: ["TEAM123456.com.tok.app"], components: [{ "/": "/*" }] }],
+      },
+    });
+    writeJson(root, "public/.well-known/assetlinks.json", [
+      {
+        relation: ["delegate_permission/common.handle_all_urls"],
+        target: {
+          namespace: "android_app",
+          package_name: "com.tok.app",
+          sha256_cert_fingerprints: ["AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"],
+        },
+      },
+    ]);
+    writeFileSync(path.join(root, "android", "keystore.properties"), "storeFile=release.jks\n", "utf8");
+
+    const result = inspectReleaseReadiness({
+      root,
+      env: {
+        VITE_STRIPE_PUBLISHABLE_KEY: "pk_live_123",
+        STRIPE_SECRET_KEY: "sk_live_123",
+        STRIPE_WEBHOOK_SECRET: "whsec_123",
+        FIREBASE_SERVICE_ACCOUNT: "{\"type\":\"service_account\"}",
+        INTERNAL_CRON_SECRET: "long-random-secret",
+        RESEND_API_KEY: "re_123",
+        EMAIL_FROM: "Tok <noreply@tok.ch>",
+        APP_BASE_URL: "https://app.tok.ch",
+        PUBLIC_APP_URL: "https://www.tok.ch",
+        ALLOWED_ORIGINS: "https://app.tok.ch,https://www.tok.ch",
+        APPLE_TEAM_ID: "TEAM123456",
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+});

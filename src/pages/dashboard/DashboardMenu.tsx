@@ -2,6 +2,7 @@ import { useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { useDashboardRestaurant } from "./DashboardContext";
 
@@ -159,13 +160,25 @@ export default function DashboardMenu() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display text-3xl font-bold">Menu</h1>
+        <DashboardPageHero
+          badge="Carte restaurant"
+          title="Menu"
+          description="Organisez les plats, les prix, les photos et la disponibilite avant qu'ils apparaissent dans les parcours client."
+          icon={BookOpen}
+          tone="emerald"
+          visualLabel="Catalogue"
+          stats={[
+            { label: "Plats", value: items?.length || 0, icon: BookOpen },
+            { label: "Disponibles", value: items?.filter((item) => item.is_available).length || 0, icon: Plus },
+            { label: "Restaurant", value: restaurant ? "Selectionne" : "Aucun", icon: BookOpen },
+          ]}
+          actions={(
           <Button onClick={openNew} disabled={!restaurant}>
             <Plus className="mr-2 h-4 w-4" />
             Ajouter un plat
           </Button>
-        </div>
+          )}
+        />
 
         {!restaurant ? (
           <p className="py-8 text-center text-muted-foreground">Selectionnez un restaurant pour gerer ses produits.</p>

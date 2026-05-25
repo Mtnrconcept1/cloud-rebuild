@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,10 +72,22 @@ export default function DashboardSupport() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-3xl">
-        <h1 className="font-display text-3xl font-bold">Aide et support</h1>
+      <div className="space-y-6">
+        <DashboardPageHero
+          badge="Support restaurateur"
+          title="Aide et support"
+          description="Retrouvez les reponses rapides et contactez l'equipe support avec le contexte du restaurant selectionne."
+          icon={CircleHelp}
+          tone="sky"
+          visualLabel="Support"
+          stats={[
+            { label: "FAQ", value: filteredFaq.length, icon: Search },
+            { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: CircleHelp },
+            { label: "Message", value: sending ? "Envoi" : "Pret", icon: Mail },
+          ]}
+        />
 
-        <Card>
+        <Card className="max-w-3xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><CircleHelp className="h-5 w-5" />Questions fréquentes</CardTitle>
           </CardHeader>
@@ -103,7 +116,7 @@ export default function DashboardSupport() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="max-w-3xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Mail className="h-5 w-5" />Contacter le support</CardTitle>
           </CardHeader>

@@ -76,7 +76,7 @@ function CampaignBannerItem({
       ref={bannerRef}
       onClick={handleClick}
       className={cn(
-        "group relative isolate cursor-pointer overflow-hidden rounded-[30px] border shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(15,23,42,0.18)]",
+        "neon-card group relative isolate cursor-pointer overflow-hidden rounded-[30px] border shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(15,23,42,0.18)] dark:border-white/20 dark:shadow-[0_24px_74px_rgba(0,0,0,0.58),0_0_48px_rgba(249,115,22,0.18)]",
         visual.bannerShellClassName,
       )}
     >
@@ -112,24 +112,24 @@ function CampaignBannerItem({
             <h3 className="max-w-xl font-display text-2xl font-bold leading-tight text-white sm:text-3xl">
               {heading}
             </h3>
-            <p className="max-w-xl text-sm leading-6 text-white/82 sm:text-base">
+            <p className="max-w-xl text-sm leading-6 text-white/85 sm:text-base">
               {description}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/16 bg-white/12 px-4 py-2 font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.12)] backdrop-blur-md">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.12)] backdrop-blur-md">
               Voir le restaurant
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
             </span>
             {restaurant?.city ? (
-              <span className="inline-flex items-center gap-1.5 text-white/68">
+              <span className="inline-flex items-center gap-1.5 text-white/70">
                 <MapPin className="h-3.5 w-3.5" />
                 {restaurant.city}
               </span>
             ) : null}
             {restaurant?.name ? (
-              <span className="inline-flex items-center gap-1.5 text-white/68">
+              <span className="inline-flex items-center gap-1.5 text-white/70">
                 {restaurant.name}
                 <ChevronRight className="h-3.5 w-3.5" />
               </span>

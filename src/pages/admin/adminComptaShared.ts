@@ -16,6 +16,7 @@ import {
 } from "@/lib/comptaCommissionSources";
 import { buildTokAccountingSummary, buildTokRevenueSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
+import { summarizeFinancialHealth, type FinancialHealthRow } from "@/lib/financialHealth";
 import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
 import { getSupabase } from "@/integrations/supabase/client";
 
@@ -613,6 +614,41 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     },
   });
 
+  const financialHealthOrdersQuery = useQuery({
+    queryKey: ["admin-compta-financial-health-orders-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => {
+      let query = supabase
+        .from("orders")
+        .select("id, status, payment_status, refund_status")
+        .gte("created_at", monthBounds.monthStartDate.toISOString())
+        .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`);
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
+      if (error && isRefundColumnsMissingError(error)) {
+        let fallbackQuery = supabase
+          .from("orders")
+          .select("id, status, payment_status")
+          .gte("created_at", monthBounds.monthStartDate.toISOString())
+          .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`);
+
+        if (selectedRestaurant !== "all") {
+          fallbackQuery = fallbackQuery.eq("restaurant_id", selectedRestaurant);
+        }
+
+        const fallback = await fallbackQuery.order("created_at", { ascending: false });
+        if (fallback.error) throw fallback.error;
+        return withDefaultRefundFields(fallback.data || []) as FinancialHealthRow[];
+      }
+
+      if (error) throw error;
+      return (data || []) as FinancialHealthRow[];
+    },
+  });
+
   const reservationFeeAccrualsQuery = useQuery({
     queryKey: ["admin-compta-reservation-fee-accruals-v1", selectedRestaurant, selectedMonth],
     queryFn: async () => {
@@ -1032,6 +1068,10 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     () => refundOperations.filter((item) => String(item.refund_status || "").trim().toLowerCase() !== "refunded").length,
     [refundOperations],
   );
+  const financialHealth = useMemo(
+    () => summarizeFinancialHealth(financialHealthOrdersQuery.data || []),
+    [financialHealthOrdersQuery.data],
+  );
 
   return {
     restaurants: restaurantsQuery.data || [],
@@ -1064,9 +1104,11 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     refundsIssuedCount,
     refundsPendingAmount,
     refundsPendingCount,
+    financialHealth,
     monthOptions,
     isLoading: restaurantsQuery.isLoading
       || ordersQuery.isLoading
+      || financialHealthOrdersQuery.isLoading
       || reservationsQuery.isLoading
       || reservationFeeAccrualsQuery.isLoading
       || campaignsQuery.isLoading
@@ -1078,6 +1120,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || refundedReservationsQuery.isLoading,
     error: restaurantsQuery.error
       || ordersQuery.error
+      || financialHealthOrdersQuery.error
       || reservationsQuery.error
       || reservationFeeAccrualsQuery.error
       || campaignsQuery.error

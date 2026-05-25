@@ -13,6 +13,7 @@ import {
   Menu,
   MessageCircle,
   Moon,
+  Newspaper,
   Repeat,
   Route,
   Search,
@@ -82,6 +83,7 @@ export default function Navbar() {
 
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
+  const actualitesEnabled = activeFeatures.has("actualites-sociales");
   const courierEnabled = activeFeatures.has("espace-livreur");
   const reservationEnabled = activeFeatures.has("reservation");
   const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
@@ -198,7 +200,7 @@ export default function Navbar() {
   return (
     <>
       {/* ─── Top utility bar ─── */}
-      <div className="hidden w-full border-b border-border/60 bg-muted/40 md:block">
+      <div className="hidden w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 md:block">
         <div className="container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground">
           <Link to="/auth?type=restaurateur" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
             <Store className="h-3.5 w-3.5" />
@@ -210,10 +212,10 @@ export default function Navbar() {
       </div>
 
       {/* ─── Main header ─── */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/10 dark:bg-slate-950/78 dark:shadow-[0_10px_30px_rgba(0,0,0,0.28)]">
+      <header className="fixed top-0 z-[70] w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)] md:sticky md:z-50">
         <div className="container flex h-16 items-center justify-between md:h-20">
           <Link to="/" className="flex items-center gap-2">
-            <img src={LOGO_URL} alt="Tok" className="h-12 w-auto object-contain md:h-16" />
+            <img src={LOGO_URL} alt="Tok" className="h-12 w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16" />
           </Link>
 
           <NavigationMenu className="hidden md:flex">
@@ -236,6 +238,14 @@ export default function Navbar() {
                 <NavigationMenuItem>
                   <Link to="/ventes-flash" className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     Ventes flash
+                  </Link>
+                </NavigationMenuItem>
+              ) : null}
+              {actualitesEnabled ? (
+                <NavigationMenuItem>
+                  <Link to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                    <Newspaper className="h-4 w-4" />
+                    Actualites
                   </Link>
                 </NavigationMenuItem>
               ) : null}
@@ -455,6 +465,12 @@ export default function Navbar() {
                       Ventes Flash
                     </Link>
                   ) : null}
+                  {actualitesEnabled ? (
+                    <Link to="/actualites" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                      <Newspaper className="h-4 w-4" />
+                      Actualites
+                    </Link>
+                  ) : null}
                   <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-violet-600" onClick={() => setMenuOpen(false)}>
                     <Crown className="h-4 w-4" />
                     Tok One
@@ -584,6 +600,7 @@ export default function Navbar() {
           </div>
         </div>
       </header>
+      <div className="h-16 md:hidden" aria-hidden="true" />
     </>
   );
 }

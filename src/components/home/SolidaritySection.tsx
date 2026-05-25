@@ -7,9 +7,9 @@ interface SolidaritySectionProps {
 
 export default function SolidaritySection({ donatedMeals, donatedPoints }: SolidaritySectionProps) {
   return (
-    <section className="py-12 bg-pink-500/5 border-b border-pink-500/10">
+    <section className="border-b border-pink-500/10 bg-pink-500/5 py-12 dark:bg-pink-500/10">
       <div className="container">
-        <div className="max-w-4xl mx-auto rounded-3xl bg-white/40 dark:bg-white/5 backdrop-blur-xl p-8 md:p-10 shadow-[0_8px_32px_0_rgba(236,72,153,0.15)] border border-white/60 dark:border-white/10 relative overflow-hidden group">
+        <div className="neon-card relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-white/60 bg-white/40 p-8 shadow-[0_8px_32px_0_rgba(236,72,153,0.15)] backdrop-blur-xl dark:border-pink-300/20 dark:bg-white/5 dark:shadow-[0_24px_74px_rgba(0,0,0,0.56),0_0_44px_rgba(236,72,153,0.18)] md:p-10 group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-pink-500/20 transition-colors" />
 
           <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-12">
@@ -22,7 +22,7 @@ export default function SolidaritySection({ donatedMeals, donatedPoints }: Solid
                 <h2 className="font-display text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600">
                   Impact Solidaire Tok
                 </h2>
-                <p className="text-muted-foreground text-sm md:text-base max-w-lg">
+                <p className="max-w-lg text-sm text-muted-foreground dark:text-slate-300 md:text-base">
                   Grâce à vos dons de Miamz, nous offrons ensemble des repas nutritifs à ceux qui en ont le plus besoin.
                 </p>
               </div>

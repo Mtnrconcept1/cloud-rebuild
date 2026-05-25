@@ -28,6 +28,7 @@ const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, string[]> = {
   ],
   social_media_setup: [
     "dashboard-reseaux-sociaux",
+    "dashboard-actualites",
   ],
   advertising_campaign: [
     "dashboard-campagne-overview",
@@ -59,6 +60,7 @@ export const ALL_GATABLE_FEATURES = [
   { key: "dashboard-avis", label: "Avis clients" },
   { key: "dashboard-campagne-overview", label: "Campagnes" },
   { key: "dashboard-reseaux-sociaux", label: "Reseaux sociaux" },
+  { key: "dashboard-actualites", label: "Actualites" },
   { key: "dashboard-campagnes", label: "Campagnes avancees" },
   { key: "dashboard-factures", label: "Factures" },
   { key: "dashboard-offres", label: "Anti-gaspi" },

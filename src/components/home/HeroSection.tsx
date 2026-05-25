@@ -30,7 +30,7 @@ const scaleIn = {
 };
 
 const desktopFieldInputClassName =
-  "h-auto border-none bg-transparent px-0 py-0 text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] shadow-none focus-visible:ring-0 md:text-[1.03rem]";
+  "h-auto border-none bg-transparent px-0 py-0 text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] shadow-none focus-visible:ring-0 md:text-[1.03rem] dark:text-slate-50 dark:placeholder:text-slate-200/90";
 
 export default function HeroSection({ contentVisible = true }: { contentVisible?: boolean }) {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -126,13 +126,13 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 onValueChange={(value) => setCity(value)}
                 placeholder="Votre ville..."
                 className="min-w-0 flex-1"
-                inputClassName="h-8 border-none bg-transparent px-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+                inputClassName="h-8 border-none bg-transparent px-0 text-sm font-semibold shadow-none focus-visible:ring-0 dark:text-slate-50 dark:placeholder:text-slate-200/90"
                 hideIcon
               />
             </div>
             <button
               onClick={() => navigate("/notifications")}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted/60"
+              className="neon-chip grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted/60"
             >
               <Bell className="h-4.5 w-4.5 text-foreground" />
             </button>
@@ -140,22 +140,22 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
           <motion.div
             variants={scaleIn}
-            className="relative rounded-[30px] border border-white/80 shadow-[0_20px_44px_rgba(109,71,30,0.14)]"
+            className="neon-panel relative rounded-[30px] border border-white/80 shadow-[0_20px_44px_rgba(109,71,30,0.14)] dark:border-white/20"
           >
             <div className="absolute inset-0 rounded-[30px] bg-[url('/fond3.png')] bg-cover bg-center" aria-hidden="true" />
-            <div className="absolute inset-0 rounded-[30px] bg-[linear-gradient(180deg,rgba(255,248,241,0.72)_0%,rgba(255,245,234,0.86)_35%,rgba(255,244,234,0.94)_100%)]" />
-            <div className="absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_50%_24%,rgba(255,255,255,0.82),transparent_38%)]" />
+            <div className="absolute inset-0 rounded-[30px] bg-[linear-gradient(180deg,rgba(255,248,241,0.72)_0%,rgba(255,245,234,0.86)_35%,rgba(255,244,234,0.94)_100%)] dark:bg-[linear-gradient(180deg,rgba(8,13,24,0.50)_0%,rgba(7,11,20,0.76)_42%,rgba(5,8,14,0.94)_100%)]" />
+            <div className="absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_50%_24%,rgba(255,255,255,0.82),transparent_38%)] dark:bg-[radial-gradient(circle_at_18%_10%,rgba(255,122,24,0.30),transparent_38%),radial-gradient(circle_at_88%_24%,rgba(34,211,238,0.18),transparent_34%)]" />
 
             <div className="relative z-10 p-5 pt-4">
               <div className="mt-1 grid grid-cols-[minmax(0,1fr)_9.4rem] items-end gap-x-2 min-[381px]:grid-cols-[minmax(0,1fr)_10.8rem]">
                 <div className="min-w-0 space-y-1.5 pr-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#6b7280]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#6b7280] dark:text-orange-200/90">
                     Reservations, commandes, bons plans
                   </p>
-                  <h1 className="font-display text-[1.72rem] font-bold leading-[0.92] tracking-[-0.045em] text-[#21314b] min-[381px]:text-[2rem] min-[381px]:leading-[0.94]">
+                  <h1 className="font-display text-[1.72rem] font-bold leading-[0.92] tracking-[-0.045em] text-[#21314b] min-[381px]:text-[2rem] min-[381px]:leading-[0.94] dark:text-white dark:drop-shadow-[0_0_24px_rgba(255,255,255,0.14)]">
                     Trouvez votre prochaine table sans detour
                   </h1>
-                  <p className="text-sm leading-6 text-[#394b67]">
+                  <p className="text-sm leading-6 text-[#394b67] dark:text-slate-200">
                     Cherchez un resto, une cuisine ou une ville, puis ouvrez directement la meilleure fiche.
                   </p>
                 </div>
@@ -170,15 +170,15 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               </div>
 
               <motion.form variants={fadeUp} onSubmit={handleSearch} className="mt-0">
-                <div className="rounded-[26px] border border-white/90 bg-white/92 p-2 shadow-[0_14px_28px_rgba(109,71,30,0.12)] backdrop-blur-md">
-                  <div className="flex items-center gap-2.5 rounded-[20px] border border-[#e7e2d9] bg-white px-4 py-3">
-                    <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <div className="rounded-[26px] border border-white/90 bg-white/90 p-2 shadow-[0_14px_28px_rgba(109,71,30,0.12)] backdrop-blur-md dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_0_36px_rgba(249,115,22,0.18)]">
+                  <div className="flex items-center gap-2.5 rounded-[20px] border border-[#e7e2d9] bg-white px-4 py-3 dark:border-white/20 dark:bg-white/10">
+                    <Search className="h-4 w-4 shrink-0 text-muted-foreground dark:text-orange-200" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Cuisine, nom de restaurant..."
-                      className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-200/90"
                     />
                     <button
                       type="button"
@@ -202,7 +202,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <button
                   type="button"
                   onClick={() => navigate("/recherche?sort=plus_reserves_mois")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
+                  className="neon-chip inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
                 >
                   <Clock3 className="h-3.5 w-3.5 text-[#ff6b1c]" />
                   Ce soir
@@ -210,7 +210,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <button
                   type="button"
                   onClick={() => navigate("/recherche?sort=promotion&promo=true")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
+                  className="neon-chip inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
                 >
                   <Star className="h-3.5 w-3.5 text-[#ff6b1c]" />
                   Bons plans
@@ -219,7 +219,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                   <button
                     type="button"
                     onClick={() => navigate("/recherche?delivery=true")}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
+                    className="neon-chip inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
                   >
                     <Truck className="h-3.5 w-3.5 text-[#ff6b1c]" />
                     Livraison
@@ -241,10 +241,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           aria-hidden="true"
         />
 
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,248,240,0.12)_0%,rgba(255,239,220,0.26)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_32%,rgba(255,237,214,0.36),transparent_28%),radial-gradient(circle_at_82%_34%,rgba(255,236,211,0.3),transparent_24%),linear-gradient(180deg,rgba(105,66,26,0)_58%,rgba(105,66,26,0.14)_100%)]" />
-        <div className="pointer-events-none absolute left-1/2 top-[18%] h-[54%] w-[70%] -translate-x-1/2 rounded-[999px] bg-[radial-gradient(circle,rgba(255,250,245,0.94)_0%,rgba(255,248,240,0.82)_26%,rgba(255,246,236,0.5)_48%,rgba(255,245,237,0.12)_68%,transparent_84%)] blur-3xl" />
-        <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_220px_rgba(71,39,14,0.08)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,248,240,0.12)_0%,rgba(255,239,220,0.26)_100%)] dark:bg-[linear-gradient(180deg,rgba(3,7,18,0.22)_0%,rgba(3,7,18,0.72)_70%,rgba(3,7,18,0.90)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_32%,rgba(255,237,214,0.36),transparent_28%),radial-gradient(circle_at_82%_34%,rgba(255,236,211,0.3),transparent_24%),linear-gradient(180deg,rgba(105,66,26,0)_58%,rgba(105,66,26,0.14)_100%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(249,115,22,0.26),transparent_28%),radial-gradient(circle_at_82%_34%,rgba(34,211,238,0.18),transparent_24%),linear-gradient(180deg,rgba(3,7,18,0)_52%,rgba(3,7,18,0.78)_100%)]" />
+        <div className="pointer-events-none absolute left-1/2 top-[18%] h-[54%] w-[70%] -translate-x-1/2 rounded-[999px] bg-[radial-gradient(circle,rgba(255,250,245,0.94)_0%,rgba(255,248,240,0.82)_26%,rgba(255,246,236,0.5)_48%,rgba(255,245,237,0.12)_68%,transparent_84%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(255,123,24,0.28)_0%,rgba(34,211,238,0.13)_34%,rgba(255,255,255,0.06)_56%,transparent_80%)]" />
+        <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_220px_rgba(71,39,14,0.08)] dark:shadow-[inset_0_0_240px_rgba(0,0,0,0.56)]" />
 
         <motion.div
           className="relative z-10 flex flex-1 flex-col items-center justify-start px-6 pb-14 pt-14 text-center lg:pt-16"
@@ -256,16 +256,16 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           <motion.img
             src="/logo.png"
             alt="Tok"
-            className="mb-2 h-36 w-auto object-contain drop-shadow-[0_14px_30px_rgba(122,73,25,0.18)] lg:h-40"
+            className="mb-2 h-36 w-auto object-contain drop-shadow-[0_14px_30px_rgba(122,73,25,0.18)] dark:drop-shadow-[0_0_36px_rgba(255,123,24,0.34)] lg:h-40"
             variants={fadeUp}
           />
 
           <motion.div variants={fadeUp} className="max-w-[960px] space-y-3">
-            <h1 className="font-display text-[3.95rem] font-bold leading-[0.94] tracking-[-0.045em] text-[#21314b] lg:text-[5.15rem]">
+            <h1 className="font-display text-[3.95rem] font-bold leading-[0.94] tracking-[-0.045em] text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)] lg:text-[5.15rem]">
               <span className="block">Decouvrez et reservez le</span>
               <span className="block italic text-[#ff6b1c]">meilleur restaurant</span>
             </h1>
-            <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] md:text-[1.55rem]">
+            <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] dark:text-slate-100 md:text-[1.55rem]">
               Trouvez et reservez en quelques clics la table ideale
             </p>
           </motion.div>
@@ -275,8 +275,8 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             onSubmit={handleSearch}
             className="mt-8 w-full max-w-[560px] space-y-4"
           >
-            <div className="flex h-[66px] items-center gap-3 rounded-full border border-white/85 bg-white px-6 shadow-[0_18px_40px_rgba(104,70,29,0.14)]">
-              <MapPin className="h-5 w-5 shrink-0 text-[#8c95a3]" />
+            <div className="flex h-[66px] items-center gap-3 rounded-full border border-white/90 bg-white px-6 shadow-[0_18px_40px_rgba(104,70,29,0.14)] dark:border-orange-200/30 dark:bg-slate-950/90 dark:shadow-[0_0_38px_rgba(249,115,22,0.22),inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <MapPin className="h-5 w-5 shrink-0 text-[#8c95a3] dark:text-orange-200" />
               <CityAutocomplete
                 value={city}
                 onCitySelect={(selectedCity) => setCity(selectedCity)}
@@ -288,14 +288,14 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               />
             </div>
 
-            <div className="flex h-[66px] items-center gap-3 rounded-full border border-white/85 bg-white px-6 shadow-[0_18px_40px_rgba(104,70,29,0.14)]">
-              <Search className="h-5 w-5 shrink-0 text-[#8c95a3]" />
+            <div className="flex h-[66px] items-center gap-3 rounded-full border border-white/90 bg-white px-6 shadow-[0_18px_40px_rgba(104,70,29,0.14)] dark:border-orange-200/30 dark:bg-slate-950/90 dark:shadow-[0_0_38px_rgba(249,115,22,0.22),inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <Search className="h-5 w-5 shrink-0 text-[#8c95a3] dark:text-orange-200" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cuisine, nom de restaurant..."
-                className="flex-1 bg-transparent text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] focus:outline-none"
+                className="flex-1 bg-transparent text-[1.03rem] font-semibold text-[#2d3950] placeholder:text-[#7d8897] focus:outline-none dark:text-slate-50 dark:placeholder:text-slate-200/90"
               />
             </div>
 
@@ -303,23 +303,23 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               type="submit"
               className="group relative mt-1 h-[74px] w-full overflow-hidden rounded-full bg-[#ff6b1c] px-8 text-lg font-extrabold uppercase tracking-[0.08em] text-white shadow-[0_22px_46px_rgba(255,107,28,0.34)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#ff7528] hover:shadow-[0_26px_54px_rgba(255,107,28,0.42)] active:translate-y-0"
             >
-              <span className="pointer-events-none absolute inset-x-10 top-1 h-12 rounded-full bg-white/18 blur-2xl" />
+              <span className="pointer-events-none absolute inset-x-10 top-1 h-12 rounded-full bg-white/20 blur-2xl" />
               <span className="relative">RECHERCHER</span>
             </button>
           </motion.form>
 
           <motion.div variants={scaleIn} className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <div className="flex items-center gap-3 rounded-full border border-white/80 bg-white/92 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
+            <div className="neon-chip flex items-center gap-3 rounded-full border border-white/80 bg-white/90 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
                 <Star className="h-4 w-4 text-[#ff6b1c]" />
               </span>
-              <span className="text-sm font-bold text-[#25354e]">4.8/5</span>
+              <span className="text-sm font-bold text-[#25354e] dark:text-white">4.8/5</span>
             </div>
-            <div className="flex items-center gap-3 rounded-full border border-white/80 bg-white/92 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
+            <div className="neon-chip flex items-center gap-3 rounded-full border border-white/80 bg-white/90 px-5 py-3 shadow-[0_14px_28px_rgba(104,70,29,0.12)]">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
                 <MapPin className="h-4 w-4 text-[#ff6b1c]" />
               </span>
-              <span className="text-sm font-bold text-[#25354e]">Des centaines restaurants partenaires</span>
+              <span className="text-sm font-bold text-[#25354e] dark:text-white">Des centaines restaurants partenaires</span>
             </div>
           </motion.div>
         </motion.div>

@@ -50,12 +50,6 @@ export const CAMPAIGN_MARKET_BENCHMARKS: CampaignBenchmarkSnapshot = {
   uberPricingLabel: "Bid-based sponsored listing",
 };
 
-export const DEFAULT_CAMPAIGN_PRICING: CampaignPricing = {
-  cpmRate: 8,
-  cpcRate: 0.85,
-  conversionRate: 9,
-};
-
 export const CAMPAIGN_STRATEGY_CONFIG: Record<CampaignPricingStrategy, CampaignStrategyConfig> = {
   visibility: {
     key: "visibility",
@@ -121,6 +115,8 @@ export const CAMPAIGN_STRATEGY_CONFIG: Record<CampaignPricingStrategy, CampaignS
     },
   },
 };
+
+export const DEFAULT_CAMPAIGN_PRICING: CampaignPricing = CAMPAIGN_STRATEGY_CONFIG.conversion.pricing;
 
 function toPositiveNumber(value: unknown) {
   const numeric = Number(value);

@@ -52,6 +52,7 @@ const BudgetAuto = lazy(() => import("./pages/BudgetAuto"));
 const Abonnement = lazy(() => import("./pages/Abonnement"));
 const GiftPoints = lazy(() => import("./pages/GiftPoints"));
 const VentesFlash = lazy(() => import("./pages/VentesFlash"));
+const Actualites = lazy(() => import("./pages/Actualites"));
 const TokOne = lazy(() => import("./pages/TokOne"));
 const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
 const DashboardRestaurant = lazy(() => import("./pages/dashboard/DashboardRestaurant"));
@@ -69,6 +70,7 @@ const DashboardAvis = lazy(() => import("./pages/dashboard/DashboardAvis"));
 const DashboardPromotions = lazy(() => import("./pages/dashboard/DashboardPromotions"));
 const DashboardCampagneOverview = lazy(() => import("./pages/dashboard/DashboardCampagneOverview"));
 const DashboardReseauxSociaux = lazy(() => import("./pages/dashboard/DashboardReseauxSociaux"));
+const DashboardActualites = lazy(() => import("./pages/dashboard/DashboardActualites"));
 const DashboardFactures = lazy(() => import("./pages/dashboard/DashboardFactures"));
 const DashboardFacturesInflow = lazy(() => import("./pages/dashboard/DashboardFacturesInflow"));
 const DashboardFacturesOutflow = lazy(() => import("./pages/dashboard/DashboardFacturesOutflow"));
@@ -102,6 +104,7 @@ const AdminCompta = lazy(() => import("./pages/admin/AdminCompta"));
 const AdminComptaInflow = lazy(() => import("./pages/admin/AdminComptaInflow"));
 const AdminComptaOutflow = lazy(() => import("./pages/admin/AdminComptaOutflow"));
 const AdminOrdersReservations = lazy(() => import("./pages/admin/AdminOrdersReservations"));
+const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -167,6 +170,7 @@ function AppShell() {
   const commandesEnabled = hasFeature("commandes");
   const antiWasteEnabled = hasFeature("anti-gaspi");
   const flashSalesEnabled = hasFeature("ventes-flash");
+  const actualitesSocialesEnabled = hasFeature("actualites-sociales");
   const reservationEnabled = hasFeature("reservation");
   const dashboardOverviewEnabled = hasFeature("dashboard-overview");
   const dashboardAdvisorEnabled = hasFeature("dashboard-advisor");
@@ -187,6 +191,7 @@ function AppShell() {
   const dashboardPromotionsEnabled = hasFeature("dashboard-promotions");
   const dashboardCampagneOverviewEnabled = hasFeature("dashboard-campagne-overview");
   const dashboardReseauxSociauxEnabled = hasFeature("dashboard-reseaux-sociaux");
+  const dashboardActualitesEnabled = hasFeature("dashboard-actualites");
   const dashboardCampagnesEnabled = hasFeature("dashboard-campagnes");
   const dashboardSupportEnabled = hasFeature("dashboard-support");
   const dashboardServiceEnabled = hasFeature("dashboard-service");
@@ -206,6 +211,7 @@ function AppShell() {
   const adminAuditEnabled = hasFeature("admin-audit");
   const adminPacksEnabled = hasFeature("admin-packs");
   const adminComptaEnabled = hasFeature("admin-compta");
+  const adminActualitesEnabled = hasFeature("admin-actualites");
 
   return (
     <>
@@ -239,6 +245,7 @@ function AppShell() {
           <Route path="/tok-one" element={<TokOne />} />
           <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />
+          <Route path="/actualites" element={<ProtectedRoute><FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><DashboardAdvisor /></FeatureSwitch></DashboardRoute>} />
@@ -272,6 +279,7 @@ function AppShell() {
           <Route path="/dashboard/promotions" element={<DashboardRoute><FeatureSwitch enabled={dashboardPromotionsEnabled} fallback="/dashboard"><DashboardPromotions /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagne-overview" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagneOverviewEnabled} fallback="/dashboard"><DashboardCampagneOverview /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><DashboardReseauxSociaux /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><DashboardActualites /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><DashboardCampagnes /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><DashboardSupport /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
@@ -290,6 +298,7 @@ function AppShell() {
           <Route path="/admin/loyalty" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminLoyaltyEnabled} fallback="/admin"><AdminLoyalty /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/drops" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminDropsEnabled} fallback="/admin"><DropsManagement /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminNotificationsEnabled} fallback="/admin"><AdminNotifications /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/actualites" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminActualitesEnabled} fallback="/admin"><AdminActualites /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/packs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminPacksEnabled} fallback="/admin"><AdminLaunchPacks /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></ProtectedRoute>} />

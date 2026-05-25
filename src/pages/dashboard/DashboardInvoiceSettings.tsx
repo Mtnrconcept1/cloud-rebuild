@@ -13,6 +13,7 @@ import {
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import CityAutocomplete from "@/components/CityAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -160,16 +161,25 @@ export default function DashboardInvoiceSettings() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="flex items-center gap-2 font-display text-2xl font-bold leading-tight sm:text-3xl">
-            <FileText className="h-7 w-7 shrink-0 text-primary" />
-            <span>Parametres de facturation</span>
-          </h1>
+        <DashboardPageHero
+          badge="Facturation"
+          title="Parametres de facturation"
+          description="Renseignez les informations legales, bancaires et de presentation qui alimentent vos factures restaurateur."
+          icon={FileText}
+          tone="sky"
+          visualLabel="Factures"
+          stats={[
+            { label: "Restaurant", value: selectedRestaurantRecord?.name || "Aucun", icon: Building2 },
+            { label: "Logo", value: settings?.logo_url ? "Charge" : "Absent", icon: Upload },
+            { label: "IBAN", value: settings?.iban ? "Renseigne" : "Manquant", icon: CreditCard },
+          ]}
+          actions={(
           <Button onClick={save} disabled={saving} className="w-full sm:w-auto">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Sauvegarder
           </Button>
-        </div>
+          )}
+        />
 
         {restaurants.length > 1 ? (
           <div className="flex flex-wrap gap-2">

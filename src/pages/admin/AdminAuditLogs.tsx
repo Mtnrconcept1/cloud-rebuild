@@ -4,6 +4,7 @@ import { AlertTriangle, Shield, TerminalSquare } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -129,14 +130,19 @@ export default function AdminAuditLogs() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Audit et securite</h1>
-          <p className="text-sm text-muted-foreground">
-            Historique des executions edge sensibles et des mutations historisees.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHero
+        badge="Securite admin"
+        title="Audit et securite"
+        description="Historique des executions edge sensibles et des mutations historisees, avec filtre par source, statut et identifiant."
+        icon={Shield}
+        tone="rose"
+        visualLabel="Audit"
+        stats={[
+          { label: "Logs", value: stats.total, icon: Shield },
+          { label: "Edge", value: stats.edge, icon: TerminalSquare },
+          { label: "Erreurs 24h", value: stats.failures24h, icon: AlertTriangle },
+        ]}
+      />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>

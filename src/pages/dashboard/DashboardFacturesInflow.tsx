@@ -334,8 +334,8 @@ export default function DashboardFacturesInflow() {
         />
 
         {!selectedRestaurant && !isLoading ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
+          <Card className="tok-dashboard-section rounded-3xl border border-border/70">
+            <CardContent className="py-10 text-center text-muted-foreground dark:text-slate-100/78">
               Selectionnez un restaurant dans la barre laterale pour afficher ses entrees d&apos;argent.
             </CardContent>
           </Card>

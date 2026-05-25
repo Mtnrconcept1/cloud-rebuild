@@ -415,21 +415,21 @@ export default function Recherche() {
   }, [activeQuery, cuisine, city, mergedCards.length]);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background dark:bg-[radial-gradient(circle_at_18%_0%,rgba(249,115,22,0.14),transparent_28rem),radial-gradient(circle_at_86%_12%,rgba(34,211,238,0.10),transparent_24rem)]">
       <div className="container space-y-6 py-8">
-        <div className="rounded-[32px] border bg-card/70 p-5 shadow-sm md:p-6">
+        <div className="neon-panel rounded-[32px] border bg-card/70 p-5 shadow-sm md:p-6">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Explorer</p>
-                <h1 className="font-display text-3xl font-bold">Trouvez le bon restaurant, plus vite</h1>
-                <p className="max-w-2xl text-sm text-muted-foreground">
+                <h1 className="font-display text-3xl font-bold dark:text-white">Trouvez le bon restaurant, plus vite</h1>
+                <p className="max-w-2xl text-sm text-muted-foreground dark:text-slate-300">
                   Recherchez par nom, cuisine ou ville, puis affinez uniquement si necessaire.
                 </p>
               </div>
-              <div className="rounded-2xl bg-primary/5 px-4 py-3 text-right">
-                <p className="text-2xl font-bold text-primary">{mergedCards.length}</p>
-                <p className="text-xs text-muted-foreground">restaurant(s) visible(s)</p>
+              <div className="rounded-2xl bg-primary/5 px-4 py-3 text-right dark:border dark:border-primary/25 dark:bg-primary/10 dark:shadow-[0_0_26px_rgba(249,115,22,0.16)]">
+                <p className="text-2xl font-bold text-primary dark:text-orange-300">{mergedCards.length}</p>
+                <p className="text-xs text-muted-foreground dark:text-slate-300">restaurant(s) visible(s)</p>
               </div>
             </div>
 
@@ -440,10 +440,10 @@ export default function Recherche() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Nom, cuisine, plat ou adresse..."
-                  className="h-12 rounded-full pl-10"
+                  className="h-12 rounded-full pl-10 dark:border-white/20 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-400"
                 />
               </div>
-              <Button type="submit" className="h-12 rounded-full px-6">Rechercher</Button>
+              <Button type="submit" className="h-12 rounded-full px-6 dark:shadow-[0_0_30px_rgba(249,115,22,0.32)]">Rechercher</Button>
             </form>
 
             {quickCuisineOptions.length > 0 ? (
@@ -456,7 +456,7 @@ export default function Recherche() {
                       key={option.id || option.slug || option.name}
                       type="button"
                       onClick={() => updateFilter("cuisine", active ? "" : value)}
-                      className={`rounded-full border px-4 py-2 text-sm transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-muted/40"}`}
+                      className={`rounded-full border px-4 py-2 text-sm transition-colors ${active ? "border-primary bg-primary text-primary-foreground dark:shadow-[0_0_24px_rgba(249,115,22,0.28)]" : "neon-chip border-border bg-background hover:bg-muted/40"}`}
                     >
                       {option.name}
                     </button>
@@ -467,7 +467,7 @@ export default function Recherche() {
 
             <div className="grid gap-3 xl:grid-cols-[1fr_auto]">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="mr-1 flex items-center gap-2 rounded-lg border border-secondary bg-secondary/50 px-3 py-1.5 text-xs font-bold uppercase tracking-tight text-muted-foreground">
+                <div className="neon-chip mr-1 flex items-center gap-2 rounded-lg border border-secondary bg-secondary/50 px-3 py-1.5 text-xs font-bold uppercase tracking-tight text-muted-foreground dark:text-slate-200">
                   <SlidersHorizontal className="h-3 w-3" /> Filtres
                 </div>
                 <CityAutocomplete
@@ -476,10 +476,10 @@ export default function Recherche() {
                   onCitySelect={(selectedCity) => updateFilter("city", selectedCity)}
                   placeholder="Ville..."
                   className="w-40"
-                  inputClassName="h-9 text-xs"
+                  inputClassName="h-9 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-400"
                 />
                 <Select value={cuisine} onValueChange={(v) => updateFilter("cuisine", v)}>
-                  <SelectTrigger className="h-9 w-40 text-xs"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
+                  <SelectTrigger className="h-9 w-40 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
                   <SelectContent>
                     {sortedCuisineOptions.map((entry: any) => (
                       <SelectItem key={entry.id || entry.slug || entry.name} value={String(entry.slug || entry.name).toLowerCase()}>
@@ -489,7 +489,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={price} onValueChange={(v) => updateFilter("price", v)}>
-                  <SelectTrigger className="h-9 w-24 text-xs font-bold uppercase"><SelectValue placeholder="Budget" /></SelectTrigger>
+                  <SelectTrigger className="h-9 w-24 text-xs font-bold uppercase dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Budget" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">CHF</SelectItem>
                     <SelectItem value="2">CHF++</SelectItem>
@@ -497,7 +497,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={minRatingSelectValue} onValueChange={(v) => updateFilter("rating", v)}>
-                  <SelectTrigger className="h-9 w-28 text-xs"><SelectValue placeholder="Note minimum" /></SelectTrigger>
+                  <SelectTrigger className="h-9 w-28 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Note minimum" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Toutes les notes</SelectItem>
                     <SelectItem value="9">9.0+/10</SelectItem>
@@ -510,7 +510,7 @@ export default function Recherche() {
                     type="button"
                     variant={delivery === "true" ? "default" : "outline"}
                     onClick={() => updateFilter("delivery", delivery === "true" ? "" : "true")}
-                    className="h-9 gap-1 text-xs"
+                    className="h-9 gap-1 text-xs dark:border-white/20 dark:shadow-[0_0_18px_rgba(249,115,22,0.14)]"
                   >
                     <Badge variant={delivery === "true" ? "secondary" : "default"} className="h-4 px-1 text-[10px]">Oui</Badge>
                     Livraison
@@ -519,9 +519,9 @@ export default function Recherche() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                <span className="whitespace-nowrap text-sm font-medium text-muted-foreground">Trier par :</span>
+                <span className="whitespace-nowrap text-sm font-medium text-muted-foreground dark:text-slate-300">Trier par :</span>
                 <Select value={sortBy} onValueChange={(v) => updateFilter("sort", v)}>
-                  <SelectTrigger className="h-9 bg-secondary/20 text-xs font-semibold xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
+                  <SelectTrigger className="h-9 bg-secondary/20 text-xs font-semibold dark:border-white/20 dark:bg-slate-950/80 dark:text-white xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
                   <SelectContent>
                     {SORT_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -529,7 +529,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={sortDirection} onValueChange={(v) => updateFilter("order", v)}>
-                  <SelectTrigger className="h-9 w-32 bg-secondary/20 text-xs"><SelectValue placeholder="Ordre" /></SelectTrigger>
+                  <SelectTrigger className="h-9 w-32 bg-secondary/20 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Ordre" /></SelectTrigger>
                   <SelectContent>
                     {ORDER_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -540,9 +540,9 @@ export default function Recherche() {
             </div>
 
             {activeFilterLabels.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-2 border-t pt-4">
+              <div className="flex flex-wrap items-center gap-2 border-t pt-4 dark:border-white/20">
                 {activeFilterLabels.map((label) => (
-                  <span key={label} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground">
+                  <span key={label} className="neon-chip rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground">
                     {label}
                   </span>
                 ))}
@@ -567,14 +567,14 @@ export default function Recherche() {
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold">{promo === "true" ? "Bons plans disponibles" : "Selection disponible"}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-semibold dark:text-white">{promo === "true" ? "Bons plans disponibles" : "Selection disponible"}</p>
+                <p className="text-xs text-muted-foreground dark:text-slate-300">
                   {promo === "true"
                     ? "Les promotions et activations remontees sont affichees en priorite."
                     : "Affinez si necessaire, sinon ouvrez directement une fiche restaurant."}
                 </p>
               </div>
-              <p className="text-sm font-medium text-muted-foreground"><span className="text-foreground">{mergedCards.length}</span> resultat(s)</p>
+              <p className="text-sm font-medium text-muted-foreground dark:text-slate-300"><span className="text-foreground dark:text-white">{mergedCards.length}</span> resultat(s)</p>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {mergedCards.map((restaurant: any) => (
@@ -583,8 +583,8 @@ export default function Recherche() {
             </div>
           </div>
         ) : (
-          <div className="rounded-[28px] border border-dashed py-20 text-center text-muted-foreground">
-            <p className="text-lg font-semibold text-foreground">Aucun restaurant ne correspond a ces criteres</p>
+          <div className="neon-panel rounded-[28px] border border-dashed py-20 text-center text-muted-foreground dark:text-slate-300">
+            <p className="text-lg font-semibold text-foreground dark:text-white">Aucun restaurant ne correspond a ces criteres</p>
             <p className="mt-2 text-sm">Essayez une autre ville, une cuisine plus large ou reinitialisez les filtres.</p>
             <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
               Reinitialiser la recherche

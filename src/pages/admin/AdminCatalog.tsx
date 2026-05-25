@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -217,11 +218,19 @@ export default function AdminCatalog() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div className="flex justify-between items-center gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Catalogue Global</h1>
-          <p className="text-muted-foreground">Gerez les cuisines, collections et restaurants mis en avant.</p>
-        </div>
+      <DashboardPageHero
+        badge="Catalogue"
+        title="Catalogue Global"
+        description="Gerez les cuisines, collections et restaurants mis en avant avec une lecture claire du contenu visible."
+        icon={Layers}
+        tone="violet"
+        visualLabel="Catalogue"
+        stats={[
+          { label: "Cuisines", value: cuisines.length, icon: Tag },
+          { label: "Collections", value: collections.length, icon: Layers },
+          { label: "Restaurants", value: restaurants.length, icon: Layers },
+        ]}
+        actions={(
         <Dialog open={collectionOpen} onOpenChange={setCollectionOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateCollection}>
@@ -277,7 +286,8 @@ export default function AdminCatalog() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+        )}
+      />
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>

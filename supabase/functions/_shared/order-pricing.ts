@@ -978,7 +978,15 @@ export async function buildVerifiedOrderPricing(input: {
       };
 
   const maxPointsDiscount = roundCurrency(Math.max(0, toNumber(profileRes.data?.loyalty_points) / 100));
-  const requestedPointsDiscount = roundCurrency(Math.max(0, toNumber(metadata.points_discount_amount || metadata.points_discount)));
+  const requestedPointsToRedeem = Math.max(0, Math.floor(toNumber(metadata.points_to_redeem)));
+  const requestedPointsDiscount = requestedPointsToRedeem > 0
+    ? roundCurrency(
+      Math.min(
+        toNumber(metadata.points_discount_amount || metadata.points_discount),
+        requestedPointsToRedeem / 100,
+      ),
+    )
+    : 0;
   const pointsDiscount = Math.min(requestedPointsDiscount, maxPointsDiscount);
 
   const requestedFlexDiscount = roundCurrency(Math.max(0, toNumber(metadata.flex_discount_amount || metadata.flex_discount)));

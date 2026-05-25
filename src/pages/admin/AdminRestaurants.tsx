@@ -4,10 +4,12 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Search, Sparkles, Store, Truck } from "lucide-react";
+import { scoreRestaurantCatalogQuality } from "@/lib/catalogQuality";
 
 const supabase = getSupabase();
 
@@ -27,6 +29,12 @@ type AdminRestaurant = {
   rating_count: number | null;
   min_order_amount: number | null;
   base_delivery_fee: number | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  opening_hours: unknown;
+  disabled_payment_methods: string[] | null;
+  menu_items_count?: number;
 };
 
 const STATUS_OPTIONS = [
@@ -35,6 +43,56 @@ const STATUS_OPTIONS = [
   { value: "paused", label: "En pause" },
   { value: "archived", label: "Archive" },
 ];
+
+const DEFAULT_PAYMENT_METHODS = ["card", "cash", "twint"];
+const CATALOG_MISSING_FIELD_LABELS: Record<string, string> = {
+  image: "image",
+  address: "adresse",
+  coordinates: "coordonnees",
+  opening_hours: "horaires",
+  menu: "menu",
+  payment_methods: "paiement",
+  cuisine: "cuisine",
+};
+
+function getEnabledPaymentMethods(restaurant: AdminRestaurant) {
+  const disabled = new Set((restaurant.disabled_payment_methods || []).map((method) => method.trim().toLowerCase()));
+  return DEFAULT_PAYMENT_METHODS.filter((method) => !disabled.has(method));
+}
+
+function getCatalogQuality(restaurant: AdminRestaurant) {
+  return scoreRestaurantCatalogQuality({
+    image_url: restaurant.image_url,
+    address: restaurant.address,
+    latitude: restaurant.latitude,
+    longitude: restaurant.longitude,
+    opening_hours: restaurant.opening_hours,
+    menu_items_count: restaurant.menu_items_count || 0,
+    payment_methods: getEnabledPaymentMethods(restaurant),
+    cuisine_type: restaurant.cuisine_type,
+  });
+}
+
+function formatMissingFields(fields: string[]) {
+  return fields.map((field) => CATALOG_MISSING_FIELD_LABELS[field] || field).join(", ");
+}
+
+function CatalogQualityNotice({ restaurant }: { restaurant: AdminRestaurant }) {
+  const quality = getCatalogQuality(restaurant);
+
+  return (
+    <>
+      <Badge variant="outline" className={quality.publishable ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}>
+        Catalogue {quality.score}%
+      </Badge>
+      {!quality.publishable ? (
+        <p className="text-xs text-amber-700">
+          A completer: {formatMissingFields(quality.missingFields)}
+        </p>
+      ) : null}
+    </>
+  );
+}
 
 export default function AdminRestaurants() {
   const { toast } = useToast();
@@ -47,11 +105,32 @@ export default function AdminRestaurants() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("id, name, city, cuisine_type, image_url, is_active, is_featured, status, supports_pickup, supports_dinein, supports_reservation, avg_rating, rating_count, min_order_amount, base_delivery_fee")
+        .select("id, name, city, cuisine_type, image_url, is_active, is_featured, status, supports_pickup, supports_dinein, supports_reservation, avg_rating, rating_count, min_order_amount, base_delivery_fee, address, latitude, longitude, opening_hours, disabled_payment_methods")
         .order("name");
 
       if (error) throw error;
-      return (data || []) as AdminRestaurant[];
+      const restaurantRows = (data || []) as AdminRestaurant[];
+      const restaurantIds = restaurantRows.map((restaurant) => restaurant.id);
+      const menuCountByRestaurant = new Map<string, number>();
+
+      if (restaurantIds.length > 0) {
+        const { data: menuItems, error: menuError } = await supabase
+          .from("menu_items")
+          .select("restaurant_id")
+          .eq("is_available", true)
+          .in("restaurant_id", restaurantIds);
+
+        if (menuError) throw menuError;
+
+        for (const item of menuItems || []) {
+          menuCountByRestaurant.set(item.restaurant_id, (menuCountByRestaurant.get(item.restaurant_id) || 0) + 1);
+        }
+      }
+
+      return restaurantRows.map((restaurant) => ({
+        ...restaurant,
+        menu_items_count: menuCountByRestaurant.get(restaurant.id) || 0,
+      }));
     },
   });
 
@@ -66,11 +145,13 @@ export default function AdminRestaurants() {
         restaurant.id.toLowerCase().includes(term);
 
       const isActive = restaurant.is_active ?? true;
+      const quality = getCatalogQuality(restaurant);
       const matchesVisibility =
         visibilityFilter === "all" ||
         (visibilityFilter === "active" && isActive) ||
         (visibilityFilter === "inactive" && !isActive) ||
-        (visibilityFilter === "featured" && (restaurant.is_featured ?? false));
+        (visibilityFilter === "featured" && (restaurant.is_featured ?? false)) ||
+        (visibilityFilter === "incomplete" && !quality.publishable);
 
       return matchesSearch && matchesVisibility;
     });
@@ -82,6 +163,7 @@ export default function AdminRestaurants() {
       active: restaurants.filter((restaurant) => restaurant.is_active ?? true).length,
       featured: restaurants.filter((restaurant) => restaurant.is_featured ?? false).length,
       reservationReady: restaurants.filter((restaurant) => restaurant.supports_reservation ?? false).length,
+      catalogReady: restaurants.filter((restaurant) => getCatalogQuality(restaurant).publishable).length,
     };
   }, [restaurants]);
 
@@ -110,16 +192,21 @@ export default function AdminRestaurants() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Gestion des restaurants</h1>
-          <p className="text-sm text-muted-foreground">
-            Activez les restaurants, gerez leur visibilite et leurs options de service.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHero
+        badge="Admin restaurants"
+        title="Gestion des restaurants"
+        description="Activez les restaurants, gerez leur visibilite, leurs options de service et les mises en avant depuis une vue de pilotage."
+        icon={Store}
+        tone="emerald"
+        visualLabel="Restaurants"
+        stats={[
+          { label: "Restaurants", value: stats.total, icon: Store },
+          { label: "Actifs", value: stats.active, icon: Sparkles },
+          { label: "Catalogues OK", value: stats.catalogReady, icon: Sparkles },
+        ]}
+      />
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Restaurants</CardTitle>
@@ -145,6 +232,15 @@ export default function AdminRestaurants() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.featured}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Catalogues OK</CardTitle>
+            <Sparkles className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{stats.catalogReady}</p>
           </CardContent>
         </Card>
         <Card>
@@ -178,6 +274,7 @@ export default function AdminRestaurants() {
             <option value="active">Actifs</option>
             <option value="inactive">Inactifs</option>
             <option value="featured">Mis en avant</option>
+            <option value="incomplete">A completer</option>
           </select>
         </CardContent>
       </Card>
@@ -214,6 +311,7 @@ export default function AdminRestaurants() {
                         </Badge>
                         {restaurant.is_featured ? <Badge variant="outline">Mis en avant</Badge> : null}
                         {restaurant.supports_reservation ? <Badge variant="outline">Reservation</Badge> : null}
+                        <CatalogQualityNotice restaurant={restaurant} />
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {[restaurant.city, restaurant.cuisine_type].filter(Boolean).join(" | ") || "Informations incompletes"}

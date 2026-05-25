@@ -167,6 +167,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/ventes-flash"],
   },
   {
+    name: "actualites-sociales",
+    label: "Actualites sociales",
+    description: "Active le fil social client dedie aux restaurants.",
+    defaultEnabled: true,
+    group: "client_features",
+    routeTargets: ["/actualites"],
+  },
+  {
     name: "creneaux-garantis",
     label: "Creneaux garantis",
     description: "Active la promesse de livraison ponctuelle ou remboursee.",
@@ -402,6 +410,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/dashboard/reseaux-sociaux"],
   },
   {
+    name: "dashboard-actualites",
+    label: "Dashboard: Actualites",
+    description: "Expose la publication et le suivi des posts du fil social.",
+    defaultEnabled: true,
+    group: "restaurant_dashboard",
+    dependsOn: ["dashboard-restaurateur"],
+    routeTargets: ["/dashboard/actualites"],
+  },
+  {
     name: "dashboard-campagnes",
     label: "Dashboard: Campagnes avancees",
     description: "Expose l'edition complete des campagnes sponsorisees.",
@@ -599,6 +616,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "admin_tools",
     routeTargets: ["/admin/notifications"],
+  },
+  {
+    name: "admin-actualites",
+    label: "Admin: Actualites sociales",
+    description: "Expose la moderation du fil social.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    routeTargets: ["/admin/actualites"],
   },
   {
     name: "admin-audit",

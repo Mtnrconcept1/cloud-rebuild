@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
@@ -307,10 +308,19 @@ export default function DashboardPack() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Package className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Pack de lancement</h1>
-        </div>
+        <DashboardPageHero
+          badge="Accompagnement"
+          title="Pack de lancement"
+          description="Suivez l'achat, l'activation et les services inclus dans votre pack de lancement restaurant."
+          icon={Package}
+          tone="violet"
+          visualLabel="Pack"
+          stats={[
+            { label: "Packs disponibles", value: packs?.length || 0, icon: Package },
+            { label: "Statut", value: restaurantPack ? getPurchaseStatusLabel(restaurantPack.status) : "Aucun", icon: CheckCircle2 },
+            { label: "Services", value: fulfillments.length, icon: Rocket },
+          ]}
+        />
 
         {/* Payment status banners */}
         {paymentStatus === "success" && (

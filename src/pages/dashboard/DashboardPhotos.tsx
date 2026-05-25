@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,7 +113,19 @@ export default function DashboardPhotos() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-3xl font-bold">Galerie photos</h1>
+        <DashboardPageHero
+          badge="Media restaurant"
+          title="Galerie photos"
+          description="Preparez la couverture et les visuels du restaurant pour que la page client reste claire, actuelle et convaincante."
+          icon={ImageIcon}
+          tone="sky"
+          visualLabel="Galerie"
+          stats={[
+            { label: "Photos", value: items.length, icon: ImageIcon },
+            { label: "Couverture", value: items.some((item) => item.is_cover) ? "Definie" : "A choisir", icon: Star },
+            { label: "Mode", value: editingId ? "Edition" : "Ajout", icon: Pencil },
+          ]}
+        />
 
         <Card>
           <CardHeader>

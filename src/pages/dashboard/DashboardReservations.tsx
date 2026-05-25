@@ -4,6 +4,7 @@ import { useDashboardRestaurant } from "./DashboardContext";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ import {
   processRefund,
 } from "@/lib/refundMutations";
 import { getReservationStatusLockMessage } from "@/lib/statusLocks";
-import { AlertTriangle, Ban, Check, CreditCard, Dot, MoonStar, Search, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
+import { AlertTriangle, Ban, CalendarDays, Check, CreditCard, Dot, MoonStar, Search, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
@@ -377,12 +378,24 @@ export default function DashboardReservations() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="font-display text-3xl font-bold">Reservations</h1>
+        <DashboardPageHero
+          badge="Salle et couverts"
+          title="Reservations"
+          description="Suivez les tables a confirmer, les services midi/soir, les risques de no-show et les details de paiement par jour."
+          icon={CalendarDays}
+          tone="amber"
+          visualLabel="Planning"
+          stats={[
+            { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: CalendarDays },
+            { label: "Reservations visibles", value: filteredReservations.length, icon: UserCheck },
+            { label: "Jours groupes", value: groupedReservations.length, icon: SunMedium },
+          ]}
+          actions={(
           <Button variant="outline" size="sm" className="sm:hidden" onClick={() => setIsCompactMode((value) => !value)}>
             {isCompactMode ? "Vue detaillee" : "Mode compact"}
           </Button>
-        </div>
+          )}
+        />
 
         {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
         {restaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p> : null}
@@ -391,12 +404,6 @@ export default function DashboardReservations() {
         ) : null}
         {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
           <p className="text-muted-foreground">Selectionnez un restaurant depuis la barre laterale pour afficher les reservations.</p>
-        ) : null}
-        {selectedRestaurant ? (
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Restaurant actif</p>
-            <p className="text-sm font-semibold">{selectedRestaurant.name}</p>
-          </div>
         ) : null}
         {reservationsError ? (
           <p className="text-destructive">Erreur lors du chargement des reservations : {(reservationsError as Error).message}</p>

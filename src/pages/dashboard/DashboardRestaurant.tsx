@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Banknote, CheckCircle2, CreditCard, ExternalLink, Loader2, Smartphone, Wallet } from "lucide-react";
+import { Banknote, CheckCircle2, CreditCard, ExternalLink, Loader2, Smartphone, Store, Wallet } from "lucide-react";
 
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ImageUpload from "@/components/ImageUpload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -251,9 +252,21 @@ export default function DashboardRestaurant() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl space-y-6">
-        <h1 className="font-display text-3xl font-bold">{restaurant ? "Mon restaurant" : "Creer mon restaurant"}</h1>
-        <div className="space-y-4">
+      <div className="space-y-6">
+        <DashboardPageHero
+          badge="Identite restaurant"
+          title={restaurant ? "Mon restaurant" : "Creer mon restaurant"}
+          description="Gardez l'identite, l'adresse, les categories, les moyens de paiement et les options de service au meme niveau de controle."
+          icon={Store}
+          tone="orange"
+          visualLabel="Profil"
+          stats={[
+            { label: "Categories", value: selectedCuisineIds.length, icon: Store },
+            { label: "Paiements coupes", value: disabledPaymentMethods.length, icon: CreditCard },
+            { label: "Stripe", value: restaurant?.stripe_account_id ? "Connecte" : "A relier", icon: Wallet },
+          ]}
+        />
+        <div className="max-w-3xl space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Nom</Label>

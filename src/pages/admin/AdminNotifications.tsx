@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import CityMultiSelect from "@/components/CityMultiSelect";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
-import { Plus, Bell, Send, Trash2, Mail, Smartphone, AppWindow } from "lucide-react";
+import {
+  analyzeNewsletterDeliverability,
+  buildNewsletterCampaignFromTemplate,
+  getNewsletterTemplate,
+  NEWSLETTER_TEMPLATES,
+} from "@/lib/newsletterTemplates";
+import { Plus, Bell, Send, Trash2, Mail, Smartphone, AppWindow, CalendarClock, ShieldCheck, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const supabase = getSupabase();
@@ -58,6 +65,7 @@ type CampaignRow = {
   body: string;
   category: string;
   status: string;
+  scheduled_at: string | null;
   target_roles: string[] | null;
   target_cities: string[] | null;
   channels: {
@@ -80,6 +88,7 @@ export default function AdminNotifications() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [processingDue, setProcessingDue] = useState(false);
 
   const { data: campaigns = [], isLoading, error } = useQuery({
     queryKey: ["admin-notification-campaigns"],
@@ -157,6 +166,43 @@ export default function AdminNotifications() {
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaign-stats"] });
   };
 
+  const processDueCampaigns = async () => {
+    setProcessingDue(true);
+    const { data, error: rpcError } = await supabase.rpc("dispatch_due_notification_campaigns", {
+      p_limit: 25,
+    });
+    setProcessingDue(false);
+
+    if (rpcError) {
+      toast({ title: "Erreur", description: rpcError.message, variant: "destructive" });
+      return;
+    }
+
+    let dispatchWarning: string | null = null;
+    try {
+      const dispatchResult = await dispatchQueuedNotifications("admin-due-newsletter-campaigns");
+      if ("skipped" in dispatchResult && dispatchResult.skipped) {
+        dispatchWarning = dispatchResult.reason || "Le traitement differe des notifications a ete reporte.";
+      } else if (Array.isArray(dispatchResult.channel_errors) && dispatchResult.channel_errors.length > 0) {
+        dispatchWarning = dispatchResult.channel_errors
+          .map((channelError) => `${channelError.channel}: ${channelError.message}`)
+          .join(" | ");
+      }
+    } catch (dispatchError) {
+      dispatchWarning = dispatchError instanceof Error
+        ? dispatchError.message
+        : "Le traitement immediat des notifications a echoue.";
+    }
+
+    const dueCount = Array.isArray(data) ? data.length : 0;
+    toast({
+      title: "Campagnes planifiees traitees",
+      description: [`${dueCount} campagne(s) due(s) declenchee(s).`, dispatchWarning].filter(Boolean).join(" "),
+    });
+    queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-notification-campaign-stats"] });
+  };
+
   const deleteCampaign = async (id: string) => {
     const { error: deleteError } = await supabase.from("notification_campaigns").delete().eq("id", id);
     if (deleteError) {
@@ -170,34 +216,46 @@ export default function AdminNotifications() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Bell className="h-6 w-6 text-primary" />
-          <div>
-            <h1 className="font-display text-3xl font-bold">Campagnes de notifications</h1>
-            <p className="text-sm text-muted-foreground">Creer, cibler et envoyer les notifications depuis l'admin.</p>
-          </div>
+      <DashboardPageHero
+        badge="Communication"
+        title="Campagnes de notifications"
+        description="Creer, cibler et envoyer les notifications depuis l'admin, avec suivi des canaux in-app, email et push."
+        icon={Bell}
+        tone="sky"
+        visualLabel="Notifications"
+        stats={[
+          { label: "Campagnes", value: campaigns.length, icon: Bell },
+          { label: "Planifiees", value: campaigns.filter((campaign) => campaign.status === "scheduled").length, icon: Mail },
+          { label: "Envoyees", value: campaigns.filter((campaign) => campaign.status === "sent").length, icon: Send },
+        ]}
+        actions={(
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="gap-2" onClick={processDueCampaigns} disabled={processingDue}>
+            <CalendarClock className="h-4 w-4" />
+            {processingDue ? "Traitement..." : "Traiter les planifiees"}
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nouvelle campagne
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader><DialogTitle>Nouvelle newsletter</DialogTitle></DialogHeader>
+              <NotificationForm
+                userId={user?.id}
+                onSaved={() => {
+                  setOpen(false);
+                  queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
+                  toast({ title: "Campagne creee" });
+                }}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Nouvelle campagne
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle>Nouvelle notification</DialogTitle></DialogHeader>
-            <NotificationForm
-              userId={user?.id}
-              onSaved={() => {
-                setOpen(false);
-                queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
-                toast({ title: "Campagne creee" });
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+        )}
+      />
 
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map((index) => <div key={index} className="h-28 bg-muted animate-pulse rounded-xl" />)}</div>
@@ -225,6 +283,11 @@ export default function AdminNotifications() {
                       <p className="text-[10px] text-muted-foreground mt-2">
                         Roles: {formatRoleSummary(campaign.target_roles)} | Villes: {(campaign.target_cities || []).join(", ") || "toutes"}
                       </p>
+                      {campaign.scheduled_at ? (
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Planifiee le {new Date(campaign.scheduled_at).toLocaleString()}
+                        </p>
+                      ) : null}
                       <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
                         {channels.in_app !== false ? <span className="inline-flex items-center gap-1"><AppWindow className="h-3 w-3" />In-app</span> : null}
                         {channels.email !== false ? <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" />Email</span> : null}
@@ -278,15 +341,28 @@ export default function AdminNotifications() {
 
 function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () => void }) {
   const { toast } = useToast();
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [category, setCategory] = useState("marketing");
   const [targetRoles, setTargetRoles] = useState<string[]>([]);
   const [targetCities, setTargetCities] = useState<string[]>([]);
-  const [pushEnabled, setPushEnabled] = useState(true);
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [pushEnabled, setPushEnabled] = useState(false);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [inAppEnabled, setInAppEnabled] = useState(true);
+  const [senderDomainAuthenticated, setSenderDomainAuthenticated] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  const selectedTemplate = selectedTemplateId ? getNewsletterTemplate(selectedTemplateId) : null;
+  const deliverability = useMemo(() => analyzeNewsletterDeliverability({
+    subject: title,
+    body,
+    hasMarketingConsentFilter: true,
+    hasUnsubscribeLink: !emailEnabled || /preferences|desinscription|unsubscribe/i.test(body),
+    senderDomainAuthenticated: !emailEnabled || senderDomainAuthenticated,
+    scheduledAt: scheduledAt || null,
+  }), [body, emailEnabled, scheduledAt, senderDomainAuthenticated, title]);
 
   const toggleRole = (role: string) => {
     setTargetRoles((current) =>
@@ -296,15 +372,59 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
     );
   };
 
+  const applyTemplate = (templateId: string) => {
+    const template = getNewsletterTemplate(templateId);
+    const campaign = buildNewsletterCampaignFromTemplate(templateId, {
+      createdBy: userId,
+      scheduledAt: null,
+      targetCities,
+    });
+    setSelectedTemplateId(templateId);
+    setTitle(campaign.title);
+    setBody(campaign.body);
+    setCategory(campaign.category);
+    setTargetRoles(campaign.target_roles);
+    setInAppEnabled(template.channels.in_app);
+    setEmailEnabled(template.channels.email);
+    setPushEnabled(template.channels.push);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const scheduledIso = scheduledAt ? new Date(scheduledAt).toISOString() : null;
+
+    if (scheduledAt && Number.isNaN(new Date(scheduledAt).getTime())) {
+      toast({ title: "Erreur", description: "La date de planification est invalide.", variant: "destructive" });
+      return;
+    }
+
+    if (emailEnabled && deliverability.status === "blocked") {
+      toast({
+        title: "Newsletter bloquee",
+        description: `Corrigez la delivrabilite avant l'envoi: ${deliverability.blockers.join(", ")}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
+    const templatePayload = selectedTemplateId
+      ? buildNewsletterCampaignFromTemplate(selectedTemplateId, {
+        createdBy: userId,
+        scheduledAt: scheduledIso,
+        targetCities,
+        targetRoles,
+      })
+      : null;
+
     const { error } = await supabase.from("notification_campaigns").insert({
+      ...(templatePayload || {}),
       title,
       body,
       category,
-      status: "draft",
+      status: scheduledIso ? "scheduled" : "draft",
+      scheduled_at: scheduledIso,
       created_by: userId || null,
       target_roles: targetRoles,
       target_cities: targetCities,
@@ -325,13 +445,61 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+        <div className="space-y-2">
+          <Label>Template newsletter</Label>
+          <Select value={selectedTemplateId} onValueChange={applyTemplate}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choisir parmi 20 newsletters pretes" />
+            </SelectTrigger>
+            <SelectContent>
+              {NEWSLETTER_TEMPLATES.map((template) => (
+                <SelectItem key={template.id} value={template.id}>
+                  {template.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Planification</Label>
+          <Input type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} />
+        </div>
+      </div>
+
+      <div className="max-h-36 overflow-y-auto rounded-lg border p-2">
+        <div className="grid gap-2 sm:grid-cols-2">
+          {NEWSLETTER_TEMPLATES.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              onClick={() => applyTemplate(template.id)}
+              className={`rounded-md border px-3 py-2 text-left text-xs transition-colors ${selectedTemplateId === template.id ? "border-primary bg-primary/10" : "hover:bg-muted"}`}
+            >
+              <span className="font-semibold">{template.title}</span>
+              <span className="mt-1 block text-muted-foreground">{template.preview}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {selectedTemplate ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span>Heure conseillee: {selectedTemplate.recommendedSendHour}h</span>
+          {selectedTemplate.antiSpamNotes.slice(0, 2).map((note) => (
+            <Badge key={note} variant="outline" className="text-[10px]">{note}</Badge>
+          ))}
+        </div>
+      ) : null}
+
       <div className="space-y-2">
         <Label>Titre</Label>
         <Input value={title} onChange={(event) => setTitle(event.target.value)} required />
       </div>
       <div className="space-y-2">
         <Label>Corps du message</Label>
-        <Textarea value={body} onChange={(event) => setBody(event.target.value)} required />
+        <Textarea value={body} onChange={(event) => setBody(event.target.value)} required className="min-h-32" />
       </div>
       <div className="space-y-2">
         <Label>Categorie</Label>
@@ -348,6 +516,38 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
           </SelectContent>
         </Select>
       </div>
+
+      <div className="rounded-lg border p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <div>
+              <p className="text-sm font-semibold">Controle anti-spam</p>
+              <p className="text-xs text-muted-foreground">Consentement marketing, lien preferences, SPF/DKIM/DMARC et contenu a risque.</p>
+            </div>
+          </div>
+          <Badge variant={deliverability.status === "ready" ? "default" : deliverability.status === "blocked" ? "destructive" : "secondary"}>
+            {deliverability.score}/100
+          </Badge>
+        </div>
+        <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+          <label className="flex items-center gap-2 rounded-md border px-3 py-2">
+            <Checkbox checked={senderDomainAuthenticated} onCheckedChange={(value) => setSenderDomainAuthenticated(Boolean(value))} />
+            <span>Domaine email authentifie</span>
+          </label>
+          <div className="rounded-md border px-3 py-2">
+            Statut: {deliverability.status === "ready" ? "pret" : deliverability.status === "blocked" ? "bloque" : "a verifier"}
+          </div>
+        </div>
+        {[...deliverability.blockers, ...deliverability.warnings].length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {[...deliverability.blockers, ...deliverability.warnings].map((item) => (
+              <Badge key={item} variant="outline" className="text-[10px]">{item}</Badge>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
       <div className="space-y-2">
         <Label>Roles cibles</Label>
         <div className="grid grid-cols-2 gap-2">
@@ -371,21 +571,21 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
 
       <div className="grid grid-cols-1 gap-2 text-sm">
         <label className="flex items-center gap-2 rounded-lg border px-3 py-2">
-          <input type="checkbox" checked={inAppEnabled} onChange={() => setInAppEnabled((value) => !value)} />
+          <Checkbox checked={inAppEnabled} onCheckedChange={(value) => setInAppEnabled(Boolean(value))} />
           <span>Canal in-app</span>
         </label>
         <label className="flex items-center gap-2 rounded-lg border px-3 py-2">
-          <input type="checkbox" checked={emailEnabled} onChange={() => setEmailEnabled((value) => !value)} />
+          <Checkbox checked={emailEnabled} onCheckedChange={(value) => setEmailEnabled(Boolean(value))} />
           <span>Canal email</span>
         </label>
         <label className="flex items-center gap-2 rounded-lg border px-3 py-2">
-          <input type="checkbox" checked={pushEnabled} onChange={() => setPushEnabled((value) => !value)} />
+          <Checkbox checked={pushEnabled} onCheckedChange={(value) => setPushEnabled(Boolean(value))} />
           <span>Canal push</span>
         </label>
       </div>
 
       <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Creation..." : "Creer la campagne"}
+        {loading ? "Creation..." : scheduledAt ? "Programmer la newsletter" : "Creer la campagne"}
       </Button>
     </form>
   );

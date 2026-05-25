@@ -78,9 +78,9 @@ export default function DashboardFactures() {
         />
 
         {!selectedRestaurant && !isLoading ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              <ReceiptText className="mx-auto mb-3 h-10 w-10 opacity-40" />
+          <Card className="tok-dashboard-section rounded-3xl border border-border/70">
+            <CardContent className="py-10 text-center text-muted-foreground dark:text-slate-100/78">
+              <ReceiptText className="mx-auto mb-3 h-10 w-10 text-[#ff6a1a] opacity-80" />
               <p>Selectionnez un restaurant dans la barre laterale pour afficher sa comptabilite.</p>
             </CardContent>
           </Card>

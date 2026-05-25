@@ -13,6 +13,7 @@ import {
 } from "@/lib/signup";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -226,15 +227,19 @@ export default function AdminUtilisateurs() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div className="flex items-center gap-3">
-        <Users className="h-7 w-7 text-primary" />
-        <div>
-          <h1 className="font-display text-3xl font-bold">Gestion des utilisateurs</h1>
-          <p className="text-sm text-muted-foreground">
-            Administrez les roles applicatifs et les dossiers d'inscription verifies.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHero
+        badge="Identites et roles"
+        title="Gestion des utilisateurs"
+        description="Administrez les roles applicatifs, les comptes et les dossiers d'inscription verifies dans une interface unique."
+        icon={Users}
+        tone="sky"
+        visualLabel="Utilisateurs"
+        stats={[
+          { label: "Utilisateurs", value: users.length, icon: Users },
+          { label: "Restaurateurs", value: roleCounts.restaurateur, icon: FileText },
+          { label: "Dossiers ouverts", value: applicationCounts.pending_review, icon: FileText },
+        ]}
+      />
 
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList className="grid w-full max-w-md grid-cols-2">

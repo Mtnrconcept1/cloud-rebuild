@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
+import { ArrowDown, ArrowUp, Euro, Minus, Scale, ShoppingCart, Star } from "lucide-react";
+
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useDashboardRestaurant } from "./DashboardContext";
-import { ArrowUp, ArrowDown, Minus, Scale, Euro, ShoppingCart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDashboardRestaurant } from "./DashboardContext";
 
 const supabase = getSupabase();
 
@@ -19,7 +21,7 @@ type ComparisonData = {
 };
 
 function DeltaIndicator({ my, avg, suffix = "", reverse = false }: { my: number; avg: number; suffix?: string; reverse?: boolean }) {
-  if (avg === 0) return <span className="text-sm text-muted-foreground">—</span>;
+  if (avg === 0) return <span className="text-sm text-muted-foreground">-</span>;
   const diff = ((my - avg) / avg) * 100;
   const isPositive = reverse ? diff < 0 : diff > 0;
   const isNeutral = Math.abs(diff) < 2;
@@ -32,7 +34,14 @@ function DeltaIndicator({ my, avg, suffix = "", reverse = false }: { my: number;
   );
 }
 
-function MetricCard({ label, icon: Icon, myValue, avgValue, format = "number", reverse = false }: {
+function MetricCard({
+  label,
+  icon: Icon,
+  myValue,
+  avgValue,
+  format = "number",
+  reverse = false,
+}: {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   myValue: number;
@@ -40,17 +49,18 @@ function MetricCard({ label, icon: Icon, myValue, avgValue, format = "number", r
   format?: "number" | "currency" | "rating";
   reverse?: boolean;
 }) {
-  const fmt = (v: number) => {
-    if (format === "currency") return `${v.toFixed(0)} CHF`;
-    if (format === "rating") return `${v.toFixed(1)}/5`;
-    return String(Math.round(v));
+  const fmt = (value: number) => {
+    if (format === "currency") return `${value.toFixed(0)} CHF`;
+    if (format === "rating") return `${value.toFixed(1)}/5`;
+    return String(Math.round(value));
   };
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-          <Icon className="h-4 w-4" />{label}
+        <CardTitle className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+          <Icon className="h-4 w-4" />
+          {label}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -58,7 +68,7 @@ function MetricCard({ label, icon: Icon, myValue, avgValue, format = "number", r
           <p className="text-2xl font-bold">{fmt(myValue)}</p>
           <DeltaIndicator my={myValue} avg={avgValue} reverse={reverse} />
         </div>
-        <p className="text-xs text-muted-foreground">Moyenne marché : {fmt(avgValue)}</p>
+        <p className="text-xs text-muted-foreground">Moyenne marche : {fmt(avgValue)}</p>
       </CardContent>
     </Card>
   );
@@ -79,11 +89,11 @@ export default function DashboardComparaison() {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.rpc("get_restaurant_comparison", {
+    const { data, error: comparisonError } = await supabase.rpc("get_restaurant_comparison", {
       p_restaurant_id: selectedId,
       p_period: period,
     });
-    setError(error?.message || null);
+    setError(comparisonError?.message || null);
     setComparison(data as ComparisonData | null);
     setLoading(false);
   };
@@ -96,32 +106,52 @@ export default function DashboardComparaison() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-display text-3xl font-bold">Comparaison marché</h1>
-          <div className="flex gap-2">
-            {restaurants.length > 1 && (
-              <Select value={selectedId || ""} onValueChange={setSelectedId}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+        <DashboardPageHero
+          badge="Benchmark"
+          title="Comparaison marche"
+          description="Comparez votre chiffre d'affaires, le volume de commandes et la note moyenne avec la tendance du marche sur la periode choisie."
+          icon={Scale}
+          tone="violet"
+          visualLabel="Benchmark"
+          stats={[
+            { label: "CA restaurant", value: comparison ? `${Number(comparison.my_revenue).toFixed(0)} CHF` : "-", icon: Euro },
+            { label: "Commandes", value: comparison ? Math.round(Number(comparison.my_orders)) : "-", icon: ShoppingCart },
+            { label: "Note", value: comparison ? `${Number(comparison.my_avg_rating).toFixed(1)}/5` : "-", icon: Star },
+          ]}
+          actions={(
+            <div className="flex flex-wrap gap-2">
+              {restaurants.length > 1 ? (
+                <Select value={selectedId || ""} onValueChange={setSelectedId}>
+                  <SelectTrigger className="h-14 w-48 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {restaurants.map((restaurant) => (
+                      <SelectItem key={restaurant.id} value={restaurant.id}>
+                        {restaurant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
+              <Select value={period} onValueChange={setPeriod}>
+                <SelectTrigger className="h-14 w-36 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {restaurants.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                  <SelectItem value="7d">7 jours</SelectItem>
+                  <SelectItem value="30d">30 jours</SelectItem>
+                  <SelectItem value="90d">90 jours</SelectItem>
                 </SelectContent>
               </Select>
-            )}
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">7 jours</SelectItem>
-                <SelectItem value="30d">30 jours</SelectItem>
-                <SelectItem value="90d">90 jours</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+            </div>
+          )}
+        />
 
         {loadingRestaurants || loading ? <p>Chargement...</p> : null}
         {restaurantError || error ? <p className="text-destructive">Erreur : {restaurantError || error}</p> : null}
 
-        {comparison && !loading && (
+        {comparison && !loading ? (
           <div className="grid gap-4 md:grid-cols-3">
             <MetricCard
               label="Chiffre d'affaires"
@@ -144,27 +174,32 @@ export default function DashboardComparaison() {
               format="rating"
             />
           </div>
-        )}
+        ) : null}
 
-        {comparison && !loading && (
+        {comparison && !loading ? (
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Scale className="h-5 w-5" />Analyse</CardTitle></CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Scale className="h-5 w-5" />
+                Analyse
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
               {Number(comparison.my_revenue) > Number(comparison.avg_revenue) ? (
-                <p>✅ Votre CA est supérieur à la moyenne du marché sur cette période.</p>
+                <p>Votre CA est superieur a la moyenne du marche sur cette periode.</p>
               ) : (
-                <p>⚠️ Votre CA est en dessous de la moyenne. Pensez à activer des promotions ou ventes flash.</p>
+                <p>Votre CA est en dessous de la moyenne. Pensez a activer des promotions ou ventes flash.</p>
               )}
               {Number(comparison.my_avg_rating) >= 4 ? (
-                <p>✅ Votre note client est excellente ({Number(comparison.my_avg_rating).toFixed(1)}/5).</p>
+                <p>Votre note client est excellente ({Number(comparison.my_avg_rating).toFixed(1)}/5).</p>
               ) : Number(comparison.my_avg_rating) > 0 ? (
-                <p>💡 Votre note peut être améliorée. Consultez les avis pour identifier les points à corriger.</p>
+                <p>Votre note peut etre amelioree. Consultez les avis pour identifier les points a corriger.</p>
               ) : (
-                <p>📝 Pas encore d'avis. Encouragez vos clients à laisser un retour.</p>
+                <p>Pas encore d'avis. Encouragez vos clients a laisser un retour.</p>
               )}
             </CardContent>
           </Card>
-        )}
+        ) : null}
       </div>
     </DashboardLayout>
   );

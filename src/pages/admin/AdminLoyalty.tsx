@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Crown, ShieldCheck, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { getTierBenefits, LOYALTY_TIER_ORDER, LOYALTY_TIERS } from "@/lib/loyaltyBenefits";
 
 const supabase = getSupabase();
 
@@ -187,10 +189,48 @@ export default function AdminLoyalty() {
 
   return (
     <div className="container py-8 space-y-6">
-      <div>
-        <h1 className="font-display text-3xl font-bold">Fidelite et abonnement</h1>
-        <p className="text-muted-foreground">Configurez les forfaits Miamz+ et les paliers de fidelite.</p>
-      </div>
+      <DashboardPageHero
+        badge="Fidelite"
+        title="Fidelite et abonnement"
+        description="Configurez les forfaits Miamz+ et les paliers de fidelite avec une lecture rapide des plans actifs."
+        icon={Crown}
+        tone="amber"
+        visualLabel="Loyalty"
+        stats={[
+          { label: "Forfaits", value: subscriptionPlans.length, icon: ShieldCheck },
+          { label: "Paliers", value: tiers.length, icon: Crown },
+          { label: "Actifs", value: subscriptionPlans.filter((plan: any) => plan.status === "active").length, icon: ShieldCheck },
+        ]}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Catalogue des avantages</CardTitle>
+          <CardDescription>Avantages client affiches dans le programme fidelite, par niveau debloque.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {LOYALTY_TIER_ORDER.map((tierId) => {
+            const tier = LOYALTY_TIERS[tierId];
+            const benefits = getTierBenefits(tierId).filter((benefit) => benefit.appliesFrom === tierId);
+            return (
+              <div key={tierId} className="rounded-xl border p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold">{tier.label}</p>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs">Des {tier.threshold} pts</span>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {benefits.map((benefit) => (
+                    <div key={benefit.id} className="rounded-lg bg-muted/40 p-2">
+                      <p className="text-sm font-medium">{benefit.title}</p>
+                      <p className="text-xs text-muted-foreground">{benefit.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
