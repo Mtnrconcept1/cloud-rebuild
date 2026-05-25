@@ -212,7 +212,7 @@ export default function Navbar() {
       </div>
 
       {/* ─── Main header ─── */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]">
+      <header className="fixed top-0 z-[70] w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)] md:sticky md:z-50">
         <div className="container flex h-16 items-center justify-between md:h-20">
           <Link to="/" className="flex items-center gap-2">
             <img src={LOGO_URL} alt="Tok" className="h-12 w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16" />
@@ -600,6 +600,7 @@ export default function Navbar() {
           </div>
         </div>
       </header>
+      <div className="h-16 md:hidden" aria-hidden="true" />
     </>
   );
 }
