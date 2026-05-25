@@ -24,6 +24,9 @@ Rules for this repo:
   your CLI needs it.
 - Run `npm run supabase:doctor` before `supabase db push` or `supabase functions deploy`.
 - Run `npm run supabase:doctor:prod` before any production deploy.
+- Run `npm run release:readiness` before a full production/mobile release. It
+  fails closed when production payments, mobile app links, Android signing, or
+  transactional delivery secrets are missing.
 - Prefer `npm run supabase:db:push:prod` for production migrations. It aligns the target,
   runs the doctor, relinks the CLI, then pushes to the production project in one command.
 - If the doctor fails, align the frontend env and your local `supabase link`
@@ -108,6 +111,7 @@ npm run supabase:target:dev
 npm run supabase:doctor
 npm run supabase:db:push:prod
 npm run supabase:doctor:prod
+npm run release:readiness
 ```
 
 ## How can I edit this code?
