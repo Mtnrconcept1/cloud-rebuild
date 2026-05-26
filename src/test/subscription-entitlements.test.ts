@@ -6,6 +6,11 @@ import {
   buildTokOneEntitlements,
   type SubscriptionBenefitInput,
 } from "@/lib/subscriptionEntitlements";
+import {
+  resolveTokOneFreeDeliveryMinOrderForContext,
+  type TokOneBenefit,
+  type TokOnePlan,
+} from "@/hooks/useTokOne";
 
 describe("subscriptionEntitlements", () => {
   it("uses app-copy defaults when no subscription benefits are configured", () => {
@@ -64,5 +69,24 @@ describe("subscriptionEntitlements", () => {
       { plan_id: "plan-1", benefit_type: "priority_support", value: { enabled: false } },
       { plan_id: "plan-1", benefit_type: "surprise_offers", value: { enabled: true } },
     ]);
+  });
+
+  it("treats explicit Tok One free delivery threshold 0 as immediate eligibility", () => {
+    const plan = { free_delivery_min_order: 25 } as TokOnePlan;
+    const benefits = [
+      {
+        id: "benefit-1",
+        plan_id: "plan-1",
+        benefit_type: "free_delivery",
+        value: { min_order: 0 },
+      },
+    ] as TokOneBenefit[];
+
+    expect(
+      resolveTokOneFreeDeliveryMinOrderForContext(plan, benefits, {
+        restaurantId: "restaurant-1",
+        journey: "delivery",
+      }),
+    ).toBe(0);
   });
 });

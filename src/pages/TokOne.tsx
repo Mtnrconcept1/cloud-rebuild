@@ -116,6 +116,7 @@ export default function TokOne() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedPeriod, setSelectedPeriod] = useState<"monthly" | "yearly">("yearly");
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [subscribing, setSubscribing] = useState(false);
   const [expandedBenefit, setExpandedBenefit] = useState<number | null>(0);
 
@@ -135,7 +136,8 @@ export default function TokOne() {
   const { data: plans, isLoading: plansLoading } = useTokOnePlans();
   const { data: activeSubscription } = useTokOneSubscription();
   const isActive = isTokOneSubscriptionActive(activeSubscription);
-  const plan = plans?.[0];
+  const availablePlans = plans || [];
+  const plan = availablePlans.find((item) => item.id === selectedPlanId) || availablePlans[0];
   const { data: configuredBenefits } = useTokOneBenefits(plan?.id);
   const entitlements = buildTokOneEntitlements({ plan, benefits: configuredBenefits });
   const benefitCards = entitlements.displayBenefits
@@ -176,6 +178,18 @@ export default function TokOne() {
 
   const selectedPriceLabel =
     selectedPeriod === "yearly" ? `${yearlyPrice.toFixed(2)} CHF/an` : `${monthlyPrice.toFixed(2)} CHF/mois`;
+
+  useEffect(() => {
+    const nextPlans = plans || [];
+    if (nextPlans.length === 0) {
+      if (selectedPlanId) setSelectedPlanId(null);
+      return;
+    }
+
+    if (!selectedPlanId || !nextPlans.some((item) => item.id === selectedPlanId)) {
+      setSelectedPlanId(nextPlans[0].id);
+    }
+  }, [plans, selectedPlanId]);
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -411,13 +425,13 @@ export default function TokOne() {
                   Essai gratuit
                 </Badge>
                 <h2 className="font-display text-3xl font-black">Essayez Tok One gratuitement</h2>
-                <p className="mt-2 text-white/68">14 jours d'essai, sans engagement. Choisissez votre rythme.</p>
+                <p className="mt-2 text-white/68">14 jours d'essai, sans engagement. Choisissez votre plan et votre rythme.</p>
               </div>
               <Button
                 size="lg"
                 className="h-14 rounded-full bg-[#f6c453] px-8 font-black text-[#10091f] hover:bg-[#ffe38a]"
                 onClick={handleSubscribe}
-                disabled={subscribing || plansLoading}
+                disabled={subscribing || plansLoading || !plan}
               >
                 {subscribing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
                 Continuer
@@ -432,30 +446,47 @@ export default function TokOne() {
             ) : !plan ? (
               <p className="text-center text-white/68">Aucun plan disponible pour le moment.</p>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                <PricingButton
-                  active={selectedPeriod === "monthly"}
-                  eyebrow="Souple"
-                  title="Mensuel"
-                  price={`${monthlyPrice.toFixed(2)} CHF`}
-                  suffix="/mois"
-                  helper="Sans engagement, resiliez a tout moment."
-                  icon={Flame}
-                  onClick={() => setSelectedPeriod("monthly")}
-                />
-                <PricingButton
-                  active={selectedPeriod === "yearly"}
-                  eyebrow="Le plus populaire"
-                  title="Annuel"
-                  price={`${yearlyPrice.toFixed(2)} CHF`}
-                  suffix="/an"
-                  helper={`Soit ${(yearlyPrice / 12).toFixed(2)} CHF/mois${yearlySavings > 0 ? `, ${yearlySavings.toFixed(2)} CHF economises` : ""}.`}
-                  icon={Wallet}
-                  onClick={() => setSelectedPeriod("yearly")}
-                />
+              <div className="space-y-4">
+                {availablePlans.length > 1 ? (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {availablePlans.map((item) => (
+                      <PlanChoiceButton
+                        key={item.id}
+                        active={item.id === plan.id}
+                        title={item.name}
+                        description={item.description || "Avantages premium Tok One."}
+                        monthlyPrice={Number(item.price_monthly)}
+                        yearlyPrice={Number(item.price_yearly)}
+                        onClick={() => setSelectedPlanId(item.id)}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <PricingButton
+                    active={selectedPeriod === "monthly"}
+                    eyebrow="Souple"
+                    title="Mensuel"
+                    price={`${monthlyPrice.toFixed(2)} CHF`}
+                    suffix="/mois"
+                    helper="Sans engagement, resiliez a tout moment."
+                    icon={Flame}
+                    onClick={() => setSelectedPeriod("monthly")}
+                  />
+                  <PricingButton
+                    active={selectedPeriod === "yearly"}
+                    eyebrow="Le plus populaire"
+                    title="Annuel"
+                    price={`${yearlyPrice.toFixed(2)} CHF`}
+                    suffix="/an"
+                    helper={`Soit ${(yearlyPrice / 12).toFixed(2)} CHF/mois${yearlySavings > 0 ? `, ${yearlySavings.toFixed(2)} CHF economises` : ""}.`}
+                    icon={Wallet}
+                    onClick={() => setSelectedPeriod("yearly")}
+                  />
+                </div>
               </div>
             )}
-            {plan ? <p className="mt-5 text-center text-sm text-white/58">Selection actuelle: {selectedPriceLabel}</p> : null}
+            {plan ? <p className="mt-5 text-center text-sm text-white/58">Selection actuelle: {plan.name} - {selectedPriceLabel}</p> : null}
           </div>
         </section>
       ) : (
@@ -519,6 +550,54 @@ export default function TokOne() {
         </p>
       </section>
     </main>
+  );
+}
+
+function PlanChoiceButton({
+  active,
+  title,
+  description,
+  monthlyPrice,
+  yearlyPrice,
+  onClick,
+}: {
+  active: boolean;
+  title: string;
+  description: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  onClick: () => void;
+}) {
+  const monthly = Number.isFinite(monthlyPrice) ? monthlyPrice : 0;
+  const yearly = Number.isFinite(yearlyPrice) ? yearlyPrice : 0;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative rounded-[1.15rem] border p-5 text-left transition",
+        active
+          ? "border-[#f6c453] bg-[#f6c453]/12 shadow-[0_14px_46px_rgba(246,196,83,0.12)]"
+          : "border-white/10 bg-white/[0.045] hover:bg-white/[0.075]",
+      )}
+    >
+      <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3 py-1.5 text-xs text-white/70">
+        <Crown className="h-3.5 w-3.5 text-[#f6c453]" />
+        Plan
+      </span>
+      <span className="block text-lg font-black">{title}</span>
+      <span className="mt-2 block min-h-12 text-sm leading-6 text-white/64">{description}</span>
+      <span className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-white/70">
+        <span><strong className="text-xl text-white">{monthly.toFixed(2)} CHF</strong>/mois</span>
+        <span><strong className="text-xl text-white">{yearly.toFixed(2)} CHF</strong>/an</span>
+      </span>
+      {active ? (
+        <span className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full bg-[#f6c453] text-[#10091f]">
+          <Check className="h-4 w-4" />
+        </span>
+      ) : null}
+    </button>
   );
 }
 

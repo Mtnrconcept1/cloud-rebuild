@@ -86,6 +86,18 @@ function parseBenefitNumber(value: unknown, keys: string[]) {
   return 0;
 }
 
+function parseOptionalBenefitNumber(value: unknown, keys: string[]) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(record, key)) continue;
+    const candidate = Number(record[key]);
+    if (Number.isFinite(candidate)) return candidate;
+  }
+  return null;
+}
+
 function normalizeBenefitList(value: unknown) {
   if (Array.isArray(value)) {
     return value
@@ -225,14 +237,12 @@ export function resolveTokOneFreeDeliveryMinOrder(
   plan: TokOnePlan | null | undefined,
   benefits: TokOneBenefit[] | null | undefined,
 ) {
-  const configured = (benefits || [])
+  const configuredValues = (benefits || [])
     .filter((benefit) => benefit.benefit_type === "free_delivery")
-    .reduce((best, benefit) => {
-      const value = parseBenefitNumber(benefit.value, ["min_order", "minimum_order", "free_delivery_min_order", "threshold", "value"]);
-      return value > best ? value : best;
-    }, 0);
+    .map((benefit) => parseOptionalBenefitNumber(benefit.value, ["min_order", "minimum_order", "free_delivery_min_order", "threshold", "value"]))
+    .filter((value): value is number => value !== null);
 
-  if (configured > 0) return configured;
+  if (configuredValues.length > 0) return Math.max(...configuredValues);
   const planThreshold = Number(plan?.free_delivery_min_order || 0);
   return Number.isFinite(planThreshold) && planThreshold > 0 ? planThreshold : 0;
 }
@@ -244,15 +254,14 @@ export function resolveTokOneFreeDeliveryMinOrderForContext(
 ) {
   const freeDeliveryBenefits = (benefits || [])
     .filter((benefit) => benefit.benefit_type === "free_delivery");
-  const configured = freeDeliveryBenefits
-    .filter((benefit) => isTokOneBenefitApplicable(benefit, input))
-    .reduce((best, benefit) => {
-      const value = parseBenefitNumber(benefit.value, ["min_order", "minimum_order", "free_delivery_min_order", "threshold", "value"]);
-      return value > best ? value : best;
-    }, 0);
+  const applicableBenefits = freeDeliveryBenefits
+    .filter((benefit) => isTokOneBenefitApplicable(benefit, input));
+  const configuredValues = applicableBenefits
+    .map((benefit) => parseOptionalBenefitNumber(benefit.value, ["min_order", "minimum_order", "free_delivery_min_order", "threshold", "value"]))
+    .filter((value): value is number => value !== null);
 
-  if (configured > 0) return configured;
-  if (freeDeliveryBenefits.length > 0) return Number.POSITIVE_INFINITY;
+  if (configuredValues.length > 0) return Math.max(...configuredValues);
+  if (freeDeliveryBenefits.length > 0 && applicableBenefits.length === 0) return Number.POSITIVE_INFINITY;
 
   const planThreshold = Number(plan?.free_delivery_min_order || 0);
   return Number.isFinite(planThreshold) && planThreshold > 0 ? planThreshold : 0;

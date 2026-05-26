@@ -579,8 +579,14 @@ Deno.serve(async (req) => {
     };
 
     if (effectiveKind === "tok-one") {
+      sessionParams.payment_method_collection = "always";
       sessionParams.subscription_data = {
         trial_period_days: 14,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: "cancel",
+          },
+        },
         metadata: sessionMetadata,
       };
     }
