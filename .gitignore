@@ -8,14 +8,19 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.pnpm-store/
 dist
 dist-ssr
+build/
+coverage/
 *.local
 .env
 .env.*
 !.env.example
 supabase/.temp/
 .tmp/
+tmp-screenshots/
+.codex/hooks/logs/
 
 # Capacitor native build artifacts
 ios/App/Pods/

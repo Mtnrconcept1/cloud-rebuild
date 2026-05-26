@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { TOK_ONE_DEFAULT_DISCOUNT_PERCENT } from "@/lib/subscriptionEntitlements";
+
+export { TOK_ONE_DEFAULT_DISCOUNT_PERCENT };
 
 const supabase = getSupabase();
 
@@ -24,8 +27,6 @@ export type TokOneBenefit = {
 };
 
 export type TokOneJourney = "delivery" | "takeaway" | "reservation" | "zero-attente";
-
-export const TOK_ONE_DEFAULT_DISCOUNT_PERCENT = 20;
 
 export type TokOneSubscription = {
   id: string;

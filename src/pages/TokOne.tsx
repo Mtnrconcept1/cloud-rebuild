@@ -28,11 +28,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
   isTokOneSubscriptionActive,
+  useTokOneBenefits,
   useTokOnePlans,
   useTokOneSubscription,
 } from "@/hooks/useTokOne";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
@@ -41,6 +43,7 @@ const HERO_IMAGE = "/images/octopus-fine-dining.jpeg";
 
 const BENEFITS = [
   {
+    id: "free_delivery",
     icon: Truck,
     title: "Livraison gratuite",
     desc: "Sur tous les restaurants eligibles, sans minimum de commande.",
@@ -48,6 +51,7 @@ const BENEFITS = [
     tone: "from-[#715bff] to-[#3137c9]",
   },
   {
+    id: "discount_percentage",
     icon: Percent,
     title: "Reductions exclusives",
     desc: "Jusqu'a 20% de reduction sur une selection de plats chaque semaine.",
@@ -55,6 +59,7 @@ const BENEFITS = [
     tone: "from-[#35c778] to-[#12603f]",
   },
   {
+    id: "chef_table_priority",
     icon: ChefHat,
     title: "Acces prioritaire La Table du Chef",
     desc: "Reservez en avant-premiere les meilleures tables des chefs.",
@@ -62,6 +67,7 @@ const BENEFITS = [
     tone: "from-[#ffb34f] to-[#bf4c0a]",
   },
   {
+    id: "flash_early_access",
     icon: Zap,
     title: "Ventes flash en avance",
     desc: "Acces anticipe aux offres limitees avant le lancement officiel.",
@@ -69,6 +75,7 @@ const BENEFITS = [
     tone: "from-[#facc15] to-[#b45309]",
   },
   {
+    id: "priority_support",
     icon: Headphones,
     title: "Support prioritaire",
     desc: "Un temps de reponse accelere quand vous avez besoin d'aide.",
@@ -76,6 +83,7 @@ const BENEFITS = [
     tone: "from-[#a78bfa] to-[#5b21b6]",
   },
   {
+    id: "surprise_offers",
     icon: Gift,
     title: "Offres surprises",
     desc: "Des attentions regulieres reservees aux membres.",
@@ -88,12 +96,6 @@ const TRUST_PILLS = [
   { icon: ShieldCheck, label: "Paiement securise Stripe" },
   { icon: Clock3, label: "Activation en moins de 2 min" },
   { icon: X, label: "Annulation a tout moment" },
-];
-
-const VALUE_METRICS = [
-  { icon: Gift, value: "2.50 CHF", label: "de livraison offerte sur chaque commande", tone: "text-[#7897ff]" },
-  { icon: Percent, value: "20%", label: "de remise sur une selection de plats exclusifs", tone: "text-[#37d27d]" },
-  { icon: Clock3, value: "24h", label: "d'acces anticipe a La Table du Chef", tone: "text-[#ffad42]" },
 ];
 
 const FAQS = [
@@ -134,6 +136,40 @@ export default function TokOne() {
   const { data: activeSubscription } = useTokOneSubscription();
   const isActive = isTokOneSubscriptionActive(activeSubscription);
   const plan = plans?.[0];
+  const { data: configuredBenefits } = useTokOneBenefits(plan?.id);
+  const entitlements = buildTokOneEntitlements({ plan, benefits: configuredBenefits });
+  const benefitCards = entitlements.displayBenefits
+    .filter((benefit) => benefit.enabled)
+    .map((benefit) => {
+      const presentation = BENEFITS.find((item) => item.id === benefit.id) || BENEFITS[0];
+      return {
+        ...presentation,
+        title: benefit.label,
+        desc: benefit.description,
+      };
+    });
+  const valueMetrics = [
+    {
+      icon: Gift,
+      value: Number.isFinite(entitlements.freeDeliveryMinOrder) && entitlements.freeDeliveryMinOrder > 0
+        ? `Des ${entitlements.freeDeliveryMinOrder} CHF`
+        : "0 CHF",
+      label: "minimum pour profiter de la livraison offerte",
+      tone: "text-[#7897ff]",
+    },
+    {
+      icon: Percent,
+      value: `${entitlements.discountPercent}%`,
+      label: "de remise sur les plats eligibles",
+      tone: "text-[#37d27d]",
+    },
+    {
+      icon: Clock3,
+      value: entitlements.flags.chefTablePriority ? "VIP" : "Selon plan",
+      label: "d'acces prioritaire a La Table du Chef",
+      tone: "text-[#ffad42]",
+    },
+  ];
   const monthlyPrice = plan ? Number(plan.price_monthly) : 0;
   const yearlyPrice = plan ? Number(plan.price_yearly) : 0;
   const yearlySavings = monthlyPrice > 0 ? monthlyPrice * 12 - yearlyPrice : 0;
@@ -298,7 +334,7 @@ export default function TokOne() {
       <section className="relative z-20 -mt-8 px-6">
         <div className="container max-w-6xl rounded-[1.5rem] border border-white/12 bg-white/[0.075] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
           <div className="grid gap-6 md:grid-cols-3 md:divide-x md:divide-white/18">
-            {VALUE_METRICS.map((metric) => (
+            {valueMetrics.map((metric) => (
               <div key={metric.value} className="flex items-center gap-5 px-2 py-2 md:px-8">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10">
                   <metric.icon className={cn("h-7 w-7", metric.tone)} />
@@ -322,7 +358,7 @@ export default function TokOne() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          {BENEFITS.slice(0, 3).map((benefit, index) => (
+          {benefitCards.slice(0, 3).map((benefit, index) => (
             <button
               key={benefit.title}
               type="button"
@@ -345,7 +381,7 @@ export default function TokOne() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          {BENEFITS.slice(3).map((benefit, offset) => {
+          {benefitCards.slice(3).map((benefit, offset) => {
             const index = offset + 3;
             return (
               <button

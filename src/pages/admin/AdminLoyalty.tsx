@@ -5,11 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Crown, ShieldCheck, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getTierBenefits, LOYALTY_TIER_ORDER, LOYALTY_TIERS } from "@/lib/loyaltyBenefits";
+import {
+  TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
+  buildSubscriptionBenefitRows,
+  buildTokOneEntitlements,
+  type SubscriptionBenefitInput,
+  type TokOneBenefitForm,
+} from "@/lib/subscriptionEntitlements";
 
 const supabase = getSupabase();
 
@@ -21,6 +29,15 @@ const EMPTY_PLAN = {
   currency: "EUR",
   free_delivery_min_order: "",
   status: "active",
+};
+
+const EMPTY_BENEFIT_FORM: TokOneBenefitForm = {
+  discountPercent: TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
+  freeDeliveryMinOrder: 0,
+  chefTablePriority: true,
+  flashEarlyAccess: true,
+  prioritySupport: true,
+  surpriseOffers: true,
 };
 
 const EMPTY_TIER = {
@@ -38,6 +55,7 @@ export default function AdminLoyalty() {
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [editingTier, setEditingTier] = useState<any>(null);
   const [planForm, setPlanForm] = useState(EMPTY_PLAN);
+  const [benefitForm, setBenefitForm] = useState<TokOneBenefitForm>(EMPTY_BENEFIT_FORM);
   const [tierForm, setTierForm] = useState(EMPTY_TIER);
   const [savingPlan, setSavingPlan] = useState(false);
   const [savingTier, setSavingTier] = useState(false);
@@ -60,9 +78,44 @@ export default function AdminLoyalty() {
     },
   });
 
+  const { data: subscriptionBenefits = [] } = useQuery({
+    queryKey: ["admin-subscription-benefits"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("subscription_benefits").select("*").order("created_at");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const getPlanBenefits = (planId: string): SubscriptionBenefitInput[] =>
+    subscriptionBenefits
+      .filter((benefit: any) => benefit.plan_id === planId)
+      .map((benefit: any) => ({
+        benefit_type: String(benefit.benefit_type || ""),
+        value:
+          benefit.value && typeof benefit.value === "object" && !Array.isArray(benefit.value)
+            ? (benefit.value as Record<string, unknown>)
+            : null,
+      }));
+
+  const buildBenefitForm = (plan: any, benefits: SubscriptionBenefitInput[]): TokOneBenefitForm => {
+    const entitlements = buildTokOneEntitlements({ plan, benefits });
+    return {
+      discountPercent: entitlements.discountPercent,
+      freeDeliveryMinOrder: Number.isFinite(entitlements.freeDeliveryMinOrder)
+        ? entitlements.freeDeliveryMinOrder
+        : 0,
+      chefTablePriority: entitlements.flags.chefTablePriority,
+      flashEarlyAccess: entitlements.flags.flashEarlyAccess,
+      prioritySupport: entitlements.flags.prioritySupport,
+      surpriseOffers: entitlements.flags.surpriseOffers,
+    };
+  };
+
   const openNewPlan = () => {
     setEditingPlan(null);
     setPlanForm(EMPTY_PLAN);
+    setBenefitForm(EMPTY_BENEFIT_FORM);
     setPlanOpen(true);
   };
 
@@ -77,6 +130,7 @@ export default function AdminLoyalty() {
       free_delivery_min_order: String(plan.free_delivery_min_order ?? ""),
       status: plan.status || "active",
     });
+    setBenefitForm(buildBenefitForm(plan, getPlanBenefits(plan.id)));
     setPlanOpen(true);
   };
 
@@ -94,20 +148,49 @@ export default function AdminLoyalty() {
       status: planForm.status,
     };
 
-    const { error } = editingPlan
-      ? await supabase.from("user_subscription_plans").update(payload).eq("id", editingPlan.id)
-      : await supabase.from("user_subscription_plans").insert(payload);
+    try {
+      let savedPlanId = editingPlan?.id as string | undefined;
 
-    setSavingPlan(false);
-    if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      if (editingPlan) {
+        const { error } = await supabase.from("user_subscription_plans").update(payload).eq("id", editingPlan.id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from("user_subscription_plans").insert(payload).select("id").single();
+        if (error) throw error;
+        savedPlanId = data?.id;
+      }
+
+      if (!savedPlanId) {
+        throw new Error("Identifiant du forfait introuvable apres sauvegarde.");
+      }
+
+      const { error: deleteBenefitsError } = await supabase
+        .from("subscription_benefits")
+        .delete()
+        .eq("plan_id", savedPlanId);
+      if (deleteBenefitsError) throw deleteBenefitsError;
+
+      const { error: insertBenefitsError } = await supabase
+        .from("subscription_benefits")
+        .insert(buildSubscriptionBenefitRows(savedPlanId, benefitForm) as any);
+      if (insertBenefitsError) throw insertBenefitsError;
+    } catch (error) {
+      setSavingPlan(false);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible d'enregistrer le forfait.",
+        variant: "destructive",
+      });
       return;
     }
 
+    setSavingPlan(false);
     setPlanOpen(false);
     setEditingPlan(null);
     setPlanForm(EMPTY_PLAN);
+    setBenefitForm(EMPTY_BENEFIT_FORM);
     queryClient.invalidateQueries({ queryKey: ["admin-subscription-plans"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-subscription-benefits"] });
     toast({ title: editingPlan ? "Forfait mis a jour" : "Forfait cree" });
   };
 
@@ -192,7 +275,7 @@ export default function AdminLoyalty() {
       <DashboardPageHero
         badge="Fidelite"
         title="Fidelite et abonnement"
-        description="Configurez les forfaits Miamz+ et les paliers de fidelite avec une lecture rapide des plans actifs."
+        description="Configurez Tok One et les paliers de fidelite avec une lecture rapide des plans actifs."
         icon={Crown}
         tone="amber"
         visualLabel="Loyalty"
@@ -257,6 +340,48 @@ export default function AdminLoyalty() {
                       <Input placeholder="Devise" value={planForm.currency} onChange={(event) => setPlanForm((prev) => ({ ...prev, currency: event.target.value.toUpperCase() }))} />
                       <Input placeholder="Seuil livraison offerte" type="number" step="0.01" value={planForm.free_delivery_min_order} onChange={(event) => setPlanForm((prev) => ({ ...prev, free_delivery_min_order: event.target.value }))} />
                     </div>
+                    <div className="rounded-md border p-3 space-y-3">
+                      <p className="text-sm font-semibold">Avantages Tok One</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Input
+                          aria-label="Remise Tok One en pourcentage"
+                          placeholder="Remise en %"
+                          type="number"
+                          step="1"
+                          value={benefitForm.discountPercent}
+                          onChange={(event) => setBenefitForm((prev) => ({ ...prev, discountPercent: Number(event.target.value || 0) }))}
+                        />
+                        <Input
+                          aria-label="Minimum livraison offerte"
+                          placeholder="Minimum livraison"
+                          type="number"
+                          step="0.01"
+                          value={benefitForm.freeDeliveryMinOrder}
+                          onChange={(event) => setBenefitForm((prev) => ({ ...prev, freeDeliveryMinOrder: Number(event.target.value || 0) }))}
+                        />
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {[
+                          ["chefTablePriority", "La Table du Chef"],
+                          ["flashEarlyAccess", "Ventes flash en avance"],
+                          ["prioritySupport", "Support prioritaire"],
+                          ["surpriseOffers", "Offres surprises"],
+                        ].map(([key, label]) => (
+                          <label key={key} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+                            <Checkbox
+                              checked={Boolean(benefitForm[key as keyof TokOneBenefitForm])}
+                              onCheckedChange={(checked) =>
+                                setBenefitForm((prev) => ({
+                                  ...prev,
+                                  [key]: checked === true,
+                                }))
+                              }
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                     <select value={planForm.status} onChange={(event) => setPlanForm((prev) => ({ ...prev, status: event.target.value }))} className="w-full rounded-md border bg-background px-3 py-2 text-sm">
                       <option value="active">active</option>
                       <option value="archived">archived</option>
@@ -269,22 +394,34 @@ export default function AdminLoyalty() {
             <CardDescription>Forfaits de livraison et d'avantages partenaires</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {subscriptionPlans.map((plan: any) => (
-              <div key={plan.id} className="p-4 border rounded-xl flex justify-between items-start gap-4">
-                <div>
-                  <p className="font-bold text-lg">{plan.name}</p>
-                  <p className="text-sm text-muted-foreground">{Number(plan.price_monthly || 0).toFixed(2)} {plan.currency || "EUR"} / mois</p>
-                  <p className="text-xs text-muted-foreground">{plan.description || "Sans description"}</p>
-                  <p className="text-xs text-green-600 mt-1">
-                    Livraison offerte {plan.free_delivery_min_order ? `(des ${plan.free_delivery_min_order} ${plan.currency || "EUR"})` : "sans minimum"}
-                  </p>
+            {subscriptionPlans.map((plan: any) => {
+              const entitlements = buildTokOneEntitlements({ plan, benefits: getPlanBenefits(plan.id) });
+              const enabledBenefits = entitlements.displayBenefits.filter((benefit) => benefit.enabled);
+
+              return (
+                <div key={plan.id} className="p-4 border rounded-xl flex justify-between items-start gap-4">
+                  <div>
+                    <p className="font-bold text-lg">{plan.name}</p>
+                    <p className="text-sm text-muted-foreground">{Number(plan.price_monthly || 0).toFixed(2)} {plan.currency || "EUR"} / mois</p>
+                    <p className="text-xs text-muted-foreground">{plan.description || "Sans description"}</p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Livraison offerte {Number.isFinite(entitlements.freeDeliveryMinOrder) && entitlements.freeDeliveryMinOrder > 0 ? `(des ${entitlements.freeDeliveryMinOrder} ${plan.currency || "EUR"})` : "sans minimum"}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {enabledBenefits.map((benefit) => (
+                        <span key={benefit.id} className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+                          {benefit.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon" onClick={() => openEditPlan(plan)}><Pencil className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deletePlan(plan.id)}><Trash2 className="w-4 h-4" /></Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => openEditPlan(plan)}><Pencil className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deletePlan(plan.id)}><Trash2 className="w-4 h-4" /></Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {subscriptionPlans.length === 0 ? <p className="text-sm text-muted-foreground">Aucun abonnement configure.</p> : null}
           </CardContent>
         </Card>
