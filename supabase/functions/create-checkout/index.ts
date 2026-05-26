@@ -11,6 +11,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { isTokOneEntitledStatus } from "../_shared/tok-one.ts";
 import {
   assertPaymentMethodAllowed,
@@ -43,10 +44,6 @@ Deno.serve(async (req) => {
       checkout_kind,
     } = await req.json();
 
-    if (!return_url) {
-      throw new HttpError(400, "URL de retour requise");
-    }
-
     const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
     if (!stripeSecretKey) {
       throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
@@ -57,6 +54,11 @@ Deno.serve(async (req) => {
     });
 
     const effectiveKind = checkout_kind || order_metadata?.checkout_kind || "order";
+    const safeReturnUrl = normalizeCheckoutReturnUrl(return_url);
+    if (!safeReturnUrl) {
+      throw new HttpError(400, "URL de retour invalide");
+    }
+
     auditKind = effectiveKind;
     const activeFlags = await getEffectiveFeatureFlagSet(actor.adminClient);
     assertPaymentMethodAllowed({
@@ -561,7 +563,7 @@ Deno.serve(async (req) => {
     );
     discountCents = Math.min(discountCents, totalBeforeDiscountCents);
 
-    const urlSeparator = return_url.includes("?") ? "&" : "?";
+    const urlSeparator = safeReturnUrl.includes("?") ? "&" : "?";
     const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
     const userEmail = userLookup?.data.user?.email || undefined;
 
@@ -569,8 +571,8 @@ Deno.serve(async (req) => {
       payment_method_types: effectiveKind === "tok-one" ? ["card"] : paymentMethodTypes,
       line_items: lineItems,
       mode: effectiveKind === "tok-one" ? "subscription" : "payment",
-      success_url: `${return_url}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
-      cancel_url: `${return_url}${urlSeparator}status=cancelled`,
+      success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
+      cancel_url: `${safeReturnUrl}${urlSeparator}status=cancelled`,
       customer_email: userEmail,
       client_reference_id: actor.userId || undefined,
       metadata: sessionMetadata,

@@ -31,4 +31,22 @@ describe("dashboard RPC security migrations", () => {
     expect(latest.sql, `${functionName} latest migration ${latest.name}`).toMatch(/auth_is_admin|has_role\s*\(/i);
     expect(latest.sql, `${functionName} latest migration ${latest.name}`).toMatch(/RAISE EXCEPTION 'Forbidden'/i);
   });
+
+  it.each([
+    "generate_restaurant_payout_invoice",
+    "generate_restaurant_payout_invoice_rpc",
+    "compute_restaurant_reservation_fees",
+  ])("keeps %s out of direct anon/authenticated RPC access", (functionName) => {
+    const latest = latestFunctionBody(functionName);
+
+    expect(latest.sql, `${functionName} latest migration ${latest.name}`).toMatch(
+      new RegExp(`REVOKE\\s+EXECUTE\\s+ON\\s+FUNCTION\\s+public\\.${functionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\([^)]*\\)\\s+FROM\\s+PUBLIC`, "i"),
+    );
+    expect(latest.sql, `${functionName} latest migration ${latest.name}`).toMatch(/FROM\s+anon/i);
+    expect(latest.sql, `${functionName} latest migration ${latest.name}`).toMatch(/FROM\s+authenticated/i);
+    expect(latest.sql, `${functionName} latest migration ${latest.name}`).toMatch(/TO\s+service_role/i);
+    expect(latest.sql, `${functionName} latest migration ${latest.name}`).not.toMatch(
+      new RegExp(`GRANT\\s+EXECUTE\\s+ON\\s+FUNCTION\\s+public\\.${functionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\([^)]*\\)\\s+TO\\s+authenticated`, "i"),
+    );
+  });
 });
