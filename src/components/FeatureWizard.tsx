@@ -8,6 +8,8 @@ export interface FeatureWizardProps { title: string; subtitle: string; icon: Rea
 
 export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, currentStepId, onStepChange, headerAction, children }: FeatureWizardProps) {
   const currentIdx = steps.findIndex((s) => s.id === currentStepId);
+  const currentStep = steps[Math.max(0, currentIdx)] ?? steps[0];
+  const progress = steps.length > 0 ? Math.round(((Math.max(0, currentIdx) + 1) / steps.length) * 100) : 0;
   return (
     <main className="min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
@@ -18,13 +20,51 @@ export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, 
           </div>
           {headerAction && <div className="shrink-0">{headerAction}</div>}
         </div>
-        <div className="flex items-center gap-1 overflow-x-auto pb-2 sm:pb-0">
+        <div className="space-y-3 rounded-xl border bg-card/80 p-2 sm:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Etape {Math.max(0, currentIdx) + 1} sur {steps.length}
+              </p>
+              <p className="truncate text-sm font-semibold">{currentStep?.label}</p>
+            </div>
+            <Badge variant="secondary" className="shrink-0">{progress}%</Badge>
+          </div>
+          <div className="flex items-center gap-1" aria-label="Progression">
+            {steps.map((s, i) => {
+              const isCurrent = s.id === currentStepId;
+              const isPast = i < currentIdx;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  aria-label={`Etape ${i + 1}: ${s.label}`}
+                  aria-current={isCurrent ? "step" : undefined}
+                  onClick={() => isPast && onStepChange && onStepChange(s.id)}
+                  disabled={!isPast && !isCurrent}
+                  className={`flex h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-full text-xs font-bold transition-colors ${isCurrent
+                    ? `bg-${colorClass} text-white`
+                    : isPast
+                      ? `bg-${colorClass}/20 text-${colorClass}`
+                      : "bg-secondary text-muted-foreground"
+                    } ${isPast ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
+                >
+                  {isPast ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+                </button>
+              );
+            })}
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+            <div className={`h-full rounded-full bg-${colorClass} transition-all`} style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+        <div className="hidden items-center gap-1 overflow-x-auto pb-2 sm:flex sm:pb-0">
           {steps.map((s, i) => {
             const isCurrent = s.id === currentStepId;
             const isPast = i < currentIdx;
             return (
               <div key={s.id} className="flex items-center gap-1 flex-1 min-w-fit">
-                <button onClick={() => isPast && onStepChange && onStepChange(s.id)} disabled={!isPast && !isCurrent} className={`flex items-center gap-2 transition-colors ${isPast ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}>
+                <button onClick={() => isPast && onStepChange && onStepChange(s.id)} disabled={!isPast && !isCurrent} className={`flex min-h-[44px] items-center gap-2 rounded-full px-1 transition-colors ${isPast ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}>
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isCurrent ? `bg-${colorClass} text-white` : isPast ? `bg-${colorClass}/20 text-${colorClass}` : "bg-secondary text-muted-foreground"}`}>{isPast ? <CheckCircle2 className="h-4 w-4" /> : i + 1}</div>
                   <span className={`text-[11px] whitespace-nowrap ${isCurrent ? "font-semibold text-foreground" : "text-muted-foreground"} ${!isCurrent && !isPast ? "hidden sm:inline" : ""}`}>{s.label}</span>
                 </button>

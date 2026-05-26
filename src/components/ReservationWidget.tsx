@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DayPicker, DayContentProps } from "react-day-picker";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users, Clock, CalendarIcon, Percent, ChevronLeft, ChevronRight, LogIn } from "lucide-react";
-import { format, isBefore, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -11,46 +11,18 @@ import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
-import { getServiceSettings, type ServicePeriod } from "@/lib/serviceSettings";
+import {
+  buildReservationSlotGroups,
+  isReservationCalendarDateDisabled,
+  type ReservationSlotAvailability,
+} from "@/lib/reservationAvailability";
+import { getServiceSettings } from "@/lib/serviceSettings";
 
 const supabase = getSupabase();
 
 interface ReservationWidgetProps { restaurantId: string; restaurantName: string; onReserve: (date: Date, time: string, partySize: number) => void; }
 
-const FALLBACK_TIME_SLOTS = ["11:30", "12:00", "12:30", "13:00", "13:30", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"];
 const FALLBACK_PARTY_SIZES = [1, 2, 3, 4, 5, 6, 7, 8];
-
-function buildTimeSlotsFromSettings(settings: ReturnType<typeof getServiceSettings>, stepMinutes = 30): { slots: string[]; grouped: { service: ServicePeriod; label: string; slots: string[] }[] } {
-  const grouped: { service: ServicePeriod; label: string; slots: string[] }[] = [];
-  const allSlots: string[] = [];
-  const periodLabels: Record<ServicePeriod, string> = { lunch: "Midi", dinner: "Soir" };
-
-  for (const period of ["lunch", "dinner"] as ServicePeriod[]) {
-    const s = settings[period];
-    if (!s.online_booking_enabled || s.service_closed) continue;
-
-    const startMatch = /^(\d{2}):(\d{2})$/.exec(s.start_time);
-    const lastMatch = /^(\d{2}):(\d{2})$/.exec(s.last_reservation_time);
-    if (!startMatch || !lastMatch) continue;
-
-    const start = Number(startMatch[1]) * 60 + Number(startMatch[2]);
-    const last = Number(lastMatch[1]) * 60 + Number(lastMatch[2]);
-    if (start > last) continue;
-
-    const periodSlots: string[] = [];
-    for (let m = start; m <= last; m += stepMinutes) {
-      const hh = String(Math.floor(m / 60)).padStart(2, "0");
-      const mm = String(m % 60).padStart(2, "0");
-      periodSlots.push(`${hh}:${mm}`);
-    }
-    if (periodSlots.length > 0) {
-      grouped.push({ service: period, label: periodLabels[period], slots: periodSlots });
-      allSlots.push(...periodSlots);
-    }
-  }
-
-  return { slots: allSlots, grouped };
-}
 
 function buildPartySizes(settings: ReturnType<typeof getServiceSettings>): number[] {
   const min = Math.min(settings.lunch.min_party_size, settings.dinner.min_party_size);
@@ -59,6 +31,14 @@ function buildPartySizes(settings: ReturnType<typeof getServiceSettings>): numbe
   for (let i = min; i <= max; i++) sizes.push(i);
   return sizes.length > 0 ? sizes : FALLBACK_PARTY_SIZES;
 }
+
+type SlotAvailabilityRow = {
+  slot_time: string;
+  reserved_tables: number;
+  capacity: number;
+  remaining_tables: number;
+  available: boolean;
+};
 
 export default function ReservationWidget({ restaurantId, restaurantName, onReserve }: ReservationWidgetProps) {
   const { user } = useAuth();
@@ -77,11 +57,69 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
     enabled: !!restaurantId,
   });
 
-  const { slots: TIME_SLOTS, grouped: groupedTimeSlots } = useMemo(() => {
-    if (!serviceSettingsData) return { slots: FALLBACK_TIME_SLOTS, grouped: [] };
-    const result = buildTimeSlotsFromSettings(serviceSettingsData);
-    return result.slots.length > 0 ? result : { slots: FALLBACK_TIME_SLOTS, grouped: [] };
-  }, [serviceSettingsData]);
+  const selectedDateKey = date ? format(date, "yyyy-MM-dd") : null;
+
+  const { data: slotAvailability = [], isLoading: isSlotAvailabilityLoading } = useQuery({
+    queryKey: ["reservation-slot-availability", restaurantId, selectedDateKey],
+    queryFn: async () => {
+      if (!selectedDateKey) return [] as SlotAvailabilityRow[];
+
+      const { data, error } = await (supabase.rpc as any)("get_restaurant_reservation_slot_availability", {
+        p_restaurant_id: restaurantId,
+        p_date: selectedDateKey,
+      });
+
+      if (error) {
+        console.warn("Reservation slot availability fallback:", error.message);
+        return [] as SlotAvailabilityRow[];
+      }
+
+      return ((data || []) as SlotAvailabilityRow[]).map((row) => ({
+        ...row,
+        slot_time: String(row.slot_time || "").slice(0, 5),
+      }));
+    },
+    enabled: !!restaurantId && !!selectedDateKey,
+  });
+
+  const slotGroups = useMemo(() => {
+    const reservedTablesByTime = Object.fromEntries(
+      slotAvailability.map((slot) => [slot.slot_time, Number(slot.reserved_tables || 0)]),
+    );
+    const slotAvailabilityByTime = new Map(slotAvailability.map((slot) => [slot.slot_time, slot]));
+
+    return buildReservationSlotGroups({
+      serviceSettings: serviceSettingsData || getServiceSettings(null),
+      selectedDate: date,
+      reservedTablesByTime,
+    }).map((group) => ({
+      ...group,
+      slots: group.slots.map((slot) => {
+        const serverSlot = slotAvailabilityByTime.get(slot.time);
+        if (!serverSlot) return slot;
+
+        const remainingTables = Math.max(0, Number(serverSlot.remaining_tables || 0));
+        const available = Boolean(serverSlot.available) && remainingTables > 0;
+
+        return {
+          ...slot,
+          capacity: Number(serverSlot.capacity || slot.capacity),
+          reservedTables: Number(serverSlot.reserved_tables || 0),
+          remainingTables,
+          available,
+          disabledReason: available ? null : "Complet",
+        };
+      }),
+    }));
+  }, [date, serviceSettingsData, slotAvailability]);
+
+  const availableSlots = slotGroups.flatMap((group) => group.slots).filter((slot) => slot.available);
+  const selectedSlot = slotGroups.flatMap((group) => group.slots).find((slot) => slot.time === time) || null;
+
+  useEffect(() => {
+    if (!date || selectedSlot?.available || !availableSlots[0]) return;
+    setTime(availableSlots[0].time);
+  }, [availableSlots, date, selectedSlot?.available]);
 
   const PARTY_SIZES = useMemo(() => {
     if (!serviceSettingsData) return FALLBACK_PARTY_SIZES;
@@ -118,6 +156,30 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
     );
   }
 
+  const renderSlotButton = (slot: ReservationSlotAvailability) => {
+    const isSelected = slot.time === time;
+    return (
+      <button
+        key={slot.time}
+        type="button"
+        disabled={!slot.available}
+        onClick={() => setTime(slot.time)}
+        className={`min-h-[48px] rounded-lg border px-2 py-2 text-left text-xs transition-all ${
+          isSelected
+            ? "border-primary bg-primary text-primary-foreground shadow-md"
+            : slot.available
+              ? "border-border bg-secondary text-secondary-foreground hover:border-primary/50 hover:bg-primary/5"
+              : "cursor-not-allowed border-dashed bg-muted/70 text-muted-foreground opacity-70"
+        }`}
+      >
+        <span className="block font-semibold">{slot.time}</span>
+        <span className="text-[10px] leading-tight">
+          {slot.available ? `${slot.remainingTables} table${slot.remainingTables > 1 ? "s" : ""}` : slot.disabledReason}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <div className="rounded-2xl border bg-card shadow-lg overflow-hidden">
       <div className="bg-primary px-5 py-4">
@@ -132,26 +194,34 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5"><CalendarIcon className="h-3.5 w-3.5" /> Date</label>
           <div className="border rounded-xl overflow-hidden">
-            <DayPicker mode="single" selected={date} onSelect={setDate} disabled={(d) => isBefore(d, startOfDay(new Date()))} locale={fr} className={cn("p-3")} classNames={{ months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0", month: "space-y-4", caption: "flex justify-center pt-1 relative items-center", caption_label: "text-sm font-medium", nav: "space-x-1 flex items-center", nav_button: cn(buttonVariants({ variant: "outline" }), "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"), nav_button_previous: "absolute left-1", nav_button_next: "absolute right-1", table: "w-full border-collapse space-y-1", head_row: "flex", head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]", row: "flex w-full mt-2", cell: "h-11 w-9 text-center text-sm p-0 relative", day: cn(buttonVariants({ variant: "ghost" }), "h-11 w-9 p-0 font-normal aria-selected:opacity-100"), day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground", day_today: "bg-accent text-accent-foreground", day_outside: "day-outside text-muted-foreground opacity-50", day_disabled: "text-muted-foreground opacity-50", day_hidden: "invisible" }} components={{ IconLeft: () => <ChevronLeft className="h-4 w-4" />, IconRight: () => <ChevronRight className="h-4 w-4" />, DayContent: PromoDayContent }} />
+            <DayPicker mode="single" selected={date} onSelect={setDate} disabled={(d) => isReservationCalendarDateDisabled(d)} locale={fr} className={cn("p-3")} classNames={{ months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0", month: "space-y-4", caption: "flex justify-center pt-1 relative items-center", caption_label: "text-sm font-medium", nav: "space-x-1 flex items-center", nav_button: cn(buttonVariants({ variant: "outline" }), "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"), nav_button_previous: "absolute left-1", nav_button_next: "absolute right-1", table: "w-full border-collapse space-y-1", head_row: "flex", head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]", row: "flex w-full mt-2", cell: "h-11 w-9 text-center text-sm p-0 relative", day: cn(buttonVariants({ variant: "ghost" }), "h-11 w-9 p-0 font-normal aria-selected:opacity-100"), day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground", day_today: "bg-accent text-accent-foreground", day_outside: "day-outside text-muted-foreground opacity-50", day_disabled: "text-muted-foreground opacity-50", day_hidden: "invisible" }} components={{ IconLeft: () => <ChevronLeft className="h-4 w-4" />, IconRight: () => <ChevronRight className="h-4 w-4" />, DayContent: PromoDayContent }} />
           </div>
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Heure</label>
-          {groupedTimeSlots.length > 0 ? (
+          {!date ? (
+            <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
+              Choisissez une date pour voir les horaires ouverts.
+            </div>
+          ) : isSlotAvailabilityLoading ? (
+            <div className="rounded-xl border p-3 text-xs text-muted-foreground">
+              Verification des disponibilites...
+            </div>
+          ) : slotGroups.length > 0 ? (
             <div className="space-y-2">
-              {groupedTimeSlots.map((group) => (
+              {slotGroups.map((group) => (
                 <div key={group.service} className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">{group.label}</p>
                   <div className="grid grid-cols-4 gap-1.5">
-                    {group.slots.map((slot) => (
-                      <button key={slot} onClick={() => setTime(slot)} className={`px-2 py-2 rounded-lg text-xs font-semibold transition-all ${time === slot ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"}`}>{slot}</button>
-                    ))}
+                    {group.slots.map(renderSlotButton)}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-1.5">{TIME_SLOTS.map((slot) => <button key={slot} onClick={() => setTime(slot)} className={`px-2 py-2 rounded-lg text-xs font-semibold transition-all ${time === slot ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"}`}>{slot}</button>)}</div>
+            <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
+              Aucun creneau ouvert et disponible pour cette date.
+            </div>
           )}
         </div>
         {date && (
@@ -162,7 +232,7 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
           </div>
         )}
         {user ? (
-          <Button onClick={() => date && onReserve(date, time, Number(partySize))} disabled={!date} className="w-full h-12 text-base font-bold rounded-xl" size="lg">Réserver</Button>
+          <Button onClick={() => date && selectedSlot?.available && onReserve(date, time, Number(partySize))} disabled={!date || !selectedSlot?.available} className="w-full h-12 text-base font-bold rounded-xl" size="lg">Réserver</Button>
         ) : (
           <Button onClick={() => navigate("/auth")} className="w-full h-12 text-base font-bold rounded-xl gap-2" size="lg">
             <LogIn className="h-5 w-5" />

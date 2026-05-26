@@ -2,7 +2,7 @@ import { ArrowUpRight, CheckCircle2, LockKeyhole, Star, Trophy } from "lucide-re
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -75,17 +75,20 @@ export default function LoyaltyStatus() {
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="link" className="h-auto p-0 text-xs font-semibold text-pink-500 hover:text-pink-600">
+            <Button variant="link" className="min-h-[44px] justify-start p-0 text-xs font-semibold text-pink-500 hover:text-pink-600">
               Decouvrir les avantages <ArrowUpRight className="h-3 w-3" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-xl">
-            <DialogHeader>
+          <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:h-auto sm:max-h-[min(860px,calc(100dvh-2rem))]">
+            <DialogHeader className="border-b bg-background/95 px-4 py-4 pr-12 text-left backdrop-blur sm:px-6">
               <DialogTitle>Avantages {config.label}</DialogTitle>
+              <DialogDescription>
+                Tous vos avantages actifs et ceux a debloquer, lisibles sur mobile.
+              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-5">
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <div className="flex items-center justify-between gap-3 text-sm">
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+              <div className="sticky top-0 z-10 rounded-lg border bg-background/95 p-3 shadow-sm backdrop-blur sm:p-4">
+                <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <span className="font-medium">{points.toLocaleString()} Miamz</span>
                   <span className="text-muted-foreground">
                     {nextTierLabel ? `${loyalty.pointsToNextTier} Miamz avant ${nextTierLabel}` : "Tous les avantages sont debloques"}
@@ -94,14 +97,14 @@ export default function LoyaltyStatus() {
                 <Progress value={loyalty.progressPercent} className="mt-3 h-2" />
               </div>
 
-              <div className="space-y-2">
+              <div className="mt-5 space-y-2">
                 <p className="text-sm font-semibold">Avantages actifs</p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {currentBenefits.map((benefit) => (
                     <div key={benefit.id} className="rounded-lg border p-3 text-sm">
                       <div className="flex items-center gap-2 font-medium">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        {benefit.title}
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                        <span>{benefit.title}</span>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">{benefit.description}</p>
                     </div>
@@ -110,14 +113,14 @@ export default function LoyaltyStatus() {
               </div>
 
               {lockedBenefits.length > 0 ? (
-                <div className="space-y-2">
+                <div className="mt-5 space-y-2 pb-2">
                   <p className="text-sm font-semibold">A debloquer ensuite</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {lockedBenefits.slice(0, 6).map((benefit) => (
                       <div key={benefit.id} className="rounded-lg border border-dashed p-3 text-sm opacity-80">
                         <div className="flex items-center gap-2 font-medium">
-                          <LockKeyhole className="h-4 w-4 text-muted-foreground" />
-                          {benefit.title}
+                          <LockKeyhole className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span>{benefit.title}</span>
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">{benefit.description}</p>
                       </div>

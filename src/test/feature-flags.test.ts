@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  FEATURE_ROUTE_DEFINITIONS,
   getFeatureNameForRoute,
   resolveFlags,
   type FeatureFlagRow,
@@ -20,6 +21,10 @@ function buildRows(overrides: Record<string, boolean>): FeatureFlagRow[] {
 }
 
 describe("feature flag catalog", () => {
+  function getExactFeatureForRoute(routeTarget: string) {
+    return FEATURE_ROUTE_DEFINITIONS.find((definition) => definition.routeTarget === routeTarget)?.featureName || null;
+  }
+
   it("computes effective state from dependencies", () => {
     const flags = resolveFlags(buildRows({
       reservation: true,
@@ -50,6 +55,16 @@ describe("feature flag catalog", () => {
     expect(getFeatureNameForRoute("/dashboard/campagnes")).toBe("dashboard-campagnes");
     expect(getFeatureNameForRoute("/commande/abc-123")).toBe("commandes");
     expect(getFeatureNameForRoute("/courier/jobs")).toBe("courier-jobs");
+  });
+
+  it("documents all guarded feature route targets explicitly", () => {
+    expect(getExactFeatureForRoute("/commande/confirmation")).toBe("commandes");
+    expect(getExactFeatureForRoute("/dashboard/compta")).toBe("dashboard-performances");
+    expect(getExactFeatureForRoute("/dashboard/factures/entrees")).toBe("dashboard-factures");
+    expect(getExactFeatureForRoute("/dashboard/factures/sorties")).toBe("dashboard-factures");
+    expect(getExactFeatureForRoute("/admin/compta/entrees")).toBe("admin-compta");
+    expect(getExactFeatureForRoute("/admin/compta/sorties")).toBe("admin-compta");
+    expect(getExactFeatureForRoute("/points-cadeau")).toBe("points-cadeau");
   });
 });
 

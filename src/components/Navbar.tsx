@@ -53,6 +53,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -87,7 +88,8 @@ export default function Navbar() {
   const courierEnabled = activeFeatures.has("espace-livreur");
   const reservationEnabled = activeFeatures.has("reservation");
   const dashboardEnabled = activeFeatures.has("dashboard-restaurateur");
-  const visibleFeatures = FEATURES.filter((feature) => feature.feature === "abonnement" || activeFeatures.has(feature.feature));
+  const tokOneEnabled = activeFeatures.has("tok-one");
+  const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showCartShortcut = user || itemCount > 0;
 
@@ -213,9 +215,9 @@ export default function Navbar() {
 
       {/* ─── Main header ─── */}
       <header className="fixed top-0 z-[70] w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)] md:sticky md:z-50">
-        <div className="container flex h-16 items-center justify-between md:h-20">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={LOGO_URL} alt="Tok" className="h-12 w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16" />
+        <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8">
+          <Link to="/" className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
+            <img src={LOGO_URL} alt="Tok" className="h-11 w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] min-[380px]:h-12 md:h-16" />
           </Link>
 
           <NavigationMenu className="hidden md:flex">
@@ -249,12 +251,14 @@ export default function Navbar() {
                   </Link>
                 </NavigationMenuItem>
               ) : null}
-              <NavigationMenuItem>
-                <Link to="/tok-one" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-violet-600 transition-colors hover:text-violet-500">
-                  <Crown className="h-4 w-4" />
-                  Tok One
-                </Link>
-              </NavigationMenuItem>
+              {tokOneEnabled ? (
+                <NavigationMenuItem>
+                  <Link to="/tok-one" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-violet-600 transition-colors hover:text-violet-500">
+                    <Crown className="h-4 w-4" />
+                    Tok One
+                  </Link>
+                </NavigationMenuItem>
+              ) : null}
               {discoveryFeatures.length > 0 ? (
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="bg-transparent text-sm font-medium">
@@ -294,7 +298,7 @@ export default function Navbar() {
             </NavigationMenuList>
           </NavigationMenu>
 
-          <div className="flex items-center gap-1">
+          <div className="flex min-w-0 items-center gap-0.5 min-[380px]:gap-1">
             <Button variant="ghost" size="icon" onClick={handleThemeToggle} className="text-muted-foreground hover:text-foreground">
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -305,6 +309,7 @@ export default function Navbar() {
               <Button variant="ghost" size="icon" asChild className="relative">
                 <Link to="/panier">
                   <ShoppingCart className="h-5 w-5" />
+                  <span className="sr-only">Panier</span>
                   {itemCount > 0 ? (
                     <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center p-0 text-[10px]">
                       {itemCount}
@@ -319,6 +324,7 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
+                    <span className="sr-only">Notifications</span>
                     {unreadCount > 0 && !notificationsOpen ? (
                       <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center p-0 text-[10px]">
                         {unreadCount}
@@ -371,6 +377,7 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
                     <User className="h-5 w-5" />
+                    <span className="sr-only">Compte</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -428,10 +435,10 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild size="sm" className="rounded-full bg-primary px-5 font-bold text-white shadow-md hover:bg-primary/90">
+              <Button asChild size="sm" className="min-h-[44px] rounded-full bg-primary px-3 font-bold text-white shadow-md hover:bg-primary/90 min-[380px]:px-5">
                 <Link to="/auth" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  CONNEXION
+                  <span className="hidden min-[380px]:inline">CONNEXION</span>
                 </Link>
               </Button>
             )}
@@ -440,11 +447,15 @@ export default function Navbar() {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
                   <Menu className="h-5 w-5" />
+                  <span className="sr-only">Ouvrir le menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[min(320px,85vw)] overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Navigation principale et acces aux espaces Tok.
+                  </SheetDescription>
                 </SheetHeader>
 
                 <nav className="mt-6 flex flex-col gap-3">
@@ -471,10 +482,12 @@ export default function Navbar() {
                       Actualites
                     </Link>
                   ) : null}
-                  <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-violet-600" onClick={() => setMenuOpen(false)}>
-                    <Crown className="h-4 w-4" />
-                    Tok One
-                  </Link>
+                  {tokOneEnabled ? (
+                    <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-violet-600" onClick={() => setMenuOpen(false)}>
+                      <Crown className="h-4 w-4" />
+                      Tok One
+                    </Link>
+                  ) : null}
 
                   {!user && itemCount > 0 ? (
                     <Link to="/panier" className="flex items-center gap-2 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>

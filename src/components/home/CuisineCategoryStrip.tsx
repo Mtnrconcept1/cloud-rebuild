@@ -147,7 +147,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="neon-chip grid h-9 w-9 place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+              className="neon-chip grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
               aria-label="Défiler à gauche"
             >
               <ChevronLeft className="h-4.5 w-4.5" />
@@ -155,7 +155,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="neon-chip grid h-9 w-9 place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+              className="neon-chip grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
               aria-label="Défiler à droite"
             >
               <ChevronRight className="h-4.5 w-4.5" />
