@@ -1,0 +1,32 @@
+{
+    "hooks":  {
+                  "PostToolUse":  [
+                                      {
+                                          "hooks":  [
+                                                        {
+                                                            "commandWindows":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$root = git rev-parse --show-toplevel; node (Join-Path $root \u0027scripts/codex-auto-post-edit-validation.mjs\u0027)\"",
+                                                            "command":  "sh -lc \u0027root=$(git rev-parse --show-toplevel) \u0026\u0026 node \"$root/scripts/codex-auto-post-edit-validation.mjs\"\u0027",
+                                                            "timeout":  1200,
+                                                            "type":  "command",
+                                                            "statusMessage":  "Lint et tests apres modification"
+                                                        }
+                                                    ],
+                                          "matcher":  "^(apply_patch|Edit|Write)$"
+                                      }
+                                  ],
+                  "PreToolUse":  [
+                                     {
+                                         "hooks":  [
+                                                       {
+                                                           "commandWindows":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$root = git rev-parse --show-toplevel; node (Join-Path $root \u0027scripts/codex-auto-pre-edit.mjs\u0027)\"",
+                                                           "command":  "sh -lc \u0027root=$(git rev-parse --show-toplevel) \u0026\u0026 node \"$root/scripts/codex-auto-pre-edit.mjs\"\u0027",
+                                                           "timeout":  120,
+                                                           "type":  "command",
+                                                           "statusMessage":  "Snapshot Git avant modification"
+                                                       }
+                                                   ],
+                                         "matcher":  "^(apply_patch|Edit|Write)$"
+                                     }
+                                 ]
+              }
+}

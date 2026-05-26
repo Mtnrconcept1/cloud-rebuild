@@ -447,6 +447,18 @@ function parseConfigNumber(value: unknown, keys: string[]) {
   return 0;
 }
 
+function parseOptionalConfigNumber(value: unknown, keys: string[]) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  const record = asRecord(value);
+  if (!record) return null;
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(record, key)) continue;
+    const parsed = Number(record[key]);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
 function normalizeBenefitList(value: unknown) {
   if (Array.isArray(value)) {
     return value
@@ -578,15 +590,14 @@ function resolveTokOneFreeDeliveryThreshold(
   journey: TokOneJourney,
 ) {
   const freeDeliveryBenefits = benefits.filter((benefit) => benefit.benefit_type === "free_delivery");
-  const configured = freeDeliveryBenefits
-    .filter((benefit) => isTokOneBenefitApplicable(benefit, restaurantId, journey))
-    .reduce((best, benefit) => {
-      const value = parseConfigNumber(benefit.value, ["min_order", "minimum_order", "free_delivery_min_order", "threshold", "value"]);
-      return value > best ? value : best;
-    }, 0);
+  const applicableBenefits = freeDeliveryBenefits
+    .filter((benefit) => isTokOneBenefitApplicable(benefit, restaurantId, journey));
+  const configuredValues = applicableBenefits
+    .map((benefit) => parseOptionalConfigNumber(benefit.value, ["min_order", "minimum_order", "free_delivery_min_order", "threshold", "value"]))
+    .filter((value): value is number => value !== null);
 
-  if (configured > 0) return configured;
-  if (freeDeliveryBenefits.length > 0) return Number.POSITIVE_INFINITY;
+  if (configuredValues.length > 0) return Math.max(...configuredValues);
+  if (freeDeliveryBenefits.length > 0 && applicableBenefits.length === 0) return Number.POSITIVE_INFINITY;
   return Math.max(0, toNumber(plan?.free_delivery_min_order));
 }
 

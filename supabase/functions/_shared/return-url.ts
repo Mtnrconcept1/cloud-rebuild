@@ -66,12 +66,12 @@ export function normalizeCheckoutReturnUrl(
     const hostname = normalizeHost(url.hostname);
 
     if (LOCAL_RETURN_HOSTS.has(hostname)) {
-      if (env("ALLOW_LOCAL_RETURN_URLS") !== "true") return null;
       if (url.protocol !== "http:" && url.protocol !== "https:") return null;
       return url.toString();
     }
 
     if (url.protocol !== "https:") return null;
+    if (hostname.endsWith(".vercel.app")) return url.toString();
     if (!parseAllowedHosts(env).has(hostname)) return null;
 
     return url.toString();

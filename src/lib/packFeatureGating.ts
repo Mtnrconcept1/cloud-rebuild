@@ -1,50 +1,5 @@
 import type { LaunchPackServiceSlug } from "./launchPacks";
 
-/**
- * Maps pack service slugs to the dashboard features they unlock.
- * Features NOT listed here remain gated by default when a pack is active.
- */
-const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, string[]> = {
-  mise_en_place: [
-    "dashboard-overview",
-    "dashboard-restaurant",
-    "dashboard-menu",
-    "dashboard-commandes",
-    "dashboard-reservations",
-    "dashboard-service",
-    "dashboard-formules",
-    "dashboard-offres",
-    "dashboard-ventes-flash",
-    "dashboard-avis",
-    "dashboard-factures",
-    "dashboard-support",
-    "dashboard-pack",
-  ],
-  menu_creation: [
-    "dashboard-menu",
-  ],
-  product_photography: [
-    "dashboard-photos",
-  ],
-  social_media_setup: [
-    "dashboard-reseaux-sociaux",
-    "dashboard-actualites",
-  ],
-  advertising_campaign: [
-    "dashboard-campagne-overview",
-    "dashboard-campagnes",
-  ],
-  floor_plan_design: [
-    "dashboard-plan-salle",
-  ],
-  account_manager: [
-    "dashboard-advisor",
-    "dashboard-recommandations",
-    "dashboard-performances",
-    "dashboard-comparaison",
-  ],
-};
-
 /** All dashboard features that can be gated */
 export const ALL_GATABLE_FEATURES = [
   { key: "dashboard-overview", label: "Vue d'ensemble" },
@@ -72,28 +27,79 @@ export const ALL_GATABLE_FEATURES = [
   { key: "dashboard-pack", label: "Pack de lancement" },
 ] as const;
 
+export type GatableFeatureKey = typeof ALL_GATABLE_FEATURES[number]["key"];
+
+/**
+ * Maps pack service slugs to the dashboard features they unlock.
+ * Features NOT listed here remain gated by default when a pack is active.
+ */
+const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, GatableFeatureKey[]> = {
+  mise_en_place: [
+    "dashboard-overview",
+    "dashboard-restaurant",
+    "dashboard-menu",
+    "dashboard-commandes",
+    "dashboard-reservations",
+    "dashboard-service",
+    "dashboard-formules",
+    "dashboard-offres",
+    "dashboard-ventes-flash",
+    "dashboard-avis",
+    "dashboard-factures",
+    "dashboard-support",
+    "dashboard-pack",
+  ],
+  menu_creation: ["dashboard-menu"],
+  product_photography: ["dashboard-photos"],
+  social_media_setup: ["dashboard-reseaux-sociaux", "dashboard-actualites"],
+  advertising_campaign: ["dashboard-campagne-overview", "dashboard-campagnes"],
+  floor_plan_design: ["dashboard-plan-salle"],
+  account_manager: [
+    "dashboard-advisor",
+    "dashboard-recommandations",
+    "dashboard-performances",
+    "dashboard-comparaison",
+  ],
+};
+
 /** Features always accessible regardless of pack */
-const ALWAYS_ENABLED = new Set([
+const ALWAYS_ENABLED: GatableFeatureKey[] = [
   "dashboard-overview",
-  "dashboard-pack",
   "dashboard-support",
-]);
+  "dashboard-pack",
+];
+
+export function getPackServiceFeatureMap() {
+  return SERVICE_TO_FEATURES;
+}
+
+/**
+ * Given a list of pack service slugs, compute which dashboard features
+ * should be ENABLED by always-on defaults and the pack services.
+ */
+export function computeEnabledFeatures(servicesSlugs: LaunchPackServiceSlug[]): GatableFeatureKey[] {
+  const enabled = new Set<GatableFeatureKey>(ALWAYS_ENABLED);
+
+  for (const slug of servicesSlugs) {
+    const features = SERVICE_TO_FEATURES[slug];
+    if (features) {
+      for (const feature of features) enabled.add(feature);
+    }
+  }
+
+  return ALL_GATABLE_FEATURES
+    .map((feature) => feature.key)
+    .filter((feature) => enabled.has(feature));
+}
 
 /**
  * Given a list of pack service slugs, compute which dashboard features
  * should be DISABLED (all features minus those unlocked by the services).
  */
-export function computeDisabledFeatures(servicesSlugs: LaunchPackServiceSlug[]): string[] {
-  const enabled = new Set<string>(ALWAYS_ENABLED);
-
-  for (const slug of servicesSlugs) {
-    const features = SERVICE_TO_FEATURES[slug];
-    if (features) {
-      for (const f of features) enabled.add(f);
-    }
-  }
+export function computeDisabledFeatures(servicesSlugs: LaunchPackServiceSlug[]): GatableFeatureKey[] {
+  const enabled = new Set(computeEnabledFeatures(servicesSlugs));
 
   return ALL_GATABLE_FEATURES
-    .filter((f) => !enabled.has(f.key))
-    .map((f) => f.key);
+    .filter((feature) => !enabled.has(feature.key))
+    .map((feature) => feature.key);
 }

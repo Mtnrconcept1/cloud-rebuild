@@ -18,6 +18,7 @@ import {
   isTokOneEntitledStatus,
   syncTokOneSubscriptionRecord,
 } from "../_shared/tok-one.ts";
+import { computeDisabledDashboardFeatures } from "../_shared/pack-entitlements.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -500,23 +501,9 @@ Deno.serve(async (req) => {
             }
 
             // Auto-configure dashboard feature gating based on pack services
-            const SERVICE_FEATURES: Record<string, string[]> = {
-              mise_en_place: ["dashboard-overview","dashboard-restaurant","dashboard-menu","dashboard-commandes","dashboard-reservations","dashboard-service","dashboard-formules","dashboard-offres","dashboard-ventes-flash","dashboard-avis","dashboard-factures","dashboard-support","dashboard-pack"],
-              menu_creation: ["dashboard-menu"],
-              product_photography: ["dashboard-photos"],
-              social_media_setup: ["dashboard-reseaux-sociaux"],
-              advertising_campaign: ["dashboard-campagne-overview","dashboard-campagnes"],
-              floor_plan_design: ["dashboard-plan-salle"],
-              account_manager: ["dashboard-advisor","dashboard-recommandations","dashboard-performances","dashboard-comparaison"],
-            };
-            const ALL_FEATURES = ["dashboard-overview","dashboard-advisor","dashboard-restaurant","dashboard-menu","dashboard-photos","dashboard-commandes","dashboard-reservations","dashboard-recommandations","dashboard-performances","dashboard-comparaison","dashboard-avis","dashboard-campagne-overview","dashboard-reseaux-sociaux","dashboard-campagnes","dashboard-factures","dashboard-offres","dashboard-ventes-flash","dashboard-formules","dashboard-service","dashboard-plan-salle","dashboard-support","dashboard-pack"];
-            const ALWAYS_ENABLED = new Set(["dashboard-overview","dashboard-pack","dashboard-support"]);
-
-            const enabledByPack = new Set<string>(ALWAYS_ENABLED);
-            for (const svc of pack.services as Array<{ service: string }>) {
-              for (const f of (SERVICE_FEATURES[svc.service] || [])) enabledByPack.add(f);
-            }
-            const disabledFeatures = ALL_FEATURES.filter((f) => !enabledByPack.has(f));
+            const disabledFeatures = computeDisabledDashboardFeatures(
+              pack.services as Array<{ service?: string | null }>,
+            );
 
             const restaurantId = session.metadata?.restaurant_id || null;
             if (restaurantId) {
