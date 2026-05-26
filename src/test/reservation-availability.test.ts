@@ -1,0 +1,75 @@
+import { describe, expect, it } from "vitest";
+import { DEFAULT_SERVICE_SETTINGS, type ServiceSettingsMap } from "@/lib/serviceSettings";
+import {
+  buildReservationSlotGroups,
+  getSlotCapacityForTime,
+  isReservationCalendarDateDisabled,
+} from "@/lib/reservationAvailability";
+
+const withDinnerCapacity = (): ServiceSettingsMap => ({
+  ...DEFAULT_SERVICE_SETTINGS,
+  lunch: {
+    ...DEFAULT_SERVICE_SETTINGS.lunch,
+    service_closed: true,
+  },
+  dinner: {
+    ...DEFAULT_SERVICE_SETTINGS.dinner,
+    start_time: "19:00",
+    end_time: "23:30",
+    last_reservation_time: "23:00",
+    slot_interval_minutes: 60,
+    max_tables_per_slot: 8,
+    slot_capacity_windows: [
+      { start_time: "19:00", end_time: "23:00", max_tables: 10 },
+    ],
+  },
+});
+
+describe("reservation availability helpers", () => {
+  it("allows same-day reservations while disabling past calendar days", () => {
+    const now = new Date(2026, 4, 26, 15, 30);
+
+    expect(isReservationCalendarDateDisabled(new Date(2026, 4, 26), now)).toBe(false);
+    expect(isReservationCalendarDateDisabled(new Date(2026, 4, 25), now)).toBe(true);
+    expect(isReservationCalendarDateDisabled(new Date(2026, 4, 27), now)).toBe(false);
+  });
+
+  it("builds selectable blocks only for open future times and greys out full slots", () => {
+    const groups = buildReservationSlotGroups({
+      serviceSettings: withDinnerCapacity(),
+      selectedDate: new Date(2026, 4, 26),
+      now: new Date(2026, 4, 26, 19, 10),
+      reservedTablesByTime: {
+        "20:00": 10,
+        "21:00": 9,
+      },
+    });
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0].service).toBe("dinner");
+    expect(groups[0].slots.map((slot) => slot.time)).toEqual(["20:00", "21:00", "22:00", "23:00"]);
+    expect(groups[0].slots[0]).toMatchObject({
+      time: "20:00",
+      capacity: 10,
+      reservedTables: 10,
+      remainingTables: 0,
+      available: false,
+      disabledReason: "Complet",
+    });
+    expect(groups[0].slots[1]).toMatchObject({
+      time: "21:00",
+      capacity: 10,
+      reservedTables: 9,
+      remainingTables: 1,
+      available: true,
+    });
+  });
+
+  it("uses the configured capacity window for a slot time", () => {
+    const settings = withDinnerCapacity().dinner;
+
+    expect(getSlotCapacityForTime("19:00", settings)).toBe(10);
+    expect(getSlotCapacityForTime("22:00", settings)).toBe(10);
+    expect(getSlotCapacityForTime("18:30", settings)).toBe(8);
+  });
+});

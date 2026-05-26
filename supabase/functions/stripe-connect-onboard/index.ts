@@ -2,26 +2,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "npm:stripe@18.5.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 
 const getEnv = (name: string) => Deno.env.get(name)?.trim() || "";
-
-const ALLOWED_RETURN_HOSTS = new Set([
-  "tok.ch",
-  "www.tok.ch",
-  "app.tok.ch",
-  "localhost",
-  "127.0.0.1",
-]);
-
-function isReturnUrlAllowed(raw: unknown): boolean {
-  if (typeof raw !== "string" || !raw) return false;
-  try {
-    const url = new URL(raw);
-    return ALLOWED_RETURN_HOSTS.has(url.hostname);
-  } catch {
-    return false;
-  }
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -120,7 +103,7 @@ Deno.serve(async (req) => {
     // Validate return_url against allowlist to prevent open redirect.
     const siteUrl = Deno.env.get("SITE_URL") || "https://tok.ch";
     const fallbackReturn = `${siteUrl}/dashboard/restaurant`;
-    const safeReturnUrl = isReturnUrlAllowed(return_url) ? return_url : fallbackReturn;
+    const safeReturnUrl = normalizeCheckoutReturnUrl(return_url) || fallbackReturn;
 
     const accountLink = await stripe.accountLinks.create({
       account: accountId,

@@ -8,7 +8,7 @@ import { CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Heart, Loader2, 
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -21,6 +21,11 @@ import { useAuth } from "@/lib/auth";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
+import {
+  buildReservationSlotGroups,
+  isReservationCalendarDateDisabled,
+  type ReservationSlotAvailability,
+} from "@/lib/reservationAvailability";
 import { createReservationWithValidation } from "@/lib/reservationMutations";
 import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
 
@@ -54,6 +59,14 @@ interface MealFormulaRow {
   discount_percent: number;
   availability?: MealFormulaAvailability;
 }
+
+type SlotAvailabilityRow = {
+  slot_time: string;
+  reserved_tables: number;
+  capacity: number;
+  remaining_tables: number;
+  available: boolean;
+};
 
 export default function ReservationDialog({
   restaurantId,
@@ -155,6 +168,69 @@ export default function ReservationDialog({
     enabled: open && !!restaurantId,
   });
 
+  const selectedDateKey = date ? format(date, "yyyy-MM-dd") : null;
+
+  const { data: slotAvailability = [], isLoading: isSlotAvailabilityLoading } = useQuery({
+    queryKey: ["reservation-slot-availability", restaurantId, selectedDateKey],
+    queryFn: async () => {
+      if (!selectedDateKey) return [] as SlotAvailabilityRow[];
+
+      const { data, error } = await (supabase.rpc as any)("get_restaurant_reservation_slot_availability", {
+        p_restaurant_id: restaurantId,
+        p_date: selectedDateKey,
+      });
+
+      if (error) {
+        console.warn("Reservation slot availability fallback:", error.message);
+        return [] as SlotAvailabilityRow[];
+      }
+
+      return ((data || []) as SlotAvailabilityRow[]).map((row) => ({
+        ...row,
+        slot_time: String(row.slot_time || "").slice(0, 5),
+      }));
+    },
+    enabled: open && !!restaurantId && !!selectedDateKey,
+  });
+
+  const slotAvailabilityByTime = new Map(slotAvailability.map((slot) => [slot.slot_time, slot]));
+  const reservedTablesByTime = Object.fromEntries(
+    slotAvailability.map((slot) => [slot.slot_time, Number(slot.reserved_tables || 0)]),
+  );
+
+  const slotGroups = buildReservationSlotGroups({
+    serviceSettings: restaurantSettings || getServiceSettings(null),
+    selectedDate: date,
+    reservedTablesByTime,
+  }).map((group) => ({
+    ...group,
+    slots: group.slots.map((slot) => {
+      const serverSlot = slotAvailabilityByTime.get(slot.time);
+      if (!serverSlot) return slot;
+      const remainingTables = Math.max(0, Number(serverSlot.remaining_tables || 0));
+      const available = Boolean(serverSlot.available) && remainingTables > 0;
+      return {
+        ...slot,
+        capacity: Number(serverSlot.capacity || slot.capacity),
+        reservedTables: Number(serverSlot.reserved_tables || 0),
+        remainingTables,
+        available,
+        disabledReason: available ? null : "Complet",
+      };
+    }),
+  }));
+
+  const availableSlots = slotGroups.flatMap((group) => group.slots).filter((slot) => slot.available);
+  const selectedSlot = slotGroups.flatMap((group) => group.slots).find((slot) => slot.time === time) || null;
+
+  useEffect(() => {
+    if (!open || !date) return;
+    if (selectedSlot?.available) return;
+    if (availableSlots[0]) {
+      setTime(availableSlots[0].time);
+    }
+  }, [availableSlots, date, open, selectedSlot?.available]);
+
   useEffect(() => {
     if (!selectedPromo) return;
     if (!promos.some((promo) => promo.id === selectedPromo.id)) {
@@ -179,6 +255,14 @@ export default function ReservationDialog({
     }
     if (!isTimeWithinService(time, serviceSettings)) {
       toast({ title: "Horaire indisponible", variant: "destructive" });
+      return;
+    }
+    if (!selectedSlot?.available) {
+      toast({
+        title: "Creneau indisponible",
+        description: selectedSlot?.disabledReason || "Choisissez une heure encore disponible.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -245,6 +329,7 @@ export default function ReservationDialog({
     }
 
     queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+    queryClient.invalidateQueries({ queryKey: ["reservation-slot-availability", restaurantId] });
     setConfirmedReservation({
       id: reservationId,
       date: format(date, "yyyy-MM-dd"),
@@ -279,11 +364,38 @@ export default function ReservationDialog({
     onOpenChange(nextOpen);
   };
 
+  const renderSlotButton = (slot: ReservationSlotAvailability) => {
+    const isSelected = slot.time === time;
+    return (
+      <button
+        key={slot.time}
+        type="button"
+        disabled={!slot.available}
+        onClick={() => setTime(slot.time)}
+        className={`min-h-[54px] rounded-xl border px-3 py-2 text-left text-sm transition ${
+          isSelected
+            ? "border-primary bg-primary text-primary-foreground shadow"
+            : slot.available
+              ? "border-border bg-background hover:border-primary/50 hover:bg-primary/5"
+              : "cursor-not-allowed border-dashed bg-muted/60 text-muted-foreground opacity-70"
+        }`}
+      >
+        <span className="block font-semibold">{slot.time}</span>
+        <span className="text-[11px]">
+          {slot.available ? `${slot.remainingTables} table${slot.remainingTables > 1 ? "s" : ""}` : slot.disabledReason}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="overflow-hidden p-0 sm:max-w-md">
           <DialogTitle className="sr-only">Reservation</DialogTitle>
+          <DialogDescription className="sr-only">
+            Choisissez une date, un creneau disponible et le nombre de convives pour reserver une table.
+          </DialogDescription>
 
           <div className="flex items-center justify-center gap-2 px-6 pt-6">
             {steps.map((currentStep, index) => {
@@ -332,19 +444,52 @@ export default function ReservationDialog({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" selected={date} onSelect={setDate} disabled={(value) => value < new Date()} locale={fr} />
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        disabled={(value) => isReservationCalendarDateDisabled(value)}
+                        locale={fr}
+                      />
                     </PopoverContent>
                   </Popover>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      Heure
-                    </Label>
-                    <Input type="time" value={time} onChange={(event) => setTime(event.target.value)} />
-                  </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    Heure disponible
+                  </Label>
+                  {!date ? (
+                    <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                      Choisissez une date pour voir les horaires ouverts.
+                    </div>
+                  ) : isSlotAvailabilityLoading ? (
+                    <div className="flex items-center rounded-xl border p-4 text-sm text-muted-foreground">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verification des disponibilites...
+                    </div>
+                  ) : slotGroups.length > 0 ? (
+                    <div className="space-y-3">
+                      {slotGroups.map((group) => (
+                        <div key={group.service} className="space-y-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            {group.label}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            {group.slots.map(renderSlotButton)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                      Aucun creneau ouvert et disponible pour cette date.
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1.5">
                       <Users className="h-4 w-4 text-muted-foreground" />
@@ -354,7 +499,11 @@ export default function ReservationDialog({
                   </div>
                 </div>
 
-                <Button onClick={() => setStep(zeroWaitEnabled ? "mode" : "promo")} disabled={!date} className="w-full gap-2">
+                <Button
+                  onClick={() => setStep(zeroWaitEnabled ? "mode" : "promo")}
+                  disabled={!date || !selectedSlot?.available}
+                  className="w-full gap-2"
+                >
                   Suivant
                   <ChevronRight className="h-4 w-4" />
                 </Button>

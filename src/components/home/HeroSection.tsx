@@ -132,7 +132,8 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             </div>
             <button
               onClick={() => navigate("/notifications")}
-              className="neon-chip grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted/60"
+              className="neon-chip grid h-[44px] w-[44px] shrink-0 place-items-center rounded-full bg-muted/60"
+              aria-label="Notifications"
             >
               <Bell className="h-4.5 w-4.5 text-foreground" />
             </button>
@@ -147,24 +148,24 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             <div className="absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_50%_24%,rgba(255,255,255,0.82),transparent_38%)] dark:bg-[radial-gradient(circle_at_18%_10%,rgba(255,122,24,0.30),transparent_38%),radial-gradient(circle_at_88%_24%,rgba(34,211,238,0.18),transparent_34%)]" />
 
             <div className="relative z-10 p-5 pt-4">
-              <div className="mt-1 grid grid-cols-[minmax(0,1fr)_9.4rem] items-end gap-x-2 min-[381px]:grid-cols-[minmax(0,1fr)_10.8rem]">
-                <div className="min-w-0 space-y-1.5 pr-1">
+              <div className="mt-1 grid grid-cols-1 items-end gap-y-1 min-[381px]:grid-cols-[minmax(0,1fr)_10.8rem] min-[381px]:gap-x-2">
+                <div className="min-w-0 space-y-1.5 min-[381px]:pr-1">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#6b7280] dark:text-orange-200/90">
                     Reservations, commandes, bons plans
                   </p>
-                  <h1 className="font-display text-[1.72rem] font-bold leading-[0.92] tracking-[-0.045em] text-[#21314b] min-[381px]:text-[2rem] min-[381px]:leading-[0.94] dark:text-white dark:drop-shadow-[0_0_24px_rgba(255,255,255,0.14)]">
+                  <h1 className="font-display text-[1.55rem] font-bold leading-[1] tracking-normal text-[#21314b] min-[381px]:text-[2rem] min-[381px]:leading-[0.96] dark:text-white dark:drop-shadow-[0_0_24px_rgba(255,255,255,0.14)]">
                     Trouvez votre prochaine table sans detour
                   </h1>
-                  <p className="text-sm leading-6 text-[#394b67] dark:text-slate-200">
+                  <p className="text-[13px] leading-5 text-[#394b67] min-[381px]:text-sm min-[381px]:leading-6 dark:text-slate-200">
                     Cherchez un resto, une cuisine ou une ville, puis ouvrez directement la meilleure fiche.
                   </p>
                 </div>
-                <div className="relative h-[11.25rem] self-end min-[381px]:h-[13rem]">
+                <div className="relative mx-auto h-[6.25rem] w-full max-w-[12rem] self-end overflow-hidden min-[381px]:h-[13rem] min-[381px]:max-w-none min-[381px]:overflow-visible">
                   <img
                     aria-hidden="true"
                     alt=""
                     src="/chef.png"
-                    className="pointer-events-none absolute bottom-0 right-[-26px] w-[180px] max-w-none object-contain drop-shadow-[0_16px_28px_rgba(0,0,0,0.18)] min-[381px]:right-[-30px] min-[381px]:w-[220px]"
+                    className="pointer-events-none absolute bottom-[-16px] left-1/2 w-[144px] max-w-none -translate-x-1/2 object-contain drop-shadow-[0_16px_28px_rgba(0,0,0,0.18)] min-[381px]:bottom-0 min-[381px]:left-auto min-[381px]:right-[-30px] min-[381px]:w-[220px] min-[381px]:translate-x-0"
                   />
                 </div>
               </div>
@@ -183,14 +184,15 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                     <button
                       type="button"
                       onClick={startVoiceSearch}
-                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition ${isListening ? "animate-pulse bg-red-500" : "bg-primary"}`}
+                      className={`grid h-[44px] w-[44px] shrink-0 place-items-center rounded-full transition ${isListening ? "animate-pulse bg-red-500" : "bg-primary"}`}
+                      aria-label="Recherche vocale"
                     >
                       <Mic className="h-4 w-4 text-white" />
                     </button>
                   </div>
                   <button
                     type="submit"
-                    className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-[20px] bg-[#ff6b1c] px-5 text-sm font-extrabold uppercase tracking-[0.08em] text-white shadow-[0_14px_28px_rgba(255,107,28,0.28)] transition-all hover:bg-[#ff7528]"
+                    className="mt-2 inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-[20px] bg-[#ff6b1c] px-5 text-sm font-extrabold uppercase tracking-[0.08em] text-white shadow-[0_14px_28px_rgba(255,107,28,0.28)] transition-all hover:bg-[#ff7528]"
                   >
                     Explorer les restaurants
                     <ArrowRight className="h-4 w-4" />
@@ -202,7 +204,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <button
                   type="button"
                   onClick={() => navigate("/recherche?sort=plus_reserves_mois")}
-                  className="neon-chip inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
+                  className="neon-chip inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
                 >
                   <Clock3 className="h-3.5 w-3.5 text-[#ff6b1c]" />
                   Ce soir
@@ -210,7 +212,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 <button
                   type="button"
                   onClick={() => navigate("/recherche?sort=promotion&promo=true")}
-                  className="neon-chip inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
+                  className="neon-chip inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
                 >
                   <Star className="h-3.5 w-3.5 text-[#ff6b1c]" />
                   Bons plans
@@ -219,7 +221,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                   <button
                     type="button"
                     onClick={() => navigate("/recherche?delivery=true")}
-                    className="neon-chip inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
+                    className="neon-chip inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3.5 py-2 text-xs font-semibold text-[#30405a] shadow-sm backdrop-blur-md"
                   >
                     <Truck className="h-3.5 w-3.5 text-[#ff6b1c]" />
                     Livraison
@@ -261,7 +263,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           />
 
           <motion.div variants={fadeUp} className="max-w-[960px] space-y-3">
-            <h1 className="font-display text-[3.95rem] font-bold leading-[0.94] tracking-[-0.045em] text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)] lg:text-[5.15rem]">
+            <h1 className="font-display text-[3.95rem] font-bold leading-[0.96] tracking-normal text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)] lg:text-[5.15rem]">
               <span className="block">Decouvrez et reservez le</span>
               <span className="block italic text-[#ff6b1c]">meilleur restaurant</span>
             </h1>

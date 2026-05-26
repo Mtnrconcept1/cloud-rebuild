@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Settings, Store, SunMedium, MoonStar } from "lucide-react";
+import { Clock, MoonStar, Plus, Settings, Store, SunMedium, Trash2 } from "lucide-react";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useDashboardRestaurant } from "./DashboardContext";
 import {
@@ -21,6 +21,7 @@ import {
   type ServicePeriod,
   type ServiceSettings,
   type ServiceSettingsMap,
+  type ServiceSlotCapacityWindow,
   validateServiceSettings,
 } from "@/lib/serviceSettings";
 
@@ -87,6 +88,61 @@ export default function DashboardService() {
         [field]: value,
       },
     }));
+  };
+
+  const updateCapacityWindow = <K extends keyof ServiceSlotCapacityWindow>(
+    period: ServicePeriod,
+    index: number,
+    field: K,
+    value: ServiceSlotCapacityWindow[K],
+  ) => {
+    setServiceSettings((current) => {
+      const windows = [...current[period].slot_capacity_windows];
+      windows[index] = { ...windows[index], [field]: value };
+      return {
+        ...current,
+        [period]: {
+          ...current[period],
+          slot_capacity_windows: windows,
+        },
+      };
+    });
+  };
+
+  const addCapacityWindow = (period: ServicePeriod) => {
+    setServiceSettings((current) => ({
+      ...current,
+      [period]: {
+        ...current[period],
+        slot_capacity_windows: [
+          ...current[period].slot_capacity_windows,
+          {
+            start_time: current[period].start_time,
+            end_time: current[period].last_reservation_time,
+            max_tables: current[period].max_tables_per_slot,
+          },
+        ],
+      },
+    }));
+  };
+
+  const removeCapacityWindow = (period: ServicePeriod, index: number) => {
+    setServiceSettings((current) => {
+      const windows = current[period].slot_capacity_windows.filter((_, currentIndex) => currentIndex !== index);
+      return {
+        ...current,
+        [period]: {
+          ...current[period],
+          slot_capacity_windows: windows.length > 0
+            ? windows
+            : [{
+              start_time: current[period].start_time,
+              end_time: current[period].last_reservation_time,
+              max_tables: current[period].max_tables_per_slot,
+            }],
+        },
+      };
+    });
   };
 
   const handleSave = async () => {
@@ -235,6 +291,86 @@ export default function DashboardService() {
                         value={settings.max_party_size}
                         onChange={(event) => updateServiceField(period.key, "max_party_size", Number(event.target.value))}
                       />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 rounded-xl border bg-muted/20 p-3">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold">Tables disponibles par creneau</p>
+                        <p className="text-xs text-muted-foreground">
+                          Exemple : 10 tables entre 19:00 et 23:00. Quand la limite est atteinte, le creneau devient complet.
+                        </p>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={() => addCapacityWindow(period.key)}>
+                        <Plus className="h-4 w-4" />
+                        Ajouter
+                      </Button>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Intervalle des blocs</Label>
+                        <Input
+                          type="number"
+                          min={5}
+                          step={5}
+                          value={settings.slot_interval_minutes}
+                          onChange={(event) => updateServiceField(period.key, "slot_interval_minutes", Number(event.target.value))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Tables par defaut</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={settings.max_tables_per_slot}
+                          onChange={(event) => updateServiceField(period.key, "max_tables_per_slot", Number(event.target.value))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {settings.slot_capacity_windows.map((window, index) => (
+                        <div key={`${period.key}-${index}`} className="grid gap-2 rounded-lg border bg-background p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
+                          <div className="space-y-2">
+                            <Label>De</Label>
+                            <Input
+                              type="time"
+                              value={window.start_time}
+                              onChange={(event) => updateCapacityWindow(period.key, index, "start_time", event.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>A</Label>
+                            <Input
+                              type="time"
+                              value={window.end_time}
+                              onChange={(event) => updateCapacityWindow(period.key, index, "end_time", event.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Tables</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={window.max_tables}
+                              onChange={(event) => updateCapacityWindow(period.key, index, "max_tables", Number(event.target.value))}
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeCapacityWindow(period.key, index)}
+                              aria-label="Supprimer cette plage"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 

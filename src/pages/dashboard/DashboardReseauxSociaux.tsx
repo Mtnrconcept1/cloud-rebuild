@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
+import { normalizeSocialUrl } from "@/lib/securityUrls";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 
 const supabase = getSupabase();
@@ -106,14 +107,31 @@ export default function DashboardReseauxSociaux() {
       target?.opening_hours && typeof target.opening_hours === "object" && !Array.isArray(target.opening_hours)
         ? (target.opening_hours as Record<string, Json>)
         : {};
+    const normalizedLinks = {
+      social_instagram: form.instagram.trim() ? normalizeSocialUrl(form.instagram, "instagram") : null,
+      social_facebook: form.facebook.trim() ? normalizeSocialUrl(form.facebook, "facebook") : null,
+      social_website: form.website.trim() ? normalizeSocialUrl(form.website, "website") : null,
+      social_tiktok: form.tiktok.trim() ? normalizeSocialUrl(form.tiktok, "tiktok") : null,
+    };
+
+    if (
+      (form.instagram.trim() && !normalizedLinks.social_instagram)
+      || (form.facebook.trim() && !normalizedLinks.social_facebook)
+      || (form.website.trim() && !normalizedLinks.social_website)
+      || (form.tiktok.trim() && !normalizedLinks.social_tiktok)
+    ) {
+      toast({
+        title: "URL invalide",
+        description: "Utilisez des URLs HTTPS valides et les domaines attendus pour chaque reseau.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const payload = {
       opening_hours: {
         ...existingOh,
-        social_instagram: form.instagram.trim() || null,
-        social_facebook: form.facebook.trim() || null,
-        social_website: form.website.trim() || null,
-        social_tiktok: form.tiktok.trim() || null,
+        ...normalizedLinks,
       },
     };
 
@@ -302,9 +320,12 @@ function SocialLink({
   url: string;
   onClear: () => void;
 }) {
+  const safeUrl = normalizeSocialUrl(url, label === "Site web" ? "website" : label.toLowerCase() as "instagram" | "facebook" | "tiktok");
+  if (!safeUrl) return null;
+
   return (
     <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 p-2">
-      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm hover:text-primary">
+      <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm hover:text-primary">
         {Icon ? <Icon className="h-4 w-4" /> : null}
         {label}
         <ExternalLink className="h-3 w-3" />

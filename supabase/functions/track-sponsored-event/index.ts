@@ -12,6 +12,7 @@ import {
 } from "../_shared/campaign-pricing.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
 
 const IMPRESSION_WINDOW_MS = 30 * 60 * 1000;
 const CLICK_WINDOW_MS = 5 * 60 * 1000;
@@ -124,6 +125,15 @@ Deno.serve(async (req) => {
 
     const adminClient = createAdminClient();
     const userId = await maybeResolveUserId(req);
+    const limiter = createRateLimiter(adminClient, "track-sponsored-event");
+    const clientIp = getClientIp(req) || "unknown";
+
+    await limiter.consume(`ip:${clientIp}`, { maxRequests: 120, windowSeconds: 60 });
+    await limiter.consume(`campaign:${campaignId}:event:${eventType}`, { maxRequests: 1000, windowSeconds: 60 });
+    await limiter.consume(`viewer:${viewerId}:campaign:${campaignId}`, { maxRequests: 60, windowSeconds: 300 });
+    if (eventType === "conversion") {
+      await limiter.consume(`conversion:${viewerId}:campaign:${campaignId}`, { maxRequests: 10, windowSeconds: 3600 });
+    }
 
     const { data: campaign, error: campaignError } = await adminClient
       .from("ad_campaigns")

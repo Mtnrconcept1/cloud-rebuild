@@ -221,12 +221,12 @@ export default function Abonnement() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-500/10">
               <Repeat className="h-6 w-6 text-purple-500" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h1 className="font-display text-3xl font-bold">Abonnement repas</h1>
               <p className="text-muted-foreground text-sm">Planifiez vos repas de la semaine</p>
             </div>
@@ -235,7 +235,7 @@ export default function Abonnement() {
             <Button
               variant="outline"
               onClick={() => setPaused(!paused)}
-              className={`gap-2 ${paused ? "border-amber-500 text-amber-600" : ""}`}
+              className={`w-full gap-2 sm:w-auto ${paused ? "border-amber-500 text-amber-600" : ""}`}
             >
               {paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
               {paused ? "Reprendre" : "Pause vacances"}

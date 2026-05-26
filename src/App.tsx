@@ -172,6 +172,9 @@ function AppShell() {
   const flashSalesEnabled = hasFeature("ventes-flash");
   const actualitesSocialesEnabled = hasFeature("actualites-sociales");
   const reservationEnabled = hasFeature("reservation");
+  const abonnementEnabled = hasFeature("abonnement");
+  const tokOneEnabled = hasFeature("tok-one");
+  const giftPointsEnabled = hasFeature("points-cadeau");
   const dashboardOverviewEnabled = hasFeature("dashboard-overview");
   const dashboardAdvisorEnabled = hasFeature("dashboard-advisor");
   const dashboardRestaurantEnabled = hasFeature("dashboard-restaurant");
@@ -241,9 +244,9 @@ function AppShell() {
           <Route path="/zero-attente" element={<FeatureSwitch enabled={hasFeature("zero-attente")}><ZeroAttente /></FeatureSwitch>} />
           <Route path="/garantie-qualite" element={<FeatureSwitch enabled={hasFeature("garantie-qualite")}><GarantieQualite /></FeatureSwitch>} />
           <Route path="/budget-auto" element={<FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch>} />
-          <Route path="/abonnement" element={<Abonnement />} />
-          <Route path="/tok-one" element={<TokOne />} />
-          <Route path="/points-cadeau" element={<ProtectedRoute><GiftPoints /></ProtectedRoute>} />
+          <Route path="/abonnement" element={<FeatureSwitch enabled={abonnementEnabled}><Abonnement /></FeatureSwitch>} />
+          <Route path="/tok-one" element={<FeatureSwitch enabled={tokOneEnabled}><TokOne /></FeatureSwitch>} />
+          <Route path="/points-cadeau" element={<ProtectedRoute><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />
           <Route path="/actualites" element={<ProtectedRoute><FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />

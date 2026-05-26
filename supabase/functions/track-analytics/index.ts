@@ -7,6 +7,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -50,6 +51,11 @@ function asObject(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function getClientIp(req: Request) {
+  const forwardedFor = req.headers.get("x-forwarded-for") || "";
+  return forwardedFor.split(",")[0]?.trim() || "unknown";
+}
+
 async function maybeResolveUserId(req: Request) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) return null;
@@ -86,6 +92,14 @@ Deno.serve(async (req) => {
     const kind = normalizeKind(input.kind);
     const adminClient = createAdminClient();
     const userId = await maybeResolveUserId(req);
+    const limiter = createRateLimiter(adminClient, "track-analytics");
+    const ipSubject = `ip:${getClientIp(req)}`;
+
+    await limiter.consume(ipSubject, { maxRequests: 240, windowSeconds: 60 });
+    await limiter.consume(`${ipSubject}:kind:${kind || "unknown"}`, { maxRequests: 120, windowSeconds: 60 });
+    if (userId) {
+      await limiter.consume(`user:${userId}`, { maxRequests: 600, windowSeconds: 300 });
+    }
 
     switch (kind) {
       case "event": {

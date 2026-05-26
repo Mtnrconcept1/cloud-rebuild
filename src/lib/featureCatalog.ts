@@ -147,7 +147,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "journeys",
     requiresAnyOf: ["livraison", "emporter"],
-    routeTargets: ["/commandes", "/commande/:id"],
+    routeTargets: ["/commandes", "/commande/confirmation", "/commande/:id"],
   },
   {
     name: "anti-gaspi",
@@ -271,6 +271,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/tok-one"],
   },
   {
+    name: "points-cadeau",
+    label: "Points cadeau",
+    description: "Active la page de fidelite et d'utilisation des points cadeau.",
+    defaultEnabled: true,
+    group: "client_features",
+    routeTargets: ["/points-cadeau"],
+  },
+  {
     name: "campagnes-pub",
     label: "Campagnes pub",
     description: "Active les mises en avant sponsorisees et la gestion des campagnes.",
@@ -371,7 +379,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "performances"],
-    routeTargets: ["/dashboard/performances"],
+    routeTargets: ["/dashboard/performances", "/dashboard/compta"],
   },
   {
     name: "dashboard-comparaison",
@@ -434,7 +442,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
-    routeTargets: ["/dashboard/factures"],
+    routeTargets: ["/dashboard/factures", "/dashboard/factures/entrees", "/dashboard/factures/sorties"],
   },
   {
     name: "dashboard-factures-parametres",
@@ -647,7 +655,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Expose l'outil de rapprochement financier et le suivi des commissions 10% / reversements 90%.",
     defaultEnabled: true,
     group: "admin_tools",
-    routeTargets: ["/admin/compta"],
+    routeTargets: ["/admin/compta", "/admin/compta/entrees", "/admin/compta/sorties"],
   },
 ];
 
