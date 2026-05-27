@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 import {
+  type ReservationPlacementScore,
   type ReservationDropState,
   type ServiceDraftTable,
   type ServiceReservation,
@@ -57,7 +58,7 @@ type TableContextDrawerProps = {
   selectedReservationPreorderItems: ReservationPreorderItem[];
   selectedReservationSpecialRequest: string | null;
   selectedPairDropState: ReservationDropState | null;
-  compatibleTables: ServiceDraftTable[];
+  compatibleTables: Array<{ table: ServiceDraftTable; placement: ReservationPlacementScore }>;
   compatibleReservations: ServiceReservation[];
   onOpenChange: (open: boolean) => void;
   onClearSelection: () => void;
@@ -165,7 +166,7 @@ export default function TableContextDrawer({
         ? getReservationCustomerLabel(selectedReservation)
         : "Contexte service";
   const compatibleTablesSummary = getShortListLabel(
-    compatibleTables.map((table) => `${table.table_number} (${table.capacity})`),
+    compatibleTables.map(({ table, placement }) => `${table.table_number} (${placement.score}/100)`),
     "Aucune table",
   );
   const compatibleReservationsSummary = getShortListLabel(
@@ -284,16 +285,26 @@ export default function TableContextDrawer({
                   summary={compatibleTablesSummary}
                 >
                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                    {compatibleTables.map((table) => (
+                    {compatibleTables.map(({ table, placement }) => (
                       <Button
                         key={table.id}
                         type="button"
                         variant="outline"
-                        className="h-auto justify-between rounded-2xl border-slate-200 px-4 py-3 text-left"
+                        className="h-auto justify-between gap-3 rounded-2xl border-slate-200 px-4 py-3 text-left"
                         onClick={() => onAssignReservationToTable(selectedReservation.id, table.id)}
                       >
-                        <span className="font-semibold">{table.table_number}</span>
-                        <span className="text-xs text-slate-500">{table.capacity} couv.</span>
+                        <span className="min-w-0">
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span className="truncate font-semibold">{table.table_number}</span>
+                            <Badge variant="outline" className="shrink-0 border-orange-200 bg-orange-50 text-orange-800">
+                              {placement.score}/100
+                            </Badge>
+                          </span>
+                          <span className="mt-1 block truncate text-xs text-slate-500">
+                            {placement.reasons[0] || `${table.capacity} couv.`}
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-xs text-slate-500">{table.capacity} couv.</span>
                       </Button>
                     ))}
                   </div>

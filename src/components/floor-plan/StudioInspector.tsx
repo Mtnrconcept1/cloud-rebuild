@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { getFloorPlanItemTypeLabel } from "@/lib/floorPlan";
+import { getFloorPlanItemTypeLabel, getMinimumTableSize } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable } from "./studioShared";
@@ -35,6 +35,7 @@ type StudioInspectorProps = {
   onRemove: () => void;
   onUpdateFurnitureWidth: (value: number) => void;
   onUpdateFurnitureHeight: (value: number) => void;
+  onUpdateFurnitureSize: (width: number, height: number) => void;
 };
 
 function clampDimension(value: number, fallback: number) {
@@ -56,7 +57,12 @@ export default function StudioInspector({
   onRemove,
   onUpdateFurnitureWidth,
   onUpdateFurnitureHeight,
+  onUpdateFurnitureSize,
 }: StudioInspectorProps) {
+  const furnitureMinimum = selectedTable && !selectedTableIsReservable
+    ? getMinimumTableSize(selectedTable.capacity, selectedTable.layout.shape, selectedTable.layout.kind)
+    : null;
+
   return (
     <Card className="flex min-h-0 flex-col overflow-hidden rounded-[30px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
       <CardHeader className="space-y-3 border-b border-slate-200/80 pb-4">
@@ -158,6 +164,13 @@ export default function StudioInspector({
                     </p>
                   </div>
                 </div>
+                {selectedTableDimensions ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                    Empreinte {Math.round(selectedTableDimensions.footprintWidth)} x {Math.round(selectedTableDimensions.footprintHeight)} px
+                    {" - "}
+                    plateau {Math.round(selectedTableDimensions.tableWidth)} x {Math.round(selectedTableDimensions.tableHeight)} px
+                  </div>
+                ) : null}
                 <Button type="button" variant="outline" className="justify-start rounded-2xl" onClick={onConfigureTable}>
                   <Armchair className="mr-2 h-4 w-4" />
                   Configurer les assises
@@ -174,7 +187,8 @@ export default function StudioInspector({
                     <Label>Largeur</Label>
                     <Input
                       type="number"
-                      min={1}
+                      min={furnitureMinimum?.w || 1}
+                      step={1}
                       value={Math.round(selectedTable.layout.w)}
                       onChange={(event) => onUpdateFurnitureWidth(clampDimension(Number(event.target.value), selectedTable.layout.w))}
                     />
@@ -183,14 +197,49 @@ export default function StudioInspector({
                     <Label>Profondeur</Label>
                     <Input
                       type="number"
-                      min={1}
+                      min={furnitureMinimum?.h || 1}
+                      step={1}
                       value={Math.round(selectedTable.layout.h)}
                       onChange={(event) => onUpdateFurnitureHeight(clampDimension(Number(event.target.value), selectedTable.layout.h))}
                     />
                   </div>
                 </div>
+                {furnitureMinimum ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-2xl"
+                      onClick={() => onUpdateFurnitureSize(furnitureMinimum.w, furnitureMinimum.h)}
+                    >
+                      Mini
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-2xl"
+                      onClick={() => onUpdateFurnitureSize(
+                        Math.max(furnitureMinimum.w, Math.round(selectedTable.layout.w * 0.75)),
+                        Math.max(furnitureMinimum.h, Math.round(selectedTable.layout.h * 0.75)),
+                      )}
+                    >
+                      -25%
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-2xl"
+                      onClick={() => onUpdateFurnitureSize(
+                        Math.round(selectedTable.layout.w * 1.25),
+                        Math.round(selectedTable.layout.h * 1.25),
+                      )}
+                    >
+                      +25%
+                    </Button>
+                  </div>
+                ) : null}
                 <p className="text-sm text-slate-500">
-                  Le mobilier non-table garde un paramétrage minimal: taille, rotation, secteur et visibilité.
+                  Minimum {furnitureMinimum?.w || 1} x {furnitureMinimum?.h || 1} px. Les petits objets restent manipulables directement sur le plan.
                 </p>
               </div>
             )}

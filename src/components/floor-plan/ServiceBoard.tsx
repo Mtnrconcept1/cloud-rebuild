@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { FloorPlanResizeHandle } from "@/lib/floorPlan";
+import { isReservableFloorPlanItem, type FloorPlanResizeHandle } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import {
@@ -18,6 +18,7 @@ import {
   getReservationCustomerLabel,
   getSafeTime,
   getTableDensity,
+  getTableServiceState,
   isZeroAttenteReservation,
 } from "./serviceShared";
 
@@ -41,6 +42,8 @@ type ServiceBoardProps = {
   unassignedReservationsCount: number;
   onTablePress: (tableId: string) => void;
   onPrimaryReservationPress: (reservationId: string, tableId: string) => void;
+  onReservationStatusChange: (reservationId: string, status: string) => void;
+  onReleaseReservation: (reservationId: string) => void;
   onCanvasWheel: (event: WheelEvent<HTMLDivElement>) => void;
   onCanvasDragOver: (event: DragEvent<HTMLDivElement>) => void;
   onCanvasDrop: (event: DragEvent<HTMLDivElement>) => void;
@@ -128,6 +131,32 @@ function getSurfaceState({
   };
 }
 
+function getDropAwareSurfaceState({
+  baseState,
+  selectedReservationDropState,
+}: {
+  baseState: ReturnType<typeof getTableServiceState>;
+  selectedReservationDropState: ReservationDropState | null;
+}) {
+  if (!selectedReservationDropState) return baseState;
+
+  return selectedReservationDropState.ok
+    ? {
+        haloClass: "bg-emerald-300/55 shadow-[0_28px_65px_-38px_rgba(16,185,129,0.45)]",
+        chipClass: "border-emerald-300 bg-emerald-50 text-emerald-700",
+        label: "Compatible",
+        detail: null,
+        key: "free" as const,
+      }
+    : {
+        haloClass: "bg-rose-300/55 shadow-[0_28px_65px_-38px_rgba(244,63,94,0.45)]",
+        chipClass: "border-rose-300 bg-rose-50 text-rose-700",
+        label: "Conflit",
+        detail: null,
+        key: "late" as const,
+      };
+}
+
 export default function ServiceBoard({
   selectedSector,
   subtitle,
@@ -148,6 +177,8 @@ export default function ServiceBoard({
   unassignedReservationsCount,
   onTablePress,
   onPrimaryReservationPress,
+  onReservationStatusChange,
+  onReleaseReservation,
   onCanvasWheel,
   onCanvasDragOver,
   onCanvasDrop,
@@ -161,6 +192,15 @@ export default function ServiceBoard({
   getRenderedFrame,
   getTableContentPadding,
 }: ServiceBoardProps) {
+  const startFurnitureSurfaceDrag = (
+    event: PointerEvent<HTMLDivElement>,
+    table: ServiceDraftTable,
+  ) => {
+    if (isReservableFloorPlanItem(table.layout.kind)) return;
+    if ((event.target as HTMLElement).closest("button")) return;
+    onStartDraggingTable(event, table.id);
+  };
+
   return (
     <Card className="flex min-h-0 flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
       <CardHeader className="space-y-4 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-4">
@@ -303,14 +343,17 @@ export default function ServiceBoard({
                     const selectedReservationDropState = selectedReservationId && isReservable
                       ? getReservationDropState(selectedReservationId, table.id)
                       : null;
-                    const surfaceState = getSurfaceState({
+                    const serviceState = getTableServiceState({
                       isReservable,
-                      assignmentsCount: assignments.length,
-                      isZeroAttentePrimary: primaryAssignment ? isZeroAttenteReservation(primaryAssignment) : false,
+                      assignments,
+                    });
+                    const surfaceState = getDropAwareSurfaceState({
+                      baseState: serviceState,
                       selectedReservationDropState,
                     });
                     const isSelected = table.id === selectedTableId;
                     const isDragTarget = dragOverTableId === table.id && !!draggedReservationId;
+                    const showQuickActions = isSelected && isReservable && primaryAssignment && density === "regular";
                     const canDropHere = draggedReservationId && isReservable
                       ? getReservationDropState(draggedReservationId, table.id).ok
                       : false;
@@ -325,8 +368,10 @@ export default function ServiceBoard({
                           width: renderedFrame.w,
                           height: renderedFrame.h,
                           zIndex: isSelected ? 40 : assignments.length > 0 ? 24 : 12,
+                          cursor: !isReservable ? "grab" : undefined,
                         }}
                         onClick={() => onTablePress(table.id)}
+                        onPointerDown={(event) => startFurnitureSurfaceDrag(event, table)}
                       >
                         <div className={cn(
                           "pointer-events-none absolute inset-0 rounded-[28px] blur-[16px]",
@@ -362,7 +407,7 @@ export default function ServiceBoard({
                           </div>
 
                           {isSelected ? (
-                            <div className="pointer-events-none absolute inset-[-3px] rounded-[24px] border-2 border-slate-950/70 shadow-[0_0_0_4px_rgba(255,255,255,0.6)]" />
+                            <div className="pointer-events-none absolute inset-[-3px] rounded-[24px] border-2 border-orange-500/80 shadow-[0_0_0_4px_rgba(255,255,255,0.68)]" />
                           ) : null}
 
                           {isDragTarget ? (
@@ -407,6 +452,12 @@ export default function ServiceBoard({
                                   {surfaceState.label}
                                 </Badge>
                               </div>
+
+                              {serviceState.detail && density === "regular" ? (
+                                <div className="mt-1 inline-flex w-fit rounded-full border border-white/75 bg-white/82 px-2 py-0.5 text-[9px] font-semibold text-slate-600 shadow-sm">
+                                  {serviceState.detail}
+                                </div>
+                              ) : null}
 
                               <div className={cn(
                                 "flex min-h-0 flex-1 flex-col items-center justify-center",
@@ -455,6 +506,55 @@ export default function ServiceBoard({
                                   </div>
                                 )}
 
+                                {showQuickActions ? (
+                                  <div className="flex max-w-full flex-wrap justify-center gap-1">
+                                    <button
+                                      type="button"
+                                      aria-label={`Marquer ${getReservationCustomerLabel(primaryAssignment)} arrive`}
+                                      className="rounded-full border border-sky-200 bg-white/92 px-2 py-1 text-[9px] font-semibold text-sky-700 shadow-sm transition-colors hover:bg-sky-50"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        onReservationStatusChange(primaryAssignment.id, "arrived");
+                                      }}
+                                    >
+                                      Arrive
+                                    </button>
+                                    <button
+                                      type="button"
+                                      aria-label={`Installer ${getReservationCustomerLabel(primaryAssignment)}`}
+                                      className="rounded-full border border-emerald-200 bg-white/92 px-2 py-1 text-[9px] font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        onReservationStatusChange(primaryAssignment.id, "seated");
+                                      }}
+                                    >
+                                      Installe
+                                    </button>
+                                    <button
+                                      type="button"
+                                      aria-label={`Marquer ${getReservationCustomerLabel(primaryAssignment)} no-show`}
+                                      className="rounded-full border border-rose-200 bg-white/92 px-2 py-1 text-[9px] font-semibold text-rose-700 shadow-sm transition-colors hover:bg-rose-50"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        onReservationStatusChange(primaryAssignment.id, "no_show");
+                                      }}
+                                    >
+                                      No-show
+                                    </button>
+                                    <button
+                                      type="button"
+                                      aria-label={`Liberer ${table.table_number}`}
+                                      className="rounded-full border border-slate-200 bg-white/92 px-2 py-1 text-[9px] font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        onReleaseReservation(primaryAssignment.id);
+                                      }}
+                                    >
+                                      Liberer
+                                    </button>
+                                  </div>
+                                ) : null}
+
                                 {assignments.length > 1 && density !== "tight" ? (
                                   <span className={cn(
                                     "font-medium text-slate-500 drop-shadow-[0_1px_1px_rgba(255,255,255,0.75)]",
@@ -496,14 +596,16 @@ export default function ServiceBoard({
                                 type="button"
                                 aria-label={`Redimensionner ${table.table_number}`}
                                 className={cn(
-                                  "absolute h-3.5 w-3.5 rounded-full border border-slate-900/15 bg-white shadow-sm",
-                                  handle.className,
-                                )}
-                                style={{ cursor: handle.cursor }}
-                                onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
-                              />
-                            ))
-                            : null}
+                                "absolute h-6 w-6 touch-none rounded-full border border-slate-900/15 bg-white shadow-sm transition-transform hover:scale-110",
+                                handle.className,
+                              )}
+                              style={{ cursor: handle.cursor }}
+                              onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
+                            >
+                              <span className="absolute inset-[8px] rounded-full bg-slate-800" />
+                            </button>
+                          ))
+                          : null}
                         </div>
 
                         {isSelected ? (

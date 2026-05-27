@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import {
   buildDraftFloorPlanLayout,
   buildSeatLabels,
+  buildFloorPlanViewportModel,
   clampFloorPlanLayout,
   ensureFloorPlanLayoutFitsCapacity,
   getMinimumTableSize,
@@ -13,6 +14,7 @@ import {
   getResolvedFloorPlanDimensions,
   isReservableFloorPlanItem,
   reservationsOverlap,
+  updateFloorPlanItemLayoutById,
   resizeFloorPlanLayoutToFootprint,
   resizeRenderedFloorPlanFrame,
 } from "@/lib/floorPlan";
@@ -126,6 +128,26 @@ describe("floor plan helpers", () => {
     expect(serviceStation.footprintHeight).toBe(120);
   });
 
+  it("allows furniture to be reduced to compact icon-scale sizes", () => {
+    const plant = ensureFloorPlanLayoutFitsCapacity(
+      { x: 40, y: 40, w: 28, h: 28, rotation: 0, shape: "round", seatLabels: [], kind: "plant" },
+      0,
+      "round",
+      "plant",
+    );
+    const divider = ensureFloorPlanLayoutFitsCapacity(
+      { x: 40, y: 40, w: 24, h: 8, rotation: 0, shape: "rect", seatLabels: [], kind: "divider" },
+      0,
+      "rect",
+      "divider",
+    );
+
+    expect(plant.w).toBe(28);
+    expect(plant.h).toBe(28);
+    expect(divider.w).toBe(24);
+    expect(divider.h).toBe(8);
+  });
+
   it("resizes rendered frames by axis and keeps corner handles proportional", () => {
     const frame = { x: 100, y: 80, w: 200, h: 100 };
 
@@ -221,6 +243,92 @@ describe("floor plan helpers", () => {
     const bottomRight = getLogicalFloorPlanPositionFromRenderedFrame(layout, 99999, 99999, 1.25, 1040, 680);
     expect(bottomRight.x).toBeCloseTo(1040 - layout.w - 16, 5);
     expect(bottomRight.y).toBeCloseTo(680 - layout.h - 16, 5);
+  });
+
+  it("builds a sector viewport model with frames, counts and topmost reservable hit testing", () => {
+    const tables = [
+      {
+        id: "inactive",
+        table_number: "Inactive",
+        capacity: 2,
+        is_active: false,
+        sector: "Salle",
+        layout: { x: 40, y: 40, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+      },
+      {
+        id: "other-sector",
+        table_number: "Other",
+        capacity: 2,
+        is_active: true,
+        sector: "Terrasse",
+        layout: { x: 40, y: 40, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+      },
+      {
+        id: "b",
+        table_number: "B",
+        capacity: 4,
+        is_active: true,
+        sector: "Salle",
+        layout: { x: 80, y: 80, w: 140, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1, 1, 1] },
+      },
+      {
+        id: "plant",
+        table_number: "Plante",
+        capacity: 0,
+        is_active: true,
+        sector: "Salle",
+        layout: { x: 90, y: 90, w: 84, h: 84, rotation: 0, shape: "round" as const, kind: "plant" as const, seatLabels: [] },
+      },
+      {
+        id: "a",
+        table_number: "A",
+        capacity: 2,
+        is_active: true,
+        sector: "Salle",
+        layout: { x: 100, y: 100, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+      },
+    ];
+
+    const model = buildFloorPlanViewportModel(tables, {
+      sector: "Salle",
+      zoom: 1,
+      canvasWidth: 1040,
+      canvasHeight: 680,
+    });
+    const hitFrame = model.framesById.get("a");
+
+    expect(model.visibleItems.map((table) => table.id)).toEqual(["a", "b", "plant"]);
+    expect(model.visibleReservableItems.map((table) => table.id)).toEqual(["a", "b"]);
+    expect(model.visibleFurnitureCount).toBe(1);
+    expect(model.visibleReservableIdSet.has("a")).toBe(true);
+    expect(model.visibleReservableIdSet.has("plant")).toBe(false);
+    expect(model.framesById.has("other-sector")).toBe(false);
+    expect(hitFrame).toBeDefined();
+    expect(model.getRenderedFrame(tables[4])).toBe(hitFrame);
+    expect(model.getReservableItemAtPoint((hitFrame?.x || 0) + 4, (hitFrame?.y || 0) + 4)?.id).toBe("b");
+  });
+
+  it("updates one floor plan item layout without replacing unchanged arrays", () => {
+    const tableA = {
+      id: "a",
+      layout: { x: 16, y: 16, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+    };
+    const tableB = {
+      id: "b",
+      layout: { x: 80, y: 80, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+    };
+    const items = [tableA, tableB];
+
+    const same = updateFloorPlanItemLayoutById(items, "a", (layout) => ({ ...layout }));
+    const missing = updateFloorPlanItemLayoutById(items, "missing", (layout) => ({ ...layout, x: 200 }));
+    const changed = updateFloorPlanItemLayoutById(items, "a", (layout) => ({ ...layout, x: 120 }));
+
+    expect(same).toBe(items);
+    expect(missing).toBe(items);
+    expect(changed).not.toBe(items);
+    expect(changed[0]).not.toBe(tableA);
+    expect(changed[0].layout.x).toBe(120);
+    expect(changed[1]).toBe(tableB);
   });
 
   it("derives corner bench capacity from horizontal and vertical seat counts", () => {

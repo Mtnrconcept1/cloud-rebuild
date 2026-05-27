@@ -1,4 +1,4 @@
-import type { DragEvent, PointerEvent } from "react";
+import { useMemo, type DragEvent, type PointerEvent } from "react";
 import { Clock3, Grip, Search, Sparkles, Table2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,10 @@ type ReservationQueueProps = {
   onReleaseReservation: (reservationId: string) => void;
   getReservationDropState: (reservationId: string, tableId: string) => ReservationDropState;
 };
+
+function getServiceTimelineSortKey(reservation: ServiceReservation) {
+  return `${reservation.date || "9999-12-31"}T${getSafeTime(reservation.time)}`;
+}
 
 function ReservationQueueItem({
   reservation,
@@ -206,6 +210,21 @@ export default function ReservationQueue({
   getReservationDropState,
 }: ReservationQueueProps) {
   const totalReservations = unassignedReservations.length + assignedReservations.length;
+  const serviceTimeline = useMemo(() => {
+    return [...unassignedReservations, ...assignedReservations]
+      .map((reservation) => {
+        const assignedTableId = draftAssignments[reservation.id] || reservation.table_id;
+        const assignedTable = assignedTableId ? tableMap.get(assignedTableId) || null : null;
+
+        return {
+          reservation,
+          assignedTable,
+          sortKey: getServiceTimelineSortKey(reservation),
+        };
+      })
+      .sort((left, right) => left.sortKey.localeCompare(right.sortKey))
+      .slice(0, 8);
+  }, [assignedReservations, draftAssignments, tableMap, unassignedReservations]);
 
   return (
     <Card className="flex min-h-0 flex-col overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_32px_100px_-52px_rgba(15,23,42,0.42)]">
@@ -255,6 +274,78 @@ export default function ReservationQueue({
               <p className="text-sm text-slate-500">
                 La file met en avant les réservations compatibles pour {selectedTable.capacity} couverts.
               </p>
+            </div>
+          </div>
+        ) : null}
+
+        {serviceTimeline.length > 0 ? (
+          <div
+            data-testid="reservation-service-timeline"
+            className="rounded-[24px] border border-slate-200 bg-white px-4 py-3 shadow-sm"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+                  <Clock3 className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-950">Timeline service</p>
+                  <p className="truncate text-xs text-slate-500">Prochaines arrivees et rotations visibles</p>
+                </div>
+              </div>
+              <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 text-slate-600">
+                {serviceTimeline.length}
+              </Badge>
+            </div>
+
+            <div className="mt-3 grid gap-2">
+              {serviceTimeline.map(({ reservation, assignedTable }) => {
+                const isTimelineSelected = reservation.id === selectedReservationId;
+
+                return (
+                  <button
+                    key={`timeline-${reservation.id}`}
+                    type="button"
+                    className={cn(
+                      "grid min-h-11 grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors sm:grid-cols-[52px_minmax(0,1fr)_auto_auto]",
+                      isTimelineSelected
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-200 bg-slate-50 hover:bg-slate-100",
+                    )}
+                    onClick={() => onReservationPress(reservation.id)}
+                  >
+                    <span className={cn("text-sm font-bold", isTimelineSelected ? "text-white" : "text-slate-950")}>
+                      {getSafeTime(reservation.time)}
+                    </span>
+                    <span className="min-w-0">
+                      <span className={cn("block truncate text-sm font-semibold", isTimelineSelected ? "text-white" : "text-slate-900")}>
+                        {getReservationCustomerLabel(reservation)}
+                      </span>
+                      <span className={cn("block truncate text-xs", isTimelineSelected ? "text-slate-200" : "text-slate-500")}>
+                        {reservation.party_size} pers. - {getShortDateLabel(reservation.date)}
+                      </span>
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "justify-self-end rounded-full",
+                        assignedTable
+                          ? isTimelineSelected
+                            ? "border-white/15 bg-white/10 text-white"
+                            : "border-slate-200 bg-white text-slate-700"
+                          : isTimelineSelected
+                            ? "border-amber-200/30 bg-amber-400/15 text-amber-50"
+                            : "border-amber-200 bg-amber-50 text-amber-700",
+                      )}
+                    >
+                      {assignedTable?.table_number || "Sans table"}
+                    </Badge>
+                    <Badge className={cn("hidden border sm:inline-flex", isTimelineSelected ? "border-white/15 bg-white/10 text-white" : getReservationStatusTone(reservation.status))}>
+                      {reservation.status || "pending"}
+                    </Badge>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ) : null}

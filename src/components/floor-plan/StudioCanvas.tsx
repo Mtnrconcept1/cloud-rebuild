@@ -83,6 +83,14 @@ export default function StudioCanvas({
     });
   };
 
+  const startObjectSurfaceDrag = (
+    event: PointerEvent<HTMLDivElement>,
+    table: StudioDraftTable,
+  ) => {
+    if ((event.target as HTMLElement).closest("button")) return;
+    onStartDraggingTable(event, table.id);
+  };
+
   return (
     <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
       <CardHeader className="space-y-4 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-4">
@@ -216,7 +224,7 @@ export default function StudioCanvas({
                   return (
                     <div
                       key={table.id}
-                      className="absolute select-none focus:outline-none"
+                      className="absolute select-none touch-none focus:outline-none"
                       style={{
                         left: renderedFrame.x,
                         top: renderedFrame.y,
@@ -224,12 +232,14 @@ export default function StudioCanvas({
                         height: renderedFrame.h,
                         zIndex: isSelected ? 40 : 16,
                         cursor: draggingTableId === table.id ? "grabbing" : "grab",
+                        willChange: draggingTableId === table.id ? "left, top" : undefined,
                       }}
                       onClick={() => onTablePress(table.id)}
+                      onPointerDown={(event) => startObjectSurfaceDrag(event, table)}
                     >
                       <div className={cn(
                         "pointer-events-none absolute inset-1 rounded-[30px] blur-[18px]",
-                        isSelected ? "bg-sky-300/55 opacity-95" : "bg-slate-300/30 opacity-70",
+                        isSelected ? "bg-orange-300/55 opacity-95" : "bg-slate-300/30 opacity-70",
                       )} />
 
                       <div
@@ -260,7 +270,7 @@ export default function StudioCanvas({
 
                         {isSelected ? (
                           <>
-                            <div className="pointer-events-none absolute inset-[-5px] rounded-[30px] border-2 border-sky-500/70 shadow-[0_0_0_4px_rgba(255,255,255,0.72)]" />
+                            <div className="pointer-events-none absolute inset-[-5px] rounded-[30px] border-2 border-orange-500/75 shadow-[0_0_0_4px_rgba(255,255,255,0.72)]" />
                             <div className="pointer-events-none absolute inset-[8px] rounded-[20px] border border-white/55" />
                           </>
                         ) : null}
@@ -277,7 +287,7 @@ export default function StudioCanvas({
                           <button
                             type="button"
                             aria-label={`Deplacer ${table.table_number}`}
-                            className="absolute left-[-12px] top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-900/10 bg-white text-slate-700 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]"
+                            className="absolute left-[-12px] top-1/2 flex h-10 w-10 touch-none -translate-y-1/2 items-center justify-center rounded-full border border-slate-900/10 bg-white text-slate-700 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]"
                             onPointerDown={(event) => onStartDraggingTable(event, table.id)}
                           >
                             <Grip className="h-4 w-4" />
@@ -291,13 +301,13 @@ export default function StudioCanvas({
                               type="button"
                               aria-label={`Redimensionner ${table.table_number}`}
                               className={cn(
-                                "absolute h-5 w-5 rounded-full border-2 border-white bg-slate-950 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)]",
+                                "absolute h-7 w-7 touch-none rounded-full border-2 border-white bg-slate-950/92 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)] transition-transform hover:scale-110",
                                 handle.className,
                               )}
                               style={{ cursor: handle.cursor }}
                               onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
                             >
-                              <span className="absolute inset-[4px] rounded-full bg-sky-300/90" />
+                              <span className="absolute inset-[8px] rounded-full bg-orange-300/95" />
                             </button>
                           ))
                           : null}

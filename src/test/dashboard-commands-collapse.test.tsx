@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpcMock = vi.hoisted(() => vi.fn());
 
@@ -81,6 +81,9 @@ function renderDashboardCommandes() {
 
 describe("DashboardCommandes day accordion", () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date("2026-05-27T12:00:00"));
+
     rpcMock.mockResolvedValue({
       data: [
         {
@@ -136,6 +139,10 @@ describe("DashboardCommandes day accordion", () => {
       ],
       error: null,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("allows the opened day group to collapse without opening another day", async () => {
