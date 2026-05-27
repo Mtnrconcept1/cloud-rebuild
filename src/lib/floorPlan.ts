@@ -1281,6 +1281,64 @@ export function clampFloorPlanLayout(
   };
 }
 
+export function getRenderedFloorPlanFrame(
+  layout: FloorPlanTableLayout,
+  zoom: number,
+  canvasWidth = DEFAULT_CANVAS_WIDTH,
+  canvasHeight = DEFAULT_CANVAS_HEIGHT,
+): FloorPlanRenderedFrame {
+  const safeZoom = Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
+  const renderedWidth = layout.w * safeZoom;
+  const renderedHeight = layout.h * safeZoom;
+  const logicalMaxX = Math.max(DEFAULT_PADDING, canvasWidth - layout.w - DEFAULT_PADDING);
+  const logicalMaxY = Math.max(DEFAULT_PADDING, canvasHeight - layout.h - DEFAULT_PADDING);
+  const renderedMaxX = Math.max(DEFAULT_PADDING, canvasWidth - renderedWidth - DEFAULT_PADDING);
+  const renderedMaxY = Math.max(DEFAULT_PADDING, canvasHeight - renderedHeight - DEFAULT_PADDING);
+  const ratioX = logicalMaxX <= DEFAULT_PADDING
+    ? 0
+    : (layout.x - DEFAULT_PADDING) / (logicalMaxX - DEFAULT_PADDING);
+  const ratioY = logicalMaxY <= DEFAULT_PADDING
+    ? 0
+    : (layout.y - DEFAULT_PADDING) / (logicalMaxY - DEFAULT_PADDING);
+
+  return {
+    x: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioX)) * (renderedMaxX - DEFAULT_PADDING),
+    y: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioY)) * (renderedMaxY - DEFAULT_PADDING),
+    w: renderedWidth,
+    h: renderedHeight,
+  };
+}
+
+export function getLogicalFloorPlanPositionFromRenderedFrame(
+  layout: FloorPlanTableLayout,
+  renderedX: number,
+  renderedY: number,
+  zoom: number,
+  canvasWidth = DEFAULT_CANVAS_WIDTH,
+  canvasHeight = DEFAULT_CANVAS_HEIGHT,
+) {
+  const safeZoom = Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
+  const renderedWidth = layout.w * safeZoom;
+  const renderedHeight = layout.h * safeZoom;
+  const logicalMaxX = Math.max(DEFAULT_PADDING, canvasWidth - layout.w - DEFAULT_PADDING);
+  const logicalMaxY = Math.max(DEFAULT_PADDING, canvasHeight - layout.h - DEFAULT_PADDING);
+  const renderedMaxX = Math.max(DEFAULT_PADDING, canvasWidth - renderedWidth - DEFAULT_PADDING);
+  const renderedMaxY = Math.max(DEFAULT_PADDING, canvasHeight - renderedHeight - DEFAULT_PADDING);
+  const safeRenderedX = Math.min(Math.max(DEFAULT_PADDING, renderedX), renderedMaxX);
+  const safeRenderedY = Math.min(Math.max(DEFAULT_PADDING, renderedY), renderedMaxY);
+  const ratioX = renderedMaxX <= DEFAULT_PADDING
+    ? 0
+    : (safeRenderedX - DEFAULT_PADDING) / (renderedMaxX - DEFAULT_PADDING);
+  const ratioY = renderedMaxY <= DEFAULT_PADDING
+    ? 0
+    : (safeRenderedY - DEFAULT_PADDING) / (renderedMaxY - DEFAULT_PADDING);
+
+  return {
+    x: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioX)) * (logicalMaxX - DEFAULT_PADDING),
+    y: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioY)) * (logicalMaxY - DEFAULT_PADDING),
+  };
+}
+
 export function normalizeFloorPlanLayout(
   rawLayout: unknown,
   fallbackIndex: number,

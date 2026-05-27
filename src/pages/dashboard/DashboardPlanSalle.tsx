@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Armchair,
@@ -64,6 +64,8 @@ import {
   getFloorPlanContentPadding as resolveFloorPlanContentPadding,
   getFloorPlanItemBaseName,
   getFloorPlanItemTypeLabel,
+  getLogicalFloorPlanPositionFromRenderedFrame,
+  getRenderedFloorPlanFrame,
   getResolvedFloorPlanDimensions,
   isReservableFloorPlanItem,
   normalizeFloorPlanLayout,
@@ -88,6 +90,7 @@ import {
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
 import { formatRestaurantPaymentMethod } from "@/lib/dashboardPayments";
+import { getFloorPlanHealthSummary } from "@/lib/floorPlanHealth";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
 
@@ -555,54 +558,6 @@ function getPersistableCapacity(table: DraftTable) {
     : 0;
 }
 
-function getRenderedTableFrame(
-  layout: FloorPlanTableLayout,
-  zoom: number,
-  canvasWidth: number,
-  canvasHeight: number,
-) {
-  const renderedWidth = layout.w * zoom;
-  const renderedHeight = layout.h * zoom;
-  const logicalMaxX = Math.max(16, canvasWidth - layout.w - 16);
-  const logicalMaxY = Math.max(16, canvasHeight - layout.h - 16);
-  const renderedMaxX = Math.max(16, canvasWidth - renderedWidth - 16);
-  const renderedMaxY = Math.max(16, canvasHeight - renderedHeight - 16);
-  const ratioX = logicalMaxX <= 16 ? 0 : (layout.x - 16) / (logicalMaxX - 16);
-  const ratioY = logicalMaxY <= 16 ? 0 : (layout.y - 16) / (logicalMaxY - 16);
-
-  return {
-    x: 16 + (Math.max(0, Math.min(1, ratioX)) * (renderedMaxX - 16)),
-    y: 16 + (Math.max(0, Math.min(1, ratioY)) * (renderedMaxY - 16)),
-    w: renderedWidth,
-    h: renderedHeight,
-  };
-}
-
-function getLogicalPositionFromRenderedFrame(
-  layout: FloorPlanTableLayout,
-  renderedX: number,
-  renderedY: number,
-  zoom: number,
-  canvasWidth: number,
-  canvasHeight: number,
-) {
-  const renderedWidth = layout.w * zoom;
-  const renderedHeight = layout.h * zoom;
-  const logicalMaxX = Math.max(16, canvasWidth - layout.w - 16);
-  const logicalMaxY = Math.max(16, canvasHeight - layout.h - 16);
-  const renderedMaxX = Math.max(16, canvasWidth - renderedWidth - 16);
-  const renderedMaxY = Math.max(16, canvasHeight - renderedHeight - 16);
-  const safeRenderedX = Math.min(Math.max(16, renderedX), renderedMaxX);
-  const safeRenderedY = Math.min(Math.max(16, renderedY), renderedMaxY);
-  const ratioX = renderedMaxX <= 16 ? 0 : (safeRenderedX - 16) / (renderedMaxX - 16);
-  const ratioY = renderedMaxY <= 16 ? 0 : (safeRenderedY - 16) / (renderedMaxY - 16);
-
-  return {
-    x: 16 + (Math.max(0, Math.min(1, ratioX)) * (logicalMaxX - 16)),
-    y: 16 + (Math.max(0, Math.min(1, ratioY)) * (logicalMaxY - 16)),
-  };
-}
-
 function PanelSection({
   open,
   onOpenChange,
@@ -1062,6 +1017,17 @@ export default function DashboardPlanSalle() {
     [visibleTables],
   );
   const visibleFurnitureCount = visibleTables.length - visibleReservableTables.length;
+  const renderedFramesByTableId = useMemo(
+    () => new Map(visibleTables.map((table) => [
+      table.id,
+      getRenderedFloorPlanFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT),
+    ])),
+    [canvasWidth, canvasZoom, visibleTables],
+  );
+  const getRenderedDraftTableFrame = useCallback((table: DraftTable) => (
+    renderedFramesByTableId.get(table.id)
+      || getRenderedFloorPlanFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT)
+  ), [canvasWidth, canvasZoom, renderedFramesByTableId]);
 
   const tableMap = useMemo(
     () => new Map(draftTables.map((table) => [table.id, table])),
@@ -1230,7 +1196,7 @@ export default function DashboardPlanSalle() {
   const getVisibleTableAtPoint = (x: number, y: number) => {
     for (let index = visibleReservableTables.length - 1; index >= 0; index -= 1) {
       const table = visibleReservableTables[index];
-      const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+      const renderedFrame = getRenderedDraftTableFrame(table);
       const withinX = x >= renderedFrame.x && x <= renderedFrame.x + renderedFrame.w;
       const withinY = y >= renderedFrame.y && y <= renderedFrame.y + renderedFrame.h;
       if (withinX && withinY) {
@@ -1251,7 +1217,7 @@ export default function DashboardPlanSalle() {
       if (rotateState) {
         const table = tableMap.get(rotateState.tableId);
         if (table) {
-          const frame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+          const frame = getRenderedDraftTableFrame(table);
           const cx = frame.x + frame.w / 2;
           const cy = frame.y + frame.h / 2;
           const currentAngle = Math.atan2(point.y - cy, point.x - cx) * (180 / Math.PI);
@@ -1270,7 +1236,7 @@ export default function DashboardPlanSalle() {
 
         setDraftTables((current) => current.map((table) => {
           if (table.id !== dragState.tableId) return table;
-          const nextPosition = getLogicalPositionFromRenderedFrame(
+          const nextPosition = getLogicalFloorPlanPositionFromRenderedFrame(
             table.layout,
             nextRenderedX,
             nextRenderedY,
@@ -1323,7 +1289,7 @@ export default function DashboardPlanSalle() {
             resizeState.startLayout.shape,
             resizeState.startLayout.kind,
           );
-          const nextPosition = getLogicalPositionFromRenderedFrame(
+          const nextPosition = getLogicalFloorPlanPositionFromRenderedFrame(
             resizedLayout,
             resizedFrame.x,
             resizedFrame.y,
@@ -1356,7 +1322,7 @@ export default function DashboardPlanSalle() {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [canvasWidth, canvasZoom, dragState, resizeState, rotateState, tableMap]);
+  }, [canvasWidth, canvasZoom, dragState, getRenderedDraftTableFrame, resizeState, rotateState, tableMap]);
 
   useEffect(() => {
     if (!reservationPointerDrag) return undefined;
@@ -1981,7 +1947,7 @@ export default function DashboardPlanSalle() {
     const table = tableMap.get(tableId);
     const point = getCanvasPointFromClient(event.clientX, event.clientY);
     if (!table || !point) return;
-    const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+    const renderedFrame = getRenderedDraftTableFrame(table);
 
     setDragState({
       tableId,
@@ -2000,7 +1966,7 @@ export default function DashboardPlanSalle() {
     const table = tableMap.get(tableId);
     const point = getCanvasPointFromClient(event.clientX, event.clientY);
     if (!table || !point) return;
-    const frame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+    const frame = getRenderedDraftTableFrame(table);
     const cx = frame.x + frame.w / 2;
     const cy = frame.y + frame.h / 2;
     const startAngle = Math.atan2(point.y - cy, point.x - cx) * (180 / Math.PI);
@@ -2024,7 +1990,7 @@ export default function DashboardPlanSalle() {
 
     const table = tableMap.get(tableId);
     const point = getCanvasPointFromClient(event.clientX, event.clientY);
-    const renderedFrame = table ? getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT) : null;
+    const renderedFrame = table ? getRenderedDraftTableFrame(table) : null;
     if (!table || !point || !renderedFrame) return;
 
     setResizeState({
@@ -2275,6 +2241,25 @@ export default function DashboardPlanSalle() {
   const occupancyRate = visibleReservableTables.length > 0
     ? Math.round(((visibleReservableTables.length - availableTables.length) / visibleReservableTables.length) * 100)
     : 0;
+  const floorPlanHealth = useMemo(() => getFloorPlanHealthSummary({
+    tables: draftTables.map((table) => ({
+      id: table.id,
+      tableNumber: table.table_number,
+      capacity: table.capacity,
+      isActive: table.is_active,
+      kind: table.layout.kind,
+    })),
+    reservations: filteredReservations.map((reservation) => ({
+      id: reservation.id,
+      partySize: Number(reservation.party_size || 0),
+      assignedTableId: draftAssignments[reservation.id],
+    })),
+  }), [draftAssignments, draftTables, filteredReservations]);
+  const floorPlanHealthTone = {
+    ready: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    warning: "border-amber-200 bg-amber-50 text-amber-800",
+    critical: "border-rose-200 bg-rose-50 text-rose-800",
+  }[floorPlanHealth.status];
   const selectedReservationService = selectedReservation ? getReservationService(selectedReservation) : null;
   const saveStatus = (() => {
     if (saveMutation.isPending) {
@@ -2448,6 +2433,12 @@ export default function DashboardPlanSalle() {
                   <div className={cn("rounded-2xl border px-4 py-2 text-sm shadow-sm", saveStatus.tone)}>
                     <p className="font-semibold">{saveStatus.label}</p>
                     <p className="text-xs opacity-80">{saveStatus.detail}</p>
+                  </div>
+                  <div className={cn("rounded-2xl border px-4 py-2 text-sm shadow-sm", floorPlanHealthTone)}>
+                    <p className="font-semibold">{floorPlanHealth.headline}</p>
+                    <p className="text-xs opacity-80">
+                      {floorPlanHealth.detail} {floorPlanHealth.assignedCovers}/{floorPlanHealth.totalReservableCapacity} couverts places.
+                    </p>
                   </div>
                   {selectedBranch && isTemplateMode ? (
                     <Button
@@ -2872,7 +2863,7 @@ export default function DashboardPlanSalle() {
                     onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
                     onStartRotatingTable={startRotatingTable}
                     onUpdateCanvasZoom={updateCanvasZoom}
-                    getRenderedFrame={(table) => getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT)}
+                    getRenderedFrame={getRenderedDraftTableFrame}
                   />
 
                   <div className="xl:hidden">
@@ -3089,7 +3080,7 @@ export default function DashboardPlanSalle() {
                   onStartRotatingTable={startRotatingTable}
                   onUpdateCanvasZoom={updateCanvasZoom}
                   getReservationDropState={getReservationDropState}
-                  getRenderedFrame={(table) => getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT)}
+                  getRenderedFrame={getRenderedDraftTableFrame}
                   getTableContentPadding={getTableContentPadding}
                 />
 

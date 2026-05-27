@@ -10,6 +10,14 @@ function readSocialV2Migration() {
   return readFileSync(resolve(migrationsDir, migrationName!), "utf8");
 }
 
+function readSocialMarketingMigration() {
+  const migrationsDir = resolve(process.cwd(), "supabase/migrations");
+  const migrationName = readdirSync(migrationsDir).find((name) => name.includes("social_marketing_campaign_fields"));
+
+  expect(migrationName).toBeTruthy();
+  return readFileSync(resolve(migrationsDir, migrationName!), "utf8");
+}
+
 describe("social feed v2 migration SQL", () => {
   it("adds the v2 social graph and metrics tables", () => {
     const sql = readSocialV2Migration();
@@ -45,5 +53,17 @@ describe("social feed v2 migration SQL", () => {
       expect(sql).toContain(`DROP FUNCTION IF EXISTS public.${fn}`);
       expect(sql).toContain(`CREATE FUNCTION public.${fn}`);
     }
+  });
+
+  it("adds campaign intent fields for the restaurateur marketing cockpit", () => {
+    const sql = readSocialMarketingMigration();
+
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS campaign_goal");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS campaign_name");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS audience_segment");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS offer_code");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS utm_campaign");
+    expect(sql).toContain("social_posts_campaign_goal_check");
+    expect(sql).toContain("social_posts_audience_segment_check");
   });
 });

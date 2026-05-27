@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Sparkles,
   Store,
+  Target,
   Trash2,
   UserPlus,
   UserRoundCheck,
@@ -44,6 +45,8 @@ import {
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import {
+  SOCIAL_AUDIENCE_SEGMENTS,
+  SOCIAL_MARKETING_GOALS,
   SOCIAL_REACTIONS,
   buildSocialCommentThread,
   getSocialPostShareUrl,
@@ -306,6 +309,14 @@ function getPostTypeLabel(post: SocialFeedPost) {
   return labels[post.postType || "annonce"] || "Annonce";
 }
 
+function getCampaignGoalLabel(post: SocialFeedPost) {
+  return SOCIAL_MARKETING_GOALS.find((goal) => goal.value === post.campaignGoal)?.label || null;
+}
+
+function getAudienceLabel(post: SocialFeedPost) {
+  return SOCIAL_AUDIENCE_SEGMENTS.find((segment) => segment.value === post.audienceSegment)?.label || null;
+}
+
 function getCta(post: SocialFeedPost) {
   const restaurantPath = `/restaurant/${post.restaurantId}`;
 
@@ -434,6 +445,27 @@ export default function SocialPostCard({
                 {reason}
               </Badge>
             ))}
+          </div>
+        ) : null}
+
+        {compact && (getCampaignGoalLabel(post) || getAudienceLabel(post) || post.offerCode) ? (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {getCampaignGoalLabel(post) ? (
+              <Badge variant="secondary" className="gap-1 rounded-full text-[11px]">
+                <Target className="h-3 w-3" />
+                {getCampaignGoalLabel(post)}
+              </Badge>
+            ) : null}
+            {getAudienceLabel(post) ? (
+              <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">
+                {getAudienceLabel(post)}
+              </Badge>
+            ) : null}
+            {post.offerCode ? (
+              <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">
+                Code {post.offerCode}
+              </Badge>
+            ) : null}
           </div>
         ) : null}
 

@@ -23,6 +23,8 @@ const FAQ = [
   { q: "Comment voir mes factures ?", a: "La section « Factures » liste toutes vos factures avec leur statut de paiement." },
   { q: "Comment activer la livraison ?", a: "Dans « Mon restaurant », activez l'option livraison et configurez les frais et le montant minimum de commande." },
   { q: "Qu'est-ce que l'anti-gaspi ?", a: "Les offres anti-gaspi permettent de vendre vos invendus à prix réduit avant la fermeture. Créez-les dans « Anti-gaspi »." },
+  { q: "Comment transformer une actualite en action marketing ?", a: "Dans « Actualites », selectionnez un objectif, une audience, un CTA et un modele. Le score marketing vous aide a ajouter media, accroche, programmation et bouton d'action avant publication." },
+  { q: "Comment lire les performances Actualites ?", a: "Le cockpit suit impressions, clics, clics CTA, engagement, sauvegardes, posts programmes et objectifs de campagne pour identifier ce qui amene visibilite, commandes ou reservations." },
   { q: "Comment lancer une campagne marketing ?", a: "Rendez-vous dans « Campagnes » pour créer des campagnes publicitaires ciblées avec un budget quotidien." },
 ];
 

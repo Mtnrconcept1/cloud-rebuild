@@ -8,12 +8,15 @@ import {
   clampFloorPlanLayout,
   ensureFloorPlanLayoutFitsCapacity,
   getMinimumTableSize,
+  getLogicalFloorPlanPositionFromRenderedFrame,
+  getRenderedFloorPlanFrame,
   getResolvedFloorPlanDimensions,
   isReservableFloorPlanItem,
   reservationsOverlap,
   resizeFloorPlanLayoutToFootprint,
   resizeRenderedFloorPlanFrame,
 } from "@/lib/floorPlan";
+import { getFloorPlanHealthSummary } from "@/lib/floorPlanHealth";
 import DynamicTableSvg from "@/components/floor-plan/DynamicTableSvg";
 
 function getRenderedImageAttributes(markup: string) {
@@ -171,6 +174,55 @@ describe("floor plan helpers", () => {
     expect(resized.tableHeight).toBe(before.tableHeight);
   });
 
+  it("round-trips rendered canvas frames back to logical positions at zoom", () => {
+    const layout = {
+      x: 320,
+      y: 180,
+      w: 176,
+      h: 112,
+      rotation: 0,
+      shape: "rect" as const,
+      kind: "table" as const,
+      seatLabels: [1, 1, 1, 1],
+    };
+    const frame = getRenderedFloorPlanFrame(layout, 1.35, 1280, 680);
+    const logical = getLogicalFloorPlanPositionFromRenderedFrame(
+      layout,
+      frame.x,
+      frame.y,
+      1.35,
+      1280,
+      680,
+    );
+
+    expect(logical.x).toBeCloseTo(layout.x, 5);
+    expect(logical.y).toBeCloseTo(layout.y, 5);
+    expect(frame.w).toBeCloseTo(layout.w * 1.35, 5);
+    expect(frame.h).toBeCloseTo(layout.h * 1.35, 5);
+  });
+
+  it("clamps rendered canvas frames before converting them to logical positions", () => {
+    const layout = {
+      x: 40,
+      y: 40,
+      w: 176,
+      h: 112,
+      rotation: 0,
+      shape: "rect" as const,
+      kind: "table" as const,
+      seatLabels: [1, 1, 1, 1],
+    };
+
+    expect(getLogicalFloorPlanPositionFromRenderedFrame(layout, -999, -999, 1.25, 1040, 680)).toEqual({
+      x: 16,
+      y: 16,
+    });
+
+    const bottomRight = getLogicalFloorPlanPositionFromRenderedFrame(layout, 99999, 99999, 1.25, 1040, 680);
+    expect(bottomRight.x).toBeCloseTo(1040 - layout.w - 16, 5);
+    expect(bottomRight.y).toBeCloseTo(680 - layout.h - 16, 5);
+  });
+
   it("derives corner bench capacity from horizontal and vertical seat counts", () => {
     const twoSeatCorner = getResolvedFloorPlanDimensions({
       capacity: 2,
@@ -257,5 +309,45 @@ describe("floor plan helpers", () => {
       { id: "a", date: "2026-03-30", time: "19:00", partySize: 2 },
       { id: "b", date: "2026-03-30", time: "21:30", partySize: 4 },
     )).toBe(false);
+  });
+
+  it("summarizes floor plan service health for placement issues", () => {
+    const summary = getFloorPlanHealthSummary({
+      tables: [
+        { id: "t1", tableNumber: "T1", capacity: 2, isActive: true, kind: "table" },
+        { id: "t2", tableNumber: "T2", capacity: 4, isActive: false, kind: "table" },
+        { id: "plant", tableNumber: "Plante", capacity: 0, isActive: true, kind: "plant" },
+      ],
+      reservations: [
+        { id: "r1", partySize: 3, assignedTableId: "t1" },
+        { id: "r2", partySize: 2, assignedTableId: "t2" },
+        { id: "r3", partySize: 2, assignedTableId: null },
+      ],
+    });
+
+    expect(summary.status).toBe("critical");
+    expect(summary.activeReservableTables).toBe(1);
+    expect(summary.totalReservableCapacity).toBe(2);
+    expect(summary.overCapacityAssignments).toBe(1);
+    expect(summary.invalidAssignments).toBe(1);
+    expect(summary.unassignedReservations).toBe(1);
+    expect(summary.assignedCovers).toBe(3);
+  });
+
+  it("marks the floor plan service ready when all reservations fit active tables", () => {
+    const summary = getFloorPlanHealthSummary({
+      tables: [
+        { id: "t1", tableNumber: "T1", capacity: 2, isActive: true, kind: "table" },
+        { id: "t2", tableNumber: "T2", capacity: 4, isActive: true, kind: "table" },
+      ],
+      reservations: [
+        { id: "r1", partySize: 2, assignedTableId: "t1" },
+        { id: "r2", partySize: 4, assignedTableId: "t2" },
+      ],
+    });
+
+    expect(summary.status).toBe("ready");
+    expect(summary.headline).toBe("Service pret");
+    expect(summary.assignedCovers).toBe(6);
   });
 });

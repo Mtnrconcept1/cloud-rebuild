@@ -480,7 +480,8 @@ export default function DashboardCommandes() {
             {groupedOrders.length > 0 ? (
               <Accordion
                 type="single"
-                value={openDayKey ?? undefined}
+                collapsible
+                value={openDayKey ?? ""}
                 onValueChange={(value) => setOpenDayKey(value || null)}
                 className="space-y-4"
               >

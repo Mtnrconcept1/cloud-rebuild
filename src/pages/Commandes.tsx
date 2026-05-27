@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Banknote,
+  ChevronDown,
+  ChevronRight,
   CreditCard,
   Crown,
   Gift,
@@ -172,6 +175,7 @@ function getCheckoutSessionId(order: any) {
 
 export default function Commandes() {
   const { user } = useAuth();
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -241,6 +245,16 @@ export default function Commandes() {
   });
 
   const orders = (ordersData || []).filter((order) => (order.metadata as any)?.feature !== "zero-attente");
+  const hasExpandedGroups = expandedGroups.size > 0;
+
+  const toggleGroup = (groupKey: string) => {
+    setExpandedGroups((current) => {
+      const next = new Set(current);
+      if (next.has(groupKey)) next.delete(groupKey);
+      else next.add(groupKey);
+      return next;
+    });
+  };
 
   if (stripeReturn.isStripeReturn) {
     return <Navigate to={`/commande/confirmation${location.search}`} replace />;
@@ -249,7 +263,21 @@ export default function Commandes() {
   return (
     <CustomerDashboardLayout>
       <div className="space-y-6">
-        <h1 className="font-display text-3xl font-bold">Mes commandes</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="font-display text-3xl font-bold">Mes commandes</h1>
+          {hasExpandedGroups ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setExpandedGroups(new Set())}
+              className="self-start sm:self-auto"
+            >
+              <ChevronDown className="mr-2 h-4 w-4" />
+              Tout replier
+            </Button>
+          ) : null}
+        </div>
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />)}
@@ -270,30 +298,52 @@ export default function Commandes() {
             ).map(([groupKey, groupOrders]) => {
               const mainOrder = groupOrders[0];
               const totalAmount = groupOrders.reduce((sum, order) => sum + Number(order.total_amount), 0);
+              const isExpanded = expandedGroups.has(groupKey);
+              const restaurantsLabel = groupOrders
+                .map((order) => order.restaurant?.name || "Restaurant")
+                .filter(Boolean)
+                .join(", ");
+              const createdDate = new Date(mainOrder.created_at);
+              const dateLabel = createdDate.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              });
+              const timeLabel = createdDate.toLocaleTimeString("fr-FR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
 
               return (
                 <div key={groupKey} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-                  <div className="flex items-center justify-between border-b bg-muted/30 p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-lg bg-primary/10 p-2"><Package className="h-5 w-5 text-primary" /></div>
-                      <div>
-                        <p className="text-sm font-bold">{mainOrder.order_number || `#${String(groupKey).slice(0, 8)}`}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(mainOrder.created_at).toLocaleDateString("fr-FR", {
-                            day: "numeric",
-                            month: "long",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(groupKey)}
+                    aria-expanded={isExpanded}
+                    className="flex w-full items-center justify-between gap-4 bg-muted/30 p-4 text-left transition-colors hover:bg-muted/50"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="shrink-0 rounded-lg bg-primary/10 p-2"><Package className="h-5 w-5 text-primary" /></div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-bold">{mainOrder.order_number || `#${String(groupKey).slice(0, 8)}`}</p>
+                          <OrderStatusBadge status={getDisplayStatus(mainOrder)} />
+                        </div>
+                        <p className="truncate text-sm font-medium">{restaurantsLabel}</p>
+                        <p className="text-xs text-muted-foreground">{dateLabel} · {timeLabel}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">{totalAmount.toFixed(2)} CHF</p>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{groupOrders.length} restaurant(s)</p>
+                    <div className="flex shrink-0 items-center gap-3 text-right">
+                      <div>
+                        <p className="font-bold text-primary">{totalAmount.toFixed(2)} CHF</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{groupOrders.length} restaurant(s)</p>
+                      </div>
+                      <ChevronIcon className="h-5 w-5 text-muted-foreground" />
                     </div>
-                  </div>
-                  <div className="space-y-4 p-4">
+                  </button>
+                  {isExpanded ? (
+                    <div className="space-y-4 border-t p-4">
                     {groupOrders.map((order) => {
                       const displayStatus = getDisplayStatus(order);
                       const checkoutSessionId = getCheckoutSessionId(order);
@@ -386,7 +436,8 @@ export default function Commandes() {
                         </div>
                       );
                     })}
-                  </div>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}
