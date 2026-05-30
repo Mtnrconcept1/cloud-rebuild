@@ -84,6 +84,7 @@ export function buildMealSubscriptionCartItems(slots: MealSubscriptionSlot[]) {
     restaurantId: slot.restaurantId,
     restaurantName: slot.restaurant,
     metadata: {
+      is_meal_subscription: true,
       subscription_day: slot.day,
       preferred_time: slot.time || "12:00",
     },

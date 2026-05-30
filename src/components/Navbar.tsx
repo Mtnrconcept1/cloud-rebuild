@@ -35,6 +35,7 @@ import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { LOGO_URL } from "@/lib/constants";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,7 +76,7 @@ const FEATURES = [
 ];
 
 export default function Navbar() {
-  const { user, role, roles, switchRole, signOut } = useAuth();
+  const { user, role, roles, isSuperAdmin, canSwitchRole, switchRole, signOut } = useAuth();
   const { itemCount } = useCart();
   const activeFeatures = useActiveFeatures();
   const queryClient = useQueryClient();
@@ -91,7 +92,13 @@ export default function Navbar() {
   const tokOneEnabled = activeFeatures.has("tok-one");
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
-  const showCartShortcut = user || itemCount > 0;
+  const showClientSurface = canShowClientSurface({ userEmail: user?.email, activeRole: role });
+  const homeTarget = showClientSurface ? "/" : getRoleHomePath(role);
+  const notificationsTarget = showClientSurface ? "/notifications" : getRoleHomePath(role);
+  const showCartShortcut = showClientSurface && (user || itemCount > 0);
+  const showRestaurantDashboardLink = dashboardEnabled && (role === "restaurateur" || isSuperAdmin);
+  const showAdminDashboardLink = role === "admin" || isSuperAdmin;
+  const showCourierDashboardLink = courierEnabled && (role === "courier" || isSuperAdmin);
 
   const { data: notifications } = useQuery({
     queryKey: ["navbar-notifications", user?.id],
@@ -202,6 +209,7 @@ export default function Navbar() {
   return (
     <>
       {/* ─── Top utility bar ─── */}
+      {showClientSurface ? (
       <div className="hidden w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 md:block">
         <div className="container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground">
           <Link to="/auth?type=restaurateur" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
@@ -212,14 +220,16 @@ export default function Navbar() {
           <Link to="/aide" className="transition-colors hover:text-foreground">Aide</Link>
         </div>
       </div>
+      ) : null}
 
       {/* ─── Main header ─── */}
       <header className="fixed top-0 z-[70] w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)] md:sticky md:z-50">
         <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8">
-          <Link to="/" className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
+          <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
             <img src={LOGO_URL} alt="Tok" className="h-11 w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] min-[380px]:h-12 md:h-16" />
           </Link>
 
+          {showClientSurface ? (
           <NavigationMenu className="hidden md:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
@@ -297,6 +307,7 @@ export default function Navbar() {
               ) : null}
             </NavigationMenuList>
           </NavigationMenu>
+          ) : null}
 
           <div className="flex min-w-0 items-center gap-0.5 min-[380px]:gap-1">
             <Button variant="ghost" size="icon" onClick={handleThemeToggle} className="text-muted-foreground hover:text-foreground">
@@ -350,7 +361,7 @@ export default function Navbar() {
                             className={`cursor-pointer items-start rounded-none border-l-2 p-0 ${isRecent ? "border-l-primary bg-primary/5" : "border-l-transparent"
                               }`}
                           >
-                            <Link to={notification.data?.url || "/notifications"} className="flex w-full flex-col gap-1 px-3 py-2">
+                            <Link to={notification.data?.url || notificationsTarget} className="flex w-full flex-col gap-1 px-3 py-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium">{notification.title}</span>
                                 {isRecent ? <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Recente</span> : null}
@@ -365,9 +376,11 @@ export default function Navbar() {
                       <div className="px-3 py-3 text-xs text-muted-foreground">Aucune notification.</div>
                     )}
                   </div>
-                  <DropdownMenuItem asChild>
-                    <Link to="/notifications">Voir toutes les notifications</Link>
-                  </DropdownMenuItem>
+                  {showClientSurface ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/notifications">Voir toutes les notifications</Link>
+                    </DropdownMenuItem>
+                  ) : null}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : null}
@@ -381,7 +394,7 @@ export default function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  {roles.length > 1 ? (
+                  {canSwitchRole ? (
                     <div className="mb-1 border-b px-2 py-2">
                       <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Espace actif</p>
                       <div className="flex flex-wrap gap-1">
@@ -400,30 +413,37 @@ export default function Navbar() {
                       </div>
                     </div>
                   ) : null}
-                  <DropdownMenuItem asChild>
-                    <Link to="/profil">Mon profil</Link>
-                  </DropdownMenuItem>
-                  {activeFeatures.has("commandes") ? (
+                  {showClientSurface ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/profil">Mon profil</Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {showClientSurface && activeFeatures.has("commandes") ? (
                     <DropdownMenuItem asChild>
                       <Link to="/commandes">Mes commandes</Link>
                     </DropdownMenuItem>
                   ) : null}
-                  {reservationEnabled ? (
+                  {showClientSurface && reservationEnabled ? (
                     <DropdownMenuItem asChild>
                       <Link to="/reservations">Mes reservations</Link>
                     </DropdownMenuItem>
                   ) : null}
-                  {dashboardEnabled && (role === "restaurateur" || role === "admin" || roles.includes("restaurateur")) ? (
+                  {role === "courier" && !showClientSurface ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/courier/profile">Mon profil</Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {showRestaurantDashboardLink ? (
                     <DropdownMenuItem asChild>
                       <Link to="/dashboard" className="font-bold text-primary">Dashboard Restaurant</Link>
                     </DropdownMenuItem>
                   ) : null}
-                  {(role === "admin" || roles.includes("admin")) ? (
+                  {showAdminDashboardLink ? (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="font-bold text-primary">Administration</Link>
                     </DropdownMenuItem>
                   ) : null}
-                  {courierEnabled && (role === "courier" || roles.includes("courier")) ? (
+                  {showCourierDashboardLink ? (
                     <DropdownMenuItem asChild>
                       <Link to="/courier" className="font-bold text-primary">Espace Livreur</Link>
                     </DropdownMenuItem>
@@ -459,30 +479,32 @@ export default function Navbar() {
                 </SheetHeader>
 
                 <nav className="mt-6 flex flex-col gap-3">
-                  <Link to="/" className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                  <Link to={homeTarget} className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                     Accueil
                   </Link>
+                  {showClientSurface ? (
                   <Link to="/recherche" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                     <Search className="h-4 w-4" />
                     Explorer les restaurants
                   </Link>
-                  {antiWasteEnabled ? (
+                  ) : null}
+                  {showClientSurface && antiWasteEnabled ? (
                     <Link to="/anti-gaspi" className="text-sm font-medium text-accent" onClick={() => setMenuOpen(false)}>
                       Anti-gaspi
                     </Link>
                   ) : null}
-                  {flashSalesEnabled ? (
+                  {showClientSurface && flashSalesEnabled ? (
                     <Link to="/ventes-flash" className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                       Ventes Flash
                     </Link>
                   ) : null}
-                  {actualitesEnabled ? (
+                  {showClientSurface && actualitesEnabled ? (
                     <Link to="/actualites" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                       <Newspaper className="h-4 w-4" />
                       Actualites
                     </Link>
                   ) : null}
-                  {tokOneEnabled ? (
+                  {showClientSurface && tokOneEnabled ? (
                     <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-violet-600" onClick={() => setMenuOpen(false)}>
                       <Crown className="h-4 w-4" />
                       Tok One
@@ -496,14 +518,16 @@ export default function Navbar() {
                     </Link>
                   ) : null}
 
+                  {showClientSurface ? (
                   <div className="mt-2 border-t pt-4">
                     <Link to="/auth?type=restaurateur" className="flex items-center gap-2 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
                       <Store className="h-4 w-4" />
                       Pour les restaurateurs
                     </Link>
                   </div>
+                  ) : null}
 
-                  {visibleFeatures.length > 0 ? (
+                  {showClientSurface && visibleFeatures.length > 0 ? (
                     <div className="mt-2 border-t pt-4">
                       <div className="mb-3 flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-primary" />
@@ -532,7 +556,7 @@ export default function Navbar() {
 
                   {user ? (
                     <div className="mt-2 space-y-4 border-t pt-4">
-                      {roles.length > 1 ? (
+                      {canSwitchRole ? (
                         <div className="space-y-2">
                           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Espace actif</p>
                           <div className="flex flex-wrap gap-1.5">
@@ -555,29 +579,37 @@ export default function Navbar() {
                         </div>
                       ) : null}
 
+                      {showClientSurface ? (
                       <Link to="/profil" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                         <User className="h-4 w-4" />
                         Mon profil
                       </Link>
-                      {activeFeatures.has("commandes") ? (
+                      ) : null}
+                      {role === "courier" && !showClientSurface ? (
+                        <Link to="/courier/profile" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                          <User className="h-4 w-4" />
+                          Mon profil
+                        </Link>
+                      ) : null}
+                      {showClientSurface && activeFeatures.has("commandes") ? (
                         <Link to="/commandes" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                           <ShoppingBag className="h-4 w-4" />
                           Mes commandes
                         </Link>
                       ) : null}
-                      {dashboardEnabled && (roles.includes("restaurateur") || roles.includes("admin")) ? (
+                      {showRestaurantDashboardLink ? (
                         <Link to="/dashboard" className="flex items-center gap-2 text-sm font-bold text-primary" onClick={() => setMenuOpen(false)}>
                           <TrendingUp className="h-4 w-4" />
                           Dashboard Restaurant
                         </Link>
                       ) : null}
-                      {roles.includes("admin") ? (
+                      {showAdminDashboardLink ? (
                         <Link to="/admin" className="flex items-center gap-2 text-sm font-bold text-primary" onClick={() => setMenuOpen(false)}>
                           <Shield className="h-4 w-4" />
                           Administration
                         </Link>
                       ) : null}
-                      {courierEnabled && roles.includes("courier") ? (
+                      {showCourierDashboardLink ? (
                         <Link to="/courier" className="flex items-center gap-2 text-sm font-bold text-primary" onClick={() => setMenuOpen(false)}>
                           <ShoppingBag className="h-4 w-4" />
                           Espace Livreur

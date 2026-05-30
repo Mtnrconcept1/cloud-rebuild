@@ -215,9 +215,9 @@ function InvoiceTable({
 export default function DashboardFacturesInflow() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { roles } = useAuth();
+  const { isSuperAdmin } = useAuth();
   const [generating, setGenerating] = useState(false);
-  const isAdmin = roles.includes("admin");
+  const isAdmin = isSuperAdmin;
 
   const {
     selectedRestaurant,

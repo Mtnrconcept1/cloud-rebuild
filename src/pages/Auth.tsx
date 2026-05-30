@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Bike, ChefHat, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
+import { getDefaultActiveRole, getRoleHomePath } from "@/lib/roleAccess";
 import {
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
@@ -153,7 +154,7 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, roles, switchRole } = useAuth();
+  const { user, roles, role, switchRole, canSwitchRole } = useAuth();
 
   const initialRole = getInitialSignupRole(searchParams);
   const [isLogin, setIsLogin] = useState(initialRole === "client");
@@ -177,15 +178,29 @@ export default function Auth() {
     return normalizeInternalNavigationTarget(redirectTarget, "/");
   }, [searchParams]);
 
-  useEffect(() => {
-    if (user && roles.length > 1 && !showRolePicker) {
-      setShowRolePicker(true);
+  const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
+    if (canSwitchRole || selectedRole === "client") {
+      return postAuthRedirectTarget || ROLE_CONFIG[selectedRole].to;
     }
-  }, [user, roles, showRolePicker]);
+
+    return getRoleHomePath(selectedRole);
+  }, [canSwitchRole, postAuthRedirectTarget]);
+
+  useEffect(() => {
+    if (!user || roles.length === 0) return;
+
+    if (canSwitchRole) {
+      if (!showRolePicker) setShowRolePicker(true);
+      return;
+    }
+
+    const targetRole = role || getDefaultActiveRole(roles, user.email);
+    navigate(getPostAuthTarget(targetRole), { replace: true });
+  }, [canSwitchRole, getPostAuthTarget, navigate, role, roles, showRolePicker, user]);
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     switchRole(selectedRole);
-    navigate(postAuthRedirectTarget || ROLE_CONFIG[selectedRole].to);
+    navigate(getPostAuthTarget(selectedRole));
   };
 
   const handleResetPassword = async () => {
@@ -363,7 +378,7 @@ export default function Auth() {
     }
   };
 
-  if (showRolePicker && user && roles.length > 1) {
+  if (showRolePicker && user && canSwitchRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
         <Card className="w-full max-w-md shadow-lg border-0">
@@ -397,10 +412,7 @@ export default function Auth() {
     );
   }
 
-  if (user && roles.length === 1) {
-    navigate(postAuthRedirectTarget || ROLE_CONFIG[roles[0]].to);
-    return null;
-  }
+  if (user && roles.length > 0) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4 py-10">

@@ -50,7 +50,7 @@ function createEmptySlot(day: string): MealSlot {
 }
 
 export default function Abonnement() {
-  const { addItem, clearCart, setOrderMode, updateCartMetadata } = useCart();
+  const { replaceCartItems } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -204,6 +204,8 @@ export default function Abonnement() {
 
   const activeMeals = getActiveMealSlots(plan);
   const summary = getMealSubscriptionSummary(plan, mealSettings);
+  const activeRestaurantNames = Array.from(new Set(activeMeals.map((meal) => meal.restaurant).filter(Boolean)));
+  const uniqueRestaurantIds = Array.from(new Set(activeMeals.map((meal) => meal.restaurantId).filter(Boolean)));
   const selectedRestaurant = restaurants?.find((restaurant: any) => restaurant.id === selectedRestaurantId);
   const weekLabel =
     weekOffset === 0
@@ -239,22 +241,38 @@ export default function Abonnement() {
     setSelectedRestaurantId(null);
   };
 
-  const handleSubscribe = () => {
+  const syncSubscriptionCart = () => {
     const cartItems = buildMealSubscriptionCartItems(plan);
 
-    clearCart();
-    setOrderMode("delivery");
-    updateCartMetadata({
+    replaceCartItems(cartItems, {
       feature: "abonnement",
+      multi_restaurant: uniqueRestaurantIds.length > 1,
+      restaurant_count: uniqueRestaurantIds.length,
+      restaurants: activeRestaurantNames,
       weeklyTotal: summary.weeklyTotal,
       planDays: activeMeals.map((meal) => meal.day),
       subscription_status: mealSettings.status,
-    });
-    cartItems.forEach((item) => addItem(item));
+    }, "delivery");
+
+    return cartItems.length;
+  };
+
+  const handleSubscribe = () => {
+    syncSubscriptionCart();
     setSubscribed(true);
   };
 
   const handleGoToCart = () => {
+    const syncedItemsCount = syncSubscriptionCart();
+    if (syncedItemsCount === 0) {
+      toast({
+        title: "Aucun repas planifie",
+        description: "Ajoutez au moins un plat a votre abonnement avant d'ouvrir le panier.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Abonnement active",
       description: `${activeMeals.length} repas/semaine - ${summary.weeklyTotal.toFixed(2)} CHF`,
@@ -481,9 +499,9 @@ export default function Abonnement() {
               <CheckCircle2 className="mx-auto h-10 w-10 text-purple-500" />
               <p className="text-lg font-semibold">Abonnement actif</p>
               <p className="text-sm text-muted-foreground">
-                {summary.activeMealsCount} repas/semaine - {summary.weeklyTotal.toFixed(2)} CHF - Checkout explicite via le panier
+                {summary.activeMealsCount} repas/semaine - {activeRestaurantNames.length} restaurant{activeRestaurantNames.length > 1 ? "s" : ""} - {summary.weeklyTotal.toFixed(2)} CHF
               </p>
-              <p className="text-xs text-muted-foreground">Modifiable rapidement, pause vacances a tout moment</p>
+              <p className="text-xs text-muted-foreground">Plats de plusieurs restaurants synchronises dans un seul panier, modifiable a tout moment</p>
             </div>
             <Button onClick={handleGoToCart} className="w-full gap-2 bg-purple-500 hover:bg-purple-600" size="lg">
               Voir le panier <ChevronRight className="h-4 w-4" />

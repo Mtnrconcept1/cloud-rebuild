@@ -209,11 +209,11 @@ function CommentForm({
 
 function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; depth?: number }) {
   const [replying, setReplying] = useState(false);
-  const { user, roles } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const setReaction = useSetSocialCommentReaction();
   const deleteComment = useDeleteSocialComment();
   const comment = node.comment;
-  const canDelete = comment.userId === user?.id || roles.includes("admin");
+  const canDelete = comment.userId === user?.id || isSuperAdmin;
 
   const confirmDelete = () => {
     if (!window.confirm("Supprimer ce commentaire ?")) return;
@@ -344,7 +344,7 @@ export default function SocialPostCard({
   highlighted?: boolean;
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const { user, roles } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const setPostReaction = useSetSocialPostReaction();
   const toggleSave = useToggleSocialSave();
   const toggleFollow = useToggleRestaurantFollow();
@@ -354,7 +354,7 @@ export default function SocialPostCard({
   const feedback = useSocialFeedFeedback();
   const reportItem = useReportSocialItem();
   const deletePost = useDeleteSocialPost();
-  const canDeletePost = post.authorId === user?.id || roles.includes("admin");
+  const canDeletePost = post.authorId === user?.id || isSuperAdmin;
   const cta = getCta(post);
   const CtaIcon = cta?.icon;
 

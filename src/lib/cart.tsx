@@ -22,6 +22,11 @@ export type CartConflict = {
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartInputItem) => void;
+  replaceCartItems: (
+    items: CartInputItem[],
+    metadata?: Record<string, any>,
+    mode?: "delivery" | "takeaway",
+  ) => void;
   removeItem: (menuItemId: string) => void;
   updateQuantity: (menuItemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -40,6 +45,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType>({
   items: [],
   addItem: () => { },
+  replaceCartItems: () => { },
   removeItem: () => { },
   updateQuantity: () => { },
   clearCart: () => { },
@@ -78,6 +84,12 @@ function getRequiredModeForItem(item: CartInputItem): "delivery" | "takeaway" | 
     if (!canDelivery && canTakeaway) return "takeaway";
   }
   return null;
+}
+
+function cartFeatureAllowsCrossRestaurant(metadata: Record<string, any>) {
+  return metadata.feature === "multi-restaurant"
+    || metadata.feature === "abonnement"
+    || metadata.multi_restaurant === true;
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -140,7 +152,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = (item: CartInputItem) => {
     const existingCartIsChefTable = items.length > 0 && items.every((cartItem) => cartItem.metadata?.is_chefs_table);
     const incomingItemIsChefTable = !!item.metadata?.is_chefs_table;
-    const allowCrossRestaurant = cartMetadata.feature === "multi-restaurant"
+    const allowCrossRestaurant = cartFeatureAllowsCrossRestaurant(cartMetadata)
       || (existingCartIsChefTable && incomingItemIsChefTable);
 
     if (items.length > 0 && !allowCrossRestaurant && items[0].restaurantId !== item.restaurantId) {
@@ -199,6 +211,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const replaceCartItems = (
+    nextItems: CartInputItem[],
+    metadata: Record<string, any> = {},
+    mode: "delivery" | "takeaway" = orderMode,
+  ) => {
+    setConflict(null);
+    setOrderModeState(mode);
+    setCartMetadata(metadata);
+    const normalizedItems = nextItems.map((item) => {
+      const quantity = Math.max(
+        1,
+        Math.round(Number(item.quantity ?? item.metadata?.party_size ?? 1) || 1),
+      );
+
+      trackEvent({
+        eventType: "add_to_cart",
+        eventData: { item_name: item.name, price: item.price },
+        restaurantId: item.restaurantId,
+      });
+
+      return { ...item, quantity };
+    });
+    setItems(normalizedItems);
+  };
+
   const updateQuantity = (menuItemId: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(menuItemId);
@@ -255,7 +292,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider value={{
-      items, addItem, removeItem, updateQuantity, clearCart, total, itemCount, restaurantId,
+      items, addItem, replaceCartItems, removeItem, updateQuantity, clearCart, total, itemCount, restaurantId,
       cartMetadata, updateCartMetadata, orderMode, setOrderMode,
       conflict, setConflict, resolveConflict
     }}>

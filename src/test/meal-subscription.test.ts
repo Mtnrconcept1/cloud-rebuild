@@ -44,7 +44,7 @@ describe("mealSubscription", () => {
         price: 18,
         restaurantId: "res",
         restaurantName: "Tok",
-        metadata: { subscription_day: "Mercredi", preferred_time: "12:00" },
+        metadata: { is_meal_subscription: true, subscription_day: "Mercredi", preferred_time: "12:00" },
       },
     ]);
   });
