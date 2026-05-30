@@ -29,11 +29,15 @@ import {
   MEAL_SUBSCRIPTION_DAYS,
   buildMealSubscriptionCartItems,
   getActiveMealSlots,
+  getDefaultMealSubscriptionEndDate,
+  getMealSubscriptionBillingSummary,
+  getMealSubscriptionDeliveryDate,
   getMealSubscriptionSummary,
   normalizeMealSubscriptionSlots,
   type MealSubscriptionSlot,
   type MealSubscriptionStatus,
 } from "@/lib/mealSubscription";
+import { getMealSubscriptionRestaurantAvailability } from "@/lib/mealSubscriptionAvailability";
 
 const supabase = getSupabase();
 
@@ -46,18 +50,6 @@ function createDefaultDayTimes() {
     acc[day] = "12:00";
     return acc;
   }, {});
-}
-
-function createEmptySlot(day: string): MealSlot {
-  return {
-    day,
-    menuItemId: "",
-    meal: "",
-    restaurant: "",
-    restaurantId: "",
-    price: 0,
-    time: "",
-  };
 }
 
 function createLocalSlotId() {
@@ -74,12 +66,13 @@ export default function Abonnement() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [plan, setPlan] = useState<MealSlot[]>(MEAL_SUBSCRIPTION_DAYS.map((day) => createEmptySlot(day)));
+  const [plan, setPlan] = useState<MealSlot[]>([]);
   const [editingDay, setEditingDay] = useState<string | null>(null);
   const [subscribed, setSubscribed] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
   const [dayTimes, setDayTimes] = useState<Record<string, string>>(() => createDefaultDayTimes());
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState(() => getDefaultMealSubscriptionEndDate(0));
 
   const { data: subs } = useQuery({
     queryKey: ["user-subscriptions", user?.id],
@@ -220,7 +213,7 @@ export default function Abonnement() {
     queryFn: async () => {
       const { data } = await supabase
         .from("restaurants")
-        .select("*")
+        .select("id, name, image_url, cuisine_type, rating, opening_hours")
         .eq("is_active", true)
         .eq("delivery_available", true)
         .order("rating", { ascending: false })
@@ -246,6 +239,7 @@ export default function Abonnement() {
 
   const activeMeals = getActiveMealSlots(plan);
   const summary = getMealSubscriptionSummary(plan, mealSettings);
+  const billingSummary = getMealSubscriptionBillingSummary(plan, { weekOffset, endDate: subscriptionEndDate });
   const activeRestaurantNames = Array.from(new Set(activeMeals.map((meal) => meal.restaurant).filter(Boolean)));
   const uniqueRestaurantIds = Array.from(new Set(activeMeals.map((meal) => meal.restaurantId).filter(Boolean)));
   const activePlanDays = Array.from(new Set(activeMeals.map((meal) => meal.day)));
@@ -256,6 +250,7 @@ export default function Abonnement() {
       : weekOffset === 1
         ? "Semaine prochaine"
         : `Dans ${weekOffset} semaines`;
+  const minSubscriptionEndDate = getMealSubscriptionDeliveryDate("Lundi", weekOffset);
 
   const selectMeal = (day: string, item: any, restaurant: any) => {
     if (!restaurant) return;
@@ -302,7 +297,7 @@ export default function Abonnement() {
   };
 
   const syncSubscriptionCart = () => {
-    const cartItems = buildMealSubscriptionCartItems(plan, { weekOffset });
+    const cartItems = buildMealSubscriptionCartItems(plan, { weekOffset, endDate: subscriptionEndDate });
 
     replaceCartItems(cartItems, {
       feature: "abonnement",
@@ -310,6 +305,9 @@ export default function Abonnement() {
       restaurant_count: uniqueRestaurantIds.length,
       restaurants: activeRestaurantNames,
       weeklyTotal: summary.weeklyTotal,
+      subscription_total: billingSummary.subscriptionTotal,
+      subscription_occurrences: billingSummary.occurrencesCount,
+      subscription_end_date: billingSummary.endDate,
       planDays: activePlanDays,
       subscription_status: mealSettings.status,
     }, "delivery");
@@ -335,7 +333,7 @@ export default function Abonnement() {
 
     toast({
       title: "Abonnement active",
-      description: `${activeMeals.length} repas/semaine - ${summary.weeklyTotal.toFixed(2)} CHF`,
+      description: `${activeMeals.length} repas/semaine - ${billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu'au ${billingSummary.endDate}`,
     });
     navigate("/panier");
   };
@@ -380,7 +378,11 @@ export default function Abonnement() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setWeekOffset(Math.max(0, weekOffset - 1))}
+            onClick={() => {
+              const nextOffset = Math.max(0, weekOffset - 1);
+              setWeekOffset(nextOffset);
+              setSubscriptionEndDate(getDefaultMealSubscriptionEndDate(nextOffset));
+            }}
             disabled={weekOffset === 0}
           >
             <ChevronLeft className="h-5 w-5" />
@@ -392,16 +394,35 @@ export default function Abonnement() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setWeekOffset(weekOffset + 1)}
+            onClick={() => {
+              const nextOffset = weekOffset + 1;
+              setWeekOffset(nextOffset);
+              setSubscriptionEndDate(getDefaultMealSubscriptionEndDate(nextOffset));
+            }}
             disabled={weekOffset >= 3}
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
 
+        <div className="grid gap-2 rounded-xl border bg-card p-4">
+          <Label htmlFor="subscription-end-date">Date de fin de l'abonnement</Label>
+          <Input
+            id="subscription-end-date"
+            type="date"
+            min={minSubscriptionEndDate}
+            value={subscriptionEndDate}
+            onChange={(event) => setSubscriptionEndDate(event.target.value)}
+            className="w-full sm:w-48"
+          />
+          <p className="text-xs text-muted-foreground">
+            {billingSummary.occurrencesCount} livraison{billingSummary.occurrencesCount > 1 ? "s" : ""} planifiee{billingSummary.occurrencesCount > 1 ? "s" : ""} - total a payer {billingSummary.subscriptionTotal.toFixed(2)} CHF
+          </p>
+        </div>
+
         <div className="space-y-2">
           {MEAL_SUBSCRIPTION_DAYS.map((day) => {
-            const daySlots = plan.filter((slot) => slot.day === day);
+            const daySlots = activeMeals.filter((slot) => slot.day === day);
             const dayTotal = daySlots.reduce((sum, slot) => sum + Number(slot.price || 0), 0);
 
             return (
@@ -482,25 +503,35 @@ export default function Abonnement() {
                     </div>
                   ) : null}
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {restaurants?.map((restaurant: any) => (
-                      <button
-                        key={restaurant.id}
-                        onClick={() => setSelectedRestaurantId(restaurant.id)}
-                        className="rounded-lg border p-2 text-left text-sm transition-all hover:border-purple-500/30"
-                      >
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={restaurant.image_url || "/images/kebab-box-spread.jpeg"}
-                            alt={restaurant.name}
-                            className="h-10 w-10 shrink-0 rounded-lg object-cover"
-                          />
-                          <div className="min-w-0">
-                            <p className="truncate text-xs font-medium">{restaurant.name}</p>
-                            <p className="text-[10px] text-muted-foreground">{restaurant.cuisine_type}</p>
+                    {restaurants?.map((restaurant: any) => {
+                      const availability = getMealSubscriptionRestaurantAvailability(restaurant, day, dayTimes[day] || "12:00");
+
+                      return (
+                        <button
+                          key={restaurant.id}
+                          type="button"
+                          disabled={!availability.isOpen}
+                          onClick={() => availability.isOpen && setSelectedRestaurantId(restaurant.id)}
+                          className={`rounded-lg border p-2 text-left text-sm transition-all ${
+                            availability.isOpen
+                              ? "hover:border-purple-500/30"
+                              : "cursor-not-allowed bg-muted/50 opacity-50 grayscale"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={restaurant.image_url || "/images/kebab-box-spread.jpeg"}
+                              alt={restaurant.name}
+                              className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                            />
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-medium">{restaurant.name}</p>
+                              <p className="text-[10px] text-muted-foreground">{availability.isOpen ? restaurant.cuisine_type : availability.label}</p>
+                            </div>
                           </div>
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : null}
@@ -579,7 +610,7 @@ export default function Abonnement() {
             size="lg"
           >
             <Sparkles className="h-5 w-5" />
-            S'abonner - {summary.weeklyTotal.toFixed(2)} CHF/semaine
+            S'abonner - {billingSummary.subscriptionTotal.toFixed(2)} CHF
           </Button>
         ) : (
           <div className="space-y-4">
@@ -587,7 +618,7 @@ export default function Abonnement() {
               <CheckCircle2 className="mx-auto h-10 w-10 text-purple-500" />
               <p className="text-lg font-semibold">Abonnement actif</p>
               <p className="text-sm text-muted-foreground">
-                {summary.activeMealsCount} repas/semaine - {activeRestaurantNames.length} restaurant{activeRestaurantNames.length > 1 ? "s" : ""} - {summary.weeklyTotal.toFixed(2)} CHF
+                {summary.activeMealsCount} repas/semaine - {activeRestaurantNames.length} restaurant{activeRestaurantNames.length > 1 ? "s" : ""} - {billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu'au {billingSummary.endDate}
               </p>
               <p className="text-xs text-muted-foreground">Plats de plusieurs restaurants synchronises dans un seul panier, modifiable a tout moment</p>
             </div>

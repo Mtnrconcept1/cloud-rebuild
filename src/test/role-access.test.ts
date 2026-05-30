@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   canAccessAnyRole,
   canAccessRole,
+  canShowSocialFeedSurface,
   canShowClientSurface,
   canSwitchRoles,
   getDefaultActiveRole,
@@ -102,5 +103,14 @@ describe("role access policy", () => {
     expect(canShowClientSurface({ userEmail: "owner@example.com", activeRole: "restaurateur" })).toBe(false);
     expect(canShowClientSurface({ userEmail: "driver@example.com", activeRole: "courier" })).toBe(false);
     expect(canShowClientSurface({ userEmail: "rbarman@hotmail.ch", activeRole: "admin" })).toBe(true);
+  });
+
+  it("shows the social feed to clients, restaurateurs and the super admin only", () => {
+    expect(canShowSocialFeedSurface({ userEmail: null, activeRole: null })).toBe(true);
+    expect(canShowSocialFeedSurface({ userEmail: "client@example.com", activeRole: "client" })).toBe(true);
+    expect(canShowSocialFeedSurface({ userEmail: "owner@example.com", activeRole: "restaurateur" })).toBe(true);
+    expect(canShowSocialFeedSurface({ userEmail: "driver@example.com", activeRole: "courier" })).toBe(false);
+    expect(canShowSocialFeedSurface({ userEmail: "admin@example.com", activeRole: "admin" })).toBe(false);
+    expect(canShowSocialFeedSurface({ userEmail: "rbarman@hotmail.ch", activeRole: "admin" })).toBe(true);
   });
 });

@@ -27,6 +27,10 @@ const subscriptionRows = vi.hoisted(() => ({
   ],
 }));
 
+const restaurantRows = vi.hoisted(() => ({
+  rows: [] as any[],
+}));
+
 vi.mock("@/lib/auth", () => ({
   useAuth: () => ({
     user: { id: "user-1", email: "client@example.com" },
@@ -89,6 +93,20 @@ function createSupabaseTableMock(table: string) {
     };
   }
 
+  if (table === "restaurants") {
+    return {
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            order: () => ({
+              limit: () => Promise.resolve({ data: restaurantRows.rows, error: null }),
+            }),
+          }),
+        }),
+      }),
+    };
+  }
+
   return {
     select: () => ({
       eq: () => ({
@@ -125,6 +143,7 @@ describe("Abonnement cart sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cartMocks.setOrderMode.mockReturnValue(false);
+    restaurantRows.rows = [];
     subscriptionRows.rows = [
       {
         id: "slot-1",
@@ -141,13 +160,16 @@ describe("Abonnement cart sync", () => {
   it("rebuilds the cart from an existing active subscription before opening the cart", async () => {
     renderAbonnement();
 
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: "2026-06-15" } });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
     fireEvent.click(cartButton);
 
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
 
-    expect(cartMocks.replaceCartItems).toHaveBeenCalledWith(
-      [
+    const [cartItems, cartMetadata, orderMode] = cartMocks.replaceCartItems.mock.calls[0];
+
+    expect(cartItems).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           menuItemId: "item-1",
           name: "[Lundi] Plat abonne",
@@ -160,17 +182,33 @@ describe("Abonnement cart sync", () => {
             preferred_time: "12:00",
           }),
         }),
-      ],
+      ]),
+    );
+    expect(cartItems).toHaveLength(3);
+    expect(cartMetadata).toEqual(
       expect.objectContaining({
         feature: "abonnement",
         multi_restaurant: false,
         restaurant_count: 1,
         weeklyTotal: 16,
+        subscription_total: 48,
+        subscription_occurrences: 3,
+        subscription_end_date: "2026-06-15",
         planDays: ["Lundi"],
         subscription_status: "active",
       }),
-      "delivery",
     );
+    expect(orderMode).toBe("delivery");
+  });
+
+  it("shows empty days as free days before any meal is selected", async () => {
+    subscriptionRows.rows = [];
+
+    renderAbonnement();
+
+    expect(await screen.findByText("0 repas planifies")).toBeInTheDocument();
+    expect(screen.getAllByText("Jour libre")).toHaveLength(7);
+    expect(screen.getByRole("button", { name: /S'abonner - 0\.00 CHF/i })).toBeDisabled();
   });
 
   it("syncs several subscription meals from different restaurants into one multi-restaurant cart", async () => {
@@ -197,8 +235,9 @@ describe("Abonnement cart sync", () => {
 
     renderAbonnement();
 
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: "2026-06-15" } });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
-    expect(screen.getByText(/2 repas\/semaine - 2 restaurants - 34\.00 CHF/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 repas\/semaine - 2 restaurants - 84\.00 CHF/i)).toBeInTheDocument();
     fireEvent.click(cartButton);
 
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
@@ -251,8 +290,9 @@ describe("Abonnement cart sync", () => {
 
     renderAbonnement();
 
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: "2026-06-15" } });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
-    expect(screen.getByText(/2 repas\/semaine - 1 restaurant - 24\.00 CHF/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 repas\/semaine - 1 restaurant - 72\.00 CHF/i)).toBeInTheDocument();
     fireEvent.click(cartButton);
 
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
@@ -325,5 +365,33 @@ describe("Abonnement cart sync", () => {
       expect.any(Object),
       "delivery",
     );
+  });
+
+  it("grays and disables restaurants closed at the selected day and time", async () => {
+    restaurantRows.rows = [
+      {
+        id: "restaurant-1",
+        name: "Cafe ferme",
+        cuisine_type: "Burgers",
+        image_url: null,
+        opening_hours: { lundi: [{ open: "11:30", close: "14:00" }] },
+      },
+      {
+        id: "restaurant-2",
+        name: "Cafe ouvert",
+        cuisine_type: "Veggie",
+        image_url: null,
+        opening_hours: { lundi: [{ open: "11:30", close: "16:00" }] },
+      },
+    ];
+
+    renderAbonnement();
+
+    fireEvent.click(await screen.findByRole("button", { name: /Lundi/i }));
+    fireEvent.change(screen.getByLabelText("Heure de livraison Lundi"), { target: { value: "15:00" } });
+
+    expect(await screen.findByRole("button", { name: /Cafe ferme/i })).toBeDisabled();
+    expect(screen.getByText("Ferme a 15:00")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cafe ouvert/i })).not.toBeDisabled();
   });
 });

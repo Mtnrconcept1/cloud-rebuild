@@ -78,3 +78,13 @@ export function canShowClientSurface({
 }) {
   return !userEmail || activeRole === "client" || isSuperAdminEmail(userEmail);
 }
+
+export function canShowSocialFeedSurface({
+  userEmail,
+  activeRole,
+}: {
+  userEmail: string | null | undefined;
+  activeRole: UserRole | null;
+}) {
+  return !userEmail || activeRole === "client" || activeRole === "restaurateur" || isSuperAdminEmail(userEmail);
+}

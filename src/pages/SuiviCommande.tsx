@@ -314,9 +314,11 @@ export default function SuiviCommande() {
     );
   }
 
+  const hasRouteOverview = routeSteps.some((step) => step.type === "pickup")
+    && routeSteps.some((step) => step.type === "dropoff");
   const showMap = hasLiveCourierFlow
-    ? Boolean(currentDriverPos?.lat && currentDriverPos?.lng && currentPhase >= 2)
-    : currentPhase >= 2;
+    ? Boolean(currentDriverPos?.lat && currentDriverPos?.lng && (currentPhase >= 2 || hasRouteOverview))
+    : (currentPhase >= 2 || hasRouteOverview);
   const showDriver = hasLiveCourierFlow ? Boolean(driverName) : currentPhase >= 1;
   const isDelivered = currentPhase >= 3;
   const orderMeta = (order.metadata || {}) as any;
@@ -504,7 +506,7 @@ export default function SuiviCommande() {
           <div className="space-y-2 animate-fade-in">
             <h2 className="font-semibold text-sm flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary" />
-              Position du livreur en temps reel
+              {currentPhase >= 2 ? "Position du livreur en temps reel" : "Trajet complet de livraison"}
             </h2>
             <DeliveryMap
               routeStops={routeSteps

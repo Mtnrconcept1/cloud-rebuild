@@ -49,6 +49,7 @@ import {
 import { getFreshAccessToken, invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { getCartItemOrderGroupKey, getMealSubscriptionOrderMetadata } from "@/lib/subscriptionCheckout";
+import { getCartRestaurantSummaryLabel } from "@/lib/cartRestaurantSummary";
 
 const supabase = getSupabase();
 
@@ -169,6 +170,10 @@ export default function Panier() {
   const deliveryFee = roundMoney(Math.max(0, quotedDeliveryFee - tokOneDeliverySaved));
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
+  const cartRestaurantSummaryLabel = useMemo(
+    () => getCartRestaurantSummaryLabel({ cartMetadata, items }),
+    [cartMetadata, items],
+  );
   const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
   const canScheduleDelivery = !isChefsTableCheckout && orderMode === "delivery" && isSingleRestaurant && deliveryFeatureEnabled;
   const needsTakeawaySlots = !isChefsTableCheckout && orderMode === "takeaway" && isSingleRestaurant && takeawayFeatureEnabled && !hasAntiGaspi && !hasTakeawayFlash;
@@ -1065,7 +1070,7 @@ export default function Panier() {
           <div className="rounded-3xl border bg-card/60 p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Table du Chef" : items[0]?.restaurantName}</p>
+                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Table du Chef" : cartRestaurantSummaryLabel}</p>
                 <p className="text-xs text-muted-foreground">
                   {isChefsTableCheckout
                     ? `${chefsTableReservationGroups.length} reservation(s) a confirmer`
@@ -1118,7 +1123,7 @@ export default function Panier() {
         <p className="text-sm text-muted-foreground">
           {isChefsTableCheckout
             ? `${chefsTableReservationGroups.length} reservation(s) La Table du Chef a confirmer`
-            : `Restaurant : ${items[0]?.restaurantName}`}
+            : cartRestaurantSummaryLabel}
         </p>
 
         <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />

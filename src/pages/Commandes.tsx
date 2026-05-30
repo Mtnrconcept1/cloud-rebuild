@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
+import { buildCustomerOrderGroups } from "@/lib/customerOrders";
 import { cancelOrderByCustomer } from "@/lib/orderMutations";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { parseStripeReturnSearch } from "@/lib/stripeReturn";
@@ -245,6 +246,7 @@ export default function Commandes() {
   });
 
   const orders = (ordersData || []).filter((order) => (order.metadata as any)?.feature !== "zero-attente");
+  const orderGroups = buildCustomerOrderGroups(orders);
   const hasExpandedGroups = expandedGroups.size > 0;
 
   const toggleGroup = (groupKey: string) => {
@@ -286,23 +288,15 @@ export default function Commandes() {
           <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
             Erreur lors du chargement des commandes : {(error as Error).message}
           </div>
-        ) : orders.length > 0 ? (
+        ) : orderGroups.length > 0 ? (
           <div className="space-y-6">
-            {Object.entries(
-              orders.reduce((acc, order) => {
-                const groupKey = (order.metadata as any)?.checkout_group_id || order.checkout_id || order.id;
-                if (!acc[groupKey]) acc[groupKey] = [];
-                acc[groupKey].push(order);
-                return acc;
-              }, {} as Record<string, any[]>),
-            ).map(([groupKey, groupOrders]) => {
-              const mainOrder = groupOrders[0];
-              const totalAmount = groupOrders.reduce((sum, order) => sum + Number(order.total_amount), 0);
+            {orderGroups.map((group) => {
+              const groupKey = group.groupKey;
+              const groupOrders = group.orders;
+              const mainOrder = group.mainOrder;
+              const totalAmount = group.totalAmount;
               const isExpanded = expandedGroups.has(groupKey);
-              const restaurantsLabel = groupOrders
-                .map((order) => order.restaurant?.name || "Restaurant")
-                .filter(Boolean)
-                .join(", ");
+              const restaurantsLabel = group.restaurantsLabel;
               const createdDate = new Date(mainOrder.created_at);
               const dateLabel = createdDate.toLocaleDateString("fr-FR", {
                 day: "2-digit",
@@ -327,17 +321,25 @@ export default function Commandes() {
                       <div className="shrink-0 rounded-lg bg-primary/10 p-2"><Package className="h-5 w-5 text-primary" /></div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-bold">{mainOrder.order_number || `#${String(groupKey).slice(0, 8)}`}</p>
+                          <p className="text-sm font-bold">
+                            {group.isMealSubscription ? group.title : (mainOrder.order_number || `#${String(groupKey).slice(0, 8)}`)}
+                          </p>
                           <OrderStatusBadge status={getDisplayStatus(mainOrder)} />
                         </div>
                         <p className="truncate text-sm font-medium">{restaurantsLabel}</p>
-                        <p className="text-xs text-muted-foreground">{dateLabel} · {timeLabel}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {group.isMealSubscription && group.subscriptionDaysLabel
+                            ? `${group.subscriptionDaysLabel} - ${group.orderCount} commande${group.orderCount > 1 ? "s" : ""}`
+                            : `${dateLabel} - ${timeLabel}`}
+                        </p>
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-3 text-right">
                       <div>
                         <p className="font-bold text-primary">{totalAmount.toFixed(2)} CHF</p>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{groupOrders.length} restaurant(s)</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {group.isMealSubscription ? "abonnement global" : `${groupOrders.length} restaurant(s)`}
+                        </p>
                       </div>
                       <ChevronIcon className="h-5 w-5 text-muted-foreground" />
                     </div>

@@ -35,7 +35,7 @@ import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { LOGO_URL } from "@/lib/constants";
 import { useActiveFeatures } from "@/lib/featureFlags";
-import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
+import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,6 +93,7 @@ export default function Navbar() {
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ userEmail: user?.email, activeRole: role });
+  const showSocialFeedSurface = canShowSocialFeedSurface({ userEmail: user?.email, activeRole: role });
   const homeTarget = showClientSurface ? "/" : getRoleHomePath(role);
   const notificationsTarget = showClientSurface ? "/notifications" : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
@@ -310,6 +311,15 @@ export default function Navbar() {
           ) : null}
 
           <div className="flex min-w-0 items-center gap-0.5 min-[380px]:gap-1">
+            {!showClientSurface && showSocialFeedSurface && actualitesEnabled ? (
+              <Button variant="ghost" size="sm" asChild className="hidden gap-2 rounded-full md:inline-flex">
+                <Link to="/actualites">
+                  <Newspaper className="h-4 w-4" />
+                  Actualites
+                </Link>
+              </Button>
+            ) : null}
+
             <Button variant="ghost" size="icon" onClick={handleThemeToggle} className="text-muted-foreground hover:text-foreground">
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -428,6 +438,11 @@ export default function Navbar() {
                       <Link to="/reservations">Mes reservations</Link>
                     </DropdownMenuItem>
                   ) : null}
+                  {showSocialFeedSurface && actualitesEnabled ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/actualites">Actualites</Link>
+                    </DropdownMenuItem>
+                  ) : null}
                   {role === "courier" && !showClientSurface ? (
                     <DropdownMenuItem asChild>
                       <Link to="/courier/profile">Mon profil</Link>
@@ -498,7 +513,7 @@ export default function Navbar() {
                       Ventes Flash
                     </Link>
                   ) : null}
-                  {showClientSurface && actualitesEnabled ? (
+                  {showSocialFeedSurface && actualitesEnabled ? (
                     <Link to="/actualites" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                       <Newspaper className="h-4 w-4" />
                       Actualites

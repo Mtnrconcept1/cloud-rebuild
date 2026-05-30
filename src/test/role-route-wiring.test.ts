@@ -38,4 +38,11 @@ describe("role route wiring", () => {
 
     expect(protectedRouteSource).not.toMatch(/roles\.includes\("admin"\)|role\s*===\s*"admin"/);
   });
+
+  it("does not hide the public social feed behind the customer-only navigation surface", () => {
+    const navbarSource = readFileSync(resolve(process.cwd(), "src/components/Navbar.tsx"), "utf8");
+
+    expect(navbarSource).toContain("showSocialFeedSurface");
+    expect(navbarSource).not.toContain("showClientSurface && actualitesEnabled");
+  });
 });

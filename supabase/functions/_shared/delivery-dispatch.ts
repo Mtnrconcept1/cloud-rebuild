@@ -24,6 +24,7 @@ const DAY_KEYS = [
 ] as const;
 
 type ServicePeriod = "lunch" | "dinner";
+type ResolvedServicePeriod = ServicePeriod | "opening_hours";
 
 type ServiceSettings = {
   start_time: string;
@@ -93,6 +94,17 @@ function getServiceSettings(openingHours: unknown): Record<ServicePeriod, Servic
   };
 }
 
+function hasConfiguredServiceSettings(openingHours: unknown) {
+  return Boolean(
+    openingHours
+      && typeof openingHours === "object"
+      && !Array.isArray(openingHours)
+      && (openingHours as Record<string, unknown>).service_settings
+      && typeof (openingHours as Record<string, unknown>).service_settings === "object"
+      && !Array.isArray((openingHours as Record<string, unknown>).service_settings),
+  );
+}
+
 function isRestaurantOpenOnDate(openingHours: unknown, dateValue: string) {
   if (!openingHours || typeof openingHours !== "object" || Array.isArray(openingHours)) {
     return true;
@@ -113,6 +125,67 @@ function isRestaurantOpenOnDate(openingHours: unknown, dateValue: string) {
   }
 
   return true;
+}
+
+function getDayOpeningValue(openingHours: unknown, dateValue: string) {
+  if (!openingHours || typeof openingHours !== "object" || Array.isArray(openingHours)) return undefined;
+
+  const dayKey = getDayKey(dateValue);
+  if (!dayKey) return undefined;
+
+  return (openingHours as Record<string, unknown>)[dayKey];
+}
+
+function parseOpeningWindow(value: unknown): ServiceSettings | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const startTime = typeof record.open === "string"
+    ? record.open
+    : typeof record.start === "string"
+      ? record.start
+      : typeof record.start_time === "string"
+        ? record.start_time
+        : "";
+  const endTime = typeof record.close === "string"
+    ? record.close
+    : typeof record.end === "string"
+      ? record.end
+      : typeof record.end_time === "string"
+        ? record.end_time
+        : "";
+
+  if (record.closed === true || !startTime || !endTime) return null;
+
+  return {
+    start_time: startTime,
+    end_time: endTime,
+    online_booking_enabled: true,
+    service_closed: false,
+  };
+}
+
+function getOpeningHourWindows(openingHours: unknown, dateValue: string): ServiceSettings[] {
+  const dayValue = getDayOpeningValue(openingHours, dateValue);
+
+  if (typeof dayValue === "string") {
+    if (/(ferme|ferm[eé]e|closed)/i.test(dayValue)) return [];
+    const match = /([0-2]\d:[0-5]\d)\s*[-a]\s*([0-2]\d:[0-5]\d)/i.exec(dayValue);
+    return match ? [{
+      start_time: match[1],
+      end_time: match[2],
+      online_booking_enabled: true,
+      service_closed: false,
+    }] : [];
+  }
+
+  if (Array.isArray(dayValue)) {
+    return dayValue
+      .map(parseOpeningWindow)
+      .filter((window): window is ServiceSettings => Boolean(window));
+  }
+
+  const parsed = parseOpeningWindow(dayValue);
+  return parsed ? [parsed] : [];
 }
 
 function getTimeZoneOffset(date: Date, timeZone = SCHEDULING_TIME_ZONE) {
@@ -171,8 +244,11 @@ export async function resolveScheduledDelivery(
     throw new Error("Le restaurant est ferme a la date choisie pour la livraison.");
   }
 
-  const settingsMap = getServiceSettings(restaurant?.opening_hours);
-  const matchingService = (Object.entries(settingsMap) as [ServicePeriod, ServiceSettings][])
+  const serviceEntries = hasConfiguredServiceSettings(restaurant?.opening_hours)
+    ? (Object.entries(getServiceSettings(restaurant?.opening_hours)) as [ResolvedServicePeriod, ServiceSettings][])
+    : getOpeningHourWindows(restaurant?.opening_hours, dateValue)
+        .map((settings): [ResolvedServicePeriod, ServiceSettings] => ["opening_hours", settings]);
+  const matchingService = serviceEntries
     .find(([, settings]) => settings.online_booking_enabled && !settings.service_closed && isTimeWithinService(timeValue, settings));
 
   if (!matchingService) {

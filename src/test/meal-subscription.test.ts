@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildMealSubscriptionCartItems,
+  getMealSubscriptionBillingSummary,
   getMealSubscriptionDeliveryDate,
   getMealSubscriptionSummary,
   normalizeMealSubscriptionSlots,
@@ -81,6 +82,69 @@ describe("mealSubscription", () => {
     expect(getMealSubscriptionDeliveryDate("Lundi", 0, monday)).toBe("2026-06-01");
     expect(getMealSubscriptionDeliveryDate("Dimanche", 0, monday)).toBe("2026-06-07");
     expect(getMealSubscriptionDeliveryDate("Lundi", 1, monday)).toBe("2026-06-08");
+    expect(getMealSubscriptionDeliveryDate("Lundi", 0, new Date("2026-06-06T10:00:00Z"))).toBe("2026-06-08");
+  });
+
+  it("expands subscription meals until the selected end date and bills every recurrence", () => {
+    const slots = normalizeMealSubscriptionSlots([
+      { id: "slot-1", day: "Lundi", menuItemId: "item-1", meal: "Plat", restaurant: "Tok", restaurantId: "res", price: 18, time: "12:00" },
+      { id: "slot-2", day: "Mercredi", menuItemId: "item-2", meal: "Dessert", restaurant: "Tok", restaurantId: "res", price: 8, time: "12:00" },
+    ]);
+
+    const cartItems = buildMealSubscriptionCartItems(slots, {
+      weekOffset: 0,
+      endDate: "2026-06-15",
+      now: new Date("2026-06-01T08:00:00Z"),
+    });
+
+    expect(cartItems.map((item) => item.metadata.delivery_date)).toEqual([
+      "2026-06-01",
+      "2026-06-08",
+      "2026-06-15",
+      "2026-06-03",
+      "2026-06-10",
+    ]);
+    expect(cartItems).toHaveLength(5);
+    expect(cartItems[0].metadata).toMatchObject({
+      subscription_start_date: "2026-06-01",
+      subscription_end_date: "2026-06-15",
+      subscription_occurrence_count: 3,
+      subscription_occurrence_index: 1,
+    });
+    expect(getMealSubscriptionBillingSummary(slots, {
+      weekOffset: 0,
+      endDate: "2026-06-15",
+      now: new Date("2026-06-01T08:00:00Z"),
+    })).toMatchObject({
+      occurrencesCount: 5,
+      subscriptionTotal: 70,
+      endDate: "2026-06-15",
+    });
+  });
+
+  it("starts a same-day subscription next week when the selected delivery time has already passed", () => {
+    const slots = normalizeMealSubscriptionSlots([
+      { id: "slot-1", day: "Lundi", menuItemId: "item-1", meal: "Plat", restaurant: "Tok", restaurantId: "res", price: 18, time: "12:00" },
+    ]);
+
+    const cartItems = buildMealSubscriptionCartItems(slots, {
+      weekOffset: 0,
+      endDate: "2026-06-15",
+      now: new Date("2026-06-01T14:00:00Z"),
+    });
+
+    expect(cartItems.map((item) => item.metadata.delivery_date)).toEqual([
+      "2026-06-08",
+      "2026-06-15",
+    ]);
+    expect(getMealSubscriptionBillingSummary(slots, {
+      weekOffset: 0,
+      endDate: "2026-06-15",
+      now: new Date("2026-06-01T14:00:00Z"),
+    })).toMatchObject({
+      occurrencesCount: 2,
+      subscriptionTotal: 36,
+    });
   });
 
   it("documents the migration that allows several meals on the same day", () => {
