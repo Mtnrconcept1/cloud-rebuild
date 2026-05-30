@@ -33,8 +33,10 @@ import {
   isTokOneSubscriptionActive,
   useTokOneSubscription,
   useTokOnePlans,
+  useTokOneBenefits,
 } from "@/hooks/useTokOne";
 import { Badge } from "@/components/ui/badge";
+import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 
 const supabase = getSupabase();
 
@@ -550,6 +552,14 @@ type TokOneTabProps = {
 function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: tokOneBenefits } = useTokOneBenefits(subscription?.plan_id);
+  const tokOneEntitlements = buildTokOneEntitlements({
+    plan: subscription?.user_subscription_plans,
+    benefits: tokOneBenefits,
+  });
+  const enabledBenefitLabels = tokOneEntitlements.displayBenefits
+    .filter((benefit) => benefit.enabled)
+    .map((benefit) => benefit.label);
 
   // Fetch orders where tok_one_member was true (usage history)
   const { data: tokOneOrders, isLoading: ordersLoading } = useQuery({
@@ -680,6 +690,17 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                 <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
                 {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
               </p>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-white/60 border p-4">
+            <p className="text-xs text-muted-foreground font-medium mb-3">Avantages actifs</p>
+            <div className="flex flex-wrap gap-2">
+              {enabledBenefitLabels.map((label) => (
+                <Badge key={label} variant="secondary" className="bg-violet-100 text-violet-700">
+                  {label}
+                </Badge>
+              ))}
             </div>
           </div>
 

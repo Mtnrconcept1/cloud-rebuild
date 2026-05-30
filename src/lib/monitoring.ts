@@ -6,6 +6,44 @@ type MonitoringContext = {
   tags?: Record<string, string>;
 };
 
+type SentryFrame = {
+  filename?: string | null;
+};
+
+type SentryExceptionValue = {
+  stacktrace?: {
+    frames?: SentryFrame[];
+  } | null;
+};
+
+type SentryEventLike = {
+  exception?: {
+    values?: SentryExceptionValue[];
+  } | null;
+};
+
+const MASKED_OR_EXTENSION_URL_PATTERN = /^(?:webkit-masked-url|safari-extension|chrome-extension|moz-extension):/i;
+
+const CLIENT_SIDE_DENY_URLS = [
+  /^webkit-masked-url:/i,
+  /^safari-extension:/i,
+  /^chrome-extension:/i,
+  /^moz-extension:/i,
+];
+
+function getEventFrameFilenames(event: SentryEventLike) {
+  return (event.exception?.values || [])
+    .flatMap((value) => value.stacktrace?.frames || [])
+    .map((frame) => frame.filename)
+    .filter((filename): filename is string => typeof filename === "string" && filename.length > 0);
+}
+
+export function shouldDropMaskedOrExtensionEvent(event: SentryEventLike) {
+  const filenames = getEventFrameFilenames(event);
+
+  return filenames.length > 0 && filenames.every((filename) => MASKED_OR_EXTENSION_URL_PATTERN.test(filename));
+}
+
 const RAW_SENTRY_DSN = sanitizeEnvValue(import.meta.env.VITE_SENTRY_DSN);
 const SENTRY_ENVIRONMENT = sanitizeEnvValue(import.meta.env.VITE_SENTRY_ENVIRONMENT || import.meta.env.MODE);
 const SENTRY_RELEASE = sanitizeEnvValue(import.meta.env.VITE_APP_RELEASE);
@@ -50,6 +88,10 @@ async function loadSentry(): Promise<SentryModule | null> {
             environment: SENTRY_ENVIRONMENT || undefined,
             release: SENTRY_RELEASE || undefined,
             sendDefaultPii: false,
+            denyUrls: CLIENT_SIDE_DENY_URLS,
+            beforeSend(event) {
+              return shouldDropMaskedOrExtensionEvent(event) ? null : event;
+            },
           });
           sentryInitStarted = true;
         }

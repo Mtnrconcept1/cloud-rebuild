@@ -42,8 +42,9 @@ const ALLOWED_PAYMENT_METHODS: PaymentMethodId[] = [
   "twint",
 ];
 
-function FulfillmentCard({ f }: { f: ServiceFulfillment }) {
+function FulfillmentCard({ f, service }: { f: ServiceFulfillment; service?: PackService }) {
   const Icon = getServiceIcon(f.service_slug);
+  const detail = service ? formatServiceDetail(service) : null;
   return (
     <div className="flex items-start gap-4 p-4 rounded-xl border bg-card">
       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -60,6 +61,9 @@ function FulfillmentCard({ f }: { f: ServiceFulfillment }) {
             {getStatusLabel(f.status)}
           </span>
         </div>
+        {detail && (
+          <p className="text-xs text-muted-foreground mt-1">{detail}</p>
+        )}
         {f.scheduled_at && (
           <p className="text-xs text-muted-foreground mt-1">
             Planifie le{" "}
@@ -105,12 +109,18 @@ function PackSelectionCard({
         {pack.price_chf.toLocaleString("fr-CH")} <span className="text-sm text-muted-foreground font-normal">CHF</span>
       </p>
       <ul className="space-y-1.5 mt-3 flex-1">
-        {(pack.services as PackService[]).map((svc) => (
-          <li key={svc.service} className="flex items-center gap-2 text-sm">
-            <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-            <span>{svc.label}</span>
-          </li>
-        ))}
+        {(pack.services as PackService[]).map((svc) => {
+          const detail = formatServiceDetail(svc);
+          return (
+            <li key={svc.service} className="flex items-start gap-2 text-sm">
+              <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+              <span>
+                {svc.label}
+                {detail ? <span className="block text-xs text-muted-foreground">{detail}</span> : null}
+              </span>
+            </li>
+          );
+        })}
       </ul>
       <Button
         className="w-full mt-4"
@@ -246,6 +256,7 @@ function EmptyState({
 export default function DashboardPack() {
   const { selectedId } = useDashboardRestaurant();
   const { data: restaurantPack, isLoading } = useRestaurantLaunchPack(selectedId);
+  const { data: packs = [] } = useLaunchPacks();
   const [searchParams] = useSearchParams();
 
   const [selectedPack, setSelectedPack] = useState<LaunchPack | null>(null);
@@ -411,7 +422,13 @@ export default function DashboardPack() {
                 <h2 className="text-lg font-semibold">Services inclus</h2>
                 <div className="grid gap-3">
                   {fulfillments.map((f) => (
-                    <FulfillmentCard key={f.id} f={f} />
+                    <FulfillmentCard
+                      key={f.id}
+                      f={f}
+                      service={(restaurantPack.launch_packs.services as PackService[]).find(
+                        (service) => service.service === f.service_slug,
+                      )}
+                    />
                   ))}
                 </div>
               </div>

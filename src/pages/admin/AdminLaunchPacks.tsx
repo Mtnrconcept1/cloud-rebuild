@@ -48,6 +48,7 @@ import {
   getStatusLabel,
   getPurchaseStatusLabel,
   computePackProgress,
+  formatServiceDetail,
   type FulfillmentStatus,
   type PackPurchaseStatus,
   type ServiceFulfillment,
@@ -114,14 +115,17 @@ function ProgressBar({ fulfillments }: { fulfillments: ServiceFulfillment[] }) {
 
 function FulfillmentEditor({
   fulfillment,
+  service,
   onUpdate,
   saving,
 }: {
   fulfillment: ServiceFulfillment;
+  service?: PackService;
   onUpdate: (id: string, patch: Partial<ServiceFulfillment>) => void;
   saving: string | null;
 }) {
   const Icon = getServiceIcon(fulfillment.service_slug);
+  const detail = service ? formatServiceDetail(service) : null;
   const isSaving = saving === fulfillment.id;
   const [editNotes, setEditNotes] = useState(fulfillment.notes || "");
   const [editScheduled, setEditScheduled] = useState(
@@ -148,6 +152,9 @@ function FulfillmentEditor({
           </div>
           <div>
             <p className="font-medium text-sm">{fulfillment.service_label}</p>
+            {detail && (
+              <p className="text-xs text-muted-foreground">{detail}</p>
+            )}
             {fulfillment.completed_at && (
               <p className="text-xs text-muted-foreground">
                 Termine le {new Date(fulfillment.completed_at).toLocaleDateString("fr-CH")}
@@ -449,6 +456,9 @@ function PackDetailView({
           <FulfillmentEditor
             key={f.id}
             fulfillment={f}
+            service={(pack.launch_packs.services as PackService[]).find(
+              (service) => service.service === f.service_slug,
+            )}
             onUpdate={handleFulfillmentUpdate}
             saving={savingId}
           />

@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Armchair,
@@ -41,6 +41,7 @@ import StudioInspector from "@/components/floor-plan/StudioInspector";
 import StudioPalette from "@/components/floor-plan/StudioPalette";
 import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
 import TableContextDrawer from "@/components/floor-plan/TableContextDrawer";
+import { getRecommendedTableByReservation, scoreReservationPlacement } from "@/components/floor-plan/serviceShared";
 import type { StudioLibraryTab } from "@/components/floor-plan/studioShared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,17 +60,21 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import {
   FLOOR_PLAN_PRESETS,
   buildDraftFloorPlanLayout,
+  buildFloorPlanViewportModel,
   clampFloorPlanLayout,
   ensureFloorPlanLayoutFitsCapacity,
   getFloorPlanContentPadding as resolveFloorPlanContentPadding,
   getFloorPlanItemBaseName,
   getFloorPlanItemTypeLabel,
+  getLogicalFloorPlanPositionFromRenderedFrame,
+  getMinimumFloorPlanResizeSize,
   getResolvedFloorPlanDimensions,
   isReservableFloorPlanItem,
   normalizeFloorPlanLayout,
   reservationsOverlap,
   resizeFloorPlanLayoutToFootprint,
   resizeRenderedFloorPlanFrame,
+  updateFloorPlanItemLayoutById,
   type FloorPlanCornerBenchConfig,
   type FloorPlanItemKind,
   type FloorPlanRenderedFrame,
@@ -88,6 +93,21 @@ import {
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
 import { formatRestaurantPaymentMethod } from "@/lib/dashboardPayments";
+import { getFloorPlanHealthSummary } from "@/lib/floorPlanHealth";
+import { createFloorPlanFrameScheduler, createFloorPlanPointerMoveScheduler } from "@/lib/floorPlanFrameScheduler";
+import {
+  createFloorPlanHistory,
+  pushFloorPlanHistory,
+  redoFloorPlanHistory,
+  resetFloorPlanHistory,
+  undoFloorPlanHistory,
+  type FloorPlanHistory,
+} from "@/lib/floorPlanHistory";
+import {
+  buildFloorPlanAssignmentSignature,
+  hasFloorPlanAssignmentChanges,
+} from "@/lib/floorPlanPersistence";
+import { updateRestaurantReservationStatus } from "@/lib/reservationMutations";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
 
@@ -181,11 +201,16 @@ type SaveMutationOptions = {
 };
 type RenderedTableFrame = FloorPlanRenderedFrame;
 type TableDensity = "tight" | "compact" | "regular";
+type FloorPlanHistorySnapshot = {
+  tables: DraftTable[];
+  assignments: Record<string, string | null>;
+  selectedTableId: string | null;
+};
 
 const DEFAULT_SECTOR = "Salle principale";
 const DEFAULT_COUNTRY = "Suisse";
 const CANVAS_WIDTH = 1040;
-const CANVAS_HEIGHT = 680;
+const CANVAS_HEIGHT = 760;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
@@ -383,6 +408,8 @@ function getReservationStatusTone(status: string | null | undefined) {
       return "bg-amber-50 text-amber-700 border-amber-200";
     case "arrived":
       return "bg-sky-50 text-sky-700 border-sky-200";
+    case "seated":
+      return "bg-indigo-50 text-indigo-700 border-indigo-200";
     case "no_show":
       return "bg-rose-50 text-rose-700 border-rose-200";
     default:
@@ -545,6 +572,50 @@ function getTableContentPadding(
   return resolveFloorPlanContentPadding(layout, capacity, zoom);
 }
 
+function getReservationStatusLabel(status: string) {
+  switch (status) {
+    case "arrived":
+      return "arrive";
+    case "seated":
+      return "installe";
+    case "no_show":
+      return "no-show";
+    case "confirmed":
+      return "confirme";
+    case "pending":
+      return "en attente";
+    default:
+      return status;
+  }
+}
+
+function cloneDraftTables(tables: readonly DraftTable[]) {
+  return tables.map((table) => ({
+    ...table,
+    layout: JSON.parse(JSON.stringify(table.layout)) as FloorPlanTableLayout,
+  }));
+}
+
+function cloneHistorySnapshot(snapshot: FloorPlanHistorySnapshot): FloorPlanHistorySnapshot {
+  return {
+    tables: cloneDraftTables(snapshot.tables),
+    assignments: { ...snapshot.assignments },
+    selectedTableId: snapshot.selectedTableId,
+  };
+}
+
+function getHistorySnapshotSignature(snapshot: FloorPlanHistorySnapshot) {
+  return JSON.stringify({
+    tables: snapshot.tables,
+    assignments: snapshot.assignments,
+    selectedTableId: snapshot.selectedTableId,
+  });
+}
+
+function areHistorySnapshotsEqual(current: FloorPlanHistorySnapshot, next: FloorPlanHistorySnapshot) {
+  return getHistorySnapshotSignature(current) === getHistorySnapshotSignature(next);
+}
+
 function isReservableDraftTable(table: DraftTable | null | undefined) {
   return !!table && isReservableFloorPlanItem(table.layout.kind);
 }
@@ -553,54 +624,6 @@ function getPersistableCapacity(table: DraftTable) {
   return isReservableDraftTable(table)
     ? Math.max(1, Math.round(table.capacity || 1))
     : 0;
-}
-
-function getRenderedTableFrame(
-  layout: FloorPlanTableLayout,
-  zoom: number,
-  canvasWidth: number,
-  canvasHeight: number,
-) {
-  const renderedWidth = layout.w * zoom;
-  const renderedHeight = layout.h * zoom;
-  const logicalMaxX = Math.max(16, canvasWidth - layout.w - 16);
-  const logicalMaxY = Math.max(16, canvasHeight - layout.h - 16);
-  const renderedMaxX = Math.max(16, canvasWidth - renderedWidth - 16);
-  const renderedMaxY = Math.max(16, canvasHeight - renderedHeight - 16);
-  const ratioX = logicalMaxX <= 16 ? 0 : (layout.x - 16) / (logicalMaxX - 16);
-  const ratioY = logicalMaxY <= 16 ? 0 : (layout.y - 16) / (logicalMaxY - 16);
-
-  return {
-    x: 16 + (Math.max(0, Math.min(1, ratioX)) * (renderedMaxX - 16)),
-    y: 16 + (Math.max(0, Math.min(1, ratioY)) * (renderedMaxY - 16)),
-    w: renderedWidth,
-    h: renderedHeight,
-  };
-}
-
-function getLogicalPositionFromRenderedFrame(
-  layout: FloorPlanTableLayout,
-  renderedX: number,
-  renderedY: number,
-  zoom: number,
-  canvasWidth: number,
-  canvasHeight: number,
-) {
-  const renderedWidth = layout.w * zoom;
-  const renderedHeight = layout.h * zoom;
-  const logicalMaxX = Math.max(16, canvasWidth - layout.w - 16);
-  const logicalMaxY = Math.max(16, canvasHeight - layout.h - 16);
-  const renderedMaxX = Math.max(16, canvasWidth - renderedWidth - 16);
-  const renderedMaxY = Math.max(16, canvasHeight - renderedHeight - 16);
-  const safeRenderedX = Math.min(Math.max(16, renderedX), renderedMaxX);
-  const safeRenderedY = Math.min(Math.max(16, renderedY), renderedMaxY);
-  const ratioX = renderedMaxX <= 16 ? 0 : (safeRenderedX - 16) / (renderedMaxX - 16);
-  const ratioY = renderedMaxY <= 16 ? 0 : (safeRenderedY - 16) / (renderedMaxY - 16);
-
-  return {
-    x: 16 + (Math.max(0, Math.min(1, ratioX)) * (logicalMaxX - 16)),
-    y: 16 + (Math.max(0, Math.min(1, ratioY)) * (logicalMaxY - 16)),
-  };
 }
 
 function PanelSection({
@@ -686,6 +709,9 @@ export default function DashboardPlanSalle() {
   const scheduledAutoSaveLayoutSignatureRef = useRef<string | null>(null);
   const assignReservationToTableRef = useRef<(reservationId: string, tableId: string) => void>(() => undefined);
   const getVisibleTableAtPointRef = useRef<(x: number, y: number) => DraftTable | null>(() => null);
+  const draftTablesRef = useRef<DraftTable[]>([]);
+  const draftAssignmentsRef = useRef<Record<string, string | null>>({});
+  const selectedTableIdRef = useRef<string | null>(null);
 
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedSector, setSelectedSector] = useState(DEFAULT_SECTOR);
@@ -725,6 +751,9 @@ export default function DashboardPlanSalle() {
   });
   const [draftTables, setDraftTables] = useState<DraftTable[]>([]);
   const [draftAssignments, setDraftAssignments] = useState<Record<string, string | null>>({});
+  const [floorPlanHistory, setFloorPlanHistory] = useState<FloorPlanHistory<FloorPlanHistorySnapshot>>(() => (
+    createFloorPlanHistory({ tables: [], assignments: {}, selectedTableId: null })
+  ));
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [dragState, setDragState] = useState<{ tableId: string; offsetX: number; offsetY: number } | null>(null);
@@ -761,6 +790,62 @@ export default function DashboardPlanSalle() {
   const setPanelSectionOpen = (section: keyof typeof panelSections, open: boolean) => {
     setPanelSections((current) => ({ ...current, [section]: open }));
   };
+  const canUndoFloorPlan = floorPlanHistory.past.length > 0;
+  const canRedoFloorPlan = floorPlanHistory.future.length > 0;
+  const buildHistorySnapshot = (
+    tables = draftTablesRef.current,
+    assignments = draftAssignmentsRef.current,
+    tableId = selectedTableIdRef.current,
+  ): FloorPlanHistorySnapshot => ({
+    tables: cloneDraftTables(tables),
+    assignments: { ...assignments },
+    selectedTableId: tableId,
+  });
+  const applyHistorySnapshot = (snapshot: FloorPlanHistorySnapshot) => {
+    const nextSnapshot = cloneHistorySnapshot(snapshot);
+    draftTablesRef.current = nextSnapshot.tables;
+    draftAssignmentsRef.current = nextSnapshot.assignments;
+    selectedTableIdRef.current = nextSnapshot.selectedTableId;
+    setDraftTables(nextSnapshot.tables);
+    setDraftAssignments(nextSnapshot.assignments);
+    setSelectedTableId(nextSnapshot.selectedTableId);
+    setDragState(null);
+    setResizeState(null);
+    setRotateState(null);
+    setDraggedReservationId(null);
+    setDragOverTableId(null);
+    setReservationPointerDrag(null);
+    setReservationPointerPosition(null);
+  };
+  const commitHistorySnapshot = (snapshot: FloorPlanHistorySnapshot) => {
+    const nextSnapshot = cloneHistorySnapshot(snapshot);
+    setFloorPlanHistory((current) => pushFloorPlanHistory(current, nextSnapshot, { isEqual: areHistorySnapshotsEqual }));
+    applyHistorySnapshot(nextSnapshot);
+  };
+  const undoFloorPlan = () => {
+    const nextHistory = undoFloorPlanHistory(floorPlanHistory);
+    if (nextHistory === floorPlanHistory) return;
+    setFloorPlanHistory(nextHistory);
+    applyHistorySnapshot(nextHistory.present);
+  };
+  const redoFloorPlan = () => {
+    const nextHistory = redoFloorPlanHistory(floorPlanHistory);
+    if (nextHistory === floorPlanHistory) return;
+    setFloorPlanHistory(nextHistory);
+    applyHistorySnapshot(nextHistory.present);
+  };
+
+  useEffect(() => {
+    draftTablesRef.current = draftTables;
+  }, [draftTables]);
+
+  useEffect(() => {
+    draftAssignmentsRef.current = draftAssignments;
+  }, [draftAssignments]);
+
+  useEffect(() => {
+    selectedTableIdRef.current = selectedTableId;
+  }, [selectedTableId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -952,6 +1037,14 @@ export default function DashboardPlanSalle() {
       setDraftTables([]);
       setExtraSectors([]);
       setDraftAssignments({});
+      draftTablesRef.current = [];
+      draftAssignmentsRef.current = {};
+      selectedTableIdRef.current = null;
+      setFloorPlanHistory((current) => resetFloorPlanHistory(current, {
+        tables: [],
+        assignments: {},
+        selectedTableId: null,
+      }));
       return;
     }
   }, [selectedBranchId]);
@@ -960,8 +1053,7 @@ export default function DashboardPlanSalle() {
     if (!selectedBranchId) {
       return;
     }
-    setDraftTables(
-      persistedTables.map((table, index) => {
+    const nextTables = persistedTables.map((table, index) => {
         const rawCapacity = Number(table.capacity);
         const fallbackCapacity = Number.isFinite(rawCapacity) ? rawCapacity : 2;
         const layout = resolvedLayoutsByTableId.get(table.id) || buildTemplateLayout(table.layout, index, fallbackCapacity);
@@ -979,8 +1071,14 @@ export default function DashboardPlanSalle() {
           sector: table.sector?.trim() || DEFAULT_SECTOR,
           layout,
         };
-      }),
-    );
+      });
+    draftTablesRef.current = nextTables;
+    setDraftTables(nextTables);
+    setFloorPlanHistory((current) => resetFloorPlanHistory(current, {
+      ...current.present,
+      tables: cloneDraftTables(nextTables),
+      selectedTableId: null,
+    }));
     setExtraSectors([]);
   }, [persistedTables, resolvedLayoutsByTableId, selectedBranchId]);
 
@@ -988,7 +1086,13 @@ export default function DashboardPlanSalle() {
     const nextAssignments = Object.fromEntries(
       reservationSlots.map((slot) => [slot.reservation_id, slot.table_id]),
     ) as Record<string, string | null>;
+    draftAssignmentsRef.current = nextAssignments;
     setDraftAssignments(nextAssignments);
+    setFloorPlanHistory((current) => resetFloorPlanHistory(current, {
+      ...current.present,
+      assignments: { ...nextAssignments },
+      selectedTableId: null,
+    }));
   }, [reservationSlots, selectedBranchId]);
 
   const sectorOptions = useMemo(() => {
@@ -1051,31 +1155,29 @@ export default function DashboardPlanSalle() {
       .sort((left, right) => sortReservations(left, right, sortBy))
   ), [branchScopedReservations, normalizedReservationQuery, referenceDate, serviceFilter, sortBy, statusFilter, timeRange]);
 
-  const visibleTables = useMemo(() => (
-    draftTables
-      .filter((table) => table.is_active)
-      .filter((table) => table.sector === selectedSector)
-      .sort((left, right) => left.table_number.localeCompare(right.table_number, "fr"))
-  ), [draftTables, selectedSector]);
-  const visibleReservableTables = useMemo(
-    () => visibleTables.filter((table) => isReservableDraftTable(table)),
-    [visibleTables],
+  const floorPlanViewport = useMemo(
+    () => buildFloorPlanViewportModel(draftTables, {
+      sector: selectedSector,
+      zoom: canvasZoom,
+      canvasWidth,
+      canvasHeight: CANVAS_HEIGHT,
+    }),
+    [canvasWidth, canvasZoom, draftTables, selectedSector],
   );
-  const visibleFurnitureCount = visibleTables.length - visibleReservableTables.length;
+  const visibleTables = floorPlanViewport.visibleItems;
+  const visibleReservableTables = floorPlanViewport.visibleReservableItems;
+  const visibleFurnitureCount = floorPlanViewport.visibleFurnitureCount;
+  const getRenderedDraftTableFrame = useCallback((table: DraftTable) => (
+    floorPlanViewport.getRenderedFrame(table)
+  ), [floorPlanViewport]);
 
   const tableMap = useMemo(
     () => new Map(draftTables.map((table) => [table.id, table])),
     [draftTables],
   );
 
-  const visibleTableIdSet = useMemo(
-    () => new Set(visibleTables.map((table) => table.id)),
-    [visibleTables],
-  );
-  const visibleReservableTableIdSet = useMemo(
-    () => new Set(visibleReservableTables.map((table) => table.id)),
-    [visibleReservableTables],
-  );
+  const visibleTableIdSet = floorPlanViewport.visibleItemIdSet;
+  const visibleReservableTableIdSet = floorPlanViewport.visibleReservableIdSet;
 
   const visibleAssignmentsByTable = useMemo(() => {
     const grouped = new Map<string, ReservationWithCustomer[]>();
@@ -1185,6 +1287,14 @@ export default function DashboardPlanSalle() {
       }))
       .sort((left, right) => left.id.localeCompare(right.id, "fr")),
   ), [draftTables]);
+  const serviceAssignmentSignature = useMemo(
+    () => buildFloorPlanAssignmentSignature(draftAssignments, reservationSlots),
+    [draftAssignments, reservationSlots],
+  );
+  const servicePersistenceSignature = useMemo(() => JSON.stringify({
+    assignments: serviceAssignmentSignature,
+    layout: serviceLayoutSignature,
+  }), [serviceAssignmentSignature, serviceLayoutSignature]);
   const serviceLayoutDirty = useMemo(() => {
     if (isTemplateMode) return false;
     if (hasUnpersistedDraftTables) return false;
@@ -1196,6 +1306,12 @@ export default function DashboardPlanSalle() {
       return !areLayoutsEquivalent(table.layout, resolvedLayout);
     });
   }, [draftTables, hasUnpersistedDraftTables, isTemplateMode, resolvedLayoutsByTableId]);
+  const serviceAssignmentsDirty = useMemo(() => {
+    if (isTemplateMode) return false;
+    if (hasUnpersistedDraftTables) return false;
+    return hasFloorPlanAssignmentChanges(draftAssignments, reservationSlots);
+  }, [draftAssignments, hasUnpersistedDraftTables, isTemplateMode, reservationSlots]);
+  const serviceDirty = serviceLayoutDirty || serviceAssignmentsDirty;
   const availableTables = visibleReservableTables.filter((table) => !assignedVisibleTableIds.has(table.id));
   const availableCovers = availableTables.reduce((sum, table) => sum + table.capacity, 0);
   const assignedVisibleReservations = filteredReservations.filter((reservation) => !!draftAssignments[reservation.id]);
@@ -1207,9 +1323,89 @@ export default function DashboardPlanSalle() {
   const compatibleTablesForSelectedReservation = selectedReservation
     ? visibleReservableTables
       .filter((table) => getReservationDropState(selectedReservation.id, table.id).ok)
-      .sort((left, right) => left.capacity - right.capacity || left.table_number.localeCompare(right.table_number, "fr"))
+      .map((table) => ({
+        table,
+        placement: scoreReservationPlacement({
+          reservation: selectedReservation,
+          table,
+          currentTableLoad: getTableAssignmentLoad(table.id, draftAssignments),
+          currentTableReservations: getTableAssignedReservations(table.id, draftAssignments),
+        }),
+      }))
+      .sort((left, right) => (
+        right.placement.score - left.placement.score
+        || left.table.capacity - right.table.capacity
+        || left.table.table_number.localeCompare(right.table.table_number, "fr")
+      ))
       .slice(0, 6)
     : [];
+  const recommendedTablesByReservationId = useMemo(() => {
+    const getCurrentTableReservations = (tableId: string) => branchScopedReservations.filter((candidate) => {
+      if (RELEASED_STATUSES.has(String(candidate.status || "").toLowerCase())) return false;
+      return draftAssignments[candidate.id] === tableId;
+    });
+
+    return getRecommendedTableByReservation({
+      reservations: unassignedVisibleReservations,
+      tables: visibleReservableTables,
+      getReservationDropState: (reservationId, tableId) => {
+        const reservation = reservationsById.get(reservationId);
+        const table = tableMap.get(tableId);
+
+        if (!reservation || !table) {
+          return { ok: false, reason: "Reservation ou table introuvable." };
+        }
+
+        if (!isReservableDraftTable(table)) {
+          return {
+            ok: false,
+            reason: `${table.table_number} est un meuble decoratif. Choisissez une vraie table.`,
+          };
+        }
+
+        if (reservation.party_size > table.capacity) {
+          return {
+            ok: false,
+            reason: `${table.table_number} ne peut pas accueillir ${reservation.party_size} personnes.`,
+          };
+        }
+
+        const targetSchedule = buildSchedule(reservation);
+        const conflictingReservation = branchScopedReservations.find((candidate) => {
+          if (candidate.id === reservationId) return false;
+          if (RELEASED_STATUSES.has(String(candidate.status || "").toLowerCase())) return false;
+          if (draftAssignments[candidate.id] !== tableId) return false;
+          return reservationsOverlap(targetSchedule, buildSchedule(candidate));
+        });
+
+        if (conflictingReservation) {
+          return {
+            ok: false,
+            reason: `${table.table_number} est deja pris autour de ${getSafeTime(conflictingReservation.time)}.`,
+          };
+        }
+
+        return { ok: true, reason: null };
+      },
+      getPlacementScore: (reservation, table) => {
+        const currentTableReservations = getCurrentTableReservations(table.id);
+
+        return scoreReservationPlacement({
+          reservation,
+          table,
+          currentTableLoad: currentTableReservations.length,
+          currentTableReservations,
+        });
+      },
+    });
+  }, [
+    branchScopedReservations,
+    draftAssignments,
+    reservationsById,
+    tableMap,
+    unassignedVisibleReservations,
+    visibleReservableTables,
+  ]);
   const compatibleReservationsForSelectedTable = selectedTable && selectedTableIsReservable
     ? unassignedVisibleReservations
       .filter((reservation) => getReservationDropState(reservation.id, selectedTable.id).ok)
@@ -1228,39 +1424,31 @@ export default function DashboardPlanSalle() {
   };
 
   const getVisibleTableAtPoint = (x: number, y: number) => {
-    for (let index = visibleReservableTables.length - 1; index >= 0; index -= 1) {
-      const table = visibleReservableTables[index];
-      const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
-      const withinX = x >= renderedFrame.x && x <= renderedFrame.x + renderedFrame.w;
-      const withinY = y >= renderedFrame.y && y <= renderedFrame.y + renderedFrame.h;
-      if (withinX && withinY) {
-        return table;
-      }
-    }
-
-    return null;
+    return floorPlanViewport.getReservableItemAtPoint(x, y);
   };
 
   useEffect(() => {
     if (!dragState && !resizeState && !rotateState) return undefined;
 
-    const handlePointerMove = (event: PointerEvent) => {
-      const point = getCanvasPointFromClient(event.clientX, event.clientY);
-      if (!point) return;
-
+    const applyPointerMove = (point: { x: number; y: number }) => {
       if (rotateState) {
         const table = tableMap.get(rotateState.tableId);
         if (table) {
-          const frame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+          const frame = getRenderedDraftTableFrame(table);
           const cx = frame.x + frame.w / 2;
           const cy = frame.y + frame.h / 2;
           const currentAngle = Math.atan2(point.y - cy, point.x - cx) * (180 / Math.PI);
           const delta = currentAngle - rotateState.startAngle;
           const snapped = Math.round((rotateState.startRotation + delta) / 15) * 15;
           const normalized = ((snapped % 360) + 360) % 360;
-          setDraftTables((current) => current.map((t) =>
-            t.id !== rotateState.tableId ? t : { ...t, layout: { ...t.layout, rotation: normalized } },
-          ));
+          setDraftTables((current) => {
+            const next = updateFloorPlanItemLayoutById(current, rotateState.tableId, (layout) => ({
+              ...layout,
+              rotation: normalized,
+            }));
+            draftTablesRef.current = next;
+            return next;
+          });
         }
       }
 
@@ -1268,95 +1456,98 @@ export default function DashboardPlanSalle() {
         const nextRenderedX = point.x - dragState.offsetX;
         const nextRenderedY = point.y - dragState.offsetY;
 
-        setDraftTables((current) => current.map((table) => {
-          if (table.id !== dragState.tableId) return table;
-          const nextPosition = getLogicalPositionFromRenderedFrame(
-            table.layout,
-            nextRenderedX,
-            nextRenderedY,
-            canvasZoom,
-            canvasWidth,
-            CANVAS_HEIGHT,
-          );
-          return {
-            ...table,
-            layout: {
-              ...table.layout,
+        setDraftTables((current) => {
+          const next = updateFloorPlanItemLayoutById(current, dragState.tableId, (layout) => {
+            const nextPosition = getLogicalFloorPlanPositionFromRenderedFrame(
+              layout,
+              nextRenderedX,
+              nextRenderedY,
+              canvasZoom,
+              canvasWidth,
+              CANVAS_HEIGHT,
+            );
+            return {
+              ...layout,
               x: nextPosition.x,
               y: nextPosition.y,
-            },
-          };
-        }));
+            };
+          });
+          draftTablesRef.current = next;
+          return next;
+        });
       }
 
       if (resizeState) {
         const deltaX = point.x - resizeState.startX;
         const deltaY = point.y - resizeState.startY;
 
-        setDraftTables((current) => current.map((table) => {
-          if (table.id !== resizeState.tableId) return table;
-          const minimumSize = getResolvedFloorPlanDimensions({
-            capacity: table.capacity,
-            shape: resizeState.startLayout.shape,
-            kind: resizeState.startLayout.kind,
-            seatType: resizeState.startLayout.seatType,
-            seatPlacements: resizeState.startLayout.seatPlacements,
-            cornerBenchCorners: resizeState.startLayout.cornerBenchCorners,
-            cornerBenchConfigs: resizeState.startLayout.cornerBenchConfigs,
-            cornerBenchHorizontal: resizeState.startLayout.cornerBenchHorizontal,
-            cornerBenchVertical: resizeState.startLayout.cornerBenchVertical,
-            cornerBenchDepth: resizeState.startLayout.cornerBenchDepth,
-          });
-          const resizedFrame = resizeRenderedFloorPlanFrame(
-            resizeState.startFrame,
-            resizeState.handle,
-            deltaX,
-            deltaY,
-            minimumSize.footprintWidth * canvasZoom,
-            minimumSize.footprintHeight * canvasZoom,
-          );
-          const resizedLayout = resizeFloorPlanLayoutToFootprint(
-            resizeState.startLayout,
-            table.capacity,
-            resizedFrame.w / canvasZoom,
-            resizedFrame.h / canvasZoom,
-            resizeState.startLayout.shape,
-            resizeState.startLayout.kind,
-          );
-          const nextPosition = getLogicalPositionFromRenderedFrame(
-            resizedLayout,
-            resizedFrame.x,
-            resizedFrame.y,
-            canvasZoom,
-            canvasWidth,
-            CANVAS_HEIGHT,
-          );
-          return {
-            ...table,
-            layout: {
+        setDraftTables((current) => {
+          const next = updateFloorPlanItemLayoutById(current, resizeState.tableId, (layout, table) => {
+            const minimumSize = getMinimumFloorPlanResizeSize(resizeState.startLayout.kind);
+            const resizedFrame = resizeRenderedFloorPlanFrame(
+              resizeState.startFrame,
+              resizeState.handle,
+              deltaX,
+              deltaY,
+              minimumSize.w * canvasZoom,
+              minimumSize.h * canvasZoom,
+            );
+            const resizedLayout = resizeFloorPlanLayoutToFootprint(
+              resizeState.startLayout,
+              table.capacity,
+              resizedFrame.w / canvasZoom,
+              resizedFrame.h / canvasZoom,
+              resizeState.startLayout.shape,
+              resizeState.startLayout.kind,
+            );
+            const nextPosition = getLogicalFloorPlanPositionFromRenderedFrame(
+              resizedLayout,
+              resizedFrame.x,
+              resizedFrame.y,
+              canvasZoom,
+              canvasWidth,
+              CANVAS_HEIGHT,
+            );
+            return {
               ...resizedLayout,
               x: nextPosition.x,
               y: nextPosition.y,
-            },
-          };
-        }));
+            };
+          });
+          draftTablesRef.current = next;
+          return next;
+        });
       }
+    };
+    const pointerMoveScheduler = createFloorPlanFrameScheduler(applyPointerMove);
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const point = getCanvasPointFromClient(event.clientX, event.clientY);
+      if (!point) return;
+      pointerMoveScheduler.schedule(point);
     };
 
     const handlePointerUp = () => {
+      pointerMoveScheduler.flush();
+      const activeTableId = dragState?.tableId || resizeState?.tableId || rotateState?.tableId || selectedTableIdRef.current;
+      const nextSnapshot = buildHistorySnapshot(draftTablesRef.current, draftAssignmentsRef.current, activeTableId);
+      setFloorPlanHistory((current) => pushFloorPlanHistory(current, nextSnapshot, { isEqual: areHistorySnapshotsEqual }));
       setDragState(null);
       setResizeState(null);
       setRotateState(null);
+      selectedTableIdRef.current = activeTableId;
+      setSelectedTableId(activeTableId);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
 
     return () => {
+      pointerMoveScheduler.cancel();
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [canvasWidth, canvasZoom, dragState, resizeState, rotateState, tableMap]);
+  }, [canvasWidth, canvasZoom, dragState, getRenderedDraftTableFrame, resizeState, rotateState, tableMap]);
 
   useEffect(() => {
     if (!reservationPointerDrag) return undefined;
@@ -1368,25 +1559,24 @@ export default function DashboardPlanSalle() {
       setDragOverTableId(null);
     };
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (event.pointerId !== reservationPointerDrag.pointerId) return;
-
+    const pointerMoveScheduler = createFloorPlanPointerMoveScheduler(({ clientX, clientY }) => {
       setReservationPointerPosition({
-        clientX: event.clientX,
-        clientY: event.clientY,
+        clientX,
+        clientY,
       });
 
-      const point = getCanvasPointFromClient(event.clientX, event.clientY);
+      const point = getCanvasPointFromClient(clientX, clientY);
       const hoveredTable = point ? getVisibleTableAtPointRef.current(point.x, point.y) : null;
       setDragOverTableId(hoveredTable?.id || null);
+    });
 
-      if (event.cancelable) {
-        event.preventDefault();
-      }
+    const handlePointerMove = (event: PointerEvent) => {
+      pointerMoveScheduler.scheduleFromEvent(event, reservationPointerDrag.pointerId);
     };
 
     const handlePointerUp = (event: PointerEvent) => {
       if (event.pointerId !== reservationPointerDrag.pointerId) return;
+      pointerMoveScheduler.flush();
 
       const point = getCanvasPointFromClient(event.clientX, event.clientY);
       const hoveredTable = point ? getVisibleTableAtPointRef.current(point.x, point.y) : null;
@@ -1400,6 +1590,7 @@ export default function DashboardPlanSalle() {
 
     const handlePointerCancel = (event: PointerEvent) => {
       if (event.pointerId !== reservationPointerDrag.pointerId) return;
+      pointerMoveScheduler.cancel();
       clearReservationPointerDrag();
     };
 
@@ -1408,6 +1599,7 @@ export default function DashboardPlanSalle() {
     window.addEventListener("pointercancel", handlePointerCancel);
 
     return () => {
+      pointerMoveScheduler.cancel();
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerCancel);
@@ -1658,33 +1850,82 @@ export default function DashboardPlanSalle() {
     },
   });
 
+  const updateReservationStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const result = await updateRestaurantReservationStatus(id, status);
+      if (!result.ok) {
+        throw new Error(result.errorMessage);
+      }
+
+      return { id, status };
+    },
+    onMutate: async ({ id, status }) => {
+      const queryKey = ["floor-plan-reservations", selectedId];
+      await queryClient.cancelQueries({ queryKey });
+      const previousReservations = queryClient.getQueryData<ReservationWithCustomer[]>(queryKey) || [];
+
+      queryClient.setQueryData<ReservationWithCustomer[]>(queryKey, (current = []) => (
+        current.map((reservation) => (
+          reservation.id === id
+            ? { ...reservation, status, updated_at: new Date().toISOString() }
+            : reservation
+        ))
+      ));
+
+      return { previousReservations, queryKey };
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.queryKey) {
+        queryClient.setQueryData(context.queryKey, context.previousReservations);
+      }
+
+      toast({
+        title: "Statut non modifie",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+    onSuccess: ({ status }) => {
+      toast({
+        title: "Statut mis a jour",
+        description: `Reservation ${getReservationStatusLabel(status)}.`,
+      });
+    },
+    onSettled: (_data, _error, _variables, context) => {
+      if (context?.queryKey) {
+        queryClient.invalidateQueries({ queryKey: context.queryKey });
+      }
+      queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
+    },
+  });
+
   useEffect(() => {
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
       autoSaveTimeoutRef.current = null;
     }
 
-    if (isTemplateMode || !selectedBranchId || hasUnpersistedDraftTables || !serviceLayoutDirty) {
+    if (isTemplateMode || !selectedBranchId || hasUnpersistedDraftTables || !serviceDirty) {
       return undefined;
     }
 
-    if (dragState || resizeState || saveMutation.isPending) {
+    if (dragState || resizeState || rotateState || saveMutation.isPending) {
       return undefined;
     }
 
     if (
-      lastAutoSavedLayoutSignatureRef.current === serviceLayoutSignature
-      || scheduledAutoSaveLayoutSignatureRef.current === serviceLayoutSignature
+      lastAutoSavedLayoutSignatureRef.current === servicePersistenceSignature
+      || scheduledAutoSaveLayoutSignatureRef.current === servicePersistenceSignature
     ) {
       return undefined;
     }
 
     autoSaveTimeoutRef.current = setTimeout(() => {
-      scheduledAutoSaveLayoutSignatureRef.current = serviceLayoutSignature;
+      scheduledAutoSaveLayoutSignatureRef.current = servicePersistenceSignature;
       saveMutation.mutate({
         silent: true,
         source: "auto-layout",
-        layoutSignature: serviceLayoutSignature,
+        layoutSignature: servicePersistenceSignature,
       });
     }, 900);
 
@@ -1700,10 +1941,11 @@ export default function DashboardPlanSalle() {
     isTemplateMode,
     referenceDate,
     resizeState,
+    rotateState,
     saveMutation,
     selectedBranchId,
-    serviceLayoutDirty,
-    serviceLayoutSignature,
+    serviceDirty,
+    servicePersistenceSignature,
   ]);
 
   const addSector = () => {
@@ -1725,7 +1967,8 @@ export default function DashboardPlanSalle() {
   };
 
   const updateDraftTable = (tableId: string, updater: (table: DraftTable) => DraftTable) => {
-    setDraftTables((current) => current.map((table) => (table.id === tableId ? updater(table) : table)));
+    const nextTables = draftTables.map((table) => (table.id === tableId ? updater(table) : table));
+    commitHistorySnapshot(buildHistorySnapshot(nextTables, draftAssignments, selectedTableId));
   };
 
   const updateDraftTableFootprint = (tableId: string, width: number, height: number) => {
@@ -1744,6 +1987,18 @@ export default function DashboardPlanSalle() {
     }));
   };
 
+  const nudgeDraftTable = (tableId: string, deltaX: number, deltaY: number) => {
+    if (!isTemplateMode) return;
+    updateDraftTable(tableId, (table) => ({
+      ...table,
+      layout: clampFloorPlanLayout({
+        ...table.layout,
+        x: table.layout.x + deltaX,
+        y: table.layout.y + deltaY,
+      }),
+    }));
+  };
+
   const removeDraftTable = (tableId: string) => {
     if (!isTemplateMode) {
       toast({
@@ -1753,16 +2008,18 @@ export default function DashboardPlanSalle() {
       });
       return;
     }
-    setDraftTables((current) => current.filter((table) => table.id !== tableId));
-    setDraftAssignments((current) => Object.fromEntries(
-      Object.entries(current).map(([reservationId, assignedTableId]) => [
+    const nextTables = draftTables.filter((table) => table.id !== tableId);
+    const nextAssignments = Object.fromEntries(
+      Object.entries(draftAssignments).map(([reservationId, assignedTableId]) => [
         reservationId,
         assignedTableId === tableId ? null : assignedTableId,
       ]),
+    ) as Record<string, string | null>;
+    commitHistorySnapshot(buildHistorySnapshot(
+      nextTables,
+      nextAssignments,
+      selectedTableId === tableId ? null : selectedTableId,
     ));
-    if (selectedTableId === tableId) {
-      setSelectedTableId(null);
-    }
   };
 
   const addTableFromPreset = (presetId: string) => {
@@ -1789,25 +2046,25 @@ export default function DashboardPlanSalle() {
     }
 
     const tableId = `draft-${crypto.randomUUID()}`;
-    setDraftTables((current) => [
-      ...current,
+    const nextTables = [
+      ...draftTables,
       {
         id: tableId,
         persisted: false,
         branch_id: selectedBranchId,
-        table_number: getNextPresetLabel(current, preset),
+        table_number: getNextPresetLabel(draftTables, preset),
         capacity: preset.capacity,
         is_active: true,
         sector: selectedSector,
-        layout: buildDraftFloorPlanLayout(current.length, preset),
+        layout: buildDraftFloorPlanLayout(draftTables.length, preset),
       },
-    ]);
-    setSelectedTableId(tableId);
+    ];
+    commitHistorySnapshot(buildHistorySnapshot(nextTables, draftAssignments, tableId));
   };
 
   const confirmTableConfig = (config: TableConfig) => {
     if (editingSeatingTableId) {
-      updateDraftTable(editingSeatingTableId, (table) => ({
+      const nextTables = draftTables.map((table) => table.id !== editingSeatingTableId ? table : ({
         ...table,
         capacity: config.capacity,
         layout: ensureFloorPlanLayoutFitsCapacity(
@@ -1825,24 +2082,25 @@ export default function DashboardPlanSalle() {
           table.layout.kind,
         ),
       }));
+      commitHistorySnapshot(buildHistorySnapshot(nextTables, draftAssignments, editingSeatingTableId));
       setEditingSeatingTableId(null);
     } else if (pendingPresetId) {
       const preset = FLOOR_PLAN_PRESETS.find((item) => item.id === pendingPresetId);
       if (preset && selectedBranchId) {
         const tableId = `draft-${crypto.randomUUID()}`;
-        setDraftTables((current) => [
-          ...current,
+        const nextTables = [
+          ...draftTables,
           {
             id: tableId,
             persisted: false,
             branch_id: selectedBranchId,
-            table_number: getNextPresetLabel(current, { ...preset, capacity: config.capacity, shape: config.shape }),
+            table_number: getNextPresetLabel(draftTables, { ...preset, capacity: config.capacity, shape: config.shape }),
             capacity: config.capacity,
             is_active: true,
             sector: selectedSector,
             layout: ensureFloorPlanLayoutFitsCapacity(
               {
-                ...buildDraftFloorPlanLayout(current.length, { ...preset, capacity: config.capacity, shape: config.shape }),
+                ...buildDraftFloorPlanLayout(draftTables.length, { ...preset, capacity: config.capacity, shape: config.shape }),
                 seatType: config.seatType,
                 seatPlacements: config.seatPlacements,
                 cornerBenchConfigs: config.cornerBenchConfigs,
@@ -1854,8 +2112,8 @@ export default function DashboardPlanSalle() {
               preset.kind,
             ),
           },
-        ]);
-        setSelectedTableId(tableId);
+        ];
+        commitHistorySnapshot(buildHistorySnapshot(nextTables, draftAssignments, tableId));
       }
       setPendingPresetId(null);
     }
@@ -1867,13 +2125,13 @@ export default function DashboardPlanSalle() {
     if (!source || !isTemplateMode) return;
 
     const tableId = `draft-${crypto.randomUUID()}`;
-    setDraftTables((current) => [
-      ...current,
+    const nextTables = [
+      ...draftTables,
       {
         ...source,
         id: tableId,
         persisted: false,
-        table_number: getNextPresetLabel(current, {
+        table_number: getNextPresetLabel(draftTables, {
           id: "",
           label: "",
           description: "",
@@ -1890,8 +2148,8 @@ export default function DashboardPlanSalle() {
           y: source.layout.y + 24,
         }),
       },
-    ]);
-    setSelectedTableId(tableId);
+    ];
+    commitHistorySnapshot(buildHistorySnapshot(nextTables, draftAssignments, tableId));
   };
 
   const applyAILayout = (result: AIFloorPlanResult) => {
@@ -1965,8 +2223,7 @@ export default function DashboardPlanSalle() {
       };
     });
 
-    setDraftTables(newTables);
-    setSelectedTableId(null);
+    commitHistorySnapshot(buildHistorySnapshot(newTables, draftAssignments, null));
     toast({
       title: "Disposition IA appliquee",
       description: `${newTables.length} elements places, ${newTables.reduce((s, t) => s + t.capacity, 0)} couverts au total.`,
@@ -1974,14 +2231,17 @@ export default function DashboardPlanSalle() {
   };
 
   const startDraggingTable = (event: React.PointerEvent<HTMLElement>, tableId: string) => {
+    if (event.button !== 0) return;
     event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
     setResizeState(null);
     setRotateState(null);
 
     const table = tableMap.get(tableId);
     const point = getCanvasPointFromClient(event.clientX, event.clientY);
     if (!table || !point) return;
-    const renderedFrame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+    const renderedFrame = getRenderedDraftTableFrame(table);
 
     setDragState({
       tableId,
@@ -1992,15 +2252,17 @@ export default function DashboardPlanSalle() {
   };
 
   const startRotatingTable = (event: React.PointerEvent<HTMLElement>, tableId: string) => {
+    if (event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
     setDragState(null);
     setResizeState(null);
 
     const table = tableMap.get(tableId);
     const point = getCanvasPointFromClient(event.clientX, event.clientY);
     if (!table || !point) return;
-    const frame = getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT);
+    const frame = getRenderedDraftTableFrame(table);
     const cx = frame.x + frame.w / 2;
     const cy = frame.y + frame.h / 2;
     const startAngle = Math.atan2(point.y - cy, point.x - cx) * (180 / Math.PI);
@@ -2018,13 +2280,15 @@ export default function DashboardPlanSalle() {
     tableId: string,
     handle: ResizeHandle,
   ) => {
+    if (event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
     setDragState(null);
 
     const table = tableMap.get(tableId);
     const point = getCanvasPointFromClient(event.clientX, event.clientY);
-    const renderedFrame = table ? getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT) : null;
+    const renderedFrame = table ? getRenderedDraftTableFrame(table) : null;
     if (!table || !point || !renderedFrame) return;
 
     setResizeState({
@@ -2038,7 +2302,25 @@ export default function DashboardPlanSalle() {
     setSelectedTableId(tableId);
   };
 
-  function getReservationDropState(reservationId: string, tableId: string) {
+  function getTableAssignmentLoad(tableId: string, assignments: Record<string, string | null>) {
+    return branchScopedReservations.filter((candidate) => {
+      if (RELEASED_STATUSES.has(String(candidate.status || "").toLowerCase())) return false;
+      return assignments[candidate.id] === tableId;
+    }).length;
+  }
+
+  function getTableAssignedReservations(tableId: string, assignments: Record<string, string | null>) {
+    return branchScopedReservations.filter((candidate) => {
+      if (RELEASED_STATUSES.has(String(candidate.status || "").toLowerCase())) return false;
+      return assignments[candidate.id] === tableId;
+    });
+  }
+
+  function getReservationDropStateForAssignments(
+    reservationId: string,
+    tableId: string,
+    assignments: Record<string, string | null>,
+  ) {
     const reservation = reservationsById.get(reservationId);
     const table = tableMap.get(tableId);
 
@@ -2064,7 +2346,7 @@ export default function DashboardPlanSalle() {
     const conflictingReservation = branchScopedReservations.find((candidate) => {
       if (candidate.id === reservationId) return false;
       if (RELEASED_STATUSES.has(String(candidate.status || "").toLowerCase())) return false;
-      if (draftAssignments[candidate.id] !== tableId) return false;
+      if (assignments[candidate.id] !== tableId) return false;
       return reservationsOverlap(targetSchedule, buildSchedule(candidate));
     });
 
@@ -2078,6 +2360,73 @@ export default function DashboardPlanSalle() {
     return { ok: true as const, reason: null };
   }
 
+  function getReservationDropState(reservationId: string, tableId: string) {
+    return getReservationDropStateForAssignments(reservationId, tableId, draftAssignments);
+  }
+
+  const autoPlaceVisibleReservations = () => {
+    if (isTemplateMode) {
+      toast({
+        title: "Plan du jour requis",
+        description: "Le placement automatique s'applique au service, pas au template.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const nextAssignments = { ...draftAssignments };
+    const reservationsToPlace = unassignedVisibleReservations
+      .slice()
+      .sort((left, right) => (
+        Number(right.party_size || 0) - Number(left.party_size || 0)
+        || getSafeTime(left.time).localeCompare(getSafeTime(right.time), "fr")
+      ));
+    const placed: Array<{ reservation: ReservationWithCustomer; table: DraftTable; score: number }> = [];
+
+    reservationsToPlace.forEach((reservation) => {
+      const bestSuggestion = visibleReservableTables
+        .filter((table) => getReservationDropStateForAssignments(reservation.id, table.id, nextAssignments).ok)
+        .map((table) => ({
+          table,
+          placement: scoreReservationPlacement({
+            reservation,
+            table,
+            currentTableLoad: getTableAssignmentLoad(table.id, nextAssignments),
+            currentTableReservations: getTableAssignedReservations(table.id, nextAssignments),
+          }),
+        }))
+        .sort((left, right) => {
+          return right.placement.score - left.placement.score
+            || left.table.capacity - right.table.capacity
+            || left.table.table_number.localeCompare(right.table.table_number, "fr");
+        })[0] || null;
+
+      if (!bestSuggestion) return;
+      nextAssignments[reservation.id] = bestSuggestion.table.id;
+      placed.push({
+        reservation,
+        table: bestSuggestion.table,
+        score: bestSuggestion.placement.score,
+      });
+    });
+
+    if (placed.length === 0) {
+      toast({
+        title: "Aucun placement possible",
+        description: "Aucune reservation visible ne trouve une table compatible sans conflit.",
+      });
+      return;
+    }
+
+    const lastPlaced = placed[placed.length - 1];
+    commitHistorySnapshot(buildHistorySnapshot(draftTables, nextAssignments, lastPlaced?.table.id || selectedTableId));
+    setSelectedReservationId(lastPlaced?.reservation.id || null);
+    toast({
+      title: "Placement automatique applique",
+      description: `${placed.length} reservation(s) placee(s). Dernier score: ${lastPlaced.score}/100.`,
+    });
+  };
+
   const assignReservationToTable = (reservationId: string, tableId: string) => {
     const dropState = getReservationDropState(reservationId, tableId);
     if (!dropState.ok) {
@@ -2089,16 +2438,17 @@ export default function DashboardPlanSalle() {
       return;
     }
 
-    setDraftAssignments((current) => ({
-      ...current,
+    const nextAssignments = {
+      ...draftAssignments,
       [reservationId]: tableId,
-    }));
+    };
+    commitHistorySnapshot(buildHistorySnapshot(draftTables, nextAssignments, tableId));
     setSelectedReservationId(reservationId);
-    setSelectedTableId(tableId);
   };
 
   const clearReservationAssignment = (reservationId: string) => {
-    setDraftAssignments((current) => ({ ...current, [reservationId]: null }));
+    const nextAssignments = { ...draftAssignments, [reservationId]: null };
+    commitHistorySnapshot(buildHistorySnapshot(draftTables, nextAssignments, selectedTableId));
     setSelectedReservationId(reservationId);
   };
 
@@ -2275,6 +2625,27 @@ export default function DashboardPlanSalle() {
   const occupancyRate = visibleReservableTables.length > 0
     ? Math.round(((visibleReservableTables.length - availableTables.length) / visibleReservableTables.length) * 100)
     : 0;
+  const floorPlanHealth = useMemo(() => getFloorPlanHealthSummary({
+    tables: draftTables.map((table) => ({
+      id: table.id,
+      tableNumber: table.table_number,
+      capacity: table.capacity,
+      isActive: table.is_active,
+      kind: table.layout.kind,
+    })),
+    reservations: filteredReservations.map((reservation) => ({
+      id: reservation.id,
+      partySize: Number(reservation.party_size || 0),
+      assignedTableId: draftAssignments[reservation.id],
+      date: reservation.date,
+      time: reservation.time,
+    })),
+  }), [draftAssignments, draftTables, filteredReservations]);
+  const floorPlanHealthTone = {
+    ready: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    warning: "border-amber-200 bg-amber-50 text-amber-800",
+    critical: "border-rose-200 bg-rose-50 text-rose-800",
+  }[floorPlanHealth.status];
   const selectedReservationService = selectedReservation ? getReservationService(selectedReservation) : null;
   const saveStatus = (() => {
     if (saveMutation.isPending) {
@@ -2299,10 +2670,12 @@ export default function DashboardPlanSalle() {
           };
     }
 
-    return serviceLayoutDirty
+    return serviceDirty
       ? {
           label: "Plan du jour modifie",
-          detail: "Les derniers deplacements seront sauvegardes automatiquement.",
+          detail: serviceAssignmentsDirty
+            ? "Les derniers placements seront sauvegardes automatiquement."
+            : "Les derniers deplacements seront sauvegardes automatiquement.",
           tone: "border-sky-200 bg-sky-50 text-sky-800",
         }
       : {
@@ -2314,10 +2687,10 @@ export default function DashboardPlanSalle() {
 
   return (
     <DashboardLayout>
-      <div className="flex min-h-[calc(100vh-5.5rem)] flex-col gap-4 xl:overflow-hidden">
-        <div className="space-y-4 shrink-0">
+      <div className="flex min-h-[calc(100vh-5.5rem)] flex-col gap-3 xl:overflow-hidden">
+        <div className="space-y-3 shrink-0">
           <div className="rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,248,252,0.96))] p-4 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.45)]">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex min-w-0 items-center gap-4">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-white shadow-sm">
                   <LayoutPanelTop className="h-7 w-7 text-primary" />
@@ -2375,7 +2748,7 @@ export default function DashboardPlanSalle() {
                     onClick={() => saveMutation.mutate({
                       silent: false,
                       source: "manual",
-                      layoutSignature: isTemplateMode ? null : serviceLayoutSignature,
+                      layoutSignature: isTemplateMode ? null : servicePersistenceSignature,
                     })}
                     disabled={!canPersist || saveMutation.isPending}
                   >
@@ -2391,12 +2764,45 @@ export default function DashboardPlanSalle() {
                       </div>
                     </div>
                   </Button>
-                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
-                    <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-xl" disabled>
-                      <Undo2 className="h-4 w-4 text-slate-400" />
+                  {!isTemplateMode ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-14 min-w-[126px] rounded-2xl border-orange-200 bg-orange-50 px-4 text-left text-orange-900 shadow-sm hover:bg-orange-100"
+                      onClick={autoPlaceVisibleReservations}
+                      disabled={!selectedBranch || unassignedVisibleReservations.length === 0 || saveMutation.isPending}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Sparkles className="h-4 w-4 text-orange-700" />
+                        <div className="leading-tight">
+                          <span className="block text-sm font-semibold">Optimiser</span>
+                          <span className="block text-[11px] text-orange-700">Placement auto</span>
+                        </div>
+                      </div>
                     </Button>
-                    <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-xl" disabled>
-                      <Redo2 className="h-4 w-4 text-slate-400" />
+                  ) : null}
+                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 rounded-xl"
+                      onClick={undoFloorPlan}
+                      disabled={!canUndoFloorPlan || saveMutation.isPending}
+                      title="Annuler la derniere action"
+                    >
+                      <Undo2 className={cn("h-4 w-4", canUndoFloorPlan ? "text-slate-700" : "text-slate-400")} />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 rounded-xl"
+                      onClick={redoFloorPlan}
+                      disabled={!canRedoFloorPlan || saveMutation.isPending}
+                      title="Retablir l'action annulee"
+                    >
+                      <Redo2 className={cn("h-4 w-4", canRedoFloorPlan ? "text-slate-700" : "text-slate-400")} />
                     </Button>
                   </div>
                   <div className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:flex">
@@ -2448,6 +2854,12 @@ export default function DashboardPlanSalle() {
                   <div className={cn("rounded-2xl border px-4 py-2 text-sm shadow-sm", saveStatus.tone)}>
                     <p className="font-semibold">{saveStatus.label}</p>
                     <p className="text-xs opacity-80">{saveStatus.detail}</p>
+                  </div>
+                  <div className={cn("rounded-2xl border px-4 py-2 text-sm shadow-sm", floorPlanHealthTone)}>
+                    <p className="font-semibold">{floorPlanHealth.headline}</p>
+                    <p className="text-xs opacity-80">
+                      {floorPlanHealth.detail} {floorPlanHealth.assignedCovers}/{floorPlanHealth.totalReservableCapacity} couverts places.
+                    </p>
                   </div>
                   {selectedBranch && isTemplateMode ? (
                     <Button
@@ -2736,10 +3148,10 @@ export default function DashboardPlanSalle() {
                   leftSidebarCollapsed
                     ? rightSidebarCollapsed
                       ? "xl:grid-cols-[92px_minmax(0,1fr)_92px]"
-                      : "xl:grid-cols-[92px_minmax(0,1fr)_320px]"
+                      : "xl:grid-cols-[92px_minmax(0,1fr)_300px]"
                     : rightSidebarCollapsed
-                      ? "xl:grid-cols-[320px_minmax(0,1fr)_92px]"
-                      : "xl:grid-cols-[320px_minmax(0,1fr)_320px]",
+                      ? "xl:grid-cols-[280px_minmax(0,1fr)_92px]"
+                      : "xl:grid-cols-[280px_minmax(0,1fr)_300px]",
                 )}
               >
                 <div className={cn("hidden min-h-0 xl:flex xl:flex-col", leftSidebarCollapsed && "xl:w-[92px]")}>
@@ -2872,7 +3284,9 @@ export default function DashboardPlanSalle() {
                     onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
                     onStartRotatingTable={startRotatingTable}
                     onUpdateCanvasZoom={updateCanvasZoom}
-                    getRenderedFrame={(table) => getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT)}
+                    onNudgeTable={nudgeDraftTable}
+                    onDeleteTable={removeDraftTable}
+                    getRenderedFrame={getRenderedDraftTableFrame}
                   />
 
                   <div className="xl:hidden">
@@ -2939,6 +3353,10 @@ export default function DashboardPlanSalle() {
                       onUpdateFurnitureHeight={(value) => {
                         if (!selectedTable) return;
                         updateDraftTableFootprint(selectedTable.id, selectedTable.layout.w, value);
+                      }}
+                      onUpdateFurnitureSize={(width, height) => {
+                        if (!selectedTable) return;
+                        updateDraftTableFootprint(selectedTable.id, width, height);
                       }}
                     />
                   </div>
@@ -3049,13 +3467,17 @@ export default function DashboardPlanSalle() {
                           if (!selectedTable) return;
                           updateDraftTableFootprint(selectedTable.id, selectedTable.layout.w, value);
                         }}
+                        onUpdateFurnitureSize={(width, height) => {
+                          if (!selectedTable) return;
+                          updateDraftTableFootprint(selectedTable.id, width, height);
+                        }}
                       />
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
+              <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
                 <ServiceBoard
                   selectedSector={selectedSector}
                   subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} reservation(s) visibles`}
@@ -3079,6 +3501,10 @@ export default function DashboardPlanSalle() {
                     setSelectedReservationId(reservationId);
                     setSelectedTableId(tableId);
                   }}
+                  onReservationStatusChange={(reservationId, status) => {
+                    updateReservationStatusMutation.mutate({ id: reservationId, status });
+                  }}
+                  onReleaseReservation={clearReservationAssignment}
                   onCanvasWheel={handleCanvasWheel}
                   onCanvasDragOver={handleCanvasDragOver}
                   onCanvasDrop={handleCanvasDrop}
@@ -3089,7 +3515,7 @@ export default function DashboardPlanSalle() {
                   onStartRotatingTable={startRotatingTable}
                   onUpdateCanvasZoom={updateCanvasZoom}
                   getReservationDropState={getReservationDropState}
-                  getRenderedFrame={(table) => getRenderedTableFrame(table.layout, canvasZoom, canvasWidth, CANVAS_HEIGHT)}
+                  getRenderedFrame={getRenderedDraftTableFrame}
                   getTableContentPadding={getTableContentPadding}
                 />
 
@@ -3103,12 +3529,14 @@ export default function DashboardPlanSalle() {
                   assignedReservations={assignedVisibleReservations}
                   draftAssignments={draftAssignments}
                   tableMap={tableMap}
+                  recommendedTablesByReservationId={recommendedTablesByReservationId}
                   onReservationQueryChange={setReservationQuery}
                   onReservationPress={handleServiceReservationPress}
                   onReservationDragStart={handleReservationDragStart}
                   onReservationDragEnd={handleReservationDragEnd}
                   onReservationHandlePointerDown={handleReservationHandlePointerDown}
                   onReleaseReservation={clearReservationAssignment}
+                  onAssignReservationToTable={assignReservationToTable}
                   getReservationDropState={getReservationDropState}
                 />
               </div>

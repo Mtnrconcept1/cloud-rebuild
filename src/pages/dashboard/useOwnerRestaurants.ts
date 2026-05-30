@@ -10,8 +10,9 @@ export type OwnedRestaurant = {
   disabled_dashboard_features: string[];
 };
 
-export function useOwnerRestaurants() {
+export function useOwnerRestaurants(options?: { enabled?: boolean }) {
   const { user } = useAuth();
+  const enabled = options?.enabled ?? true;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["owner-restaurants", user?.id],
@@ -30,7 +31,7 @@ export function useOwnerRestaurants() {
           : [],
       })) as OwnedRestaurant[];
     },
-    enabled: !!user?.id,
+    enabled: enabled && !!user?.id,
   });
 
   const restaurants = data || [];

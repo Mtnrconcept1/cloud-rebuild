@@ -36,6 +36,92 @@ export const SOCIAL_POST_CTAS = [
 
 export type SocialPostCtaType = (typeof SOCIAL_POST_CTAS)[number]["value"];
 
+export const SOCIAL_MARKETING_GOALS = [
+  {
+    value: "awareness",
+    label: "Notoriete",
+    description: "Rendre le restaurant plus visible dans le fil local.",
+    recommendedPostType: "coulisses",
+    recommendedCta: "menu",
+  },
+  {
+    value: "orders",
+    label: "Commandes",
+    description: "Transformer une actualite en commandes immediates.",
+    recommendedPostType: "plat",
+    recommendedCta: "order",
+  },
+  {
+    value: "bookings",
+    label: "Reservations",
+    description: "Remplir les services a venir et les soirees speciales.",
+    recommendedPostType: "evenement",
+    recommendedCta: "reserve",
+  },
+  {
+    value: "loyalty",
+    label: "Fidelisation",
+    description: "Faire revenir les clients qui connaissent deja le restaurant.",
+    recommendedPostType: "annonce",
+    recommendedCta: "none",
+  },
+  {
+    value: "offer",
+    label: "Offre limitee",
+    description: "Mettre en avant une promotion avec une action claire.",
+    recommendedPostType: "promo",
+    recommendedCta: "offer",
+  },
+] as const;
+
+export type SocialMarketingGoal = (typeof SOCIAL_MARKETING_GOALS)[number]["value"];
+
+export const SOCIAL_AUDIENCE_SEGMENTS = [
+  { value: "local", label: "Clients proches", visibility: "public" },
+  { value: "followers", label: "Abonnes", visibility: "followers" },
+  { value: "returning", label: "Clients fideles", visibility: "followers" },
+  { value: "discovery", label: "Nouveaux clients", visibility: "public" },
+] as const;
+
+export type SocialAudienceSegment = (typeof SOCIAL_AUDIENCE_SEGMENTS)[number]["value"];
+
+export const SOCIAL_MARKETING_TEMPLATES = [
+  {
+    id: "lunch-push",
+    label: "Booster midi",
+    goal: "orders",
+    postType: "plat",
+    ctaType: "order",
+    body: "Service de midi lance: plat du jour, preparation rapide et quantites limitees. Commandez maintenant pour etre servi sans attendre.",
+  },
+  {
+    id: "empty-tables",
+    label: "Tables libres",
+    goal: "bookings",
+    postType: "evenement",
+    ctaType: "reserve",
+    body: "Quelques tables viennent de se liberer ce soir. Reservez votre place et profitez d'un service calme avec nos suggestions du moment.",
+  },
+  {
+    id: "behind-scenes",
+    label: "Coulisses",
+    goal: "awareness",
+    postType: "coulisses",
+    ctaType: "menu",
+    body: "En cuisine aujourd'hui: un arrivage frais, une preparation maison et une equipe prete pour le service. Decouvrez la carte du moment.",
+  },
+  {
+    id: "limited-offer",
+    label: "Offre courte",
+    goal: "offer",
+    postType: "promo",
+    ctaType: "offer",
+    body: "Offre limitee aujourd'hui: une attention speciale sur une selection de plats. Disponible jusqu'a epuisement des stocks.",
+  },
+] as const;
+
+export type SocialMarketingTemplate = (typeof SOCIAL_MARKETING_TEMPLATES)[number];
+
 export type SocialFeedRankableItem = {
   id: string;
   restaurantId: string;
@@ -109,6 +195,11 @@ export type SocialFeedPost = {
   scheduledAt?: string | null;
   pinnedUntil?: string | null;
   visibility?: "public" | "followers" | "unlisted" | null;
+  campaignGoal?: SocialMarketingGoal | null;
+  campaignName?: string | null;
+  audienceSegment?: SocialAudienceSegment | null;
+  offerCode?: string | null;
+  utmCampaign?: string | null;
   recommendationReasons?: string[];
   restaurant: {
     id: string;
@@ -149,6 +240,8 @@ const SOCIAL_REACTION_TYPES = new Set<SocialReactionType>(SOCIAL_REACTIONS.map((
 const SOCIAL_FEED_SCOPE_VALUES = new Set<SocialFeedScope>(SOCIAL_FEED_SCOPES.map((scope) => scope.value));
 const SOCIAL_POST_TYPE_VALUES = new Set<SocialPostType>(SOCIAL_POST_TYPES.map((type) => type.value));
 const SOCIAL_POST_CTA_VALUES = new Set<SocialPostCtaType>(SOCIAL_POST_CTAS.map((cta) => cta.value));
+const SOCIAL_MARKETING_GOAL_VALUES = new Set<SocialMarketingGoal>(SOCIAL_MARKETING_GOALS.map((goal) => goal.value));
+const SOCIAL_AUDIENCE_SEGMENT_VALUES = new Set<SocialAudienceSegment>(SOCIAL_AUDIENCE_SEGMENTS.map((segment) => segment.value));
 
 export function normalizeSocialFeedScope(value: unknown): SocialFeedScope {
   return typeof value === "string" && SOCIAL_FEED_SCOPE_VALUES.has(value as SocialFeedScope) ? value as SocialFeedScope : "for_you";
@@ -160,6 +253,28 @@ export function normalizeSocialPostType(value: unknown): SocialPostType {
 
 export function normalizeSocialPostCta(value: unknown): SocialPostCtaType {
   return typeof value === "string" && SOCIAL_POST_CTA_VALUES.has(value as SocialPostCtaType) ? value as SocialPostCtaType : "none";
+}
+
+export function normalizeSocialMarketingGoal(value: unknown): SocialMarketingGoal {
+  return typeof value === "string" && SOCIAL_MARKETING_GOAL_VALUES.has(value as SocialMarketingGoal)
+    ? value as SocialMarketingGoal
+    : "awareness";
+}
+
+export function normalizeSocialAudienceSegment(value: unknown): SocialAudienceSegment {
+  return typeof value === "string" && SOCIAL_AUDIENCE_SEGMENT_VALUES.has(value as SocialAudienceSegment)
+    ? value as SocialAudienceSegment
+    : "local";
+}
+
+export function isMissingSocialMarketingSchemaError(error: unknown) {
+  const message = String((error as { message?: string })?.message || error || "");
+  const code = String((error as { code?: string })?.code || "");
+  return (
+    code === "PGRST204" ||
+    /campaign_goal|campaign_name|audience_segment|offer_code|utm_campaign/i.test(message) ||
+    (/schema cache|column/i.test(message) && /social_posts/i.test(message))
+  );
 }
 
 export function isSocialReactionType(value: unknown): value is SocialReactionType {
@@ -217,6 +332,66 @@ export function validateSocialPostDraft({
   }
 
   return errors;
+}
+
+export type SocialMarketingScoreInput = {
+  body: string;
+  filesCount?: number;
+  postType?: SocialPostType;
+  ctaType?: SocialPostCtaType;
+  scheduledAt?: string | null;
+  campaignGoal?: SocialMarketingGoal;
+  audienceSegment?: SocialAudienceSegment;
+};
+
+export type SocialMarketingScore = {
+  score: number;
+  level: "faible" | "correct" | "fort" | "excellent";
+  checklist: Array<{ label: string; passed: boolean }>;
+  recommendations: string[];
+};
+
+export function getRecommendedMarketingPair(goal: SocialMarketingGoal) {
+  return SOCIAL_MARKETING_GOALS.find((item) => item.value === goal) || SOCIAL_MARKETING_GOALS[0];
+}
+
+export function getVisibilityForAudienceSegment(segment: SocialAudienceSegment): "public" | "followers" | "unlisted" {
+  return SOCIAL_AUDIENCE_SEGMENTS.find((item) => item.value === segment)?.visibility || "public";
+}
+
+export function scoreSocialMarketingDraft(input: SocialMarketingScoreInput): SocialMarketingScore {
+  const body = input.body.trim();
+  const goal = normalizeSocialMarketingGoal(input.campaignGoal);
+  const segment = normalizeSocialAudienceSegment(input.audienceSegment);
+  const pair = getRecommendedMarketingPair(goal);
+  const ctaType = input.ctaType || "none";
+  const postType = input.postType || "annonce";
+  const filesCount = Math.max(0, Number(input.filesCount || 0));
+
+  const checks = [
+    { label: "Accroche concrete", passed: body.length >= 80 },
+    { label: "Media ajoute", passed: filesCount > 0 },
+    { label: "CTA aligne", passed: ctaType === pair.recommendedCta },
+    { label: "Format adapte a l'objectif", passed: postType === pair.recommendedPostType },
+    { label: "Audience definie", passed: Boolean(segment) },
+    { label: "Publication planifiee", passed: Boolean(input.scheduledAt) },
+  ];
+
+  const score = Math.min(100, Math.round((checks.filter((check) => check.passed).length / checks.length) * 100));
+  const recommendations: string[] = [];
+
+  if (body.length < 80) recommendations.push("Ajoutez une accroche plus precise: produit, moment, benefice client.");
+  if (filesCount === 0) recommendations.push("Ajoutez une photo ou une courte video pour augmenter l'arret sur le fil.");
+  if (ctaType !== pair.recommendedCta) recommendations.push(`CTA conseille: ${SOCIAL_POST_CTAS.find((cta) => cta.value === pair.recommendedCta)?.label}.`);
+  if (postType !== pair.recommendedPostType) recommendations.push(`Format conseille: ${SOCIAL_POST_TYPES.find((type) => type.value === pair.recommendedPostType)?.label}.`);
+  if (!input.scheduledAt) recommendations.push("Programmez le post sur un temps fort: avant midi, avant le service du soir ou la veille d'un evenement.");
+
+  return {
+    score,
+    level: score >= 84 ? "excellent" : score >= 67 ? "fort" : score >= 50 ? "correct" : "faible",
+    checklist: checks,
+    recommendations,
+  };
 }
 
 export function buildSocialCommentThread(comments: SocialFeedComment[]): SocialCommentThread[] {

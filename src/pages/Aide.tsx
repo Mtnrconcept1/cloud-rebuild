@@ -486,6 +486,18 @@ const FAQS = [
         a: "Depuis l'onglet 'Plan de salle' du dashboard (disponible avec les packs Pro et Premium), vous pouvez creer et editer visuellement votre plan de salle : ajouter des tables, definir leur capacite et leur forme, les disposer dans l'espace, et affecter des reservations aux tables. Le plan de salle est utilise pour optimiser la gestion des reservations et la capacite de votre restaurant.",
       },
       {
+        q: "Comment utiliser Actualites comme outil marketing ?",
+        a: "Depuis le dashboard restaurateur, ouvrez 'Actualites'. Choisissez un objectif (notoriete, commandes, reservations, fidelisation ou offre limitee), une audience, un CTA et un modele de publication. Le score marketing vous indique si le post contient une accroche suffisante, un media, un format adapte, un CTA clair et une programmation utile.",
+      },
+      {
+        q: "Quelles statistiques sont disponibles pour mes actualites ?",
+        a: "Le cockpit Actualites affiche les impressions, clics, clics CTA, reactions, commentaires, sauvegardes, partages, taux d'engagement, posts programmes et repartition par objectif marketing. Ces donnees vous aident a comprendre quels contenus generent de la visibilite, des commandes ou des reservations.",
+      },
+      {
+        q: "Qui modere les publications et signalements Actualites ?",
+        a: "Les administrateurs Tok peuvent examiner directement les publications, commentaires, reposts et signalements depuis l'espace admin, puis masquer, restaurer, supprimer ou cloturer un signalement sans passer par une console technique. Les contenus trompeurs, illicites ou contraires aux CGU peuvent etre retires.",
+      },
+      {
         q: "Comment lancer une campagne publicitaire ?",
         a: "Depuis l'onglet 'Campagnes' du dashboard (disponible avec les packs Pro et Premium), creez une campagne en definissant un titre, un budget et une audience cible. La campagne mettra en avant votre restaurant aupres des utilisateurs correspondants. Le paiement se fait a la creation de la campagne. Vous pouvez suivre les performances (impressions, clics, conversions) en temps reel.",
       },

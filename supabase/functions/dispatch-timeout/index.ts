@@ -12,6 +12,10 @@ import {
   shouldDispatchDeliveryNow,
   triggerDispatchOrder,
 } from "../_shared/delivery-dispatch.ts";
+import {
+  enqueueNotification,
+  triggerNotificationDispatch,
+} from "../_shared/notifications.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
@@ -46,7 +50,7 @@ Deno.serve(async (req) => {
 
     const { data: scheduledOrders, error: scheduledOrdersError } = await supabaseAdmin
       .from("orders")
-      .select("id, scheduled_at, delivery_address, status, metadata")
+      .select("id, user_id, order_number, scheduled_at, delivery_address, status, metadata")
       .not("scheduled_at", "is", null)
       .not("delivery_address", "is", null)
       .in("status", ["preparing"]);
@@ -85,6 +89,30 @@ Deno.serve(async (req) => {
       });
 
       if (response.ok) {
+        const estimatedArrival = getEstimatedArrivalTime(metadata, scheduledAt, now);
+        if (order.user_id) {
+          await enqueueNotification({
+            adminClient: supabaseAdmin,
+            userId: String(order.user_id),
+            title: "Votre livraison abonnement demarre",
+            body: `Votre commande ${order.order_number || order.id} est en preparation pour l'horaire prevu.`,
+            type: "order",
+            category: "transactional",
+            data: {
+              order_id: order.id,
+              order_number: order.order_number || null,
+              scheduled_at: scheduledAt,
+              estimated_arrival: estimatedArrival,
+              url: `/commande/${order.id}`,
+            },
+            requestedChannels: { in_app: true, push: true },
+          });
+          await triggerNotificationDispatch({
+            source: "dispatch-timeout-scheduled-order",
+            push: true,
+            userId: String(order.user_id),
+          });
+        }
         scheduledDispatched++;
       } else {
         log.error(`Scheduled dispatch failed for order ${order.id}`, { message: "dispatch_failed" });

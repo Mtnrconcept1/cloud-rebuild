@@ -11,6 +11,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { isTokOneEntitledStatus } from "../_shared/tok-one.ts";
 import {
   assertPaymentMethodAllowed,
@@ -20,6 +21,25 @@ import { buildVerifiedOrderPricing } from "../_shared/order-pricing.ts";
 
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
 type CheckoutItem = Record<string, unknown>;
+
+function getCheckoutItemRestaurantId(item: CheckoutItem, fallbackRestaurantId: string) {
+  return String(item?.restaurant_id || item?.restaurantId || fallbackRestaurantId);
+}
+
+function getCheckoutItemPaymentGroupKey(item: CheckoutItem, fallbackRestaurantId: string) {
+  const restaurantId = getCheckoutItemRestaurantId(item, fallbackRestaurantId);
+  const metadata = item?.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+    ? item.metadata as Record<string, unknown>
+    : {};
+
+  if (metadata.is_meal_subscription) {
+    const deliveryDate = String(metadata.delivery_date || metadata.subscription_day || "jour");
+    const deliveryTime = String(metadata.delivery_time || metadata.preferred_time || "12:00");
+    return `${restaurantId}|abonnement|${deliveryDate}|${deliveryTime}`;
+  }
+
+  return restaurantId;
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -43,10 +63,6 @@ Deno.serve(async (req) => {
       checkout_kind,
     } = await req.json();
 
-    if (!return_url) {
-      throw new HttpError(400, "URL de retour requise");
-    }
-
     const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
     if (!stripeSecretKey) {
       throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
@@ -57,6 +73,11 @@ Deno.serve(async (req) => {
     });
 
     const effectiveKind = checkout_kind || order_metadata?.checkout_kind || "order";
+    const safeReturnUrl = normalizeCheckoutReturnUrl(return_url);
+    if (!safeReturnUrl) {
+      throw new HttpError(400, "URL de retour invalide");
+    }
+
     auditKind = effectiveKind;
     const activeFlags = await getEffectiveFeatureFlagSet(actor.adminClient);
     assertPaymentMethodAllowed({
@@ -393,46 +414,49 @@ Deno.serve(async (req) => {
       if (primaryRestaurantError) throw new HttpError(500, primaryRestaurantError.message);
       if (!primaryRestaurant) throw new HttpError(404, "Restaurant introuvable");
 
-      const groupedItems = new Map<string, CheckoutItem[]>();
+      const groupedItems = new Map<string, { groupRestaurantId: string; items: CheckoutItem[] }>();
       for (const item of items as CheckoutItem[]) {
-        const restaurantId = String(item?.restaurant_id || item?.restaurantId || primaryRestaurantId);
-        if (!restaurantId) throw new HttpError(400, "restaurant_id manquant sur un article");
-        if (!groupedItems.has(restaurantId)) groupedItems.set(restaurantId, []);
-        groupedItems.get(restaurantId)!.push(item);
+        const groupRestaurantId = getCheckoutItemRestaurantId(item, primaryRestaurantId);
+        if (!groupRestaurantId) throw new HttpError(400, "restaurant_id manquant sur un article");
+        const paymentGroupKey = getCheckoutItemPaymentGroupKey(item, primaryRestaurantId);
+        if (!groupedItems.has(paymentGroupKey)) {
+          groupedItems.set(paymentGroupKey, { groupRestaurantId, items: [] });
+        }
+        groupedItems.get(paymentGroupKey)!.items.push(item);
       }
 
-      const restaurantIds = Array.from(groupedItems.keys());
+      const paymentGroupKeys = Array.from(groupedItems.keys());
       const totalDeliveryFee = toMoney(order_metadata?.delivery_fee);
       const requestedPointsToRedeem = Math.max(0, Math.floor(Number(order_metadata?.points_to_redeem || 0)));
       const requestedPointsDiscount = toMoney(order_metadata?.points_discount_amount || order_metadata?.points_discount);
       const totalPointsDiscount = Math.min(requestedPointsDiscount, requestedPointsToRedeem / 100);
       const totalFlexDiscount = toMoney(order_metadata?.flex_discount_amount || order_metadata?.flex_discount);
-      const pointsByRestaurant = new Map<string, number>();
-      const flexByRestaurant = new Map<string, number>();
+      const pointsByPaymentGroup = new Map<string, number>();
+      const flexByPaymentGroup = new Map<string, number>();
 
-      const perRestaurantSubtotals = Array.from(groupedItems.entries()).map(([restaurantId, restaurantItems]) => ({
-        restaurantId,
-        subtotal: restaurantItems.reduce(
+      const perPaymentGroupSubtotals = Array.from(groupedItems.entries()).map(([paymentGroupKey, group]) => ({
+        paymentGroupKey,
+        subtotal: group.items.reduce(
           (sum, item) => sum + (toMoney(item?.price ?? item?.unit_price) * Math.max(1, Number(item?.quantity || 1))),
           0,
         ),
       }));
-      const totalSubtotal = perRestaurantSubtotals.reduce((sum, row) => sum + row.subtotal, 0);
+      const totalSubtotal = perPaymentGroupSubtotals.reduce((sum, row) => sum + row.subtotal, 0);
 
       const allocateDiscount = (totalDiscount: number, targetMap: Map<string, number>) => {
         let remaining = Math.round(totalDiscount * 100) / 100;
-        perRestaurantSubtotals.forEach((row, index) => {
-          const share = totalSubtotal > 0 ? row.subtotal / totalSubtotal : (restaurantIds.length > 0 ? 1 / restaurantIds.length : 0);
-          const allocated = index === perRestaurantSubtotals.length - 1
+        perPaymentGroupSubtotals.forEach((row, index) => {
+          const share = totalSubtotal > 0 ? row.subtotal / totalSubtotal : (paymentGroupKeys.length > 0 ? 1 / paymentGroupKeys.length : 0);
+          const allocated = index === perPaymentGroupSubtotals.length - 1
             ? Math.max(0, remaining)
             : Math.round((totalDiscount * share) * 100) / 100;
           remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
-          targetMap.set(row.restaurantId, allocated);
+          targetMap.set(row.paymentGroupKey, allocated);
         });
       };
 
-      allocateDiscount(totalPointsDiscount, pointsByRestaurant);
-      allocateDiscount(totalFlexDiscount, flexByRestaurant);
+      allocateDiscount(totalPointsDiscount, pointsByPaymentGroup);
+      allocateDiscount(totalFlexDiscount, flexByPaymentGroup);
 
       let authoritativeTotal = 0;
       let formulaDiscountTotal = 0;
@@ -448,25 +472,26 @@ Deno.serve(async (req) => {
       const primaryFormulaNames: string[] = [];
       const primaryPromoNames: string[] = [];
 
-      for (const [index, [restaurantId, restaurantItems]] of Array.from(groupedItems.entries()).entries()) {
-        const deliveryFeeShare = restaurantIds.length > 0 ? totalDeliveryFee / restaurantIds.length : totalDeliveryFee;
+      for (const [index, [paymentGroupKey, group]] of Array.from(groupedItems.entries()).entries()) {
+        const { groupRestaurantId, items: restaurantItems } = group;
+        const deliveryFeeShare = paymentGroupKeys.length > 0 ? totalDeliveryFee / paymentGroupKeys.length : totalDeliveryFee;
         const groupMetadata = {
           ...(order_metadata || {}),
           payment_method,
           delivery_fee: deliveryFeeShare,
-          points_discount_amount: pointsByRestaurant.get(restaurantId) || 0,
-          flex_discount_amount: flexByRestaurant.get(restaurantId) || 0,
-          formula_discount_amount: restaurantId === primaryRestaurantId ? order_metadata?.formula_discount_amount || order_metadata?.formula_discount : 0,
-          formula_discount: restaurantId === primaryRestaurantId ? order_metadata?.formula_discount || 0 : 0,
-          promotion_discount_amount: restaurantId === primaryRestaurantId ? order_metadata?.promotion_discount_amount || 0 : 0,
-          promotion_applied: restaurantId === primaryRestaurantId ? order_metadata?.promotion_applied || null : null,
-          promo_code_id: restaurantId === primaryRestaurantId ? order_metadata?.promo_code_id || null : null,
+          points_discount_amount: pointsByPaymentGroup.get(paymentGroupKey) || 0,
+          flex_discount_amount: flexByPaymentGroup.get(paymentGroupKey) || 0,
+          formula_discount_amount: groupRestaurantId === primaryRestaurantId ? order_metadata?.formula_discount_amount || order_metadata?.formula_discount : 0,
+          formula_discount: groupRestaurantId === primaryRestaurantId ? order_metadata?.formula_discount || 0 : 0,
+          promotion_discount_amount: groupRestaurantId === primaryRestaurantId ? order_metadata?.promotion_discount_amount || 0 : 0,
+          promotion_applied: groupRestaurantId === primaryRestaurantId ? order_metadata?.promotion_applied || null : null,
+          promo_code_id: groupRestaurantId === primaryRestaurantId ? order_metadata?.promo_code_id || null : null,
         };
 
         const pricing = await buildVerifiedOrderPricing({
           adminClient: actor.adminClient,
           userId: actor.userId!,
-          restaurantId,
+          restaurantId: groupRestaurantId,
           items: restaurantItems,
           deliveryFee: deliveryFeeShare,
           metadata: groupMetadata,
@@ -529,8 +554,8 @@ Deno.serve(async (req) => {
         pointsDiscountTotal += pricing.pointsDiscount;
         flexDiscountTotal += pricing.flexDiscount;
 
-        if (index === 0 && primaryRestaurantId === restaurantId && pricing.formulaName) primaryFormulaNames.push(pricing.formulaName);
-        if (index === 0 && primaryRestaurantId === restaurantId && pricing.promoName) primaryPromoNames.push(pricing.promoName);
+        if (index === 0 && primaryRestaurantId === groupRestaurantId && pricing.formulaName) primaryFormulaNames.push(pricing.formulaName);
+        if (index === 0 && primaryRestaurantId === groupRestaurantId && pricing.promoName) primaryPromoNames.push(pricing.promoName);
       }
 
 
@@ -561,7 +586,7 @@ Deno.serve(async (req) => {
     );
     discountCents = Math.min(discountCents, totalBeforeDiscountCents);
 
-    const urlSeparator = return_url.includes("?") ? "&" : "?";
+    const urlSeparator = safeReturnUrl.includes("?") ? "&" : "?";
     const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
     const userEmail = userLookup?.data.user?.email || undefined;
 
@@ -569,16 +594,22 @@ Deno.serve(async (req) => {
       payment_method_types: effectiveKind === "tok-one" ? ["card"] : paymentMethodTypes,
       line_items: lineItems,
       mode: effectiveKind === "tok-one" ? "subscription" : "payment",
-      success_url: `${return_url}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
-      cancel_url: `${return_url}${urlSeparator}status=cancelled`,
+      success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
+      cancel_url: `${safeReturnUrl}${urlSeparator}status=cancelled`,
       customer_email: userEmail,
       client_reference_id: actor.userId || undefined,
       metadata: sessionMetadata,
     };
 
     if (effectiveKind === "tok-one") {
+      sessionParams.payment_method_collection = "always";
       sessionParams.subscription_data = {
         trial_period_days: 14,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: "cancel",
+          },
+        },
         metadata: sessionMetadata,
       };
     }

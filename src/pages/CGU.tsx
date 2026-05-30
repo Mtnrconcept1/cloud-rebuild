@@ -140,6 +140,23 @@ export default function CGU() {
           </p>
         </section>
 
+        {/* 9 bis. Actualites sociales et contenus promotionnels */}
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">9 bis. Actualites sociales et contenus promotionnels</h2>
+          <p className="text-foreground/80 leading-relaxed">
+            Les Restaurants peuvent publier des actualites, photos, videos, offres, evenements et appels a l'action dans le fil social Tok. Ces publications sont des contenus professionnels sous la responsabilite du Restaurant qui les cree ou les valide.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Le Restaurant s'engage a publier des informations exactes, loyales et verifiables, notamment concernant les prix, disponibilites, durees d'offres, conditions de reservation, allergenes, droits sur les visuels et autorisations des personnes identifiables.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Tok peut mesurer les impressions, clics, reactions, commentaires, sauvegardes, partages et conversions associes aux actualites afin de fournir des statistiques marketing au Restaurant. Ces indicateurs sont informatifs et ne garantissent aucun volume de commandes, reservations ou chiffre d'affaires.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Tok se reserve le droit de masquer, moderer, supprimer ou declasser toute actualite ou campagne contraire a la loi, aux droits de tiers, aux presentes CGU, aux regles de moderation ou susceptible d'induire les Utilisateurs en erreur.
+          </p>
+        </section>
+
         {/* 10. Propriété intellectuelle */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">10. Propriété intellectuelle</h2>

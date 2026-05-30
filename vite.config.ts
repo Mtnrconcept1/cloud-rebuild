@@ -4,6 +4,21 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { getMissingSupabasePublicEnvKeys } from "./src/lib/publicEnv";
 
+const manualChunkGroups = {
+  "react-vendor": ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
+  "supabase-vendor": ["@supabase/supabase-js"],
+} as const;
+
+function manualChunks(id: string) {
+  const normalizedId = id.replace(/\\/g, "/");
+
+  for (const [chunkName, packages] of Object.entries(manualChunkGroups)) {
+    if (packages.some((packageName) => normalizedId.includes(`/node_modules/${packageName}/`))) {
+      return chunkName;
+    }
+  }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   if (!process.env.VITE_SUPABASE_URL && process.env.SUPABASE_URL) {
@@ -29,6 +44,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: 8080,
+      strictPort: true,
       allowedHosts: true,
       hmr: {
         overlay: false,
@@ -47,14 +63,13 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    optimizeDeps: {
+      include: ["firebase/app", "firebase/messaging"],
+    },
     build: {
       rollupOptions: {
-        external: ["firebase/app", "firebase/messaging"],
         output: {
-          manualChunks: {
-            "react-vendor": ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
-            "supabase-vendor": ["@supabase/supabase-js"],
-          },
+          manualChunks,
         },
       },
     },

@@ -7,14 +7,19 @@ import { useAuth } from "@/lib/auth";
 import { createSocialRealtimeManager } from "@/lib/socialRealtime";
 import {
   normalizeSocialFeedScope,
+  normalizeSocialAudienceSegment,
+  normalizeSocialMarketingGoal,
   normalizeSocialPostCta,
   normalizeSocialPostType,
   normalizeSocialReaction,
+  isMissingSocialMarketingSchemaError,
   validateSocialPostDraft,
   type SocialFeedComment,
   type SocialFeedMedia,
   type SocialFeedPost,
   type SocialFeedScope,
+  type SocialAudienceSegment,
+  type SocialMarketingGoal,
   type SocialPostCtaType,
   type SocialPostType,
   type SocialReactionCounts,
@@ -24,6 +29,10 @@ import {
 const supabase = getSupabase();
 const SOCIAL_FEED_BUCKET = "social-post-media";
 const MAX_POST_MEDIA = 10;
+const SOCIAL_INSIGHTS_BASE_SELECT = "id,likes_count,comments_count,reposts_count,shares_count,status,post_type,cta_type,created_at,scheduled_at";
+const SOCIAL_INSIGHTS_MARKETING_SELECT = `${SOCIAL_INSIGHTS_BASE_SELECT},campaign_goal,audience_segment`;
+
+let socialMarketingSchemaAvailable: boolean | null = null;
 
 type SocialFeedRpcRow = {
   activity_id: string;
@@ -56,6 +65,11 @@ type SocialFeedRpcRow = {
   scheduled_at?: string | null;
   pinned_until?: string | null;
   visibility?: "public" | "followers" | "unlisted" | null;
+  campaign_goal?: string | null;
+  campaign_name?: string | null;
+  audience_segment?: string | null;
+  offer_code?: string | null;
+  utm_campaign?: string | null;
 };
 
 type CreateSocialPostInput = {
@@ -67,6 +81,11 @@ type CreateSocialPostInput = {
   ctaTargetId?: string | null;
   scheduledAt?: string | null;
   visibility?: "public" | "followers" | "unlisted";
+  campaignGoal?: SocialMarketingGoal;
+  campaignName?: string | null;
+  audienceSegment?: SocialAudienceSegment;
+  offerCode?: string | null;
+  utmCampaign?: string | null;
 };
 
 type SocialFeedPage = {
@@ -252,6 +271,11 @@ function mapFeedRow(row: SocialFeedRpcRow): SocialFeedPost {
     scheduledAt: row.scheduled_at || null,
     pinnedUntil: row.pinned_until || null,
     visibility: row.visibility || "public",
+    campaignGoal: normalizeSocialMarketingGoal(row.campaign_goal),
+    campaignName: row.campaign_name || null,
+    audienceSegment: normalizeSocialAudienceSegment(row.audience_segment),
+    offerCode: row.offer_code || null,
+    utmCampaign: row.utm_campaign || null,
     recommendationReasons: parseStringArray(row.recommendation_reasons),
     restaurant: {
       id: row.restaurant?.id || row.restaurant_id,
@@ -294,6 +318,11 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
     scheduledAt: row.scheduled_at || null,
     pinnedUntil: row.pinned_until || null,
     visibility: row.visibility || "public",
+    campaignGoal: normalizeSocialMarketingGoal(row.campaign_goal),
+    campaignName: row.campaign_name || null,
+    audienceSegment: normalizeSocialAudienceSegment(row.audience_segment),
+    offerCode: row.offer_code || null,
+    utmCampaign: row.utm_campaign || null,
     recommendationReasons: [],
     restaurant: {
       id: row.restaurant_id,
@@ -493,9 +522,19 @@ export function useSocialInsights(restaurantId?: string | null) {
   return useQuery({
     queryKey: ["social-insights", restaurantId],
     queryFn: async () => {
-      const postsResult = await (supabase.from("social_posts" as any) as any)
-        .select("id,likes_count,comments_count,reposts_count,shares_count,status")
+      let postsResult = await (supabase.from("social_posts" as any) as any)
+        .select(socialMarketingSchemaAvailable === false ? SOCIAL_INSIGHTS_BASE_SELECT : SOCIAL_INSIGHTS_MARKETING_SELECT)
         .eq("restaurant_id", restaurantId);
+
+      if (postsResult.error && isMissingSocialMarketingSchemaError(postsResult.error)) {
+        socialMarketingSchemaAvailable = false;
+        postsResult = await (supabase.from("social_posts" as any) as any)
+          .select(SOCIAL_INSIGHTS_BASE_SELECT)
+          .eq("restaurant_id", restaurantId);
+      } else if (!postsResult.error) {
+        socialMarketingSchemaAvailable = true;
+      }
+
       if (postsResult.error) throw postsResult.error;
 
       const posts = postsResult.data || [];
@@ -538,6 +577,25 @@ export function useSocialInsights(restaurantId?: string | null) {
       );
       const measuredInteractions =
         totals.reactions + totals.comments + totals.shares + totals.reposts + totals.saves + totals.ctaClicks;
+      const campaignGoals = posts.reduce((acc: Record<string, number>, post: any) => {
+        const goal = normalizeSocialMarketingGoal(post.campaign_goal);
+        acc[goal] = (acc[goal] || 0) + 1;
+        return acc;
+      }, {});
+      const postsWithCta = posts.filter((post: any) => normalizeSocialPostCta(post.cta_type) !== "none").length;
+      const scheduledCount = posts.filter((post: any) => Boolean(post.scheduled_at)).length;
+      const conversionFocus = posts.length > 0 ? Math.round((postsWithCta / posts.length) * 100) : 0;
+      const recommendations = [
+        postsWithCta < Math.ceil(posts.length * 0.6)
+          ? "Ajoutez un CTA clair sur les posts qui doivent generer commandes, reservations ou offres."
+          : null,
+        scheduledCount < Math.ceil(posts.length * 0.4)
+          ? "Programmez les actualites avant les pics: 10h30-11h30, 17h30-18h30 ou la veille d'un evenement."
+          : null,
+        totals.impressions > 0 && totals.ctaClicks === 0
+          ? "Les posts sont vus mais ne convertissent pas encore: testez une offre courte ou un bouton Commander."
+          : null,
+      ].filter(Boolean) as string[];
 
       return {
         postsCount: posts.length,
@@ -549,6 +607,10 @@ export function useSocialInsights(restaurantId?: string | null) {
         saves: totals.saves,
         interactions: measuredInteractions || fallbackInteractions,
         engagementRate: totals.impressions > 0 ? Math.round(((measuredInteractions || fallbackInteractions) / totals.impressions) * 1000) / 10 : 0,
+        conversionFocus,
+        scheduledCount,
+        campaignGoals,
+        recommendations,
       };
     },
     enabled: !!restaurantId,
@@ -569,6 +631,11 @@ export function useCreateSocialPost() {
       ctaTargetId = null,
       scheduledAt = null,
       visibility = "public",
+      campaignGoal = "awareness",
+      campaignName = null,
+      audienceSegment = "local",
+      offerCode = null,
+      utmCampaign = null,
     }: CreateSocialPostInput) => {
       if (!user?.id) throw new Error("Connexion requise.");
       assertMediaFiles(files);
@@ -587,7 +654,7 @@ export function useCreateSocialPost() {
       const scheduledIso = scheduledDate && Number.isFinite(scheduledDate.getTime()) ? scheduledDate.toISOString() : null;
       const status = scheduledIso ? "scheduled" : "published";
 
-      const insertPayload = {
+      const baseInsertPayload = {
         restaurant_id: restaurantId,
         author_id: user.id,
         body: cleanBody,
@@ -599,13 +666,29 @@ export function useCreateSocialPost() {
         published_at: scheduledIso || new Date().toISOString(),
         visibility,
       };
+      const insertPayload = socialMarketingSchemaAvailable === false ? baseInsertPayload : {
+        ...baseInsertPayload,
+        campaign_goal: campaignGoal,
+        campaign_name: campaignName?.trim() || null,
+        audience_segment: audienceSegment,
+        offer_code: offerCode?.trim() || null,
+        utm_campaign: utmCampaign?.trim() || null,
+      };
 
       let { data: post, error } = await (supabase.from("social_posts" as any) as any)
         .insert(insertPayload)
         .select("id")
         .single();
 
-      if (error && /post_type|cta_type|scheduled_at|visibility|schema cache|column/i.test(error.message || "")) {
+      if (error && isMissingSocialMarketingSchemaError(error)) {
+        socialMarketingSchemaAvailable = false;
+        const fallback = await (supabase.from("social_posts" as any) as any)
+          .insert(baseInsertPayload)
+          .select("id")
+          .single();
+        post = fallback.data;
+        error = fallback.error;
+      } else if (error && /post_type|cta_type|scheduled_at|visibility|schema cache|column/i.test(error.message || "")) {
         const fallback = await (supabase.from("social_posts" as any) as any)
           .insert({
             restaurant_id: restaurantId,
@@ -744,10 +827,13 @@ export function useToggleRestaurantFollow() {
         return;
       }
 
-      const { error } = await (supabase.from("restaurant_follows" as any) as any).insert({
-        restaurant_id: post.restaurantId,
-        user_id: user.id,
-      });
+      const { error } = await (supabase.from("restaurant_follows" as any) as any).upsert(
+        {
+          restaurant_id: post.restaurantId,
+          user_id: user.id,
+        },
+        { onConflict: "restaurant_id,user_id", ignoreDuplicates: true },
+      );
       if (error) throw error;
 
       const eventResult = await (supabase.rpc as any)("record_social_feed_event", {
@@ -921,9 +1007,26 @@ export function useSocialFeedFeedback() {
         reason: reason || null,
       };
 
+      let cleanupQuery = (supabase.from("social_feed_feedback" as any) as any)
+        .delete()
+        .eq("user_id", user.id)
+        .eq("feedback_type", feedbackType);
+
+      cleanupQuery = feedbackType === "hide_restaurant"
+        ? cleanupQuery.eq("restaurant_id", post.restaurantId)
+        : cleanupQuery.eq("post_id", post.id);
+
+      const cleanupResult = await cleanupQuery;
+      if (cleanupResult.error) throw cleanupResult.error;
+
       const { error } = await (supabase.from("social_feed_feedback" as any) as any).insert(payload);
       if (error && error.code !== "23505") throw error;
       return feedbackType;
+    },
+    onMutate: async ({ post, feedbackType }) => {
+      if (feedbackType === "hide_post" || feedbackType === "hide_restaurant" || feedbackType === "not_interested") {
+        removeSocialPost(queryClient, post.id);
+      }
     },
     onSuccess: (feedbackType, input) => {
       if (feedbackType === "hide_post" || feedbackType === "hide_restaurant" || feedbackType === "not_interested") {

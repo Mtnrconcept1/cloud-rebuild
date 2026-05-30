@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   SOCIAL_FEED_SCOPES,
+  SOCIAL_AUDIENCE_SEGMENTS,
+  SOCIAL_MARKETING_GOALS,
   SOCIAL_POST_CTAS,
   SOCIAL_POST_TYPES,
   getSocialRecommendationReasons,
+  getVisibilityForAudienceSegment,
+  isMissingSocialMarketingSchemaError,
   normalizeSocialFeedScope,
+  scoreSocialMarketingDraft,
   validateSocialPostDraft,
   type SocialFeedPost,
 } from "@/lib/socialFeed";
@@ -44,7 +49,12 @@ const basePost: SocialFeedPost = {
   ctaTargetId: null,
   scheduledAt: null,
   pinnedUntil: null,
-  visibility: "public",
+    visibility: "public",
+    campaignGoal: "orders",
+    campaignName: null,
+    audienceSegment: "local",
+    offerCode: null,
+    utmCampaign: null,
 };
 
 describe("social feed v2 helpers", () => {
@@ -78,6 +88,23 @@ describe("social feed v2 helpers", () => {
     ]);
   });
 
+  it("defines marketing goals and audience segments for restaurateurs", () => {
+    expect(SOCIAL_MARKETING_GOALS.map((goal) => goal.value)).toEqual([
+      "awareness",
+      "orders",
+      "bookings",
+      "loyalty",
+      "offer",
+    ]);
+    expect(SOCIAL_AUDIENCE_SEGMENTS.map((segment) => segment.value)).toEqual([
+      "local",
+      "followers",
+      "returning",
+      "discovery",
+    ]);
+    expect(getVisibilityForAudienceSegment("followers")).toBe("followers");
+  });
+
   it("validates social post drafts before upload", () => {
     expect(
       validateSocialPostDraft({
@@ -105,5 +132,42 @@ describe("social feed v2 helpers", () => {
         interactedRestaurantIds: [],
       }),
     ).toEqual(["Restaurant suivi", "Cuisine preferee", "A proximite"]);
+  });
+
+  it("scores marketing drafts with actionable recommendations", () => {
+    const weak = scoreSocialMarketingDraft({
+      body: "Plat du jour",
+      filesCount: 0,
+      postType: "annonce",
+      ctaType: "none",
+      campaignGoal: "orders",
+      audienceSegment: "local",
+    });
+
+    expect(weak.level).toBe("faible");
+    expect(weak.recommendations.join(" ")).toContain("CTA conseille");
+
+    const strong = scoreSocialMarketingDraft({
+      body: "Service de midi lance avec notre plat signature, une preparation rapide et une quantite limitee pour les clients proches.",
+      filesCount: 1,
+      postType: "plat",
+      ctaType: "order",
+      scheduledAt: "2026-05-23T10:30:00.000Z",
+      campaignGoal: "orders",
+      audienceSegment: "local",
+    });
+
+    expect(strong.score).toBe(100);
+    expect(strong.level).toBe("excellent");
+  });
+
+  it("detects missing marketing columns from PostgREST schema cache errors", () => {
+    expect(
+      isMissingSocialMarketingSchemaError({
+        code: "PGRST204",
+        message: "Could not find the 'campaign_goal' column of 'social_posts' in the schema cache",
+      }),
+    ).toBe(true);
+    expect(isMissingSocialMarketingSchemaError({ code: "23505", message: "duplicate key value violates unique constraint" })).toBe(false);
   });
 });

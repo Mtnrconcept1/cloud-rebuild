@@ -9,7 +9,7 @@ import DeliveryMap from "@/components/DeliveryMap";
 import DeliveryProofCard from "@/components/orders/DeliveryProofCard";
 import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
 import { Progress } from "@/components/ui/progress";
-import { Package, ChefHat, Bike, MapPin, CheckCircle2, Phone, Timer } from "lucide-react";
+import { Package, ChefHat, Bike, MapPin, CheckCircle2, Phone, Timer, ShoppingBag, Gift, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useMemo, useState } from "react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
@@ -88,6 +88,24 @@ export default function SuiviCommande() {
       return data || [];
     },
     enabled: !!order && (!!(order?.metadata as any)?.checkout_group_id || !!order?.checkout_id),
+  });
+
+  const orderIds = useMemo(() => {
+    if (!order) return [];
+    if (siblingOrders && siblingOrders.length > 0) return siblingOrders.map(o => o.id);
+    return [order.id];
+  }, [order, siblingOrders]);
+
+  const { data: orderItems } = useQuery({
+    queryKey: ["order-items", orderIds],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("order_items")
+        .select("*, menu_items(name)")
+        .in("order_id", orderIds);
+      return data || [];
+    },
+    enabled: orderIds.length > 0,
   });
 
   const { data: deliveryTrackingRow } = useQuery({
@@ -314,9 +332,11 @@ export default function SuiviCommande() {
     );
   }
 
+  const hasRouteOverview = routeSteps.some((step) => step.type === "pickup")
+    && routeSteps.some((step) => step.type === "dropoff");
   const showMap = hasLiveCourierFlow
-    ? Boolean(currentDriverPos?.lat && currentDriverPos?.lng && currentPhase >= 2)
-    : currentPhase >= 2;
+    ? Boolean(currentDriverPos?.lat && currentDriverPos?.lng && (currentPhase >= 2 || hasRouteOverview))
+    : (currentPhase >= 2 || hasRouteOverview);
   const showDriver = hasLiveCourierFlow ? Boolean(driverName) : currentPhase >= 1;
   const isDelivered = currentPhase >= 3;
   const orderMeta = (order.metadata || {}) as any;
@@ -328,237 +348,167 @@ export default function SuiviCommande() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h1 className="font-display text-2xl font-bold">Suivi de commande</h1>
-            <OrderStatusBadge status={currentStep.key} />
-          </div>
+        {/* Title and Time */}
+        <div className="space-y-1">
+          <h1 className="font-display text-3xl font-bold">{currentPhase >= 3 ? "Livrée" : "En route..."}</h1>
           <p className="text-sm text-muted-foreground">
-            {orders.length > 1
-              ? `${orders.length} restaurants · ${orders.reduce((sum: number, o: any) => sum + Number(o.total_amount), 0).toFixed(2)} CHF`
-              : `${(order?.restaurants as any)?.name} · ${Number(order?.total_amount).toFixed(2)} CHF`
+            {currentPhase >= 3 ? "Arrivée à" : "Arrivée prévue"} {
+              scheduledDeliveryLabel || (pickupTime ? pickupTime : "Bientôt")
             }
           </p>
         </div>
 
-        {/* Progress bar */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <span className="text-xs font-bold text-primary uppercase tracking-widest">Progression</span>
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{Math.round(progress)}%</span>
-          </div>
-          <Progress value={progress} className="h-3 bg-secondary/50 overflow-hidden rounded-full shadow-inner" />
+        {/* Timeline Status */}
+        <div className="flex items-center gap-3 pt-2">
+          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] animate-pulse" />
+          <p className="text-sm font-semibold">{currentPhase >= 3 ? "Votre commande a été livrée" : "Votre commande est en route"}</p>
         </div>
 
-        {/* Countdown */}
-        {!hasLiveCourierFlow && currentPhase < 2 && simStarted && (
-          <div className="glass-morphism rounded-3xl p-10 text-center space-y-4 shadow-xl border-primary/10 animate-float relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-
-            <p className="text-sm font-bold text-primary uppercase tracking-widest mb-1">{currentStep.countdownLabel}</p>
-            <div className="flex items-center justify-center gap-4">
+        {/* Central Graphic */}
+        <div className="py-12 relative flex justify-center items-center">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/5" />
+          <div className="relative">
+            {currentPhase >= 3 ? (
+              <CheckCircle2 className="w-32 h-32 text-green-500 drop-shadow-md" />
+            ) : (
               <div className="relative">
-                <Timer className="h-10 w-10 text-primary animate-pulse" />
-                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse" />
+                {/* Paper bag */}
+                <div className="w-32 h-40 bg-[#f3cba5] rounded-t-sm rounded-b-md shadow-sm relative flex flex-col items-center justify-center border-t-4 border-[#e6b78c]">
+                  <div className="w-12 h-12 bg-green-500 rounded-full" />
+                </div>
+                {/* Green dots floating */}
+                <div className="absolute top-1/4 -left-8 w-3 h-3 bg-green-500 rounded-full animate-bounce shadow-sm" />
+                <div className="absolute top-0 right-4 w-2 h-2 bg-green-500 rounded-full opacity-50" />
+                {/* Shadow */}
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-24 h-4 bg-black/10 rounded-[100%] blur-[2px]" />
               </div>
-              <span className="font-display text-6xl font-black text-primary tracking-tighter tabular-nums drop-shadow-sm">
-                {formatCountdown(countdown)}
-              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Help box */}
+        <div className="rounded-2xl border bg-card p-4 shadow-sm flex flex-col md:flex-row md:items-center gap-4">
+          <div className="relative w-12 h-12 shrink-0">
+            <div className="w-full h-full bg-orange-100 rounded-full flex items-center justify-center overflow-hidden border">
+              {orders.length > 1 ? <ShoppingBag className="h-6 w-6 text-orange-600" /> : <ChefHat className="h-6 w-6 text-orange-600" />}
             </div>
-            <p className="text-lg font-medium text-foreground mt-2">{currentStep.description}</p>
-            <div className="flex justify-center gap-1.5 mt-4">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className={`h-1.5 w-1.5 rounded-full ${i === currentPhase ? 'bg-primary animate-bounce' : 'bg-primary/20'}`} style={{ animationDelay: `${i * 150}ms` }} />
-              ))}
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-foreground rounded-full flex items-center justify-center">
+                <span className="text-[8px] text-background">📞</span>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Transit progress */}
-        {!hasLiveCourierFlow && currentPhase === 2 && (
-          <div className="glass-morphism rounded-3xl p-8 text-center space-y-6 shadow-xl border-primary/10 animate-fade-in relative">
-            <div className="flex items-center justify-between px-2">
-              <div className="flex flex-col items-start">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Origine</span>
-                <span className="text-sm font-bold">Restaurant</span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-bold text-primary uppercase opacity-60">Destination</span>
-                <span className="text-sm font-bold">Chez vous</span>
-              </div>
-            </div>
-
-            <div className="relative pt-6 pb-2">
-              <div className="absolute top-0 left-0 w-full h-1 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-primary/20 animate-shimmer" style={{ width: '100%' }} />
-              </div>
-              <Progress value={(routeIndex / (routePoints.length - 1)) * 100} className="h-2 flex-1 bg-transparent absolute top-0 left-0 w-full" />
-
-              <div
-                className="absolute top-[-10px] transition-all duration-500 ease-linear transform -translate-x-1/2"
-                style={{ left: `${(routeIndex / (routePoints.length - 1)) * 100}%` }}
-              >
-                <div className="relative">
-                  <div className="absolute inset-0 bg-primary/30 blur-md rounded-full scale-125 animate-pulse" />
-                  <div className="bg-primary text-white p-2 rounded-full shadow-lg relative z-10">
-                    <Bike className="h-4 w-4" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-base font-bold text-foreground">
-              Le livreur est à <span className="text-primary italic">{Math.round((routeIndex / (routePoints.length - 1)) * 100)}%</span> de sa destination
+          <div className="flex-1 space-y-1">
+            <p className="font-semibold">Besoin d'aide?</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Le personnel du commerce livrera votre commande; le suivi de la commande ne sera donc pas aussi détaillé. Vous pouvez appeler le commerce pour en savoir plus sur votre livraison.
             </p>
           </div>
-        )}
+          <Button variant="secondary" className="w-full md:w-auto font-medium rounded-xl">
+            <Phone className="h-4 w-4 mr-2" /> Appeler le commerce
+          </Button>
+        </div>
 
-        {/* Delivered celebration */}
-        {isDelivered && (
-          <div className="text-center p-6 rounded-xl bg-accent/10 border border-accent/20 animate-scale-in">
-            <CheckCircle2 className="h-12 w-12 text-accent mx-auto mb-2" />
-            <p className="font-display text-xl font-bold text-accent">Commande livrée !</p>
-            <p className="text-sm text-muted-foreground">Bon appétit ! 🎉</p>
+        {/* Delivery Details */}
+        <div className="space-y-4 pt-6">
+          <h2 className="text-lg font-bold">Détails de livraison</h2>
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold">Adresse</p>
+                <p className="text-sm text-muted-foreground">{order.delivery_address}</p>
+              </div>
+            </div>
+            
+            {orderMeta.delivery_apartment && (
+              <div className="flex gap-4">
+                <MapPin className="h-5 w-5 text-muted-foreground shrink-0 opacity-0" />
+                <div>
+                  <p className="text-sm font-semibold">Appartement/bureau/étage</p>
+                  <p className="text-sm text-muted-foreground">{orderMeta.delivery_apartment}</p>
+                </div>
+              </div>
+            )}
+            
+            {orderMeta.delivery_note && (
+              <div className="flex gap-4">
+                <MapPin className="h-5 w-5 text-muted-foreground shrink-0 opacity-0" />
+                <div>
+                  <p className="text-sm font-semibold">Notes</p>
+                  <p className="text-sm text-muted-foreground">{orderMeta.delivery_note}</p>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex gap-4">
+              <Package className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold">Option de livraison</p>
+                <p className="text-sm text-muted-foreground">{orderMeta.flex_option === "express" ? "Express" : orderMeta.flex_option === "flex" ? "Flex" : "Standard"}</p>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
 
-        {/* Steps and Restaurant Details */}
+        <hr className="border-border my-6" />
+
+        {/* Order Summary */}
         <div className="space-y-4">
-          {orders.length > 1 && currentPhase === 0 && (
-            <div className="space-y-3 animate-fade-in">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Statut par restaurant</p>
-              {orders.map((o: any) => (
-                <div key={o.id} className="flex items-center justify-between p-3 rounded-xl bg-card border shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                      <ChefHat className="h-4 w-4 text-orange-500" />
+          <h2 className="text-lg font-bold">Récapitulatif de la commande</h2>
+          {orders.map((o: any) => {
+            const items = orderItems?.filter((i: any) => i.order_id === o.id) || [];
+            return (
+              <div key={o.id} className="space-y-3">
+                {orders.length > 1 && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    Restaurant : 🍔 <span className="uppercase font-semibold text-foreground">{o.restaurants?.name}</span>
+                  </p>
+                )}
+                
+                <div className="space-y-3">
+                  {items.map((item: any) => (
+                    <div key={item.id} className="flex gap-3 text-sm">
+                      <div className="bg-secondary/50 text-secondary-foreground w-6 h-6 rounded flex items-center justify-center font-medium shrink-0">
+                        {item.quantity}
+                      </div>
+                      <p className="flex-1">{item.menu_items?.name || "Article"}</p>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold">{o.restaurants?.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{o.restaurants?.city}</p>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-700">
-                    Préparation...
-                  </Badge>
+                  ))}
                 </div>
-              ))}
+              </div>
+            );
+          })}
+          
+          <div className="flex justify-between items-center pt-4 border-t font-bold mt-4">
+            <span>Total</span>
+            <span>{totalAmount.toFixed(2)} CHF</span>
+          </div>
+          
+          <div className="flex items-center gap-3 pt-2">
+            <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center shrink-0">
+              {/* Twint Logo Placeholder */}
+              <span className="font-bold text-xs tracking-tighter italic">TWINT</span>
             </div>
-          )}
-
-          <div className="space-y-1">
-            {STEPS.map((step, i) => {
-              const isActive = i === currentPhase;
-              const isDone = i < currentPhase;
-              const StepIcon = step.icon;
-              return (
-                <div
-                  key={step.key}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-500 ${isActive ? "bg-primary/10 border border-primary/20" : isDone ? "bg-accent/5" : "opacity-30"
-                    }`}
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors duration-500 ${isActive ? "bg-primary text-primary-foreground" : isDone ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
-                    }`}>
-                    <StepIcon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium transition-colors duration-300 ${isActive ? "text-primary" : ""}`}>{step.label}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {isActive && orders.length > 1 && i === 1
-                        ? "Le livreur récupère vos différentes commandes"
-                        : step.description}
-                    </p>
-                  </div>
-                  {isDone && <CheckCircle2 className="h-4 w-4 text-accent ml-auto" />}
-                  {isActive && !hasLiveCourierFlow && currentPhase < 2 && (
-                    <span className="text-xs font-mono text-primary font-bold tabular-nums">{formatCountdown(countdown)}</span>
-                  )}
-                </div>
-              );
-            })}
+            <span className="text-sm font-medium">{orderMeta.payment_method === "twint" ? "Twint" : "Carte Bancaire"}</span>
           </div>
         </div>
 
-        {/* Driver info */}
-        {showDriver && (
-          <div className="flex items-center gap-3 p-4 border rounded-xl bg-card animate-fade-in">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">🛵</div>
-            <div className="flex-1">
-              <p className="font-semibold text-sm">{driverName}</p>
-              <p className="text-xs text-muted-foreground">Votre livreur</p>
-            </div>
-            <a href={`tel:${driverPhone}`} className="flex items-center gap-1 text-primary text-sm">
-              <Phone className="h-4 w-4" />
-              Appeler
-            </a>
+        {/* Referral */}
+        <div className="mt-8 mb-12 bg-accent/5 rounded-2xl p-4 flex items-center gap-4 border border-accent/20">
+          <div className="w-16 h-16 shrink-0 flex items-center justify-center text-3xl">
+            🎁
           </div>
-        )}
-
-        {showDeliveryProof ? (
-          <DeliveryProofCard code={deliveryProofCode} verifiedAt={deliveryProofVerifiedAt} />
-        ) : null}
-
-        {/* Map */}
-        {showMap && (
-          <div className="space-y-2 animate-fade-in">
-            <h2 className="font-semibold text-sm flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              Position du livreur en temps reel
-            </h2>
-            <DeliveryMap
-              routeStops={routeSteps
-                .filter((step) => step.latitude !== null && step.longitude !== null)
-                .map((step) => ({
-                  ...step,
-                  latitude: step.latitude as number,
-                  longitude: step.longitude as number,
-                }))}
-              currentLat={currentDriverPos.lat}
-              currentLng={currentDriverPos.lng}
-              status={currentStep.key}
-            />
-            {routeSteps.length > 0 ? (
-              <div className="grid gap-2">
-                {routeSteps.map((step) => (
-                  <div key={step.id} className="flex gap-3 rounded-xl border bg-card p-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                      {step.stepIndex}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{step.label}</p>
-                      {step.restaurantName ? <p className="text-xs text-muted-foreground">{step.restaurantName}</p> : null}
-                      <p className="text-xs text-muted-foreground">{step.address || "-"}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+          <div className="flex-1 space-y-2">
+            <p className="text-sm font-medium">Obtenez 10 CHF de rabais lorsque vos amis essaient Tok.</p>
+            <Button variant="secondary" size="sm" className="rounded-full bg-background" asChild>
+              <Link to="/profil">
+                Invitez vos amis <ArrowRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
           </div>
-        )}
-
-        {/* Delivery address */}
-        <div className="p-4 border rounded-xl bg-card space-y-1">
-          <p className="text-xs text-muted-foreground">Adresse de livraison</p>
-          <p className="text-sm font-medium">{order.delivery_address}</p>
-          {scheduledDeliveryLabel ? (
-            <p className="text-xs text-muted-foreground">Livraison planifiee : {scheduledDeliveryLabel}</p>
-          ) : null}
         </div>
 
-        {ordersWithPricing.length > 0 ? (
-          <div className="space-y-3">
-            <h2 className="text-sm font-semibold">Detail du paiement</h2>
-            {ordersWithPricing.map((entry: any) => (
-              <div key={entry.id} className="rounded-xl border bg-card p-4">
-                {ordersWithPricing.length > 1 ? (
-                  <p className="mb-3 text-sm font-semibold">{entry.restaurants?.name || "Restaurant"}</p>
-                ) : null}
-                <OrderPaymentBreakdown order={entry} showDivider={false} alwaysShowTotal />
-              </div>
-            ))}
-          </div>
-        ) : null}
       </div>
     </main>
   );

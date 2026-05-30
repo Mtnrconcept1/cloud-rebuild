@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Newspaper, RefreshCw, Sparkles, Store, TrendingUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Newspaper, RefreshCw, Sparkles, TrendingUp } from "lucide-react";
 
+import SocialComposer from "@/components/social/SocialComposer";
 import SocialPostCard from "@/components/social/SocialPostCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,15 +11,23 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInfiniteSocialFeed, useToggleRestaurantFollow } from "@/hooks/useSocialFeed";
 import { useAuth } from "@/lib/auth";
 import { SOCIAL_FEED_SCOPES, normalizeSocialFeedScope, type SocialFeedPost, type SocialFeedScope } from "@/lib/socialFeed";
+import { useOwnerRestaurants } from "@/pages/dashboard/useOwnerRestaurants";
 
 export default function Actualites() {
-  const { roles } = useAuth();
+  const { role, isSuperAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
+  const [composerRestaurantId, setComposerRestaurantId] = useState<string | null>(null);
   const highlightedPostId = searchParams.get("post");
   const feed = useInfiniteSocialFeed(scope, 12);
+  const canManage = role === "restaurateur" || isSuperAdmin;
+  const ownerRestaurants = useOwnerRestaurants({ enabled: canManage });
   const posts = useMemo(() => feed.data?.pages.flatMap((page) => page.posts) || [], [feed.data]);
-  const canManage = roles.includes("restaurateur") || roles.includes("admin");
+  const restaurants = useMemo(
+    () => canManage ? ownerRestaurants.restaurants : [],
+    [canManage, ownerRestaurants.restaurants],
+  );
+  const composerRestaurant = restaurants.find((restaurant) => restaurant.id === composerRestaurantId) || restaurants[0] || null;
   const toggleFollow = useToggleRestaurantFollow();
   const suggestedRestaurants = useMemo(() => {
     const seen = new Set<string>();
@@ -31,6 +40,17 @@ export default function Actualites() {
       })
       .slice(0, 4);
   }, [posts]);
+
+  useEffect(() => {
+    if (!canManage || ownerRestaurants.loading) return;
+    if (restaurants.length === 0) {
+      setComposerRestaurantId(null);
+      return;
+    }
+    if (!composerRestaurantId || !restaurants.some((restaurant) => restaurant.id === composerRestaurantId)) {
+      setComposerRestaurantId(restaurants[0].id);
+    }
+  }, [canManage, composerRestaurantId, ownerRestaurants.loading, restaurants]);
 
   const changeScope = (value: string) => {
     const nextScope = normalizeSocialFeedScope(value);
@@ -57,6 +77,43 @@ export default function Actualites() {
               Actualiser
             </Button>
           </div>
+
+          {canManage ? (
+            <div className="space-y-3">
+              {ownerRestaurants.loading ? (
+                <div className="rounded-lg border bg-background p-4 text-sm text-muted-foreground">
+                  Chargement de vos restaurants...
+                </div>
+              ) : ownerRestaurants.error ? (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+                  Impossible de charger vos restaurants : {ownerRestaurants.error}
+                </div>
+              ) : restaurants.length > 0 ? (
+                <>
+                  {restaurants.length > 1 ? (
+                    <div className="flex flex-wrap gap-2 rounded-lg border bg-background p-3">
+                      {restaurants.map((restaurant) => (
+                        <Button
+                          key={restaurant.id}
+                          type="button"
+                          size="sm"
+                          variant={restaurant.id === composerRestaurant?.id ? "default" : "outline"}
+                          onClick={() => setComposerRestaurantId(restaurant.id)}
+                        >
+                          {restaurant.name}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <SocialComposer restaurantId={composerRestaurant?.id || null} restaurantName={composerRestaurant?.name || null} />
+                </>
+              ) : (
+                <div className="rounded-lg border bg-background p-4 text-sm text-muted-foreground">
+                  Aucun restaurant rattache a ce compte.
+                </div>
+              )}
+            </div>
+          ) : null}
 
           <Tabs value={scope} onValueChange={changeScope}>
             <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-lg bg-background p-1 shadow-sm sm:grid-cols-4">
@@ -149,22 +206,6 @@ export default function Actualites() {
             </Card>
           ) : null}
 
-          {canManage ? (
-            <Card className="rounded-lg">
-              <CardContent className="space-y-3 p-4">
-                <div className="flex items-center gap-2">
-                  <Store className="h-4 w-4 text-primary" />
-                  <h2 className="font-semibold">Restaurateur</h2>
-                </div>
-                <Button asChild className="w-full gap-2">
-                  <Link to="/dashboard/actualites">
-                    <Newspaper className="h-4 w-4" />
-                    Gerer les posts
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ) : null}
         </aside>
       </div>
     </main>

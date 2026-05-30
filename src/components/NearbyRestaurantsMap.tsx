@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+import { normalizePublicImageUrl } from "@/lib/securityUrls";
+
 interface Restaurant {
   id: string;
   name: string;
@@ -28,7 +30,7 @@ const restaurantIcon = (emoji: string) =>
   });
 
 const userIcon = L.divIcon({
-  html: `<div style="background:hsl(24,95%,53%);width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 2px hsl(24,95%,53%),0 2px 8px rgba(0,0,0,0.3);"></div>`,
+  html: '<div style="background:hsl(24,95%,53%);width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 2px hsl(24,95%,53%),0 2px 8px rgba(0,0,0,0.3);"></div>',
   className: "",
   iconSize: [16, 16],
   iconAnchor: [8, 8],
@@ -41,20 +43,24 @@ const cuisineEmoji: Record<string, string> = {
   sushi: "🍣",
   burger: "🍔",
   hamburger: "🍔",
-  français: "🥐",
+  francais: "🥐",
   chinois: "🥡",
   mexicain: "🌮",
   indien: "🍛",
-  thaï: "🍜",
+  thai: "🍜",
   kebab: "🥙",
-  café: "☕",
+  cafe: "☕",
   dessert: "🍰",
   halal: "🍖",
 };
 
+function normalizeCuisine(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 function getEmoji(cuisine?: string | null): string {
   if (!cuisine) return "🍽️";
-  const lower = cuisine.toLowerCase();
+  const lower = normalizeCuisine(cuisine);
   for (const [key, emoji] of Object.entries(cuisineEmoji)) {
     if (lower.includes(key)) return emoji;
   }
@@ -72,6 +78,66 @@ function pseudoRandomOffset(name: string, index: number): [number, number] {
   const angle = (index * 137.5 * Math.PI) / 180;
   const radius = 0.003 + index * 0.001;
   return [latOffset + Math.cos(angle) * radius, lngOffset + Math.sin(angle) * radius];
+}
+
+function createRestaurantPopup(restaurant: Restaurant) {
+  const root = document.createElement("div");
+  root.style.minWidth = "180px";
+  root.style.fontFamily = "sans-serif";
+  root.style.overflow = "hidden";
+  root.style.borderRadius = "8px";
+
+  const imageWrap = document.createElement("div");
+  imageWrap.style.height = "100px";
+  imageWrap.style.width = "100%";
+  imageWrap.style.overflow = "hidden";
+  imageWrap.style.background = "#f3f4f6";
+
+  const image = document.createElement("img");
+  image.src = normalizePublicImageUrl(restaurant.image_url);
+  image.alt = restaurant.name || "Restaurant";
+  image.referrerPolicy = "no-referrer";
+  image.style.width = "100%";
+  image.style.height = "100%";
+  image.style.objectFit = "cover";
+  imageWrap.appendChild(image);
+
+  const body = document.createElement("div");
+  body.style.padding = "10px";
+
+  const name = document.createElement("strong");
+  name.style.fontSize = "14px";
+  name.style.display = "block";
+  name.style.marginBottom = "2px";
+  name.textContent = restaurant.name || "Restaurant";
+  body.appendChild(name);
+
+  const cuisine = document.createElement("div");
+  cuisine.style.color = "#666";
+  cuisine.style.fontSize = "12px";
+  cuisine.style.marginBottom = "4px";
+  cuisine.textContent = restaurant.cuisine_type || "";
+  body.appendChild(cuisine);
+
+  if (restaurant.rating) {
+    const rating = document.createElement("div");
+    rating.style.color = "#f59e0b";
+    rating.style.fontSize = "12px";
+    rating.style.fontWeight = "bold";
+    rating.textContent = `⭐ ${Number(restaurant.rating).toFixed(1)}`;
+    body.appendChild(rating);
+  }
+
+  const cta = document.createElement("div");
+  cta.style.marginTop = "8px";
+  cta.style.fontSize = "11px";
+  cta.style.color = "hsl(24,95%,53%)";
+  cta.style.fontWeight = "bold";
+  cta.textContent = "Cliquer pour voir";
+  body.appendChild(cta);
+
+  root.append(imageWrap, body);
+  return root;
 }
 
 export default function NearbyRestaurantsMap({
@@ -98,55 +164,29 @@ export default function NearbyRestaurantsMap({
 
     const bounds = L.latLngBounds([[centerLat, centerLng]]);
 
-    restaurants.forEach((r, index) => {
-      const emoji = getEmoji(r.cuisine_type);
-      const [latOff, lngOff] = pseudoRandomOffset(r.name, index);
+    restaurants.forEach((restaurant, index) => {
+      const emoji = getEmoji(restaurant.cuisine_type);
+      const [latOff, lngOff] = pseudoRandomOffset(restaurant.name, index);
       const lat = centerLat + latOff;
       const lng = centerLng + lngOff;
 
-      const popupContent = `
-        <div style="min-width: 180px; font-family: sans-serif; overflow: hidden; border-radius: 8px;">
-          <div style="height: 100px; width: 100%; overflow: hidden; background: #f3f4f6;">
-            <img src="${r.image_url || "/images/kebab-box-spread.jpeg"}" 
-                 alt="${r.name}" 
-                 style="width: 100%; height: 100%; object-cover;"
-            />
-          </div>
-          <div style="padding: 10px;">
-            <strong style="font-size: 14px; display: block; margin-bottom: 2px;">${r.name}</strong>
-            <div style="color: #666; font-size: 12px; margin-bottom: 4px;">${r.cuisine_type || ""}</div>
-            ${
-              r.rating
-                ? `<div style="color: #f59e0b; font-size: 12px; font-weight: bold;">⭐ ${Number(
-                    r.rating,
-                  ).toFixed(1)}</div>`
-                : ""
-            }
-            <div style="margin-top: 8px; font-size: 11px; color: hsl(24,95%,53%); font-weight: bold;">Cliquer pour voir</div>
-          </div>
-        </div>
-      `;
-
       const marker = L.marker([lat, lng], { icon: restaurantIcon(emoji) })
         .addTo(map)
-        .bindPopup(popupContent, {
+        .bindPopup(createRestaurantPopup(restaurant), {
           closeButton: false,
           className: "restaurant-popup",
         });
 
-      // Show popup on hover
-      marker.on("mouseover", function (e) {
+      marker.on("mouseover", function () {
         this.openPopup();
       });
 
-      // Close popup when mouse leaves the marker
-      marker.on("mouseout", function (e) {
+      marker.on("mouseout", function () {
         this.closePopup();
       });
 
-      // Navigate on click
       marker.on("click", () => {
-        navigate(`/restaurant/${r.id}`);
+        navigate(`/restaurant/${restaurant.id}`);
       });
 
       bounds.extend([lat, lng]);
@@ -170,3 +210,4 @@ export default function NearbyRestaurantsMap({
     />
   );
 }
+
