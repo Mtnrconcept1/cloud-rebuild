@@ -70,7 +70,7 @@ describe("floor plan helpers", () => {
     expect(clamped.y).toBe(16);
   });
 
-  it("grows minimum table size with capacity and preserves inner seats", () => {
+  it("keeps recommended table sizes capacity-aware while allowing compact footprints", () => {
     const smallRound = getMinimumTableSize(2, "round");
     const largeRound = getMinimumTableSize(8, "round");
     const fitted = ensureFloorPlanLayoutFitsCapacity(
@@ -81,8 +81,8 @@ describe("floor plan helpers", () => {
 
     expect(largeRound.w).toBeGreaterThan(smallRound.w);
     expect(largeRound.h).toBeGreaterThan(smallRound.h);
-    expect(fitted.w).toBeGreaterThanOrEqual(getMinimumTableSize(10, "rect").w);
-    expect(fitted.h).toBeGreaterThanOrEqual(getMinimumTableSize(10, "rect").h);
+    expect(fitted.w).toBe(120);
+    expect(fitted.h).toBe(120);
     expect(fitted.seatLabels.length).toBeGreaterThan(2);
   });
 
@@ -147,6 +147,35 @@ describe("floor plan helpers", () => {
     expect(plant.h).toBe(28);
     expect(divider.w).toBe(24);
     expect(divider.h).toBe(8);
+  });
+
+  it("allows furniture to shrink down to a one-pixel logical footprint", () => {
+    const plant = resizeFloorPlanLayoutToFootprint(
+      { x: 40, y: 40, w: 84, h: 84, rotation: 0, shape: "round", seatLabels: [], kind: "plant" },
+      0,
+      1,
+      1,
+      "round",
+      "plant",
+    );
+
+    expect(plant.w).toBe(1);
+    expect(plant.h).toBe(1);
+  });
+
+  it("allows reservable tables to shrink down to a one-pixel logical footprint", () => {
+    const table = resizeFloorPlanLayoutToFootprint(
+      { x: 40, y: 40, w: 176, h: 112, rotation: 0, shape: "rect", seatLabels: [1, 1, 1, 1], kind: "table" },
+      4,
+      1,
+      1,
+      "rect",
+      "table",
+    );
+
+    expect(table.w).toBe(1);
+    expect(table.h).toBe(1);
+    expect(table.seatLabels).toEqual([1, 1, 1, 1]);
   });
 
   it("keeps tiny furniture selectable with a larger centered interaction frame", () => {
@@ -236,6 +265,34 @@ describe("floor plan helpers", () => {
     expect(logical.y).toBeCloseTo(layout.y, 5);
     expect(frame.w).toBeCloseTo(layout.w * 1.35, 5);
     expect(frame.h).toBeCloseTo(layout.h * 1.35, 5);
+  });
+
+  it("lets zoomed-out items use the full visible canvas when positioned at the far edge", () => {
+    const layout = {
+      x: 1040 - 60 - 16,
+      y: 680 - 40 - 16,
+      w: 60,
+      h: 40,
+      rotation: 0,
+      shape: "rect" as const,
+      kind: "plant" as const,
+      seatLabels: [],
+    };
+
+    const frame = getRenderedFloorPlanFrame(layout, 0.1, 1040, 680);
+    const logical = getLogicalFloorPlanPositionFromRenderedFrame(
+      layout,
+      1040 - frame.w - 16,
+      680 - frame.h - 16,
+      0.1,
+      1040,
+      680,
+    );
+
+    expect(frame.x).toBeCloseTo(1040 - frame.w - 16, 5);
+    expect(frame.y).toBeCloseTo(680 - frame.h - 16, 5);
+    expect(logical.x).toBe(layout.x);
+    expect(logical.y).toBe(layout.y);
   });
 
   it("clamps rendered canvas frames before converting them to logical positions", () => {

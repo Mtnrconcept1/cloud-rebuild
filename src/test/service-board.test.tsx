@@ -49,6 +49,12 @@ function renderServiceBoard(overrides: Partial<Parameters<typeof ServiceBoard>[0
 }
 
 describe("ServiceBoard", () => {
+  it("renders a taller work canvas for service mode", () => {
+    const { container } = renderServiceBoard();
+
+    expect(container.querySelector('[style*="height: 760px"]')).not.toBeNull();
+  });
+
   it("starts dragging furniture from the whole object surface", () => {
     const onStartDraggingTable = vi.fn();
     const { container } = renderServiceBoard({

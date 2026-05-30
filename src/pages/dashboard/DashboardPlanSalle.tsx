@@ -67,6 +67,7 @@ import {
   getFloorPlanItemBaseName,
   getFloorPlanItemTypeLabel,
   getLogicalFloorPlanPositionFromRenderedFrame,
+  getMinimumFloorPlanResizeSize,
   getResolvedFloorPlanDimensions,
   isReservableFloorPlanItem,
   normalizeFloorPlanLayout,
@@ -209,7 +210,7 @@ type FloorPlanHistorySnapshot = {
 const DEFAULT_SECTOR = "Salle principale";
 const DEFAULT_COUNTRY = "Suisse";
 const CANVAS_WIDTH = 1040;
-const CANVAS_HEIGHT = 680;
+const CANVAS_HEIGHT = 760;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
@@ -1482,7 +1483,7 @@ export default function DashboardPlanSalle() {
 
         setDraftTables((current) => {
           const next = updateFloorPlanItemLayoutById(current, resizeState.tableId, (layout, table) => {
-            const minimumSize = getMinimumTableSize(table.capacity, resizeState.startLayout.shape, resizeState.startLayout.kind);
+            const minimumSize = getMinimumFloorPlanResizeSize(resizeState.startLayout.kind);
             const resizedFrame = resizeRenderedFloorPlanFrame(
               resizeState.startFrame,
               resizeState.handle,
@@ -2686,10 +2687,10 @@ export default function DashboardPlanSalle() {
 
   return (
     <DashboardLayout>
-      <div className="flex min-h-[calc(100vh-5.5rem)] flex-col gap-4 xl:overflow-hidden">
-        <div className="space-y-4 shrink-0">
+      <div className="flex min-h-[calc(100vh-5.5rem)] flex-col gap-3 xl:overflow-hidden">
+        <div className="space-y-3 shrink-0">
           <div className="rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,248,252,0.96))] p-4 shadow-[0_24px_80px_-44px_rgba(15,23,42,0.45)]">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex min-w-0 items-center gap-4">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-white shadow-sm">
                   <LayoutPanelTop className="h-7 w-7 text-primary" />
@@ -3147,10 +3148,10 @@ export default function DashboardPlanSalle() {
                   leftSidebarCollapsed
                     ? rightSidebarCollapsed
                       ? "xl:grid-cols-[92px_minmax(0,1fr)_92px]"
-                      : "xl:grid-cols-[92px_minmax(0,1fr)_320px]"
+                      : "xl:grid-cols-[92px_minmax(0,1fr)_300px]"
                     : rightSidebarCollapsed
-                      ? "xl:grid-cols-[320px_minmax(0,1fr)_92px]"
-                      : "xl:grid-cols-[320px_minmax(0,1fr)_320px]",
+                      ? "xl:grid-cols-[280px_minmax(0,1fr)_92px]"
+                      : "xl:grid-cols-[280px_minmax(0,1fr)_300px]",
                 )}
               >
                 <div className={cn("hidden min-h-0 xl:flex xl:flex-col", leftSidebarCollapsed && "xl:w-[92px]")}>
@@ -3476,7 +3477,7 @@ export default function DashboardPlanSalle() {
                 </div>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
+              <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
                 <ServiceBoard
                   selectedSector={selectedSector}
                   subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} reservation(s) visibles`}

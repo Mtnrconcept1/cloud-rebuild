@@ -5,6 +5,34 @@ import { describe, expect, it, vi } from "vitest";
 import StudioCanvas from "@/components/floor-plan/StudioCanvas";
 
 describe("StudioCanvas", () => {
+  it("renders a taller work canvas for the floor plan editor", () => {
+    const canvasRef = createRef<HTMLDivElement>();
+    const canvasViewportRef = createRef<HTMLDivElement>();
+    const { container } = render(
+      <StudioCanvas
+        selectedSector="Salle"
+        canvasWidth={1040}
+        canvasZoom={1}
+        canvasZoomLabel="100%"
+        canvasRef={canvasRef}
+        canvasViewportRef={canvasViewportRef}
+        visibleTables={[]}
+        selectedTableId={null}
+        draggingTableId={null}
+        onTablePress={vi.fn()}
+        onCanvasWheel={vi.fn()}
+        onCanvasBackgroundPress={vi.fn()}
+        onStartDraggingTable={vi.fn()}
+        onStartResizingTable={vi.fn()}
+        onStartRotatingTable={vi.fn()}
+        onUpdateCanvasZoom={vi.fn()}
+        getRenderedFrame={() => ({ x: 80, y: 90, w: 84, h: 84 })}
+      />,
+    );
+
+    expect(container.querySelector('[style*="height: 760px"]')).not.toBeNull();
+  });
+
   it("starts dragging furniture from the whole object surface", () => {
     const onStartDraggingTable = vi.fn();
     const canvasRef = createRef<HTMLDivElement>();

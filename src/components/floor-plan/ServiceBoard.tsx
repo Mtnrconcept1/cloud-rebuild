@@ -62,7 +62,7 @@ type ServiceBoardProps = {
   ) => { top: number; right: number; bottom: number; left: number };
 };
 
-const CANVAS_HEIGHT = 680;
+const CANVAS_HEIGHT = 760;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
@@ -203,8 +203,8 @@ export default function ServiceBoard({
 
   return (
     <Card className="flex min-h-0 flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
-      <CardHeader className="space-y-4 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+      <CardHeader className="space-y-3 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-3">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <CardTitle className="text-[1.5rem] text-slate-950">{selectedSector}</CardTitle>
             <CardDescription className="mt-1 text-slate-500">{subtitle}</CardDescription>
@@ -247,7 +247,7 @@ export default function ServiceBoard({
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-3">
           <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Tables visibles</p>
             <p className="mt-2 text-2xl font-bold text-slate-950">{visibleTablesCount}</p>
@@ -276,9 +276,9 @@ export default function ServiceBoard({
         ) : null}
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col p-4">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(250,251,253,1),rgba(241,244,248,1))] p-4">
-          <div className="flex min-h-0 flex-1 flex-col rounded-[24px] border border-slate-200/80 bg-white/80 p-3 shadow-inner">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(250,251,253,1),rgba(241,244,248,1))] p-3">
+          <div className="flex min-h-0 flex-1 flex-col rounded-[24px] border border-slate-200/80 bg-white/80 p-2 shadow-inner">
             <div className="flex items-center justify-between gap-3 px-2 pb-3">
               <div className="flex items-center gap-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">

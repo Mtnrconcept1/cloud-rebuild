@@ -262,6 +262,7 @@ const MIN_FURNITURE_RESIZE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w
   plant: { w: 1, h: 1 },
   "service-station": { w: 1, h: 1 },
 };
+const MIN_RESIZE_SIZE = { w: 1, h: 1 };
 
 const FOOTPRINT_BASE_PADDING = 14;
 const RECT_SIDE_CORNER_GAP = 18;
@@ -1177,6 +1178,14 @@ export function getMinimumTableSize(
   };
 }
 
+export function getMinimumFloorPlanResizeSize(kind: FloorPlanItemKind = "table") {
+  if (!isReservableFloorPlanItem(kind)) {
+    return MIN_FURNITURE_RESIZE_SIZE[kind];
+  }
+
+  return MIN_RESIZE_SIZE;
+}
+
 export function getFloorPlanContentPadding(
   layout: FloorPlanTableLayout,
   capacity: number,
@@ -1229,7 +1238,7 @@ export function resizeFloorPlanLayoutToFootprint(
   const nextShape = !isReservableFloorPlanItem(kind)
     ? MIN_FURNITURE_SIZE[kind].shape
     : shape;
-  const minimum = getMinimumTableSize(capacity, nextShape, kind);
+  const minimum = getMinimumFloorPlanResizeSize(kind);
   const nextWidth = clampDimension(footprintWidth, minimum.w);
   const nextHeight = clampDimension(footprintHeight, minimum.h);
 
@@ -1294,7 +1303,7 @@ export function ensureFloorPlanLayoutFitsCapacity(
   shape: FloorPlanTableShape = layout.shape,
   kind: FloorPlanItemKind = layout.kind || "table",
 ) {
-  const minimum = getMinimumTableSize(capacity, shape, kind);
+  const minimum = getMinimumFloorPlanResizeSize(kind);
   const nextShape = !isReservableFloorPlanItem(kind)
     ? MIN_FURNITURE_SIZE[kind].shape
     : shape;
@@ -1364,10 +1373,10 @@ export function getRenderedFloorPlanFrame(
   const renderedMaxY = Math.max(DEFAULT_PADDING, canvasHeight - renderedHeight - DEFAULT_PADDING);
   const ratioX = logicalMaxX <= DEFAULT_PADDING
     ? 0
-    : (layout.x - DEFAULT_PADDING) / (logicalMaxX - DEFAULT_PADDING);
+    : (Math.min(Math.max(DEFAULT_PADDING, layout.x || DEFAULT_PADDING), logicalMaxX) - DEFAULT_PADDING) / (logicalMaxX - DEFAULT_PADDING);
   const ratioY = logicalMaxY <= DEFAULT_PADDING
     ? 0
-    : (layout.y - DEFAULT_PADDING) / (logicalMaxY - DEFAULT_PADDING);
+    : (Math.min(Math.max(DEFAULT_PADDING, layout.y || DEFAULT_PADDING), logicalMaxY) - DEFAULT_PADDING) / (logicalMaxY - DEFAULT_PADDING);
 
   return {
     x: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioX)) * (renderedMaxX - DEFAULT_PADDING),

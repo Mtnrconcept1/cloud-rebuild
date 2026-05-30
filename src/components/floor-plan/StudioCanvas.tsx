@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable, StudioRenderedTableFrame } from "./studioShared";
 
-const CANVAS_HEIGHT = 680;
+const CANVAS_HEIGHT = 760;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
@@ -132,7 +132,7 @@ export default function StudioCanvas({
 
   return (
     <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
-      <CardHeader className="space-y-4 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-4">
+      <CardHeader className="space-y-3 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle className="text-[1.45rem] text-slate-950">{selectedSector}</CardTitle>
@@ -186,8 +186,8 @@ export default function StudioCanvas({
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col p-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
+        <div className="grid gap-2 sm:grid-cols-3">
           <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Elements</p>
             <p className="mt-2 text-2xl font-bold text-slate-950">{visibleTables.length}</p>
@@ -206,7 +206,7 @@ export default function StudioCanvas({
           </div>
         </div>
 
-        <div className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(241,244,248,1))] p-4">
+        <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(241,244,248,1))] p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
@@ -222,7 +222,7 @@ export default function StudioCanvas({
             </Badge>
           </div>
 
-          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto rounded-[26px] border border-slate-200/80 bg-white/80 p-3 shadow-inner">
+          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto rounded-[26px] border border-slate-200/80 bg-white/80 p-2 shadow-inner">
             <div className="flex min-h-full min-w-full items-start justify-start">
               <div
                 ref={canvasRef}
@@ -392,7 +392,7 @@ export default function StudioCanvas({
           </div>
         </div>
 
-        <div className="mt-4 flex justify-center">
+        <div className="mt-3 flex justify-center">
           <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2 text-xs text-slate-500 shadow-sm">
             Le canevas garde son scroll local. Les panneaux se compactent avant de rogner la surface de travail.
           </div>
