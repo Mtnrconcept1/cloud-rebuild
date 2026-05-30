@@ -9,6 +9,7 @@ import {
   clampFloorPlanLayout,
   ensureFloorPlanLayoutFitsCapacity,
   getMinimumTableSize,
+  getFloorPlanInteractiveFrame,
   getLogicalFloorPlanPositionFromRenderedFrame,
   getRenderedFloorPlanFrame,
   getResolvedFloorPlanDimensions,
@@ -146,6 +147,20 @@ describe("floor plan helpers", () => {
     expect(plant.h).toBe(28);
     expect(divider.w).toBe(24);
     expect(divider.h).toBe(8);
+  });
+
+  it("keeps tiny furniture selectable with a larger centered interaction frame", () => {
+    const frame = { x: 120, y: 80, w: 8, h: 6 };
+    const interactive = getFloorPlanInteractiveFrame(frame, 36);
+
+    expect(interactive).toEqual({
+      x: 106,
+      y: 65,
+      w: 36,
+      h: 36,
+      visualOffsetX: 14,
+      visualOffsetY: 15,
+    });
   });
 
   it("resizes rendered frames by axis and keeps corner handles proportional", () => {
@@ -303,9 +318,65 @@ describe("floor plan helpers", () => {
     expect(model.visibleReservableIdSet.has("a")).toBe(true);
     expect(model.visibleReservableIdSet.has("plant")).toBe(false);
     expect(model.framesById.has("other-sector")).toBe(false);
+    expect(model.reservableHitTargets.visual.map((target) => target.item.id)).toEqual(["b", "a"]);
+    expect(model.reservableHitTargets.interactive.map((target) => target.item.id)).toEqual(["b", "a"]);
     expect(hitFrame).toBeDefined();
     expect(model.getRenderedFrame(tables[4])).toBe(hitFrame);
     expect(model.getReservableItemAtPoint((hitFrame?.x || 0) + 4, (hitFrame?.y || 0) + 4)?.id).toBe("b");
+  });
+
+  it("uses the interactive frame for tiny reservable table hit testing", () => {
+    const tables = [
+      {
+        id: "tiny",
+        table_number: "Tiny",
+        capacity: 2,
+        is_active: true,
+        sector: "Salle",
+        layout: { x: 120, y: 80, w: 8, h: 6, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+      },
+    ];
+    const model = buildFloorPlanViewportModel(tables, {
+      sector: "Salle",
+      zoom: 1,
+      canvasWidth: 1040,
+      canvasHeight: 680,
+    });
+    const frame = model.getRenderedFrame(tables[0]);
+    const interactiveFrame = getFloorPlanInteractiveFrame(frame);
+
+    expect(model.getReservableItemAtPoint(interactiveFrame.x + 2, interactiveFrame.y + 2)?.id).toBe("tiny");
+    expect(model.getReservableItemAtPoint(frame.x - 4, frame.y - 4)?.id).toBe("tiny");
+  });
+
+  it("prefers a visual table hit over another table's expanded interactive fringe", () => {
+    const tables = [
+      {
+        id: "large",
+        table_number: "A-large",
+        capacity: 4,
+        is_active: true,
+        sector: "Salle",
+        layout: { x: 120, y: 80, w: 120, h: 90, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1, 1, 1] },
+      },
+      {
+        id: "tiny",
+        table_number: "Z-tiny",
+        capacity: 2,
+        is_active: true,
+        sector: "Salle",
+        layout: { x: 122, y: 82, w: 8, h: 6, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+      },
+    ];
+    const model = buildFloorPlanViewportModel(tables, {
+      sector: "Salle",
+      zoom: 1,
+      canvasWidth: 1040,
+      canvasHeight: 680,
+    });
+    const tinyFrame = model.getRenderedFrame(tables[1]);
+
+    expect(model.getReservableItemAtPoint(tinyFrame.x + 12, tinyFrame.y + 8)?.id).toBe("large");
   });
 
   it("updates one floor plan item layout without replacing unchanged arrays", () => {
@@ -440,6 +511,24 @@ describe("floor plan helpers", () => {
     expect(summary.invalidAssignments).toBe(1);
     expect(summary.unassignedReservations).toBe(1);
     expect(summary.assignedCovers).toBe(3);
+  });
+
+  it("flags overlapping reservations assigned to the same table", () => {
+    const summary = getFloorPlanHealthSummary({
+      tables: [
+        { id: "t1", tableNumber: "T1", capacity: 4, isActive: true, kind: "table" },
+        { id: "t2", tableNumber: "T2", capacity: 4, isActive: true, kind: "table" },
+      ],
+      reservations: [
+        { id: "r1", partySize: 2, assignedTableId: "t1", date: "2026-03-30", time: "19:00" },
+        { id: "r2", partySize: 2, assignedTableId: "t1", date: "2026-03-30", time: "20:00" },
+        { id: "r3", partySize: 4, assignedTableId: "t2", date: "2026-03-30", time: "21:30" },
+      ],
+    });
+
+    expect(summary.status).toBe("critical");
+    expect(summary.overlappingAssignments).toBe(1);
+    expect(summary.detail).toBe("1 collision horaire sur une table.");
   });
 
   it("marks the floor plan service ready when all reservations fit active tables", () => {

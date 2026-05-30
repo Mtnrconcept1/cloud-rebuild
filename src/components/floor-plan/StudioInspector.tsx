@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { getFloorPlanItemTypeLabel, getMinimumTableSize } from "@/lib/floorPlan";
+import { getFloorPlanItemResizeBehavior, getFloorPlanItemTypeLabel, getMinimumTableSize } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable } from "./studioShared";
@@ -61,6 +61,10 @@ export default function StudioInspector({
 }: StudioInspectorProps) {
   const furnitureMinimum = selectedTable && !selectedTableIsReservable
     ? getMinimumTableSize(selectedTable.capacity, selectedTable.layout.shape, selectedTable.layout.kind)
+    : null;
+
+  const resizeBehavior = selectedTable
+    ? getFloorPlanItemResizeBehavior(selectedTable.layout.kind)
     : null;
 
   return (
@@ -187,20 +191,36 @@ export default function StudioInspector({
                     <Label>Largeur</Label>
                     <Input
                       type="number"
-                      min={furnitureMinimum?.w || 1}
+                      min={1}
                       step={1}
                       value={Math.round(selectedTable.layout.w)}
-                      onChange={(event) => onUpdateFurnitureWidth(clampDimension(Number(event.target.value), selectedTable.layout.w))}
+                      onChange={(event) => {
+                        const nextW = clampDimension(Number(event.target.value), selectedTable.layout.w);
+                        if (resizeBehavior?.ratioLocked && selectedTable.layout.w > 0) {
+                          const ratio = selectedTable.layout.h / selectedTable.layout.w;
+                          onUpdateFurnitureSize(nextW, Math.max(1, Math.round(nextW * ratio)));
+                        } else {
+                          onUpdateFurnitureWidth(nextW);
+                        }
+                      }}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Profondeur</Label>
                     <Input
                       type="number"
-                      min={furnitureMinimum?.h || 1}
+                      min={1}
                       step={1}
                       value={Math.round(selectedTable.layout.h)}
-                      onChange={(event) => onUpdateFurnitureHeight(clampDimension(Number(event.target.value), selectedTable.layout.h))}
+                      onChange={(event) => {
+                        const nextH = clampDimension(Number(event.target.value), selectedTable.layout.h);
+                        if (resizeBehavior?.ratioLocked && selectedTable.layout.h > 0) {
+                          const ratio = selectedTable.layout.w / selectedTable.layout.h;
+                          onUpdateFurnitureSize(Math.max(1, Math.round(nextH * ratio)), nextH);
+                        } else {
+                          onUpdateFurnitureHeight(nextH);
+                        }
+                      }}
                     />
                   </div>
                 </div>
@@ -239,7 +259,9 @@ export default function StudioInspector({
                   </div>
                 ) : null}
                 <p className="text-sm text-slate-500">
-                  Minimum {furnitureMinimum?.w || 1} x {furnitureMinimum?.h || 1} px. Les petits objets restent manipulables directement sur le plan.
+                  {resizeBehavior?.ratioLocked
+                    ? "Proportions verrouillées — le ratio est maintenu automatiquement."
+                    : "Redimensionnement libre. Les petits objets restent manipulables directement sur le plan."}
                 </p>
               </div>
             )}

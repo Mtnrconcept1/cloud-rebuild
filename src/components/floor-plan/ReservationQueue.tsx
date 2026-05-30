@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 import {
   type ReservationDropState,
+  type ReservationTableRecommendation,
   type ServiceDraftTable,
   type ServiceReservation,
   getReservationCustomerLabel,
@@ -31,12 +32,14 @@ type ReservationQueueProps = {
   assignedReservations: ServiceReservation[];
   draftAssignments: Record<string, string | null>;
   tableMap: Map<string, ServiceDraftTable>;
+  recommendedTablesByReservationId?: Map<string, ReservationTableRecommendation>;
   onReservationQueryChange: (value: string) => void;
   onReservationPress: (reservationId: string) => void;
   onReservationDragStart: (event: DragEvent<HTMLDivElement>, reservationId: string) => void;
   onReservationDragEnd: () => void;
   onReservationHandlePointerDown: (event: PointerEvent<HTMLButtonElement>, reservationId: string) => void;
   onReleaseReservation: (reservationId: string) => void;
+  onAssignReservationToTable?: (reservationId: string, tableId: string) => void;
   getReservationDropState: (reservationId: string, tableId: string) => ReservationDropState;
 };
 
@@ -49,24 +52,28 @@ function ReservationQueueItem({
   isSelected,
   isDragging,
   assignedTable,
+  recommendedTable,
   selectedTable,
   onPress,
   onDragStart,
   onDragEnd,
   onHandlePointerDown,
   onRelease,
+  onAssignRecommendedTable,
   getReservationDropState,
 }: {
   reservation: ServiceReservation;
   isSelected: boolean;
   isDragging: boolean;
   assignedTable: ServiceDraftTable | null;
+  recommendedTable: ReservationTableRecommendation | null;
   selectedTable: ServiceDraftTable | null;
   onPress: () => void;
   onDragStart: (event: DragEvent<HTMLDivElement>) => void;
   onDragEnd: () => void;
   onHandlePointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
   onRelease: () => void;
+  onAssignRecommendedTable: (() => void) | null;
   getReservationDropState: (reservationId: string, tableId: string) => ReservationDropState;
 }) {
   const serviceLabel = getServicePeriodLabel(getServicePeriodFromMetadata(reservation.metadata, reservation.time));
@@ -154,6 +161,38 @@ function ReservationQueueItem({
               </Badge>
             ) : null}
           </div>
+
+          {!assignedTable && recommendedTable && onAssignRecommendedTable ? (
+            <div className={cn(
+              "flex flex-wrap items-center gap-2 rounded-2xl border px-3 py-2",
+              isSelected ? "border-white/15 bg-white/10" : "border-emerald-200 bg-emerald-50",
+            )}>
+              <div className="min-w-0 flex-1">
+                <p className={cn("text-xs font-semibold", isSelected ? "text-emerald-50" : "text-emerald-900")}>
+                  Table recommandee
+                </p>
+                <p className={cn("mt-0.5 text-sm font-bold", isSelected ? "text-white" : "text-slate-950")}>
+                  {recommendedTable.table.table_number}
+                  <span className={cn("ml-2 text-xs font-semibold", isSelected ? "text-emerald-50" : "text-emerald-700")}>
+                    Score {recommendedTable.score}
+                  </span>
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant={isSelected ? "secondary" : "outline"}
+                className={cn("rounded-2xl", isSelected && "bg-white text-slate-900 hover:bg-white/90")}
+                aria-label={`Affecter ${getReservationCustomerLabel(reservation)} a ${recommendedTable.table.table_number}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onAssignRecommendedTable();
+                }}
+              >
+                Affecter
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-2">
@@ -201,12 +240,14 @@ export default function ReservationQueue({
   assignedReservations,
   draftAssignments,
   tableMap,
+  recommendedTablesByReservationId = new Map(),
   onReservationQueryChange,
   onReservationPress,
   onReservationDragStart,
   onReservationDragEnd,
   onReservationHandlePointerDown,
   onReleaseReservation,
+  onAssignReservationToTable,
   getReservationDropState,
 }: ReservationQueueProps) {
   const totalReservations = unassignedReservations.length + assignedReservations.length;
@@ -386,12 +427,16 @@ export default function ReservationQueue({
                       isSelected={reservation.id === selectedReservationId}
                       isDragging={draggedReservationId === reservation.id}
                       assignedTable={null}
+                      recommendedTable={recommendedTablesByReservationId.get(reservation.id) || null}
                       selectedTable={selectedTable}
                       onPress={() => onReservationPress(reservation.id)}
                       onDragStart={(event) => onReservationDragStart(event, reservation.id)}
                       onDragEnd={onReservationDragEnd}
                       onHandlePointerDown={(event) => onReservationHandlePointerDown(event, reservation.id)}
                       onRelease={() => onReleaseReservation(reservation.id)}
+                      onAssignRecommendedTable={recommendedTablesByReservationId.has(reservation.id) && onAssignReservationToTable
+                        ? () => onAssignReservationToTable(reservation.id, recommendedTablesByReservationId.get(reservation.id)!.table.id)
+                        : null}
                       getReservationDropState={getReservationDropState}
                     />
                   ))}
@@ -423,12 +468,14 @@ export default function ReservationQueue({
                         isSelected={reservation.id === selectedReservationId}
                         isDragging={draggedReservationId === reservation.id}
                         assignedTable={assignedTable}
+                        recommendedTable={null}
                         selectedTable={selectedTable}
                         onPress={() => onReservationPress(reservation.id)}
                         onDragStart={(event) => onReservationDragStart(event, reservation.id)}
                         onDragEnd={onReservationDragEnd}
                         onHandlePointerDown={(event) => onReservationHandlePointerDown(event, reservation.id)}
                         onRelease={() => onReleaseReservation(reservation.id)}
+                        onAssignRecommendedTable={null}
                         getReservationDropState={getReservationDropState}
                       />
                     );

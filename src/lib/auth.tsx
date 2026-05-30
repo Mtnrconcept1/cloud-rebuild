@@ -132,18 +132,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    getSupabase().auth.getSession().then(({ data: { session } }) => {
-      if (cancelled) return;
-      setSession(session);
-      setUser(session?.user ?? null);
-      setMonitoringUser(session?.user ?? null);
-      if (!session?.user) {
+    getSupabase().auth.getSession()
+      .then(({ data: { session } }) => {
+        if (cancelled) return;
+        setSession(session);
+        setUser(session?.user ?? null);
+        setMonitoringUser(session?.user ?? null);
+        if (!session?.user) {
+          setRoles([]);
+          setActiveRole(null);
+          setLoading(false);
+        }
+        initialised = true;
+      })
+      .catch(async (error) => {
+        if (cancelled) return;
+        console.warn("[auth] initial session refresh failed; clearing local auth state", error);
+        await getSupabase().auth.signOut({ scope: "local" }).catch(() => undefined);
+        if (cancelled) return;
+        setSession(null);
+        setUser(null);
+        setMonitoringUser(null);
         setRoles([]);
         setActiveRole(null);
+        localStorage.removeItem(ACTIVE_ROLE_KEY);
         setLoading(false);
-      }
-      initialised = true;
-    });
+        initialised = true;
+      });
 
     return () => {
       cancelled = true;

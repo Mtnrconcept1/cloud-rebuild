@@ -1,4 +1,4 @@
-import { isReservableFloorPlanItem, type FloorPlanItemKind } from "@/lib/floorPlan";
+import { isReservableFloorPlanItem, reservationsOverlap, type FloorPlanItemKind } from "@/lib/floorPlan";
 
 export type FloorPlanHealthTable = {
   id: string;
@@ -12,6 +12,8 @@ export type FloorPlanHealthReservation = {
   id: string;
   partySize: number;
   assignedTableId: string | null | undefined;
+  date?: string | null;
+  time?: string | null;
 };
 
 export type FloorPlanHealthSummary = {
@@ -19,12 +21,30 @@ export type FloorPlanHealthSummary = {
   unassignedReservations: number;
   invalidAssignments: number;
   overCapacityAssignments: number;
+  overlappingAssignments: number;
   activeReservableTables: number;
   totalReservableCapacity: number;
   assignedCovers: number;
   headline: string;
   detail: string;
 };
+
+function formatProblemCount(count: number, singular: string, plural: string = `${singular}s`) {
+  if (count <= 0) return null;
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function formatCriticalHealthDetail(input: {
+  invalidAssignments: number;
+  overCapacityAssignments: number;
+  overlappingAssignments: number;
+}) {
+  return [
+    formatProblemCount(input.invalidAssignments, "affectation invalide"),
+    formatProblemCount(input.overCapacityAssignments, "table en sur-capacite", "tables en sur-capacite"),
+    formatProblemCount(input.overlappingAssignments, "collision horaire sur une table", "collisions horaires sur une table"),
+  ].filter(Boolean).join(", ");
+}
 
 export function getFloorPlanHealthSummary(input: {
   tables: readonly FloorPlanHealthTable[];
@@ -40,7 +60,9 @@ export function getFloorPlanHealthSummary(input: {
   let unassignedReservations = 0;
   let invalidAssignments = 0;
   let overCapacityAssignments = 0;
+  let overlappingAssignments = 0;
   let assignedCovers = 0;
+  const reservationsByAssignedTable = new Map<string, FloorPlanHealthReservation[]>();
 
   for (const reservation of input.reservations) {
     const partySize = Math.max(0, Math.round(reservation.partySize || 0));
@@ -61,6 +83,39 @@ export function getFloorPlanHealthSummary(input: {
     if (partySize > Math.max(0, Math.round(table.capacity || 0))) {
       overCapacityAssignments += 1;
     }
+
+    const tableReservations = reservationsByAssignedTable.get(assignedTableId) || [];
+    tableReservations.push(reservation);
+    reservationsByAssignedTable.set(assignedTableId, tableReservations);
+  }
+
+  for (const tableReservations of reservationsByAssignedTable.values()) {
+    for (let leftIndex = 0; leftIndex < tableReservations.length; leftIndex += 1) {
+      const left = tableReservations[leftIndex];
+      if (!left.date) continue;
+
+      for (let rightIndex = leftIndex + 1; rightIndex < tableReservations.length; rightIndex += 1) {
+        const right = tableReservations[rightIndex];
+        if (!right.date) continue;
+
+        if (reservationsOverlap(
+          {
+            id: left.id,
+            date: left.date,
+            time: left.time || null,
+            partySize: Math.max(0, Math.round(left.partySize || 0)),
+          },
+          {
+            id: right.id,
+            date: right.date,
+            time: right.time || null,
+            partySize: Math.max(0, Math.round(right.partySize || 0)),
+          },
+        )) {
+          overlappingAssignments += 1;
+        }
+      }
+    }
   }
 
   if (activeReservableTables.length === 0 && input.reservations.length > 0) {
@@ -69,6 +124,7 @@ export function getFloorPlanHealthSummary(input: {
       unassignedReservations,
       invalidAssignments,
       overCapacityAssignments,
+      overlappingAssignments,
       activeReservableTables: 0,
       totalReservableCapacity: 0,
       assignedCovers,
@@ -77,17 +133,22 @@ export function getFloorPlanHealthSummary(input: {
     };
   }
 
-  if (invalidAssignments > 0 || overCapacityAssignments > 0) {
+  if (invalidAssignments > 0 || overCapacityAssignments > 0 || overlappingAssignments > 0) {
     return {
       status: "critical",
       unassignedReservations,
       invalidAssignments,
       overCapacityAssignments,
+      overlappingAssignments,
       activeReservableTables: activeReservableTables.length,
       totalReservableCapacity,
       assignedCovers,
       headline: "Conflits a corriger",
-      detail: `${invalidAssignments + overCapacityAssignments} affectation(s) posent probleme.`,
+      detail: `${formatCriticalHealthDetail({
+        invalidAssignments,
+        overCapacityAssignments,
+        overlappingAssignments,
+      })}.`,
     };
   }
 
@@ -97,6 +158,7 @@ export function getFloorPlanHealthSummary(input: {
       unassignedReservations,
       invalidAssignments,
       overCapacityAssignments,
+      overlappingAssignments,
       activeReservableTables: activeReservableTables.length,
       totalReservableCapacity,
       assignedCovers,
@@ -110,6 +172,7 @@ export function getFloorPlanHealthSummary(input: {
     unassignedReservations,
     invalidAssignments,
     overCapacityAssignments,
+    overlappingAssignments,
     activeReservableTables: activeReservableTables.length,
     totalReservableCapacity,
     assignedCovers,

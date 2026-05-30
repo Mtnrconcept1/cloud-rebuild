@@ -1,11 +1,11 @@
-import type { PointerEvent, RefObject, WheelEvent } from "react";
+import type { KeyboardEvent, PointerEvent, RefObject, WheelEvent } from "react";
 import { Grip, LayoutPanelTop, Minus, Move, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 
 import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { isReservableFloorPlanItem } from "@/lib/floorPlan";
+import { getFloorPlanInteractiveFrame, getFloorPlanItemResizeBehavior, isReservableFloorPlanItem } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable, StudioRenderedTableFrame } from "./studioShared";
@@ -46,6 +46,8 @@ type StudioCanvasProps = {
   ) => void;
   onStartRotatingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
   onUpdateCanvasZoom: (nextZoom: number) => void;
+  onNudgeTable?: (tableId: string, deltaX: number, deltaY: number) => void;
+  onDeleteTable?: (tableId: string) => void;
   getRenderedFrame: (table: StudioDraftTable) => StudioRenderedTableFrame;
 };
 
@@ -66,6 +68,8 @@ export default function StudioCanvas({
   onStartResizingTable,
   onStartRotatingTable,
   onUpdateCanvasZoom,
+  onNudgeTable,
+  onDeleteTable,
   getRenderedFrame,
 }: StudioCanvasProps) {
   const recenterCanvas = () => {
@@ -89,6 +93,41 @@ export default function StudioCanvas({
   ) => {
     if ((event.target as HTMLElement).closest("button")) return;
     onStartDraggingTable(event, table.id);
+  };
+
+  const handleObjectKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+    table: StudioDraftTable,
+  ) => {
+    if ((event.target as HTMLElement).closest("button,input,textarea,select")) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onTablePress(table.id);
+      return;
+    }
+
+    if (table.id !== selectedTableId) return;
+
+    const step = event.shiftKey ? 10 : 1;
+    const deltas: Partial<Record<string, [number, number]>> = {
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+      ArrowDown: [0, step],
+    };
+    const delta = deltas[event.key];
+
+    if (delta) {
+      event.preventDefault();
+      onNudgeTable?.(table.id, delta[0], delta[1]);
+      return;
+    }
+
+    if (event.key === "Delete" || event.key === "Backspace") {
+      event.preventDefault();
+      onDeleteTable?.(table.id);
+    }
   };
 
   return (
@@ -218,6 +257,7 @@ export default function StudioCanvas({
 
                 {visibleTables.map((table) => {
                   const renderedFrame = getRenderedFrame(table);
+                  const interactiveFrame = getFloorPlanInteractiveFrame(renderedFrame);
                   const isSelected = table.id === selectedTableId;
                   const isReservable = isReservableFloorPlanItem(table.layout.kind);
 
@@ -226,16 +266,21 @@ export default function StudioCanvas({
                       key={table.id}
                       className="absolute select-none touch-none focus:outline-none"
                       style={{
-                        left: renderedFrame.x,
-                        top: renderedFrame.y,
-                        width: renderedFrame.w,
-                        height: renderedFrame.h,
+                        left: interactiveFrame.x,
+                        top: interactiveFrame.y,
+                        width: interactiveFrame.w,
+                        height: interactiveFrame.h,
                         zIndex: isSelected ? 40 : 16,
                         cursor: draggingTableId === table.id ? "grabbing" : "grab",
                         willChange: draggingTableId === table.id ? "left, top" : undefined,
                       }}
                       onClick={() => onTablePress(table.id)}
                       onPointerDown={(event) => startObjectSurfaceDrag(event, table)}
+                      onKeyDown={(event) => handleObjectKeyDown(event, table)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Selectionner ${table.table_number}`}
+                      aria-pressed={isSelected}
                     >
                       <div className={cn(
                         "pointer-events-none absolute inset-1 rounded-[30px] blur-[18px]",
@@ -243,8 +288,12 @@ export default function StudioCanvas({
                       )} />
 
                       <div
-                        className="relative h-full w-full"
+                        className="absolute"
                         style={{
+                          left: interactiveFrame.visualOffsetX,
+                          top: interactiveFrame.visualOffsetY,
+                          width: renderedFrame.w,
+                          height: renderedFrame.h,
                           transform: `rotate(${table.layout.rotation}deg)`,
                           transformOrigin: "center center",
                         }}
@@ -295,21 +344,26 @@ export default function StudioCanvas({
                         ) : null}
 
                         {isSelected
-                          ? STUDIO_RESIZE_HANDLES.map((handle) => (
-                            <button
-                              key={handle.key}
-                              type="button"
-                              aria-label={`Redimensionner ${table.table_number}`}
-                              className={cn(
-                                "absolute h-7 w-7 touch-none rounded-full border-2 border-white bg-slate-950/92 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)] transition-transform hover:scale-110",
-                                handle.className,
-                              )}
-                              style={{ cursor: handle.cursor }}
-                              onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
-                            >
-                              <span className="absolute inset-[8px] rounded-full bg-orange-300/95" />
-                            </button>
-                          ))
+                          ? (() => {
+                            const resizeBehavior = getFloorPlanItemResizeBehavior(table.layout.kind);
+                            return STUDIO_RESIZE_HANDLES
+                              .filter((handle) => resizeBehavior.handles.includes(handle.key))
+                              .map((handle) => (
+                              <button
+                                key={handle.key}
+                                type="button"
+                                aria-label={`Redimensionner ${table.table_number}`}
+                                className={cn(
+                                  "absolute h-7 w-7 touch-none rounded-full border-2 border-white bg-slate-950/92 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)] transition-transform hover:scale-110",
+                                  handle.className,
+                                )}
+                                style={{ cursor: handle.cursor }}
+                                onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
+                              >
+                                <span className="absolute inset-[8px] rounded-full bg-orange-300/95" />
+                              </button>
+                            ));
+                          })()
                           : null}
                       </div>
 

@@ -126,4 +126,32 @@ describe("ReservationQueue", () => {
 
     expect(onReservationPress).toHaveBeenCalledWith("middle-assigned");
   });
+
+  it("assigns an unassigned reservation to its recommended table from the queue", () => {
+    const onAssignReservationToTable = vi.fn();
+    renderReservationQueue({
+      unassignedReservations: [
+        reservation({
+          id: "r1",
+          party_size: 4,
+          customer: { full_name: "Martin", phone: null },
+        }),
+      ],
+      recommendedTablesByReservationId: new Map([
+        ["r1", {
+          table: table("t4", "T4"),
+          score: 94,
+          reasons: ["Capacite parfaite", "Rotation confortable"],
+        }],
+      ]),
+      onAssignReservationToTable,
+    });
+
+    expect(screen.getByText("T4")).toBeInTheDocument();
+    expect(screen.getByText("Score 94")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Affecter Martin a T4" }));
+
+    expect(onAssignReservationToTable).toHaveBeenCalledWith("r1", "t4");
+  });
 });

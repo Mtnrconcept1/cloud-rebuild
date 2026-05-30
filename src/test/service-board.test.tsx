@@ -83,6 +83,36 @@ describe("ServiceBoard", () => {
     expect(onStartDraggingTable).toHaveBeenCalledWith(expect.anything(), "plant");
   });
 
+  it("keeps tiny service furniture easy to target without enlarging its visual", () => {
+    const { container } = renderServiceBoard({
+      selectedTableId: "plant",
+      visibleTables: [
+        {
+          id: "plant",
+          table_number: "Plante",
+          capacity: 0,
+          is_active: true,
+          sector: "Salle",
+          layout: {
+            x: 80,
+            y: 90,
+            w: 8,
+            h: 6,
+            rotation: 0,
+            shape: "round",
+            kind: "plant",
+            seatLabels: [],
+          },
+        },
+      ],
+      visibleTablesCount: 1,
+      getRenderedFrame: () => ({ x: 80, y: 90, w: 8, h: 6 }),
+    });
+
+    expect(container.querySelector('[style*="left: 66px"][style*="width: 36px"][style*="height: 36px"]')).not.toBeNull();
+    expect(container.querySelector('[style*="left: 14px"][style*="width: 8px"][style*="height: 6px"]')).not.toBeNull();
+  });
+
   it("renders late reservation state directly on the table", () => {
     const now = new Date("2026-05-27T19:47:00");
     vi.useFakeTimers();
@@ -138,6 +168,77 @@ describe("ServiceBoard", () => {
     expect(getByText("17 min")).toBeInTheDocument();
 
     vi.useRealTimers();
+  });
+
+  it("renders overlapping reservations as an urgent table conflict", () => {
+    const { getByText } = renderServiceBoard({
+      visibleTables: [
+        {
+          id: "t1",
+          table_number: "T1",
+          capacity: 4,
+          is_active: true,
+          sector: "Salle",
+          layout: {
+            x: 80,
+            y: 90,
+            w: 190,
+            h: 170,
+            rotation: 0,
+            shape: "rect",
+            kind: "table",
+            seatLabels: [1, 1, 1, 1],
+          },
+        },
+      ],
+      visibleAssignmentsByTable: new Map([[
+        "t1",
+        [
+          {
+            id: "r1",
+            user_id: "u1",
+            restaurant_id: "restaurant",
+            table_id: "t1",
+            date: "2026-05-27",
+            time: "19:00",
+            party_size: 2,
+            status: "confirmed",
+            notes: null,
+            special_requests: null,
+            feature: null,
+            metadata: {},
+            created_at: "2026-05-27T10:00:00Z",
+            updated_at: "2026-05-27T10:00:00Z",
+            confirmed_at: null,
+            customer: { full_name: "Martin", phone: null },
+          } as never,
+          {
+            id: "r2",
+            user_id: "u2",
+            restaurant_id: "restaurant",
+            table_id: "t1",
+            date: "2026-05-27",
+            time: "20:00",
+            party_size: 2,
+            status: "confirmed",
+            notes: null,
+            special_requests: null,
+            feature: null,
+            metadata: {},
+            created_at: "2026-05-27T10:00:00Z",
+            updated_at: "2026-05-27T10:00:00Z",
+            confirmed_at: null,
+            customer: { full_name: "Durand", phone: null },
+          } as never,
+        ],
+      ]]),
+      visibleTablesCount: 1,
+      availableTablesCount: 0,
+      getRenderedFrame: () => ({ x: 80, y: 90, w: 190, h: 170 }),
+    });
+
+    expect(getByText("Conflit horaire")).toBeInTheDocument();
+    expect(getByText("2 reservations")).toBeInTheDocument();
   });
 
   it("shows quick service actions on the selected assigned table", () => {

@@ -64,6 +64,61 @@ export type FloorPlanTableLayout = {
 
 export type FloorPlanResizeHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 export type FloorPlanRenderedFrame = { x: number; y: number; w: number; h: number };
+export type FloorPlanInteractiveFrame = FloorPlanRenderedFrame & {
+  visualOffsetX: number;
+  visualOffsetY: number;
+};
+
+export type FloorPlanResizeBehavior = {
+  ratioLocked: boolean;
+  handles: FloorPlanResizeHandle[];
+};
+
+export function getFloorPlanItemResizeBehavior(kind: FloorPlanItemKind): FloorPlanResizeBehavior {
+  if (kind === "table") {
+    return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+  }
+
+  switch (kind) {
+    case "chair":
+    case "stool":
+    case "plant":
+      return { ratioLocked: true, handles: ["nw", "ne", "se", "sw"] };
+    case "bar":
+      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+    case "banquette":
+      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+    case "divider":
+      return { ratioLocked: false, handles: ["e", "w", "n", "s", "nw", "ne", "se", "sw"] };
+    case "booth":
+    case "host-stand":
+    case "service-station":
+    case "corner-bench":
+      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+    default:
+      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+  }
+}
+
+export function getFloorPlanInteractiveFrame(
+  frame: FloorPlanRenderedFrame,
+  minimumSize = 36,
+): FloorPlanInteractiveFrame {
+  const safeMinimum = Math.max(1, Math.round(minimumSize));
+  const width = Math.max(frame.w, safeMinimum);
+  const height = Math.max(frame.h, safeMinimum);
+  const visualOffsetX = Math.round((width - frame.w) / 2);
+  const visualOffsetY = Math.round((height - frame.h) / 2);
+
+  return {
+    x: frame.x - visualOffsetX,
+    y: frame.y - visualOffsetY,
+    w: width,
+    h: height,
+    visualOffsetX,
+    visualOffsetY,
+  };
+}
 
 export type FloorPlanResolvedDimensions = {
   tableWidth: number;
@@ -196,16 +251,16 @@ const MIN_FURNITURE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: numbe
   "service-station": { w: 140, h: 92, shape: "rect" },
 };
 const MIN_FURNITURE_RESIZE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: number; h: number }> = {
-  chair: { w: 28, h: 28 },
-  stool: { w: 24, h: 24 },
-  bar: { w: 56, h: 18 },
-  "corner-bench": { w: 56, h: 44 },
-  banquette: { w: 48, h: 18 },
-  booth: { w: 52, h: 32 },
-  "host-stand": { w: 32, h: 28 },
-  divider: { w: 24, h: 8 },
-  plant: { w: 28, h: 28 },
-  "service-station": { w: 36, h: 24 },
+  chair: { w: 1, h: 1 },
+  stool: { w: 1, h: 1 },
+  bar: { w: 1, h: 1 },
+  "corner-bench": { w: 1, h: 1 },
+  banquette: { w: 1, h: 1 },
+  booth: { w: 1, h: 1 },
+  "host-stand": { w: 1, h: 1 },
+  divider: { w: 1, h: 1 },
+  plant: { w: 1, h: 1 },
+  "service-station": { w: 1, h: 1 },
 };
 
 const FOOTPRINT_BASE_PADDING = 14;
@@ -1361,6 +1416,11 @@ export type FloorPlanViewportItem = {
   layout: FloorPlanTableLayout;
 };
 
+export type FloorPlanViewportHitTarget<TItem extends FloorPlanViewportItem> = {
+  item: TItem;
+  frame: FloorPlanRenderedFrame;
+};
+
 export type FloorPlanViewportModel<TItem extends FloorPlanViewportItem> = {
   visibleItems: TItem[];
   visibleReservableItems: TItem[];
@@ -1368,9 +1428,28 @@ export type FloorPlanViewportModel<TItem extends FloorPlanViewportItem> = {
   visibleItemIdSet: Set<string>;
   visibleReservableIdSet: Set<string>;
   framesById: Map<string, FloorPlanRenderedFrame>;
+  reservableHitTargets: {
+    visual: Array<FloorPlanViewportHitTarget<TItem>>;
+    interactive: Array<FloorPlanViewportHitTarget<TItem>>;
+  };
   getRenderedFrame: (item: TItem) => FloorPlanRenderedFrame;
   getReservableItemAtPoint: (x: number, y: number) => TItem | null;
 };
+
+function getHitTargetAtPoint<TItem extends FloorPlanViewportItem>(
+  targets: Array<FloorPlanViewportHitTarget<TItem>>,
+  x: number,
+  y: number,
+) {
+  for (const target of targets) {
+    const { frame } = target;
+    const withinX = x >= frame.x && x <= frame.x + frame.w;
+    const withinY = y >= frame.y && y <= frame.y + frame.h;
+    if (withinX && withinY) return target.item;
+  }
+
+  return null;
+}
 
 export function buildFloorPlanViewportModel<TItem extends FloorPlanViewportItem>(
   items: readonly TItem[],
@@ -1396,6 +1475,15 @@ export function buildFloorPlanViewportModel<TItem extends FloorPlanViewportItem>
     framesById.get(item.id)
       || getRenderedFloorPlanFrame(item.layout, options.zoom, canvasWidth, canvasHeight)
   );
+  const topmostReservableItems = visibleReservableItems.slice().reverse();
+  const visualHitTargets = topmostReservableItems.map((item) => ({
+    item,
+    frame: getRenderedFrame(item),
+  }));
+  const interactiveHitTargets = topmostReservableItems.map((item) => ({
+    item,
+    frame: getFloorPlanInteractiveFrame(getRenderedFrame(item)),
+  }));
 
   return {
     visibleItems,
@@ -1404,17 +1492,14 @@ export function buildFloorPlanViewportModel<TItem extends FloorPlanViewportItem>
     visibleItemIdSet: new Set(visibleItems.map((item) => item.id)),
     visibleReservableIdSet: new Set(visibleReservableItems.map((item) => item.id)),
     framesById,
+    reservableHitTargets: {
+      visual: visualHitTargets,
+      interactive: interactiveHitTargets,
+    },
     getRenderedFrame,
     getReservableItemAtPoint: (x: number, y: number) => {
-      for (let index = visibleReservableItems.length - 1; index >= 0; index -= 1) {
-        const item = visibleReservableItems[index];
-        const frame = getRenderedFrame(item);
-        const withinX = x >= frame.x && x <= frame.x + frame.w;
-        const withinY = y >= frame.y && y <= frame.y + frame.h;
-        if (withinX && withinY) return item;
-      }
-
-      return null;
+      return getHitTargetAtPoint(visualHitTargets, x, y)
+        || getHitTargetAtPoint(interactiveHitTargets, x, y);
     },
   };
 }

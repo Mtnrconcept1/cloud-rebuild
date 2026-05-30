@@ -4,6 +4,15 @@ export type FloorPlanFrameScheduler<TPayload> = {
   cancel: () => void;
 };
 
+export type FloorPlanPointerMovePayload = {
+  clientX: number;
+  clientY: number;
+};
+
+export type FloorPlanPointerMoveScheduler = FloorPlanFrameScheduler<FloorPlanPointerMovePayload> & {
+  scheduleFromEvent: (event: PointerEvent, pointerId: number) => boolean;
+};
+
 export function createFloorPlanFrameScheduler<TPayload>(
   run: (payload: TPayload) => void,
 ): FloorPlanFrameScheduler<TPayload> {
@@ -38,6 +47,30 @@ export function createFloorPlanFrameScheduler<TPayload>(
         window.cancelAnimationFrame(frameId);
         frameId = null;
       }
+    },
+  };
+}
+
+export function createFloorPlanPointerMoveScheduler(
+  run: (payload: FloorPlanPointerMovePayload) => void,
+): FloorPlanPointerMoveScheduler {
+  const scheduler = createFloorPlanFrameScheduler(run);
+
+  return {
+    ...scheduler,
+    scheduleFromEvent: (event, pointerId) => {
+      if (event.pointerId !== pointerId) return false;
+
+      scheduler.schedule({
+        clientX: event.clientX,
+        clientY: event.clientY,
+      });
+
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+
+      return true;
     },
   };
 }

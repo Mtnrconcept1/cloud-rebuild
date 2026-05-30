@@ -185,6 +185,7 @@ export default function TableContextDrawer({
   const paymentSummary = selectedReservationPaymentDetails
     ? `${selectedReservationPaymentDetails.isPaid ? "Payé" : "À régler"} · ${formatCurrency(selectedReservationPaymentDetails.totalAmount) || "Montant inconnu"}`
     : "Aucun paiement";
+  const bestCompatibleTable = selectedReservation && compatibleTables.length > 0 ? compatibleTables[0] : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -272,6 +273,40 @@ export default function TableContextDrawer({
                     </div>
                   </div>
                 ) : null}
+              </div>
+            ) : null}
+
+            {selectedReservation && bestCompatibleTable ? (
+              <div className="rounded-[24px] border border-orange-200 bg-[linear-gradient(135deg,rgba(255,247,237,0.96),rgba(255,255,255,0.98))] p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="border border-orange-200 bg-orange-100 text-orange-900">Table recommandee</Badge>
+                      <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
+                        Score {bestCompatibleTable.placement.score}/100
+                      </Badge>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                      <p className="text-lg font-bold text-slate-950">{bestCompatibleTable.table.table_number}</p>
+                      <p className="text-sm text-slate-600">{bestCompatibleTable.table.capacity} couverts</p>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {bestCompatibleTable.placement.reasons.slice(0, 3).map((reason) => (
+                        <span key={reason} className="rounded-full border border-orange-100 bg-white px-2 py-1 text-xs font-medium text-slate-700">
+                          {reason}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    className="h-10 shrink-0 rounded-2xl"
+                    aria-label={`Affecter table recommandee ${bestCompatibleTable.table.table_number}`}
+                    onClick={() => onAssignReservationToTable(selectedReservation.id, bestCompatibleTable.table.id)}
+                  >
+                    Affecter {bestCompatibleTable.table.table_number}
+                  </Button>
+                </div>
               </div>
             ) : null}
 

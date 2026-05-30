@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { isReservableFloorPlanItem, type FloorPlanResizeHandle } from "@/lib/floorPlan";
+import { getFloorPlanInteractiveFrame, isReservableFloorPlanItem, type FloorPlanResizeHandle } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import {
@@ -335,6 +335,7 @@ export default function ServiceBoard({
                     const assignments = visibleAssignmentsByTable.get(table.id) || [];
                     const primaryAssignment = assignments[0] || null;
                     const renderedFrame = getRenderedFrame(table);
+                    const interactiveFrame = getFloorPlanInteractiveFrame(renderedFrame);
                     const density = getTableDensity(renderedFrame);
                     const isReservable = table.capacity > 0;
                     const contentPadding = isReservable
@@ -363,10 +364,10 @@ export default function ServiceBoard({
                         key={table.id}
                         className="absolute select-none focus:outline-none"
                         style={{
-                          left: renderedFrame.x,
-                          top: renderedFrame.y,
-                          width: renderedFrame.w,
-                          height: renderedFrame.h,
+                          left: interactiveFrame.x,
+                          top: interactiveFrame.y,
+                          width: interactiveFrame.w,
+                          height: interactiveFrame.h,
                           zIndex: isSelected ? 40 : assignments.length > 0 ? 24 : 12,
                           cursor: !isReservable ? "grab" : undefined,
                         }}
@@ -381,8 +382,12 @@ export default function ServiceBoard({
                         )} />
 
                         <div
-                          className="relative h-full w-full"
+                          className="absolute"
                           style={{
+                            left: interactiveFrame.visualOffsetX,
+                            top: interactiveFrame.visualOffsetY,
+                            width: renderedFrame.w,
+                            height: renderedFrame.h,
                             transform: `rotate(${table.layout.rotation}deg)`,
                             transformOrigin: "center center",
                           }}
