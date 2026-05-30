@@ -514,19 +514,22 @@ export default function Auth() {
                   />
                 </div>
 
+                {!isLogin ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={signupForm.email}
+                      onChange={(event) => updateSignupField("email", event.target.value)}
+                      placeholder="vous@exemple.com"
+                      required
+                    />
+                  </div>
+                ) : null}
+
                 {showExtendedIdentityFields ? (
                   <>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={signupForm.email}
-                        onChange={(event) => updateSignupField("email", event.target.value)}
-                        placeholder="vous@exemple.com"
-                        required
-                      />
-                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Telephone</Label>
                       <Input
