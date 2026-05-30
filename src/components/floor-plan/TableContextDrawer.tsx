@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 import {
+  type ReservationPlacementScore,
   type ReservationDropState,
   type ServiceDraftTable,
   type ServiceReservation,
@@ -57,7 +58,7 @@ type TableContextDrawerProps = {
   selectedReservationPreorderItems: ReservationPreorderItem[];
   selectedReservationSpecialRequest: string | null;
   selectedPairDropState: ReservationDropState | null;
-  compatibleTables: ServiceDraftTable[];
+  compatibleTables: Array<{ table: ServiceDraftTable; placement: ReservationPlacementScore }>;
   compatibleReservations: ServiceReservation[];
   onOpenChange: (open: boolean) => void;
   onClearSelection: () => void;
@@ -165,7 +166,7 @@ export default function TableContextDrawer({
         ? getReservationCustomerLabel(selectedReservation)
         : "Contexte service";
   const compatibleTablesSummary = getShortListLabel(
-    compatibleTables.map((table) => `${table.table_number} (${table.capacity})`),
+    compatibleTables.map(({ table, placement }) => `${table.table_number} (${placement.score}/100)`),
     "Aucune table",
   );
   const compatibleReservationsSummary = getShortListLabel(
@@ -184,6 +185,7 @@ export default function TableContextDrawer({
   const paymentSummary = selectedReservationPaymentDetails
     ? `${selectedReservationPaymentDetails.isPaid ? "Payé" : "À régler"} · ${formatCurrency(selectedReservationPaymentDetails.totalAmount) || "Montant inconnu"}`
     : "Aucun paiement";
+  const bestCompatibleTable = selectedReservation && compatibleTables.length > 0 ? compatibleTables[0] : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -274,6 +276,40 @@ export default function TableContextDrawer({
               </div>
             ) : null}
 
+            {selectedReservation && bestCompatibleTable ? (
+              <div className="rounded-[24px] border border-orange-200 bg-[linear-gradient(135deg,rgba(255,247,237,0.96),rgba(255,255,255,0.98))] p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="border border-orange-200 bg-orange-100 text-orange-900">Table recommandee</Badge>
+                      <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
+                        Score {bestCompatibleTable.placement.score}/100
+                      </Badge>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                      <p className="text-lg font-bold text-slate-950">{bestCompatibleTable.table.table_number}</p>
+                      <p className="text-sm text-slate-600">{bestCompatibleTable.table.capacity} couverts</p>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {bestCompatibleTable.placement.reasons.slice(0, 3).map((reason) => (
+                        <span key={reason} className="rounded-full border border-orange-100 bg-white px-2 py-1 text-xs font-medium text-slate-700">
+                          {reason}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    className="h-10 shrink-0 rounded-2xl"
+                    aria-label={`Affecter table recommandee ${bestCompatibleTable.table.table_number}`}
+                    onClick={() => onAssignReservationToTable(selectedReservation.id, bestCompatibleTable.table.id)}
+                  >
+                    Affecter {bestCompatibleTable.table.table_number}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
             <Accordion type="multiple" className="grid gap-3">
               {selectedReservation && compatibleTables.length > 0 ? (
                 <CompactSection
@@ -284,16 +320,26 @@ export default function TableContextDrawer({
                   summary={compatibleTablesSummary}
                 >
                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                    {compatibleTables.map((table) => (
+                    {compatibleTables.map(({ table, placement }) => (
                       <Button
                         key={table.id}
                         type="button"
                         variant="outline"
-                        className="h-auto justify-between rounded-2xl border-slate-200 px-4 py-3 text-left"
+                        className="h-auto justify-between gap-3 rounded-2xl border-slate-200 px-4 py-3 text-left"
                         onClick={() => onAssignReservationToTable(selectedReservation.id, table.id)}
                       >
-                        <span className="font-semibold">{table.table_number}</span>
-                        <span className="text-xs text-slate-500">{table.capacity} couv.</span>
+                        <span className="min-w-0">
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span className="truncate font-semibold">{table.table_number}</span>
+                            <Badge variant="outline" className="shrink-0 border-orange-200 bg-orange-50 text-orange-800">
+                              {placement.score}/100
+                            </Badge>
+                          </span>
+                          <span className="mt-1 block truncate text-xs text-slate-500">
+                            {placement.reasons[0] || `${table.capacity} couv.`}
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-xs text-slate-500">{table.capacity} couv.</span>
                       </Button>
                     ))}
                   </div>

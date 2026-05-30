@@ -1,13 +1,15 @@
 import { useAuth } from "@/lib/auth";
+import { canAccessAnyRole, getRoleHomePath } from "@/lib/roleAccess";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { Navigate, useLocation } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: "client" | "restaurateur" | "admin" | "courier";
+  requiredRoles?: Array<"client" | "restaurateur" | "admin" | "courier">;
 }
 
-export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, requiredRole, requiredRoles }: ProtectedRouteProps) {
   const { user, loading, role, roles } = useAuth();
   const location = useLocation();
 
@@ -28,9 +30,9 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     );
   }
 
-  // Allow if: active role matches, OR user has the required role, OR user is admin
-  if (requiredRole && role !== requiredRole && !roles.includes(requiredRole) && role !== "admin" && !roles.includes("admin")) {
-    return <Navigate to="/" replace />;
+  const allowedRoles = requiredRoles || (requiredRole ? [requiredRole] : undefined);
+  if (!canAccessAnyRole({ requiredRoles: allowedRoles, activeRole: role, roles, userEmail: user.email })) {
+    return <Navigate to={getRoleHomePath(role)} replace />;
   }
 
   return <>{children}</>;

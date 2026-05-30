@@ -23,6 +23,16 @@ export default function CartItemList({ items, updateQuantity, removeItem }: Cart
         <div key={`${item.menuItemId}-${index}`} className="flex items-center gap-4 rounded-xl border bg-card p-4">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">{item.name}</p>
+            {item.metadata?.is_meal_subscription ? (
+              <div className="space-y-1 text-xs text-muted-foreground">
+                {item.restaurantName ? <p>{item.restaurantName}</p> : null}
+                <p>
+                  {item.metadata.subscription_day || "Jour planifie"} - livraison {item.metadata.preferred_time || "12:00"}
+                </p>
+              </div>
+            ) : item.restaurantName ? (
+              <p className="text-xs text-muted-foreground">{item.restaurantName}</p>
+            ) : null}
             {item.metadata?.is_chefs_table && (
               <div className="space-y-1 text-xs text-muted-foreground">
                 <p>

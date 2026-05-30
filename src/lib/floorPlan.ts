@@ -64,6 +64,61 @@ export type FloorPlanTableLayout = {
 
 export type FloorPlanResizeHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 export type FloorPlanRenderedFrame = { x: number; y: number; w: number; h: number };
+export type FloorPlanInteractiveFrame = FloorPlanRenderedFrame & {
+  visualOffsetX: number;
+  visualOffsetY: number;
+};
+
+export type FloorPlanResizeBehavior = {
+  ratioLocked: boolean;
+  handles: FloorPlanResizeHandle[];
+};
+
+export function getFloorPlanItemResizeBehavior(kind: FloorPlanItemKind): FloorPlanResizeBehavior {
+  if (kind === "table") {
+    return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+  }
+
+  switch (kind) {
+    case "chair":
+    case "stool":
+    case "plant":
+      return { ratioLocked: true, handles: ["nw", "ne", "se", "sw"] };
+    case "bar":
+      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+    case "banquette":
+      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+    case "divider":
+      return { ratioLocked: false, handles: ["e", "w", "n", "s", "nw", "ne", "se", "sw"] };
+    case "booth":
+    case "host-stand":
+    case "service-station":
+    case "corner-bench":
+      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+    default:
+      return { ratioLocked: false, handles: ["nw", "n", "ne", "e", "se", "s", "sw", "w"] };
+  }
+}
+
+export function getFloorPlanInteractiveFrame(
+  frame: FloorPlanRenderedFrame,
+  minimumSize = 36,
+): FloorPlanInteractiveFrame {
+  const safeMinimum = Math.max(1, Math.round(minimumSize));
+  const width = Math.max(frame.w, safeMinimum);
+  const height = Math.max(frame.h, safeMinimum);
+  const visualOffsetX = Math.round((width - frame.w) / 2);
+  const visualOffsetY = Math.round((height - frame.h) / 2);
+
+  return {
+    x: frame.x - visualOffsetX,
+    y: frame.y - visualOffsetY,
+    w: width,
+    h: height,
+    visualOffsetX,
+    visualOffsetY,
+  };
+}
 
 export type FloorPlanResolvedDimensions = {
   tableWidth: number;
@@ -195,6 +250,19 @@ const MIN_FURNITURE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: numbe
   plant: { w: 84, h: 84, shape: "round" },
   "service-station": { w: 140, h: 92, shape: "rect" },
 };
+const MIN_FURNITURE_RESIZE_SIZE: Record<Exclude<FloorPlanItemKind, "table">, { w: number; h: number }> = {
+  chair: { w: 1, h: 1 },
+  stool: { w: 1, h: 1 },
+  bar: { w: 1, h: 1 },
+  "corner-bench": { w: 1, h: 1 },
+  banquette: { w: 1, h: 1 },
+  booth: { w: 1, h: 1 },
+  "host-stand": { w: 1, h: 1 },
+  divider: { w: 1, h: 1 },
+  plant: { w: 1, h: 1 },
+  "service-station": { w: 1, h: 1 },
+};
+const MIN_RESIZE_SIZE = { w: 1, h: 1 };
 
 const FOOTPRINT_BASE_PADDING = 14;
 const RECT_SIDE_CORNER_GAP = 18;
@@ -270,11 +338,12 @@ function resolveFurnitureFootprint(
   footprintWidth?: number | null,
   footprintHeight?: number | null,
 ) {
-  const minimum = MIN_FURNITURE_SIZE[kind];
+  const defaultSize = MIN_FURNITURE_SIZE[kind];
+  const minimum = MIN_FURNITURE_RESIZE_SIZE[kind];
 
   return {
-    w: clampDimension(parseNumber(footprintWidth) ?? minimum.w, minimum.w),
-    h: clampDimension(parseNumber(footprintHeight) ?? minimum.h, minimum.h),
+    w: clampDimension(parseNumber(footprintWidth) ?? defaultSize.w, minimum.w),
+    h: clampDimension(parseNumber(footprintHeight) ?? defaultSize.h, minimum.h),
   };
 }
 
@@ -1093,7 +1162,7 @@ export function getMinimumTableSize(
   kind: FloorPlanItemKind = "table",
 ) {
   if (!isReservableFloorPlanItem(kind)) {
-    const furnitureSize = MIN_FURNITURE_SIZE[kind];
+    const furnitureSize = MIN_FURNITURE_RESIZE_SIZE[kind];
     return { w: furnitureSize.w, h: furnitureSize.h };
   }
 
@@ -1107,6 +1176,14 @@ export function getMinimumTableSize(
     w: resolved.footprintWidth,
     h: resolved.footprintHeight,
   };
+}
+
+export function getMinimumFloorPlanResizeSize(kind: FloorPlanItemKind = "table") {
+  if (!isReservableFloorPlanItem(kind)) {
+    return MIN_FURNITURE_RESIZE_SIZE[kind];
+  }
+
+  return MIN_RESIZE_SIZE;
 }
 
 export function getFloorPlanContentPadding(
@@ -1161,7 +1238,7 @@ export function resizeFloorPlanLayoutToFootprint(
   const nextShape = !isReservableFloorPlanItem(kind)
     ? MIN_FURNITURE_SIZE[kind].shape
     : shape;
-  const minimum = getMinimumTableSize(capacity, nextShape, kind);
+  const minimum = getMinimumFloorPlanResizeSize(kind);
   const nextWidth = clampDimension(footprintWidth, minimum.w);
   const nextHeight = clampDimension(footprintHeight, minimum.h);
 
@@ -1226,7 +1303,7 @@ export function ensureFloorPlanLayoutFitsCapacity(
   shape: FloorPlanTableShape = layout.shape,
   kind: FloorPlanItemKind = layout.kind || "table",
 ) {
-  const minimum = getMinimumTableSize(capacity, shape, kind);
+  const minimum = getMinimumFloorPlanResizeSize(kind);
   const nextShape = !isReservableFloorPlanItem(kind)
     ? MIN_FURNITURE_SIZE[kind].shape
     : shape;
@@ -1279,6 +1356,212 @@ export function clampFloorPlanLayout(
     x: Math.min(Math.max(DEFAULT_PADDING, Math.round(layout.x || DEFAULT_PADDING)), maxX),
     y: Math.min(Math.max(DEFAULT_PADDING, Math.round(layout.y || DEFAULT_PADDING)), maxY),
   };
+}
+
+export function getRenderedFloorPlanFrame(
+  layout: FloorPlanTableLayout,
+  zoom: number,
+  canvasWidth = DEFAULT_CANVAS_WIDTH,
+  canvasHeight = DEFAULT_CANVAS_HEIGHT,
+): FloorPlanRenderedFrame {
+  const safeZoom = Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
+  const renderedWidth = layout.w * safeZoom;
+  const renderedHeight = layout.h * safeZoom;
+  const logicalMaxX = Math.max(DEFAULT_PADDING, canvasWidth - layout.w - DEFAULT_PADDING);
+  const logicalMaxY = Math.max(DEFAULT_PADDING, canvasHeight - layout.h - DEFAULT_PADDING);
+  const renderedMaxX = Math.max(DEFAULT_PADDING, canvasWidth - renderedWidth - DEFAULT_PADDING);
+  const renderedMaxY = Math.max(DEFAULT_PADDING, canvasHeight - renderedHeight - DEFAULT_PADDING);
+  const ratioX = logicalMaxX <= DEFAULT_PADDING
+    ? 0
+    : (Math.min(Math.max(DEFAULT_PADDING, layout.x || DEFAULT_PADDING), logicalMaxX) - DEFAULT_PADDING) / (logicalMaxX - DEFAULT_PADDING);
+  const ratioY = logicalMaxY <= DEFAULT_PADDING
+    ? 0
+    : (Math.min(Math.max(DEFAULT_PADDING, layout.y || DEFAULT_PADDING), logicalMaxY) - DEFAULT_PADDING) / (logicalMaxY - DEFAULT_PADDING);
+
+  return {
+    x: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioX)) * (renderedMaxX - DEFAULT_PADDING),
+    y: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioY)) * (renderedMaxY - DEFAULT_PADDING),
+    w: renderedWidth,
+    h: renderedHeight,
+  };
+}
+
+export function getLogicalFloorPlanPositionFromRenderedFrame(
+  layout: FloorPlanTableLayout,
+  renderedX: number,
+  renderedY: number,
+  zoom: number,
+  canvasWidth = DEFAULT_CANVAS_WIDTH,
+  canvasHeight = DEFAULT_CANVAS_HEIGHT,
+) {
+  const safeZoom = Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
+  const renderedWidth = layout.w * safeZoom;
+  const renderedHeight = layout.h * safeZoom;
+  const logicalMaxX = Math.max(DEFAULT_PADDING, canvasWidth - layout.w - DEFAULT_PADDING);
+  const logicalMaxY = Math.max(DEFAULT_PADDING, canvasHeight - layout.h - DEFAULT_PADDING);
+  const renderedMaxX = Math.max(DEFAULT_PADDING, canvasWidth - renderedWidth - DEFAULT_PADDING);
+  const renderedMaxY = Math.max(DEFAULT_PADDING, canvasHeight - renderedHeight - DEFAULT_PADDING);
+  const safeRenderedX = Math.min(Math.max(DEFAULT_PADDING, renderedX), renderedMaxX);
+  const safeRenderedY = Math.min(Math.max(DEFAULT_PADDING, renderedY), renderedMaxY);
+  const ratioX = renderedMaxX <= DEFAULT_PADDING
+    ? 0
+    : (safeRenderedX - DEFAULT_PADDING) / (renderedMaxX - DEFAULT_PADDING);
+  const ratioY = renderedMaxY <= DEFAULT_PADDING
+    ? 0
+    : (safeRenderedY - DEFAULT_PADDING) / (renderedMaxY - DEFAULT_PADDING);
+
+  return {
+    x: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioX)) * (logicalMaxX - DEFAULT_PADDING),
+    y: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioY)) * (logicalMaxY - DEFAULT_PADDING),
+  };
+}
+
+export type FloorPlanViewportItem = {
+  id: string;
+  table_number: string;
+  capacity: number;
+  is_active?: boolean | null;
+  sector?: string | null;
+  layout: FloorPlanTableLayout;
+};
+
+export type FloorPlanViewportHitTarget<TItem extends FloorPlanViewportItem> = {
+  item: TItem;
+  frame: FloorPlanRenderedFrame;
+};
+
+export type FloorPlanViewportModel<TItem extends FloorPlanViewportItem> = {
+  visibleItems: TItem[];
+  visibleReservableItems: TItem[];
+  visibleFurnitureCount: number;
+  visibleItemIdSet: Set<string>;
+  visibleReservableIdSet: Set<string>;
+  framesById: Map<string, FloorPlanRenderedFrame>;
+  reservableHitTargets: {
+    visual: Array<FloorPlanViewportHitTarget<TItem>>;
+    interactive: Array<FloorPlanViewportHitTarget<TItem>>;
+  };
+  getRenderedFrame: (item: TItem) => FloorPlanRenderedFrame;
+  getReservableItemAtPoint: (x: number, y: number) => TItem | null;
+};
+
+function getHitTargetAtPoint<TItem extends FloorPlanViewportItem>(
+  targets: Array<FloorPlanViewportHitTarget<TItem>>,
+  x: number,
+  y: number,
+) {
+  for (const target of targets) {
+    const { frame } = target;
+    const withinX = x >= frame.x && x <= frame.x + frame.w;
+    const withinY = y >= frame.y && y <= frame.y + frame.h;
+    if (withinX && withinY) return target.item;
+  }
+
+  return null;
+}
+
+export function buildFloorPlanViewportModel<TItem extends FloorPlanViewportItem>(
+  items: readonly TItem[],
+  options: {
+    sector: string;
+    zoom: number;
+    canvasWidth?: number;
+    canvasHeight?: number;
+  },
+): FloorPlanViewportModel<TItem> {
+  const canvasWidth = options.canvasWidth ?? DEFAULT_CANVAS_WIDTH;
+  const canvasHeight = options.canvasHeight ?? DEFAULT_CANVAS_HEIGHT;
+  const visibleItems = items
+    .filter((item) => item.is_active !== false)
+    .filter((item) => item.sector === options.sector)
+    .sort((left, right) => left.table_number.localeCompare(right.table_number, "fr"));
+  const visibleReservableItems = visibleItems.filter((item) => isReservableFloorPlanItem(item.layout.kind));
+  const framesById = new Map(visibleItems.map((item) => [
+    item.id,
+    getRenderedFloorPlanFrame(item.layout, options.zoom, canvasWidth, canvasHeight),
+  ]));
+  const getRenderedFrame = (item: TItem) => (
+    framesById.get(item.id)
+      || getRenderedFloorPlanFrame(item.layout, options.zoom, canvasWidth, canvasHeight)
+  );
+  const topmostReservableItems = visibleReservableItems.slice().reverse();
+  const visualHitTargets = topmostReservableItems.map((item) => ({
+    item,
+    frame: getRenderedFrame(item),
+  }));
+  const interactiveHitTargets = topmostReservableItems.map((item) => ({
+    item,
+    frame: getFloorPlanInteractiveFrame(getRenderedFrame(item)),
+  }));
+
+  return {
+    visibleItems,
+    visibleReservableItems,
+    visibleFurnitureCount: visibleItems.length - visibleReservableItems.length,
+    visibleItemIdSet: new Set(visibleItems.map((item) => item.id)),
+    visibleReservableIdSet: new Set(visibleReservableItems.map((item) => item.id)),
+    framesById,
+    reservableHitTargets: {
+      visual: visualHitTargets,
+      interactive: interactiveHitTargets,
+    },
+    getRenderedFrame,
+    getReservableItemAtPoint: (x: number, y: number) => {
+      return getHitTargetAtPoint(visualHitTargets, x, y)
+        || getHitTargetAtPoint(interactiveHitTargets, x, y);
+    },
+  };
+}
+
+function getFloorPlanLayoutSignature(layout: FloorPlanTableLayout) {
+  return JSON.stringify({
+    x: Math.round(layout.x),
+    y: Math.round(layout.y),
+    w: Math.round(layout.w),
+    h: Math.round(layout.h),
+    rotation: layout.rotation,
+    shape: layout.shape,
+    kind: layout.kind,
+    seatLabels: layout.seatLabels,
+    seatType: layout.seatType,
+    seatPlacements: layout.seatPlacements || [],
+    cornerBenchCorners: layout.cornerBenchCorners || [],
+    cornerBenchConfigs: layout.cornerBenchConfigs || [],
+    tableWidth: layout.tableWidth ? Math.round(layout.tableWidth) : undefined,
+    tableHeight: layout.tableHeight ? Math.round(layout.tableHeight) : undefined,
+    cornerBenchHorizontal: layout.cornerBenchHorizontal ? Math.round(layout.cornerBenchHorizontal) : undefined,
+    cornerBenchVertical: layout.cornerBenchVertical ? Math.round(layout.cornerBenchVertical) : undefined,
+    cornerBenchDepth: layout.cornerBenchDepth ? Math.round(layout.cornerBenchDepth) : undefined,
+  });
+}
+
+export function areFloorPlanLayoutsEquivalent(
+  left: FloorPlanTableLayout,
+  right: FloorPlanTableLayout,
+) {
+  return getFloorPlanLayoutSignature(left) === getFloorPlanLayoutSignature(right);
+}
+
+export function updateFloorPlanItemLayoutById<TItem extends { id: string; layout: FloorPlanTableLayout }>(
+  items: readonly TItem[],
+  itemId: string,
+  getNextLayout: (layout: FloorPlanTableLayout, item: TItem) => FloorPlanTableLayout,
+): TItem[] {
+  const itemIndex = items.findIndex((item) => item.id === itemId);
+  if (itemIndex < 0) return items as TItem[];
+
+  const item = items[itemIndex];
+  const nextLayout = getNextLayout(item.layout, item);
+  if (areFloorPlanLayoutsEquivalent(item.layout, nextLayout)) {
+    return items as TItem[];
+  }
+
+  const nextItems = items.slice() as TItem[];
+  nextItems[itemIndex] = {
+    ...item,
+    layout: nextLayout,
+  };
+  return nextItems;
 }
 
 export function normalizeFloorPlanLayout(

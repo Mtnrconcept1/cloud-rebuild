@@ -31,6 +31,7 @@ import CartItemList from "@/components/cart/CartItemList";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import FlexOptions from "@/components/cart/FlexOptions";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import UpsellModal from "@/components/cart/UpsellModal";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import {
   getAllowedPaymentMethods,
@@ -48,6 +49,8 @@ import {
 } from "@/hooks/useTokOne";
 import { getFreshAccessToken, invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
+import { getCartItemOrderGroupKey, getMealSubscriptionOrderMetadata } from "@/lib/subscriptionCheckout";
+import { getCartRestaurantSummaryLabel } from "@/lib/cartRestaurantSummary";
 
 const supabase = getSupabase();
 
@@ -68,7 +71,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
 }
 
 export default function Panier() {
-  const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode, addItem } = useCart();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -102,6 +105,8 @@ export default function Panier() {
   const [deliveryDate, setDeliveryDate] = useState(() => getTodayDateValue());
   const [deliveryTime, setDeliveryTime] = useState("");
   const [deliveryService, setDeliveryService] = useState<ServicePeriod | null>(null);
+  const [upsellModalOpen, setUpsellModalOpen] = useState(false);
+  const [checkoutPendingAfterUpsell, setCheckoutPendingAfterUpsell] = useState(false);
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
 
   const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
@@ -168,6 +173,10 @@ export default function Panier() {
   const deliveryFee = roundMoney(Math.max(0, quotedDeliveryFee - tokOneDeliverySaved));
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
+  const cartRestaurantSummaryLabel = useMemo(
+    () => getCartRestaurantSummaryLabel({ cartMetadata, items }),
+    [cartMetadata, items],
+  );
   const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
   const canScheduleDelivery = !isChefsTableCheckout && orderMode === "delivery" && isSingleRestaurant && deliveryFeatureEnabled;
   const needsTakeawaySlots = !isChefsTableCheckout && orderMode === "takeaway" && isSingleRestaurant && takeawayFeatureEnabled && !hasAntiGaspi && !hasTakeawayFlash;
@@ -439,7 +448,23 @@ export default function Panier() {
     return Array.from(groups.values()).sort((a, b) => a.key.localeCompare(b.key));
   }, [chefsTableItems, isChefsTableCheckout]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
+    // If we have items and we are not in chef's table, we can show the upsell modal
+    if (!isChefsTableCheckout && items.length > 0) {
+      setUpsellModalOpen(true);
+    } else {
+      processCheckout();
+    }
+  };
+
+  useEffect(() => {
+    if (checkoutPendingAfterUpsell) {
+      setCheckoutPendingAfterUpsell(false);
+      processCheckout();
+    }
+  }, [checkoutPendingAfterUpsell, items]);
+
+  const processCheckout = async () => {
     if (authLoading) {
       toast({
         title: "Authentification en cours",
@@ -614,16 +639,18 @@ export default function Panier() {
       }
 
       const itemsByRestaurant = items.reduce((acc, item) => {
-        if (!acc[item.restaurantId]) acc[item.restaurantId] = [];
-        acc[item.restaurantId].push(item);
+        const groupKey = getCartItemOrderGroupKey(item);
+        if (!acc[groupKey]) acc[groupKey] = [];
+        acc[groupKey].push(item);
         return acc;
       }, {} as Record<string, any[]>);
 
-      const orderGroups = Object.entries(itemsByRestaurant).map(([resId, resItems]) => {
+      const orderGroups = Object.entries(itemsByRestaurant).map(([groupKey, resItems]) => {
+        const resId = String(resItems[0]?.restaurantId || "");
         const qualityFeeItem = resItems.find(i => i.menuItemId === "garantie-qualite-fee");
         const realItems = resItems.filter(i => i.menuItemId !== "garantie-qualite-fee");
         const resSubtotal = realItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-        return { resId, resItems, realItems, qualityFeeItem, resSubtotal };
+        return { groupKey, resId, resItems, realItems, qualityFeeItem, resSubtotal };
       }).filter((group) => group.realItems.length > 0);
       const resCount = orderGroups.length;
       const checkoutGroupId = crypto.randomUUID();
@@ -642,7 +669,7 @@ export default function Panier() {
             ? Math.max(0, remaining)
             : Math.round((totalDiscount * share) * 100) / 100;
           remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
-          return [group.resId, allocated];
+          return [group.groupKey, allocated];
         }));
       };
 
@@ -653,7 +680,7 @@ export default function Panier() {
             ? Math.max(0, remaining)
             : Math.round((totalAmount / Math.max(orderGroups.length, 1)) * 100) / 100;
           remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
-          return [group.resId, allocated];
+          return [group.groupKey, allocated];
         }));
       };
 
@@ -932,7 +959,7 @@ export default function Panier() {
   };
 
   const buildOrderValidationPayload = (
-    group: { resId: string; realItems: any[]; qualityFeeItem: any; resSubtotal: number },
+    group: { groupKey: string; resId: string; realItems: any[]; qualityFeeItem: any; resSubtotal: number },
     index: number,
     resCount: number,
     orderReference: string,
@@ -943,15 +970,15 @@ export default function Panier() {
     pointsDiscountByRestaurant: Map<string, number>,
     flexDiscountByRestaurant: Map<string, number>,
   ) => {
-    const { resId, realItems, qualityFeeItem, resSubtotal } = group;
+    const { groupKey, resId, realItems, qualityFeeItem, resSubtotal } = group;
     const resDiscount = restaurantId === resId ? formulaDiscount : 0;
     const resPromoDiscount = restaurantId === resId ? effectivePromoDiscount : 0;
-    const resTokOneDiscount = tokOneDiscountByRestaurant.get(resId) || 0;
+    const resTokOneDiscount = tokOneDiscountByRestaurant.get(groupKey) || 0;
     const qualityFeeAmount = qualityFeeItem?.price || 0;
-    const deliveryFeePerRestaurant = deliveryFeeByRestaurant.get(resId) || 0;
-    const resTokOneDeliverySaved = tokOneDeliverySavedByRestaurant.get(resId) || 0;
-    const resPointsDiscount = pointsDiscountByRestaurant.get(resId) || 0;
-    const resFlexDiscount = flexDiscountByRestaurant.get(resId) || 0;
+    const deliveryFeePerRestaurant = deliveryFeeByRestaurant.get(groupKey) || 0;
+    const resTokOneDeliverySaved = tokOneDeliverySavedByRestaurant.get(groupKey) || 0;
+    const resPointsDiscount = pointsDiscountByRestaurant.get(groupKey) || 0;
+    const resFlexDiscount = flexDiscountByRestaurant.get(groupKey) || 0;
     const orderCheckoutId = crypto.randomUUID();
     const orderRefForRestaurant = resCount > 1 ? `${orderReference}-${index + 1}` : orderReference;
     const clientTotal = resSubtotal
@@ -999,7 +1026,10 @@ export default function Panier() {
         total_amount: clientTotal,
         notes: notes || null,
         items: orderItemsJson,
-        metadata: finalMetadata,
+        metadata: {
+          ...finalMetadata,
+          ...getMealSubscriptionOrderMetadata(realItems),
+        },
         checkout_id: orderCheckoutId,
       },
     };
@@ -1059,7 +1089,7 @@ export default function Panier() {
           <div className="rounded-3xl border bg-card/60 p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Table du Chef" : items[0]?.restaurantName}</p>
+                <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Table du Chef" : cartRestaurantSummaryLabel}</p>
                 <p className="text-xs text-muted-foreground">
                   {isChefsTableCheckout
                     ? `${chefsTableReservationGroups.length} reservation(s) a confirmer`
@@ -1112,7 +1142,7 @@ export default function Panier() {
         <p className="text-sm text-muted-foreground">
           {isChefsTableCheckout
             ? `${chefsTableReservationGroups.length} reservation(s) La Table du Chef a confirmer`
-            : `Restaurant : ${items[0]?.restaurantName}`}
+            : cartRestaurantSummaryLabel}
         </p>
 
         <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
@@ -1469,6 +1499,31 @@ export default function Panier() {
             : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
         </Button>
       </div>
+
+      <UpsellModal 
+        open={upsellModalOpen}
+        onClose={() => setUpsellModalOpen(false)}
+        onContinue={() => {
+          setUpsellModalOpen(false);
+          setCheckoutPendingAfterUpsell(true);
+        }}
+        onAdd={(suggestedItem) => {
+          addItem({
+            menuItemId: suggestedItem.id,
+            name: suggestedItem.name,
+            price: Number(suggestedItem.price),
+            quantity: 1,
+            restaurantId: suggestedItem.restaurant_id,
+          });
+        }}
+        restaurantId={restaurantId}
+        missingForFreeDelivery={
+          !isChefsTableCheckout && orderMode === "delivery" && isTokOneMember && quotedDeliveryFee > 0 && discountableSubtotal < tokOneFreeDeliveryMinOrder
+            ? (tokOneFreeDeliveryMinOrder - discountableSubtotal)
+            : null
+        }
+        currentItems={items}
+      />
     </main>
   );
 }

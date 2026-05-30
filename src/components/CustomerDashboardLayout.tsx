@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 
 export default function CustomerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { signOut, role } = useAuth();
+  const { signOut, isSuperAdmin } = useAuth();
 
   return (
     <div className="min-h-screen bg-muted/30 pt-16">
@@ -26,12 +26,12 @@ export default function CustomerDashboardLayout({ children }: { children: React.
                 <item.icon className="h-4 w-4" />{item.label}
               </Link>
             ))}
-            {(role === "restaurateur" || role === "admin") && (
+            {isSuperAdmin && (
               <div className="mt-2 pt-2 border-t">
                 <Link to="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition-colors"><LayoutDashboard className="h-4 w-4" />Espace Restaurateur</Link>
               </div>
             )}
-            {role === "admin" && (
+            {isSuperAdmin && (
               <div className="mt-2 pt-2 border-t">
                 <Link to="/admin" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition-colors"><Settings className="h-4 w-4" />Administration</Link>
               </div>

@@ -55,9 +55,11 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    optimizeDeps: {
+      include: ["firebase/app", "firebase/messaging"],
+    },
     build: {
       rollupOptions: {
-        external: ["firebase/app", "firebase/messaging"],
         output: {
           manualChunks,
         },

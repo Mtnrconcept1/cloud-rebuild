@@ -1,16 +1,16 @@
-import type { PointerEvent, RefObject, WheelEvent } from "react";
+import type { KeyboardEvent, PointerEvent, RefObject, WheelEvent } from "react";
 import { Grip, LayoutPanelTop, Minus, Move, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 
 import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { isReservableFloorPlanItem } from "@/lib/floorPlan";
+import { getFloorPlanInteractiveFrame, getFloorPlanItemResizeBehavior, isReservableFloorPlanItem } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable, StudioRenderedTableFrame } from "./studioShared";
 
-const CANVAS_HEIGHT = 680;
+const CANVAS_HEIGHT = 760;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
@@ -46,6 +46,8 @@ type StudioCanvasProps = {
   ) => void;
   onStartRotatingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
   onUpdateCanvasZoom: (nextZoom: number) => void;
+  onNudgeTable?: (tableId: string, deltaX: number, deltaY: number) => void;
+  onDeleteTable?: (tableId: string) => void;
   getRenderedFrame: (table: StudioDraftTable) => StudioRenderedTableFrame;
 };
 
@@ -66,6 +68,8 @@ export default function StudioCanvas({
   onStartResizingTable,
   onStartRotatingTable,
   onUpdateCanvasZoom,
+  onNudgeTable,
+  onDeleteTable,
   getRenderedFrame,
 }: StudioCanvasProps) {
   const recenterCanvas = () => {
@@ -83,9 +87,52 @@ export default function StudioCanvas({
     });
   };
 
+  const startObjectSurfaceDrag = (
+    event: PointerEvent<HTMLDivElement>,
+    table: StudioDraftTable,
+  ) => {
+    if ((event.target as HTMLElement).closest("button")) return;
+    onStartDraggingTable(event, table.id);
+  };
+
+  const handleObjectKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+    table: StudioDraftTable,
+  ) => {
+    if ((event.target as HTMLElement).closest("button,input,textarea,select")) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onTablePress(table.id);
+      return;
+    }
+
+    if (table.id !== selectedTableId) return;
+
+    const step = event.shiftKey ? 10 : 1;
+    const deltas: Partial<Record<string, [number, number]>> = {
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+      ArrowDown: [0, step],
+    };
+    const delta = deltas[event.key];
+
+    if (delta) {
+      event.preventDefault();
+      onNudgeTable?.(table.id, delta[0], delta[1]);
+      return;
+    }
+
+    if (event.key === "Delete" || event.key === "Backspace") {
+      event.preventDefault();
+      onDeleteTable?.(table.id);
+    }
+  };
+
   return (
     <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
-      <CardHeader className="space-y-4 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-4">
+      <CardHeader className="space-y-3 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle className="text-[1.45rem] text-slate-950">{selectedSector}</CardTitle>
@@ -139,8 +186,8 @@ export default function StudioCanvas({
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col p-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
+        <div className="grid gap-2 sm:grid-cols-3">
           <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Elements</p>
             <p className="mt-2 text-2xl font-bold text-slate-950">{visibleTables.length}</p>
@@ -159,7 +206,7 @@ export default function StudioCanvas({
           </div>
         </div>
 
-        <div className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(241,244,248,1))] p-4">
+        <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(241,244,248,1))] p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
@@ -175,7 +222,7 @@ export default function StudioCanvas({
             </Badge>
           </div>
 
-          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto rounded-[26px] border border-slate-200/80 bg-white/80 p-3 shadow-inner">
+          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto rounded-[26px] border border-slate-200/80 bg-white/80 p-2 shadow-inner">
             <div className="flex min-h-full min-w-full items-start justify-start">
               <div
                 ref={canvasRef}
@@ -210,31 +257,43 @@ export default function StudioCanvas({
 
                 {visibleTables.map((table) => {
                   const renderedFrame = getRenderedFrame(table);
+                  const interactiveFrame = getFloorPlanInteractiveFrame(renderedFrame);
                   const isSelected = table.id === selectedTableId;
                   const isReservable = isReservableFloorPlanItem(table.layout.kind);
 
                   return (
                     <div
                       key={table.id}
-                      className="absolute select-none focus:outline-none"
+                      className="absolute select-none touch-none focus:outline-none"
                       style={{
-                        left: renderedFrame.x,
-                        top: renderedFrame.y,
-                        width: renderedFrame.w,
-                        height: renderedFrame.h,
+                        left: interactiveFrame.x,
+                        top: interactiveFrame.y,
+                        width: interactiveFrame.w,
+                        height: interactiveFrame.h,
                         zIndex: isSelected ? 40 : 16,
                         cursor: draggingTableId === table.id ? "grabbing" : "grab",
+                        willChange: draggingTableId === table.id ? "left, top" : undefined,
                       }}
                       onClick={() => onTablePress(table.id)}
+                      onPointerDown={(event) => startObjectSurfaceDrag(event, table)}
+                      onKeyDown={(event) => handleObjectKeyDown(event, table)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Selectionner ${table.table_number}`}
+                      aria-pressed={isSelected}
                     >
                       <div className={cn(
                         "pointer-events-none absolute inset-1 rounded-[30px] blur-[18px]",
-                        isSelected ? "bg-sky-300/55 opacity-95" : "bg-slate-300/30 opacity-70",
+                        isSelected ? "bg-orange-300/55 opacity-95" : "bg-slate-300/30 opacity-70",
                       )} />
 
                       <div
-                        className="relative h-full w-full"
+                        className="absolute"
                         style={{
+                          left: interactiveFrame.visualOffsetX,
+                          top: interactiveFrame.visualOffsetY,
+                          width: renderedFrame.w,
+                          height: renderedFrame.h,
                           transform: `rotate(${table.layout.rotation}deg)`,
                           transformOrigin: "center center",
                         }}
@@ -260,7 +319,7 @@ export default function StudioCanvas({
 
                         {isSelected ? (
                           <>
-                            <div className="pointer-events-none absolute inset-[-5px] rounded-[30px] border-2 border-sky-500/70 shadow-[0_0_0_4px_rgba(255,255,255,0.72)]" />
+                            <div className="pointer-events-none absolute inset-[-5px] rounded-[30px] border-2 border-orange-500/75 shadow-[0_0_0_4px_rgba(255,255,255,0.72)]" />
                             <div className="pointer-events-none absolute inset-[8px] rounded-[20px] border border-white/55" />
                           </>
                         ) : null}
@@ -277,7 +336,7 @@ export default function StudioCanvas({
                           <button
                             type="button"
                             aria-label={`Deplacer ${table.table_number}`}
-                            className="absolute left-[-12px] top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-900/10 bg-white text-slate-700 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]"
+                            className="absolute left-[-12px] top-1/2 flex h-10 w-10 touch-none -translate-y-1/2 items-center justify-center rounded-full border border-slate-900/10 bg-white text-slate-700 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]"
                             onPointerDown={(event) => onStartDraggingTable(event, table.id)}
                           >
                             <Grip className="h-4 w-4" />
@@ -285,21 +344,26 @@ export default function StudioCanvas({
                         ) : null}
 
                         {isSelected
-                          ? STUDIO_RESIZE_HANDLES.map((handle) => (
-                            <button
-                              key={handle.key}
-                              type="button"
-                              aria-label={`Redimensionner ${table.table_number}`}
-                              className={cn(
-                                "absolute h-5 w-5 rounded-full border-2 border-white bg-slate-950 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)]",
-                                handle.className,
-                              )}
-                              style={{ cursor: handle.cursor }}
-                              onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
-                            >
-                              <span className="absolute inset-[4px] rounded-full bg-sky-300/90" />
-                            </button>
-                          ))
+                          ? (() => {
+                            const resizeBehavior = getFloorPlanItemResizeBehavior(table.layout.kind);
+                            return STUDIO_RESIZE_HANDLES
+                              .filter((handle) => resizeBehavior.handles.includes(handle.key))
+                              .map((handle) => (
+                              <button
+                                key={handle.key}
+                                type="button"
+                                aria-label={`Redimensionner ${table.table_number}`}
+                                className={cn(
+                                  "absolute h-7 w-7 touch-none rounded-full border-2 border-white bg-slate-950/92 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.7)] transition-transform hover:scale-110",
+                                  handle.className,
+                                )}
+                                style={{ cursor: handle.cursor }}
+                                onPointerDown={(event) => onStartResizingTable(event, table.id, handle.key)}
+                              >
+                                <span className="absolute inset-[8px] rounded-full bg-orange-300/95" />
+                              </button>
+                            ));
+                          })()
                           : null}
                       </div>
 
@@ -328,7 +392,7 @@ export default function StudioCanvas({
           </div>
         </div>
 
-        <div className="mt-4 flex justify-center">
+        <div className="mt-3 flex justify-center">
           <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2 text-xs text-slate-500 shadow-sm">
             Le canevas garde son scroll local. Les panneaux se compactent avant de rogner la surface de travail.
           </div>

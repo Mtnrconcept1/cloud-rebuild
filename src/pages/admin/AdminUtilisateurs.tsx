@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { ExternalLink, FileText, Search, Users } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
@@ -37,6 +38,7 @@ type ReviewStatus = "approved" | "needs_changes" | "rejected";
 export default function AdminUtilisateurs() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export default function AdminUtilisateurs() {
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [reviewingApplicationId, setReviewingApplicationId] = useState<string | null>(null);
   const [openingDocumentId, setOpeningDocumentId] = useState<string | null>(null);
+  const activeAdminTab = searchParams.get("tab") === "applications" ? "applications" : "users";
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["admin-users-full"],
@@ -225,6 +228,16 @@ export default function AdminUtilisateurs() {
     }
   };
 
+  const handleAdminTabChange = (value: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value === "applications") {
+      nextParams.set("tab", "applications");
+    } else {
+      nextParams.delete("tab");
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+
   return (
     <div className="container py-8 space-y-6">
       <DashboardPageHero
@@ -241,7 +254,7 @@ export default function AdminUtilisateurs() {
         ]}
       />
 
-      <Tabs defaultValue="users" className="space-y-6">
+      <Tabs value={activeAdminTab} onValueChange={handleAdminTabChange} className="space-y-6">
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="users">Comptes</TabsTrigger>
           <TabsTrigger value="applications">Dossiers</TabsTrigger>

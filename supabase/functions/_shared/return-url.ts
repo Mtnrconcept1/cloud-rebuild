@@ -67,6 +67,7 @@ export function normalizeCheckoutReturnUrl(
 
     if (LOCAL_RETURN_HOSTS.has(hostname)) {
       if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+      if ((env("ALLOW_LOCAL_RETURN_URLS") || "").toLowerCase() !== "true") return null;
       return url.toString();
     }
 
@@ -79,4 +80,3 @@ export function normalizeCheckoutReturnUrl(
     return null;
   }
 }
-

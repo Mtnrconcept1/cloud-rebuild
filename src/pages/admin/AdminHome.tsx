@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Crown,
   DollarSign,
+  FileText,
   Layers,
   MessageSquareText,
   MapPin,
@@ -63,6 +64,14 @@ const ADMIN_TOOLS = [
     href: "/admin/utilisateurs",
     feature: "admin-utilisateurs",
     color: "text-sky-500",
+  },
+  {
+    title: "Dossiers d'inscription",
+    description: "Verifier les justificatifs et approuver les restaurateurs.",
+    icon: FileText,
+    href: "/admin/utilisateurs?tab=applications",
+    feature: "admin-utilisateurs",
+    color: "text-amber-500",
   },
   {
     title: "Avis",
