@@ -21,6 +21,14 @@ function manualChunks(id: string) {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
+  if (!process.env.VITE_SUPABASE_URL && process.env.SUPABASE_URL) {
+    process.env.VITE_SUPABASE_URL = process.env.SUPABASE_URL;
+  }
+
+  if (!process.env.VITE_SUPABASE_PUBLISHABLE_KEY && process.env.SUPABASE_ANON_KEY) {
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_ANON_KEY;
+  }
+
   if (mode === "production") {
     const env = loadEnv(mode, process.cwd(), "");
     const missingSupabaseEnvKeys = getMissingSupabasePublicEnvKeys(env);
