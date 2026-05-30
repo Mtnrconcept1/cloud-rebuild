@@ -11,6 +11,7 @@ export const MEAL_SUBSCRIPTION_DAYS = [
 export type MealSubscriptionDay = typeof MEAL_SUBSCRIPTION_DAYS[number];
 
 export type MealSubscriptionSlot = {
+  id?: string;
   day: string;
   menuItemId: string;
   meal: string;
@@ -25,7 +26,22 @@ export type MealSubscriptionStatus = {
   resume_at?: string | null;
 };
 
-function createEmptySlot(day: MealSubscriptionDay): MealSubscriptionSlot {
+type BuildMealSubscriptionCartOptions = {
+  weekOffset?: number;
+  now?: Date;
+};
+
+const DAY_TO_WEEK_INDEX: Record<MealSubscriptionDay, number> = {
+  Lundi: 0,
+  Mardi: 1,
+  Mercredi: 2,
+  Jeudi: 3,
+  Vendredi: 4,
+  Samedi: 5,
+  Dimanche: 6,
+};
+
+export function createEmptyMealSubscriptionSlot(day: MealSubscriptionDay): MealSubscriptionSlot {
   return {
     day,
     menuItemId: "",
@@ -38,21 +54,13 @@ function createEmptySlot(day: MealSubscriptionDay): MealSubscriptionSlot {
 }
 
 export function normalizeMealSubscriptionSlots(input: MealSubscriptionSlot[]) {
-  const byDay = new Map<string, MealSubscriptionSlot>(
-    MEAL_SUBSCRIPTION_DAYS.map((day) => [day, createEmptySlot(day)]),
-  );
-
-  for (const slot of input) {
-    if (!MEAL_SUBSCRIPTION_DAYS.includes(slot.day as MealSubscriptionDay)) continue;
-
-    byDay.set(slot.day, {
-      ...createEmptySlot(slot.day as MealSubscriptionDay),
+  return input
+    .filter((slot) => MEAL_SUBSCRIPTION_DAYS.includes(slot.day as MealSubscriptionDay))
+    .map((slot) => ({
+      ...createEmptyMealSubscriptionSlot(slot.day as MealSubscriptionDay),
       ...slot,
       price: Number(slot.price || 0),
-    });
-  }
-
-  return MEAL_SUBSCRIPTION_DAYS.map((day) => byDay.get(day)!);
+    }));
 }
 
 export function getActiveMealSlots(slots: MealSubscriptionSlot[]) {
@@ -76,17 +84,41 @@ export function getMealSubscriptionSummary(slots: MealSubscriptionSlot[], status
   };
 }
 
-export function buildMealSubscriptionCartItems(slots: MealSubscriptionSlot[]) {
+export function getMealSubscriptionDeliveryDate(day: string, weekOffset = 0, now = new Date()) {
+  if (!MEAL_SUBSCRIPTION_DAYS.includes(day as MealSubscriptionDay)) return "";
+
+  const base = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const mondayOffset = (base.getUTCDay() + 6) % 7;
+  base.setUTCDate(base.getUTCDate() - mondayOffset + (weekOffset * 7) + DAY_TO_WEEK_INDEX[day as MealSubscriptionDay]);
+
+  return base.toISOString().slice(0, 10);
+}
+
+export function buildMealSubscriptionCartItems(
+  slots: MealSubscriptionSlot[],
+  options: BuildMealSubscriptionCartOptions = {},
+) {
   return getActiveMealSlots(slots).map((slot) => ({
-    menuItemId: slot.menuItemId,
-    name: `[${slot.day}] ${slot.meal}`,
-    price: Number(slot.price || 0),
-    restaurantId: slot.restaurantId,
-    restaurantName: slot.restaurant,
-    metadata: {
-      is_meal_subscription: true,
-      subscription_day: slot.day,
-      preferred_time: slot.time || "12:00",
-    },
+    ...(() => {
+      const deliveryDate = getMealSubscriptionDeliveryDate(slot.day, options.weekOffset || 0, options.now);
+      const deliveryTime = slot.time || "12:00";
+
+      return {
+        menuItemId: slot.menuItemId,
+        name: `[${slot.day}] ${slot.meal}`,
+        price: Number(slot.price || 0),
+        restaurantId: slot.restaurantId,
+        restaurantName: slot.restaurant,
+        metadata: {
+          is_meal_subscription: true,
+          ...(slot.id ? { subscription_slot_id: slot.id } : {}),
+          subscription_day: slot.day,
+          preferred_time: deliveryTime,
+          delivery_date: deliveryDate,
+          delivery_time: deliveryTime,
+          subscription_delivery_key: `${slot.day}|${deliveryDate}|${deliveryTime}`,
+        },
+      };
+    })(),
   }));
 }

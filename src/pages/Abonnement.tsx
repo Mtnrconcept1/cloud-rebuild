@@ -7,9 +7,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Edit3,
+  Plus,
   Pause,
   Play,
   Repeat,
+  Trash2,
   ShoppingCart,
   Sparkles,
   TrendingDown,
@@ -17,6 +19,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -37,6 +41,13 @@ type MealSlot = MealSubscriptionSlot;
 
 const EMPTY_MEAL_SETTINGS: MealSubscriptionStatus = { status: "active", resume_at: null };
 
+function createDefaultDayTimes() {
+  return MEAL_SUBSCRIPTION_DAYS.reduce<Record<string, string>>((acc, day) => {
+    acc[day] = "12:00";
+    return acc;
+  }, {});
+}
+
 function createEmptySlot(day: string): MealSlot {
   return {
     day,
@@ -47,6 +58,14 @@ function createEmptySlot(day: string): MealSlot {
     price: 0,
     time: "",
   };
+}
+
+function createLocalSlotId() {
+  return `local-${crypto.randomUUID()}`;
+}
+
+function isPersistedSlotId(id: string | undefined) {
+  return Boolean(id && !id.startsWith("local-"));
 }
 
 export default function Abonnement() {
@@ -60,6 +79,7 @@ export default function Abonnement() {
   const [subscribed, setSubscribed] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+  const [dayTimes, setDayTimes] = useState<Record<string, string>>(() => createDefaultDayTimes());
 
   const { data: subs } = useQuery({
     queryKey: ["user-subscriptions", user?.id],
@@ -67,7 +87,7 @@ export default function Abonnement() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("user_subscriptions" as any)
-        .select("*, menu_items(id, name, price), restaurants(id, name)")
+        .select("id, day_of_week, menu_item_id, restaurant_id, preferred_time, menu_items(id, name, price), restaurants(id, name)")
         .eq("user_id", user.id);
       if (error) throw error;
       return data || [];
@@ -100,6 +120,7 @@ export default function Abonnement() {
     const normalized = normalizeMealSubscriptionSlots(
       (subs as any[]).map((sub) => ({
         day: sub.day_of_week || "",
+        id: sub.id || undefined,
         menuItemId: sub.menu_item_id || "",
         meal: sub.menu_items?.name || "",
         restaurant: sub.restaurants?.name || "",
@@ -110,6 +131,18 @@ export default function Abonnement() {
     );
 
     setPlan(normalized);
+    setDayTimes((currentTimes) => {
+      const nextTimes = { ...currentTimes };
+      for (const slot of normalized) {
+        if (slot.day && slot.time && !nextTimes[slot.day]) {
+          nextTimes[slot.day] = slot.time;
+        }
+        if (slot.day && slot.time && currentTimes[slot.day] === "12:00") {
+          nextTimes[slot.day] = slot.time;
+        }
+      }
+      return nextTimes;
+    });
     setSubscribed(getActiveMealSlots(normalized).length > 0);
   }, [subs]);
 
@@ -118,28 +151,37 @@ export default function Abonnement() {
       if (!user) return;
 
       if (slot.menuItemId) {
+        const payload = {
+          user_id: user.id,
+          day_of_week: slot.day,
+          menu_item_id: slot.menuItemId,
+          restaurant_id: slot.restaurantId,
+          preferred_time: slot.time || "12:00",
+          is_active: true,
+        };
+
+        if (isPersistedSlotId(slot.id)) {
+          const { error } = await supabase
+            .from("user_subscriptions" as any)
+            .update(payload)
+            .eq("id", slot.id);
+          if (error) throw error;
+          return;
+        }
+
         const { error } = await supabase
           .from("user_subscriptions" as any)
-          .upsert(
-            {
-              user_id: user.id,
-              day_of_week: slot.day,
-              menu_item_id: slot.menuItemId,
-              restaurant_id: slot.restaurantId,
-              preferred_time: slot.time || "12:00",
-              is_active: true,
-            },
-            { onConflict: "user_id,day_of_week" } as any,
-          );
+          .insert(payload);
         if (error) throw error;
         return;
       }
 
+      if (!isPersistedSlotId(slot.id)) return;
+
       const { error } = await supabase
         .from("user_subscriptions" as any)
         .delete()
-        .eq("user_id", user.id)
-        .eq("day_of_week", slot.day);
+        .eq("id", slot.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -206,6 +248,7 @@ export default function Abonnement() {
   const summary = getMealSubscriptionSummary(plan, mealSettings);
   const activeRestaurantNames = Array.from(new Set(activeMeals.map((meal) => meal.restaurant).filter(Boolean)));
   const uniqueRestaurantIds = Array.from(new Set(activeMeals.map((meal) => meal.restaurantId).filter(Boolean)));
+  const activePlanDays = Array.from(new Set(activeMeals.map((meal) => meal.day)));
   const selectedRestaurant = restaurants?.find((restaurant: any) => restaurant.id === selectedRestaurantId);
   const weekLabel =
     weekOffset === 0
@@ -218,31 +261,48 @@ export default function Abonnement() {
     if (!restaurant) return;
 
     const newSlot: MealSlot = {
+      id: createLocalSlotId(),
       day,
       menuItemId: item.id,
       meal: item.name,
       restaurant: restaurant.name,
       restaurantId: restaurant.id,
       price: Number(item.price),
-      time: "12:00",
+      time: dayTimes[day] || "12:00",
     };
 
-    setPlan((currentPlan) => currentPlan.map((slot) => (slot.day === day ? newSlot : slot)));
+    setPlan((currentPlan) => [...currentPlan, newSlot]);
     updateSubMutation.mutate(newSlot);
-    setEditingDay(null);
     setSelectedRestaurantId(null);
   };
 
   const clearDay = (day: string) => {
-    const clearedSlot = createEmptySlot(day);
-    setPlan((currentPlan) => currentPlan.map((slot) => (slot.day === day ? clearedSlot : slot)));
-    updateSubMutation.mutate(clearedSlot);
+    const slotsForDay = plan.filter((slot) => slot.day === day);
+    setPlan((currentPlan) => currentPlan.filter((slot) => slot.day !== day));
+    slotsForDay.forEach((slot) => updateSubMutation.mutate({ ...slot, menuItemId: "" }));
     setEditingDay(null);
     setSelectedRestaurantId(null);
   };
 
+  const removeSlot = (slotToRemove: MealSlot) => {
+    setPlan((currentPlan) => currentPlan.filter((slot) => slot.id !== slotToRemove.id));
+    updateSubMutation.mutate({ ...slotToRemove, menuItemId: "" });
+  };
+
+  const updateDayTime = (day: string, time: string) => {
+    setDayTimes((currentTimes) => ({ ...currentTimes, [day]: time }));
+    setPlan((currentPlan) =>
+      currentPlan.map((slot) => {
+        if (slot.day !== day) return slot;
+        const updatedSlot = { ...slot, time };
+        updateSubMutation.mutate(updatedSlot);
+        return updatedSlot;
+      }),
+    );
+  };
+
   const syncSubscriptionCart = () => {
-    const cartItems = buildMealSubscriptionCartItems(plan);
+    const cartItems = buildMealSubscriptionCartItems(plan, { weekOffset });
 
     replaceCartItems(cartItems, {
       feature: "abonnement",
@@ -250,7 +310,7 @@ export default function Abonnement() {
       restaurant_count: uniqueRestaurantIds.length,
       restaurants: activeRestaurantNames,
       weeklyTotal: summary.weeklyTotal,
-      planDays: activeMeals.map((meal) => meal.day),
+      planDays: activePlanDays,
       subscription_status: mealSettings.status,
     }, "delivery");
 
@@ -340,17 +400,21 @@ export default function Abonnement() {
         </div>
 
         <div className="space-y-2">
-          {plan.map((slot) => (
-            <div key={slot.day}>
+          {MEAL_SUBSCRIPTION_DAYS.map((day) => {
+            const daySlots = plan.filter((slot) => slot.day === day);
+            const dayTotal = daySlots.reduce((sum, slot) => sum + Number(slot.price || 0), 0);
+
+            return (
+            <div key={day}>
               <button
                 onClick={() => {
-                  setEditingDay(editingDay === slot.day ? null : slot.day);
+                  setEditingDay(editingDay === day ? null : day);
                   setSelectedRestaurantId(null);
                 }}
                 className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
-                  editingDay === slot.day
+                  editingDay === day
                     ? "border-purple-500 bg-purple-500/5"
-                    : slot.meal
+                    : daySlots.length > 0
                       ? "border-border hover:border-purple-500/30"
                       : "border-dashed border-border hover:border-purple-500/30"
                 }`}
@@ -358,17 +422,17 @@ export default function Abonnement() {
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      {slot.meal ? (
+                      {daySlots.length > 0 ? (
                         <CheckCircle2 className="h-4 w-4 text-purple-500" />
                       ) : (
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold">{slot.day}</p>
-                      {slot.meal ? (
-                        <p className="truncate text-xs text-muted-foreground">
-                          {slot.meal} - {slot.restaurant}
+                      <p className="text-sm font-semibold">{day}</p>
+                      {daySlots.length > 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          {daySlots.length} plat{daySlots.length > 1 ? "s" : ""} - {Array.from(new Set(daySlots.map((slot) => slot.restaurant))).join(", ")}
                         </p>
                       ) : (
                         <p className="text-xs italic text-muted-foreground">Jour libre</p>
@@ -376,22 +440,47 @@ export default function Abonnement() {
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    {slot.price > 0 ? <span className="text-sm font-bold">{slot.price.toFixed(2)} CHF</span> : null}
+                    {dayTotal > 0 ? <span className="text-sm font-bold">{dayTotal.toFixed(2)} CHF</span> : null}
                     <Edit3 className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
               </button>
 
-              {editingDay === slot.day && !selectedRestaurantId ? (
+              {editingDay === day && !selectedRestaurantId ? (
                 <div className="mt-2 space-y-3 rounded-xl border bg-card p-4 animate-fade-in">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">Choisir un restaurant pour {slot.day}</p>
-                    {slot.meal ? (
-                      <Button variant="ghost" size="sm" onClick={() => clearDay(slot.day)} className="text-xs text-destructive">
+                    <p className="text-sm font-semibold">Choisir un restaurant pour {day}</p>
+                    {daySlots.length > 0 ? (
+                      <Button variant="ghost" size="sm" onClick={() => clearDay(day)} className="text-xs text-destructive">
                         Jour libre
                       </Button>
                     ) : null}
                   </div>
+                  <div className="grid gap-2 rounded-lg border bg-background p-3">
+                    <Label htmlFor={`subscription-time-${day}`}>Heure de livraison {day}</Label>
+                    <Input
+                      id={`subscription-time-${day}`}
+                      type="time"
+                      value={dayTimes[day] || "12:00"}
+                      onChange={(event) => updateDayTime(day, event.target.value)}
+                      className="w-full sm:w-40"
+                    />
+                  </div>
+                  {daySlots.length > 0 ? (
+                    <div className="space-y-2">
+                      {daySlots.map((slot) => (
+                        <div key={slot.id || `${slot.day}-${slot.menuItemId}`} className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 p-2 text-xs">
+                          <div className="min-w-0">
+                            <p className="truncate font-medium">{slot.meal}</p>
+                            <p className="truncate text-muted-foreground">{slot.restaurant} - {slot.time || "12:00"}</p>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeSlot(slot)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {restaurants?.map((restaurant: any) => (
                       <button
@@ -416,7 +505,7 @@ export default function Abonnement() {
                 </div>
               ) : null}
 
-              {editingDay === slot.day && selectedRestaurantId ? (
+              {editingDay === day && selectedRestaurantId ? (
                 <div className="mt-2 space-y-3 rounded-xl border bg-card p-4 animate-fade-in">
                   <div className="flex items-center justify-between gap-3">
                     <Button variant="ghost" size="sm" onClick={() => setSelectedRestaurantId(null)} className="gap-1 text-xs">
@@ -428,10 +517,8 @@ export default function Abonnement() {
                     {menuItems?.map((item: any) => (
                       <button
                         key={item.id}
-                        onClick={() => selectMeal(slot.day, item, selectedRestaurant)}
-                        className={`rounded-lg border p-3 text-left text-sm transition-all hover:border-purple-500/30 ${
-                          slot.menuItemId === item.id ? "border-purple-500 bg-purple-500/5" : "border-border"
-                        }`}
+                        onClick={() => selectMeal(day, item, selectedRestaurant)}
+                        className="rounded-lg border border-border p-3 text-left text-sm transition-all hover:border-purple-500/30"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex min-w-0 items-center gap-2">
@@ -444,6 +531,7 @@ export default function Abonnement() {
                             </div>
                           </div>
                           <p className="shrink-0 text-xs font-bold">{Number(item.price).toFixed(2)} CHF</p>
+                          <Plus className="h-4 w-4 shrink-0 text-purple-500" />
                         </div>
                       </button>
                     ))}
@@ -454,7 +542,7 @@ export default function Abonnement() {
                 </div>
               ) : null}
             </div>
-          ))}
+          )})}
         </div>
 
         <div className="space-y-3 rounded-xl border bg-card p-5">

@@ -48,6 +48,7 @@ import {
 } from "@/hooks/useTokOne";
 import { getFreshAccessToken, invokeSupabaseFunction, invokeSupabaseRpc } from "@/lib/session";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
+import { getCartItemOrderGroupKey, getMealSubscriptionOrderMetadata } from "@/lib/subscriptionCheckout";
 
 const supabase = getSupabase();
 
@@ -614,16 +615,18 @@ export default function Panier() {
       }
 
       const itemsByRestaurant = items.reduce((acc, item) => {
-        if (!acc[item.restaurantId]) acc[item.restaurantId] = [];
-        acc[item.restaurantId].push(item);
+        const groupKey = getCartItemOrderGroupKey(item);
+        if (!acc[groupKey]) acc[groupKey] = [];
+        acc[groupKey].push(item);
         return acc;
       }, {} as Record<string, any[]>);
 
-      const orderGroups = Object.entries(itemsByRestaurant).map(([resId, resItems]) => {
+      const orderGroups = Object.entries(itemsByRestaurant).map(([groupKey, resItems]) => {
+        const resId = String(resItems[0]?.restaurantId || "");
         const qualityFeeItem = resItems.find(i => i.menuItemId === "garantie-qualite-fee");
         const realItems = resItems.filter(i => i.menuItemId !== "garantie-qualite-fee");
         const resSubtotal = realItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-        return { resId, resItems, realItems, qualityFeeItem, resSubtotal };
+        return { groupKey, resId, resItems, realItems, qualityFeeItem, resSubtotal };
       }).filter((group) => group.realItems.length > 0);
       const resCount = orderGroups.length;
       const checkoutGroupId = crypto.randomUUID();
@@ -642,7 +645,7 @@ export default function Panier() {
             ? Math.max(0, remaining)
             : Math.round((totalDiscount * share) * 100) / 100;
           remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
-          return [group.resId, allocated];
+          return [group.groupKey, allocated];
         }));
       };
 
@@ -653,7 +656,7 @@ export default function Panier() {
             ? Math.max(0, remaining)
             : Math.round((totalAmount / Math.max(orderGroups.length, 1)) * 100) / 100;
           remaining = Math.max(0, Math.round((remaining - allocated) * 100) / 100);
-          return [group.resId, allocated];
+          return [group.groupKey, allocated];
         }));
       };
 
@@ -932,7 +935,7 @@ export default function Panier() {
   };
 
   const buildOrderValidationPayload = (
-    group: { resId: string; realItems: any[]; qualityFeeItem: any; resSubtotal: number },
+    group: { groupKey: string; resId: string; realItems: any[]; qualityFeeItem: any; resSubtotal: number },
     index: number,
     resCount: number,
     orderReference: string,
@@ -943,15 +946,15 @@ export default function Panier() {
     pointsDiscountByRestaurant: Map<string, number>,
     flexDiscountByRestaurant: Map<string, number>,
   ) => {
-    const { resId, realItems, qualityFeeItem, resSubtotal } = group;
+    const { groupKey, resId, realItems, qualityFeeItem, resSubtotal } = group;
     const resDiscount = restaurantId === resId ? formulaDiscount : 0;
     const resPromoDiscount = restaurantId === resId ? effectivePromoDiscount : 0;
-    const resTokOneDiscount = tokOneDiscountByRestaurant.get(resId) || 0;
+    const resTokOneDiscount = tokOneDiscountByRestaurant.get(groupKey) || 0;
     const qualityFeeAmount = qualityFeeItem?.price || 0;
-    const deliveryFeePerRestaurant = deliveryFeeByRestaurant.get(resId) || 0;
-    const resTokOneDeliverySaved = tokOneDeliverySavedByRestaurant.get(resId) || 0;
-    const resPointsDiscount = pointsDiscountByRestaurant.get(resId) || 0;
-    const resFlexDiscount = flexDiscountByRestaurant.get(resId) || 0;
+    const deliveryFeePerRestaurant = deliveryFeeByRestaurant.get(groupKey) || 0;
+    const resTokOneDeliverySaved = tokOneDeliverySavedByRestaurant.get(groupKey) || 0;
+    const resPointsDiscount = pointsDiscountByRestaurant.get(groupKey) || 0;
+    const resFlexDiscount = flexDiscountByRestaurant.get(groupKey) || 0;
     const orderCheckoutId = crypto.randomUUID();
     const orderRefForRestaurant = resCount > 1 ? `${orderReference}-${index + 1}` : orderReference;
     const clientTotal = resSubtotal
@@ -999,7 +1002,10 @@ export default function Panier() {
         total_amount: clientTotal,
         notes: notes || null,
         items: orderItemsJson,
-        metadata: finalMetadata,
+        metadata: {
+          ...finalMetadata,
+          ...getMealSubscriptionOrderMetadata(realItems),
+        },
         checkout_id: orderCheckoutId,
       },
     };

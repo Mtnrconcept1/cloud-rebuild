@@ -16,6 +16,7 @@ const cartMocks = vi.hoisted(() => ({
 const subscriptionRows = vi.hoisted(() => ({
   rows: [
     {
+      id: "slot-1",
       day_of_week: "Lundi",
       menu_item_id: "item-1",
       restaurant_id: "restaurant-1",
@@ -66,6 +67,10 @@ function createSupabaseTableMock(table: string) {
         }),
       }),
       upsert: vi.fn(),
+      update: () => ({
+        eq: () => Promise.resolve({ error: null }),
+      }),
+      insert: vi.fn(() => Promise.resolve({ error: null })),
       delete: vi.fn(),
     };
   }
@@ -122,6 +127,7 @@ describe("Abonnement cart sync", () => {
     cartMocks.setOrderMode.mockReturnValue(false);
     subscriptionRows.rows = [
       {
+        id: "slot-1",
         day_of_week: "Lundi",
         menu_item_id: "item-1",
         restaurant_id: "restaurant-1",
@@ -170,6 +176,7 @@ describe("Abonnement cart sync", () => {
   it("syncs several subscription meals from different restaurants into one multi-restaurant cart", async () => {
     subscriptionRows.rows = [
       {
+        id: "slot-1",
         day_of_week: "Lundi",
         menu_item_id: "item-1",
         restaurant_id: "restaurant-1",
@@ -178,6 +185,7 @@ describe("Abonnement cart sync", () => {
         restaurants: { id: "restaurant-1", name: "Tok Test" },
       },
       {
+        id: "slot-2",
         day_of_week: "Mardi",
         menu_item_id: "item-2",
         restaurant_id: "restaurant-2",
@@ -215,6 +223,106 @@ describe("Abonnement cart sync", () => {
         weeklyTotal: 34,
         planDays: ["Lundi", "Mardi"],
       }),
+      "delivery",
+    );
+  });
+
+  it("syncs several meals from the same restaurant on the same day", async () => {
+    subscriptionRows.rows = [
+      {
+        id: "slot-1",
+        day_of_week: "Lundi",
+        menu_item_id: "item-1",
+        restaurant_id: "restaurant-1",
+        preferred_time: "12:00",
+        menu_items: { id: "item-1", name: "Plat abonne", price: 16 },
+        restaurants: { id: "restaurant-1", name: "Tok Test" },
+      },
+      {
+        id: "slot-2",
+        day_of_week: "Lundi",
+        menu_item_id: "item-2",
+        restaurant_id: "restaurant-1",
+        preferred_time: "12:00",
+        menu_items: { id: "item-2", name: "Dessert abonne", price: 8 },
+        restaurants: { id: "restaurant-1", name: "Tok Test" },
+      },
+    ];
+
+    renderAbonnement();
+
+    const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
+    expect(screen.getByText(/2 repas\/semaine - 1 restaurant - 24\.00 CHF/i)).toBeInTheDocument();
+    fireEvent.click(cartButton);
+
+    await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
+
+    expect(cartMocks.replaceCartItems).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          menuItemId: "item-1",
+          restaurantId: "restaurant-1",
+          metadata: expect.objectContaining({ subscription_slot_id: "slot-1", subscription_day: "Lundi" }),
+        }),
+        expect.objectContaining({
+          menuItemId: "item-2",
+          restaurantId: "restaurant-1",
+          metadata: expect.objectContaining({ subscription_slot_id: "slot-2", subscription_day: "Lundi" }),
+        }),
+      ]),
+      expect.objectContaining({
+        feature: "abonnement",
+        multi_restaurant: false,
+        restaurant_count: 1,
+        weeklyTotal: 24,
+        planDays: ["Lundi"],
+      }),
+      "delivery",
+    );
+  });
+
+  it("lets the customer change the delivery time for all meals of a day", async () => {
+    subscriptionRows.rows = [
+      {
+        id: "slot-1",
+        day_of_week: "Lundi",
+        menu_item_id: "item-1",
+        restaurant_id: "restaurant-1",
+        preferred_time: "12:00",
+        menu_items: { id: "item-1", name: "Plat abonne", price: 16 },
+        restaurants: { id: "restaurant-1", name: "Tok Test" },
+      },
+      {
+        id: "slot-2",
+        day_of_week: "Lundi",
+        menu_item_id: "item-2",
+        restaurant_id: "restaurant-1",
+        preferred_time: "12:00",
+        menu_items: { id: "item-2", name: "Dessert abonne", price: 8 },
+        restaurants: { id: "restaurant-1", name: "Tok Test" },
+      },
+    ];
+
+    renderAbonnement();
+
+    fireEvent.click(await screen.findByRole("button", { name: /Lundi/i }));
+    fireEvent.change(screen.getByLabelText("Heure de livraison Lundi"), { target: { value: "12:45" } });
+    fireEvent.click(screen.getByRole("button", { name: /Voir le panier/i }));
+
+    await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
+
+    expect(cartMocks.replaceCartItems).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          menuItemId: "item-1",
+          metadata: expect.objectContaining({ preferred_time: "12:45", delivery_time: "12:45" }),
+        }),
+        expect.objectContaining({
+          menuItemId: "item-2",
+          metadata: expect.objectContaining({ preferred_time: "12:45", delivery_time: "12:45" }),
+        }),
+      ]),
+      expect.any(Object),
       "delivery",
     );
   });
