@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
+  const [initialSessionReceived, setInitialSessionReceived] = useState(false);
 
   const resolveRolesWithFallback = useCallback(async (userId: string) => {
     const supabase = getSupabase();
@@ -129,13 +130,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [roles, user]);
 
   useEffect(() => {
-    let initialised = false;
     let cancelled = false;
+
+    getSupabase().auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      setSession(session);
+      setUser(session?.user ?? null);
+      setMonitoringUser(session?.user ?? null);
+      setInitialSessionReceived(true);
+    });
 
     const { data: { subscription } } = getSupabase().auth.onAuthStateChange(
       (_event, session) => {
-        // Skip until getSession has finished the first load
-        if (!initialised) return;
         if (cancelled) return;
         setSession(session);
         setUser(session?.user ?? null);
@@ -144,36 +150,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRoles([]);
           setActiveRole(null);
         }
+        setInitialSessionReceived(true);
       }
     );
-
-    getSupabase().auth.getSession()
-      .then(({ data: { session } }) => {
-        if (cancelled) return;
-        setSession(session);
-        setUser(session?.user ?? null);
-        setMonitoringUser(session?.user ?? null);
-        if (!session?.user) {
-          setRoles([]);
-          setActiveRole(null);
-          setLoading(false);
-        }
-        initialised = true;
-      })
-      .catch(async (error) => {
-        if (cancelled) return;
-        console.warn("[auth] initial session refresh failed; clearing local auth state", error);
-        await getSupabase().auth.signOut({ scope: "local" }).catch(() => undefined);
-        if (cancelled) return;
-        setSession(null);
-        setUser(null);
-        setMonitoringUser(null);
-        setRoles([]);
-        setActiveRole(null);
-        localStorage.removeItem(ACTIVE_ROLE_KEY);
-        setLoading(false);
-        initialised = true;
-      });
 
     return () => {
       cancelled = true;
@@ -184,6 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    if (!initialSessionReceived) return;
+
     if (!user?.id) {
       setRoles([]);
       setActiveRole(null);
@@ -193,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
+    setLoading(true);
     void fetchRoles(user.id)
       .then((fetchedRoles) => {
         if (cancelled) return;
@@ -207,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [applyRoles, fetchRoles, user]);
+  }, [applyRoles, fetchRoles, user, initialSessionReceived]);
 
   const signOut = async () => {
     await getSupabase().auth.signOut();

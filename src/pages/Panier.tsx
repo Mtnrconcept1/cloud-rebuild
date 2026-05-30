@@ -31,6 +31,7 @@ import CartItemList from "@/components/cart/CartItemList";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import FlexOptions from "@/components/cart/FlexOptions";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import UpsellModal from "@/components/cart/UpsellModal";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import {
   getAllowedPaymentMethods,
@@ -70,7 +71,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
 }
 
 export default function Panier() {
-  const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode, addItem } = useCart();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -104,6 +105,8 @@ export default function Panier() {
   const [deliveryDate, setDeliveryDate] = useState(() => getTodayDateValue());
   const [deliveryTime, setDeliveryTime] = useState("");
   const [deliveryService, setDeliveryService] = useState<ServicePeriod | null>(null);
+  const [upsellModalOpen, setUpsellModalOpen] = useState(false);
+  const [checkoutPendingAfterUpsell, setCheckoutPendingAfterUpsell] = useState(false);
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
 
   const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
@@ -445,7 +448,23 @@ export default function Panier() {
     return Array.from(groups.values()).sort((a, b) => a.key.localeCompare(b.key));
   }, [chefsTableItems, isChefsTableCheckout]);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
+    // If we have items and we are not in chef's table, we can show the upsell modal
+    if (!isChefsTableCheckout && items.length > 0) {
+      setUpsellModalOpen(true);
+    } else {
+      processCheckout();
+    }
+  };
+
+  useEffect(() => {
+    if (checkoutPendingAfterUpsell) {
+      setCheckoutPendingAfterUpsell(false);
+      processCheckout();
+    }
+  }, [checkoutPendingAfterUpsell, items]);
+
+  const processCheckout = async () => {
     if (authLoading) {
       toast({
         title: "Authentification en cours",
@@ -1480,6 +1499,31 @@ export default function Panier() {
             : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
         </Button>
       </div>
+
+      <UpsellModal 
+        open={upsellModalOpen}
+        onClose={() => setUpsellModalOpen(false)}
+        onContinue={() => {
+          setUpsellModalOpen(false);
+          setCheckoutPendingAfterUpsell(true);
+        }}
+        onAdd={(suggestedItem) => {
+          addItem({
+            menuItemId: suggestedItem.id,
+            name: suggestedItem.name,
+            price: Number(suggestedItem.price),
+            quantity: 1,
+            restaurantId: suggestedItem.restaurant_id,
+          });
+        }}
+        restaurantId={restaurantId}
+        missingForFreeDelivery={
+          !isChefsTableCheckout && orderMode === "delivery" && isTokOneMember && quotedDeliveryFee > 0 && discountableSubtotal < tokOneFreeDeliveryMinOrder
+            ? (tokOneFreeDeliveryMinOrder - discountableSubtotal)
+            : null
+        }
+        currentItems={items}
+      />
     </main>
   );
 }
