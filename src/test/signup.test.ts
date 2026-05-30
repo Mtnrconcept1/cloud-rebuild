@@ -31,6 +31,37 @@ function extractFunction(sql: string, functionName: string) {
   return match![0];
 }
 
+describe("signup email verification + server-side draft SQL", () => {
+  const draftSql = latestMigrationContaining(/admin_submit_signup_application/i);
+
+  it("ajoute le statut awaiting_email a la contrainte CHECK", () => {
+    expect(draftSql).toMatch(/status\s+IN\s*\([^)]*'awaiting_email'/i);
+  });
+
+  it("cree un RPC service-role parametre par p_user_id (jamais auth.uid)", () => {
+    const fn = extractFunction(draftSql, "admin_submit_signup_application");
+    expect(fn).toContain("p_user_id uuid");
+    expect(fn).not.toMatch(/auth\.uid\(\)/);
+    expect(fn).toContain("'awaiting_email'");
+    expect(draftSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_submit_signup_application[\s\S]*TO\s+service_role/i);
+  });
+
+  it("promeut les brouillons et notifie l'admin a la confirmation d'email", () => {
+    expect(draftSql).toContain("on_auth_user_email_confirmed");
+    expect(draftSql).toMatch(/AFTER\s+UPDATE\s+OF\s+email_confirmed_at\s+ON\s+auth\.users/i);
+    const trigFn = extractFunction(draftSql, "handle_email_confirmation");
+    expect(trigFn).toMatch(/status\s*=\s*'pending_review'/i);
+    expect(trigFn).toContain("email_queue");
+  });
+
+  it("notifie le demandeur depuis le RPC de revue admin", () => {
+    const reviewSql = latestMigrationContaining(/admin_review_signup_application/i);
+    const reviewFn = extractFunction(reviewSql, "admin_review_signup_application");
+    expect(reviewFn).toContain("email_queue");
+    expect(reviewFn).toMatch(/v_applicant_email/i);
+  });
+});
+
 describe("signup and admin moderation SQL", () => {
   it("keeps client signup document-free and immediately approved", () => {
     const sql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.sync_signup_application/i);
