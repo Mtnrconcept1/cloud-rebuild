@@ -200,6 +200,13 @@ BEGIN
         NULLIF(trim(COALESCE(p_phone, '')), ''), false, 'pending'
       )
       RETURNING id INTO v_restaurant_id;
+    ELSE
+      UPDATE public.restaurants
+      SET legal_name = COALESCE(NULLIF(trim(COALESCE(p_legal_name, '')), ''), public.restaurants.legal_name),
+          phone = COALESCE(NULLIF(trim(COALESCE(p_phone, '')), ''), public.restaurants.phone),
+          description = COALESCE(NULLIF(trim(COALESCE(p_restaurant_description, '')), ''), public.restaurants.description),
+          updated_at = v_now
+      WHERE id = v_restaurant_id;
     END IF;
 
     UPDATE public.signup_applications
@@ -240,15 +247,19 @@ BEGIN
     WHERE user_id = NEW.id AND status = 'awaiting_email'
     RETURNING id, requested_role, full_name
   LOOP
-    v_subject := 'Nouvelle candidature ' || v_app.requested_role || ' a verifier';
-    v_body := 'Une candidature ' || v_app.requested_role || ' (' || COALESCE(v_app.full_name, '') ||
-              ') vient d''etre confirmee et attend votre revue dans l''espace admin.';
-    INSERT INTO public.email_queue (to_email, subject, body_text, metadata)
-    SELECT u.email, v_subject, v_body,
-           jsonb_build_object('application_id', v_app.id, 'kind', 'signup_admin_alert')
-    FROM public.user_roles ur
-    JOIN auth.users u ON u.id = ur.user_id
-    WHERE ur.role = 'admin' AND u.email IS NOT NULL;
+    BEGIN
+      v_subject := 'Nouvelle candidature ' || v_app.requested_role || ' a verifier';
+      v_body := 'Une candidature ' || v_app.requested_role || ' (' || COALESCE(v_app.full_name, '') ||
+                ') vient d''etre confirmee et attend votre revue dans l''espace admin.';
+      INSERT INTO public.email_queue (to_email, subject, body_text, metadata)
+      SELECT u.email, v_subject, v_body,
+             jsonb_build_object('application_id', v_app.id, 'kind', 'signup_admin_alert')
+      FROM public.user_roles ur
+      JOIN auth.users u ON u.id = ur.user_id
+      WHERE ur.role = 'admin' AND u.email IS NOT NULL;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE WARNING 'handle_email_confirmation: admin alert enqueue failed (%, %)', SQLERRM, SQLSTATE;
+    END;
   END LOOP;
 
   RETURN NEW;
@@ -279,6 +290,7 @@ DECLARE
   v_next_status text := lower(trim(COALESCE(p_status, '')));
   v_restaurant_id uuid;
   v_applicant_email text;
+  v_role_label text;
 BEGIN
   IF NOT v_is_service_role AND NOT public.has_role(v_actor_id, 'admin') THEN
     RAISE EXCEPTION 'Forbidden';
@@ -346,22 +358,23 @@ BEGIN
 
   SELECT email INTO v_applicant_email FROM auth.users WHERE id = v_application.user_id;
   IF v_applicant_email IS NOT NULL THEN
+    v_role_label := CASE WHEN v_application.requested_role = 'courier' THEN 'livreur' ELSE 'restaurateur' END;
     INSERT INTO public.email_queue (to_email, subject, body_text, metadata)
     VALUES (
       v_applicant_email,
       CASE v_next_status
-        WHEN 'approved' THEN 'Votre compte ' || v_application.requested_role || ' est valide'
-        WHEN 'needs_changes' THEN 'Corrections demandees sur votre dossier ' || v_application.requested_role
-        ELSE 'Votre demande ' || v_application.requested_role || ' a ete refusee'
+        WHEN 'approved' THEN 'Votre compte ' || v_role_label || ' est valide'
+        WHEN 'needs_changes' THEN 'Corrections demandees sur votre dossier ' || v_role_label
+        ELSE 'Votre demande ' || v_role_label || ' a ete refusee'
       END,
       CASE v_next_status
-        WHEN 'approved' THEN 'Bonne nouvelle : votre dossier ' || v_application.requested_role ||
+        WHEN 'approved' THEN 'Bonne nouvelle : votre dossier ' || v_role_label ||
           ' a ete approuve. Vous pouvez desormais acceder a votre espace.'
         WHEN 'needs_changes' THEN 'Votre dossier necessite des corrections : ' ||
           COALESCE(NULLIF(trim(p_review_note), ''), 'voir le detail dans l''application') ||
           '. Reprenez votre dossier dans la rubrique onboarding.'
-        ELSE 'Votre demande ' || v_application.requested_role || ' a ete refusee. ' ||
-          COALESCE(NULLIF(trim(p_review_note), ''), '')
+        ELSE 'Votre demande ' || v_role_label || ' a ete refusee.' ||
+          CASE WHEN NULLIF(trim(p_review_note), '') IS NOT NULL THEN ' ' || trim(p_review_note) ELSE '' END
       END,
       jsonb_build_object('application_id', p_application_id, 'kind', 'signup_decision', 'status', v_next_status)
     );
