@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Newspaper, RefreshCw, Sparkles, TrendingUp } from "lucide-react";
 
 import SocialComposer from "@/components/social/SocialComposer";
-import SocialPostCard from "@/components/social/SocialPostCard";
+import TrackedSocialPostCard from "@/components/social/TrackedSocialPostCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -134,7 +134,12 @@ export default function Actualites() {
           ) : posts.length > 0 ? (
             <div className="space-y-4">
               {posts.map((post: SocialFeedPost) => (
-                <SocialPostCard key={post.activityId} post={post} highlighted={post.id === highlightedPostId} />
+                <TrackedSocialPostCard
+                  key={post.activityId}
+                  post={post}
+                  highlighted={post.id === highlightedPostId}
+                  source={`actualites:${scope}`}
+                />
               ))}
               <div className="flex justify-center">
                 <Button
