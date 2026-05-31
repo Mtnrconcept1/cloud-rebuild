@@ -42,6 +42,8 @@ type SocialRealtimeManagerOptions<TQueryClient> = {
 
 type SocialRealtimeManagerInput<TQueryClient> = SocialRealtimeManagerOptions<TQueryClient> | SocialRealtimeClient;
 
+let globalTopicSequence = 0;
+
 function isManagerOptions<TQueryClient>(value: SocialRealtimeManagerInput<TQueryClient>): value is SocialRealtimeManagerOptions<TQueryClient> {
   return Boolean(
     value &&
@@ -49,6 +51,15 @@ function isManagerOptions<TQueryClient>(value: SocialRealtimeManagerInput<TQuery
       "client" in value &&
       typeof (value as SocialRealtimeManagerOptions<TQueryClient>).client?.channel === "function",
   );
+}
+
+function createUniqueTopic(topicPrefix: string, scope: string) {
+  globalTopicSequence += 1;
+  const randomPart = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  return `${topicPrefix}:${scope}:${globalTopicSequence}:${randomPart}`;
 }
 
 function subscribeTables(client: SocialRealtimeClient, topic: string, callback: () => void) {
@@ -70,7 +81,6 @@ export function createSocialRealtimeManager<TQueryClient = unknown>(input: Socia
       } satisfies SocialRealtimeManagerOptions<TQueryClient>;
 
   const { client, onInvalidate, topicPrefix = "social-feed" } = options;
-  let sequence = 0;
   const entries = new Map<string, SocialRealtimeEntry<TQueryClient>>();
 
   return {
@@ -78,8 +88,7 @@ export function createSocialRealtimeManager<TQueryClient = unknown>(input: Socia
       let entry = entries.get(userId);
 
       if (!entry) {
-        sequence += 1;
-        const topic = `${topicPrefix}:${userId}:${sequence}`;
+        const topic = createUniqueTopic(topicPrefix, userId || "anonymous");
         const clientRefs = new Map<TQueryClient, number>();
         const notifySubscribers = () => {
           for (const clientRef of clientRefs.keys()) {
@@ -116,8 +125,7 @@ export function createSocialRealtimeManager<TQueryClient = unknown>(input: Socia
     },
 
     subscribeAll(onChange: () => void = () => undefined) {
-      sequence += 1;
-      const topic = `${topicPrefix}:all:${sequence}`;
+      const topic = createUniqueTopic(topicPrefix, "all");
       const channel = subscribeTables(client, topic, onChange);
       let released = false;
 
