@@ -31,13 +31,13 @@ const restaurantRows = vi.hoisted(() => ({
   rows: [] as any[],
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({
     user: { id: "user-1", email: "client@example.com" },
   }),
 }));
 
-vi.mock("@/lib/cart", () => ({
+vi.mock("@/lib/cart-context", () => ({
   useCart: () => ({
     addItem: cartMocks.addItem,
     clearCart: cartMocks.clearCart,

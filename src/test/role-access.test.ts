@@ -11,7 +11,7 @@ import {
   getRoleHomePath,
   isSuperAdminEmail,
 } from "@/lib/roleAccess";
-import type { UserRole } from "@/lib/auth";
+import type { UserRole } from "@/lib/auth-context";
 
 describe("role access policy", () => {
   it("recognizes only rbarman@hotmail.ch as the cross-role super admin", () => {

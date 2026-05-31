@@ -25,7 +25,7 @@ import {
   type ReservationPerformanceRow,
   type ReviewPerformanceRow,
 } from "@/lib/dashboardPerformance";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

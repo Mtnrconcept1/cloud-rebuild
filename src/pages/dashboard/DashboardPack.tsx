@@ -4,7 +4,7 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { useLaunchPacks, useRestaurantLaunchPack } from "@/hooks/useLaunchPack";
 import {
   getServiceIcon,

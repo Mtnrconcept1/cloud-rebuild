@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useAuth } from "@/lib/auth-context";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import ImageUpload from "@/components/ImageUpload";
 import { Star, Trash2, Pencil, Image as ImageIcon } from "lucide-react";
 

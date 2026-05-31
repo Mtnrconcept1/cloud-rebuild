@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 import { MessageSquareText, Star, Store } from "lucide-react";

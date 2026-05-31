@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { User, ShoppingCart, CalendarDays, LogOut, LayoutDashboard, Settings, Bell, Crown } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 
 const NAV_ITEMS = [
   { to: "/profil", label: "Mon profil", icon: User },

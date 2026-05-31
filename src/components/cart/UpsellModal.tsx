@@ -3,7 +3,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Sparkles, X } from "lucide-react";
-import type { CartItem } from "@/lib/cart";
+import type { CartItem } from "@/lib/cart-context";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const supabase = getSupabase();

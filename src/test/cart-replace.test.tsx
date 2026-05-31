@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CartProvider, useCart } from "@/lib/cart";
+import { CartProvider } from "@/lib/cart";
+import { useCart } from "@/lib/cart-context";
 
 vi.mock("@/lib/analytics", () => ({
   trackEvent: vi.fn(),

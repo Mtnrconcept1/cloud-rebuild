@@ -17,7 +17,7 @@ import { buildRestaurantAccountingSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
 import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

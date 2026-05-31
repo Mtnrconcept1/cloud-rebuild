@@ -42,7 +42,7 @@ import {
   useToggleRestaurantFollow,
   useToggleSocialRepost,
 } from "@/hooks/useSocialFeed";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import {
   SOCIAL_AUDIENCE_SEGMENTS,

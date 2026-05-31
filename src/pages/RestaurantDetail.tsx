@@ -1,7 +1,7 @@
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import PriceRangeIcons from "@/components/PriceRangeIcons";
 import AntiWasteCard from "@/components/AntiWasteCard";
 import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useCart } from "@/lib/cart";
+import { useCart } from "@/lib/cart-context";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useRef } from "react";

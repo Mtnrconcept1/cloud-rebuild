@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";

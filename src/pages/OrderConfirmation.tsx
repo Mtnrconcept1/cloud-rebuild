@@ -17,8 +17,8 @@ import OrderStatusBadge from "@/components/OrderStatusBadge";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth-context";
+import { useCart } from "@/lib/cart-context";
 import {
   buildCheckoutCompletionFromDashboardOrders,
   type CheckoutCompletionResult,

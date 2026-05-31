@@ -1,16 +1,6 @@
-import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from "react";
-import { useOwnerRestaurants, type OwnedRestaurant } from "./useOwnerRestaurants";
-
-interface DashboardContextValue {
-  restaurants: OwnedRestaurant[];
-  selectedId: string | null;
-  setSelectedId: (id: string) => void;
-  loading: boolean;
-  error: string | null;
-  disabledFeatures: Set<string>;
-}
-
-const DashboardContext = createContext<DashboardContextValue | null>(null);
+import { useState, useEffect, useMemo, type ReactNode } from "react";
+import { useOwnerRestaurants } from "./useOwnerRestaurants";
+import { DashboardContext } from "./useDashboardRestaurant";
 
 const STORAGE_KEY = "miamz-dashboard-restaurant";
 
@@ -60,10 +50,4 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       {children}
     </DashboardContext.Provider>
   );
-}
-
-export function useDashboardRestaurant() {
-  const ctx = useContext(DashboardContext);
-  if (!ctx) throw new Error("useDashboardRestaurant must be inside DashboardProvider");
-  return ctx;
 }

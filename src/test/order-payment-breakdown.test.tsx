@@ -21,7 +21,7 @@ describe("OrderPaymentBreakdown", () => {
     );
 
     expect(screen.getByText("Miamz pris en charge par Tok")).toBeInTheDocument();
-    expect(screen.getByText("Reduction fidelite appliquee")).toBeInTheDocument();
+    expect(screen.getByText("Réduction fidélité appliquée")).toBeInTheDocument();
     expect(screen.getByText("-5.00 CHF")).toBeInTheDocument();
   });
 });

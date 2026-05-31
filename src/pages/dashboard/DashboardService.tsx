@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, MoonStar, Plus, Settings, Store, SunMedium, Trash2 } from "lucide-react";
 import { useActiveFeatures } from "@/lib/featureFlags";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import {
   DEFAULT_SERVICE_SETTINGS,
   getServicePeriodLabel,

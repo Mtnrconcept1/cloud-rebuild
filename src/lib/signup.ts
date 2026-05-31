@@ -1,6 +1,6 @@
 import { getSupabase } from "@/integrations/supabase/client";
 
-import type { UserRole } from "@/lib/auth";
+import type { UserRole } from "@/lib/auth-context";
 
 export type SignupRole = Extract<UserRole, "client" | "restaurateur" | "courier">;
 export type SignupApplicationStatus = "pending_review" | "approved" | "needs_changes" | "rejected";

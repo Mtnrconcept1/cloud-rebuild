@@ -1,4 +1,4 @@
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { canAccessAnyRole, getRoleHomePath } from "@/lib/roleAccess";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { Navigate, useLocation } from "react-router-dom";

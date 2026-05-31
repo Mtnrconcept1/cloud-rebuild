@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { enablePush, disablePush } from "@/lib/push-unified";
 import {
   getWebPushStatus,

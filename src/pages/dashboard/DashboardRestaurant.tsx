@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useActiveFeatures } from "@/lib/featureFlags";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken } from "@/lib/session";
 import {
@@ -26,7 +26,7 @@ import {
 } from "@/lib/restaurantCategories";
 import { getGloballyEnabledPaymentMethods } from "@/lib/paymentMethods";
 
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

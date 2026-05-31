@@ -10,7 +10,7 @@ import CourierPushStatusCard from "@/components/courier/CourierPushStatusCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import {
   COURIER_ACTIVE_JOB_STATUSES,
   COURIER_APPROVAL_STATUS_META,

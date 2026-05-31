@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
-import { CartItem } from "@/lib/cart";
+import type { CartItem } from "@/lib/cart-context";
 import { Badge } from "@/components/ui/badge";
 import { Percent, Sparkles } from "lucide-react";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";

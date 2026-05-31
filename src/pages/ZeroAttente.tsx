@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -1082,7 +1082,7 @@ export default function ZeroAttente() {
                 )}
                 {displayPricing.pointsDiscount > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Miamz utilisÃ©s</span>
+                    <span className="text-muted-foreground">Miamz utilisés</span>
                     <span className="font-medium text-pink-500">-{displayPricing.pointsDiscount.toFixed(2)} CHF</span>
                   </div>
                 )}

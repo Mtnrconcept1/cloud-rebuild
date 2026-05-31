@@ -1,72 +1,13 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { trackEvent } from "@/lib/analytics";
-
-export interface CartItem {
-  menuItemId: string;
-  name: string;
-  price: number;
-  quantity: number;
-  restaurantId: string;
-  restaurantName: string;
-  metadata?: Record<string, any>;
-}
-
-type CartInputItem = Omit<CartItem, "quantity"> & { quantity?: number };
-
-export type CartConflict = {
-  type: "restaurant" | "mode";
-  pendingItem?: CartInputItem;
-  pendingMode?: "delivery" | "takeaway";
-};
-
-interface CartContextType {
-  items: CartItem[];
-  addItem: (item: CartInputItem) => void;
-  replaceCartItems: (
-    items: CartInputItem[],
-    metadata?: Record<string, any>,
-    mode?: "delivery" | "takeaway",
-  ) => void;
-  removeItem: (menuItemId: string) => void;
-  updateQuantity: (menuItemId: string, quantity: number) => void;
-  clearCart: () => void;
-  total: number;
-  itemCount: number;
-  restaurantId: string | null;
-  cartMetadata: Record<string, any>;
-  updateCartMetadata: (metadata: Record<string, any>) => void;
-  orderMode: "delivery" | "takeaway";
-  setOrderMode: (mode: "delivery" | "takeaway", options?: { force?: boolean }) => boolean;
-  conflict: CartConflict | null;
-  setConflict: (conflict: CartConflict | null) => void;
-  resolveConflict: (action: "clear" | "checkout") => void;
-}
-
-const CartContext = createContext<CartContextType>({
-  items: [],
-  addItem: () => { },
-  replaceCartItems: () => { },
-  removeItem: () => { },
-  updateQuantity: () => { },
-  clearCart: () => { },
-  total: 0,
-  itemCount: 0,
-  restaurantId: null,
-  cartMetadata: {},
-  updateCartMetadata: () => { },
-  orderMode: "delivery",
-  setOrderMode: () => false,
-  conflict: null,
-  setConflict: () => { },
-  resolveConflict: () => { },
-});
-
-export const useCart = () => useContext(CartContext);
+import { CartContext, type CartConflict, type CartInputItem, type CartItem } from "@/lib/cart-context";
 
 function isGuaranteedDeliveryItem(item: CartInputItem | CartItem): boolean {
   return item.metadata?.is_guaranteed_delivery_slot === true
     || item.metadata?.feature === "creneaux-garantis";
 }
+
+export type { CartConflict, CartInputItem, CartItem } from "@/lib/cart-context";
 
 function isGuaranteedDeliveryCart(metadata: Record<string, any>, items: CartItem[]): boolean {
   return metadata.feature === "creneaux-garantis"

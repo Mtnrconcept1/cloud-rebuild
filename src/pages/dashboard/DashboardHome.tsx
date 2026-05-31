@@ -10,7 +10,7 @@ import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { ArrowRight, CalendarDays, FileText, LayoutDashboard, MoonStar, ShoppingCart, SunMedium, TrendingUp } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
 

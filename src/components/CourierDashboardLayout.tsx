@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import CourierMissionDialog from "@/components/courier/CourierMissionDialog";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { respondToDispatchAttempt } from "@/lib/courier";
 import {
   buildCourierMissionFromNotification,

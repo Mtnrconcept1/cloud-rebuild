@@ -27,7 +27,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
 import { SOCIAL_MARKETING_GOALS } from "@/lib/socialFeed";
-import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
+import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
 
 function asNumber(value: unknown) {
   const parsed = Number(value || 0);

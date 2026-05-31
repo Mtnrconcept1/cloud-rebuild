@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import CampaignBanner from "@/components/CampaignBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useCart } from "@/lib/cart";
-import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useActiveFeatures } from "@/lib/featureFlags";
-import CountdownTimer, { getTargetFromMinutes } from "@/components/CountdownTimer";
+import CountdownTimer from "@/components/CountdownTimer";
+import { getTargetFromMinutes } from "@/components/countdown-timer-utils";
 import { isFlashSalePubliclyVisible } from "@/lib/specialOffers";
 
 const supabase = getSupabase();

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { ensureCourierProfile } from "@/lib/courier";
 
 export function useCourierProfile() {

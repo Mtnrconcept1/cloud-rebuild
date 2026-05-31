@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
 import { trackSponsoredClick, trackImpression, trackClick } from "@/lib/analytics";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useToast } from "@/hooks/use-toast";
 import { SponsoredBadge, SponsoredContextPill } from "@/components/campaigns/SponsoredVisual";

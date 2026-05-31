@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { useEffect, useState, useCallback, ReactNode } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import { setMonitoringUser } from "@/lib/monitoring";
 import {
   canSwitchRoles,
@@ -8,41 +8,9 @@ import {
   getEffectiveRoles,
   isSuperAdminEmail,
 } from "@/lib/roleAccess";
-
-export type UserRole = "client" | "restaurateur" | "admin" | "courier";
+import { AuthContext, type UserRole } from "@/lib/auth-context";
 
 const ACTIVE_ROLE_KEY = "miamz-active-role";
-
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-  /** Currently active role (for navigation & route protection) */
-  role: UserRole | null;
-  /** All roles assigned to this user */
-  roles: UserRole[];
-  /** True only for the configured cross-role super admin account */
-  isSuperAdmin: boolean;
-  /** Whether the current user is allowed to switch active spaces */
-  canSwitchRole: boolean;
-  /** Switch the active role */
-  switchRole: (role: UserRole) => void;
-  signOut: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  loading: true,
-  role: null,
-  roles: [],
-  isSuperAdmin: false,
-  canSwitchRole: false,
-  switchRole: () => { },
-  signOut: async () => { },
-});
-
-export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -229,3 +197,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
+
+export type { UserRole } from "@/lib/auth-context";

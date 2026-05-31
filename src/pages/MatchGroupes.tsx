@@ -24,8 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth-context";
+import { useCart } from "@/lib/cart-context";
 
 const supabase = getSupabase();
 

@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

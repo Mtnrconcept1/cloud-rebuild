@@ -19,7 +19,8 @@ import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { getOrderStatusLockMessage } from "@/lib/statusLocks";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
-import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
+import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
+import { getOrderPaymentBreakdown } from "@/components/orders/order-payment-breakdown-utils";
 import type { CancellationReasonCode } from "@/lib/reservationMutations";
 import {
   cancelOrderByRestaurant,
@@ -40,7 +41,7 @@ import {
   getDashboardOrderTypeMeta,
   summarizeDashboardOrdersByType,
 } from "@/lib/dashboardOrderTypes";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

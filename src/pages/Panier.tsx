@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useCart } from "@/lib/cart";
-import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";

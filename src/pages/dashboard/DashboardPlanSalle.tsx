@@ -111,7 +111,7 @@ import { updateRestaurantReservationStatus } from "@/lib/reservationMutations";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
 
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

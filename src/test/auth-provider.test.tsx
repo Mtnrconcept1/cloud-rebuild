@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { AuthProvider } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 
 const signOut = vi.fn();
 const getSession = vi.fn();

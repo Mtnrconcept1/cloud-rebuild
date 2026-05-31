@@ -10,7 +10,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-vi.mock("@/pages/dashboard/DashboardContext", () => ({
+vi.mock("@/pages/dashboard/useDashboardRestaurant", () => ({
   useDashboardRestaurant: () => ({
     selectedId: "restaurant-1",
     restaurants: [{ id: "restaurant-1", name: "Cafe Nord", disabled_dashboard_features: [] }],

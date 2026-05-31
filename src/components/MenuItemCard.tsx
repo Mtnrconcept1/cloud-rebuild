@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Plus } from "lucide-react";
 
 import { trackClick, trackImpression } from "@/lib/analytics";
-import { useCart } from "@/lib/cart";
+import { useCart } from "@/lib/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { resolveMenuItemImageUrl } from "@/lib/menu-item-images";
 import { Button } from "@/components/ui/button";

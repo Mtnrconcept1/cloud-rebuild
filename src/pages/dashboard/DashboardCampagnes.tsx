@@ -73,7 +73,7 @@ import {
   getFirstAvailablePaymentMethod,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

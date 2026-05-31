@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Bike, ChefHat, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth, type UserRole } from "@/lib/auth";
+import { useAuth, type UserRole } from "@/lib/auth-context";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { getDefaultActiveRole, getRoleHomePath } from "@/lib/roleAccess";
 import {

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { TOK_ONE_DEFAULT_DISCOUNT_PERCENT } from "@/lib/subscriptionEntitlements";
 
 export { TOK_ONE_DEFAULT_DISCOUNT_PERCENT };

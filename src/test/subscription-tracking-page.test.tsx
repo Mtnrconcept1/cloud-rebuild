@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import SuiviCommande from "@/pages/SuiviCommande";
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({ user: { id: "user-1" } }),
 }));
 

@@ -18,14 +18,15 @@ import {
 } from "lucide-react";
 
 import DeliveryMap from "@/components/DeliveryMap";
-import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
+import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
+import { getOrderPaymentBreakdown } from "@/components/orders/order-payment-breakdown-utils";
 import DeliveryProofCard from "@/components/orders/DeliveryProofCard";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { useRealtimeDeliveryTracking, useRealtimeDispatchJob, useRealtimeOrder } from "@/hooks/useRealtimeOrder";

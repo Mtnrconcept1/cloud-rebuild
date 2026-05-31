@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { trackSponsoredConversion } from "@/lib/analytics";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";

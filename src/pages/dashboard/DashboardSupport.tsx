@@ -20,8 +20,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, CircleHelp, Mail, MessageSquare, Search, ShieldQuestion } from "lucide-react";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useAuth } from "@/lib/auth-context";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

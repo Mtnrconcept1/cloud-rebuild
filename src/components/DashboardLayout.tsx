@@ -33,7 +33,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
+import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 

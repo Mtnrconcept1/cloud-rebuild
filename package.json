@@ -15,7 +15,7 @@
     "build:prod": "vite build --mode production",
     "deploy:vercel:prod": "node ./scripts/write-production-env.mjs --out=.env.production.local && npx vercel@latest pull --yes --environment=production && npx vercel@latest --prod",
     "lint": "eslint .",
-    "lint:release": "eslint src/App.tsx src/pages/TokOne.tsx supabase/functions/create-checkout/index.ts supabase/functions/stripe-webhook/index.ts supabase/functions/manage-tok-one-subscription/i[...]",
+    "lint:release": "eslint src/App.tsx src/pages/TokOne.tsx supabase/functions/create-checkout/index.ts supabase/functions/stripe-webhook/index.ts supabase/functions/manage-tok-one-subscription/index.ts",
     "preview": "vite preview",
     "preview:prod": "npm run build:prod && vite preview --mode production",
     "test": "vitest run",

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useCart } from "@/lib/cart";
+import { useCart } from "@/lib/cart-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 

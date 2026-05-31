@@ -33,7 +33,7 @@ import {
   useTokOneSubscription,
 } from "@/hooks/useTokOne";
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 import { cn } from "@/lib/utils";
 

@@ -12,7 +12,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { SUPABASE_URL } from "@/lib/env";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
 

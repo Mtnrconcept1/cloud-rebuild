@@ -6,7 +6,7 @@ import { ArrowUpRight, ReceiptText, Settings, Wallet } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { TokPayableInvoiceDialog } from "@/components/invoices/TokPayableInvoiceDialog";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import type { PayableInvoiceRow } from "@/lib/payableInvoice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

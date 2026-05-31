@@ -22,7 +22,7 @@ import {
   saveCourierProfile,
   type CourierShiftInput,
 } from "@/lib/courier";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 
 type ShiftSlotFormRow = {
   id: string;

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import Actualites from "@/pages/Actualites";
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({
     role: "restaurateur",
     roles: ["client", "restaurateur"],

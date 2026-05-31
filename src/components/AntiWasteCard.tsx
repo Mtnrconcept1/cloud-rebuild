@@ -2,7 +2,7 @@ import { Leaf, Clock, MapPin, Star, Gift, Heart, Zap, ShoppingCart } from "lucid
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useCart } from "@/lib/cart";
+import { useCart } from "@/lib/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import CountdownTimer from "@/components/CountdownTimer";
 

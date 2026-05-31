@@ -3,7 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClie
 import { toast } from "sonner";
 
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { createSocialRealtimeManager } from "@/lib/socialRealtime";
 import {
   normalizeSocialFeedScope,

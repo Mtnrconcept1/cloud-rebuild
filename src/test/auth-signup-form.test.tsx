@@ -24,7 +24,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({
     roles: [],
     switchRole: vi.fn(),

@@ -31,8 +31,8 @@ import {
 } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth-context";
+import { useCart } from "@/lib/cart-context";
 import { LOGO_URL } from "@/lib/constants";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";

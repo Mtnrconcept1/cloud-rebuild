@@ -7,6 +7,20 @@ import { getMissingSupabasePublicEnvKeys } from "./src/lib/publicEnv";
 const manualChunkGroups = {
   "react-vendor": ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
   "supabase-vendor": ["@supabase/supabase-js"],
+  "ui-vendor": [
+    "@radix-ui",
+    "class-variance-authority",
+    "cmdk",
+    "input-otp",
+    "lucide-react",
+    "next-themes",
+    "sonner",
+    "tailwind-merge",
+    "vaul",
+  ],
+  "firebase-vendor": ["@firebase", "firebase"],
+  "observability-vendor": ["@sentry"],
+  "charts-vendor": ["recharts"],
 } as const;
 
 function manualChunks(id: string) {

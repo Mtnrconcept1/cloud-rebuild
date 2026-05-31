@@ -14,7 +14,7 @@ import {
   getCampaignStrategyConfig,
   normalizeCampaignPricingStrategy,
 } from "@/lib/campaignPricing";
-import { useDashboardRestaurant } from "./DashboardContext";
+import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 type Campaign = {
   id: string;

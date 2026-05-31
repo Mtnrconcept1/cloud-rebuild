@@ -1,4 +1,4 @@
-import type { UserRole } from "@/lib/auth";
+import type { UserRole } from "@/lib/auth-context";
 
 export const SUPER_ADMIN_EMAIL = "rbarman@hotmail.ch";
 

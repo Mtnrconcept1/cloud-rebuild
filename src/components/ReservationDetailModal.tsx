@@ -413,7 +413,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
                   )}
                   {pointsDiscountAmount > 0 && (
                     <div className="flex justify-between text-pink-500">
-                      <span>Miamz utilisÃ©s{pointsRedeemed > 0 ? ` (${pointsRedeemed} pts)` : ""}</span>
+                      <span>Miamz utilisés{pointsRedeemed > 0 ? ` (${pointsRedeemed} pts)` : ""}</span>
                       <span>-{pointsDiscountAmount.toFixed(2)} CHF</span>
                     </div>
                   )}
