@@ -108,21 +108,47 @@ export default function SocialPostBoostDialog({
       });
 
       if (error) throw error;
-      if (!data?.campaign?.id) throw new Error("Impossible de creer la mise en avant.");
+      const campaignId = data?.campaign?.id;
+      if (!campaignId) throw new Error("Impossible de creer la mise en avant.");
 
-      toast({
-        title: "Mise en avant creee",
-        description: "La campagne Actualites est prete. Finalisez son paiement depuis Campagnes pour l'activer.",
+      const checkout = await invokeSupabaseFunction<{ url?: string }>("create-checkout", {
+        body: {
+          checkout_kind: "campaign",
+          items: [
+            {
+              name: `Post sponsorise Actualites - ${post.restaurant.name}`,
+              restaurant_name: post.restaurant.name,
+              price: totalBudgetValue,
+              quantity: 1,
+            },
+          ],
+          payment_method: "card",
+          return_url: `${globalThis.location.origin}/dashboard/actualites?campaign_checkout=1&campaign_id=${campaignId}&post_id=${post.id}`,
+          order_metadata: {
+            checkout_kind: "campaign",
+            order_reference: `social-post-campaign-${campaignId}`,
+            campaign_id: campaignId,
+            social_post_id: post.id,
+            campaign_title: title.trim(),
+            restaurant_id: restaurantId,
+            target_page: "actualites",
+            disable_connected_account: true,
+          },
+        },
       });
-      setOpen(false);
+
+      if (checkout.error || !checkout.data?.url) {
+        throw new Error(checkout.error?.message || "Impossible de creer la session de paiement.");
+      }
+
       onCreated?.();
+      globalThis.location.assign(checkout.data.url);
     } catch (error) {
       toast({
         title: "Erreur",
         description: error instanceof Error ? error.message : "Impossible de creer la mise en avant.",
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -199,7 +225,7 @@ export default function SocialPostBoostDialog({
             </p>
             <Button type="submit" disabled={loading} className="gap-2">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
-              {loading ? "Preparation..." : "Creer la mise en avant"}
+              {loading ? "Preparation..." : "Payer et sponsoriser"}
             </Button>
           </div>
         </form>
