@@ -1,108 +1,240 @@
-import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getSupabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
-import { Link } from "react-router-dom";
-import OrderStatusBadge from "@/components/OrderStatusBadge";
-import DeliveryMap from "@/components/DeliveryMap";
-import DeliveryProofCard from "@/components/orders/DeliveryProofCard";
-import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
-import { Progress } from "@/components/ui/progress";
-import { Package, ChefHat, Bike, MapPin, CheckCircle2, Phone, Timer, ShoppingBag, Gift, ArrowRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import {
+  ArrowRight,
+  Bike,
+  CheckCircle2,
+  ChefHat,
+  Clock3,
+  Gift,
+  MapPin,
+  Package,
+  Phone,
+  Route,
+  ShoppingBag,
+  Store,
+  Truck,
+} from "lucide-react";
+
+import DeliveryMap from "@/components/DeliveryMap";
+import OrderPaymentBreakdown, { getOrderPaymentBreakdown } from "@/components/orders/OrderPaymentBreakdown";
+import DeliveryProofCard from "@/components/orders/DeliveryProofCard";
+import OrderStatusBadge from "@/components/OrderStatusBadge";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { getSupabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
-import { useRealtimeDeliveryTracking, useRealtimeDispatchJob } from "@/hooks/useRealtimeOrder";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
+import { useRealtimeDeliveryTracking, useRealtimeDispatchJob, useRealtimeOrder } from "@/hooks/useRealtimeOrder";
 
 const supabase = getSupabase();
 
-const STEPS = [
-  { key: "preparing", label: "En préparation", icon: ChefHat, description: "Le restaurant prépare votre commande", countdownLabel: "Prêt dans" },
-  { key: "picked_up", label: "Prise en charge", icon: Package, description: "Le livreur récupère votre commande", countdownLabel: "Départ dans" },
-  { key: "in_transit", label: "En route", icon: Bike, description: "Le livreur est en chemin vers vous", countdownLabel: "Arrivée dans" },
-  { key: "delivered", label: "Livrée", icon: CheckCircle2, description: "Votre commande a été livrée !", countdownLabel: "" },
-];
+const FALLBACK_RESTAURANT = { lat: 46.5197, lng: 6.6323 };
+const FALLBACK_DELIVERY = { lat: 46.5285, lng: 6.6270 };
+const SIMULATION_PHASE_SECONDS = 20;
 
-// Simulated route: Lausanne area (Swiss context)
-const RESTAURANT = { lat: 46.5197, lng: 6.6323 };
-const DELIVERY = { lat: 46.5285, lng: 6.6270 };
+const TRACKING_STEPS = [
+  {
+    key: "accepted",
+    label: "Commande reçue",
+    shortLabel: "Reçue",
+    icon: Store,
+    description: "Le restaurant a validé la réception de votre commande.",
+  },
+  {
+    key: "preparing",
+    label: "Préparation",
+    shortLabel: "Préparation",
+    icon: ChefHat,
+    description: "Le restaurant prépare votre commande.",
+  },
+  {
+    key: "ready",
+    label: "Prête au retrait",
+    shortLabel: "Prête",
+    icon: Package,
+    description: "La commande est prête et attend le livreur.",
+  },
+  {
+    key: "picked_up",
+    label: "Prise en charge",
+    shortLabel: "Retirée",
+    icon: Bike,
+    description: "Le livreur a récupéré la commande.",
+  },
+  {
+    key: "in_transit",
+    label: "En route",
+    shortLabel: "En route",
+    icon: Truck,
+    description: "Le livreur se dirige vers votre adresse.",
+  },
+  {
+    key: "delivered",
+    label: "Livrée",
+    shortLabel: "Livrée",
+    icon: CheckCircle2,
+    description: "Votre commande a été livrée.",
+  },
+];
 
 function generateRoute(from: { lat: number; lng: number }, to: { lat: number; lng: number }, points: number) {
   const route = [];
-  for (let i = 0; i <= points; i++) {
+  for (let i = 0; i <= points; i += 1) {
     const t = i / points;
-    // Add slight curve for realism
-    const jitterLat = Math.sin(t * Math.PI) * 0.002 * (Math.random() - 0.5);
-    const jitterLng = Math.cos(t * Math.PI * 2) * 0.001 * (Math.random() - 0.5);
     route.push({
-      lat: from.lat + (to.lat - from.lat) * t + jitterLat,
-      lng: from.lng + (to.lng - from.lng) * t + jitterLng,
+      lat: from.lat + (to.lat - from.lat) * t,
+      lng: from.lng + (to.lng - from.lng) * t,
     });
   }
   return route;
 }
 
-const COUNTDOWN_DURATION = 20; // seconds per phase
+function asMetadata(value: unknown): Record<string, any> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
+}
+
+function toNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function getPhaseFromState(order: any, tracking: any, dispatchJob: any) {
+  const status = normalizeOrderStatus(order?.status);
+  const trackingStatus = String(tracking?.status || "");
+  const dispatchStatus = String(dispatchJob?.status || "");
+
+  if (
+    status === "delivered" ||
+    trackingStatus === "delivered" ||
+    dispatchStatus === "delivered" ||
+    dispatchJob?.delivered_at
+  ) return 5;
+
+  if (
+    status === "delivering" ||
+    status === "in_transit" ||
+    trackingStatus === "in_transit" ||
+    trackingStatus === "arriving_dropoff" ||
+    dispatchStatus === "in_transit" ||
+    dispatchStatus === "arriving_dropoff"
+  ) return 4;
+
+  if (
+    status === "picked_up" ||
+    trackingStatus === "picked_up" ||
+    dispatchStatus === "picked_up" ||
+    dispatchJob?.picked_up_at
+  ) return 3;
+
+  if (
+    status === "ready" ||
+    status === "ready_for_pickup" ||
+    trackingStatus === "ready_for_pickup" ||
+    dispatchStatus === "assigned" ||
+    dispatchStatus === "accepted" ||
+    dispatchStatus === "arriving_pickup"
+  ) return 2;
+
+  if (status === "preparing" || trackingStatus === "preparing") return 1;
+
+  return 0;
+}
+
+function formatEta(value: string | null | undefined) {
+  if (!value) return "Bientôt";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return value;
+  return date.toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatCountdown(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const remaining = seconds % 60;
+  return `${minutes}:${String(remaining).padStart(2, "0")}`;
+}
 
 export default function SuiviCommande() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  useAuth();
 
-  // Simulation state
-  const [simPhase, setSimPhase] = useState(0); // 0=preparing, 1=picked_up, 2=in_transit, 3=delivered
-  const [countdown, setCountdown] = useState(COUNTDOWN_DURATION);
-  const [simDriverPos, setSimDriverPos] = useState(RESTAURANT);
-  const [routeIndex, setRouteIndex] = useState(0);
-  const [simStarted, setSimStarted] = useState(false);
+  const [simulationPhase, setSimulationPhase] = useState(0);
+  const [simulationCountdown, setSimulationCountdown] = useState(SIMULATION_PHASE_SECONDS);
+  const [simulationRouteIndex, setSimulationRouteIndex] = useState(0);
+  const [simulationStarted, setSimulationStarted] = useState(false);
+
+  const { orderStatus: realtimeOrderStatus, lastUpdate: realtimeOrderUpdate } = useRealtimeOrder(id);
+  const { tracking: deliveryTrackingUpdate } = useRealtimeDeliveryTracking(id);
+  const { dispatchJob: dispatchJobUpdate } = useRealtimeDispatchJob(id);
 
   const { data: order } = useQuery({
     queryKey: ["order-detail", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("orders")
-        .select("*, restaurants(name, address, city, latitude, longitude)")
+        .select("*, restaurants(id, name, address, city, latitude, longitude, phone)")
         .eq("id", id!)
         .single();
+      if (error) throw error;
       return data;
     },
     enabled: !!id,
   });
 
+  const liveOrder = useMemo(() => {
+    if (!order) return null;
+    return {
+      ...order,
+      status: realtimeOrderStatus || order.status,
+      updated_at: realtimeOrderUpdate?.updated_at || order.updated_at,
+      estimated_delivery_at: realtimeOrderUpdate?.estimated_delivery_at || order.estimated_delivery_at,
+      actual_delivered_at: realtimeOrderUpdate?.actual_delivered_at || order.actual_delivered_at,
+    };
+  }, [order, realtimeOrderStatus, realtimeOrderUpdate]);
+
   const { data: siblingOrders } = useQuery({
-    queryKey: ["sibling-orders", id, (order?.metadata as any)?.checkout_group_id || order?.checkout_id],
+    queryKey: ["sibling-orders", id, asMetadata(liveOrder?.metadata).checkout_group_id || liveOrder?.checkout_id],
     queryFn: async () => {
-      const checkoutGroupId = (order?.metadata as any)?.checkout_group_id;
+      const checkoutGroupId = asMetadata(liveOrder?.metadata).checkout_group_id;
       let query = supabase
         .from("orders")
-        .select("*, restaurants(name, address, city, latitude, longitude)");
+        .select("*, restaurants(id, name, address, city, latitude, longitude, phone)");
 
       if (checkoutGroupId) {
         query = query.filter("metadata->>checkout_group_id", "eq", checkoutGroupId);
       } else {
-        query = query.eq("checkout_id", order!.checkout_id);
+        query = query.eq("checkout_id", liveOrder!.checkout_id);
       }
 
-      const { data } = await query;
+      const { data, error } = await query;
+      if (error) throw error;
       return data || [];
     },
-    enabled: !!order && (!!(order?.metadata as any)?.checkout_group_id || !!order?.checkout_id),
+    enabled: !!liveOrder && (!!asMetadata(liveOrder?.metadata).checkout_group_id || !!liveOrder?.checkout_id),
   });
 
-  const orderIds = useMemo(() => {
-    if (!order) return [];
-    if (siblingOrders && siblingOrders.length > 0) return siblingOrders.map(o => o.id);
-    return [order.id];
-  }, [order, siblingOrders]);
+  const orders = useMemo(() => {
+    const rows = siblingOrders && siblingOrders.length > 0 ? siblingOrders : liveOrder ? [liveOrder] : [];
+    return rows.map((row: any) => row.id === liveOrder?.id ? { ...row, ...liveOrder } : row);
+  }, [liveOrder, siblingOrders]);
+
+  const orderIds = useMemo(() => orders.map((entry: any) => entry.id).filter(Boolean), [orders]);
 
   const { data: orderItems } = useQuery({
     queryKey: ["order-items", orderIds],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("order_items")
         .select("*, menu_items(name)")
         .in("order_id", orderIds);
+      if (error) throw error;
       return data || [];
     },
     enabled: orderIds.length > 0,
@@ -111,11 +243,12 @@ export default function SuiviCommande() {
   const { data: deliveryTrackingRow } = useQuery({
     queryKey: ["delivery-tracking", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("delivery_tracking")
         .select("*")
         .eq("order_id", id!)
         .maybeSingle();
+      if (error) throw error;
       return data;
     },
     enabled: !!id,
@@ -124,130 +257,72 @@ export default function SuiviCommande() {
   const { data: dispatchJobRow } = useQuery({
     queryKey: ["dispatch-job", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("dispatch_jobs")
         .select("*")
         .eq("order_id", id!)
         .maybeSingle();
+      if (error) throw error;
       return data;
     },
     enabled: !!id,
   });
 
-  const { tracking: deliveryTrackingUpdate } = useRealtimeDeliveryTracking(id);
-  const { dispatchJob: dispatchJobUpdate } = useRealtimeDispatchJob(id);
-
-  const orders = useMemo(() => siblingOrders && siblingOrders.length > 0 ? siblingOrders : (order ? [order] : []), [siblingOrders, order]);
   const liveTracking = deliveryTrackingUpdate || deliveryTrackingRow;
   const liveDispatchJob = dispatchJobUpdate || dispatchJobRow;
   const hasLiveCourierFlow = Boolean(liveTracking || liveDispatchJob);
+
   const routeSteps = useMemo(() => buildDeliveryRouteSteps({
     routeGeometry: liveDispatchJob?.route_geometry,
     orders,
-  }), [liveDispatchJob?.route_geometry, orders]);
+    deliveryAddress: liveOrder?.delivery_address,
+    deliveryLat: toNumber(asMetadata(liveOrder?.metadata).delivery_lat),
+    deliveryLng: toNumber(asMetadata(liveOrder?.metadata).delivery_lng),
+  }), [liveDispatchJob?.route_geometry, liveOrder?.delivery_address, liveOrder?.metadata, orders]);
 
   const routeOrigin = routeSteps.find((step) => step.type === "pickup" && step.latitude !== null && step.longitude !== null);
-  const routeDestination = [...routeSteps]
-    .reverse()
-    .find((step) => step.type === "dropoff" && step.latitude !== null && step.longitude !== null);
-  const routePoints = useMemo(() => generateRoute(
+  const routeDestination = [...routeSteps].reverse().find((step) => step.type === "dropoff" && step.latitude !== null && step.longitude !== null);
+
+  const simulationRoute = useMemo(() => generateRoute(
     routeOrigin && routeOrigin.latitude !== null && routeOrigin.longitude !== null
       ? { lat: routeOrigin.latitude, lng: routeOrigin.longitude }
-      : RESTAURANT,
+      : FALLBACK_RESTAURANT,
     routeDestination && routeDestination.latitude !== null && routeDestination.longitude !== null
       ? { lat: routeDestination.latitude, lng: routeDestination.longitude }
-      : DELIVERY,
-    40,
+      : FALLBACK_DELIVERY,
+    60,
   ), [routeDestination, routeOrigin]);
 
   useEffect(() => {
-    if (routePoints.length > 0 && !hasLiveCourierFlow) {
-      setSimDriverPos(routePoints[Math.min(routeIndex, routePoints.length - 1)] || routePoints[0]);
-    }
-  }, [hasLiveCourierFlow, routeIndex, routePoints]);
+    if (!liveOrder || simulationStarted || hasLiveCourierFlow) return;
+    setSimulationPhase(getPhaseFromState(liveOrder, null, null));
+    setSimulationStarted(true);
+  }, [hasLiveCourierFlow, liveOrder, simulationStarted]);
 
-  // Auto-start simulation when order loads and align with persisted order status
   useEffect(() => {
-    if (!order || simStarted || hasLiveCourierFlow) return;
+    if (!simulationStarted || hasLiveCourierFlow || simulationPhase >= 5) return;
 
-    const normalizedOrderStatus = normalizeOrderStatus((order as any).status);
-    const phaseByOrderStatus: Record<string, number> = {
-      pending: 0,
-      preparing: 0,
-      delivering: 2,
-      delivered: 3,
-      cancelled: 0,
-    };
-
-    setSimPhase(phaseByOrderStatus[normalizedOrderStatus] ?? 0);
-    setSimStarted(true);
-  }, [hasLiveCourierFlow, order, simStarted]);
-
-  // Countdown timer for phases 0 (preparing) and 1 (picked_up)
-  useEffect(() => {
-    if (!simStarted || simPhase >= 3 || hasLiveCourierFlow) return;
-
-    if (simPhase <= 1) {
-      // Countdown phases
-      if (countdown <= 0) {
-        setSimPhase((p) => p + 1);
-        setCountdown(COUNTDOWN_DURATION);
+    if (simulationPhase < 4) {
+      if (simulationCountdown <= 0) {
+        setSimulationPhase((phase) => Math.min(phase + 1, 5));
+        setSimulationCountdown(SIMULATION_PHASE_SECONDS);
         return;
       }
-      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(timer);
+      const timer = window.setTimeout(() => setSimulationCountdown((seconds) => seconds - 1), 1000);
+      return () => window.clearTimeout(timer);
     }
 
-    if (simPhase === 2) {
-      // Moving phase - advance driver along route
-      if (routeIndex >= routePoints.length - 1) {
-        setSimPhase(3);
-        setSimDriverPos(routePoints[routePoints.length - 1] || DELIVERY);
+    if (simulationPhase === 4) {
+      if (simulationRouteIndex >= simulationRoute.length - 1) {
+        setSimulationPhase(5);
         return;
       }
-      const speed = (COUNTDOWN_DURATION * 1000) / routePoints.length; // spread over ~20s
-        const timer = setTimeout(() => {
-          const nextIdx = routeIndex + 1;
-          setRouteIndex(nextIdx);
-          setSimDriverPos(routePoints[nextIdx]);
-      }, speed);
-      return () => clearTimeout(timer);
+      const timer = window.setTimeout(() => setSimulationRouteIndex((index) => index + 1), 450);
+      return () => window.clearTimeout(timer);
     }
-  }, [hasLiveCourierFlow, simStarted, simPhase, countdown, routeIndex, routePoints]);
+  }, [hasLiveCourierFlow, simulationCountdown, simulationPhase, simulationRoute.length, simulationRouteIndex, simulationStarted]);
 
-  const livePhase = (() => {
-    const dispatchStatus = String(liveDispatchJob?.status || "");
-    const trackingStatus = String(liveTracking?.status || "");
-
-    if (dispatchStatus === "delivered" || trackingStatus === "delivered" || normalizeOrderStatus(order?.status) === "delivered") {
-      return 3;
-    }
-    if (dispatchStatus === "arriving_dropoff" || trackingStatus === "in_transit" || normalizeOrderStatus(order?.status) === "delivering") {
-      return 2;
-    }
-    if (dispatchStatus === "picked_up" || trackingStatus === "picked_up" || normalizeOrderStatus(order?.status) === "picked_up") {
-      return 1;
-    }
-    return 0;
-  })();
-
-  const currentPhase = hasLiveCourierFlow ? livePhase : simPhase;
-  const currentStep = STEPS[currentPhase] || STEPS[3];
-  const progress = ((currentPhase + 1) / STEPS.length) * 100;
-  const currentDriverPos = hasLiveCourierFlow && liveTracking?.current_lat && liveTracking?.current_lng
-    ? { lat: Number(liveTracking.current_lat), lng: Number(liveTracking.current_lng) }
-    : simDriverPos;
-  const driverName = liveTracking?.driver_name || "Mohamed B.";
-  const driverPhone = liveTracking?.driver_phone || "0612345678";
-
-  // Countdown display
-  const formatCountdown = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, "0")}`;
-  };
-
-  if (!order) {
+  if (!liveOrder) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -255,12 +330,12 @@ export default function SuiviCommande() {
     );
   }
 
-  const isDelivery = order.delivery_address && (order.metadata as any)?.feature !== "zero-attente" && !(order.metadata as any)?.pickup_time;
-
-  const pickupTime = (order.metadata as any)?.pickup_time || (order.metadata as any)?.arrival_time;
-  const modeLabel = (order.metadata as any)?.feature === "zero-attente" ? "Zero attente" : pickupTime ? "A emporter" : "Sur place";
-  const totalAmount = orders.reduce((sum: number, o: any) => sum + Number(o.total_amount), 0);
-  const restaurantLabel = orders.length > 1 ? `${orders.length} restaurants` : (order.restaurants as any)?.name || "Restaurant";
+  const orderMeta = asMetadata(liveOrder.metadata);
+  const isDelivery = Boolean(liveOrder.delivery_address) && orderMeta.feature !== "zero-attente" && !orderMeta.pickup_time;
+  const pickupTime = orderMeta.pickup_time || orderMeta.arrival_time;
+  const modeLabel = orderMeta.feature === "zero-attente" ? "Zero attente" : pickupTime ? "A emporter" : "Sur place";
+  const totalAmount = orders.reduce((sum: number, entry: any) => sum + Number(entry.total_amount || 0), 0);
+  const restaurantLabel = orders.length > 1 ? `${orders.length} restaurants` : liveOrder.restaurants?.name || "Restaurant";
   const ordersWithPricing = orders.filter((entry: any) => {
     const breakdown = getOrderPaymentBreakdown(entry);
     return breakdown.total > 0 || breakdown.subtotal > 0 || breakdown.tokOneTotalSaved > 0;
@@ -278,7 +353,7 @@ export default function SuiviCommande() {
               <div className="space-y-1">
                 <h1 className="font-display text-2xl font-bold">Confirmation de commande</h1>
                 <p className="text-muted-foreground text-sm">
-                  Votre commande est confirmee. Le suivi en temps reel s'applique uniquement aux livraisons.
+                  Votre commande est confirmée. Le suivi en temps réel s'applique uniquement aux livraisons.
                 </p>
               </div>
             </div>
@@ -296,17 +371,17 @@ export default function SuiviCommande() {
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total</p>
                 <p className="text-sm font-semibold">{totalAmount.toFixed(2)} CHF</p>
               </div>
-              {pickupTime && (
+              {pickupTime ? (
                 <div className="rounded-xl border p-3">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Heure</p>
                   <p className="text-sm font-semibold">{pickupTime}</p>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {ordersWithPricing.length > 0 ? (
               <div className="space-y-3">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Detail du paiement</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Détail du paiement</p>
                 {ordersWithPricing.map((entry: any) => (
                   <div key={entry.id} className="rounded-xl border p-4">
                     {ordersWithPricing.length > 1 ? (
@@ -332,96 +407,130 @@ export default function SuiviCommande() {
     );
   }
 
-  const hasRouteOverview = routeSteps.some((step) => step.type === "pickup")
-    && routeSteps.some((step) => step.type === "dropoff");
-  const showMap = hasLiveCourierFlow
-    ? Boolean(currentDriverPos?.lat && currentDriverPos?.lng && (currentPhase >= 2 || hasRouteOverview))
-    : (currentPhase >= 2 || hasRouteOverview);
-  const showDriver = hasLiveCourierFlow ? Boolean(driverName) : currentPhase >= 1;
-  const isDelivered = currentPhase >= 3;
-  const orderMeta = (order.metadata || {}) as any;
+  const phase = hasLiveCourierFlow ? getPhaseFromState(liveOrder, liveTracking, liveDispatchJob) : simulationPhase;
+  const currentStep = TRACKING_STEPS[phase] || TRACKING_STEPS[0];
+  const progress = Math.round(((phase + 1) / TRACKING_STEPS.length) * 100);
+  const isDelivered = phase >= 5;
   const scheduledDeliveryLabel = typeof orderMeta.scheduled_delivery_label === "string" ? orderMeta.scheduled_delivery_label : "";
+  const etaLabel = liveTracking?.estimated_arrival
+    ? formatEta(liveTracking.estimated_arrival)
+    : liveOrder.estimated_delivery_at
+      ? formatEta(liveOrder.estimated_delivery_at)
+      : scheduledDeliveryLabel || (phase < 4 && !hasLiveCourierFlow ? formatCountdown(simulationCountdown) : "Bientôt");
+  const currentDriverPos = hasLiveCourierFlow && liveTracking?.current_lat && liveTracking?.current_lng
+    ? { lat: Number(liveTracking.current_lat), lng: Number(liveTracking.current_lng) }
+    : simulationRoute[Math.min(simulationRouteIndex, simulationRoute.length - 1)] || FALLBACK_RESTAURANT;
+  const hasRouteOverview = routeSteps.some((step) => step.type === "pickup") && routeSteps.some((step) => step.type === "dropoff");
+  const showDriver = hasLiveCourierFlow ? Boolean(liveTracking?.driver_name || liveTracking?.driver_phone || liveDispatchJob?.courier_id) : phase >= 3;
+  const driverName = liveTracking?.driver_name || (liveDispatchJob?.courier_id ? "Coursier assigné" : "Coursier TOK");
+  const driverPhone = liveTracking?.driver_phone || "";
   const deliveryProofCode = String(orderMeta.delivery_proof_code || "");
   const deliveryProofVerifiedAt = orderMeta.delivery_proof_verified_at || null;
-  const showDeliveryProof = isDelivery && !!deliveryProofCode && !isDelivered;
+  const showDeliveryProof = !!deliveryProofCode && !isDelivered;
+  const restaurantPhone = liveOrder.restaurants?.phone || "";
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="container py-8 max-w-2xl space-y-6">
-        {/* Title and Time */}
-        <div className="space-y-1">
-          <h1 className="font-display text-3xl font-bold">{currentPhase >= 3 ? "Livrée" : "En route..."}</h1>
+      <div className="container py-8 max-w-3xl space-y-6">
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="gap-1">
+              <Route className="h-3.5 w-3.5" /> Suivi en temps réel
+            </Badge>
+            <OrderStatusBadge status={String(liveOrder.status || "pending")} />
+          </div>
+          <h1 className="font-display text-3xl font-bold">{isDelivered ? "Commande livrée" : currentStep.label}</h1>
           <p className="text-sm text-muted-foreground">
-            {currentPhase >= 3 ? "Arrivée à" : "Arrivée prévue"} {
-              scheduledDeliveryLabel || (pickupTime ? pickupTime : "Bientôt")
-            }
+            {isDelivered ? "Livrée" : phase >= 4 ? "Arrivée prévue" : "Prochaine étape"} : {etaLabel}
           </p>
         </div>
 
-        {/* Timeline Status */}
-        <div className="flex items-center gap-3 pt-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] animate-pulse" />
-          <p className="text-sm font-semibold">{currentPhase >= 3 ? "Votre commande a été livrée" : "Votre commande est en route"}</p>
-        </div>
-
-        {/* Central Graphic */}
-        <div className="py-12 relative flex justify-center items-center">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/5" />
-          <div className="relative">
-            {currentPhase >= 3 ? (
-              <CheckCircle2 className="w-32 h-32 text-green-500 drop-shadow-md" />
-            ) : (
-              <div className="relative">
-                {/* Paper bag */}
-                <div className="w-32 h-40 bg-[#f3cba5] rounded-t-sm rounded-b-md shadow-sm relative flex flex-col items-center justify-center border-t-4 border-[#e6b78c]">
-                  <div className="w-12 h-12 bg-green-500 rounded-full" />
+        <div className="rounded-2xl border bg-card p-4 shadow-sm space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold">{currentStep.description}</p>
+              <p className="text-xs text-muted-foreground">Le suivi change automatiquement lorsque le restaurant ou le livreur met à jour la commande.</p>
+            </div>
+            <div className="text-right text-sm font-bold text-primary">{progress}%</div>
+          </div>
+          <Progress value={progress} />
+          <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
+            {TRACKING_STEPS.map((step, index) => {
+              const Icon = step.icon;
+              const done = index <= phase;
+              const active = index === phase;
+              return (
+                <div key={step.key} className={`rounded-xl border p-3 text-center ${active ? "border-primary bg-primary/5" : done ? "bg-emerald-50 border-emerald-100" : "bg-muted/30"}`}>
+                  <div className={`mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full ${done ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground"}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <p className="text-[11px] font-semibold leading-tight">{step.shortLabel}</p>
                 </div>
-                {/* Green dots floating */}
-                <div className="absolute top-1/4 -left-8 w-3 h-3 bg-green-500 rounded-full animate-bounce shadow-sm" />
-                <div className="absolute top-0 right-4 w-2 h-2 bg-green-500 rounded-full opacity-50" />
-                {/* Shadow */}
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-24 h-4 bg-black/10 rounded-[100%] blur-[2px]" />
-              </div>
-            )}
+              );
+            })}
           </div>
         </div>
 
-        {/* Help box */}
+        <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+          <DeliveryMap
+            routeStops={routeSteps.filter((step) => step.latitude !== null && step.longitude !== null).map((step) => ({
+              id: step.id,
+              type: step.type,
+              label: step.label,
+              address: step.address || step.restaurantName || undefined,
+              latitude: Number(step.latitude),
+              longitude: Number(step.longitude),
+            }))}
+            currentLat={currentDriverPos.lat}
+            currentLng={currentDriverPos.lng}
+            status={currentStep.key}
+            className="h-72 md:h-96"
+          />
+          {!hasRouteOverview ? (
+            <div className="border-t p-3 text-xs text-muted-foreground">
+              Carte affichée avec les coordonnées disponibles. Ajoutez les coordonnées du restaurant et de livraison pour un tracé complet.
+            </div>
+          ) : null}
+        </div>
+
         <div className="rounded-2xl border bg-card p-4 shadow-sm flex flex-col md:flex-row md:items-center gap-4">
           <div className="relative w-12 h-12 shrink-0">
             <div className="w-full h-full bg-orange-100 rounded-full flex items-center justify-center overflow-hidden border">
-              {orders.length > 1 ? <ShoppingBag className="h-6 w-6 text-orange-600" /> : <ChefHat className="h-6 w-6 text-orange-600" />}
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 bg-foreground rounded-full flex items-center justify-center">
-                <span className="text-[8px] text-background">📞</span>
-              </div>
+              {showDriver ? <Bike className="h-6 w-6 text-orange-600" /> : <ChefHat className="h-6 w-6 text-orange-600" />}
             </div>
           </div>
           <div className="flex-1 space-y-1">
-            <p className="font-semibold">Besoin d'aide?</p>
+            <p className="font-semibold">{showDriver ? driverName : "Restaurant en charge"}</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Le personnel du commerce livrera votre commande; le suivi de la commande ne sera donc pas aussi détaillé. Vous pouvez appeler le commerce pour en savoir plus sur votre livraison.
+              {showDriver
+                ? "Le livreur met à jour la prise en charge, la position et la livraison depuis son espace coursier."
+                : "Le restaurant doit confirmer la préparation puis indiquer quand la commande est prête pour le livreur."}
             </p>
           </div>
-          <Button variant="secondary" className="w-full md:w-auto font-medium rounded-xl">
-            <Phone className="h-4 w-4 mr-2" /> Appeler le commerce
-          </Button>
+          {driverPhone ? (
+            <Button variant="secondary" className="w-full md:w-auto font-medium rounded-xl" asChild>
+              <a href={`tel:${driverPhone}`}><Phone className="h-4 w-4 mr-2" /> Appeler le livreur</a>
+            </Button>
+          ) : restaurantPhone ? (
+            <Button variant="secondary" className="w-full md:w-auto font-medium rounded-xl" asChild>
+              <a href={`tel:${restaurantPhone}`}><Phone className="h-4 w-4 mr-2" /> Appeler le commerce</a>
+            </Button>
+          ) : null}
         </div>
 
-        {/* Delivery Details */}
-        <div className="space-y-4 pt-6">
+        {showDeliveryProof ? <DeliveryProofCard code={deliveryProofCode} verifiedAt={deliveryProofVerifiedAt} /> : null}
+
+        <div className="space-y-4 pt-2">
           <h2 className="text-lg font-bold">Détails de livraison</h2>
           <div className="space-y-4">
             <div className="flex gap-4">
               <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-semibold">Adresse</p>
-                <p className="text-sm text-muted-foreground">{order.delivery_address}</p>
+                <p className="text-sm text-muted-foreground">{liveOrder.delivery_address}</p>
               </div>
             </div>
-            
-            {orderMeta.delivery_apartment && (
+            {orderMeta.delivery_apartment ? (
               <div className="flex gap-4">
                 <MapPin className="h-5 w-5 text-muted-foreground shrink-0 opacity-0" />
                 <div>
@@ -429,9 +538,8 @@ export default function SuiviCommande() {
                   <p className="text-sm text-muted-foreground">{orderMeta.delivery_apartment}</p>
                 </div>
               </div>
-            )}
-            
-            {orderMeta.delivery_note && (
+            ) : null}
+            {orderMeta.delivery_note ? (
               <div className="flex gap-4">
                 <MapPin className="h-5 w-5 text-muted-foreground shrink-0 opacity-0" />
                 <div>
@@ -439,8 +547,7 @@ export default function SuiviCommande() {
                   <p className="text-sm text-muted-foreground">{orderMeta.delivery_note}</p>
                 </div>
               </div>
-            )}
-            
+            ) : null}
             <div className="flex gap-4">
               <Package className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
               <div>
@@ -448,24 +555,32 @@ export default function SuiviCommande() {
                 <p className="text-sm text-muted-foreground">{orderMeta.flex_option === "express" ? "Express" : orderMeta.flex_option === "flex" ? "Flex" : "Standard"}</p>
               </div>
             </div>
+            <div className="flex gap-4">
+              <Clock3 className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold">Créneau</p>
+                <p className="text-sm text-muted-foreground">{scheduledDeliveryLabel || etaLabel}</p>
+              </div>
+            </div>
           </div>
         </div>
 
         <hr className="border-border my-6" />
 
-        {/* Order Summary */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold">Récapitulatif de la commande</h2>
-          {orders.map((o: any) => {
-            const items = orderItems?.filter((i: any) => i.order_id === o.id) || [];
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold">Récapitulatif de la commande</h2>
+            <span className="text-sm font-semibold text-muted-foreground">{restaurantLabel} · {totalAmount.toFixed(2)} CHF</span>
+          </div>
+          {orders.map((entry: any) => {
+            const items = orderItems?.filter((item: any) => item.order_id === entry.id) || [];
             return (
-              <div key={o.id} className="space-y-3">
-                {orders.length > 1 && (
+              <div key={entry.id} className="space-y-3 rounded-2xl border p-4">
+                {orders.length > 1 ? (
                   <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    Restaurant : 🍔 <span className="uppercase font-semibold text-foreground">{o.restaurants?.name}</span>
+                    Restaurant : <span className="font-semibold text-foreground">{entry.restaurants?.name}</span>
                   </p>
-                )}
-                
+                ) : null}
                 <div className="space-y-3">
                   {items.map((item: any) => (
                     <div key={item.id} className="flex gap-3 text-sm">
@@ -476,28 +591,29 @@ export default function SuiviCommande() {
                     </div>
                   ))}
                 </div>
+                {ordersWithPricing.some((priced: any) => priced.id === entry.id) ? (
+                  <OrderPaymentBreakdown order={entry} showDivider alwaysShowTotal />
+                ) : null}
               </div>
             );
           })}
-          
+
           <div className="flex justify-between items-center pt-4 border-t font-bold mt-4">
             <span>Total</span>
             <span>{totalAmount.toFixed(2)} CHF</span>
           </div>
-          
+
           <div className="flex items-center gap-3 pt-2">
             <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center shrink-0">
-              {/* Twint Logo Placeholder */}
               <span className="font-bold text-xs tracking-tighter italic">TWINT</span>
             </div>
             <span className="text-sm font-medium">{orderMeta.payment_method === "twint" ? "Twint" : "Carte Bancaire"}</span>
           </div>
         </div>
 
-        {/* Referral */}
         <div className="mt-8 mb-12 bg-accent/5 rounded-2xl p-4 flex items-center gap-4 border border-accent/20">
           <div className="w-16 h-16 shrink-0 flex items-center justify-center text-3xl">
-            🎁
+            <Gift className="h-8 w-8 text-accent" />
           </div>
           <div className="flex-1 space-y-2">
             <p className="text-sm font-medium">Obtenez 10 CHF de rabais lorsque vos amis essaient Tok.</p>
@@ -508,7 +624,6 @@ export default function SuiviCommande() {
             </Button>
           </div>
         </div>
-
       </div>
     </main>
   );
