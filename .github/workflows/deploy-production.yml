@@ -17,6 +17,7 @@ permissions:
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 10.28.1
+  SUPABASE_CLI_VERSION: 2.95.2
   SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -141,16 +142,16 @@ jobs:
         run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
 
       - name: Link Supabase production project
-        run: pnpm exec supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+        run: pnpm dlx supabase@${{ env.SUPABASE_CLI_VERSION }} link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Sync Supabase production secrets
-        run: pnpm exec supabase secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
+        run: pnpm dlx supabase@${{ env.SUPABASE_CLI_VERSION }} secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Push database migrations
-        run: pnpm exec supabase db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
+        run: pnpm dlx supabase@${{ env.SUPABASE_CLI_VERSION }} db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
 
       - name: Deploy Edge Functions
-        run: pnpm exec supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
+        run: pnpm dlx supabase@${{ env.SUPABASE_CLI_VERSION }} functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
 
   deploy_frontend:
     runs-on: ubuntu-latest
