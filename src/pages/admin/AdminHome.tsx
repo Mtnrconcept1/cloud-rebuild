@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
+  Bike,
   ClipboardList,
   Crown,
   DollarSign,
@@ -67,11 +68,19 @@ const ADMIN_TOOLS = [
   },
   {
     title: "Dossiers d'inscription",
-    description: "Verifier les justificatifs et approuver les restaurateurs.",
+    description: "Verifier les justificatifs et approuver les restaurateurs et livreurs.",
     icon: FileText,
     href: "/admin/utilisateurs?tab=applications",
     feature: "admin-utilisateurs",
     color: "text-amber-500",
+  },
+  {
+    title: "Profils livreurs",
+    description: "Valider, suspendre ou refuser les profils livreurs.",
+    icon: Bike,
+    href: "/admin/utilisateurs?tab=couriers",
+    feature: "admin-utilisateurs",
+    color: "text-emerald-500",
   },
   {
     title: "Avis",

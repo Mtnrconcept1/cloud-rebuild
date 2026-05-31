@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { ExternalLink, FileText, Search, Users } from "lucide-react";
+import { Bike, ExternalLink, FileText, Search, Users } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
 import {
@@ -12,6 +12,7 @@ import {
   getVerificationDocumentUrl,
   type SignupApplication,
 } from "@/lib/signup";
+import { COURIER_APPROVAL_STATUS_META, COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -31,9 +32,39 @@ type AdminUserRow = {
   roles: string[] | null;
 };
 
+type AdminCourierRow = {
+  id: string;
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  status: string;
+  vehicle_type: string | null;
+  license_plate: string | null;
+  iban: string | null;
+  is_online: boolean | null;
+  rating: number | null;
+  total_deliveries: number | null;
+  acceptance_rate: number | null;
+  completion_rate: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
 const AVAILABLE_ROLES = ["client", "restaurateur", "admin", "courier"] as const;
 
 type ReviewStatus = "approved" | "needs_changes" | "rejected";
+type CourierReviewStatus = "approved" | "pending_approval" | "suspended" | "rejected";
+type AdminTab = "users" | "applications" | "couriers";
+
+function getCourierVehicleLabel(vehicleType: string | null | undefined) {
+  return COURIER_VEHICLE_OPTIONS.find((option) => option.value === vehicleType)?.label || vehicleType || "Non renseigne";
+}
+
+function getCourierDisplayName(courier: AdminCourierRow, application?: SignupApplication) {
+  const profileName = [courier.first_name, courier.last_name].filter(Boolean).join(" ").trim();
+  return profileName || application?.full_name || courier.phone || "Livreur";
+}
 
 export default function AdminUtilisateurs() {
   const { toast } = useToast();
@@ -50,7 +81,13 @@ export default function AdminUtilisateurs() {
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [reviewingApplicationId, setReviewingApplicationId] = useState<string | null>(null);
   const [openingDocumentId, setOpeningDocumentId] = useState<string | null>(null);
-  const activeAdminTab = searchParams.get("tab") === "applications" ? "applications" : "users";
+  const [courierSearch, setCourierSearch] = useState("");
+  const [courierStatusFilter, setCourierStatusFilter] = useState("pending_approval");
+  const [courierReviewNotes, setCourierReviewNotes] = useState<Record<string, string>>({});
+  const [reviewingCourierId, setReviewingCourierId] = useState<string | null>(null);
+  const requestedAdminTab = searchParams.get("tab");
+  const activeAdminTab: AdminTab =
+    requestedAdminTab === "applications" || requestedAdminTab === "couriers" ? requestedAdminTab : "users";
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["admin-users-full"],
@@ -77,6 +114,19 @@ export default function AdminUtilisateurs() {
 
       if (error) throw error;
       return (data || []) as SignupApplication[];
+    },
+  });
+
+  const { data: couriers = [], isLoading: couriersLoading, error: couriersError } = useQuery({
+    queryKey: ["admin-couriers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("couriers")
+        .select("*")
+        .order("updated_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as AdminCourierRow[];
     },
   });
 
@@ -161,6 +211,54 @@ export default function AdminUtilisateurs() {
     });
   }, [applicationRoleFilter, applicationSearch, applicationStatusFilter, applications, usersById]);
 
+  const courierApplicationsByUserId = useMemo(() => {
+    const map = new Map<string, SignupApplication>();
+    for (const application of applications) {
+      if (application.requested_role !== "courier") continue;
+      if (!map.has(application.user_id)) {
+        map.set(application.user_id, application);
+      }
+    }
+    return map;
+  }, [applications]);
+
+  const courierCounts = useMemo(() => {
+    return couriers.reduce((acc, courier) => {
+      const key = String(courier.status || "pending_approval");
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {
+      pending_approval: 0,
+      approved: 0,
+      suspended: 0,
+      rejected: 0,
+    } as Record<string, number>);
+  }, [couriers]);
+
+  const filteredCouriers = useMemo(() => {
+    return couriers.filter((courier) => {
+      if (courierStatusFilter !== "all" && courier.status !== courierStatusFilter) {
+        return false;
+      }
+
+      if (!courierSearch.trim()) return true;
+
+      const query = courierSearch.trim().toLowerCase();
+      const linkedUser = usersById[courier.user_id];
+      const linkedApplication = courierApplicationsByUserId.get(courier.user_id);
+      const displayName = getCourierDisplayName(courier, linkedApplication);
+
+      return (
+        displayName.toLowerCase().includes(query) ||
+        (courier.phone || "").toLowerCase().includes(query) ||
+        (courier.license_plate || "").toLowerCase().includes(query) ||
+        (linkedApplication?.city || "").toLowerCase().includes(query) ||
+        (linkedUser?.email || "").toLowerCase().includes(query) ||
+        courier.user_id.toLowerCase().includes(query)
+      );
+    });
+  }, [courierApplicationsByUserId, courierSearch, courierStatusFilter, couriers, usersById]);
+
   const toggleRole = (userId: string, role: string) => {
     setDraftRoles((prev) => {
       const current = prev[userId] || users.find((user) => user.user_id === userId)?.roles || ["client"];
@@ -215,6 +313,28 @@ export default function AdminUtilisateurs() {
     queryClient.invalidateQueries({ queryKey: ["admin-signup-applications"] });
   };
 
+  const reviewCourierProfile = async (courierId: string, status: CourierReviewStatus) => {
+    setReviewingCourierId(courierId);
+
+    const { error } = await supabase.rpc("admin_review_courier_profile", {
+      p_courier_id: courierId,
+      p_status: status,
+      p_review_note: courierReviewNotes[courierId] || null,
+    });
+
+    setReviewingCourierId(null);
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Profil livreur mis a jour" });
+    queryClient.invalidateQueries({ queryKey: ["admin-couriers"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-users-full"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-signup-applications"] });
+  };
+
   const openDocument = async (documentId: string, filePath: string) => {
     setOpeningDocumentId(documentId);
     try {
@@ -230,8 +350,8 @@ export default function AdminUtilisateurs() {
 
   const handleAdminTabChange = (value: string) => {
     const nextParams = new URLSearchParams(searchParams);
-    if (value === "applications") {
-      nextParams.set("tab", "applications");
+    if (value === "applications" || value === "couriers") {
+      nextParams.set("tab", value);
     } else {
       nextParams.delete("tab");
     }
@@ -250,14 +370,15 @@ export default function AdminUtilisateurs() {
         stats={[
           { label: "Utilisateurs", value: users.length, icon: Users },
           { label: "Restaurateurs", value: roleCounts.restaurateur, icon: FileText },
-          { label: "Dossiers ouverts", value: applicationCounts.pending_review, icon: FileText },
+          { label: "Livreurs a valider", value: courierCounts.pending_approval, icon: Bike },
         ]}
       />
 
       <Tabs value={activeAdminTab} onValueChange={handleAdminTabChange} className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-xl grid-cols-3">
           <TabsTrigger value="users">Comptes</TabsTrigger>
           <TabsTrigger value="applications">Dossiers</TabsTrigger>
+          <TabsTrigger value="couriers">Livreurs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
@@ -600,6 +721,213 @@ export default function AdminUtilisateurs() {
 
               {filteredApplications.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">Aucun dossier correspondant.</p>
+              ) : null}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="couriers" className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="rounded-xl border bg-card p-4 text-center">
+              <p className="text-2xl font-bold">{courierCounts.pending_approval}</p>
+              <p className="text-xs text-muted-foreground">A valider</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4 text-center">
+              <p className="text-2xl font-bold">{courierCounts.approved}</p>
+              <p className="text-xs text-muted-foreground">Valides</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4 text-center">
+              <p className="text-2xl font-bold">{courierCounts.suspended}</p>
+              <p className="text-xs text-muted-foreground">Suspendus</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4 text-center">
+              <p className="text-2xl font-bold">{courierCounts.rejected}</p>
+              <p className="text-xs text-muted-foreground">Refuses</p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="pl-9"
+                placeholder="Rechercher par nom, email, telephone, plaque ou ID..."
+                value={courierSearch}
+                onChange={(event) => setCourierSearch(event.target.value)}
+              />
+            </div>
+            <select
+              value={courierStatusFilter}
+              onChange={(event) => setCourierStatusFilter(event.target.value)}
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="pending_approval">A valider</option>
+              <option value="approved">Valide</option>
+              <option value="suspended">Suspendu</option>
+              <option value="rejected">Refuse</option>
+            </select>
+          </div>
+
+          {couriersLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((index) => (
+                <div key={index} className="h-56 rounded-xl bg-muted animate-pulse" />
+              ))}
+            </div>
+          ) : couriersError ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              Impossible de charger les profils livreurs.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredCouriers.map((courier) => {
+                const linkedUser = usersById[courier.user_id];
+                const linkedApplication = courierApplicationsByUserId.get(courier.user_id);
+                const statusMeta = COURIER_APPROVAL_STATUS_META[courier.status] || {
+                  label: courier.status,
+                  tone: "bg-muted text-muted-foreground",
+                };
+                const applicationStatusMeta = getSignupStatusMeta(linkedApplication?.status);
+                const documentsCount = linkedApplication?.signup_application_documents?.length || 0;
+                const noteValue = courierReviewNotes[courier.id] ?? linkedApplication?.review_note ?? "";
+                const hasCourierRole = Boolean(linkedUser?.roles?.includes("courier"));
+                const isReviewing = reviewingCourierId === courier.id;
+
+                return (
+                  <div key={courier.id} className="rounded-xl border bg-card p-4 space-y-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-sm">{getCourierDisplayName(courier, linkedApplication)}</h3>
+                        <p className="text-xs text-muted-foreground break-all">
+                          {linkedUser?.email || courier.user_id}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Mis a jour le{" "}
+                          {courier.updated_at
+                            ? new Date(courier.updated_at).toLocaleDateString("fr-CH")
+                            : "recemment"}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className={statusMeta.tone}>{statusMeta.label}</Badge>
+                        <Badge variant={hasCourierRole ? "default" : "outline"}>
+                          Role {hasCourierRole ? "actif" : "non attribue"}
+                        </Badge>
+                        {courier.is_online ? <Badge className="bg-emerald-100 text-emerald-700">En ligne</Badge> : null}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <div className="rounded-xl border p-3 text-sm">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Telephone</p>
+                        <p className="pt-1 font-medium">{courier.phone || linkedApplication?.phone || "Non renseigne"}</p>
+                      </div>
+                      <div className="rounded-xl border p-3 text-sm">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Ville</p>
+                        <p className="pt-1 font-medium">{linkedApplication?.city || "Non renseignee"}</p>
+                      </div>
+                      <div className="rounded-xl border p-3 text-sm">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Vehicule</p>
+                        <p className="pt-1 font-medium">
+                          {getCourierVehicleLabel(courier.vehicle_type)}
+                          {courier.license_plate ? ` - ${courier.license_plate}` : ""}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border p-3 text-sm">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Performance</p>
+                        <p className="pt-1 font-medium">
+                          {courier.total_deliveries || 0} livraisons - {Number(courier.rating || 0).toFixed(1)}/5
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border p-3 text-sm">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="font-medium">Dossier de verification livreur</p>
+                          {linkedApplication ? (
+                            <p className="text-xs text-muted-foreground">
+                              {documentsCount} document{documentsCount > 1 ? "s" : ""} - statut dossier{" "}
+                              <span className="font-medium">{applicationStatusMeta.label}</span>
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Aucun dossier d'inscription lie a ce profil.</p>
+                          )}
+                        </div>
+                        {linkedApplication ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setApplicationRoleFilter("courier");
+                              setApplicationStatusFilter("all");
+                              setApplicationSearch(linkedUser?.email || courier.user_id);
+                              handleAdminTabChange("applications");
+                            }}
+                          >
+                            Voir le dossier
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`courier-review-note-${courier.id}`}>Note de validation</Label>
+                      <Textarea
+                        id={`courier-review-note-${courier.id}`}
+                        value={noteValue}
+                        onChange={(event) =>
+                          setCourierReviewNotes((current) => ({
+                            ...current,
+                            [courier.id]: event.target.value,
+                          }))
+                        }
+                        placeholder="Motif d'approbation, de suspension ou de refus..."
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {courier.status !== "pending_approval" ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => reviewCourierProfile(courier.id, "pending_approval")}
+                          disabled={isReviewing}
+                        >
+                          Remettre en attente
+                        </Button>
+                      ) : null}
+                      {courier.status === "approved" ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => reviewCourierProfile(courier.id, "suspended")}
+                          disabled={isReviewing}
+                        >
+                          Suspendre
+                        </Button>
+                      ) : null}
+                      {courier.status !== "rejected" ? (
+                        <Button
+                          variant="destructive"
+                          onClick={() => reviewCourierProfile(courier.id, "rejected")}
+                          disabled={isReviewing}
+                        >
+                          Refuser
+                        </Button>
+                      ) : null}
+                      <Button
+                        onClick={() => reviewCourierProfile(courier.id, "approved")}
+                        disabled={isReviewing || courier.status === "approved"}
+                      >
+                        {isReviewing ? "Enregistrement..." : courier.status === "approved" ? "Deja approuve" : "Approuver"}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {filteredCouriers.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">Aucun profil livreur correspondant.</p>
               ) : null}
             </div>
           )}

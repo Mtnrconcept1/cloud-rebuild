@@ -6277,6 +6277,17 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_review_courier_profile: {
+        Args: {
+          p_courier_id: string
+          p_review_note?: string
+          p_status: string
+        }
+        Returns: {
+          courier_id: string
+          courier_status: string
+        }[]
+      }
       admin_review_signup_application: {
         Args: {
           p_application_id: string
