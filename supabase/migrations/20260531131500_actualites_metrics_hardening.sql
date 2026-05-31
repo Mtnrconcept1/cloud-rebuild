@@ -2,6 +2,8 @@
 -- This migration keeps the existing event model and adds missing aggregation links
 -- between social post events, daily post metrics and sponsored campaign metrics.
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
 ALTER TABLE public.social_feed_events
   ADD COLUMN IF NOT EXISTS campaign_id uuid REFERENCES public.ad_campaigns(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS promotion_id uuid REFERENCES public.social_post_promotions(id) ON DELETE SET NULL,
@@ -33,7 +35,7 @@ CREATE OR REPLACE FUNCTION public.record_social_feed_event(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_user_id uuid := (SELECT auth.uid());
@@ -78,11 +80,7 @@ BEGIN
     AND (spp.ends_at IS NULL OR spp.ends_at >= now())
     AND (ac.starts_at IS NULL OR ac.starts_at <= now())
     AND (ac.ends_at IS NULL OR ac.ends_at >= now())
-    AND (
-      ac.target_pages IS NULL
-      OR jsonb_typeof(to_jsonb(ac.target_pages)) IS NULL
-      OR 'actualites' = ANY(ac.target_pages)
-    )
+    AND (ac.target_pages IS NULL OR 'actualites' = ANY(ac.target_pages))
   ORDER BY spp.boost_weight DESC, spp.created_at DESC
   LIMIT 1;
 
@@ -218,10 +216,7 @@ BEGIN
     SELECT ac.*
     FROM public.ad_campaigns ac
     WHERE ac.restaurant_id = p_restaurant_id
-      AND (
-        ac.target_pages IS NULL
-        OR 'actualites' = ANY(ac.target_pages)
-      )
+      AND (ac.target_pages IS NULL OR 'actualites' = ANY(ac.target_pages))
   ),
   promotion_rows AS (
     SELECT spp.*
