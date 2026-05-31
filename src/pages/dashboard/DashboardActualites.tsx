@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
+  CalendarCheck,
   CalendarClock,
   Eye,
   Megaphone,
@@ -10,8 +11,10 @@ import {
   Newspaper,
   Repeat2,
   Share2,
+  ShoppingCart,
   Target,
   ThumbsUp,
+  Timer,
   TrendingUp,
 } from "lucide-react";
 
@@ -26,6 +29,11 @@ import { useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFe
 import { SOCIAL_MARKETING_GOALS } from "@/lib/socialFeed";
 import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
 
+function asNumber(value: unknown) {
+  const parsed = Number(value || 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export default function DashboardActualites() {
   const { selectedId, restaurants, loading, error } = useDashboardRestaurant();
   const queryClient = useQueryClient();
@@ -35,7 +43,7 @@ export default function DashboardActualites() {
   const postsQuery = useRestaurantSocialPosts(selectedId);
   const insightsQuery = useSocialInsights(selectedId);
   const posts = postsQuery.data || [];
-  const insights = insightsQuery.data;
+  const insights = insightsQuery.data as any;
   const publishedCount = posts.filter((post) => post.status === "published").length;
   const interactions = posts.reduce(
     (total, post) => total + post.likesCount + post.commentsCount + post.repostsCount + post.sharesCount,
@@ -47,6 +55,13 @@ export default function DashboardActualites() {
     .sort((a, b) => b.count - a.count)[0];
   const conversionFocus = insights?.conversionFocus ?? 0;
   const scheduledCount = insights?.scheduledCount ?? posts.filter((post) => Boolean(post.scheduledAt)).length;
+  const conversionsByType = insights?.conversionsByType || {};
+  const sponsoredConversions = asNumber(
+    insights?.sponsoredConversions ?? insights?.conversions ?? conversionsByType.total,
+  );
+  const orderConversions = asNumber(insights?.orderConversions ?? conversionsByType.order);
+  const reservationConversions = asNumber(insights?.reservationConversions ?? conversionsByType.reservation);
+  const zeroAttenteConversions = asNumber(insights?.zeroAttenteConversions ?? conversionsByType.zeroAttente);
   const recommendations = insights?.recommendations?.length
     ? insights.recommendations
     : [
@@ -95,13 +110,14 @@ export default function DashboardActualites() {
         <DashboardPageHero
           badge="Fil social"
           title="Actualites"
-          description="Pilotez vos actualites comme un canal marketing: objectifs, audiences, CTA, planning et performance."
+          description="Pilotez vos actualites comme un canal marketing: objectifs, audiences, CTA, planning, conversions sponsorisees et performance."
           icon={Newspaper}
           tone="sky"
+          visualLabel="Actualites"
           stats={[
             { label: "Publies", value: insights?.publishedCount ?? publishedCount, icon: Newspaper },
             { label: "Interactions", value: insights?.interactions ?? interactions, icon: ThumbsUp },
-            { label: "CTA actifs", value: `${conversionFocus}%`, icon: Target },
+            { label: "Conversions", value: sponsoredConversions, icon: ShoppingCart },
           ]}
         />
 
@@ -149,6 +165,46 @@ export default function DashboardActualites() {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card className="rounded-lg border-primary/20 bg-primary/5">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Conversions sponsorisees</p>
+                      <h2 className="font-display text-lg font-semibold">Impact Actualites</h2>
+                    </div>
+                    <Target className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border bg-background/80 p-3">
+                      <ShoppingCart className="mb-2 h-4 w-4 text-primary" />
+                      <p className="text-2xl font-bold">{sponsoredConversions}</p>
+                      <p className="text-xs text-muted-foreground">total attribue</p>
+                    </div>
+                    <div className="rounded-lg border bg-background/80 p-3">
+                      <MousePointerClick className="mb-2 h-4 w-4 text-primary" />
+                      <p className="text-2xl font-bold">{insights?.ctaClicks ?? 0}</p>
+                      <p className="text-xs text-muted-foreground">clics CTA</p>
+                    </div>
+                    <div className="rounded-lg border bg-background/80 p-3">
+                      <ShoppingCart className="mb-2 h-4 w-4 text-primary" />
+                      <p className="text-2xl font-bold">{orderConversions}</p>
+                      <p className="text-xs text-muted-foreground">commandes</p>
+                    </div>
+                    <div className="rounded-lg border bg-background/80 p-3">
+                      <CalendarCheck className="mb-2 h-4 w-4 text-primary" />
+                      <p className="text-2xl font-bold">{reservationConversions}</p>
+                      <p className="text-xs text-muted-foreground">reservations</p>
+                    </div>
+                    <div className="rounded-lg border bg-background/80 p-3 col-span-2">
+                      <Timer className="mb-2 h-4 w-4 text-primary" />
+                      <p className="text-2xl font-bold">{zeroAttenteConversions}</p>
+                      <p className="text-xs text-muted-foreground">Zero Attente attribues</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="grid grid-cols-2 gap-3">
                 <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Impressions</p><p className="text-2xl font-bold">{insights?.impressions ?? 0}</p></CardContent></Card>
                 <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Clics CTA</p><p className="text-2xl font-bold">{insights?.ctaClicks ?? 0}</p></CardContent></Card>
@@ -163,7 +219,7 @@ export default function DashboardActualites() {
 
             <section className="space-y-4">
               <div className="grid gap-3 lg:grid-cols-3">
-                {recommendations.slice(0, 3).map((recommendation, index) => (
+                {recommendations.slice(0, 3).map((recommendation: string, index: number) => (
                   <Card key={`${recommendation}-${index}`} className="rounded-lg">
                     <CardContent className="p-4">
                       <div className="mb-2 flex items-center gap-2">
