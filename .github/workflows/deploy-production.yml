@@ -19,6 +19,9 @@ env:
   PNPM_VERSION: 10.28.1
   SUPABASE_CLI_VERSION: 2.95.2
   SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
+  APP_BASE_URL: https://cloud-rebuild-recovered.vercel.app/
+  PUBLIC_APP_URL: https://cloud-rebuild-recovered.vercel.app/
+  SITE_URL: https://www.thetok.ch
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -88,13 +91,8 @@ jobs:
       STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
       STRIPE_WEBHOOK_SIGNING_SECRET: ${{ secrets.STRIPE_WEBHOOK_SIGNING_SECRET }}
       INTERNAL_CRON_SECRET: ${{ secrets.INTERNAL_CRON_SECRET }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-      APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
-      PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
-      SITE_URL: ${{ secrets.SITE_URL }}
       ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       LOVABLE_API_KEY: ${{ secrets.LOVABLE_API_KEY }}
