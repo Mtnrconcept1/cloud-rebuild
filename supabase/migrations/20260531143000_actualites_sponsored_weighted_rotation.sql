@@ -109,7 +109,7 @@ AS $$
         )
       )::numeric AS sponsored_weight,
       count(*)::integer AS active_promotion_count,
-      max(ac.id) AS representative_campaign_id
+      (array_agg(ac.id ORDER BY ac.created_at DESC NULLS LAST, ac.id::text DESC))[1] AS representative_campaign_id
     FROM public.social_post_promotions spp
     JOIN public.ad_campaigns ac ON ac.id = spp.campaign_id
     WHERE spp.status = 'active'
