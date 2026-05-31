@@ -29,8 +29,14 @@ describe("role route wiring", () => {
     expect(routesWithoutClientGuard).toEqual([]);
   });
 
-  it("lets both clients and restaurateurs open the public social feed", () => {
-    expect(getRouteElement("/actualites")).toContain('requiredRoles={["client", "restaurateur"]}');
+  it("keeps the public social feed accessible without an auth guard", () => {
+    const actualitesRoute = getRouteElement("/actualites");
+
+    expect(actualitesRoute).toContain("<Actualites />");
+    expect(actualitesRoute).toContain("actualitesSocialesEnabled");
+    expect(actualitesRoute).not.toContain("ProtectedRoute");
+    expect(actualitesRoute).not.toContain("requiredRole");
+    expect(actualitesRoute).not.toContain("requiredRoles");
   });
 
   it("does not use the admin role as a generic bypass in ProtectedRoute", () => {
