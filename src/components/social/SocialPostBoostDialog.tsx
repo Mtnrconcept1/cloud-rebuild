@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_AUDIENCE_CRITERIA, normalizeAudienceCriteria } from "@/lib/campaignTargeting";
 import { estimateCampaignPlan, getCampaignPricing, recommendCampaignStrategy } from "@/lib/campaignPricing";
-import { saveRestaurantCampaign } from "@/lib/campaigns";
+import { invokeSupabaseFunction } from "@/lib/session";
 import type { SocialFeedPost } from "@/lib/socialFeed";
 
 function toDateInputValue(date: Date) {
@@ -85,31 +85,30 @@ export default function SocialPostBoostDialog({
 
     setLoading(true);
     try {
-      const { data, error } = await saveRestaurantCampaign(restaurantId, {
-        restaurant_id: restaurantId,
-        social_post_id: post.id,
-        title: title.trim(),
-        body: body.trim() || compactText(post.body, 220),
-        type: "boost",
-        pricing_strategy: strategy,
-        image_url: imageUrl,
-        target_pages: ["actualites"],
-        target_criteria: normalizeAudienceCriteria({
-          ...DEFAULT_AUDIENCE_CRITERIA,
-          cities: post.restaurant.city ? [post.restaurant.city] : [],
-          cuisines: post.restaurant.cuisineType ? [post.restaurant.cuisineType] : [],
-          restaurantId,
-        }),
-        total_budget: totalBudgetValue,
-        budget_daily: estimate.dailyBudget,
-        starts_at: startsAt ? new Date(startsAt).toISOString() : null,
-        ends_at: endsAt ? new Date(endsAt).toISOString() : null,
-        payment_method: "card",
-        payment_status: "unpaid",
-        status: "draft",
+      const targetCriteria = normalizeAudienceCriteria({
+        ...DEFAULT_AUDIENCE_CRITERIA,
+        cities: post.restaurant.city ? [post.restaurant.city] : [],
+        cuisines: post.restaurant.cuisineType ? [post.restaurant.cuisineType] : [],
+        restaurantId,
       });
+
+      const { data, error } = await invokeSupabaseFunction<{ campaign?: { id?: string } }>("create-social-post-boost", {
+        body: {
+          restaurantId,
+          postId: post.id,
+          title: title.trim(),
+          body: body.trim() || compactText(post.body, 220),
+          imageUrl,
+          totalBudget: totalBudgetValue,
+          durationDays,
+          startsAt,
+          pricingStrategy: strategy,
+          targetCriteria,
+        },
+      });
+
       if (error) throw error;
-      if (!data?.id) throw new Error("Impossible de creer la mise en avant.");
+      if (!data?.campaign?.id) throw new Error("Impossible de creer la mise en avant.");
 
       toast({
         title: "Mise en avant creee",
