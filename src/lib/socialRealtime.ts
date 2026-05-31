@@ -40,11 +40,36 @@ type SocialRealtimeManagerOptions<TQueryClient> = {
   topicPrefix?: string;
 };
 
-export function createSocialRealtimeManager<TQueryClient>({
-  client,
-  onInvalidate,
-  topicPrefix = "social-feed",
-}: SocialRealtimeManagerOptions<TQueryClient>) {
+type SocialRealtimeManagerInput<TQueryClient> = SocialRealtimeManagerOptions<TQueryClient> | SocialRealtimeClient;
+
+function isManagerOptions<TQueryClient>(value: SocialRealtimeManagerInput<TQueryClient>): value is SocialRealtimeManagerOptions<TQueryClient> {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "client" in value &&
+      typeof (value as SocialRealtimeManagerOptions<TQueryClient>).client?.channel === "function",
+  );
+}
+
+function subscribeTables(client: SocialRealtimeClient, topic: string, callback: () => void) {
+  const channel = client.channel(topic);
+  for (const table of SOCIAL_REALTIME_TABLES) {
+    channel.on("postgres_changes", { event: "*", schema: "public", table }, callback);
+  }
+  channel.subscribe();
+  return channel;
+}
+
+export function createSocialRealtimeManager<TQueryClient = unknown>(input: SocialRealtimeManagerInput<TQueryClient>) {
+  const options = isManagerOptions(input)
+    ? input
+    : {
+        client: input,
+        onInvalidate: () => undefined,
+        topicPrefix: "social-feed",
+      } satisfies SocialRealtimeManagerOptions<TQueryClient>;
+
+  const { client, onInvalidate, topicPrefix = "social-feed" } = options;
   let sequence = 0;
   const entries = new Map<string, SocialRealtimeEntry<TQueryClient>>();
 
@@ -62,12 +87,7 @@ export function createSocialRealtimeManager<TQueryClient>({
           }
         };
 
-        const channel = client.channel(topic);
-        for (const table of SOCIAL_REALTIME_TABLES) {
-          channel.on("postgres_changes", { event: "*", schema: "public", table }, notifySubscribers);
-        }
-        channel.subscribe();
-
+        const channel = subscribeTables(client, topic, notifySubscribers);
         entry = { channel, clientRefs, refCount: 0 };
         entries.set(userId, entry);
       }
@@ -92,6 +112,19 @@ export function createSocialRealtimeManager<TQueryClient>({
           entries.delete(userId);
           void client.removeChannel(entry.channel);
         }
+      };
+    },
+
+    subscribeAll(onChange: () => void = () => undefined) {
+      sequence += 1;
+      const topic = `${topicPrefix}:all:${sequence}`;
+      const channel = subscribeTables(client, topic, onChange);
+      let released = false;
+
+      return () => {
+        if (released) return;
+        released = true;
+        void client.removeChannel(channel);
       };
     },
   };
