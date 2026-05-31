@@ -10,6 +10,7 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 vi.mock("@/hooks/useRealtimeOrder", () => ({
+  useRealtimeOrder: () => ({ orderStatus: null, lastUpdate: null }),
   useRealtimeDeliveryTracking: () => ({ tracking: null }),
   useRealtimeDispatchJob: () => ({ dispatchJob: null }),
 }));
@@ -146,13 +147,13 @@ describe("subscription tracking page", () => {
     expect(screen.getByText("Rue Client")).toBeInTheDocument();
 
     expect(
-  screen.getByText((_content, element) => {
-    if (element?.tagName.toLowerCase() !== "p") return false;
+      screen.getByText((_content, element) => {
+        if (element?.tagName.toLowerCase() !== "p") return false;
 
-    const text = element.textContent?.replace(/\s+/g, " ").trim() ?? "";
+        const text = element.textContent?.replace(/\s+/g, " ").trim() ?? "";
 
-    return text === "Arrivée prévue 2026-06-01 a 12:00";
-  }),
-).toBeInTheDocument();
+        return text === "Prochaine étape : 2026-06-01 a 12:00";
+      }),
+    ).toBeInTheDocument();
   });
 });
