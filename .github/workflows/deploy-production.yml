@@ -19,6 +19,7 @@ env:
   PNPM_VERSION: 10.28.1
   SUPABASE_CLI_VERSION: 2.95.2
   SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
+  PRODUCTION_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
   APP_BASE_URL: https://cloud-rebuild-recovered.vercel.app/
   PUBLIC_APP_URL: https://cloud-rebuild-recovered.vercel.app/
   SITE_URL: https://www.thetok.ch
@@ -49,8 +50,8 @@ jobs:
         run: node ./scripts/write-production-env.mjs --out=.env.production
         env:
           GITHUB_SHA: ${{ github.sha }}
-          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PROJECT_ID: ${{ env.SUPABASE_PROJECT_REF }}
+          VITE_SUPABASE_URL: ${{ env.PRODUCTION_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
@@ -84,7 +85,7 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_URL: ${{ env.PRODUCTION_SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
@@ -118,8 +119,8 @@ jobs:
         run: node ./scripts/write-production-env.mjs --out=.env.production
         env:
           GITHUB_SHA: ${{ github.sha }}
-          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PROJECT_ID: ${{ env.SUPABASE_PROJECT_REF }}
+          VITE_SUPABASE_URL: ${{ env.PRODUCTION_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
@@ -188,8 +189,8 @@ jobs:
         run: node ./scripts/write-production-env.mjs --out=.env.production
         env:
           GITHUB_SHA: ${{ github.sha }}
-          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PROJECT_ID: ${{ env.SUPABASE_PROJECT_REF }}
+          VITE_SUPABASE_URL: ${{ env.PRODUCTION_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
