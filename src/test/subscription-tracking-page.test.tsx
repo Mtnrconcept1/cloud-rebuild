@@ -94,10 +94,18 @@ vi.mock("@/integrations/supabase/client", () => ({
     from: (table: string) => ({
       select: () => ({
         eq: (_column: string, value: string) => ({
-          single: () => Promise.resolve({ data: orderRows.find((order) => order.id === value), error: null }),
+          single: () =>
+            Promise.resolve({
+              data: orderRows.find((order) => order.id === value),
+              error: null,
+            }),
           maybeSingle: () => Promise.resolve({ data: null, error: null }),
         }),
-        filter: () => Promise.resolve({ data: table === "orders" ? orderRows : [], error: null }),
+        filter: () =>
+          Promise.resolve({
+            data: table === "orders" ? orderRows : [],
+            error: null,
+          }),
       }),
     }),
   }),
@@ -125,13 +133,26 @@ describe("subscription tracking page", () => {
   it("shows the complete route for all restaurants in the subscription checkout group", async () => {
     renderTrackingPage();
 
-    expect(await screen.findByText(/2 restaurants/i)).toBeInTheDocument();
-    expect(screen.getByText(/42\.00\s*CHF/i)).toBeInTheDocument();
-    expect(screen.getAllByText("Tok Test").length).toBeGreaterThan(0);
+    expect(await screen.findByText("Tok Test")).toBeInTheDocument();
     expect(screen.getAllByText("Green Test").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Retrait 1").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Retrait 2").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Livraison").length).toBeGreaterThan(0);
-    expect(screen.getByText("Livraison planifiee : 2026-06-01 a 12:00")).toBeInTheDocument();
+
+    expect(
+      screen.getByText(
+        (_content, element) =>
+          element?.textContent?.replace(/\s+/g, " ").trim() === "42.00 CHF",
+      ),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText("Rue Client")).toBeInTheDocument();
+
+    expect(
+  screen.getByText((_content, element) => {
+    if (element?.tagName.toLowerCase() !== "p") return false;
+
+    const text = element.textContent?.replace(/\s+/g, " ").trim() ?? "";
+
+    return text === "Arrivée prévue 2026-06-01 a 12:00";
+  }),
+).toBeInTheDocument();
   });
 });

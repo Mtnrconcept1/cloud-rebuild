@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": ">=20.19.0",
+    "node": ">=22.0.0",
     "npm": ">=11.0.0"
   },
   "scripts": {
@@ -15,7 +15,7 @@
     "build:prod": "vite build --mode production",
     "deploy:vercel:prod": "node ./scripts/write-production-env.mjs --out=.env.production.local && npx vercel@latest pull --yes --environment=production && npx vercel@latest --prod",
     "lint": "eslint .",
-    "lint:release": "eslint src/App.tsx src/pages/TokOne.tsx supabase/functions/create-checkout/index.ts supabase/functions/stripe-webhook/index.ts supabase/functions/manage-tok-one-subscription/index.ts supabase/functions/_shared/tok-one.ts",
+    "lint:release": "eslint src/App.tsx src/pages/TokOne.tsx supabase/functions/create-checkout/index.ts supabase/functions/stripe-webhook/index.ts supabase/functions/manage-tok-one-subscription/i[...]",
     "preview": "vite preview",
     "preview:prod": "npm run build:prod && vite preview --mode production",
     "test": "vitest run",
@@ -137,17 +137,8 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-    "vite": "^8.0.14",
-    "vitest": "^4.1.7"
+    "vite": "^5.4.21",
+    "vitest": "^3.2.4"
   },
-  "overrides": {
-    "@protobufjs/utf8": "^1.1.1",
-    "basic-ftp": "^6.0.1",
-    "ip-address": "^10.2.0",
-    "minimatch@10.2.5": {
-      "brace-expansion": "^5.0.6"
-    },
-    "protobufjs": "^7.5.9",
-    "ws": "^8.21.0"
-  }
+  "packageManager": "pnpm@10.28.1"
 }

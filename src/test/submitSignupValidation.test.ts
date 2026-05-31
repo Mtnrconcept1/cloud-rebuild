@@ -16,8 +16,18 @@ describe("submit-signup-application validation", () => {
   });
 
   it("refuse un restaurateur sans IBAN ni immatriculation", () => {
-    expect(validateSubmissionFields("restaurateur", { full_name: "A", iban: "", business_registration_number: "" }))
-      .toMatch(/IBAN|immatriculation/i);
+    expect(validateSubmissionFields("restaurateur", {
+      full_name: "A",
+      legal_name: "y",
+      restaurant_name: "z",
+      business_name: "x",
+      phone: "1",
+      city: "c",
+      address: "a",
+      iban: "",
+      business_registration_number: "",
+    })).toMatch(/IBAN|immatriculation/i);
+
     expect(validateSubmissionFields("restaurateur", {
       full_name: "A", iban: "CH..", business_registration_number: "CHE..", business_name: "x",
       legal_name: "y", restaurant_name: "z", phone: "1", city: "c", address: "a",

@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 env:
-  NODE_VERSION: 20
+  NODE_VERSION: 22
   SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 

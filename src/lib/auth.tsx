@@ -131,16 +131,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const supabase = getSupabase();
 
-    getSupabase().auth.getSession().then(({ data: { session } }) => {
-      if (cancelled) return;
-      setSession(session);
-      setUser(session?.user ?? null);
-      setMonitoringUser(session?.user ?? null);
-      setInitialSessionReceived(true);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (cancelled) return;
+        setSession(session);
+        setUser(session?.user ?? null);
+        setMonitoringUser(session?.user ?? null);
+        setInitialSessionReceived(true);
+      })
+      .catch(async (error) => {
+        console.error("[auth] failed to refresh initial session", error);
 
-    const { data: { subscription } } = getSupabase().auth.onAuthStateChange(
+        try {
+          await supabase.auth.signOut({ scope: "local" });
+        } catch (signOutError) {
+          console.error("[auth] failed to clear local session after refresh error", signOutError);
+        }
+
+        if (cancelled) return;
+        setSession(null);
+        setUser(null);
+        setMonitoringUser(null);
+        setRoles([]);
+        setActiveRole(null);
+        setInitialSessionReceived(true);
+      });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (cancelled) return;
         setSession(session);
