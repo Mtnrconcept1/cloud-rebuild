@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   CalendarClock,
@@ -15,6 +16,7 @@ import {
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import SocialComposer from "@/components/social/SocialComposer";
+import SocialPostBoostDialog from "@/components/social/SocialPostBoostDialog";
 import SocialPostCard from "@/components/social/SocialPostCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
@@ -23,6 +25,7 @@ import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
 
 export default function DashboardActualites() {
   const { selectedId, restaurants, loading, error } = useDashboardRestaurant();
+  const queryClient = useQueryClient();
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const postsQuery = useRestaurantSocialPosts(selectedId);
   const insightsQuery = useSocialInsights(selectedId);
@@ -45,6 +48,13 @@ export default function DashboardActualites() {
         "Publiez 3 a 5 actualites par semaine: plat phare, offre courte, coulisses et rappel reservation.",
         "Ajoutez un CTA mesurable a chaque post qui doit generer du chiffre d'affaires.",
       ];
+
+  const refreshCampaignLinkedData = () => {
+    if (!selectedId) return;
+    queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
+    queryClient.invalidateQueries({ queryKey: ["restaurant-social-posts", selectedId] });
+    queryClient.invalidateQueries({ queryKey: ["social-insights", selectedId] });
+  };
 
   return (
     <DashboardLayout>
@@ -186,7 +196,21 @@ export default function DashboardActualites() {
               {postsQuery.isLoading ? (
                 <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Chargement...</CardContent></Card>
               ) : posts.length > 0 ? (
-                posts.map((post) => <SocialPostCard key={post.id} post={post} compact />)
+                <div className="space-y-4">
+                  {posts.map((post) => (
+                    <div key={post.id} className="space-y-2">
+                      <div className="flex justify-end">
+                        <SocialPostBoostDialog
+                          post={post}
+                          restaurantId={selectedRestaurant.id}
+                          disabled={post.status !== "published"}
+                          onCreated={refreshCampaignLinkedData}
+                        />
+                      </div>
+                      <SocialPostCard post={post} compact />
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Aucun post publie.</CardContent></Card>
               )}
