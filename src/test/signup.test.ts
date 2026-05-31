@@ -32,7 +32,9 @@ function extractFunction(sql: string, functionName: string) {
 }
 
 describe("signup email verification + server-side draft SQL", () => {
-  const draftSql = latestMigrationContaining(/admin_submit_signup_application/i);
+  const draftSql = latestMigrationContaining(
+    /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_submit_signup_application/i,
+  );
 
   it("ajoute le statut awaiting_email a la contrainte CHECK", () => {
     expect(draftSql).toMatch(/status\s+IN\s*\([^)]*'awaiting_email'/i);
@@ -55,7 +57,9 @@ describe("signup email verification + server-side draft SQL", () => {
   });
 
   it("notifie le demandeur depuis le RPC de revue admin", () => {
-    const reviewSql = latestMigrationContaining(/admin_review_signup_application/i);
+    const reviewSql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_review_signup_application/i,
+    );
     const reviewFn = extractFunction(reviewSql, "admin_review_signup_application");
     expect(reviewFn).toContain("email_queue");
     expect(reviewFn).toMatch(/v_applicant_email/i);

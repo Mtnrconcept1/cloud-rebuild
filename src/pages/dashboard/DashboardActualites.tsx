@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -69,12 +69,12 @@ export default function DashboardActualites() {
         "Ajoutez un CTA mesurable a chaque post qui doit generer du chiffre d'affaires.",
       ];
 
-  const refreshCampaignLinkedData = () => {
+  const refreshCampaignLinkedData = useCallback(() => {
     if (!selectedId) return;
     queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
     queryClient.invalidateQueries({ queryKey: ["restaurant-social-posts", selectedId] });
     queryClient.invalidateQueries({ queryKey: ["social-insights", selectedId] });
-  };
+  }, [queryClient, selectedId]);
 
   useEffect(() => {
     const isCampaignCheckout = searchParams.get("campaign_checkout") === "1";
@@ -102,7 +102,7 @@ export default function DashboardActualites() {
     nextParams.delete("session_id");
     nextParams.delete("status");
     setSearchParams(nextParams, { replace: true });
-  }, [queryClient, searchParams, selectedId, setSearchParams, toast]);
+  }, [refreshCampaignLinkedData, searchParams, setSearchParams, toast]);
 
   return (
     <DashboardLayout>

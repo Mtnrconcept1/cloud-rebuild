@@ -174,6 +174,11 @@ function resolveSupabaseCommand() {
     if (fs.existsSync(windowsBinary)) {
       return { command: windowsBinary, prefixArgs: [] };
     }
+
+    const windowsNodeEntry = path.join(ROOT, "node_modules", "supabase", "dist", "supabase.js");
+    if (fs.existsSync(windowsNodeEntry)) {
+      return { command: process.execPath, prefixArgs: [windowsNodeEntry] };
+    }
   }
 
   const localBin = path.join(ROOT, "node_modules", ".bin", "supabase");

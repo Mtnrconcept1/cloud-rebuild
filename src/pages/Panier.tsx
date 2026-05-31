@@ -106,7 +106,6 @@ export default function Panier() {
   const [deliveryTime, setDeliveryTime] = useState("");
   const [deliveryService, setDeliveryService] = useState<ServicePeriod | null>(null);
   const [upsellModalOpen, setUpsellModalOpen] = useState(false);
-  const [checkoutPendingAfterUpsell, setCheckoutPendingAfterUpsell] = useState(false);
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
 
   const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
@@ -456,13 +455,6 @@ export default function Panier() {
       processCheckout();
     }
   };
-
-  useEffect(() => {
-    if (checkoutPendingAfterUpsell) {
-      setCheckoutPendingAfterUpsell(false);
-      processCheckout();
-    }
-  }, [checkoutPendingAfterUpsell, items]);
 
   const processCheckout = async () => {
     if (authLoading) {
@@ -1505,7 +1497,7 @@ export default function Panier() {
         onClose={() => setUpsellModalOpen(false)}
         onContinue={() => {
           setUpsellModalOpen(false);
-          setCheckoutPendingAfterUpsell(true);
+          void processCheckout();
         }}
         onAdd={(suggestedItem) => {
           addItem({

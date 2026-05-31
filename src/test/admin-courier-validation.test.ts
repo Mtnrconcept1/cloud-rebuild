@@ -34,7 +34,9 @@ function extractFunction(sql: string, functionName: string) {
 
 describe("admin courier profile validation", () => {
   it("adds a privileged RPC that reviews courier profiles and synchronizes the courier role", () => {
-    const sql = latestMigrationContaining(/admin_review_courier_profile/i);
+    const sql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_review_courier_profile/i,
+    );
     const fn = extractFunction(sql, "admin_review_courier_profile");
 
     expect(fn).toMatch(/public\.has_role\(v_actor_id,\s*'admin'\)/i);
@@ -43,6 +45,16 @@ describe("admin courier profile validation", () => {
     expect(fn).toMatch(/INSERT\s+INTO\s+public\.user_roles[\s\S]*'courier'::public\.app_role/i);
     expect(fn).toMatch(/DELETE\s+FROM\s+public\.user_roles[\s\S]*'courier'::public\.app_role/i);
     expect(sql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_review_courier_profile/i);
+  });
+
+  it("does not expose the courier review RPC to anonymous callers", () => {
+    const sql = latestMigrationContaining(
+      /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_review_courier_profile[\s\S]*FROM\s+anon/i,
+    );
+
+    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_review_courier_profile[\s\S]*FROM\s+PUBLIC/i);
+    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_review_courier_profile[\s\S]*FROM\s+anon/i);
+    expect(sql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_review_courier_profile[\s\S]*TO\s+authenticated,\s*service_role/i);
   });
 
   it("exposes a dedicated courier validation queue in the admin users page", () => {

@@ -243,11 +243,11 @@ export default function ZeroAttente() {
   }, [isTokOneMember, selectedRestaurant?.id, tokOneBenefits]);
   const tokOneDiscount = useMemo(
     () => (isTokOneMember ? roundCurrency((subtotal * tokOneDiscountPercent) / 100) : 0),
-    [isTokOneMember, roundCurrency, subtotal, tokOneDiscountPercent],
+    [isTokOneMember, subtotal, tokOneDiscountPercent],
   );
   const totalBeforeMiamz = useMemo(
     () => roundCurrency(Math.max(0, subtotal - formulaDiscount - tokOneDiscount)),
-    [formulaDiscount, roundCurrency, subtotal, tokOneDiscount],
+    [formulaDiscount, subtotal, tokOneDiscount],
   );
   const loyaltyPoints = Math.max(0, Number(profile?.loyalty_points || 0));
   const maxPointsDiscount = loyaltyPoints / 100;
@@ -267,7 +267,7 @@ export default function ZeroAttente() {
   const pointsDiscount = roundCurrency(pointsToRedeem / 100);
   const totalAfterDiscount = useMemo(
     () => roundCurrency(Math.max(0, totalBeforeMiamz - pointsDiscount)),
-    [pointsDiscount, roundCurrency, totalBeforeMiamz],
+    [pointsDiscount, totalBeforeMiamz],
   );
   const currentPricing: PricingSummary = useMemo(
     () => ({

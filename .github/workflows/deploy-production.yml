@@ -17,7 +17,7 @@ permissions:
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 10.28.1
-  SUPABASE_CLI_VERSION: 2.95.2
+  SUPABASE_CLI_VERSION: 2.102.0
   SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
   PRODUCTION_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
   APP_BASE_URL: https://cloud-rebuild-recovered.vercel.app/

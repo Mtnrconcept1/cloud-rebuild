@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -325,7 +325,11 @@ export default function MatchGroupes() {
   const discount = subtotal * (savingsPercent / 100);
   const finalTotal = subtotal - discount;
 
-  const addFinalOrderToCart = async (order: GroupMemberOrder, group: MatchGroup, options: { showToast?: boolean } = {}) => {
+  const addFinalOrderToCart = useCallback(async (
+    order: GroupMemberOrder,
+    group: MatchGroup,
+    options: { showToast?: boolean } = {},
+  ) => {
     if (!user?.id) return;
 
     await (supabase.rpc as any)("close_due_match_groups");
@@ -389,7 +393,7 @@ export default function MatchGroupes() {
         description: `La réduction finale de -${finalDiscountPercent}% a été appliquée. Vous pouvez payer.`,
       });
     }
-  };
+  }, [address, queryClient, replaceCartItems, setOrderMode, toast, updateCartMetadata, user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -421,7 +425,7 @@ export default function MatchGroupes() {
     if (!isGroupLocked(displayedGroup, myGroupOrder, nowMs)) return;
 
     void addFinalOrderToCart(myGroupOrder, displayedGroup, { showToast: true });
-  }, [displayedGroup, finalCartSyncedOrderId, myGroupOrder, nowMs]);
+  }, [addFinalOrderToCart, displayedGroup, finalCartSyncedOrderId, myGroupOrder, nowMs]);
 
   const createGroupMutation = useMutation({
     mutationFn: async (restaurant: any) => {
