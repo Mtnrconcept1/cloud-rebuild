@@ -31,6 +31,17 @@ const supabase = getSupabase();
 
 type Step = "browse" | "menu" | "confirm";
 
+type MatchGroupStatus = "open" | "locked" | "payment_pending" | "processing" | "completed" | "closed" | "cancelled";
+type GroupMemberOrderStatus = "draft" | "joined" | "locked" | "payment_pending" | "paid" | "cancelled" | "expired";
+
+type RestaurantSummary = {
+  id: string;
+  name: string;
+  cuisine_type?: string | null;
+  image_url?: string | null;
+  city?: string | null;
+};
+
 type MatchGroup = {
   id: string;
   restaurant_id: string;
@@ -40,26 +51,23 @@ type MatchGroup = {
   max_members: number;
   discount_percentage: number;
   final_discount_percentage?: number | null;
-  status: "open" | "locked" | "payment_pending" | "processing" | "completed" | "closed" | "cancelled";
+  status: MatchGroupStatus;
   is_active: boolean;
   expires_at: string;
   scheduled_at?: string | null;
   lock_at?: string | null;
   member_count: number;
-  restaurant?: {
-    id: string;
-    name: string;
-    cuisine_type?: string | null;
-    image_url?: string | null;
-    city?: string | null;
-  };
-  restaurants?: {
-    id: string;
-    name: string;
-    cuisine_type?: string | null;
-    image_url?: string | null;
-    city?: string | null;
-  };
+  restaurant?: RestaurantSummary;
+  restaurants?: RestaurantSummary;
+};
+
+type GroupMemberOrderItem = {
+  menu_item_id: string;
+  name: string;
+  quantity: number;
+  original_price: number;
+  restaurant_id: string;
+  restaurant_name: string;
 };
 
 type GroupMemberOrder = {
@@ -67,27 +75,26 @@ type GroupMemberOrder = {
   group_id: string;
   user_id: string;
   restaurant_id: string;
-  items: Array<{
-    menu_item_id: string;
-    name: string;
-    quantity: number;
-    original_price: number;
-    restaurant_id: string;
-    restaurant_name: string;
-  }>;
+  items: GroupMemberOrderItem[];
   subtotal: number;
   final_discount_percentage: number;
   final_discount_amount: number;
   final_total: number;
-  status: "draft" | "joined" | "locked" | "payment_pending" | "paid" | "cancelled" | "expired";
+  status: GroupMemberOrderStatus;
   payment_status: string;
   payment_due_at?: string | null;
   updated_at?: string | null;
   metadata?: Record<string, any> | null;
   order_groups?: (Partial<MatchGroup> & {
-    restaurants?: MatchGroup["restaurant"];
+    restaurants?: RestaurantSummary;
   }) | null;
 };
+
+function isMissingRpcError(error: unknown) {
+  const message = String((error as { message?: unknown })?.message || "").toLowerCase();
+  const code = String((error as { code?: unknown })?.code || "");
+  return code === "404" || code === "42883" || message.includes("not found") || message.includes("could not find the function");
+}
 
 function getDefaultScheduleValue() {
   const date = new Date(Date.now() + 30 * 60 * 1000);
@@ -126,11 +133,42 @@ function getSavedOrderItemCount(order: GroupMemberOrder) {
   return (order.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 }
 
+function normalizeGroup(row: any): MatchGroup {
+  const restaurant = row.restaurant || row.restaurants || null;
+  const memberCount = Number(row.member_count ?? row.group_members?.length ?? 0);
+  const lockAt = row.lock_at || row.expires_at;
+
+  return {
+    id: String(row.id),
+    restaurant_id: String(row.restaurant_id),
+    creator_id: row.creator_id,
+    area: String(row.area || "Ma position"),
+    time_slot: String(row.time_slot || formatTimeSlot(lockAt)),
+    max_members: Number(row.max_members || 6),
+    discount_percentage: Number(row.discount_percentage || calculatePreviewDiscount(Math.max(1, memberCount))),
+    final_discount_percentage: row.final_discount_percentage ?? null,
+    status: (row.status as MatchGroupStatus) || "open",
+    is_active: row.is_active !== false,
+    expires_at: String(row.expires_at || lockAt),
+    scheduled_at: row.scheduled_at || lockAt,
+    lock_at: lockAt,
+    member_count: memberCount,
+    restaurant: restaurant ? {
+      id: restaurant.id,
+      name: restaurant.name,
+      cuisine_type: restaurant.cuisine_type,
+      image_url: restaurant.image_url,
+      city: restaurant.city,
+    } : undefined,
+    restaurants: row.restaurants,
+  };
+}
+
 function buildGroupFromSavedOrder(order: GroupMemberOrder, fallbackRestaurants: any[]): MatchGroup | null {
   const rawGroup = order.order_groups;
   if (!rawGroup?.id) return null;
 
-  const restaurant = rawGroup.restaurants || fallbackRestaurants.find((restaurant) => restaurant.id === rawGroup.restaurant_id);
+  const restaurant = rawGroup.restaurants || fallbackRestaurants.find((row) => row.id === rawGroup.restaurant_id);
   const lockAt = rawGroup.lock_at || rawGroup.expires_at || order.payment_due_at || new Date().toISOString();
 
   return {
@@ -142,7 +180,7 @@ function buildGroupFromSavedOrder(order: GroupMemberOrder, fallbackRestaurants: 
     max_members: Number(rawGroup.max_members || 6),
     discount_percentage: Number(rawGroup.discount_percentage || order.final_discount_percentage || 5),
     final_discount_percentage: rawGroup.final_discount_percentage ?? order.final_discount_percentage ?? null,
-    status: (rawGroup.status as MatchGroup["status"]) || (order.status === "payment_pending" ? "payment_pending" : "open"),
+    status: (rawGroup.status as MatchGroupStatus) || (order.status === "payment_pending" ? "payment_pending" : "open"),
     is_active: rawGroup.is_active !== false,
     expires_at: String(rawGroup.expires_at || lockAt),
     scheduled_at: rawGroup.scheduled_at || lockAt,
@@ -151,6 +189,33 @@ function buildGroupFromSavedOrder(order: GroupMemberOrder, fallbackRestaurants: 
     restaurant,
     restaurants: restaurant,
   };
+}
+
+function isGroupLocked(group: MatchGroup | null | undefined, order: GroupMemberOrder | null | undefined, nowMs: number) {
+  const lockAt = group?.lock_at || group?.expires_at || order?.payment_due_at;
+  return Boolean(
+    order?.status === "payment_pending"
+    || group?.status === "payment_pending"
+    || group?.status === "locked"
+    || (lockAt && new Date(lockAt).getTime() <= nowMs),
+  );
+}
+
+async function fetchMatchGroups(): Promise<MatchGroup[]> {
+  const { data: rpcData, error: rpcError } = await (supabase.rpc as any)("get_match_group_public_feed");
+  if (!rpcError) return (rpcData || []).map(normalizeGroup);
+  if (!isMissingRpcError(rpcError)) throw rpcError;
+
+  const { data, error } = await supabase
+    .from("order_groups" as any)
+    .select("*, restaurants(id,name,cuisine_type,image_url,city), group_members(id)")
+    .eq("is_active", true)
+    .gt("expires_at", new Date().toISOString())
+    .order("expires_at", { ascending: true })
+    .limit(50);
+
+  if (error) throw error;
+  return (data || []).map(normalizeGroup);
 }
 
 export default function MatchGroupes() {
@@ -168,6 +233,8 @@ export default function MatchGroupes() {
   const [createMode, setCreateMode] = useState(false);
   const [scheduledAt, setScheduledAt] = useState(getDefaultScheduleValue);
   const [nowMs, setNowMs] = useState(Date.now());
+  const [closedGroupIds, setClosedGroupIds] = useState<Record<string, boolean>>({});
+  const [finalCartSyncedOrderId, setFinalCartSyncedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
@@ -176,25 +243,10 @@ export default function MatchGroupes() {
 
   const { data: realGroups = [], isLoading: loadingGroups } = useQuery({
     queryKey: ["match-group-public-feed"],
-    queryFn: async () => {
-      const { data, error } = await (supabase.rpc as any)("get_match_group_public_feed");
-      if (error) throw error;
-      return (data || []) as MatchGroup[];
-    },
+    queryFn: fetchMatchGroups,
     refetchInterval: 10_000,
+    retry: 1,
   });
-
-  useEffect(() => {
-    if (!user?.id) return;
-    const dueGroups = realGroups.some((group) => new Date(group.lock_at || group.expires_at).getTime() <= Date.now());
-    if (!dueGroups) return;
-
-    void (supabase.rpc as any)("close_due_match_groups").then(() => {
-      queryClient.invalidateQueries({ queryKey: ["match-group-public-feed"] });
-      queryClient.invalidateQueries({ queryKey: ["match-group-order", activeGroup?.id, user.id] });
-      queryClient.invalidateQueries({ queryKey: ["my-match-group-orders", user.id] });
-    });
-  }, [activeGroup?.id, queryClient, realGroups, user?.id]);
 
   const { data: restaurants = [] } = useQuery({
     queryKey: ["restaurants-group-all"],
@@ -236,7 +288,7 @@ export default function MatchGroupes() {
       return data as GroupMemberOrder | null;
     },
     enabled: !!activeGroup?.id && !!user?.id,
-    refetchInterval: 10_000,
+    refetchInterval: 5_000,
   });
 
   const { data: savedGroupOrders = [] } = useQuery({
@@ -254,8 +306,122 @@ export default function MatchGroupes() {
       return (data || []) as GroupMemberOrder[];
     },
     enabled: !!user?.id,
-    refetchInterval: 10_000,
+    refetchInterval: 5_000,
   });
+
+  const activeGroupFromFeed = activeGroup ? realGroups.find((group) => group.id === activeGroup.id) : null;
+  const displayedGroup = activeGroupFromFeed || activeGroup;
+  const memberCount = displayedGroup?.member_count || (myGroupOrder ? 1 : 0);
+  const savingsPercent = displayedGroup?.discount_percentage || myGroupOrder?.final_discount_percentage || calculatePreviewDiscount(Math.max(1, memberCount));
+  const lockAt = displayedGroup?.lock_at || displayedGroup?.expires_at || null;
+  const groupIsLocked = isGroupLocked(displayedGroup, myGroupOrder, nowMs);
+  const categories = useMemo(() => [...new Set(menuItems.map((item: any) => item.category || "Autres"))] as string[], [menuItems]);
+
+  const count = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+  const subtotal = Object.entries(quantities).reduce((sum, [id, quantity]) => {
+    const item = menuItems.find((menuItem: any) => menuItem.id === id);
+    return sum + (item ? Number(item.price) * quantity : 0);
+  }, 0);
+  const discount = subtotal * (savingsPercent / 100);
+  const finalTotal = subtotal - discount;
+
+  const addFinalOrderToCart = async (order: GroupMemberOrder, group: MatchGroup, options: { showToast?: boolean } = {}) => {
+    if (!user?.id) return;
+
+    await (supabase.rpc as any)("close_due_match_groups");
+
+    const { data: refreshedOrder } = await supabase
+      .from("group_member_orders" as any)
+      .select("*")
+      .eq("id", order.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const finalOrder = (refreshedOrder || order) as GroupMemberOrder;
+    const finalDiscountPercent = Number(
+      finalOrder.final_discount_percentage
+      || group.final_discount_percentage
+      || group.discount_percentage
+      || calculatePreviewDiscount(group.member_count || 1),
+    );
+    const factor = 1 - finalDiscountPercent / 100;
+    const cartItems = (finalOrder.items || []).map((item) => ({
+      menuItemId: item.menu_item_id,
+      name: item.name,
+      price: Math.round(Number(item.original_price) * factor * 100) / 100,
+      quantity: item.quantity,
+      restaurantId: item.restaurant_id,
+      restaurantName: item.restaurant_name,
+      metadata: {
+        feature: "match-groupes",
+        groupId: group.id,
+        groupMemberOrderId: finalOrder.id,
+        groupFinalDiscountPercent: finalDiscountPercent,
+        originalPrice: Number(item.original_price),
+      },
+    }));
+
+    setOrderMode("delivery", { force: true });
+    replaceCartItems(cartItems, {
+      feature: "match-groupes",
+      groupId: group.id,
+      groupMemberOrderId: finalOrder.id,
+      groupFinalDiscountPercent: finalDiscountPercent,
+      scheduled_delivery_label: group.time_slot,
+      delivery_address: String(finalOrder.metadata?.delivery_address || address || group.area || ""),
+    }, "delivery");
+    updateCartMetadata({
+      feature: "match-groupes",
+      groupId: group.id,
+      groupMemberOrderId: finalOrder.id,
+      groupFinalDiscountPercent: finalDiscountPercent,
+    });
+
+    setFinalCartSyncedOrderId(finalOrder.id);
+    setStep("confirm");
+    queryClient.invalidateQueries({ queryKey: ["match-group-order", group.id, user.id] });
+    queryClient.invalidateQueries({ queryKey: ["my-match-group-orders", user.id] });
+    queryClient.invalidateQueries({ queryKey: ["match-group-public-feed"] });
+
+    if (options.showToast !== false) {
+      toast({
+        title: "Panier final prêt",
+        description: `La réduction finale de -${finalDiscountPercent}% a été appliquée. Vous pouvez payer.`,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const candidates = [
+      ...realGroups,
+      ...(activeGroup ? [activeGroup] : []),
+    ];
+    const dueGroupIds = candidates
+      .filter((group) => !closedGroupIds[group.id])
+      .filter((group) => new Date(group.lock_at || group.expires_at).getTime() <= nowMs)
+      .map((group) => group.id);
+
+    if (dueGroupIds.length === 0) return;
+
+    setClosedGroupIds((previous) => ({
+      ...previous,
+      ...Object.fromEntries(dueGroupIds.map((id) => [id, true])),
+    }));
+
+    void (supabase.rpc as any)("close_due_match_groups").then(() => {
+      queryClient.invalidateQueries({ queryKey: ["match-group-public-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["match-group-order", activeGroup?.id, user.id] });
+      queryClient.invalidateQueries({ queryKey: ["my-match-group-orders", user.id] });
+    });
+  }, [activeGroup, closedGroupIds, nowMs, queryClient, realGroups, user?.id]);
+
+  useEffect(() => {
+    if (!displayedGroup || !myGroupOrder || finalCartSyncedOrderId === myGroupOrder.id) return;
+    if (!isGroupLocked(displayedGroup, myGroupOrder, nowMs)) return;
+
+    void addFinalOrderToCart(myGroupOrder, displayedGroup, { showToast: true });
+  }, [displayedGroup, finalCartSyncedOrderId, myGroupOrder, nowMs]);
 
   const createGroupMutation = useMutation({
     mutationFn: async (restaurant: any) => {
@@ -265,6 +431,37 @@ export default function MatchGroupes() {
         throw new Error("Choisissez un horaire au moins 5 minutes dans le futur.");
       }
 
+      const { data: rpcGroupId, error: rpcError } = await (supabase.rpc as any)("create_match_group", {
+        p_restaurant_id: restaurant.id,
+        p_area: address || "Ma position",
+        p_scheduled_at: scheduledDate.toISOString(),
+        p_max_members: 6,
+      });
+
+      if (!rpcError && rpcGroupId) {
+        return {
+          group: normalizeGroup({
+            id: rpcGroupId,
+            restaurant_id: restaurant.id,
+            creator_id: user.id,
+            area: address || "Ma position",
+            time_slot: formatTimeSlot(scheduledDate.toISOString()),
+            max_members: 6,
+            discount_percentage: 5,
+            status: "open",
+            is_active: true,
+            expires_at: scheduledDate.toISOString(),
+            scheduled_at: scheduledDate.toISOString(),
+            lock_at: scheduledDate.toISOString(),
+            member_count: 0,
+            restaurant,
+          }),
+          restaurant,
+        };
+      }
+
+      if (!isMissingRpcError(rpcError)) throw rpcError;
+
       const { data, error } = await supabase
         .from("order_groups" as any)
         .insert({
@@ -272,22 +469,16 @@ export default function MatchGroupes() {
           creator_id: user.id,
           area: address || "Ma position",
           time_slot: formatTimeSlot(scheduledDate.toISOString()),
-          scheduled_at: scheduledDate.toISOString(),
-          lock_at: scheduledDate.toISOString(),
-          expires_at: scheduledDate.toISOString(),
-          status: "open",
-          is_active: true,
-          discount_percentage: 5,
-          min_discount_percentage: 5,
-          max_discount_percentage: 30,
-          discount_step_percentage: 5,
           max_members: 6,
+          discount_percentage: 5,
+          is_active: true,
+          expires_at: scheduledDate.toISOString(),
         })
-        .select()
+        .select("*, restaurants(id,name,cuisine_type,image_url,city)")
         .single();
 
       if (error) throw error;
-      return { group: data as MatchGroup, restaurant };
+      return { group: normalizeGroup({ ...data, restaurant }), restaurant };
     },
     onSuccess: ({ group, restaurant }) => {
       setActiveGroup({ ...group, restaurant });
@@ -306,6 +497,7 @@ export default function MatchGroupes() {
     mutationFn: async () => {
       if (!user) throw new Error("Connexion requise");
       if (!activeGroup || !selectedRestaurant) throw new Error("Groupe introuvable");
+      if (groupIsLocked) throw new Error("Le compte à rebours est terminé. Le panier est verrouillé.");
       if (count <= 0 || subtotal <= 0) throw new Error("Ajoutez au moins un article.");
 
       const items = Object.entries(quantities)
@@ -335,13 +527,19 @@ export default function MatchGroupes() {
         },
       });
 
-      if (error) throw error;
-      return data as string;
+      if (!error) return data as string;
+      if (!isMissingRpcError(error) && !String(error.message || "").toLowerCase().includes("group_member_orders")) throw error;
+
+      const { error: memberError } = await supabase
+        .from("group_members" as any)
+        .insert({ group_id: activeGroup.id, user_id: user.id });
+      if (memberError && !String(memberError.message || "").toLowerCase().includes("duplicate")) throw memberError;
+      return activeGroup.id;
     },
     onSuccess: () => {
       toast({
-        title: "Commande ajoutée au groupe",
-        description: "Votre panier est enregistré. Vous pourrez le retrouver même si vous quittez cette page.",
+        title: "Panier Match groupe enregistré",
+        description: "Vous pouvez revenir modifier vos articles tant que le compte à rebours n'est pas terminé.",
       });
       setStep("confirm");
       queryClient.invalidateQueries({ queryKey: ["match-group-public-feed"] });
@@ -353,35 +551,18 @@ export default function MatchGroupes() {
     },
   });
 
-  const updateQty = (id: string, d: number) => setQuantities((prev) => {
-    const next = Math.max(0, (prev[id] || 0) + d);
+  const updateQty = (id: string, delta: number) => setQuantities((previous) => {
+    const next = Math.max(0, (previous[id] || 0) + delta);
     if (next === 0) {
-      const { [id]: _removed, ...rest } = prev;
+      const { [id]: _removed, ...rest } = previous;
       return rest;
     }
-    return { ...prev, [id]: next };
+    return { ...previous, [id]: next };
   });
-
-  const count = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
-  const subtotal = Object.entries(quantities).reduce((sum, [id, quantity]) => {
-    const item = menuItems.find((menuItem: any) => menuItem.id === id);
-    return sum + (item ? Number(item.price) * quantity : 0);
-  }, 0);
-
-  const activeGroupFromFeed = activeGroup ? realGroups.find((group) => group.id === activeGroup.id) : null;
-  const displayedGroup = activeGroupFromFeed || activeGroup;
-  const memberCount = displayedGroup?.member_count || (myGroupOrder ? 1 : 0);
-  const savingsPercent = displayedGroup?.discount_percentage || myGroupOrder?.final_discount_percentage || calculatePreviewDiscount(Math.max(1, memberCount));
-  const discount = subtotal * (savingsPercent / 100);
-  const finalTotal = subtotal - discount;
-  const lockAt = displayedGroup?.lock_at || displayedGroup?.expires_at || null;
-  const remainingMs = lockAt ? new Date(lockAt).getTime() - nowMs : 0;
-  const groupIsLocked = Boolean(myGroupOrder?.status === "payment_pending" || displayedGroup?.status === "payment_pending" || remainingMs <= 0);
-  const categories = [...new Set(menuItems.map((item: any) => item.category || "Autres"))] as string[];
 
   const openGroup = (group: MatchGroup) => {
     if (!user) return navigate("/auth");
-    const restaurant = group.restaurant || group.restaurants || restaurants.find((r: any) => r.id === group.restaurant_id);
+    const restaurant = group.restaurant || group.restaurants || restaurants.find((row: any) => row.id === group.restaurant_id);
     if (!restaurant) {
       toast({ title: "Restaurant indisponible", description: "Impossible d'ouvrir ce groupe pour le moment.", variant: "destructive" });
       return;
@@ -395,10 +576,11 @@ export default function MatchGroupes() {
     setActiveGroup(group);
     setSelectedRestaurant(restaurant);
     setQuantities({});
+    setFinalCartSyncedOrderId(null);
     setStep("menu");
   };
 
-  const resumeSavedGroupOrder = (order: GroupMemberOrder) => {
+  const resumeSavedGroupOrder = async (order: GroupMemberOrder) => {
     if (!user) return navigate("/auth");
     const group = buildGroupFromSavedOrder(order, restaurants);
     if (!group) {
@@ -416,57 +598,35 @@ export default function MatchGroupes() {
       ),
     );
     setCreateMode(false);
-    setStep("confirm");
     queryClient.invalidateQueries({ queryKey: ["match-group-order", group.id, user.id] });
+
+    if (isGroupLocked(group, order, nowMs)) {
+      await addFinalOrderToCart(order, group, { showToast: true });
+      return;
+    }
+
+    setStep("menu");
+    toast({
+      title: "Panier repris",
+      description: "Vous pouvez ajouter ou retirer des articles tant que le compte à rebours continue.",
+    });
   };
 
   const handlePayFinal = async () => {
-    if (!myGroupOrder || !selectedRestaurant || !activeGroup) return;
+    if (!myGroupOrder || !selectedRestaurant || !activeGroup || !displayedGroup) return;
 
     if (!groupIsLocked) {
       toast({
         title: "Le groupe est encore ouvert",
-        description: "Le paiement final sera disponible à la fin du compte à rebours.",
+        description: "Vous pouvez encore modifier votre panier. Le paiement sera disponible à la fin du compte à rebours.",
       });
       return;
     }
 
-    await (supabase.rpc as any)("close_due_match_groups");
-    const finalDiscountPercent = Number(myGroupOrder.final_discount_percentage || displayedGroup?.final_discount_percentage || savingsPercent || 0);
-    const factor = 1 - finalDiscountPercent / 100;
-    const cartItems = (myGroupOrder.items || []).map((item) => ({
-      menuItemId: item.menu_item_id,
-      name: item.name,
-      price: Math.round(Number(item.original_price) * factor * 100) / 100,
-      quantity: item.quantity,
-      restaurantId: item.restaurant_id,
-      restaurantName: item.restaurant_name,
-      metadata: {
-        feature: "match-groupes",
-        groupId: activeGroup.id,
-        groupMemberOrderId: myGroupOrder.id,
-        groupFinalDiscountPercent: finalDiscountPercent,
-        originalPrice: Number(item.original_price),
-      },
-    }));
+    if (finalCartSyncedOrderId !== myGroupOrder.id) {
+      await addFinalOrderToCart(myGroupOrder, displayedGroup, { showToast: true });
+    }
 
-    setOrderMode("delivery", { force: true });
-    replaceCartItems(cartItems, {
-      feature: "match-groupes",
-      groupId: activeGroup.id,
-      groupMemberOrderId: myGroupOrder.id,
-      groupFinalDiscountPercent: finalDiscountPercent,
-      scheduled_delivery_label: displayedGroup?.time_slot,
-      delivery_address: address,
-    }, "delivery");
-    updateCartMetadata({
-      feature: "match-groupes",
-      groupId: activeGroup.id,
-      groupMemberOrderId: myGroupOrder.id,
-      groupFinalDiscountPercent: finalDiscountPercent,
-    });
-
-    toast({ title: "Réduction finale appliquée", description: `-${finalDiscountPercent}% · paiement final dans le panier.` });
     navigate("/panier");
   };
 
@@ -520,7 +680,7 @@ export default function MatchGroupes() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <h2 className="font-display text-lg font-semibold">Mes paniers Match groupe</h2>
-                        <p className="text-xs text-muted-foreground">Vos paniers enregistrés restent disponibles même après avoir quitté la page.</p>
+                        <p className="text-xs text-muted-foreground">Cliquez sur un panier pour le modifier avant la fin du compte à rebours, ou le payer après fermeture.</p>
                       </div>
                       <Badge variant="secondary">{savedGroupOrders.length}</Badge>
                     </div>
@@ -529,9 +689,14 @@ export default function MatchGroupes() {
                         const group = buildGroupFromSavedOrder(order, restaurants);
                         const restaurant = group?.restaurant || group?.restaurants;
                         const groupLockAt = group?.lock_at || group?.expires_at;
-                        const locked = order.status === "payment_pending" || group?.status === "payment_pending" || (groupLockAt ? new Date(groupLockAt).getTime() <= nowMs : false);
+                        const locked = isGroupLocked(group, order, nowMs);
                         return (
-                          <div key={order.id} className="rounded-xl border p-3 space-y-3">
+                          <button
+                            key={order.id}
+                            type="button"
+                            onClick={() => void resumeSavedGroupOrder(order)}
+                            className="w-full rounded-xl border p-3 text-left transition hover:border-violet-500/40 hover:bg-violet-500/5"
+                          >
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <p className="font-semibold truncate">{restaurant?.name || "Restaurant"}</p>
@@ -539,15 +704,13 @@ export default function MatchGroupes() {
                                   {getSavedOrderItemCount(order)} article{getSavedOrderItemCount(order) > 1 ? "s" : ""} · {Number(order.subtotal || 0).toFixed(2)} CHF
                                 </p>
                               </div>
-                              <Badge variant={locked ? "default" : "outline"}>{locked ? "Paiement final" : `-${group?.discount_percentage || order.final_discount_percentage || 5}%`}</Badge>
+                              <Badge variant={locked ? "default" : "outline"}>{locked ? "Prêt à payer" : `-${group?.discount_percentage || order.final_discount_percentage || 5}%`}</Badge>
                             </div>
-                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                              <span>{locked ? "Réduction figée" : `Fin dans ${formatCountdown(groupLockAt, nowMs)}`}</span>
-                              <Button type="button" size="sm" variant="outline" className="h-8" onClick={() => resumeSavedGroupOrder(order)}>
-                                {locked ? "Reprendre et payer" : "Reprendre"}
-                              </Button>
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                              <span>{locked ? "Réduction finale appliquée au panier" : `Modifiable · fin dans ${formatCountdown(groupLockAt, nowMs)}`}</span>
+                              <span className="font-semibold text-violet-600">{locked ? "Ouvrir le paiement" : "Modifier le panier"}</span>
                             </div>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -653,7 +816,7 @@ export default function MatchGroupes() {
               <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
                 <span>{memberCount}/{displayedGroup.max_members} participants</span>
                 <span>Fin dans {formatCountdown(lockAt, nowMs)}</span>
-                <span>Réduction finale recalculée à la fermeture</span>
+                <span>{groupIsLocked ? "Panier verrouillé" : "Vous pouvez encore modifier vos articles"}</span>
               </div>
             </div>
 
@@ -678,11 +841,11 @@ export default function MatchGroupes() {
                       <div className="flex items-center gap-1">
                         {quantity > 0 && (
                           <>
-                            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQty(item.id, -1)}><Minus className="h-3 w-3" /></Button>
+                            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQty(item.id, -1)} disabled={groupIsLocked}><Minus className="h-3 w-3" /></Button>
                             <span className="w-5 text-center text-sm font-semibold">{quantity}</span>
                           </>
                         )}
-                        <Button size="icon" variant={quantity > 0 ? "outline" : "default"} className="h-7 w-7" onClick={() => updateQty(item.id, 1)}><Plus className="h-3 w-3" /></Button>
+                        <Button size="icon" variant={quantity > 0 ? "outline" : "default"} className="h-7 w-7" onClick={() => updateQty(item.id, 1)} disabled={groupIsLocked}><Plus className="h-3 w-3" /></Button>
                       </div>
                     </div>
                   );
@@ -703,8 +866,8 @@ export default function MatchGroupes() {
                   <span>Total estimé</span>
                   <span>{finalTotal.toFixed(2)} CHF</span>
                 </div>
-                <Button onClick={() => saveGroupOrderMutation.mutate()} disabled={saveGroupOrderMutation.isPending} className="w-full bg-violet-500 hover:bg-violet-600 gap-2">
-                  <ShoppingCart className="h-4 w-4" /> Enregistrer ma commande dans le groupe
+                <Button onClick={() => saveGroupOrderMutation.mutate()} disabled={saveGroupOrderMutation.isPending || groupIsLocked} className="w-full bg-violet-500 hover:bg-violet-600 gap-2">
+                  <ShoppingCart className="h-4 w-4" /> {groupIsLocked ? "Panier verrouillé" : "Enregistrer mes modifications"}
                 </Button>
               </div>
             )}
@@ -715,13 +878,13 @@ export default function MatchGroupes() {
           <div className="space-y-6">
             <div className="rounded-2xl bg-violet-500/5 border border-violet-500/20 p-6 text-center space-y-3">
               {groupIsLocked ? <Lock className="h-12 w-12 text-violet-500 mx-auto" /> : <CheckCircle2 className="h-12 w-12 text-violet-500 mx-auto" />}
-              <h2 className="font-display text-xl font-bold">{groupIsLocked ? "Groupe fermé" : "Commande enregistrée"}</h2>
+              <h2 className="font-display text-xl font-bold">{groupIsLocked ? "Panier final prêt" : "Panier enregistré"}</h2>
               <p className="text-sm text-muted-foreground">
                 {groupIsLocked
-                  ? "La réduction finale est figée. Vous pouvez passer au paiement."
-                  : "Attendez la fin du compte à rebours : plus il y a de monde, plus la réduction augmente."}
+                  ? "Les articles ont été ajoutés au panier avec la réduction finale. Vous n'avez plus qu'à payer."
+                  : "Vous pouvez encore revenir modifier vos articles jusqu'à la fin du compte à rebours."}
               </p>
-              <div className="text-3xl font-black text-violet-600">{groupIsLocked ? `-${myGroupOrder?.final_discount_percentage || savingsPercent}%` : formatCountdown(lockAt, nowMs)}</div>
+              <div className="text-3xl font-black text-violet-600">{groupIsLocked ? `-${myGroupOrder?.final_discount_percentage || displayedGroup.final_discount_percentage || savingsPercent}%` : formatCountdown(lockAt, nowMs)}</div>
             </div>
 
             <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
@@ -731,16 +894,23 @@ export default function MatchGroupes() {
               {myGroupOrder ? (
                 <>
                   <div className="flex justify-between border-t pt-2"><span className="text-muted-foreground">Sous-total</span><span>{Number(myGroupOrder.subtotal).toFixed(2)} CHF</span></div>
-                  <div className="flex justify-between text-violet-600"><span>Réduction finale</span><span>-{Number(myGroupOrder.final_discount_amount).toFixed(2)} CHF</span></div>
-                  <div className="flex justify-between font-bold"><span>Total final</span><span>{Number(myGroupOrder.final_total).toFixed(2)} CHF</span></div>
+                  <div className="flex justify-between text-violet-600"><span>Réduction finale</span><span>-{Number(myGroupOrder.final_discount_amount || myGroupOrder.subtotal * (savingsPercent / 100)).toFixed(2)} CHF</span></div>
+                  <div className="flex justify-between font-bold"><span>Total final</span><span>{Number(myGroupOrder.final_total || myGroupOrder.subtotal - (myGroupOrder.subtotal * (savingsPercent / 100))).toFixed(2)} CHF</span></div>
                 </>
               ) : null}
             </div>
 
-            <Button onClick={handlePayFinal} className="w-full bg-violet-500 hover:bg-violet-600 gap-2" size="lg" disabled={!groupIsLocked || !myGroupOrder}>
-              {groupIsLocked ? "Payer ma commande finale" : "Paiement disponible à la fin du compte à rebours"}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {!groupIsLocked ? (
+                <Button onClick={() => setStep("menu")} variant="outline" size="lg">
+                  Modifier mon panier
+                </Button>
+              ) : null}
+              <Button onClick={handlePayFinal} className="w-full bg-violet-500 hover:bg-violet-600 gap-2 sm:col-span-1" size="lg" disabled={!groupIsLocked || !myGroupOrder}>
+                {groupIsLocked ? "Procéder au paiement" : "Paiement disponible à la fin"}
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
       </div>
