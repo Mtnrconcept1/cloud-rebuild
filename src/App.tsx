@@ -248,7 +248,7 @@ function AppShell() {
           <Route path="/tok-one" element={<FeatureSwitch enabled={tokOneEnabled}><TokOne /></FeatureSwitch>} />
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />
-          <Route path="/actualites" element={<ProtectedRoute requiredRoles={["client", "restaurateur"]}><FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/actualites" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch>} />
           <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><DashboardAdvisor /></FeatureSwitch></DashboardRoute>} />
