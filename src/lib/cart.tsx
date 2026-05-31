@@ -63,7 +63,21 @@ const CartContext = createContext<CartContextType>({
 
 export const useCart = () => useContext(CartContext);
 
+function isGuaranteedDeliveryItem(item: CartInputItem | CartItem): boolean {
+  return item.metadata?.is_guaranteed_delivery_slot === true
+    || item.metadata?.feature === "creneaux-garantis";
+}
+
+function isGuaranteedDeliveryCart(metadata: Record<string, any>, items: CartItem[]): boolean {
+  return metadata.feature === "creneaux-garantis"
+    || metadata.is_guaranteed_delivery_slot === true
+    || items.some(isGuaranteedDeliveryItem);
+}
+
 function canItemBeOrderedInMode(item: CartInputItem, mode: "delivery" | "takeaway"): boolean {
+  if (isGuaranteedDeliveryItem(item)) {
+    return mode === "delivery";
+  }
   if (item.metadata?.is_anti_waste) {
     return mode === "takeaway";
   }
@@ -76,6 +90,7 @@ function canItemBeOrderedInMode(item: CartInputItem, mode: "delivery" | "takeawa
 }
 
 function getRequiredModeForItem(item: CartInputItem): "delivery" | "takeaway" | null {
+  if (isGuaranteedDeliveryItem(item)) return "delivery";
   if (item.metadata?.is_anti_waste) return "takeaway";
   if (item.metadata?.is_flash_sale) {
     const canDelivery = item.metadata?.delivery_available !== false;
@@ -138,6 +153,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (options?.force) {
       setOrderModeState(mode);
       return false;
+    }
+    if (mode === "takeaway" && isGuaranteedDeliveryCart(cartMetadata, items)) {
+      setConflict({ type: "mode", pendingMode: "delivery" });
+      return true;
     }
     if (items.length > 0 && orderMode !== mode) {
       setConflict({ type: "mode", pendingMode: mode });
@@ -216,8 +235,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     metadata: Record<string, any> = {},
     mode: "delivery" | "takeaway" = orderMode,
   ) => {
+    const normalizedMode = mode === "takeaway" && (
+      metadata.feature === "creneaux-garantis"
+      || metadata.is_guaranteed_delivery_slot === true
+      || nextItems.some(isGuaranteedDeliveryItem)
+    ) ? "delivery" : mode;
+
     setConflict(null);
-    setOrderModeState(mode);
+    setOrderModeState(normalizedMode);
     setCartMetadata(metadata);
     const normalizedItems = nextItems.map((item) => {
       const quantity = Math.max(
