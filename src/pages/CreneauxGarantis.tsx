@@ -37,7 +37,7 @@ const GUARANTEE_LEVELS: GuaranteeLevel[] = [
     windowMinutes: 15,
     description: "Livraison dans une fenêtre de 15 minutes autour de l'heure choisie",
     compensation: "100% remboursé si hors fenêtre",
-    premium: 2.50,
+    premium: 0,
     popular: true,
   },
   {
@@ -46,7 +46,7 @@ const GUARANTEE_LEVELS: GuaranteeLevel[] = [
     windowMinutes: 30,
     description: "Livraison dans une fenêtre de 30 minutes autour de l'heure choisie",
     compensation: "5 CHF de crédit si hors fenêtre",
-    premium: 1.00,
+    premium: 0,
   },
   {
     id: "relaxed",
@@ -71,7 +71,7 @@ function computeWindow(time: string, windowMinutes: number) {
 type Step = "when" | "restaurant" | "menu" | "confirm";
 
 export default function CreneauxGarantis() {
-  const { addItem, clearCart, updateCartMetadata } = useCart();
+  const { replaceCartItems } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -82,7 +82,8 @@ export default function CreneauxGarantis() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  const canProceedFromWhen = !!date && !!time && !!selectedLevel;
+  const deliveryDate = date ? format(date, "yyyy-MM-dd") : "";
+  const canProceedFromWhen = !!deliveryDate && !!time && !!selectedLevel;
   const windowLabel = time && selectedLevel ? computeWindow(time, selectedLevel.windowMinutes) : "";
 
   const { data: restaurants } = useQuery({
@@ -131,28 +132,58 @@ export default function CreneauxGarantis() {
       }, 0)
     : 0;
 
+  const guaranteedMetadata = {
+    feature: "creneaux-garantis",
+    is_guaranteed_delivery_slot: true,
+    delivery_schedule_mode: "scheduled",
+    delivery_date: deliveryDate,
+    delivery_time: time,
+    scheduled_delivery_label: deliveryDate && time ? `${deliveryDate} à ${time}` : windowLabel,
+    guaranteed_delivery_window: windowLabel,
+    guaranteed_delivery_level_id: selectedLevel?.id || null,
+    guaranteed_delivery_level_label: selectedLevel?.label || null,
+    guaranteed_delivery_window_minutes: selectedLevel?.windowMinutes || null,
+    guaranteed_delivery_compensation: selectedLevel?.compensation || null,
+    guaranteed_delivery_premium: selectedLevel?.premium || 0,
+    guarantee: selectedLevel,
+    window: windowLabel,
+    date: deliveryDate,
+    time,
+  };
+
   const handleAddToCart = () => {
-    if (!selectedRestaurant || !menuItems) return;
-    clearCart();
-    updateCartMetadata({
-      feature: "creneaux-garantis",
-      date: date ? format(date, "yyyy-MM-dd") : undefined,
-      time,
-      guarantee: selectedLevel,
-      window: windowLabel,
-    });
-    Object.entries(quantities).forEach(([id, qty]) => {
-      const item = menuItems.find((m) => m.id === id);
-      if (item && qty > 0)
-        for (let i = 0; i < qty; i++)
-          addItem({
-            menuItemId: item.id,
-            name: item.name,
-            price: Number(item.price),
-            restaurantId: selectedRestaurant.id,
-            restaurantName: selectedRestaurant.name,
-          });
-    });
+    if (!selectedRestaurant || !menuItems || !selectedLevel || !deliveryDate || !time) return;
+
+    const nextItems = Object.entries(quantities)
+      .map(([id, qty]) => {
+        const item = menuItems.find((m) => m.id === id);
+        if (!item || qty <= 0) return null;
+        return {
+          menuItemId: item.id,
+          name: item.name,
+          price: Number(item.price),
+          quantity: qty,
+          restaurantId: selectedRestaurant.id,
+          restaurantName: selectedRestaurant.name,
+          metadata: {
+            ...guaranteedMetadata,
+            source_feature: "creneaux-garantis",
+          },
+        };
+      })
+      .filter(Boolean) as Array<{
+        menuItemId: string;
+        name: string;
+        price: number;
+        quantity: number;
+        restaurantId: string;
+        restaurantName: string;
+        metadata: Record<string, unknown>;
+      }>;
+
+    if (nextItems.length === 0) return;
+
+    replaceCartItems(nextItems, guaranteedMetadata, "delivery");
     setStep("confirm");
   };
 
@@ -170,7 +201,6 @@ export default function CreneauxGarantis() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container px-4 py-8 space-y-6 overflow-hidden">
-        {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center shrink-0">
             <Shield className="h-6 w-6 text-blue-500" />
@@ -183,7 +213,6 @@ export default function CreneauxGarantis() {
           </div>
         </div>
 
-        {/* Step indicator */}
         <div className="flex items-center gap-1">
           {(["when", "restaurant", "menu", "confirm"] as Step[]).map((s, i) => {
             const labels = ["Quand", "Restaurant", "Menu", "Confirmer"];
@@ -209,10 +238,8 @@ export default function CreneauxGarantis() {
           })}
         </div>
 
-        {/* Step 1: When */}
         {step === "when" && (
           <div className="space-y-6">
-            {/* Explainer cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { icon: Timer, t: "Vous choisissez l'heure", d: "Date et heure de livraison" },
@@ -229,7 +256,6 @@ export default function CreneauxGarantis() {
               ))}
             </div>
 
-            {/* Date picker */}
             <div className="rounded-xl border bg-card p-5 space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5 font-semibold">
@@ -269,7 +295,6 @@ export default function CreneauxGarantis() {
               </div>
             </div>
 
-            {/* Guarantee level */}
             <div className="space-y-3">
               <h2 className="font-semibold text-sm">Niveau de garantie</h2>
               {GUARANTEE_LEVELS.map((level) => (
@@ -301,11 +326,7 @@ export default function CreneauxGarantis() {
                       <p className="text-xs text-muted-foreground">{level.description}</p>
                       <div className="pt-1">
                         <p className="text-sm font-semibold text-blue-600">{level.compensation}</p>
-                        {level.premium > 0 ? (
-                          <p className="text-xs text-muted-foreground">+{level.premium.toFixed(2)} CHF</p>
-                        ) : (
-                          <p className="text-xs text-green-600 font-medium">Gratuit</p>
-                        )}
+                        <p className="text-xs text-green-600 font-medium">Inclus</p>
                       </div>
                     </div>
                   </div>
@@ -321,7 +342,6 @@ export default function CreneauxGarantis() {
               ))}
             </div>
 
-            {/* Summary + CTA */}
             {canProceedFromWhen && (
               <div className="rounded-xl border bg-blue-500/5 p-4 text-sm space-y-1">
                 <p>
@@ -343,7 +363,6 @@ export default function CreneauxGarantis() {
           </div>
         )}
 
-        {/* Step 2: Restaurant */}
         {step === "restaurant" && (
           <div className="space-y-4">
             <Button variant="ghost" size="sm" onClick={() => setStep("when")} className="gap-1">
@@ -368,10 +387,7 @@ export default function CreneauxGarantis() {
                   className="text-left rounded-xl border-2 overflow-hidden hover:border-blue-500/30 border-border transition-all"
                 >
                   <img
-                    src={
-                      r.image_url ||
-                      "/images/kebab-box-spread.jpeg"
-                    }
+                    src={r.image_url || "/images/kebab-box-spread.jpeg"}
                     alt={r.name}
                     className="w-full h-32 object-cover"
                   />
@@ -387,7 +403,6 @@ export default function CreneauxGarantis() {
           </div>
         )}
 
-        {/* Step 3: Menu */}
         {step === "menu" && (
           <div className="space-y-4">
             <Button variant="ghost" size="sm" onClick={() => setStep("restaurant")} className="gap-1">
@@ -456,12 +471,10 @@ export default function CreneauxGarantis() {
                   </span>
                   <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
                 </div>
-                {selectedLevel && selectedLevel.premium > 0 && (
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Supplément créneau garanti</span>
-                    <span>+{selectedLevel.premium.toFixed(2)} CHF</span>
-                  </div>
-                )}
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Créneau garanti</span>
+                  <span>Inclus</span>
+                </div>
                 <Button onClick={handleAddToCart} className="w-full bg-blue-500 hover:bg-blue-600 gap-2">
                   <ShoppingCart className="h-4 w-4" /> Valider
                 </Button>
@@ -470,7 +483,6 @@ export default function CreneauxGarantis() {
           </div>
         )}
 
-        {/* Step 4: Confirm */}
         {step === "confirm" && (
           <div className="space-y-6">
             <div className="rounded-2xl bg-blue-500/5 border border-blue-500/20 p-6 text-center space-y-2">
@@ -496,9 +508,7 @@ export default function CreneauxGarantis() {
               </div>
               <div className="flex justify-between border-t pt-2">
                 <span className="font-semibold">Total</span>
-                <span className="font-bold">
-                  {(subtotal + (selectedLevel?.premium || 0)).toFixed(2)} CHF
-                </span>
+                <span className="font-bold">{subtotal.toFixed(2)} CHF</span>
               </div>
             </div>
             <Button
