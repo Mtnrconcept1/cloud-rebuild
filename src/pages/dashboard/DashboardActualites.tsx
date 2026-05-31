@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
@@ -19,6 +21,7 @@ import SocialComposer from "@/components/social/SocialComposer";
 import SocialPostBoostDialog from "@/components/social/SocialPostBoostDialog";
 import SocialPostCard from "@/components/social/SocialPostCard";
 import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import { useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
 import { SOCIAL_MARKETING_GOALS } from "@/lib/socialFeed";
 import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
@@ -26,6 +29,8 @@ import { useDashboardRestaurant } from "@/pages/dashboard/DashboardContext";
 export default function DashboardActualites() {
   const { selectedId, restaurants, loading, error } = useDashboardRestaurant();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const postsQuery = useRestaurantSocialPosts(selectedId);
   const insightsQuery = useSocialInsights(selectedId);
@@ -55,6 +60,34 @@ export default function DashboardActualites() {
     queryClient.invalidateQueries({ queryKey: ["restaurant-social-posts", selectedId] });
     queryClient.invalidateQueries({ queryKey: ["social-insights", selectedId] });
   };
+
+  useEffect(() => {
+    const isCampaignCheckout = searchParams.get("campaign_checkout") === "1";
+    const status = searchParams.get("status");
+    if (!isCampaignCheckout || !status) return;
+
+    if (status === "success") {
+      toast({
+        title: "Paiement confirme",
+        description: "Votre post sponsorise est en cours d'activation. Les donnees peuvent prendre quelques secondes a se synchroniser.",
+      });
+      refreshCampaignLinkedData();
+    } else if (status === "cancelled") {
+      toast({
+        title: "Paiement annule",
+        description: "La mise en avant reste inactive tant que le paiement n'est pas finalise.",
+        variant: "destructive",
+      });
+    }
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("campaign_checkout");
+    nextParams.delete("campaign_id");
+    nextParams.delete("post_id");
+    nextParams.delete("session_id");
+    nextParams.delete("status");
+    setSearchParams(nextParams, { replace: true });
+  }, [queryClient, searchParams, selectedId, setSearchParams, toast]);
 
   return (
     <DashboardLayout>
@@ -117,54 +150,14 @@ export default function DashboardActualites() {
                 </CardContent>
               </Card>
               <div className="grid grid-cols-2 gap-3">
-                <Card className="rounded-lg">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Impressions</p>
-                    <p className="text-2xl font-bold">{insights?.impressions ?? 0}</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-lg">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Clics CTA</p>
-                    <p className="text-2xl font-bold">{insights?.ctaClicks ?? 0}</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-lg">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Commentaires</p>
-                    <p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.commentsCount, 0)}</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-lg">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Reposts</p>
-                    <p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.repostsCount, 0)}</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-lg">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Reactions</p>
-                    <p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.likesCount, 0)}</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-lg">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Sauvegardes</p>
-                    <p className="text-2xl font-bold">{insights?.saves ?? 0}</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-lg">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Taux engagement</p>
-                    <p className="text-2xl font-bold">{insights?.engagementRate ?? 0}%</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-lg">
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Posts avec CTA</p>
-                    <p className="text-2xl font-bold">{conversionFocus}%</p>
-                  </CardContent>
-                </Card>
+                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Impressions</p><p className="text-2xl font-bold">{insights?.impressions ?? 0}</p></CardContent></Card>
+                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Clics CTA</p><p className="text-2xl font-bold">{insights?.ctaClicks ?? 0}</p></CardContent></Card>
+                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Commentaires</p><p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.commentsCount, 0)}</p></CardContent></Card>
+                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Reposts</p><p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.repostsCount, 0)}</p></CardContent></Card>
+                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Reactions</p><p className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.likesCount, 0)}</p></CardContent></Card>
+                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Sauvegardes</p><p className="text-2xl font-bold">{insights?.saves ?? 0}</p></CardContent></Card>
+                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Taux engagement</p><p className="text-2xl font-bold">{insights?.engagementRate ?? 0}%</p></CardContent></Card>
+                <Card className="rounded-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Posts avec CTA</p><p className="text-2xl font-bold">{conversionFocus}%</p></CardContent></Card>
               </div>
             </div>
 
