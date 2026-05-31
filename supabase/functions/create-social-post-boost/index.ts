@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
         placement: "actualites_feed",
         boost_weight: 1,
         targeting: body.targetCriteria && typeof body.targetCriteria === "object" ? body.targetCriteria : {},
-        created_by: actor.user?.id || null,
+        created_by: actor.userId || null,
       });
 
     if (promotionError) throw new HttpError(500, promotionError.message);
