@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,9 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { CircleHelp, Mail, MessageSquare, Search } from "lucide-react";
+import { AlertTriangle, CircleHelp, Mail, MessageSquare, Search, ShieldQuestion } from "lucide-react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDashboardRestaurant } from "./DashboardContext";
@@ -28,6 +38,62 @@ const FAQ = [
   { q: "Comment lancer une campagne marketing ?", a: "Rendez-vous dans « Campagnes » pour créer des campagnes publicitaires ciblées avec un budget quotidien." },
 ];
 
+type SupportIncident = {
+  id: string;
+  category: string;
+  priority: "low" | "normal" | "high" | "urgent";
+  status: "open" | "waiting_customer" | "waiting_restaurant" | "waiting_admin" | "resolved" | "closed";
+  subject: string;
+  description: string | null;
+  order_id: string | null;
+  reservation_id: string | null;
+  user_id: string | null;
+  created_at: string;
+  updated_at: string;
+  last_message_at: string | null;
+};
+
+function formatDateTime(value: string | null) {
+  if (!value) return "-";
+  return new Date(value).toLocaleString("fr-CH", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getStatusLabel(status: SupportIncident["status"]) {
+  const labels: Record<SupportIncident["status"], string> = {
+    open: "Ouvert",
+    waiting_customer: "Client attendu",
+    waiting_restaurant: "Restaurant attendu",
+    waiting_admin: "Admin attendu",
+    resolved: "Résolu",
+    closed: "Clôturé",
+  };
+  return labels[status] || status;
+}
+
+function getCategoryLabel(category: string) {
+  const labels: Record<string, string> = {
+    general: "Général",
+    order_missing: "Commande absente",
+    order_late: "Commande en retard",
+    wrong_item: "Mauvais produit",
+    missing_item: "Produit manquant",
+    quality_issue: "Qualité",
+    refund_request: "Remboursement",
+    payment_issue: "Paiement",
+    reservation_issue: "Réservation",
+    zero_attente_issue: "Zero Attente",
+    delivery_issue: "Livraison",
+    restaurant_issue: "Restaurant",
+    technical_issue: "Technique",
+  };
+  return labels[category] || category.replace(/_/g, " ");
+}
+
 export default function DashboardSupport() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -38,9 +104,30 @@ export default function DashboardSupport() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
+  const { data: incidents = [], isLoading: incidentsLoading, error: incidentsError } = useQuery({
+    queryKey: ["restaurant-support-incidents", selectedId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("support_incidents" as any) as any)
+        .select("id,category,priority,status,subject,description,order_id,reservation_id,user_id,created_at,updated_at,last_message_at")
+        .eq("restaurant_id", selectedId)
+        .order("updated_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return (data || []) as SupportIncident[];
+    },
+    enabled: !!selectedId,
+  });
+
   const filteredFaq = search.trim()
     ? FAQ.filter((f) => f.q.toLowerCase().includes(search.toLowerCase()) || f.a.toLowerCase().includes(search.toLowerCase()))
     : FAQ;
+
+  const incidentStats = useMemo(() => ({
+    total: incidents.length,
+    open: incidents.filter((incident) => !["resolved", "closed"].includes(incident.status)).length,
+    urgent: incidents.filter((incident) => incident.priority === "urgent" || incident.priority === "high").length,
+  }), [incidents]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,16 +165,80 @@ export default function DashboardSupport() {
         <DashboardPageHero
           badge="Support restaurateur"
           title="Aide et support"
-          description="Retrouvez les reponses rapides et contactez l'equipe support avec le contexte du restaurant selectionne."
+          description="Retrouvez les reponses rapides, suivez les incidents clients et contactez l'equipe support avec le contexte du restaurant selectionne."
           icon={CircleHelp}
           tone="sky"
           visualLabel="Support"
           stats={[
             { label: "FAQ", value: filteredFaq.length, icon: Search },
             { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: CircleHelp },
-            { label: "Message", value: sending ? "Envoi" : "Pret", icon: Mail },
+            { label: "Incidents ouverts", value: incidentStats.open, icon: ShieldQuestion },
+            { label: "Urgents", value: incidentStats.urgent, icon: AlertTriangle },
           ]}
         />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><ShieldQuestion className="h-5 w-5" />Incidents clients</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {incidentsError ? (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+                Impossible de charger les incidents du restaurant.
+              </div>
+            ) : incidentsLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((value) => <div key={value} className="h-14 rounded-lg bg-muted animate-pulse" />)}
+              </div>
+            ) : incidents.length === 0 ? (
+              <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+                Aucun incident client ouvert pour ce restaurant.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Priorité</TableHead>
+                    <TableHead>Catégorie</TableHead>
+                    <TableHead>Sujet</TableHead>
+                    <TableHead>Cible</TableHead>
+                    <TableHead>Dernière activité</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {incidents.map((incident) => (
+                    <TableRow key={incident.id}>
+                      <TableCell>
+                        <Badge variant={["resolved", "closed"].includes(incident.status) ? "outline" : "secondary"}>
+                          {getStatusLabel(incident.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={incident.priority === "urgent" || incident.priority === "high" ? "destructive" : "outline"}>
+                          {incident.priority}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{getCategoryLabel(incident.category)}</TableCell>
+                      <TableCell className="max-w-[24rem]">
+                        <div className="font-medium">{incident.subject}</div>
+                        {incident.description ? <div className="line-clamp-1 text-xs text-muted-foreground">{incident.description}</div> : null}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {incident.order_id ? <div>Commande {incident.order_id}</div> : null}
+                        {incident.reservation_id ? <div>Réservation {incident.reservation_id}</div> : null}
+                        {!incident.order_id && !incident.reservation_id ? <div>Restaurant</div> : null}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {formatDateTime(incident.last_message_at || incident.updated_at || incident.created_at)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
 
         <Card className="max-w-3xl">
           <CardHeader>
