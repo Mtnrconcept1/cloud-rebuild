@@ -16,6 +16,7 @@ permissions:
 
 env:
   NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
   SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -28,14 +29,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Write production frontend env
         run: node ./scripts/write-production-env.mjs --out=.env.production.local
@@ -54,19 +58,19 @@ jobs:
           VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
       - name: Align repo to production Supabase target
-        run: npm run supabase:target:prod
+        run: pnpm run supabase:target:prod
 
       - name: Verify production Supabase target
-        run: npm run supabase:doctor:prod
+        run: pnpm run supabase:doctor:prod
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Test
-        run: npm run test:prod
+        run: pnpm run test:prod
 
       - name: Build production app
-        run: npm run build:prod
+        run: pnpm run build:prod
 
   deploy_supabase:
     runs-on: ubuntu-latest
@@ -99,35 +103,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Align repo to production Supabase target
-        run: npm run supabase:target:prod
+        run: pnpm run supabase:target:prod
 
       - name: Verify production Supabase target
-        run: npm run supabase:doctor:prod
+        run: pnpm run supabase:doctor:prod
 
       - name: Prepare Supabase function secrets env
         run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
 
       - name: Link Supabase production project
-        run: npx supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+        run: pnpm exec supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Sync Supabase production secrets
-        run: npx supabase secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
+        run: pnpm exec supabase secrets set --env-file "${RUNNER_TEMP}/supabase.functions.env" --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Push database migrations
-        run: npx supabase db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
+        run: pnpm exec supabase db push --linked --yes --password "$SUPABASE_DB_PASSWORD"
 
       - name: Deploy Edge Functions
-        run: npx supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
+        run: pnpm exec supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" --use-api
 
   deploy_frontend:
     runs-on: ubuntu-latest
@@ -146,16 +153,20 @@ jobs:
         if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         uses: actions/checkout@v6
 
+      - name: Enable pnpm
+        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
       - name: Setup Node
         if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
         if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Write production frontend env
         if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
@@ -176,11 +187,11 @@ jobs:
 
       - name: Pull Vercel project settings
         if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
-        run: npx vercel@latest pull --yes --environment=production
+        run: pnpm dlx vercel@latest pull --yes --environment=production
 
       - name: Deploy Vercel production output
         if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
-        run: npx vercel@latest --prod
+        run: pnpm dlx vercel@latest --prod
 
       - name: Skip frontend deploy when Vercel secrets are missing
         if: ${{ env.VERCEL_TOKEN == '' || env.VERCEL_ORG_ID == '' || env.VERCEL_PROJECT_ID == '' }}
