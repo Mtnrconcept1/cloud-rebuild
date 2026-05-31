@@ -19,8 +19,8 @@ const values = {
   }),
   VITE_STRIPE_PUBLISHABLE_KEY: resolveRequired("VITE_STRIPE_PUBLISHABLE_KEY", {
     fallback: process.env.VITE_STRIPE_PUBLISHABLE_KEY_FALLBACK ?? baseEnv.VITE_STRIPE_PUBLISHABLE_KEY,
-    validate: (value) => value.startsWith("pk_live_"),
-    validationMessage: "must be a live Stripe publishable key (pk_live_...).",
+    validate: (value) => value.startsWith("pk_live_") || value.startsWith("pk_test_"),
+    validationMessage: "must be a Stripe publishable key (pk_live_... or pk_test_...).",
   }),
   VITE_FIREBASE_API_KEY: resolveRequired("VITE_FIREBASE_API_KEY"),
   VITE_FIREBASE_AUTH_DOMAIN: resolveRequired("VITE_FIREBASE_AUTH_DOMAIN", {
