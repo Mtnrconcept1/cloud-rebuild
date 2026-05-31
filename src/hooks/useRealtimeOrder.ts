@@ -40,9 +40,11 @@ export function useRealtimeOrder(orderId: string | undefined) {
           setOrderStatus(newData.status);
           setLastUpdate(newData);
 
-          // Invalidate related queries
           queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+          queryClient.invalidateQueries({ queryKey: ["order-detail", orderId] });
           queryClient.invalidateQueries({ queryKey: ["order-tracking", orderId] });
+          queryClient.invalidateQueries({ queryKey: ["sibling-orders"] });
+          queryClient.invalidateQueries({ queryKey: ["orders"] });
         }
       )
       .subscribe();
@@ -90,6 +92,7 @@ export function useRealtimeDeliveryTracking(orderId: string | undefined) {
           const newData = payload.new as DeliveryTrackingUpdate;
           setTracking(newData);
           queryClient.invalidateQueries({ queryKey: ["delivery-tracking", orderId] });
+          queryClient.invalidateQueries({ queryKey: ["order-detail", orderId] });
         }
       )
       .subscribe();
@@ -142,6 +145,7 @@ export function useRealtimeDispatchJob(orderId: string | undefined) {
           const newData = payload.new as DispatchJobUpdate;
           setDispatchJob(newData);
           queryClient.invalidateQueries({ queryKey: ["dispatch-job", orderId] });
+          queryClient.invalidateQueries({ queryKey: ["order-detail", orderId] });
         }
       )
       .subscribe();
