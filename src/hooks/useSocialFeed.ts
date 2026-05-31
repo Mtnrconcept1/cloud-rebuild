@@ -34,6 +34,57 @@ const SOCIAL_INSIGHTS_MARKETING_SELECT = `${SOCIAL_INSIGHTS_BASE_SELECT},campaig
 
 let socialMarketingSchemaAvailable: boolean | null = null;
 
+function isTrackingRpcError(error: unknown) {
+  const candidate = error as { message?: string; code?: string; details?: string; hint?: string } | null;
+  const text = [candidate?.message, candidate?.code, candidate?.details, candidate?.hint]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    !text ||
+    isMissingRpc(candidate) ||
+    text.includes("connexion requise") ||
+    text.includes("post introuvable") ||
+    text.includes("record_social_feed_event") ||
+    text.includes("social_post_promotions") ||
+    text.includes("schema cache") ||
+    text.includes("permission denied") ||
+    text.includes("forbidden")
+  );
+}
+
+async function recordSocialEventBestEffort({
+  postId,
+  eventType,
+  metadata = {},
+}: {
+  postId: string;
+  eventType: "impression" | "click" | "cta_click" | "reaction" | "comment" | "share" | "save" | "follow" | "repost";
+  metadata?: Record<string, unknown>;
+}) {
+  const { data, error } = await (supabase.rpc as any)("record_social_feed_event", {
+    p_post_id: postId,
+    p_event_type: eventType,
+    p_metadata: metadata,
+  });
+
+  if (error) {
+    if (isTrackingRpcError(error)) {
+      console.warn("Social tracking skipped", {
+        eventType,
+        postId,
+        message: error.message,
+        code: error.code,
+      });
+      return null;
+    }
+    throw error;
+  }
+
+  return data as string | null;
+}
+
 type SocialFeedRpcRow = {
   activity_id: string;
   activity_type: "post" | "repost";
@@ -88,9 +139,14 @@ type CreateSocialPostInput = {
   utmCampaign?: string | null;
 };
 
-type SocialFeedPage = {
-  posts: SocialFeedPost[];
-  nextCursor: string | null;
+type SetPostReactionInput = {
+  post: SocialFeedPost;
+  reaction: SocialReactionType | null;
+};
+
+type SetCommentReactionInput = {
+  comment: SocialFeedComment;
+  reaction: SocialReactionType | null;
 };
 
 type SocialFeedFeedbackInput = {
@@ -102,147 +158,49 @@ type SocialFeedFeedbackInput = {
 type ModerationTarget = {
   type: "post" | "comment" | "repost" | "report";
   id: string;
-  status: "published" | "hidden" | "deleted" | "open" | "reviewed" | "dismissed" | "resolved";
+  status: string;
   reason?: string;
 };
 
-type SetPostReactionInput = {
-  post: SocialFeedPost;
-  reaction: SocialReactionType | null;
-};
-
-type SetCommentReactionInput = {
-  comment: SocialFeedComment;
-  reaction: SocialReactionType | null;
-};
-
-export function invalidateSocialQueries(queryClient: QueryClient) {
-  void queryClient.invalidateQueries({ queryKey: ["social-feed"] });
-  void queryClient.invalidateQueries({ queryKey: ["social-feed-v2"] });
-  void queryClient.invalidateQueries({ queryKey: ["restaurant-social-posts"] });
-  void queryClient.invalidateQueries({ queryKey: ["social-comments"] });
-  void queryClient.invalidateQueries({ queryKey: ["social-insights"] });
-  void queryClient.invalidateQueries({ queryKey: ["admin-social"] });
+function isMissingRpc(error: { message?: string; code?: string } | null | undefined) {
+  const message = error?.message || "";
+  return error?.code === "42883" || /Could not find the function|schema cache|does not exist/i.test(message);
 }
 
-const socialRealtimeManager = createSocialRealtimeManager<QueryClient>({
-  client: supabase as any,
-  onInvalidate: invalidateSocialQueries,
-});
-
-function isMissingRpc(error: unknown) {
-  const message = String((error as { message?: string })?.message || error || "");
-  return /function .* does not exist|could not find the function|schema cache|PGRST202/i.test(message);
+function countReactions(counts: SocialReactionCounts) {
+  return Object.values(counts).reduce((total, count) => total + Number(count || 0), 0);
 }
 
-function parseStringArray(value: unknown): string[] {
-  if (Array.isArray(value)) return value.map(String).filter(Boolean);
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : [];
-    } catch {
-      return [];
-    }
+function normalizeReactionCounts(value: unknown): SocialReactionCounts {
+  if (!value || typeof value !== "object") return {};
+  const counts: SocialReactionCounts = {};
+
+  for (const [key, count] of Object.entries(value as Record<string, unknown>)) {
+    const reaction = normalizeSocialReaction(key);
+    if (reaction) counts[reaction] = Number(count || 0);
   }
+
+  return counts;
+}
+
+function parseRecommendationReasons(value: unknown) {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
   return [];
 }
 
 function updateReactionCounts(
   counts: SocialReactionCounts,
-  currentReaction: SocialReactionType | null,
+  previousReaction: SocialReactionType | null | undefined,
   nextReaction: SocialReactionType | null,
 ) {
-  const updated: SocialReactionCounts = { ...counts };
-
-  if (currentReaction && currentReaction !== nextReaction) {
-    updated[currentReaction] = Math.max(0, Number(updated[currentReaction] || 0) - 1);
-  }
-
-  if (nextReaction && nextReaction !== currentReaction) {
-    updated[nextReaction] = Math.max(0, Number(updated[nextReaction] || 0) + 1);
-  }
-
-  return updated;
+  const nextCounts: SocialReactionCounts = { ...counts };
+  if (previousReaction) nextCounts[previousReaction] = Math.max(0, Number(nextCounts[previousReaction] || 0) - 1);
+  if (nextReaction) nextCounts[nextReaction] = Number(nextCounts[nextReaction] || 0) + 1;
+  return nextCounts;
 }
 
-function mapPostsInUnknownData(data: unknown, postId: string, updater: (post: SocialFeedPost) => SocialFeedPost): unknown {
-  if (Array.isArray(data)) {
-    return data.map((post) => (post?.id === postId ? updater(post) : post));
-  }
-
-  if (data && typeof data === "object" && Array.isArray((data as { pages?: unknown[] }).pages)) {
-    const infiniteData = data as { pages: SocialFeedPage[]; pageParams: unknown[] };
-    return {
-      ...infiniteData,
-      pages: infiniteData.pages.map((page) => ({
-        ...page,
-        posts: page.posts.map((post) => (post.id === postId ? updater(post) : post)),
-      })),
-    };
-  }
-
-  return data;
-}
-
-function removePostFromUnknownData(data: unknown, postId: string): unknown {
-  if (Array.isArray(data)) {
-    return data.filter((post) => post?.id !== postId);
-  }
-
-  if (data && typeof data === "object" && Array.isArray((data as { pages?: unknown[] }).pages)) {
-    const infiniteData = data as { pages: SocialFeedPage[]; pageParams: unknown[] };
-    return {
-      ...infiniteData,
-      pages: infiniteData.pages.map((page) => ({
-        ...page,
-        posts: page.posts.filter((post) => post.id !== postId),
-      })),
-    };
-  }
-
-  return data;
-}
-
-function patchSocialPost(queryClient: QueryClient, postId: string, updater: (post: SocialFeedPost) => SocialFeedPost) {
-  queryClient.setQueriesData({ queryKey: ["social-feed"] }, (data) => mapPostsInUnknownData(data, postId, updater));
-  queryClient.setQueriesData({ queryKey: ["social-feed-v2"] }, (data) => mapPostsInUnknownData(data, postId, updater));
-  queryClient.setQueriesData({ queryKey: ["restaurant-social-posts"] }, (data) => mapPostsInUnknownData(data, postId, updater));
-}
-
-function removeSocialPost(queryClient: QueryClient, postId: string) {
-  queryClient.setQueriesData({ queryKey: ["social-feed"] }, (data) => removePostFromUnknownData(data, postId));
-  queryClient.setQueriesData({ queryKey: ["social-feed-v2"] }, (data) => removePostFromUnknownData(data, postId));
-}
-
-function normalizeReactionCounts(value: unknown): SocialReactionCounts {
-  if (!value || typeof value !== "object") return {};
-
-  return Object.entries(value as Record<string, unknown>).reduce<SocialReactionCounts>((counts, [key, count]) => {
-    const reaction = normalizeSocialReaction(key);
-    if (!reaction) return counts;
-    counts[reaction] = Math.max(0, Number(count || 0));
-    return counts;
-  }, {});
-}
-
-function countReactions(counts: SocialReactionCounts) {
-  return Object.values(counts).reduce((total, count) => total + Math.max(0, Number(count || 0)), 0);
-}
-
-function mapMedia(row: any): SocialFeedMedia {
-  return {
-    id: String(row.id),
-    postId: String(row.postId || row.post_id),
-    mediaUrl: String(row.mediaUrl || row.media_url),
-    mediaPath: row.mediaPath || row.media_path || null,
-    mediaType: row.mediaType || row.media_type || "image",
-    sortOrder: Number(row.sortOrder ?? row.sort_order ?? 0),
-    altText: row.altText || row.alt_text || null,
-  };
-}
-
-function mapFeedRow(row: SocialFeedRpcRow): SocialFeedPost {
+function mapSocialPost(row: SocialFeedRpcRow): SocialFeedPost {
+  const reactionCounts = normalizeReactionCounts(row.reaction_counts);
   return {
     id: row.post_id,
     activityId: row.activity_id,
@@ -253,18 +211,20 @@ function mapFeedRow(row: SocialFeedRpcRow): SocialFeedPost {
     status: row.status,
     createdAt: row.created_at,
     publishedAt: row.published_at,
-    likesCount: Number(row.likes_count || 0),
-    reactionCounts: normalizeReactionCounts(row.reaction_counts),
+    likesCount: Number(row.likes_count || countReactions(reactionCounts)),
+    reactionCounts,
     myReaction: normalizeSocialReaction(row.my_reaction),
     commentsCount: Number(row.comments_count || 0),
     repostsCount: Number(row.reposts_count || 0),
     sharesCount: Number(row.shares_count || 0),
-    likedByMe: Boolean(row.liked_by_me || row.my_reaction),
+    likedByMe: Boolean(row.liked_by_me),
     followedByMe: Boolean(row.followed_by_me),
     repostedByMe: Boolean(row.reposted_by_me),
     savedByMe: Boolean(row.saved_by_me),
     score: Number(row.score || 0),
-    media: Array.isArray(row.media) ? row.media.map(mapMedia) : [],
+    media: row.media || [],
+    restaurant: row.restaurant || { id: row.restaurant_id, name: "Restaurant" },
+    repost: row.repost || null,
     postType: normalizeSocialPostType(row.post_type),
     ctaType: normalizeSocialPostCta(row.cta_type),
     ctaTargetId: row.cta_target_id || null,
@@ -276,30 +236,35 @@ function mapFeedRow(row: SocialFeedRpcRow): SocialFeedPost {
     audienceSegment: normalizeSocialAudienceSegment(row.audience_segment),
     offerCode: row.offer_code || null,
     utmCampaign: row.utm_campaign || null,
-    recommendationReasons: parseStringArray(row.recommendation_reasons),
-    restaurant: {
-      id: row.restaurant?.id || row.restaurant_id,
-      name: row.restaurant?.name || "Restaurant",
-      imageUrl: row.restaurant?.imageUrl || null,
-      city: row.restaurant?.city || null,
-      cuisineType: row.restaurant?.cuisineType || null,
-    },
-    repost: row.repost || null,
+    recommendationReasons: parseRecommendationReasons(row.recommendation_reasons),
   };
 }
 
 function mapRestaurantPostRow(row: any): SocialFeedPost {
-  const restaurant = row.restaurants || {};
+  const media = Array.isArray(row.social_post_media)
+    ? row.social_post_media
+        .sort((a: any, b: any) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
+        .map((item: any) => ({
+          id: item.id,
+          postId: item.post_id,
+          mediaUrl: item.media_url,
+          mediaPath: item.media_path,
+          mediaType: item.media_type,
+          sortOrder: Number(item.sort_order || 0),
+          altText: item.alt_text,
+        }))
+    : [];
+
   return {
-    id: String(row.id),
-    activityId: String(row.id),
+    id: row.id,
+    activityId: row.id,
     activityType: "post",
-    restaurantId: String(row.restaurant_id),
-    authorId: String(row.author_id),
-    body: String(row.body || ""),
-    status: row.status || "published",
+    restaurantId: row.restaurant_id,
+    authorId: row.author_id,
+    body: row.body,
+    status: row.status,
     createdAt: row.created_at,
-    publishedAt: row.published_at || null,
+    publishedAt: row.published_at,
     likesCount: Number(row.likes_count || 0),
     reactionCounts: {},
     myReaction: null,
@@ -311,7 +276,14 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
     repostedByMe: false,
     savedByMe: false,
     score: 0,
-    media: Array.isArray(row.social_post_media) ? row.social_post_media.map(mapMedia) : [],
+    media,
+    restaurant: {
+      id: row.restaurants?.id || row.restaurant_id,
+      name: row.restaurants?.name || "Restaurant",
+      city: row.restaurants?.city || null,
+      imageUrl: row.restaurants?.image_url || null,
+    },
+    repost: null,
     postType: normalizeSocialPostType(row.post_type),
     ctaType: normalizeSocialPostCta(row.cta_type),
     ctaTargetId: row.cta_target_id || null,
@@ -324,178 +296,164 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
     offerCode: row.offer_code || null,
     utmCampaign: row.utm_campaign || null,
     recommendationReasons: [],
-    restaurant: {
-      id: row.restaurant_id,
-      name: restaurant.name || "Restaurant",
-      imageUrl: restaurant.image_url || null,
-      city: restaurant.city || null,
-      cuisineType: restaurant.cuisine_type || null,
-    },
-    repost: null,
   };
 }
 
-async function replaceReaction(
-  table: "social_post_likes" | "social_comment_reactions",
-  keys: { post_id: string } | { comment_id: string },
-  userId: string,
-  nextReaction: SocialReactionType | null,
-  currentReaction: SocialReactionType | null,
-) {
-  let query = (supabase.from(table as any) as any).delete().eq("user_id", userId);
-  for (const [key, value] of Object.entries(keys)) {
-    query = query.eq(key, value);
-  }
-
-  if (currentReaction || nextReaction) {
-    const { error: deleteError } = await query;
-    if (deleteError) throw deleteError;
-  }
-
-  if (!nextReaction || nextReaction === currentReaction) return;
-
-  const insertPayload = {
-    ...keys,
-    user_id: userId,
-    reaction_type: nextReaction,
-  };
-
-  const { error: insertError } = await (supabase.from(table as any) as any).insert(insertPayload);
-  if (insertError) throw insertError;
+function invalidateSocialQueries(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: ["social-feed"] });
+  queryClient.invalidateQueries({ queryKey: ["restaurant-social-posts"] });
+  queryClient.invalidateQueries({ queryKey: ["social-insights"] });
+  queryClient.invalidateQueries({ queryKey: ["social-post-thread"] });
+  queryClient.invalidateQueries({ queryKey: ["social-comments"] });
 }
 
-function sanitizeFileName(fileName: string) {
-  const safe = fileName
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9._-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .toLowerCase();
+function patchSocialPost(queryClient: QueryClient, postId: string, updater: (post: SocialFeedPost) => SocialFeedPost) {
+  queryClient.setQueriesData({ queryKey: ["social-feed"] }, (oldData: any) => {
+    if (!oldData?.pages) return oldData;
+    return {
+      ...oldData,
+      pages: oldData.pages.map((page: any) => ({
+        ...page,
+        posts: page.posts.map((post: SocialFeedPost) => post.id === postId ? updater(post) : post),
+      })),
+    };
+  });
 
-  return safe || "media";
+  queryClient.setQueriesData({ queryKey: ["restaurant-social-posts"] }, (oldData: any) => {
+    if (!Array.isArray(oldData)) return oldData;
+    return oldData.map((post: SocialFeedPost) => post.id === postId ? updater(post) : post);
+  });
 }
 
-function getMediaType(file: File): "image" | "video" {
-  return file.type.startsWith("video/") ? "video" : "image";
+function removeSocialPost(queryClient: QueryClient, postId: string) {
+  queryClient.setQueriesData({ queryKey: ["social-feed"] }, (oldData: any) => {
+    if (!oldData?.pages) return oldData;
+    return {
+      ...oldData,
+      pages: oldData.pages.map((page: any) => ({
+        ...page,
+        posts: page.posts.filter((post: SocialFeedPost) => post.id !== postId),
+      })),
+    };
+  });
+}
+
+async function assertRestaurantAccess(restaurantId: string, userId: string) {
+  const { data, error } = await (supabase.from("restaurants" as any) as any)
+    .select("id")
+    .eq("id", restaurantId)
+    .eq("owner_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error("Restaurant non autorise.");
+}
+
+async function uploadPostMedia(restaurantId: string, postId: string, files: File[]) {
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
+    const path = `${restaurantId}/${postId}/${index}-${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await supabase.storage.from(SOCIAL_FEED_BUCKET).upload(path, file, {
+      cacheControl: "31536000",
+      upsert: false,
+    });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from(SOCIAL_FEED_BUCKET).getPublicUrl(path);
+
+    const { error: insertError } = await (supabase.from("social_post_media" as any) as any).insert({
+      post_id: postId,
+      media_url: data.publicUrl,
+      media_path: path,
+      media_type: file.type.startsWith("video/") ? "video" : "image",
+      sort_order: index,
+      alt_text: file.name,
+    });
+
+    if (insertError) throw insertError;
+  }
 }
 
 function assertMediaFiles(files: File[]) {
-  if (files.length > MAX_POST_MEDIA) {
-    throw new Error(`Maximum ${MAX_POST_MEDIA} medias par post.`);
-  }
-
+  if (files.length > MAX_POST_MEDIA) throw new Error(`Maximum ${MAX_POST_MEDIA} medias par post.`);
   for (const file of files) {
-    const isImage = file.type.startsWith("image/");
-    const isVideo = file.type.startsWith("video/");
-
-    if (!isImage && !isVideo) {
-      throw new Error("Seuls les fichiers image et video sont acceptes.");
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      throw new Error("Formats acceptes : images et videos uniquement.");
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      throw new Error("Chaque media doit faire moins de 25 Mo.");
     }
   }
 }
 
-async function uploadPostMedia(restaurantId: string, postId: string, files: File[]) {
-  assertMediaFiles(files);
-
-  const mediaRows = [];
-
-  for (const [index, file] of files.entries()) {
-    const path = `${restaurantId}/${postId}/${Date.now()}-${index}-${sanitizeFileName(file.name)}`;
-    const { error: uploadError } = await supabase.storage
-      .from(SOCIAL_FEED_BUCKET)
-      .upload(path, file, {
-        cacheControl: "3600",
-        contentType: file.type,
-        upsert: false,
-      });
-
-    if (uploadError) throw uploadError;
-
-    const { data: publicUrl } = supabase.storage.from(SOCIAL_FEED_BUCKET).getPublicUrl(path);
-    mediaRows.push({
-      post_id: postId,
-      media_url: publicUrl.publicUrl,
-      media_path: path,
-      media_type: getMediaType(file),
-      sort_order: index,
-      alt_text: file.name,
-      metadata: { size: file.size, type: file.type },
-    });
+function validateSocialPostDraft(input: {
+  body: string;
+  filesCount: number;
+  postType: SocialPostType;
+  ctaType: SocialPostCtaType;
+  scheduledAt?: string | null;
+}) {
+  const errors: string[] = [];
+  if (!input.body || input.body.length < 8) errors.push("Ajoutez un message d'au moins 8 caracteres.");
+  if (input.body.length > 2200) errors.push("Le message est limite a 2200 caracteres.");
+  if (input.filesCount === 0 && input.postType === "plat") errors.push("Ajoutez une photo ou une video pour un post plat.");
+  if (input.ctaType === "offer" && input.postType !== "promo") errors.push("Le CTA offre doit etre associe a un post de type promo.");
+  if (input.scheduledAt) {
+    const date = new Date(input.scheduledAt);
+    if (!Number.isFinite(date.getTime()) || date.getTime() < Date.now() - 60 * 1000) {
+      errors.push("La date de programmation doit etre dans le futur.");
+    }
   }
-
-  if (mediaRows.length === 0) return;
-
-  const { error } = await (supabase.from("social_post_media" as any) as any).insert(mediaRows);
-  if (error) throw error;
+  return errors;
 }
 
 export function useSocialRealtime(enabled = true) {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
   useEffect(() => {
-    if (!enabled || !user?.id) return;
-
-    return socialRealtimeManager.retain(user.id, queryClient);
-  }, [enabled, queryClient, user?.id]);
+    if (!enabled) return;
+    const manager = createSocialRealtimeManager(supabase);
+    return manager.subscribeAll();
+  }, [enabled]);
 }
 
-export function useSocialFeed(limit = 30) {
-  const { user } = useAuth();
-  useSocialRealtime(!!user?.id);
-
-  return useQuery({
-    queryKey: ["social-feed", user?.id, limit],
-    queryFn: async () => {
-      const { data, error } = await (supabase.rpc as any)("get_social_feed", {
-        p_limit: limit,
-        p_cursor: null,
-      });
-
-      if (error) throw error;
-      return ((data || []) as SocialFeedRpcRow[]).map(mapFeedRow);
-    },
-    enabled: !!user?.id,
-  });
-}
-
-export function useInfiniteSocialFeed(scope: SocialFeedScope | string = "for_you", limit = 12) {
-  const { user } = useAuth();
-  const normalizedScope = normalizeSocialFeedScope(scope);
-  useSocialRealtime(!!user?.id);
+export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit = 20) {
+  useSocialRealtime(true);
 
   return useInfiniteQuery({
-    queryKey: ["social-feed-v2", user?.id, normalizedScope, limit],
-    initialPageParam: null as string | null,
+    queryKey: ["social-feed", scope, limit],
     queryFn: async ({ pageParam }) => {
-      const v2Result = await (supabase.rpc as any)("get_social_feed_v2", {
+      const { data, error } = await (supabase.rpc as any)("get_social_feed_v2", {
         p_limit: limit,
-        p_cursor: pageParam,
-        p_scope: normalizedScope,
+        p_cursor: pageParam || null,
+        p_scope: scope,
       });
+      if (error && !isMissingRpc(error)) throw error;
 
-      if (v2Result.error && !isMissingRpc(v2Result.error)) throw v2Result.error;
+      if (error) {
+        const fallbackQuery = (supabase.from("social_posts" as any) as any)
+          .select("*, restaurants(id,name,image_url,city,cuisine_type), social_post_media(*)")
+          .eq("status", "published")
+          .order("published_at", { ascending: false })
+          .limit(limit);
 
-      const result = v2Result.error
-        ? await (supabase.rpc as any)("get_social_feed", {
-            p_limit: limit,
-            p_cursor: pageParam,
-          })
-        : v2Result;
-
-      if (result.error) throw result.error;
-
-      const posts = ((result.data || []) as SocialFeedRpcRow[]).map(mapFeedRow);
-      const lastPost = posts.at(-1);
-
+      const fallbackResult = await fallbackQuery;
+      if (fallbackResult.error) throw fallbackResult.error;
+      const rows = fallbackResult.data || [];
       return {
-        posts,
-        nextCursor: posts.length >= limit ? lastPost?.createdAt || null : null,
-      } satisfies SocialFeedPage;
-    },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!user?.id,
-  });
+        posts: rows.map(mapRestaurantPostRow),
+        nextCursor: null,
+      };
+    }
+
+    const rows = data || [];
+    const posts = rows.map(mapSocialPost);
+    const nextCursor = rows.length === limit ? rows[rows.length - 1]?.created_at || null : null;
+    return { posts, nextCursor };
+  },
+  initialPageParam: null as string | null,
+  getNextPageParam: (lastPage) => lastPage.nextCursor,
+});
 }
 
 export function useRestaurantSocialPosts(restaurantId?: string | null) {
@@ -505,7 +463,7 @@ export function useRestaurantSocialPosts(restaurantId?: string | null) {
     queryKey: ["restaurant-social-posts", restaurantId],
     queryFn: async () => {
       const { data, error } = await (supabase.from("social_posts" as any) as any)
-        .select("*, social_post_media(*), restaurants(id, name, image_url, city, cuisine_type)")
+        .select("*, restaurants(id,name,image_url,city,cuisine_type), social_post_media(*)")
         .eq("restaurant_id", restaurantId)
         .order("created_at", { ascending: false });
 
@@ -522,6 +480,34 @@ export function useSocialInsights(restaurantId?: string | null) {
   return useQuery({
     queryKey: ["social-insights", restaurantId],
     queryFn: async () => {
+      const insightsRpc = await (supabase.rpc as any)("get_restaurant_actualites_insights", {
+        p_restaurant_id: restaurantId,
+        p_days: 30,
+      });
+
+      if (!insightsRpc.error && insightsRpc.data) {
+        return insightsRpc.data as {
+          postsCount: number;
+          publishedCount: number;
+          hiddenCount: number;
+          impressions: number;
+          clicks: number;
+          ctaClicks: number;
+          saves: number;
+          interactions: number;
+          engagementRate: number;
+          conversionFocus: number;
+          scheduledCount: number;
+          campaignGoals: Record<string, number>;
+          recommendations?: string[];
+          campaigns?: Record<string, number>;
+        };
+      }
+
+      if (insightsRpc.error && !isMissingRpc(insightsRpc.error)) {
+        console.warn("Actualites insights RPC unavailable", insightsRpc.error);
+      }
+
       let postsResult = await (supabase.from("social_posts" as any) as any)
         .select(socialMarketingSchemaAvailable === false ? SOCIAL_INSIGHTS_BASE_SELECT : SOCIAL_INSIGHTS_MARKETING_SELECT)
         .eq("restaurant_id", restaurantId);
@@ -757,12 +743,11 @@ export function useSetSocialPostReaction() {
         await replaceReaction("social_post_likes", { post_id: post.id }, user.id, reaction, post.myReaction);
       }
 
-      const eventResult = await (supabase.rpc as any)("record_social_feed_event", {
-        p_post_id: post.id,
-        p_event_type: "reaction",
-        p_metadata: { reaction },
+      await recordSocialEventBestEffort({
+        postId: post.id,
+        eventType: "reaction",
+        metadata: { reaction },
       });
-      if (eventResult.error && !isMissingRpc(eventResult.error)) throw eventResult.error;
     },
     onMutate: async ({ post, reaction }) => {
       patchSocialPost(queryClient, post.id, (currentPost) => {
@@ -836,12 +821,11 @@ export function useToggleRestaurantFollow() {
       );
       if (error) throw error;
 
-      const eventResult = await (supabase.rpc as any)("record_social_feed_event", {
-        p_post_id: post.id,
-        p_event_type: "follow",
-        p_metadata: { restaurantId: post.restaurantId },
+      await recordSocialEventBestEffort({
+        postId: post.id,
+        eventType: "follow",
+        metadata: { restaurantId: post.restaurantId },
       });
-      if (eventResult.error && !isMissingRpc(eventResult.error)) throw eventResult.error;
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
     onError: (error) => toast.error((error as Error).message),
@@ -871,12 +855,7 @@ export function useToggleSocialRepost() {
       });
       if (error) throw error;
 
-      const eventResult = await (supabase.rpc as any)("record_social_feed_event", {
-        p_post_id: post.id,
-        p_event_type: "repost",
-        p_metadata: {},
-      });
-      if (eventResult.error && !isMissingRpc(eventResult.error)) throw eventResult.error;
+      await recordSocialEventBestEffort({ postId: post.id, eventType: "repost", metadata: {} });
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
     onError: (error) => toast.error((error as Error).message),
@@ -917,12 +896,7 @@ export function useToggleSocialSave() {
 
       const saved = Boolean(data);
       if (saved) {
-        const eventResult = await (supabase.rpc as any)("record_social_feed_event", {
-          p_post_id: post.id,
-          p_event_type: "save",
-          p_metadata: {},
-        });
-        if (eventResult.error && !isMissingRpc(eventResult.error)) throw eventResult.error;
+        await recordSocialEventBestEffort({ postId: post.id, eventType: "save", metadata: {} });
       }
       return saved;
     },
@@ -954,12 +928,7 @@ export function useRecordExternalShare() {
       });
       if (error) throw error;
 
-      const eventResult = await (supabase.rpc as any)("record_social_feed_event", {
-        p_post_id: postId,
-        p_event_type: "share",
-        p_metadata: { channel },
-      });
-      if (eventResult.error && !isMissingRpc(eventResult.error)) throw eventResult.error;
+      await recordSocialEventBestEffort({ postId, eventType: "share", metadata: { channel } });
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
     onError: (error) => toast.error((error as Error).message),
@@ -980,13 +949,10 @@ export function useRecordSocialFeedEvent() {
       metadata?: Record<string, unknown>;
     }) => {
       if (!user?.id) return null;
-      const { data, error } = await (supabase.rpc as any)("record_social_feed_event", {
-        p_post_id: postId,
-        p_event_type: eventType,
-        p_metadata: metadata,
-      });
-      if (error && !isMissingRpc(error)) throw error;
-      return data as string | null;
+      return recordSocialEventBestEffort({ postId, eventType, metadata });
+    },
+    onError: (error) => {
+      console.warn("Social feed tracking failed", error);
     },
   });
 }
@@ -1152,12 +1118,11 @@ export function useAddSocialComment(postId: string, parentCommentId?: string | n
       });
       if (error) throw error;
 
-      const eventResult = await (supabase.rpc as any)("record_social_feed_event", {
-        p_post_id: postId,
-        p_event_type: "comment",
-        p_metadata: { parentCommentId: parentCommentId || null },
+      await recordSocialEventBestEffort({
+        postId,
+        eventType: "comment",
+        metadata: { parentCommentId: parentCommentId || null },
       });
-      if (eventResult.error && !isMissingRpc(eventResult.error)) throw eventResult.error;
     },
     onSuccess: () => invalidateSocialQueries(queryClient),
     onError: (error) => toast.error((error as Error).message),
