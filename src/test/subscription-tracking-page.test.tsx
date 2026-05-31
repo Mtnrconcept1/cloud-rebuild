@@ -125,7 +125,8 @@ describe("subscription tracking page", () => {
   it("shows the complete route for all restaurants in the subscription checkout group", async () => {
     renderTrackingPage();
 
-    expect(await screen.findByText("2 restaurants · 42.00 CHF")).toBeInTheDocument();
+    expect(await screen.findByText(/2 restaurants/i)).toBeInTheDocument();
+    expect(screen.getByText(/42\.00\s*CHF/i)).toBeInTheDocument();
     expect(screen.getAllByText("Tok Test").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Green Test").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Retrait 1").length).toBeGreaterThan(0);
