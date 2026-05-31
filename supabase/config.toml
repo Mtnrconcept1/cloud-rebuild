@@ -10,7 +10,16 @@ project_id = "wwcrtyoueexyxkkikaos"
 # of the legacy gateway JWT verification layer.
 # -----------------------------------------------------------------------------
 
+[functions.authorize-match-group-order]
+verify_jwt = false
+
 [functions.campaign-portal]
+verify_jwt = false
+
+[functions.capture-due-match-groups]
+verify_jwt = false
+
+[functions.close-due-match-groups]
 verify_jwt = false
 
 [functions.complete-order-checkout]
@@ -59,6 +68,9 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.manage-tok-one-subscription]
+verify_jwt = false
+
+[functions.reconcile-match-group-authorizations]
 verify_jwt = false
 
 [functions.restaurant-advisor]
