@@ -5,6 +5,9 @@ import { describe, expect, it } from "vitest";
 const createCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/create-checkout/index.ts"), "utf8");
 const stripeWebhookSource = readFileSync(resolve(process.cwd(), "supabase/functions/stripe-webhook/index.ts"), "utf8");
 const orderCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/order-checkout.ts"), "utf8");
+const chefsTableSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/chefs-table.ts"), "utf8");
+const validateOrderSource = readFileSync(resolve(process.cwd(), "supabase/functions/validate-order/index.ts"), "utf8");
+const cartSource = readFileSync(resolve(process.cwd(), "src/pages/Panier.tsx"), "utf8");
 
 describe("checkout and Stripe webhook safety guards", () => {
   it("creates Stripe sessions with required metadata for reconciliation", () => {
@@ -48,6 +51,28 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(orderCheckoutSource).toContain("recordOrderChargeIfMissing");
   });
 
+  it("creates pending online order rows before opening the Stripe redirect", () => {
+    const onlineCheckoutBlock = cartSource.slice(
+      cartSource.indexOf("if (authoritativeRequiresStripeCheckout)"),
+      cartSource.indexOf("if (paymentMethod !== \"cash\" && !authoritativeRequiresStripeCheckout)"),
+    );
+
+    expect(onlineCheckoutBlock).toContain("const pendingOrderResults = await Promise.all");
+    expect(onlineCheckoutBlock).toContain('checkout_session_state: "pending"');
+    expect(onlineCheckoutBlock.indexOf("const pendingOrderResults = await Promise.all"))
+      .toBeLessThan(onlineCheckoutBlock.indexOf('invokeSupabaseFunction("create-checkout"'));
+    expect(onlineCheckoutBlock.indexOf("writePendingOrderCheckoutSessionId"))
+      .toBeGreaterThan(onlineCheckoutBlock.indexOf('invokeSupabaseFunction("create-checkout"'));
+  });
+
+  it("keeps pre-Stripe online orders pending until webhook or completion finalizes them", () => {
+    expect(validateOrderSource).toContain("isAwaitingOnlinePayment");
+    expect(validateOrderSource).toContain('checkout_session_state');
+    expect(validateOrderSource).toContain('payment_status: isAwaitingOnlinePayment');
+    expect(validateOrderSource).toContain('status: isAwaitingOnlinePayment ? "pending_payment" : "confirmed"');
+    expect(validateOrderSource).toContain("if (!isAwaitingOnlinePayment)");
+  });
+
   it("marks expired checkout sessions as failed without touching captured orders", () => {
     expect(stripeWebhookSource).toContain('case "checkout.session.expired"');
     expect(stripeWebhookSource).toContain("markOrderCheckoutSessionState");
@@ -61,5 +86,15 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(stripeWebhookSource).toContain("validate_and_create_reservation");
     expect(stripeWebhookSource).toContain('status: "confirmed"');
     expect(stripeWebhookSource).toContain("recordZeroAttenteChargeIfMissing");
+  });
+
+  it("creates or reuses Chef Table reservations idempotently after payment", () => {
+    expect(stripeWebhookSource).toContain('checkoutKind === "chefs-table"');
+    expect(stripeWebhookSource).toContain("finalizeChefsTableCheckout");
+    expect(chefsTableSource).toContain('filter("metadata->>checkout_session_id", "eq", session.id)');
+    expect(chefsTableSource).toContain("findExistingChefReservation");
+    expect(chefsTableSource).toContain("validate_and_create_reservation");
+    expect(chefsTableSource).toContain('status: "confirmed"');
+    expect(chefsTableSource).toContain("recordReservationChargeIfMissing");
   });
 });

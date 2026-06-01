@@ -11,6 +11,10 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
     label: "Paiement en attente",
     className: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700",
   },
+  paid: {
+    label: "Payée",
+    className: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-700",
+  },
   confirmed: {
     label: "Confirmee",
     className: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
@@ -50,6 +54,10 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
   cancelled: {
     label: "Annulee",
     className: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
+  },
+  refunded: {
+    label: "Remboursée",
+    className: "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-700",
   },
   refused: {
     label: "Refusee",

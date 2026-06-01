@@ -116,6 +116,8 @@ Deno.serve(async (req) => {
       campaign_title: String(order_metadata?.campaign_title || ""),
       checkout_id: String(order_metadata?.checkout_id || ""),
       checkout_group_id: String(order_metadata?.checkout_group_id || ""),
+      primary_order_id: String(order_metadata?.primary_order_id || ""),
+      checkout_session_state: String(order_metadata?.checkout_session_state || ""),
       formula_applied: String(order_metadata?.formula_applied || ""),
       formula_discount_amount: "0.00",
       formula_discount_percent: String(order_metadata?.formula_discount_percent || ""),

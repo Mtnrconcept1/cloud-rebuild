@@ -213,9 +213,13 @@ Deno.serve(async (req) => {
     }
 
     const orderReference = String(authoritativeMetadata.order_reference || "");
-    const hasStripeSession = Boolean((authoritativeMetadata as Record<string, unknown>).stripe_session_id);
-    const paymentMethod = String((authoritativeMetadata as Record<string, unknown>).payment_method || "cash");
-    const isSettledWithoutStripe = !hasStripeSession && paymentMethod !== "cash" && pricing.total <= 0.01;
+    const metadataRecord = authoritativeMetadata as Record<string, unknown>;
+    const hasStripeSession = Boolean(metadataRecord.stripe_session_id);
+    const checkoutSessionState = String(metadataRecord.checkout_session_state || "");
+    const requiresStripeCheckout = metadataRecord.requires_stripe_checkout === true;
+    const isAwaitingOnlinePayment = hasStripeSession || checkoutSessionState === "pending" || requiresStripeCheckout;
+    const paymentMethod = String(metadataRecord.payment_method || "cash");
+    const isSettledWithoutStripe = !isAwaitingOnlinePayment && paymentMethod !== "cash" && pricing.total <= 0.01;
 
     const finalMetadata = isDelivery
       ? enrichDeliveryMetadata(authoritativeMetadata)
@@ -233,10 +237,10 @@ Deno.serve(async (req) => {
         discount_amount: pricing.discountAmount,
         scheduled_at: scheduledDelivery?.scheduledAt || null,
         estimated_delivery_at: estimatedDeliveryAt,
-        payment_status: hasStripeSession
+        payment_status: isAwaitingOnlinePayment
           ? "pending"
           : (paymentMethod === "cash" ? "pending" : (isSettledWithoutStripe ? "captured" : "authorized")),
-        status: hasStripeSession ? "pending_payment" : "confirmed",
+        status: isAwaitingOnlinePayment ? "pending_payment" : "confirmed",
         metadata: finalMetadata,
         updated_at: new Date().toISOString(),
       } as any)
@@ -252,7 +256,7 @@ Deno.serve(async (req) => {
       .eq("user_id", actor.userId!)
       .maybeSingle();
 
-    if (!hasStripeSession) {
+    if (!isAwaitingOnlinePayment) {
       const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId!);
       const userEmail = authUser?.user?.email || "client@tok.ch";
 
@@ -269,7 +273,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (isDelivery && scheduledDelivery) {
+    if (!isAwaitingOnlinePayment && isDelivery && scheduledDelivery) {
       await actor.adminClient.from("delivery_tracking").upsert({
         order_id: orderId,
         status: "scheduled",
@@ -277,7 +281,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!hasStripeSession) {
+    if (!isAwaitingOnlinePayment) {
       const { data: restaurant } = await actor.adminClient
         .from("restaurants")
         .select("owner_id, name")

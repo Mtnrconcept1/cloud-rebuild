@@ -1,12 +1,15 @@
 export const CANONICAL_ORDER_STATUSES = [
   "pending",
   "pending_payment",
+  "paid",
   "confirmed",
   "preparing",
   "ready",
+  "picked_up",
   "delivering",
   "delivered",
   "cancelled",
+  "refunded",
   "payment_failed",
 ] as const;
 
@@ -15,7 +18,6 @@ export type CanonicalOrderStatus = (typeof CANONICAL_ORDER_STATUSES)[number];
 const LEGACY_TO_CANONICAL_STATUS: Record<string, CanonicalOrderStatus> = {
   on_the_way: "delivering",
   ready_for_pickup: "ready",
-  picked_up: "delivered",
 };
 
 export function normalizeOrderStatus(status: string | null | undefined): CanonicalOrderStatus | string {
@@ -29,6 +31,8 @@ export function mapOrderStatusToTrackingStatus(status: string | null | undefined
       return "preparing";
     case "ready":
       return "ready_for_pickup";
+    case "picked_up":
+      return "picked_up";
     case "delivering":
       return "in_transit";
     case "delivered":

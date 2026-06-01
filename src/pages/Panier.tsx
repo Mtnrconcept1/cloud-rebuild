@@ -727,6 +727,31 @@ export default function Panier() {
             description: `Le total confirme est de ${authoritativeTotal.toFixed(2)} CHF. Redirection vers le paiement.`,
           });
         }
+
+        const pendingOrderResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
+          const { data: validateResult, error: validateError } = await withTimeout(
+            invokeSupabaseFunction("validate-order", {
+              accessToken,
+              body: {
+                ...body,
+                metadata: {
+                  ...(body.metadata || {}),
+                  checkout_session_state: "pending",
+                  requires_stripe_checkout: true,
+                },
+              },
+            }),
+            ORDER_VALIDATION_TIMEOUT_MS,
+            "La préparation de votre commande prend trop de temps. Reessayez dans quelques instants.",
+          );
+
+          if (validateError) throw new Error(validateError.message);
+          if (validateResult?.error) throw new Error(validateResult.error);
+          return { resId, orderId: validateResult?.order_id || null };
+        }));
+
+        firstOrderId = pendingOrderResults.find((result) => result.orderId)?.orderId || null;
+
         const { data: checkoutData, error: checkoutError } = await withTimeout(
           invokeSupabaseFunction("create-checkout", {
             accessToken,
@@ -747,6 +772,8 @@ export default function Panier() {
                 restaurant_id: restaurantId,
                 delivery_fee: quotedDeliveryFee,
                 checkout_group_id: checkoutGroupId,
+                primary_order_id: firstOrderId,
+                checkout_session_state: "pending",
                 promo_code_id: promoCodeId,
                 points_to_redeem: pointsToRedeem,
                 delivery_address: checkoutDeliveryAddress,
@@ -781,23 +808,7 @@ export default function Panier() {
 
         writePendingOrderCheckoutSessionId(checkoutData.session_id);
 
-        const orderResults = await Promise.all(validationPayloads.map(async ({ resId, body }) => {
-          const { data: validateResult, error: validateError } = await withTimeout(
-            invokeSupabaseFunction("validate-order", {
-              accessToken,
-              body: {
-                ...body,
-                metadata: { ...(body.metadata || {}), stripe_session_id: checkoutData.session_id },
-              }
-            }),
-            ORDER_VALIDATION_TIMEOUT_MS,
-            "La préparation de votre commande prend trop de temps. Reessayez dans quelques instants.",
-          );
-
-          if (validateError) throw new Error(validateError.message);
-          if (validateResult?.error) throw new Error(validateResult.error);
-          const orderId = validateResult?.order_id || null;
-
+        for (const { resId, orderId } of pendingOrderResults) {
           if (orderId) {
             void trackCheckoutEvent(orderId, "checkout_online_pending", { stripe_session_id: checkoutData.session_id });
           }
@@ -806,10 +817,7 @@ export default function Panier() {
             entityId: orderId,
             paymentMethod,
           });
-          return { orderId };
-        }));
-
-        firstOrderId = orderResults.find((result) => result.orderId)?.orderId || null;
+        }
 
         window.location.assign(checkoutData.url);
         return;
