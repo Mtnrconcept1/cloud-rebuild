@@ -1,14 +1,30 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getSupabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertTriangle,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardCheck,
+  History,
+  RefreshCw,
+  Search,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  Truck,
+  XCircle,
+} from "lucide-react";
+
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { getSupabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Search, Sparkles, Store, Truck } from "lucide-react";
 import { scoreRestaurantCatalogQuality } from "@/lib/catalogQuality";
 
 const supabase = getSupabase();
@@ -37,18 +53,84 @@ type AdminRestaurant = {
   menu_items_count?: number;
 };
 
+type AdminRestaurantPatch = Partial<
+  Pick<
+    AdminRestaurant,
+    "is_active" | "is_featured" | "status" | "supports_pickup" | "supports_dinein" | "supports_reservation"
+  >
+>;
+
+type RestaurantSummary = Record<string, number | string | boolean | null | undefined>;
+
+type RestaurantHistoryEntry = {
+  id: string;
+  action: string;
+  created_at: string | null;
+  user_id: string | null;
+  old_data: unknown;
+  new_data: unknown;
+};
+
+type RestaurantAdminDetail = {
+  restaurant: {
+    id: string;
+    name: string;
+    legal_name?: string | null;
+    owner_id?: string | null;
+    city?: string | null;
+    address?: string | null;
+    cuisine_type?: string | null;
+    phone?: string | null;
+    image_url?: string | null;
+    is_active?: boolean | null;
+    is_featured?: boolean | null;
+    status?: string | null;
+    supports_pickup?: boolean | null;
+    supports_dinein?: boolean | null;
+    supports_reservation?: boolean | null;
+    stripe_account_id?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  quality: {
+    score: number;
+    publishable: boolean;
+    missing_fields: string[];
+    menu_items_count: number;
+    checks: Record<string, boolean>;
+  };
+  orders_summary: RestaurantSummary;
+  reservations_summary: RestaurantSummary;
+  reviews_summary: RestaurantSummary;
+  campaigns_summary: RestaurantSummary;
+  invoices_summary: RestaurantSummary;
+  incidents_summary: RestaurantSummary;
+  payment_health: RestaurantSummary & {
+    stripe_account_id?: string | null;
+    stripe_connect_configured?: boolean | null;
+    payout_schedule?: string | null;
+    commission_rate?: number | null;
+    invoice_settings_configured?: boolean | null;
+    iban_configured?: boolean | null;
+    last_failed_payment_at?: string | null;
+    payouts_pending?: number | null;
+  };
+  recent_history: RestaurantHistoryEntry[];
+};
+
 const STATUS_OPTIONS = [
   { value: "active", label: "Actif" },
   { value: "pending", label: "En attente" },
   { value: "paused", label: "En pause" },
-  { value: "archived", label: "Archive" },
+  { value: "suspended", label: "Suspendu" },
+  { value: "archived", label: "Archivé" },
 ];
 
 const DEFAULT_PAYMENT_METHODS = ["card", "cash", "twint"];
 const CATALOG_MISSING_FIELD_LABELS: Record<string, string> = {
   image: "image",
   address: "adresse",
-  coordinates: "coordonnees",
+  coordinates: "coordonnées",
   opening_hours: "horaires",
   menu: "menu",
   payment_methods: "paiement",
@@ -77,20 +159,299 @@ function formatMissingFields(fields: string[]) {
   return fields.map((field) => CATALOG_MISSING_FIELD_LABELS[field] || field).join(", ");
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) return "Jamais";
+  return new Intl.DateTimeFormat("fr-CH", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function formatMoney(value: unknown) {
+  return new Intl.NumberFormat("fr-CH", {
+    style: "currency",
+    currency: "CHF",
+    maximumFractionDigits: 2,
+  }).format(Number(value || 0));
+}
+
+function asNumber(summary: RestaurantSummary | undefined, key: string) {
+  return Number(summary?.[key] || 0);
+}
+
+function statusBadgeVariant(isActive?: boolean | null) {
+  return isActive ? "default" : "secondary";
+}
+
 function CatalogQualityNotice({ restaurant }: { restaurant: AdminRestaurant }) {
   const quality = getCatalogQuality(restaurant);
 
   return (
     <>
-      <Badge variant="outline" className={quality.publishable ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}>
+      <Badge
+        variant="outline"
+        className={quality.publishable ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}
+      >
         Catalogue {quality.score}%
       </Badge>
       {!quality.publishable ? (
-        <p className="text-xs text-amber-700">
-          À compléter: {formatMissingFields(quality.missingFields)}
-        </p>
+        <p className="text-xs text-amber-700">À compléter: {formatMissingFields(quality.missingFields)}</p>
       ) : null}
     </>
+  );
+}
+
+function QualityCheck({ label, valid }: { label: string; valid: boolean }) {
+  const Icon = valid ? CheckCircle2 : XCircle;
+  return (
+    <div className="flex items-center justify-between gap-3 border-b py-2 text-sm last:border-b-0">
+      <span>{label}</span>
+      <span className={valid ? "inline-flex items-center gap-1 text-emerald-700" : "inline-flex items-center gap-1 text-amber-700"}>
+        <Icon className="h-4 w-4" />
+        {valid ? "OK" : "Manquant"}
+      </span>
+    </div>
+  );
+}
+
+function MetricTile({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-lg border px-3 py-2">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-lg font-semibold">{value}</p>
+    </div>
+  );
+}
+
+type RestaurantDetailPanelProps = {
+  detail: RestaurantAdminDetail | null | undefined;
+  isLoading: boolean;
+  overrideReason: string;
+  actionReason: string;
+  onOverrideReasonChange: (value: string) => void;
+  onActionReasonChange: (value: string) => void;
+  onClose: () => void;
+  onRefresh: () => void;
+  onSuspend: () => void;
+  onActivateOverride: () => void;
+  onRequestCorrection: () => void;
+  onReindexCatalog: () => void;
+  onSendNotification: () => void;
+};
+
+function RestaurantDetailPanel({
+  detail,
+  isLoading,
+  overrideReason,
+  actionReason,
+  onOverrideReasonChange,
+  onActionReasonChange,
+  onClose,
+  onRefresh,
+  onSuspend,
+  onActivateOverride,
+  onRequestCorrection,
+  onReindexCatalog,
+  onSendNotification,
+}: RestaurantDetailPanelProps) {
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="space-y-3 py-6">
+          <div className="h-5 w-48 rounded bg-muted animate-pulse" />
+          <div className="grid gap-3 md:grid-cols-3">
+            {[1, 2, 3].map((index) => (
+              <div key={index} className="h-24 rounded-lg bg-muted animate-pulse" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!detail) return null;
+
+  const missingFields = detail.quality?.missing_fields || [];
+  const checks = detail.quality?.checks || {};
+  const paymentHealth = detail.payment_health || {};
+
+  return (
+    <Card>
+      <CardHeader className="space-y-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-lg">Fiche restaurant</CardTitle>
+              <Badge variant={statusBadgeVariant(detail.restaurant.is_active)}>
+                {detail.restaurant.is_active ? "Actif" : "Inactif"}
+              </Badge>
+              <Badge variant="outline">{detail.restaurant.status || "Statut inconnu"}</Badge>
+              {detail.restaurant.is_featured ? <Badge variant="outline">Mis en avant</Badge> : null}
+            </div>
+            <div>
+              <p className="text-sm font-semibold">{detail.restaurant.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {[detail.restaurant.city, detail.restaurant.cuisine_type].filter(Boolean).join(" | ") || "Informations incomplètes"}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={onRefresh}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Rafraîchir
+            </Button>
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Fermer
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+          <section className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold">Qualité catalogue</h3>
+                <p className="text-xs text-muted-foreground">
+                  Score {detail.quality.score}% · {detail.quality.menu_items_count} article(s) actif(s)
+                </p>
+              </div>
+              <Badge
+                variant="outline"
+                className={
+                  detail.quality.publishable
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-amber-200 bg-amber-50 text-amber-800"
+                }
+              >
+                {detail.quality.publishable ? "Publiable" : "À compléter"}
+              </Badge>
+            </div>
+            <div className="rounded-lg border px-3">
+              <QualityCheck label="Image" valid={Boolean(checks.image)} />
+              <QualityCheck label="Adresse" valid={Boolean(checks.address)} />
+              <QualityCheck label="Coordonnées" valid={Boolean(checks.coordinates)} />
+              <QualityCheck label="Horaires" valid={Boolean(checks.opening_hours)} />
+              <QualityCheck label="Menu" valid={Boolean(checks.menu)} />
+              <QualityCheck label="Paiement" valid={Boolean(checks.payment_methods)} />
+              <QualityCheck label="Cuisine" valid={Boolean(checks.cuisine)} />
+            </div>
+            {!detail.quality.publishable ? (
+              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
+                <span>Activation bloquée sans override: {formatMissingFields(missingFields)}</span>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold">Santé paiement</h3>
+              <p className="text-xs text-muted-foreground">
+                Stripe Connect, facturation et paiements restaurant.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <MetricTile label="Stripe Connect" value={paymentHealth.stripe_connect_configured ? "Configuré" : "Absent"} />
+              <MetricTile label="IBAN facture" value={paymentHealth.iban_configured ? "Configuré" : "Absent"} />
+              <MetricTile label="Payouts en attente" value={asNumber(paymentHealth, "payouts_pending")} />
+              <MetricTile label="Commission" value={`${Number(paymentHealth.commission_rate || 0).toFixed(2)}%`} />
+            </div>
+            <div className="rounded-lg border px-3 py-2 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Compte Stripe</span>
+                <span className="font-medium">{paymentHealth.stripe_account_id || "Non renseigné"}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Dernier échec paiement</span>
+                <span className="font-medium">{formatDateTime(paymentHealth.last_failed_payment_at as string | null)}</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold">Activité liée</h3>
+          <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+            <MetricTile label="Commandes" value={asNumber(detail.orders_summary, "total")} />
+            <MetricTile label="Commandes ouvertes" value={asNumber(detail.orders_summary, "active")} />
+            <MetricTile label="Réservations" value={asNumber(detail.reservations_summary, "total")} />
+            <MetricTile label="Avis" value={asNumber(detail.reviews_summary, "total")} />
+            <MetricTile label="Campagnes actives" value={asNumber(detail.campaigns_summary, "active")} />
+            <MetricTile label="Incidents ouverts" value={asNumber(detail.incidents_summary, "open")} />
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <MetricTile label="CA payé" value={formatMoney(detail.orders_summary?.revenue_chf)} />
+            <MetricTile label="Factures ouvertes" value={asNumber(detail.invoices_summary, "open")} />
+            <MetricTile label="Impayés factures" value={formatMoney(detail.invoices_summary?.unpaid_chf)} />
+          </div>
+        </section>
+
+        <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold">Actions</h3>
+            <Textarea
+              value={overrideReason}
+              onChange={(event) => onOverrideReasonChange(event.target.value)}
+              placeholder="Raison d'override pour une activation incomplète"
+              className="min-h-20"
+            />
+            <Textarea
+              value={actionReason}
+              onChange={(event) => onActionReasonChange(event.target.value)}
+              placeholder="Note pour correction ou notification"
+              className="min-h-20"
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={onActivateOverride}>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Activer avec override
+              </Button>
+              <Button variant="outline" size="sm" onClick={onSuspend}>
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Suspendre
+              </Button>
+              <Button variant="outline" size="sm" onClick={onRequestCorrection}>
+                <ClipboardCheck className="mr-2 h-4 w-4" />
+                Demander correction
+              </Button>
+              <Button variant="outline" size="sm" onClick={onReindexCatalog}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Réindexer catalogue
+              </Button>
+              <Button variant="outline" size="sm" onClick={onSendNotification}>
+                <Send className="mr-2 h-4 w-4" />
+                Envoyer notification
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <History className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold">Historique</h3>
+            </div>
+            <div className="max-h-64 overflow-auto rounded-lg border">
+              {detail.recent_history.length === 0 ? (
+                <p className="px-3 py-6 text-center text-sm text-muted-foreground">Aucune action auditée.</p>
+              ) : (
+                <div className="divide-y">
+                  {detail.recent_history.map((entry) => (
+                    <div key={entry.id} className="px-3 py-2 text-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium">{entry.action}</span>
+                        <span className="text-xs text-muted-foreground">{formatDateTime(entry.created_at)}</span>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{entry.user_id || "Utilisateur système"}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -99,13 +460,18 @@ export default function AdminRestaurants() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState("all");
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+  const [overrideReason, setOverrideReason] = useState("");
+  const [actionReason, setActionReason] = useState("");
 
   const { data: restaurants = [], isLoading, error } = useQuery({
     queryKey: ["admin-restaurants"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("id, name, city, cuisine_type, image_url, is_active, is_featured, status, supports_pickup, supports_dinein, supports_reservation, avg_rating, rating_count, min_order_amount, base_delivery_fee, address, latitude, longitude, opening_hours, disabled_payment_methods")
+        .select(
+          "id, name, city, cuisine_type, image_url, is_active, is_featured, status, supports_pickup, supports_dinein, supports_reservation, avg_rating, rating_count, min_order_amount, base_delivery_fee, address, latitude, longitude, opening_hours, disabled_payment_methods",
+        )
         .order("name");
 
       if (error) throw error;
@@ -131,6 +497,28 @@ export default function AdminRestaurants() {
         ...restaurant,
         menu_items_count: menuCountByRestaurant.get(restaurant.id) || 0,
       }));
+    },
+  });
+
+  const selectedRestaurant = useMemo(
+    () => restaurants.find((restaurant) => restaurant.id === selectedRestaurantId) || null,
+    [restaurants, selectedRestaurantId],
+  );
+
+  const {
+    data: restaurantDetail,
+    isFetching: isDetailLoading,
+    refetch: refetchRestaurantDetail,
+  } = useQuery({
+    queryKey: ["admin-restaurant-detail", selectedRestaurantId],
+    enabled: Boolean(selectedRestaurantId),
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("admin_get_restaurant_admin_detail", {
+        p_restaurant_id: selectedRestaurantId,
+      });
+
+      if (error) throw error;
+      return data as RestaurantAdminDetail;
     },
   });
 
@@ -167,24 +555,111 @@ export default function AdminRestaurants() {
     };
   }, [restaurants]);
 
-  const updateRestaurant = async (restaurantId: string, patch: Partial<AdminRestaurant>, successTitle: string) => {
-    const { error } = await supabase.from("restaurants").update(patch).eq("id", restaurantId);
-    if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+  const invalidateRestaurantQueries = (restaurantId: string) => {
+    queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-restaurant-detail", restaurantId] });
+  };
+
+  const updateRestaurant = async (
+    restaurant: AdminRestaurant,
+    patch: AdminRestaurantPatch,
+    successTitle: string,
+    options: { override?: boolean; reason?: string | null } = {},
+  ) => {
+    const quality = getCatalogQuality(restaurant);
+    const activationRequested = patch.is_active === true || patch.status === "active";
+    let reason = options.reason?.trim() || null;
+    let override = options.override || false;
+
+    if (activationRequested && !quality.publishable) {
+      const fallbackReason = overrideReason.trim();
+      reason =
+        reason ||
+        fallbackReason ||
+        window.prompt(`Raison d'override requise. Champs manquants: ${formatMissingFields(quality.missingFields)}`)?.trim() ||
+        null;
+
+      if (!reason) {
+        toast({
+          title: "Activation bloquée",
+          description: "Une raison d'override est obligatoire pour activer un restaurant incomplet.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      override = true;
+      setOverrideReason(reason);
+    }
+
+    const { error: rpcError } = await (supabase.rpc as any)("admin_update_restaurant_admin_state", {
+      p_restaurant_id: restaurant.id,
+      p_patch: patch,
+      p_reason: reason,
+      p_override: override,
+    });
+
+    if (rpcError) {
+      toast({ title: "Erreur", description: rpcError.message, variant: "destructive" });
       return;
     }
 
-    queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+    invalidateRestaurantQueries(restaurant.id);
     toast({ title: successTitle });
+  };
+
+  const recordRestaurantAction = async (action: string, successTitle: string, requiresReason = false) => {
+    if (!selectedRestaurantId) return;
+    const reason = actionReason.trim();
+
+    if (requiresReason && !reason) {
+      toast({
+        title: "Note requise",
+        description: "Ajoutez une note avant de journaliser cette action.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error: rpcError } = await (supabase.rpc as any)("admin_record_restaurant_admin_action", {
+      p_restaurant_id: selectedRestaurantId,
+      p_action: action,
+      p_reason: reason || null,
+    });
+
+    if (rpcError) {
+      toast({ title: "Erreur", description: rpcError.message, variant: "destructive" });
+      return;
+    }
+
+    invalidateRestaurantQueries(selectedRestaurantId);
+    toast({ title: successTitle });
+  };
+
+  const handleActivateOverride = () => {
+    if (!selectedRestaurant) return;
+    const reason = overrideReason.trim();
+
+    if (!reason) {
+      toast({
+        title: "Raison requise",
+        description: "Ajoutez une raison avant de forcer l'activation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateRestaurant(selectedRestaurant, { is_active: true, status: "active" }, "Restaurant activé avec override", {
+      override: true,
+      reason,
+    });
   };
 
   if (error) {
     return (
       <div className="container py-8">
         <Card>
-          <CardContent className="py-10 text-center text-destructive">
-            Impossible de charger les restaurants.
-          </CardContent>
+          <CardContent className="py-10 text-center text-destructive">Impossible de charger les restaurants.</CardContent>
         </Card>
       </div>
     );
@@ -195,7 +670,7 @@ export default function AdminRestaurants() {
       <DashboardPageHero
         badge="Admin restaurants"
         title="Gestion des restaurants"
-        description="Activez les restaurants, gerez leur visibilité, leurs options de service et les mises en avant depuis une vue de pilotage."
+        description="Activez les restaurants, gérez leur visibilité, leurs options de service et les mises en avant depuis une vue de pilotage."
         icon={Store}
         tone="emerald"
         visualLabel="Restaurants"
@@ -219,7 +694,9 @@ export default function AdminRestaurants() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Actifs</CardTitle>
-            <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">Live</Badge>
+            <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+              Live
+            </Badge>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{stats.active}</p>
@@ -245,7 +722,7 @@ export default function AdminRestaurants() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Reservations</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Réservations</CardTitle>
             <CalendarDays className="h-4 w-4 text-sky-500" />
           </CardHeader>
           <CardContent>
@@ -279,6 +756,29 @@ export default function AdminRestaurants() {
         </CardContent>
       </Card>
 
+      {selectedRestaurantId ? (
+        <RestaurantDetailPanel
+          detail={restaurantDetail}
+          isLoading={isDetailLoading}
+          overrideReason={overrideReason}
+          actionReason={actionReason}
+          onOverrideReasonChange={setOverrideReason}
+          onActionReasonChange={setActionReason}
+          onClose={() => setSelectedRestaurantId(null)}
+          onRefresh={() => refetchRestaurantDetail()}
+          onSuspend={() =>
+            selectedRestaurant &&
+            updateRestaurant(selectedRestaurant, { is_active: false, status: "suspended" }, "Restaurant suspendu", {
+              reason: actionReason.trim() || null,
+            })
+          }
+          onActivateOverride={handleActivateOverride}
+          onRequestCorrection={() => recordRestaurantAction("request_correction", "Demande de correction journalisée", true)}
+          onReindexCatalog={() => recordRestaurantAction("reindex_catalog", "Réindexation catalogue journalisée")}
+          onSendNotification={() => recordRestaurantAction("send_notification", "Notification restaurant journalisée", true)}
+        />
+      ) : null}
+
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((index) => (
@@ -287,14 +787,12 @@ export default function AdminRestaurants() {
         </div>
       ) : filteredRestaurants.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">
-            Aucun restaurant ne correspond au filtre.
-          </CardContent>
+          <CardContent className="py-10 text-center text-muted-foreground">Aucun restaurant ne correspond au filtre.</CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
           {filteredRestaurants.map((restaurant) => (
-            <Card key={restaurant.id}>
+            <Card key={restaurant.id} className={restaurant.id === selectedRestaurantId ? "border-primary" : undefined}>
               <CardContent className="py-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
                   <div className="flex min-w-0 flex-1 items-start gap-4">
@@ -310,7 +808,7 @@ export default function AdminRestaurants() {
                           {restaurant.is_active ? "Actif" : "Inactif"}
                         </Badge>
                         {restaurant.is_featured ? <Badge variant="outline">Mis en avant</Badge> : null}
-                        {restaurant.supports_reservation ? <Badge variant="outline">Reservation</Badge> : null}
+                        {restaurant.supports_reservation ? <Badge variant="outline">Réservation</Badge> : null}
                         <CatalogQualityNotice restaurant={restaurant} />
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -332,11 +830,11 @@ export default function AdminRestaurants() {
 
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     <label className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
-                      <span>Active</span>
+                      <span>Actif</span>
                       <Switch
                         checked={restaurant.is_active ?? true}
                         onCheckedChange={(checked) =>
-                          updateRestaurant(restaurant.id, { is_active: checked }, checked ? "Restaurant activé" : "Restaurant désactivé")
+                          updateRestaurant(restaurant, { is_active: checked }, checked ? "Restaurant activé" : "Restaurant désactivé")
                         }
                       />
                     </label>
@@ -345,19 +843,23 @@ export default function AdminRestaurants() {
                       <Switch
                         checked={restaurant.is_featured ?? false}
                         onCheckedChange={(checked) =>
-                          updateRestaurant(restaurant.id, { is_featured: checked }, checked ? "Restaurant mis en avant" : "Restaurant retire de la sélection")
+                          updateRestaurant(
+                            restaurant,
+                            { is_featured: checked },
+                            checked ? "Restaurant mis en avant" : "Restaurant retiré de la sélection",
+                          )
                         }
                       />
                     </label>
                     <label className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
-                      <span>Reservations</span>
+                      <span>Réservations</span>
                       <Switch
                         checked={restaurant.supports_reservation ?? false}
                         onCheckedChange={(checked) =>
                           updateRestaurant(
-                            restaurant.id,
+                            restaurant,
                             { supports_reservation: checked },
-                            checked ? "Reservations activées" : "Reservations désactivées"
+                            checked ? "Réservations activées" : "Réservations désactivées",
                           )
                         }
                       />
@@ -367,7 +869,7 @@ export default function AdminRestaurants() {
                       <select
                         value={restaurant.status || "active"}
                         onChange={(event) =>
-                          updateRestaurant(restaurant.id, { status: event.target.value }, "Statut du restaurant mis à jour")
+                          updateRestaurant(restaurant, { status: event.target.value }, "Statut du restaurant mis à jour")
                         }
                         className="w-full rounded-md border bg-background px-2 py-1.5 text-sm"
                       >
@@ -382,14 +884,18 @@ export default function AdminRestaurants() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setSelectedRestaurantId(restaurant.id)}>
+                    <ClipboardCheck className="mr-2 h-4 w-4" />
+                    Fiche
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() =>
                       updateRestaurant(
-                        restaurant.id,
+                        restaurant,
                         { supports_pickup: !(restaurant.supports_pickup ?? true) },
-                        restaurant.supports_pickup ? "Retrait désactivé" : "Retrait activé"
+                        restaurant.supports_pickup ? "Retrait désactivé" : "Retrait activé",
                       )
                     }
                   >
@@ -400,9 +906,9 @@ export default function AdminRestaurants() {
                     size="sm"
                     onClick={() =>
                       updateRestaurant(
-                        restaurant.id,
+                        restaurant,
                         { supports_dinein: !(restaurant.supports_dinein ?? false) },
-                        restaurant.supports_dinein ? "Sur place désactivé" : "Sur place activé"
+                        restaurant.supports_dinein ? "Sur place désactivé" : "Sur place activé",
                       )
                     }
                   >
