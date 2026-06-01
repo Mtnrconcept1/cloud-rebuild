@@ -91,6 +91,7 @@ describe("Supabase critical RPC contracts", () => {
 
   it("keeps campaign metrics append-only, deduplicated, and protected from owner inflation", () => {
     const campaignSql = readMigration("actualites_internal_campaign_guard");
+    const metricWriteSql = readMigration("allow_internal_campaign_metric_writes");
 
     expect(campaignSql).toContain("IF p_event_type NOT IN ('impression', 'click', 'conversion') THEN");
     expect(campaignSql).toContain("p_conversion_type NOT IN ('order', 'reservation', 'zero-attente')");
@@ -101,6 +102,13 @@ describe("Supabase critical RPC contracts", () => {
     expect(campaignSql).toContain("impressions = COALESCE(impressions, 0) + CASE WHEN p_event_type = 'impression' THEN 1 ELSE 0 END");
     expect(campaignSql).toContain("clicks = COALESCE(clicks, 0) + CASE WHEN p_event_type = 'click' THEN 1 ELSE 0 END");
     expect(campaignSql).toContain("conversions = COALESCE(conversions, 0) + CASE WHEN p_event_type = 'conversion' THEN 1 ELSE 0 END");
+
+    expect(metricWriteSql).toContain("current_setting('tok.internal_campaign_metric_write', true)");
+    expect(metricWriteSql).toContain("IF TG_OP = 'UPDATE' AND v_internal_metric_write THEN");
+    expect(metricWriteSql).toContain("to_jsonb(NEW) - ARRAY[");
+    expect(metricWriteSql).toContain("Seules les metriques de campagne peuvent etre mises a jour par le tracking interne.");
+    expect(metricWriteSql).toContain("PERFORM set_config('tok.internal_campaign_metric_write', 'on', true);");
+    expect(metricWriteSql).toContain("PERFORM set_config('tok.internal_campaign_metric_write', v_previous_metric_write, true);");
   });
 
   it("keeps sponsored conversions attributed only from valid recent paid clicks", () => {
