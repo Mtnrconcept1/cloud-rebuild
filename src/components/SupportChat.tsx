@@ -3,7 +3,9 @@ import { X, Send, User, Phone, Mail, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { getSupabase } from "@/integrations/supabase/client";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/contact";
+import { SUPABASE_URL } from "@/lib/env";
 
 type Node = {
   id: string;
@@ -128,6 +130,8 @@ const AGENTS: Record<AgentId, AgentConfig> = {
   },
 };
 
+const supabase = getSupabase();
+
 function getInitialHistory(agentId: AgentId): ChatMessage[] {
   const agent = AGENTS[agentId];
 
@@ -238,10 +242,19 @@ export default function SupportChat() {
           content: message.text,
         }));
 
-      const response = await fetch("/api/support-ai", {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        throw new Error("auth_required");
+      }
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-client-chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           agentId: selectedAgent,
@@ -260,7 +273,9 @@ export default function SupportChat() {
         {
           type: "bot",
           text:
-            data?.reply ||
+            data?.ticketId
+              ? `${data.reply}\n\nTicket support cree : ${data.ticketId}`
+              : data?.reply ||
             "Je n’ai pas pu générer une réponse pour le moment.",
         },
       ]);

@@ -27,12 +27,37 @@ const SUGGESTED_PROMPTS = [
   { icon: Sparkles, label: "Plan d'action global", prompt: "Donne-moi un plan d'action complet et prioritisé pour optimiser mes performances sur la plateforme Tok." },
 ];
 
+const QUICK_TOOLS = [
+  {
+    icon: Sparkles,
+    label: "Optimiser un plat",
+    endpoint: "ai-restaurant-tools",
+    action: "dish_optimization",
+    prompt: "Optimise la description, le positionnement prix et la mise en avant d'un plat prioritaire avec les donnees disponibles.",
+  },
+  {
+    icon: Megaphone,
+    label: "Créer une campagne",
+    endpoint: "ai-restaurant-tools",
+    action: "campaign",
+    prompt: "Cree un brouillon de campagne marketing pour augmenter les commandes cette semaine sans publier automatiquement.",
+  },
+  {
+    icon: Camera,
+    label: "Améliorer une photo",
+    endpoint: "ai-image-enhance",
+    action: "image_enhance",
+    prompt: "Prepare un brief premium pour ameliorer une photo de plat et generer une legende de publication.",
+  },
+];
+
 export default function DashboardAdvisor() {
   const { selectedId, restaurants } = useDashboardRestaurant();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -168,6 +193,90 @@ export default function DashboardAdvisor() {
     }
   };
 
+  const formatToolResponse = (toolLabel: string, data: Record<string, any>) => {
+    if (typeof data.markdown === "string" && data.markdown.trim()) {
+      return data.markdown;
+    }
+
+    if (typeof data.enhanced_prompt === "string") {
+      return [
+        `### ${data.title || toolLabel}`,
+        data.edit_instructions ? `**Instructions**\n${data.edit_instructions}` : "",
+        data.enhanced_prompt ? `**Prompt visuel**\n${data.enhanced_prompt}` : "",
+        data.publication_caption ? `**Legende**\n${data.publication_caption}` : "",
+        Array.isArray(data.checklist) && data.checklist.length > 0
+          ? `**Checklist**\n${data.checklist.map((item: string) => `- ${item}`).join("\n")}`
+          : "",
+      ].filter(Boolean).join("\n\n");
+    }
+
+    return [
+      `### ${data.title || toolLabel}`,
+      data.summary || "",
+      Array.isArray(data.next_steps) && data.next_steps.length > 0
+        ? `**Prochaines actions**\n${data.next_steps.map((item: string) => `- ${item}`).join("\n")}`
+        : "",
+    ].filter(Boolean).join("\n\n");
+  };
+
+  const handleQuickTool = async (tool: (typeof QUICK_TOOLS)[number]) => {
+    if (!restaurant || isLoading || activeTool) return;
+
+    const userMsg: Message = {
+      role: "user",
+      content: `${tool.label}\n\n${tool.prompt}`,
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setIsLoading(true);
+    setActiveTool(tool.label);
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) throw new Error("Vous devez être connecté.");
+
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/${tool.endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          restaurantId: restaurant.id,
+          action: tool.action,
+          prompt: tool.prompt,
+          assetType: tool.endpoint === "ai-image-enhance" ? "menu_visual" : undefined,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data?.error || `Erreur ${resp.status}`);
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: formatToolResponse(tool.label, data) },
+      ]);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : "Erreur inconnue";
+      toast({ title: "Erreur", description: errorMessage, variant: "destructive" });
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "user" && last.content === userMsg.content) {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
+    } finally {
+      setIsLoading(false);
+      setActiveTool(null);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -178,6 +287,7 @@ export default function DashboardAdvisor() {
   const handleReset = () => {
     setMessages([]);
     setInput("");
+    setActiveTool(null);
   };
 
   if (!restaurant) {
@@ -231,6 +341,18 @@ export default function DashboardAdvisor() {
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-3xl">
+                {QUICK_TOOLS.map((tool) => (
+                  <button
+                    key={tool.label}
+                    onClick={() => handleQuickTool(tool)}
+                    className="text-left rounded-xl border bg-primary/5 p-4 hover:border-primary/50 hover:bg-primary/10 transition-all group"
+                    disabled={isLoading || Boolean(activeTool)}
+                  >
+                    <tool.icon className="h-5 w-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                    <p className="text-sm font-semibold">{tool.label}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{tool.prompt}</p>
+                  </button>
+                ))}
                 {SUGGESTED_PROMPTS.map((suggestion) => (
                   <button
                     key={suggestion.label}
@@ -281,7 +403,7 @@ export default function DashboardAdvisor() {
               <Card className="p-4 bg-card">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Analyse en cours...
+                  {activeTool ? `${activeTool}...` : "Analyse en cours..."}
                 </div>
               </Card>
             </div>

@@ -10,6 +10,18 @@ project_id = "wwcrtyoueexyxkkikaos"
 # of the legacy gateway JWT verification layer.
 # -----------------------------------------------------------------------------
 
+[functions.ai-admin-support]
+verify_jwt = false
+
+[functions.ai-client-chat]
+verify_jwt = false
+
+[functions.ai-image-enhance]
+verify_jwt = false
+
+[functions.ai-restaurant-tools]
+verify_jwt = false
+
 [functions.authorize-match-group-order]
 verify_jwt = false
 

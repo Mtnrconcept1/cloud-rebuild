@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { resolveScheduledDelivery } from "../../supabase/functions/_shared/delivery-dispatch";
 
@@ -18,7 +18,13 @@ function createAdminClient(openingHours: unknown) {
 }
 
 describe("delivery dispatch scheduling", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("accepts scheduled delivery times inside explicit day opening windows", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(new Date("2026-06-01T10:00:00Z").getTime());
+
     const result = await resolveScheduledDelivery(
       createAdminClient({ lundi: [{ open: "11:30", close: "16:00" }] }),
       "restaurant-1",
