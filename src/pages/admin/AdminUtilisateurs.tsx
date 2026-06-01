@@ -1,7 +1,20 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { Bike, ExternalLink, FileText, Search, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  Ban,
+  Bike,
+  Download,
+  ExternalLink,
+  FileText,
+  History,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  UserRound,
+  Users,
+} from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
 import {
@@ -30,6 +43,12 @@ type AdminUserRow = {
   email: string | null;
   city: string | null;
   roles: string[] | null;
+  created_at?: string | null;
+  email_confirmed_at?: string | null;
+  account_status?: string | null;
+  application_status?: string | null;
+  courier_status?: string | null;
+  anomalies?: string[] | null;
 };
 
 type AdminCourierRow = {
@@ -57,13 +76,240 @@ type ReviewStatus = "approved" | "needs_changes" | "rejected";
 type CourierReviewStatus = "approved" | "pending_approval" | "suspended" | "rejected";
 type AdminTab = "users" | "applications" | "couriers";
 
+type UserGovernanceAlert = {
+  alert_key: string;
+  severity: string;
+  user_id: string;
+  title: string;
+  description: string;
+  anomaly: string;
+  metadata: Record<string, unknown> | null;
+};
+
+type AdminUserDetail = {
+  user?: AdminUserRow;
+  orders_summary?: Record<string, unknown>;
+  reservations_summary?: Record<string, unknown>;
+  incidents_summary?: Record<string, unknown>;
+  restaurants?: Array<Record<string, unknown>>;
+  courier_profile?: Record<string, unknown> | null;
+  applications?: Array<Record<string, unknown>>;
+  recent_history?: Array<Record<string, unknown>>;
+};
+
+const ANOMALY_LABELS: Record<string, string> = {
+  account_suspended: "Compte suspendu",
+  courier_without_profile: "Livreur sans profil",
+  email_unconfirmed: "Email non confirmé",
+  restaurateur_without_restaurant: "Restaurateur sans restaurant",
+  user_without_role: "Utilisateur sans rôle",
+};
+
+const ACCOUNT_STATUS_META: Record<string, { label: string; tone: string }> = {
+  active: { label: "Actif", tone: "bg-emerald-100 text-emerald-700" },
+  suspended: { label: "Suspendu", tone: "bg-red-100 text-red-700" },
+};
+
 function getCourierVehicleLabel(vehicleType: string | null | undefined) {
-  return COURIER_VEHICLE_OPTIONS.find((option) => option.value === vehicleType)?.label || vehicleType || "Non renseigne";
+  return COURIER_VEHICLE_OPTIONS.find((option) => option.value === vehicleType)?.label || vehicleType || "Non renseigné";
 }
 
 function getCourierDisplayName(courier: AdminCourierRow, application?: SignupApplication) {
   const profileName = [courier.first_name, courier.last_name].filter(Boolean).join(" ").trim();
   return profileName || application?.full_name || courier.phone || "Livreur";
+}
+
+function getRoleLabel(role: string) {
+  switch (role) {
+    case "admin":
+      return "Admin";
+    case "restaurateur":
+      return "Restaurateur";
+    case "courier":
+      return "Livreur";
+    default:
+      return "Client";
+  }
+}
+
+function formatDate(value: unknown) {
+  if (!value || typeof value !== "string") return "Non renseigné";
+  return new Date(value).toLocaleDateString("fr-CH");
+}
+
+function formatNumber(value: unknown) {
+  return Number(value || 0).toLocaleString("fr-CH");
+}
+
+function csvEscape(value: unknown) {
+  const text = value == null ? "" : String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function downloadCsv(filename: string, rows: Array<Array<unknown>>) {
+  const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function UserDetailPanel({ userId }: { userId: string | null }) {
+  const { data: detail, isLoading, error } = useQuery({
+    queryKey: ["admin-user-detail", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const { data, error: rpcError } = await (supabase.rpc as any)("admin_get_user_admin_detail", {
+        p_user_id: userId,
+      });
+      if (rpcError) throw rpcError;
+      return (data || {}) as AdminUserDetail;
+    },
+  });
+
+  if (!userId) {
+    return (
+      <div className="rounded-xl border border-dashed bg-card p-4 text-sm text-muted-foreground">
+        Sélectionnez un compte pour ouvrir la fiche utilisateur complète.
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return <div className="h-80 rounded-xl bg-muted animate-pulse" />;
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+        Impossible de charger la fiche utilisateur.
+      </div>
+    );
+  }
+
+  const user = detail?.user;
+  const orders = detail?.orders_summary || {};
+  const reservations = detail?.reservations_summary || {};
+  const incidents = detail?.incidents_summary || {};
+  const restaurants = detail?.restaurants || [];
+  const applications = detail?.applications || [];
+  const history = detail?.recent_history || [];
+  const courierProfile = detail?.courier_profile;
+
+  return (
+    <div className="rounded-xl border bg-card p-4 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <UserRound className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold">Fiche utilisateur</h3>
+          </div>
+          <p className="pt-1 text-xs text-muted-foreground break-all">{user?.email || userId}</p>
+        </div>
+        <Badge className={ACCOUNT_STATUS_META[user?.account_status || "active"]?.tone || "bg-muted text-muted-foreground"}>
+          {ACCOUNT_STATUS_META[user?.account_status || "active"]?.label || user?.account_status || "Actif"}
+        </Badge>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border p-3">
+          <p className="text-xs text-muted-foreground">Commandes</p>
+          <p className="text-lg font-semibold">{formatNumber(orders.total)}</p>
+          <p className="text-xs text-muted-foreground">{formatNumber(orders.open)} ouvertes</p>
+        </div>
+        <div className="rounded-lg border p-3">
+          <p className="text-xs text-muted-foreground">Réservations</p>
+          <p className="text-lg font-semibold">{formatNumber(reservations.total)}</p>
+          <p className="text-xs text-muted-foreground">{formatNumber(reservations.open)} ouvertes</p>
+        </div>
+        <div className="rounded-lg border p-3">
+          <p className="text-xs text-muted-foreground">Incidents</p>
+          <p className="text-lg font-semibold">{formatNumber(incidents.total)}</p>
+          <p className="text-xs text-muted-foreground">{formatNumber(incidents.open)} ouverts</p>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-lg border p-3 text-sm">
+          <p className="font-medium">Rôles</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(user?.roles || ["client"]).map((role) => (
+              <Badge key={role} variant="outline">
+                {getRoleLabel(role)}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-lg border p-3 text-sm">
+          <p className="font-medium">Profil livreur</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {courierProfile
+              ? `${String(courierProfile.status || "statut inconnu")} · ${String(courierProfile.vehicle_type || "véhicule non renseigné")}`
+              : "Aucun profil livreur lié."}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-lg border p-3 text-sm">
+        <p className="font-medium">Restaurants</p>
+        {restaurants.length > 0 ? (
+          <div className="mt-2 space-y-2">
+            {restaurants.map((restaurant) => (
+              <div key={String(restaurant.id)} className="flex items-center justify-between gap-3 text-xs">
+                <span className="truncate">{String(restaurant.name || restaurant.id)}</span>
+                <Badge variant={restaurant.is_active ? "default" : "outline"}>
+                  {String(restaurant.status || "statut inconnu")}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">Aucun restaurant lié.</p>
+        )}
+      </div>
+
+      <div className="rounded-lg border p-3 text-sm">
+        <p className="font-medium">Dossiers</p>
+        {applications.length > 0 ? (
+          <div className="mt-2 space-y-2">
+            {applications.map((application) => (
+              <div key={String(application.id)} className="flex items-center justify-between gap-3 text-xs">
+                <span>{getSignupRoleLabel(String(application.requested_role || ""))}</span>
+                <Badge variant="outline">{String(application.status || "pending_review")}</Badge>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">Aucun dossier de validation.</p>
+        )}
+      </div>
+
+      <div className="rounded-lg border p-3 text-sm">
+        <div className="flex items-center gap-2">
+          <History className="h-4 w-4 text-primary" />
+          <p className="font-medium">Historique</p>
+        </div>
+        {history.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            {history.slice(0, 8).map((entry) => (
+              <div key={String(entry.id)} className="rounded-md bg-muted/50 p-2 text-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium">{String(entry.action || "action")}</span>
+                  <span className="text-muted-foreground">{formatDate(entry.created_at)}</span>
+                </div>
+                <p className="pt-1 text-muted-foreground break-all">{String(entry.entity_type || "")}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">Aucune décision récente.</p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function AdminUtilisateurs() {
@@ -72,7 +318,12 @@ export default function AdminUtilisateurs() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [accountStatusFilter, setAccountStatusFilter] = useState("all");
+  const [anomalyFilter, setAnomalyFilter] = useState("all");
+  const [createdFilter, setCreatedFilter] = useState("all");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
+  const [changingAccountUserId, setChangingAccountUserId] = useState<string | null>(null);
   const [draftRoles, setDraftRoles] = useState<Record<string, string[]>>({});
 
   const [applicationSearch, setApplicationSearch] = useState("");
@@ -98,6 +349,15 @@ export default function AdminUtilisateurs() {
         ...user,
         roles: Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : ["client"],
       }));
+    },
+  });
+
+  const { data: governanceAlerts = [] } = useQuery({
+    queryKey: ["admin-user-governance-alerts"],
+    queryFn: async () => {
+      const { data, error: rpcError } = await (supabase.rpc as any)("admin_get_user_governance_alerts");
+      if (rpcError) throw rpcError;
+      return (data || []) as UserGovernanceAlert[];
     },
   });
 
@@ -139,6 +399,14 @@ export default function AdminUtilisateurs() {
     [users],
   );
 
+  const governanceAlertsByUserId = useMemo(() => {
+    return governanceAlerts.reduce((acc, alert) => {
+      if (!acc[alert.user_id]) acc[alert.user_id] = [];
+      acc[alert.user_id].push(alert);
+      return acc;
+    }, {} as Record<string, UserGovernanceAlert[]>);
+  }, [governanceAlerts]);
+
   const usersWithDraft = useMemo(
     () =>
       users.map((user) => ({
@@ -152,6 +420,15 @@ export default function AdminUtilisateurs() {
     return usersWithDraft.filter((user) => {
       const roles = user.effectiveRoles;
       if (roleFilter !== "all" && !roles.includes(roleFilter)) return false;
+      if (accountStatusFilter !== "all" && (user.account_status || "active") !== accountStatusFilter) return false;
+      if (anomalyFilter !== "all" && !(user.anomalies || []).includes(anomalyFilter)) return false;
+
+      if (createdFilter !== "all") {
+        const days = Number(createdFilter);
+        const createdAt = user.created_at ? new Date(user.created_at).getTime() : 0;
+        const minCreatedAt = Date.now() - days * 24 * 60 * 60 * 1000;
+        if (!createdAt || createdAt < minCreatedAt) return false;
+      }
 
       if (!search.trim()) return true;
       const query = search.trim().toLowerCase();
@@ -159,10 +436,13 @@ export default function AdminUtilisateurs() {
         (user.full_name || "").toLowerCase().includes(query) ||
         (user.email || "").toLowerCase().includes(query) ||
         (user.city || "").toLowerCase().includes(query) ||
+        (user.account_status || "").toLowerCase().includes(query) ||
+        (user.application_status || "").toLowerCase().includes(query) ||
+        (user.courier_status || "").toLowerCase().includes(query) ||
         user.user_id.toLowerCase().includes(query)
       );
     });
-  }, [usersWithDraft, search, roleFilter]);
+  }, [accountStatusFilter, anomalyFilter, createdFilter, roleFilter, search, usersWithDraft]);
 
   const roleCounts = useMemo(() => {
     return users.reduce((acc, user) => {
@@ -172,6 +452,23 @@ export default function AdminUtilisateurs() {
       }
       return acc;
     }, { client: 0, restaurateur: 0, admin: 0, courier: 0 } as Record<string, number>);
+  }, [users]);
+
+  const accountStatusCounts = useMemo(() => {
+    return users.reduce((acc, user) => {
+      const key = String(user.account_status || "active");
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, { active: 0, suspended: 0 } as Record<string, number>);
+  }, [users]);
+
+  const anomalyCounts = useMemo(() => {
+    return users.reduce((acc, user) => {
+      for (const anomaly of user.anomalies || []) {
+        acc[anomaly] = (acc[anomaly] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
   }, [users]);
 
   const applicationCounts = useMemo(() => {
@@ -272,6 +569,14 @@ export default function AdminUtilisateurs() {
     const nextRoles = draftRoles[userId];
     if (!nextRoles) return;
 
+    const currentRoles = users.find((user) => user.user_id === userId)?.roles || ["client"];
+    if (currentRoles.includes("admin") && !nextRoles.includes("admin")) {
+      const confirmed = window.confirm(
+        "Dernier admin : la base bloque la suppression du dernier rôle admin. Confirmer ce changement sensible ?",
+      );
+      if (!confirmed) return;
+    }
+
     setSavingUserId(userId);
     const { error: rpcError } = await supabase.rpc("admin_set_user_roles", {
       p_user_id: userId,
@@ -289,8 +594,41 @@ export default function AdminUtilisateurs() {
       delete clone[userId];
       return clone;
     });
-    toast({ title: "Roles mis à jour" });
+    toast({ title: "Rôles mis à jour" });
     queryClient.invalidateQueries({ queryKey: ["admin-users-full"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-user-governance-alerts"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-user-detail", userId] });
+  };
+
+  const changeAccountStatus = async (userId: string, nextStatus: "active" | "suspended") => {
+    const reason = window.prompt(
+      nextStatus === "suspended"
+        ? "Motif de suspension du compte"
+        : "Motif de réactivation du compte",
+    );
+
+    if (!reason?.trim()) {
+      toast({ title: "Motif requis", description: "La décision doit être justifiée.", variant: "destructive" });
+      return;
+    }
+
+    setChangingAccountUserId(userId);
+    const { error: rpcError } = await (supabase.rpc as any)("admin_set_user_account_status", {
+      p_user_id: userId,
+      p_status: nextStatus,
+      p_reason: reason.trim(),
+    });
+    setChangingAccountUserId(null);
+
+    if (rpcError) {
+      toast({ title: "Erreur", description: rpcError.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: nextStatus === "suspended" ? "Compte suspendu" : "Compte réactivé" });
+    queryClient.invalidateQueries({ queryKey: ["admin-users-full"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-user-governance-alerts"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-user-detail", userId] });
   };
 
   const reviewApplication = async (applicationId: string, status: ReviewStatus) => {
@@ -311,6 +649,8 @@ export default function AdminUtilisateurs() {
 
     toast({ title: "Dossier mis à jour" });
     queryClient.invalidateQueries({ queryKey: ["admin-signup-applications"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-users-full"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-user-governance-alerts"] });
   };
 
   const reviewCourierProfile = async (courierId: string, status: CourierReviewStatus) => {
@@ -333,6 +673,62 @@ export default function AdminUtilisateurs() {
     queryClient.invalidateQueries({ queryKey: ["admin-couriers"] });
     queryClient.invalidateQueries({ queryKey: ["admin-users-full"] });
     queryClient.invalidateQueries({ queryKey: ["admin-signup-applications"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-user-governance-alerts"] });
+  };
+
+  const exportUsersCsv = () => {
+    downloadCsv("admin-utilisateurs.csv", [
+      ["ID", "Nom", "Email", "Ville", "Rôles", "Statut", "Email confirmé", "Anomalies", "Créé le"],
+      ...filteredUsers.map((user) => [
+        user.user_id,
+        user.full_name,
+        user.email,
+        user.city,
+        (user.effectiveRoles || []).map(getRoleLabel).join(" | "),
+        user.account_status || "active",
+        user.email_confirmed_at ? "oui" : "non",
+        (user.anomalies || []).map((anomaly) => ANOMALY_LABELS[anomaly] || anomaly).join(" | "),
+        user.created_at,
+      ]),
+    ]);
+  };
+
+  const exportApplicationsCsv = () => {
+    downloadCsv("admin-dossiers.csv", [
+      ["ID", "Utilisateur", "Nom", "Email", "Profil", "Statut", "Ville", "Soumis le", "Revu le"],
+      ...filteredApplications.map((application) => [
+        application.id,
+        application.user_id,
+        application.full_name,
+        usersById[application.user_id]?.email,
+        getSignupRoleLabel(application.requested_role),
+        application.status,
+        application.city,
+        application.submitted_at,
+        application.reviewed_at,
+      ]),
+    ]);
+  };
+
+  const exportCouriersCsv = () => {
+    downloadCsv("admin-livreurs.csv", [
+      ["ID", "Utilisateur", "Nom", "Email", "Téléphone", "Statut", "Véhicule", "Livraisons", "Note", "Mis à jour le"],
+      ...filteredCouriers.map((courier) => {
+        const application = courierApplicationsByUserId.get(courier.user_id);
+        return [
+          courier.id,
+          courier.user_id,
+          getCourierDisplayName(courier, application),
+          usersById[courier.user_id]?.email,
+          courier.phone || application?.phone,
+          courier.status,
+          getCourierVehicleLabel(courier.vehicle_type),
+          courier.total_deliveries,
+          courier.rating,
+          courier.updated_at,
+        ];
+      }),
+    ]);
   };
 
   const openDocument = async (documentId: string, filePath: string) => {
@@ -361,16 +757,16 @@ export default function AdminUtilisateurs() {
   return (
     <div className="container py-8 space-y-6">
       <DashboardPageHero
-        badge="Identites et roles"
+        badge="Identités et rôles"
         title="Gestion des utilisateurs"
-        description="Administrez les roles applicatifs, les comptes et les dossiers d'inscription vérifiés dans une interface unique."
+        description="Administrez les rôles applicatifs, les comptes et les dossiers d'inscription vérifiés dans une interface unique."
         icon={Users}
         tone="sky"
         visualLabel="Utilisateurs"
         stats={[
           { label: "Utilisateurs", value: users.length, icon: Users },
           { label: "Restaurateurs", value: roleCounts.restaurateur, icon: FileText },
-          { label: "Livreurs a valider", value: courierCounts.pending_approval, icon: Bike },
+          { label: "Livreurs à valider", value: courierCounts.pending_approval, icon: Bike },
         ]}
       />
 
@@ -396,17 +792,44 @@ export default function AdminUtilisateurs() {
               <p className="text-xs text-muted-foreground">Admins</p>
             </div>
             <div className="rounded-xl border bg-card p-4 text-center">
-              <p className="text-2xl font-bold">{roleCounts.courier}</p>
-              <p className="text-xs text-muted-foreground">Livreurs</p>
+              <p className="text-2xl font-bold">{accountStatusCounts.suspended || 0}</p>
+              <p className="text-xs text-muted-foreground">Suspendus</p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+          {governanceAlerts.length > 0 ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-amber-900">
+                <AlertTriangle className="h-4 w-4" />
+                {governanceAlerts.length} anomalie{governanceAlerts.length > 1 ? "s" : ""} à traiter
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {governanceAlerts.slice(0, 6).map((alert) => (
+                  <button
+                    key={alert.alert_key}
+                    type="button"
+                    onClick={() => setSelectedUserId(alert.user_id)}
+                    className="rounded-lg border bg-background p-3 text-left text-xs hover:bg-muted"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium">{alert.title}</span>
+                      <Badge variant={alert.severity === "critical" ? "destructive" : "secondary"}>
+                        {alert.severity}
+                      </Badge>
+                    </div>
+                    <p className="pt-1 text-muted-foreground">{alert.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="grid gap-3 xl:grid-cols-[1fr_auto_auto_auto_auto_auto]">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-9"
-                placeholder="Rechercher par nom, email, ville ou ID..."
+                placeholder="Rechercher par nom, email, ville, statut ou ID..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
@@ -416,12 +839,47 @@ export default function AdminUtilisateurs() {
               onChange={(event) => setRoleFilter(event.target.value)}
               className="h-10 rounded-md border bg-background px-3 text-sm"
             >
-              <option value="all">Tous les roles</option>
+              <option value="all">Tous les rôles</option>
               <option value="client">Client</option>
               <option value="restaurateur">Restaurateur</option>
               <option value="admin">Admin</option>
               <option value="courier">Livreur</option>
             </select>
+            <select
+              value={accountStatusFilter}
+              onChange={(event) => setAccountStatusFilter(event.target.value)}
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+            >
+              <option value="all">Tous les comptes</option>
+              <option value="active">Actifs</option>
+              <option value="suspended">Suspendus</option>
+            </select>
+            <select
+              value={anomalyFilter}
+              onChange={(event) => setAnomalyFilter(event.target.value)}
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+            >
+              <option value="all">Toutes anomalies</option>
+              {Object.entries(ANOMALY_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label} ({anomalyCounts[value] || 0})
+                </option>
+              ))}
+            </select>
+            <select
+              value={createdFilter}
+              onChange={(event) => setCreatedFilter(event.target.value)}
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+            >
+              <option value="all">Toute date</option>
+              <option value="7">7 derniers jours</option>
+              <option value="30">30 derniers jours</option>
+              <option value="90">90 derniers jours</option>
+            </select>
+            <Button type="button" variant="outline" className="gap-2" onClick={exportUsersCsv}>
+              <Download className="h-4 w-4" />
+              CSV
+            </Button>
           </div>
 
           {isLoading ? (
@@ -435,84 +893,143 @@ export default function AdminUtilisateurs() {
               Impossible de charger les utilisateurs.
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredUsers.map((user) => {
-                const baseRoles = user.roles || ["client"];
-                const effectiveRoles = user.effectiveRoles;
-                const hasChanges =
-                  JSON.stringify([...effectiveRoles].sort()) !== JSON.stringify([...baseRoles].sort());
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
+              <div className="space-y-3">
+                {filteredUsers.map((user) => {
+                  const baseRoles = user.roles || ["client"];
+                  const effectiveRoles = user.effectiveRoles;
+                  const hasChanges =
+                    JSON.stringify([...effectiveRoles].sort()) !== JSON.stringify([...baseRoles].sort());
+                  const statusMeta =
+                    ACCOUNT_STATUS_META[user.account_status || "active"] || ACCOUNT_STATUS_META.active;
+                  const anomalies = user.anomalies || [];
+                  const userAlerts = governanceAlertsByUserId[user.user_id] || [];
 
-                return (
-                  <div key={user.user_id} className="rounded-xl border bg-card p-4 space-y-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-sm">{user.full_name || "Utilisateur"}</h3>
-                        <p className="text-xs text-muted-foreground break-all">{user.email || user.user_id}</p>
-                        <p className="text-xs text-muted-foreground">{user.city || "Ville non renseignee"}</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {effectiveRoles.map((role) => (
-                          <Badge
-                            key={role}
-                            variant={
-                              role === "admin"
-                                ? "destructive"
-                                : role === "restaurateur"
-                                  ? "default"
-                                  : "secondary"
-                            }
-                          >
-                            {role}
+                  return (
+                    <div key={user.user_id} className="rounded-xl border bg-card p-4 space-y-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-sm">{user.full_name || "Utilisateur"}</h3>
+                          <p className="text-xs text-muted-foreground break-all">{user.email || user.user_id}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {user.city || "Ville non renseignée"} · créé le {formatDate(user.created_at)}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge className={statusMeta.tone}>{statusMeta.label}</Badge>
+                          <Badge variant={user.email_confirmed_at ? "secondary" : "outline"}>
+                            {user.email_confirmed_at ? "Email confirmé" : "Email non confirmé"}
                           </Badge>
+                          {effectiveRoles.map((role) => (
+                            <Badge
+                              key={role}
+                              variant={
+                                role === "admin"
+                                  ? "destructive"
+                                  : role === "restaurateur"
+                                    ? "default"
+                                    : "secondary"
+                              }
+                            >
+                              {getRoleLabel(role)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      {anomalies.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {anomalies.map((anomaly) => (
+                            <Badge key={anomaly} variant="outline" className="border-amber-300 text-amber-800">
+                              {ANOMALY_LABELS[anomaly] || anomaly}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {AVAILABLE_ROLES.map((role) => (
+                          <label key={role} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={effectiveRoles.includes(role)}
+                              onChange={() => toggleRole(user.user_id, role)}
+                            />
+                            <span>{getRoleLabel(role)}</span>
+                          </label>
                         ))}
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {AVAILABLE_ROLES.map((role) => (
-                        <label key={role} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={effectiveRoles.includes(role)}
-                            onChange={() => toggleRole(user.user_id, role)}
-                          />
-                          <span>{role}</span>
-                        </label>
-                      ))}
-                    </div>
+                      {baseRoles.includes("admin") ? (
+                        <div className="flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">
+                          <ShieldCheck className="h-3.5 w-3.5" />
+                          Dernier admin protégé côté base lors des changements de rôle.
+                        </div>
+                      ) : null}
 
-                    <div className="flex items-center justify-end gap-2">
-                      {hasChanges ? (
-                        <>
-                          <Button
-                            variant="outline"
-                            onClick={() =>
-                              setDraftRoles((prev) => {
-                                const clone = { ...prev };
-                                delete clone[user.user_id];
-                                return clone;
-                              })
-                            }
-                          >
-                            Annuler
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-xs text-muted-foreground">
+                          {userAlerts.length > 0
+                            ? `${userAlerts.length} signal${userAlerts.length > 1 ? "s" : ""} de gouvernance`
+                            : "Aucun signal prioritaire"}
+                        </div>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button variant="outline" onClick={() => setSelectedUserId(user.user_id)}>
+                            Fiche
                           </Button>
-                          <Button
-                            onClick={() => saveRoles(user.user_id)}
-                            disabled={savingUserId === user.user_id}
-                          >
-                            {savingUserId === user.user_id ? "Enregistrement..." : "Enregistrer"}
-                          </Button>
-                        </>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Aucune modification</span>
-                      )}
+                          {(user.account_status || "active") === "suspended" ? (
+                            <Button
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => changeAccountStatus(user.user_id, "active")}
+                              disabled={changingAccountUserId === user.user_id}
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                              Réactiver
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => changeAccountStatus(user.user_id, "suspended")}
+                              disabled={changingAccountUserId === user.user_id}
+                            >
+                              <Ban className="h-4 w-4" />
+                              Suspendre
+                            </Button>
+                          )}
+                          {hasChanges ? (
+                            <>
+                              <Button
+                                variant="outline"
+                                onClick={() =>
+                                  setDraftRoles((prev) => {
+                                    const clone = { ...prev };
+                                    delete clone[user.user_id];
+                                    return clone;
+                                  })
+                                }
+                              >
+                                Annuler
+                              </Button>
+                              <Button
+                                onClick={() => saveRoles(user.user_id)}
+                                disabled={savingUserId === user.user_id}
+                              >
+                                {savingUserId === user.user_id ? "Enregistrement..." : "Enregistrer"}
+                              </Button>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-              {filteredUsers.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Aucun utilisateur trouve.</p>
-              ) : null}
+                  );
+                })}
+                {filteredUsers.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">Aucun utilisateur trouvé.</p>
+                ) : null}
+              </div>
+              <UserDetailPanel userId={selectedUserId} />
             </div>
           )}
         </TabsContent>
@@ -529,15 +1046,15 @@ export default function AdminUtilisateurs() {
             </div>
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{applicationCounts.approved}</p>
-              <p className="text-xs text-muted-foreground">Approuves</p>
+              <p className="text-xs text-muted-foreground">Approuvés</p>
             </div>
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{applicationCounts.rejected}</p>
-              <p className="text-xs text-muted-foreground">Refuses</p>
+              <p className="text-xs text-muted-foreground">Refusés</p>
             </div>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
+          <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto_auto]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -565,9 +1082,13 @@ export default function AdminUtilisateurs() {
               <option value="all">Tous les statuts</option>
               <option value="pending_review">En revue</option>
               <option value="needs_changes">Corrections</option>
-              <option value="approved">Approuve</option>
-              <option value="rejected">Refuse</option>
+              <option value="approved">Approuvé</option>
+              <option value="rejected">Refusé</option>
             </select>
+            <Button type="button" variant="outline" className="gap-2" onClick={exportApplicationsCsv}>
+              <Download className="h-4 w-4" />
+              CSV
+            </Button>
           </div>
 
           {applicationsLoading ? (
@@ -612,11 +1133,11 @@ export default function AdminUtilisateurs() {
                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                       <div className="rounded-xl border p-3 text-sm">
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Téléphone</p>
-                        <p className="pt-1 font-medium">{application.phone || "Non renseigne"}</p>
+                        <p className="pt-1 font-medium">{application.phone || "Non renseigné"}</p>
                       </div>
                       <div className="rounded-xl border p-3 text-sm">
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Ville</p>
-                        <p className="pt-1 font-medium">{application.city || "Non renseignee"}</p>
+                        <p className="pt-1 font-medium">{application.city || "Non renseignée"}</p>
                       </div>
                       <div className="rounded-xl border p-3 text-sm">
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Entreprise / restaurant</p>
@@ -625,7 +1146,7 @@ export default function AdminUtilisateurs() {
                         </p>
                       </div>
                       <div className="rounded-xl border p-3 text-sm">
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Vehicule / IBAN</p>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Véhicule / IBAN</p>
                         <p className="pt-1 font-medium">
                           {application.vehicle_type || application.iban || "Sans détail"}
                         </p>
@@ -673,7 +1194,7 @@ export default function AdminUtilisateurs() {
                         </div>
                       ) : (
                         <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                          Aucun document n'est rattache à ce dossier.
+                          Aucun document n'est rattaché à ce dossier.
                         </div>
                       )}
                     </div>
@@ -689,7 +1210,7 @@ export default function AdminUtilisateurs() {
                             [application.id]: event.target.value,
                           }))
                         }
-                        placeholder="Motif de validation, corrections demandees ou raison du refus..."
+                        placeholder="Motif de validation, corrections demandées ou raison du refus..."
                       />
                     </div>
 
@@ -730,11 +1251,11 @@ export default function AdminUtilisateurs() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{courierCounts.pending_approval}</p>
-              <p className="text-xs text-muted-foreground">A valider</p>
+              <p className="text-xs text-muted-foreground">À valider</p>
             </div>
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{courierCounts.approved}</p>
-              <p className="text-xs text-muted-foreground">Valides</p>
+              <p className="text-xs text-muted-foreground">Validés</p>
             </div>
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{courierCounts.suspended}</p>
@@ -742,11 +1263,11 @@ export default function AdminUtilisateurs() {
             </div>
             <div className="rounded-xl border bg-card p-4 text-center">
               <p className="text-2xl font-bold">{courierCounts.rejected}</p>
-              <p className="text-xs text-muted-foreground">Refuses</p>
+              <p className="text-xs text-muted-foreground">Refusés</p>
             </div>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
+          <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -762,11 +1283,15 @@ export default function AdminUtilisateurs() {
               className="h-10 rounded-md border bg-background px-3 text-sm"
             >
               <option value="all">Tous les statuts</option>
-              <option value="pending_approval">A valider</option>
-              <option value="approved">Valide</option>
+              <option value="pending_approval">À valider</option>
+              <option value="approved">Validé</option>
               <option value="suspended">Suspendu</option>
-              <option value="rejected">Refuse</option>
+              <option value="rejected">Refusé</option>
             </select>
+            <Button type="button" variant="outline" className="gap-2" onClick={exportCouriersCsv}>
+              <Download className="h-4 w-4" />
+              CSV
+            </Button>
           </div>
 
           {couriersLoading ? (
@@ -812,7 +1337,7 @@ export default function AdminUtilisateurs() {
                       <div className="flex flex-wrap gap-2">
                         <Badge className={statusMeta.tone}>{statusMeta.label}</Badge>
                         <Badge variant={hasCourierRole ? "default" : "outline"}>
-                          Role {hasCourierRole ? "actif" : "non attribue"}
+                          Rôle {hasCourierRole ? "actif" : "non attribué"}
                         </Badge>
                         {courier.is_online ? <Badge className="bg-emerald-100 text-emerald-700">En ligne</Badge> : null}
                       </div>
@@ -821,14 +1346,14 @@ export default function AdminUtilisateurs() {
                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                       <div className="rounded-xl border p-3 text-sm">
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Téléphone</p>
-                        <p className="pt-1 font-medium">{courier.phone || linkedApplication?.phone || "Non renseigne"}</p>
+                        <p className="pt-1 font-medium">{courier.phone || linkedApplication?.phone || "Non renseigné"}</p>
                       </div>
                       <div className="rounded-xl border p-3 text-sm">
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Ville</p>
-                        <p className="pt-1 font-medium">{linkedApplication?.city || "Non renseignee"}</p>
+                        <p className="pt-1 font-medium">{linkedApplication?.city || "Non renseignée"}</p>
                       </div>
                       <div className="rounded-xl border p-3 text-sm">
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Vehicule</p>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Véhicule</p>
                         <p className="pt-1 font-medium">
                           {getCourierVehicleLabel(courier.vehicle_type)}
                           {courier.license_plate ? ` - ${courier.license_plate}` : ""}
@@ -919,7 +1444,7 @@ export default function AdminUtilisateurs() {
                         onClick={() => reviewCourierProfile(courier.id, "approved")}
                         disabled={isReviewing || courier.status === "approved"}
                       >
-                        {isReviewing ? "Enregistrement..." : courier.status === "approved" ? "Déjà approuve" : "Approuver"}
+                        {isReviewing ? "Enregistrement..." : courier.status === "approved" ? "Déjà approuvé" : "Approuver"}
                       </Button>
                     </div>
                   </div>
