@@ -1,6 +1,20 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ComponentType } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CreditCard, RefreshCw, Shield, TerminalSquare } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  ExternalLink,
+  KeyRound,
+  RefreshCw,
+  ServerCog,
+  Shield,
+  TerminalSquare,
+  TimerReset,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +39,8 @@ import {
 import { getSupabase } from "@/integrations/supabase/client";
 
 const supabase = getSupabase();
+
+type HealthStatus = "ok" | "watch" | "critical";
 
 type AuditEntry = {
   id: string;
@@ -68,8 +84,151 @@ type PaymentIntegrityReport = {
   total: number;
   critical: number;
   high: number;
+  status?: HealthStatus;
+  message?: string;
   items: PaymentAnomaly[];
 };
+
+type ProductionHealthAlert = {
+  source: string;
+  label: string;
+  status: HealthStatus;
+  priority?: "P0" | "P1" | "P2";
+  message?: string;
+  actionUrl?: string;
+};
+
+type CronHealthJob = {
+  jobName: string;
+  label: string;
+  priority?: "P0" | "P1" | "P2";
+  status: HealthStatus;
+  schedule?: string;
+  expectedSchedule?: string;
+  active?: boolean;
+  lastRunAt?: string | null;
+  lastRunStatus?: string | null;
+  lastDurationMs?: number | null;
+  nextRunAt?: string | null;
+  lastFailureAt?: string | null;
+  lastError?: string | null;
+  message?: string;
+  actionUrl?: string;
+  remediation?: string;
+};
+
+type EdgeFunctionHealth = {
+  functionName: string;
+  label: string;
+  priority?: "P0" | "P1" | "P2";
+  status: HealthStatus;
+  total24h?: number;
+  success24h?: number;
+  failures24h?: number;
+  failureRate?: number | null;
+  lastSuccessAt?: string | null;
+  lastFailureAt?: string | null;
+  lastError?: string | null;
+  message?: string;
+  actionUrl?: string;
+  remediation?: string;
+};
+
+type StripeHealth = {
+  status: HealthStatus;
+  total24h?: number;
+  success24h?: number;
+  failures24h?: number;
+  ignored24h?: number;
+  failureRate?: number | null;
+  lastSuccessAt?: string | null;
+  lastFailureAt?: string | null;
+  lastError?: string | null;
+  message?: string;
+  actionUrl?: string;
+};
+
+type ConfigurationCheck = {
+  key: string;
+  label: string;
+  status: HealthStatus;
+  message?: string;
+  actionUrl?: string;
+  source?: string;
+};
+
+type AdvisorItem = {
+  name?: string;
+  title?: string;
+  level?: string;
+  categories?: string[];
+  detail?: string;
+  remediation?: string;
+};
+
+type AdvisorHealth = {
+  status: HealthStatus;
+  capturedAt?: string | null;
+  source?: string | null;
+  total?: number;
+  critical?: number;
+  warning?: number;
+  security?: number;
+  performance?: number;
+  items?: AdvisorItem[];
+  message?: string;
+  actionUrl?: string;
+};
+
+type ProductionHealthReport = {
+  checkedAt: string;
+  status: HealthStatus;
+  score?: number;
+  counts?: {
+    critical?: number;
+    watch?: number;
+    ok?: number;
+    cronJobs?: number;
+    edgeFunctions?: number;
+    paymentAnomalies?: number;
+    advisorWarnings?: number;
+  };
+  alerts?: ProductionHealthAlert[];
+  cron?: {
+    status: HealthStatus;
+    jobs: CronHealthJob[];
+  };
+  edgeFunctions?: {
+    status: HealthStatus;
+    functions: EdgeFunctionHealth[];
+  };
+  stripe?: StripeHealth;
+  paymentIntegrity?: PaymentIntegrityReport;
+  configuration?: {
+    status: HealthStatus;
+    checks: ConfigurationCheck[];
+  };
+  advisors?: AdvisorHealth;
+};
+
+const HEALTH_LABELS: Record<HealthStatus, string> = {
+  ok: "OK",
+  watch: "À surveiller",
+  critical: "Critique",
+};
+
+const HEALTH_BADGE_CLASSES: Record<HealthStatus, string> = {
+  ok: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  watch: "border-amber-500/35 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  critical: "border-destructive/40 bg-destructive/10 text-destructive",
+};
+
+function normalizeHealthStatus(value?: string | null): HealthStatus {
+  if (value === "ok" || value === "watch" || value === "critical") {
+    return value;
+  }
+  return "watch";
+}
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("fr-CH", {
@@ -78,6 +237,75 @@ function formatDateTime(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatDateTimeOrDash(value?: string | null) {
+  return value ? formatDateTime(value) : "-";
+}
+
+function formatNumber(value?: number | null) {
+  return Number(value ?? 0).toLocaleString("fr-CH");
+}
+
+function formatDuration(value?: number | null) {
+  if (value == null) return "-";
+  if (value < 1000) return `${Math.round(value)} ms`;
+  return `${(value / 1000).toFixed(value >= 10_000 ? 0 : 1)} s`;
+}
+
+function formatPercent(value?: number | null) {
+  if (value == null) return "-";
+  return `${Number(value).toFixed(value >= 10 ? 0 : 1)}%`;
+}
+
+function HealthBadge({ status }: { status?: string | null }) {
+  const normalized = normalizeHealthStatus(status);
+  return (
+    <Badge variant="outline" className={HEALTH_BADGE_CLASSES[normalized]}>
+      {HEALTH_LABELS[normalized]}
+    </Badge>
+  );
+}
+
+function PriorityBadge({ priority }: { priority?: string | null }) {
+  if (!priority) return null;
+  return (
+    <Badge variant={priority === "P0" ? "destructive" : "outline"} className="text-[10px]">
+      {priority}
+    </Badge>
+  );
+}
+
+function ActionLink({ to, label = "Ouvrir" }: { to?: string | null; label?: string }) {
+  if (!to) return null;
+  return (
+    <Button asChild variant="outline" size="sm" className="h-8 gap-2">
+      <Link to={to}>
+        {label}
+        <ExternalLink className="h-3.5 w-3.5" />
+      </Link>
+    </Button>
+  );
+}
+
+function HealthMetric({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  icon: ComponentType<{ className?: string }>;
+}) {
+  return (
+    <div className="rounded-lg border bg-muted/20 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <p className="mt-2 text-2xl font-bold">{value}</p>
+    </div>
+  );
 }
 
 function formatAnomalyKind(kind: string) {
@@ -122,6 +350,21 @@ export default function AdminAuditLogs() {
   const [sourceFilter, setSourceFilter] = useState<"all" | "edge" | "data">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "success" | "failure" | "info">("all");
 
+  const {
+    data: productionHealth,
+    isLoading: productionHealthLoading,
+    error: productionHealthError,
+    refetch: refetchProductionHealth,
+  } = useQuery({
+    queryKey: ["admin-production-health"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("admin_get_production_health");
+      if (error) throw error;
+      return data as ProductionHealthReport;
+    },
+    refetchInterval: 60_000,
+  });
+
   const { data: paymentIntegrity, isLoading: paymentIntegrityLoading, error: paymentIntegrityError, refetch: refetchPaymentIntegrity } = useQuery({
     queryKey: ["payment-integrity-anomalies", 48],
     queryFn: async () => {
@@ -163,7 +406,7 @@ export default function AdminAuditLogs() {
         targetId: String(row.target_entity_id || ""),
         summary: row.error_message
           ? String(row.error_message)
-          : String((row.request_metadata as Record<string, unknown> | null)?.path || row.function_name || "Execution edge"),
+          : String((row.request_metadata as Record<string, unknown> | null)?.path || row.function_name || "Exécution Edge"),
       }));
 
       const normalizedDataLogs: AuditEntry[] = ((dataResponse.data || []) as any[]).map((row) => ({
@@ -201,6 +444,13 @@ export default function AdminAuditLogs() {
   }, [logs, search, sourceFilter, statusFilter]);
 
   const paymentAnomalies = paymentIntegrity?.items || [];
+  const healthStatus = normalizeHealthStatus(productionHealth?.status);
+  const cronJobs = productionHealth?.cron?.jobs || [];
+  const edgeFunctions = productionHealth?.edgeFunctions?.functions || [];
+  const configurationChecks = productionHealth?.configuration?.checks || [];
+  const advisors = productionHealth?.advisors;
+  const healthAlerts = productionHealth?.alerts || [];
+  const stripe = productionHealth?.stripe;
 
   const stats = useMemo(() => {
     const last24hThreshold = Date.now() - (24 * 60 * 60 * 1000);
@@ -218,18 +468,271 @@ export default function AdminAuditLogs() {
     <div className="container py-8 space-y-6">
       <DashboardPageHero
         badge="Sécurité admin"
-        title="Audit et sécurité"
-        description="Historique des executions edge sensibles, mutations historisees et anomalies de paiement a vérifier."
+        title="Audit et santé production"
+        description="Historique des exécutions Edge sensibles, mutations historisées, anomalies de paiement et signaux de supervision production."
         icon={Shield}
         tone="rose"
         visualLabel="Audit"
         stats={[
-          { label: "Logs", value: stats.total, icon: Shield },
-          { label: "Edge", value: stats.edge, icon: TerminalSquare },
+          { label: "Santé", value: HEALTH_LABELS[healthStatus], icon: Activity },
           { label: "Erreurs 24h", value: stats.failures24h, icon: AlertTriangle },
           { label: "Anomalies paiement", value: stats.paymentAnomalies, icon: CreditCard },
         ]}
       />
+
+      <Card className={healthStatus === "critical" ? "border-destructive/40" : healthStatus === "watch" ? "border-amber-500/35" : undefined}>
+        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ServerCog className="h-4 w-4" />
+                Santé production
+              </CardTitle>
+              <HealthBadge status={productionHealth?.status} />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Synthèse admin des crons, Edge Functions critiques, webhooks Stripe, variables de production et advisors Supabase.
+            </p>
+            {productionHealth?.checkedAt ? (
+              <p className="text-xs text-muted-foreground">Dernière vérification : {formatDateTime(productionHealth.checkedAt)}</p>
+            ) : null}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => void refetchProductionHealth()}
+            disabled={productionHealthLoading}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Vérifier
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {productionHealthError ? (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              Impossible de charger la santé production. Vérifiez que la migration Supabase est déployée.
+            </div>
+          ) : productionHealthLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((value) => <div key={value} className="h-16 rounded-lg bg-muted animate-pulse" />)}
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <HealthMetric label="Score" value={`${productionHealth?.score ?? 0}/100`} icon={Activity} />
+                <HealthMetric label="Critiques" value={formatNumber(productionHealth?.counts?.critical)} icon={AlertTriangle} />
+                <HealthMetric label="À surveiller" value={formatNumber(productionHealth?.counts?.watch)} icon={Clock3} />
+                <HealthMetric label="Crons suivis" value={formatNumber(productionHealth?.counts?.cronJobs)} icon={TimerReset} />
+                <HealthMetric label="Edge suivies" value={formatNumber(productionHealth?.counts?.edgeFunctions)} icon={TerminalSquare} />
+              </div>
+
+              {healthAlerts.length > 0 ? (
+                <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    Alertes prioritaires
+                  </div>
+                  <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                    {healthAlerts.map((alert) => (
+                      <div key={`${alert.source}-${alert.label}`} className="rounded-md border bg-background/80 p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <HealthBadge status={alert.status} />
+                          <PriorityBadge priority={alert.priority} />
+                          <p className="font-medium">{alert.label}</p>
+                        </div>
+                        <p className="mt-2 text-xs text-muted-foreground">{alert.message || "Action requise."}</p>
+                        <div className="mt-3">
+                          <ActionLink to={alert.actionUrl} label="Remédier" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Aucun signal production prioritaire.
+                </div>
+              )}
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                <div className="rounded-lg border">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4">
+                    <div>
+                      <h3 className="font-semibold">Cron jobs</h3>
+                      <p className="text-xs text-muted-foreground">État, dernier run, prochain run estimé et erreur récente.</p>
+                    </div>
+                    <HealthBadge status={productionHealth?.cron?.status} />
+                  </div>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Job</TableHead>
+                          <TableHead>Statut</TableHead>
+                          <TableHead>Dernier run</TableHead>
+                          <TableHead>Prochain</TableHead>
+                          <TableHead>Durée</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {cronJobs.map((job) => (
+                          <TableRow key={job.jobName}>
+                            <TableCell className="min-w-52">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{job.label}</span>
+                                <PriorityBadge priority={job.priority} />
+                              </div>
+                              <p className="mt-1 text-xs text-muted-foreground">{job.jobName} · {job.schedule || "-"}</p>
+                              {job.message ? <p className="mt-1 text-xs text-muted-foreground">{job.message}</p> : null}
+                            </TableCell>
+                            <TableCell><HealthBadge status={job.status} /></TableCell>
+                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                              {formatDateTimeOrDash(job.lastRunAt)}
+                              {job.lastRunStatus ? <div>{job.lastRunStatus}</div> : null}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{formatDateTimeOrDash(job.nextRunAt)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{formatDuration(job.lastDurationMs)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4">
+                    <div>
+                      <h3 className="font-semibold">Edge Functions critiques</h3>
+                      <p className="text-xs text-muted-foreground">Taux d’erreur et dernier échec sur 24 heures.</p>
+                    </div>
+                    <HealthBadge status={productionHealth?.edgeFunctions?.status} />
+                  </div>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Fonction</TableHead>
+                          <TableHead>Statut</TableHead>
+                          <TableHead>24h</TableHead>
+                          <TableHead>Échec</TableHead>
+                          <TableHead>Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {edgeFunctions.map((fn) => (
+                          <TableRow key={fn.functionName}>
+                            <TableCell className="min-w-52">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{fn.label}</span>
+                                <PriorityBadge priority={fn.priority} />
+                              </div>
+                              <p className="mt-1 text-xs text-muted-foreground">{fn.functionName}</p>
+                              {fn.lastError ? <p className="mt-1 max-w-md text-xs text-destructive">{fn.lastError}</p> : null}
+                            </TableCell>
+                            <TableCell><HealthBadge status={fn.status} /></TableCell>
+                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                              {formatNumber(fn.success24h)} succès
+                              <div>{formatNumber(fn.failures24h)} échecs</div>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                              {formatPercent(fn.failureRate)}
+                              <div>{formatDateTimeOrDash(fn.lastFailureAt)}</div>
+                            </TableCell>
+                            <TableCell><ActionLink to={fn.actionUrl} /></TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-3">
+                <div className="rounded-lg border p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="font-semibold">Stripe webhook</h3>
+                    <HealthBadge status={stripe?.status} />
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{stripe?.message || "Aucun signal Stripe disponible."}</p>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="font-bold">{formatNumber(stripe?.success24h)}</p>
+                      <p className="text-muted-foreground">succès</p>
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="font-bold">{formatNumber(stripe?.failures24h)}</p>
+                      <p className="text-muted-foreground">échecs</p>
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="font-bold">{formatNumber(stripe?.ignored24h)}</p>
+                      <p className="text-muted-foreground">ignorés</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">Dernier succès : {formatDateTimeOrDash(stripe?.lastSuccessAt)}</p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="font-semibold">Supabase advisors</h3>
+                    <HealthBadge status={advisors?.status} />
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{advisors?.message || "Aucun snapshot synchronisé."}</p>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="font-bold">{formatNumber(advisors?.critical)}</p>
+                      <p className="text-muted-foreground">critiques</p>
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="font-bold">{formatNumber(advisors?.warning)}</p>
+                      <p className="text-muted-foreground">warnings</p>
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="font-bold">{formatNumber(advisors?.security)}</p>
+                      <p className="text-muted-foreground">sécurité</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Snapshot : {formatDateTimeOrDash(advisors?.capturedAt)}
+                  </p>
+                  {(advisors?.items || []).slice(0, 3).map((item) => (
+                    <div key={`${item.name}-${item.title}`} className="mt-3 rounded-md border bg-muted/20 p-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-[10px]">{item.level || "WARN"}</Badge>
+                        <p className="text-xs font-medium">{item.title || item.name}</p>
+                      </div>
+                      {item.detail ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.detail}</p> : null}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="flex items-center gap-2 font-semibold">
+                      <KeyRound className="h-4 w-4" />
+                      Variables critiques
+                    </h3>
+                    <HealthBadge status={productionHealth?.configuration?.status} />
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {configurationChecks.map((check) => (
+                      <div key={check.key} className="rounded-md border bg-muted/20 p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-sm font-medium">{check.label}</p>
+                          <HealthBadge status={check.status} />
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">{check.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <Card>
@@ -241,7 +744,7 @@ export default function AdminAuditLogs() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Logs edge</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Logs Edge</CardTitle>
             <TerminalSquare className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent><p className="text-2xl font-bold">{stats.edge}</p></CardContent>
@@ -274,15 +777,15 @@ export default function AdminAuditLogs() {
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
               <CreditCard className="h-4 w-4" />
-              Integrite paiements
+              Intégrité paiements
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Detection automatique des paiements orphelins, commandes en attente, campagnes payees non actives et réservations introuvables.
+              Détection automatique des paiements orphelins, commandes en attente, campagnes payées non actives et réservations introuvables.
             </p>
           </div>
-          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => refetchPaymentIntegrity()} disabled={paymentIntegrityLoading}>
+          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => void refetchPaymentIntegrity()} disabled={paymentIntegrityLoading}>
             <RefreshCw className="h-4 w-4" />
-            Verifier
+            Vérifier
           </Button>
         </CardHeader>
         <CardContent>
@@ -296,17 +799,17 @@ export default function AdminAuditLogs() {
             </div>
           ) : paymentAnomalies.length === 0 ? (
             <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
-              Aucune anomalie critique détectée sur les {paymentIntegrity?.windowHours || 48} dernieres heures.
+              Aucune anomalie critique détectée sur les {paymentIntegrity?.windowHours || 48} dernières heures.
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Severite</TableHead>
+                  <TableHead>Sévérité</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Cible</TableHead>
                   <TableHead>Restaurant</TableHead>
-                  <TableHead>Resume</TableHead>
+                  <TableHead>Résumé</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -343,7 +846,7 @@ export default function AdminAuditLogs() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toutes les sources</SelectItem>
-              <SelectItem value="edge">Executions edge</SelectItem>
+              <SelectItem value="edge">Exécutions Edge</SelectItem>
               <SelectItem value="data">Historique data</SelectItem>
             </SelectContent>
           </Select>
@@ -353,8 +856,8 @@ export default function AdminAuditLogs() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="success">Succes</SelectItem>
-              <SelectItem value="failure">Echec</SelectItem>
+              <SelectItem value="success">Succès</SelectItem>
+              <SelectItem value="failure">Échec</SelectItem>
               <SelectItem value="info">Info</SelectItem>
             </SelectContent>
           </Select>
@@ -364,7 +867,7 @@ export default function AdminAuditLogs() {
       {error ? (
         <Card>
           <CardContent className="py-10 text-center text-destructive">
-            Impossible de charger les logs d'audit.
+            Impossible de charger les logs d’audit.
           </CardContent>
         </Card>
       ) : isLoading ? (
@@ -383,7 +886,7 @@ export default function AdminAuditLogs() {
                   <TableHead>Acteur</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Cible</TableHead>
-                  <TableHead>Resume</TableHead>
+                  <TableHead>Résumé</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
