@@ -92,7 +92,7 @@ function InvoiceListItem({
 
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           <InvoiceMeta label="Restaurant" value={invoice.restaurants?.name || "-"} />
-          <InvoiceMeta label="Periode" value={formatPeriod(invoice.period_start, invoice.period_end)} />
+          <InvoiceMeta label="Période" value={formatPeriod(invoice.period_start, invoice.period_end)} />
           <InvoiceMeta label="Montant TTC" value={formatAmount(invoice.amount_ttc)} emphasized />
           <InvoiceMeta label="Echeance" value={formatDate(invoice.due_at)} />
           <div className="min-w-0">

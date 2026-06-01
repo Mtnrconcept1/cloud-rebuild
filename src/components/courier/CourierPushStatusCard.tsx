@@ -36,7 +36,7 @@ function getStatusMeta(status: ReturnType<typeof useCourierPushStatus>["data"]) 
     return {
       label: "Actives",
       tone: "bg-emerald-100 text-emerald-700",
-      description: "Les nouvelles missions peuvent arriver en push, meme si l'espace coursier n'est pas au premier plan.",
+      description: "Les nouvelles missions peuvent arriver en push, même si l'espace coursier n'est pas au premier plan.",
     };
   }
 

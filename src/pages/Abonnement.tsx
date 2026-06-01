@@ -592,7 +592,7 @@ export default function Abonnement() {
             <div className="rounded-lg bg-purple-500/5 p-3">
               <ShoppingCart className="mx-auto mb-1 h-4 w-4 text-purple-500" />
               <p className="text-lg font-bold">{summary.weeklyTotal.toFixed(0)} CHF</p>
-              <p className="text-[10px] text-muted-foreground">Cout hebdo</p>
+              <p className="text-[10px] text-muted-foreground">Coût hebdo</p>
             </div>
             <div className="rounded-lg bg-green-500/5 p-3">
               <TrendingDown className="mx-auto mb-1 h-4 w-4 text-green-500" />

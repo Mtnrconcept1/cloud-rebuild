@@ -141,7 +141,7 @@ function InvoiceTable({
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <p className="text-muted-foreground">Periode</p>
+                    <p className="text-muted-foreground">Période</p>
                     <p>{formatPeriod(invoice.period_start, invoice.period_end)}</p>
                   </div>
                   <div>
@@ -184,7 +184,7 @@ function InvoiceTable({
         <TableHeader>
           <TableRow>
             <TableHead>Facture</TableHead>
-            <TableHead>Periode</TableHead>
+            <TableHead>Période</TableHead>
             <TableHead className="text-right whitespace-nowrap">Montant TTC</TableHead>
             <TableHead>Statut</TableHead>
             <TableHead className="whitespace-nowrap">Echeance</TableHead>

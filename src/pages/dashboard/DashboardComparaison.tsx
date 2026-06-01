@@ -68,7 +68,7 @@ function MetricCard({
           <p className="text-2xl font-bold">{fmt(myValue)}</p>
           <DeltaIndicator my={myValue} avg={avgValue} reverse={reverse} />
         </div>
-        <p className="text-xs text-muted-foreground">Moyenne marche : {fmt(avgValue)}</p>
+        <p className="text-xs text-muted-foreground">Moyenne marché : {fmt(avgValue)}</p>
       </CardContent>
     </Card>
   );
@@ -108,8 +108,8 @@ export default function DashboardComparaison() {
       <div className="space-y-6">
         <DashboardPageHero
           badge="Benchmark"
-          title="Comparaison marche"
-          description="Comparez votre chiffre d'affaires, le volume de commandes et la note moyenne avec la tendance du marche sur la periode choisie."
+          title="Comparaison marché"
+          description="Comparez votre chiffre d'affaires, le volume de commandes et la note moyenne avec la tendance du marché sur la période choisie."
           icon={Scale}
           tone="violet"
           visualLabel="Benchmark"
@@ -186,14 +186,14 @@ export default function DashboardComparaison() {
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
               {Number(comparison.my_revenue) > Number(comparison.avg_revenue) ? (
-                <p>Votre CA est superieur à la moyenne du marche sur cette periode.</p>
+                <p>Votre CA est supérieur à la moyenne du marché sur cette période.</p>
               ) : (
-                <p>Votre CA est en dessous de la moyenne. Pensez a activer des promotions ou ventes flash.</p>
+                <p>Votre CA est en dessous de la moyenne. Pensez à activer des promotions ou ventes flash.</p>
               )}
               {Number(comparison.my_avg_rating) >= 4 ? (
                 <p>Votre note client est excellente ({Number(comparison.my_avg_rating).toFixed(1)}/5).</p>
               ) : Number(comparison.my_avg_rating) > 0 ? (
-                <p>Votre note peut être amelioree. Consultez les avis pour identifier les points a corriger.</p>
+                <p>Votre note peut être améliorée. Consultez les avis pour identifier les points à corriger.</p>
               ) : (
                 <p>Pas encore d'avis. Encouragez vos clients à laisser un retour.</p>
               )}

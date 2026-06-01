@@ -206,7 +206,7 @@ export const validateServiceSettings = (settings: ServiceSettings): string | nul
   }
 
   if (settings.max_tables_per_slot < 1 || settings.slot_interval_minutes < 5) {
-    return "Les tables par creneau et l'intervalle doivent être positifs.";
+    return "Les tables par créneau et l'intervalle doivent être positifs.";
   }
 
   for (const window of settings.slot_capacity_windows) {

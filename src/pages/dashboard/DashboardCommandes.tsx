@@ -106,7 +106,7 @@ const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
   pending_payment: "Paiement en attente",
   payment_failed: "Paiement échoué",
-  confirmed: "Confirmee",
+  confirmed: "Confirmée",
   preparing: "En préparation",
   ready: "Prete a retirer",
   delivering: "En livraison",
@@ -388,7 +388,7 @@ export default function DashboardCommandes() {
     const description = dispatchState === "queued"
       ? "Le statut est passe en préparation et les livreurs ont été alertes."
       : dispatchState === "scheduled"
-        ? "Le statut est passe en préparation. La recherche de livreur demarrera au bon creneau."
+        ? "Le statut est passé en préparation. La recherche de livreur démarrera au bon créneau."
         : `La commande est maintenant "${STATUS_LABELS[String(normalizedStatus)] || normalizedStatus}".`;
 
     toast({ title: "Statut mis à jour", description });
@@ -410,7 +410,7 @@ export default function DashboardCommandes() {
         <DashboardPageHero
           badge="Operations restaurant"
           title="Commandes"
-          description="Pilotez les commandes par jour, source et statut avec les informations client, paiement et livraison au meme endroit."
+          description="Pilotez les commandes par jour, source et statut avec les informations client, paiement et livraison au même endroit."
           icon={ClipboardList}
           tone="violet"
           visualLabel="Flux commandes"
@@ -450,7 +450,7 @@ export default function DashboardCommandes() {
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Periode</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Période</p>
                 <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Toutes" />
@@ -761,7 +761,7 @@ export default function DashboardCommandes() {
                 ))}
               </Accordion>
             ) : null}
-            {filteredOrders.length === 0 ? <p className="py-8 text-center text-muted-foreground">Aucune commande pour la periode sélectionnée.</p> : null}
+            {filteredOrders.length === 0 ? <p className="py-8 text-center text-muted-foreground">Aucune commande pour la période sélectionnée.</p> : null}
           </div>
         ) : null}
       </div>

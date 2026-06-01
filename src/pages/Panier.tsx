@@ -498,7 +498,7 @@ export default function Panier() {
         if (paymentMethod === "cash") {
           return toast({
             title: "Paiement sécurisé requis",
-            description: "La Table du Chef doit être regle à l'avance pour confirmer la réservation.",
+          description: "La Table du Chef doit être réglée à l'avance pour confirmer la réservation.",
             variant: "destructive",
           });
         }
@@ -1058,7 +1058,7 @@ export default function Panier() {
               <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">Connexion</span>
               <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">Paiement</span>
             </div>
-            <h1 className="font-display text-3xl font-bold">Votre panier est pret a continuer</h1>
+        <h1 className="font-display text-3xl font-bold">Votre panier est prêt à continuer</h1>
             <p className="text-sm text-muted-foreground">
               Finalisez la connexion pour renseigner l&apos;adresse, activer vos avantages et confirmer le paiement.
             </p>
@@ -1069,10 +1069,10 @@ export default function Panier() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <ShieldCheck className="h-4 w-4 text-primary" />
-                  Connexion demandee a l&apos;étape finale
+                  Connexion demandée à l&apos;étape finale
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Votre panier reste intact. Une fois connecté, vous retrouverez automatiquement vos plats et pourrez terminér la commande.
+                  Votre panier reste intact. Une fois connecté, vous retrouverez automatiquement vos plats et pourrez terminer la commande.
                 </p>
               </div>
               <Button asChild size="lg" className="gap-2 rounded-full px-6">
@@ -1092,7 +1092,7 @@ export default function Panier() {
                 <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Table du Chef" : cartRestaurantSummaryLabel}</p>
                 <p className="text-xs text-muted-foreground">
                   {isChefsTableCheckout
-                    ? `${chefsTableReservationGroups.length} réservation(s) a confirmer`
+                    ? `${chefsTableReservationGroups.length} réservation(s) à confirmer`
                     : orderMode === "delivery"
                       ? "Mode sélectionné: livraison"
                       : "Mode sélectionné: emporter"}
@@ -1141,7 +1141,7 @@ export default function Panier() {
         <h1 className="font-display text-3xl font-bold">Votre panier</h1>
         <p className="text-sm text-muted-foreground">
           {isChefsTableCheckout
-            ? `${chefsTableReservationGroups.length} réservation(s) La Table du Chef a confirmer`
+            ? `${chefsTableReservationGroups.length} réservation(s) La Table du Chef à confirmer`
             : cartRestaurantSummaryLabel}
         </p>
 
@@ -1165,7 +1165,7 @@ export default function Panier() {
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {group.serviceDate
-                      ? `${new Date(group.serviceDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} a ${group.serviceTime || "--:--"}`
+                      ? `${new Date(group.serviceDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} à ${group.serviceTime || "--:--"}`
                       : "Horaire defini par le drop"}
                   </p>
                   <p className="mt-1 text-xs text-amber-700">
@@ -1199,7 +1199,7 @@ export default function Panier() {
             <div className="rounded-2xl border bg-card/60 p-4 space-y-2">
               <p className="text-sm font-semibold">Paiement avant confirmation</p>
               <p className="text-sm text-muted-foreground">
-                Chef&apos;s Table fonctionne uniquement avec un paiement sécurisé a l&apos;avance. Une fois le paiement accepté, vos réservations apparaissent dans l&apos;espace réservations.
+                Chef&apos;s Table fonctionne uniquement avec un paiement sécurisé à l&apos;avance. Une fois le paiement accepté, vos réservations apparaissent dans l&apos;espace réservations.
               </p>
             </div>
           ) : orderMode === "delivery" ? (
@@ -1305,7 +1305,7 @@ export default function Panier() {
                       </div>
                     ) : (
                       <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
-                        Aucun creneau disponible à cette date. Essayez un autre jour de service.
+                        Aucun créneau disponible à cette date. Essayez un autre jour de service.
                       </div>
                     )}
 
@@ -1333,8 +1333,8 @@ export default function Panier() {
                   <div className="flex items-center gap-2 text-amber-600 font-bold"><Zap className="h-4 w-4" /><span>Retrait Vente Flash</span></div>
                   <div className="text-sm space-y-1">
                     <p className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-muted-foreground" /><span>Le <strong>{flashPickupDate ? new Date(flashPickupDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : "date définie par l'offre"}</strong></span></p>
-                    <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Creneau fixe :</span><strong>{flashPickupStart || "--:--"} - {flashPickupEnd || "--:--"}</strong></p>
-                    <p className="text-xs text-muted-foreground pl-5">Le creneau de retrait est impose par la vente flash et ne peut pas être modifie.</p>
+                    <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Créneau fixe :</span><strong>{flashPickupStart || "--:--"} - {flashPickupEnd || "--:--"}</strong></p>
+                    <p className="text-xs text-muted-foreground pl-5">Le créneau de retrait est imposé par la vente flash et ne peut pas être modifié.</p>
                   </div>
                 </div>
               ) : needsTakeawaySlots ? (
@@ -1386,7 +1386,7 @@ export default function Panier() {
                     </div>
                   ) : (
                     <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
-                      Aucun creneau disponible à cette date. Essayez un autre jour de service.
+                      Aucun créneau disponible à cette date. Essayez un autre jour de service.
                     </div>
                   )}
                   {pickupTime && (

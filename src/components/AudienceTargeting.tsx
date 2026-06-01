@@ -79,7 +79,7 @@ export default function AudienceTargeting({ criteria, onChange, restaurantId }: 
               <Users className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium">Audience estimee</p>
+              <p className="text-sm font-medium">Audience estimée</p>
               <p className="text-xs text-muted-foreground">Projection des clients correspondant au ciblage</p>
             </div>
           </div>

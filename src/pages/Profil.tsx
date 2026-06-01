@@ -518,7 +518,7 @@ export default function Profil() {
                             const { error } = await supabase.functions.invoke("delete-account");
                             if (error) throw error;
                             await supabase.auth.signOut();
-                            toast({ title: "Compte supprime", description: "Votre compte a été supprime avec succes." });
+                            toast({ title: "Compte supprimé", description: "Votre compte a été supprimé avec succès." });
                             navigate("/");
                           } catch (err: any) {
                             toast({ title: "Erreur", description: err.message || "Impossible de supprimer le compte.", variant: "destructive" });
@@ -640,12 +640,12 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                    Resilier
+                    Résilier
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Resilier Tok One ?</AlertDialogTitle>
+                    <AlertDialogTitle>Résilier Tok One ?</AlertDialogTitle>
                     <AlertDialogDescription>
                       Vous conserverez vos avantages jusqu’au {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Après cette date, les frais de livraison et réductions exclusives ne s'appliqueront plus.
                     </AlertDialogDescription>
@@ -661,7 +661,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                         if (error) {
                           toast({ title: "Erreur", description: error.message, variant: "destructive" });
                         } else {
-                          toast({ title: "Abonnement resilie", description: "Vos avantages restent actifs jusqu’à la fin de la periode." });
+                          toast({ title: "Abonnement résilié", description: "Vos avantages restent actifs jusqu’à la fin de la période." });
                           queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
                         }
                       }}
@@ -676,7 +676,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-xl bg-white/60 border p-4 space-y-1">
-              <p className="text-xs text-muted-foreground font-medium">Debut de la periode</p>
+              <p className="text-xs text-muted-foreground font-medium">Début de la période</p>
               <p className="font-semibold text-sm">
                 <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
                 {new Date(subscription.current_period_start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
@@ -707,7 +707,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           {subscription.cancel_at_period_end && (
             <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
               <p className="text-sm text-amber-800">
-                Votre abonnement ne sera pas renouvele. Vous conservez vos avantages jusqu’à la fin de la periode en cours.
+                Votre abonnement ne sera pas renouvelé. Vous conservez vos avantages jusqu’à la fin de la période en cours.
               </p>
             </div>
           )}
@@ -723,7 +723,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           </p>
           {plans && plans.length > 0 && (
             <p className="text-sm text-violet-600 font-medium">
-              A partir de {Number(plans[0].price_monthly).toFixed(2)} CHF/mois
+              À partir de {Number(plans[0].price_monthly).toFixed(2)} CHF/mois
             </p>
           )}
           <Button className="bg-violet-600 hover:bg-violet-700 text-white" asChild>

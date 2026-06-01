@@ -29,7 +29,7 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Données de commande :</span> historique des commandes, montants, préférences alimentaires, restaurants favoris.</li>
             <li><span className="font-medium text-foreground">Données de paiement :</span> méthode de paiement choisie. Les données bancaires sont traitées directement par notre prestataire Stripe et ne sont pas stockées sur nos serveurs.</li>
             <li><span className="font-medium text-foreground">Données de navigation :</span> pages visitées, interactions avec la plateforme, recherches effectuées.</li>
-            <li><span className="font-medium text-foreground">Données du fil Actualités :</span> abonnements a des restaurants, réactions, commentaires, signalements, sauvegardes, partages, clics sur les boutons d'action et preferences de contenu.</li>
+            <li><span className="font-medium text-foreground">Données du fil Actualités :</span> abonnements à des restaurants, réactions, commentaires, signalements, sauvegardes, partages, clics sur les boutons d'action et préférences de contenu.</li>
             <li><span className="font-medium text-foreground">Données marketing restaurateur :</span> objectifs de campagne, segments d'audience, contenus publies, codes d'offres, statistiques d'impressions, clics, engagement et performance des actualités.</li>
             <li><span className="font-medium text-foreground">Données techniques :</span> adresse IP, type de navigateur, système d'exploitation, identifiant d'appareil.</li>
             <li><span className="font-medium text-foreground">Données de géolocalisation :</span> position GPS (uniquement avec votre consentement explicite).</li>

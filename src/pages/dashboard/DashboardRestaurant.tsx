@@ -256,7 +256,7 @@ export default function DashboardRestaurant() {
         <DashboardPageHero
           badge="Identite restaurant"
           title={restaurant ? "Mon restaurant" : "Créer mon restaurant"}
-          description="Gardez l'identite, l'adresse, les catégories, les moyens de paiement et les options de service au meme niveau de contrôle."
+          description="Gardez l'identité, l'adresse, les catégories, les moyens de paiement et les options de service au même niveau de contrôle."
           icon={Store}
           tone="orange"
           visualLabel="Profil"
@@ -459,7 +459,7 @@ export default function DashboardRestaurant() {
                   </div>
                   <Button variant="outline" size="sm" onClick={handleStripeConnect} disabled={connectLoading} className="gap-1.5">
                     {connectLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
-                    Gerer
+                    Gérer
                   </Button>
                 </div>
               ) : (

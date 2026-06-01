@@ -67,7 +67,7 @@ const ROLE_CONFIG: Record<
   },
   restaurateur: {
     label: "Restaurateur",
-    desc: "Gerer mon restaurant et mes commandes",
+    desc: "Gérer mon restaurant et mes commandes",
     icon: ChefHat,
     to: "/dashboard",
     color: "border-amber-500 bg-amber-500/5 text-amber-600",

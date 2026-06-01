@@ -108,7 +108,7 @@ function InvoiceTable({
             <TableRow>
               <TableHead>Facture</TableHead>
               <TableHead>Restaurant</TableHead>
-              <TableHead>Periode</TableHead>
+              <TableHead>Période</TableHead>
               <TableHead className="text-right whitespace-nowrap">Montant TTC</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead className="whitespace-nowrap">Echeance</TableHead>
@@ -147,7 +147,7 @@ function MobileInvoiceCard({
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <p className="text-muted-foreground">Periode</p>
+              <p className="text-muted-foreground">Période</p>
               <p>{formatPeriod(invoice.period_start, invoice.period_end)}</p>
             </div>
             <div>
@@ -229,7 +229,7 @@ export default function AdminComptaInflow() {
         title: generated > 0 ? "Factures TOK generees" : "Aucune facturé generee",
         description: generated > 0
           ? `${generated} facturé${generated > 1 ? "s" : ""} ajoutee${generated > 1 ? "s" : ""} pour ${selectedMonth}.`
-          : "Aucune nouvelle facturé a produire sur cette periode.",
+          : "Aucune nouvelle facture à produire sur cette période.",
       });
 
       await Promise.all([
@@ -347,7 +347,7 @@ export default function AdminComptaInflow() {
               icon={Coins}
               label="Commissions TOK 10%"
               value={formatAmount(summary.inflow.totalCommissions)}
-              description="Part TOK sur les paiements confirmes de la periode."
+              description="Part TOK sur les paiements confirmés de la période."
             />
             <AccountingMetricCard
               icon={Wallet}
@@ -363,7 +363,7 @@ export default function AdminComptaInflow() {
               icon={RefreshCcw}
               eyebrow="A faire maintenant"
               title="Generer les factures du mois"
-              description="Ce bloc vous dit ce qui doit partir en facturé avant meme d'ouvrir le tableau detaille."
+              description="Ce bloc vous dit ce qui doit partir en facture avant même d'ouvrir le tableau détaillé."
               value={formatAmount(payableAccruals.totalAmount)}
               valueLabel="Encours non facturé"
             >
@@ -400,7 +400,7 @@ export default function AdminComptaInflow() {
               icon={FileDown}
               eyebrow="A faire maintenant"
               title="Suivre les factures déjà emises"
-              description="Une fois la facturé créée, la priorité devient l'encaissement cote restaurateur."
+              description="Une fois la facture créée, la priorité devient l'encaissement côté restaurateur."
               value={formatAmount(summary.inflow.payableOutstanding)}
               valueLabel="A encaisser"
             >
@@ -431,7 +431,7 @@ export default function AdminComptaInflow() {
               icon={Receipt}
               eyebrow="Comprendre les flux"
               title="Ce que contient la facturé restaurateur"
-              description="La facturé payable unique agrège seulement ce que le restaurateur doit a TOK sur la periode."
+              description="La facture payable unique agrège seulement ce que le restaurateur doit à TOK sur la période."
               value={formatAmount(totalPayableOpen)}
               valueLabel="Ouvert total"
             >
@@ -503,7 +503,7 @@ export default function AdminComptaInflow() {
                   {
                     label: "Lecture comptable",
                     value: "Flux separe",
-                    helper: "Visible a part meme si ce n'est pas le coeur de la facturé payable",
+                    helper: "Visible à part même si ce n'est pas le cœur de la facture payable",
                   },
                 ]}
               />

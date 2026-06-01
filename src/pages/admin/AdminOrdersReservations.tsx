@@ -619,7 +619,7 @@ export default function AdminOrdersReservations() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <Badge variant="secondary">Periode par défaut: 30 derniers jours</Badge>
+            <Badge variant="secondary">Période par défaut: 30 derniers jours</Badge>
             <span>Efface les dates pour elargir la recherche.</span>
             {restaurantsError ? <span className="text-destructive">Impossible de charger les restaurants.</span> : null}
           </div>

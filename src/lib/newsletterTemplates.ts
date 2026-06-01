@@ -43,7 +43,7 @@ export type DeliverabilityResult = {
   warnings: string[];
 };
 
-const preferenceFooter = "Vous pouvez ajuster vos preferences de communication depuis votre profil Tok.";
+const preferenceFooter = "Vous pouvez ajuster vos préférences de communication depuis votre profil Tok.";
 
 export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
   {
@@ -63,7 +63,7 @@ export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
     title: "Vos avantages Gold sont prêts",
     subject: "Vos avantages Gold sont prêts",
     preview: "Support prioritaire, créneaux premium et bonus Miamz a activer.",
-    body: `Votre niveau Gold débloqué des avantages utiles pour vos prochaines commandes et réservations: support prioritaire, créneaux premium quand ils sont disponibles et bonus Miamz renforces. Consultez votre espace fidélité pour suivre la progression. ${preferenceFooter}`,
+    body: `Votre niveau Gold débloque des avantages utiles pour vos prochaines commandes et réservations: support prioritaire, créneaux premium quand ils sont disponibles et bonus Miamz renforcés. Consultez votre espace fidélité pour suivre la progression. ${preferenceFooter}`,
     category: "marketing",
     targetRoles: ["client"],
     channels: { in_app: true, email: true, push: false },
@@ -134,13 +134,13 @@ export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
     id: "birthday_miamz",
     title: "Votre mois anniversaire avec Tok",
     subject: "Votre mois anniversaire avec Tok",
-    preview: "Un rappel personnalise autour des avantages éligibles.",
-    body: `Votre mois anniversaire peut ouvrir des attentions partenaires et bonus Miamz selon les campagnes actives. Consultez votre profil pour voir les avantages disponibles et les conditions associees. ${preferenceFooter}`,
+    preview: "Un rappel personnalisé autour des avantages éligibles.",
+    body: `Votre mois anniversaire peut ouvrir des attentions partenaires et bonus Miamz selon les campagnes actives. Consultez votre profil pour voir les avantages disponibles et les conditions associées. ${preferenceFooter}`,
     category: "marketing",
     targetRoles: ["client"],
     channels: { in_app: true, email: true, push: false },
     recommendedSendHour: 11,
-    antiSpamNotes: ["Message personnalise", "Conditions mentionnees", "Objet non trompeur"],
+    antiSpamNotes: ["Message personnalisé", "Conditions mentionnées", "Objet non trompeur"],
   },
   {
     id: "rainy_day_delivery",
@@ -183,7 +183,7 @@ export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
     title: "Commander à plusieurs simplement",
     subject: "Commander à plusieurs simplement",
     preview: "Suggestions pour repas en famille ou entre collegues.",
-    body: `Pour les repas à plusieurs, nous regroupons des restaurants adaptés aux paniers partages, aux preferences variees et aux horaires faciles a coordonner. La sélection reste courte et actionnable. ${preferenceFooter}`,
+    body: `Pour les repas à plusieurs, nous regroupons des restaurants adaptés aux paniers partagés, aux préférences variées et aux horaires faciles à coordonner. La sélection reste courte et actionnable. ${preferenceFooter}`,
     category: "marketing",
     targetRoles: ["client"],
     channels: { in_app: true, email: true, push: false },
@@ -243,7 +243,7 @@ export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
     title: "Idees afterwork",
     subject: "Idees afterwork",
     preview: "Créneaux et lieux pratiques après le travail.",
-    body: `Pour organiser une sortie après le travail, voici des restaurants avec horaires pratiques, ambiance adaptée et disponibilités visibles. La sélection limite les choix pour faciliter la decision. ${preferenceFooter}`,
+    body: `Pour organiser une sortie après le travail, voici des restaurants avec horaires pratiques, ambiance adaptée et disponibilités visibles. La sélection limite les choix pour faciliter la décision. ${preferenceFooter}`,
     category: "marketing",
     targetRoles: ["client"],
     channels: { in_app: true, email: true, push: false },
@@ -260,19 +260,19 @@ export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
     targetRoles: ["client"],
     channels: { in_app: true, email: true, push: false },
     recommendedSendHour: 9,
-    antiSpamNotes: ["Message anticipe", "Ciblage par moment", "Objet descriptif"],
+    antiSpamNotes: ["Message anticipé", "Ciblage par moment", "Objet descriptif"],
   },
   {
     id: "support_preferences",
     title: "Gardez le contrôle de vos notifications",
     subject: "Gardez le contrôle de vos notifications",
-    preview: "Rappel transparent sur les preferences et canaux.",
+    preview: "Rappel transparent sur les préférences et canaux.",
     body: `Tok vous permet de choisir les catégories et canaux de communication qui vous conviennent. Ce rappel explique comment garder une expérience utile, limitée et adaptée à vos besoins réels. ${preferenceFooter}`,
     category: "product",
     targetRoles: ["client"],
     channels: { in_app: true, email: true, push: false },
     recommendedSendHour: 12,
-    antiSpamNotes: ["Transparence preferences", "But non promotionnel", "Faible risque spam"],
+    antiSpamNotes: ["Transparence préférences", "But non promotionnel", "Faible risque spam"],
   },
   {
     id: "reactivation_soft",
@@ -284,7 +284,7 @@ export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
     targetRoles: ["client"],
     channels: { in_app: true, email: true, push: false },
     recommendedSendHour: 10,
-    antiSpamNotes: ["Reactivation douce", "Pas de pression", "Contrôle preferences"],
+    antiSpamNotes: ["Réactivation douce", "Pas de pression", "Contrôle préférences"],
   },
 ];
 

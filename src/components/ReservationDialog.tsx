@@ -259,7 +259,7 @@ export default function ReservationDialog({
     }
     if (!selectedSlot?.available) {
       toast({
-        title: "Creneau indisponible",
+        title: "Créneau indisponible",
         description: selectedSlot?.disabledReason || "Choisissez une heure encore disponible.",
         variant: "destructive",
       });
@@ -394,7 +394,7 @@ export default function ReservationDialog({
         <DialogContent className="overflow-hidden p-0 sm:max-w-md">
           <DialogTitle className="sr-only">Reservation</DialogTitle>
           <DialogDescription className="sr-only">
-            Choisissez une date, un creneau disponible et le nombre de convives pour réserver une table.
+            Choisissez une date, un créneau disponible et le nombre de convives pour réserver une table.
           </DialogDescription>
 
           <div className="flex items-center justify-center gap-2 px-6 pt-6">
@@ -484,7 +484,7 @@ export default function ReservationDialog({
                     </div>
                   ) : (
                     <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                      Aucun creneau ouvert et disponible pour cette date.
+                      Aucun créneau ouvert et disponible pour cette date.
                     </div>
                   )}
                 </div>

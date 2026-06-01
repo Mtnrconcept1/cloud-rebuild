@@ -396,9 +396,9 @@ export default function Index() {
     user && itemCount === 0 && personalCards.length === 0
       ? {
         key: "discover",
-        eyebrow: "Decouverte",
+        eyebrow: "Découverte",
         title: "Lancez votre première sélection",
-        description: "Commencez par une recherche simple. Le reste du parcours restera ensuite beaucoup plus personnalise.",
+        description: "Commencez par une recherche simple. Le reste du parcours restera ensuite beaucoup plus personnalisé.",
         cta: "Explorer les restaurants",
         href: buildSearchLink({ city: userContext?.city || null }),
         icon: Compass,
@@ -587,7 +587,7 @@ export default function Index() {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
                     <MapPinned className="h-4 w-4 text-blue-500" />
                   </div>
-                  <h2 className="font-display text-xl font-semibold md:text-2xl">Restaurants a proximite</h2>
+                  <h2 className="font-display text-xl font-semibold md:text-2xl">Restaurants à proximité</h2>
                 </div>
                 <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" asChild>
                   <Link to={buildSearchLink({ city: userContext?.city || null })}>

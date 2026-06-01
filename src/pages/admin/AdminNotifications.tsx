@@ -523,7 +523,7 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
             <ShieldCheck className="h-4 w-4 text-primary" />
             <div>
               <p className="text-sm font-semibold">Contrôle anti-spam</p>
-              <p className="text-xs text-muted-foreground">Consentement marketing, lien preferences, SPF/DKIM/DMARC et contenu a risque.</p>
+              <p className="text-xs text-muted-foreground">Consentement marketing, lien préférences, SPF/DKIM/DMARC et contenu à risque.</p>
             </div>
           </div>
           <Badge variant={deliverability.status === "ready" ? "default" : deliverability.status === "blocked" ? "destructive" : "secondary"}>

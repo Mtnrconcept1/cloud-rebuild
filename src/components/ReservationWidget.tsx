@@ -220,7 +220,7 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
             </div>
           ) : (
             <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
-              Aucun creneau ouvert et disponible pour cette date.
+              Aucun créneau ouvert et disponible pour cette date.
             </div>
           )}
         </div>

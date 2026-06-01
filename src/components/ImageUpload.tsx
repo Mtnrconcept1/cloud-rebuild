@@ -69,7 +69,7 @@ export default function ImageUpload({
 
       const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
       onChange(data.publicUrl);
-      toast({ title: "Succes", description: "Image uploadee avec succes !" });
+      toast({ title: "Succès", description: "Image uploadée avec succès !" });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Erreur d'upload";
       toast({ title: "Erreur d'upload", description: message, variant: "destructive" });

@@ -484,7 +484,7 @@ export function buildPerformanceAlerts(input: {
       id: "order-drop",
       tone: "warning",
       title: "Rythme de commandes en baisse",
-      description: `${today.validOrdersCount} commande(s) valides aujourd'hui contre ${averageOrders.toFixed(1)} en moyenne sur la periode.`,
+      description: `${today.validOrdersCount} commande(s) valides aujourd'hui contre ${averageOrders.toFixed(1)} en moyenne sur la période.`,
     });
   }
 
@@ -528,7 +528,7 @@ export function buildPerformanceInsights(summary: PerformanceSummary): Performan
       id: "service-share",
       label: "Service dominant",
       value: focusService,
-      description: `Le ${focusService} concentre ${Math.max(dinnerShare, 100 - dinnerShare).toFixed(0)}% des couverts sur la periode.`,
+      description: `Le ${focusService} concentre ${Math.max(dinnerShare, 100 - dinnerShare).toFixed(0)}% des couverts sur la période.`,
     });
   }
 
@@ -561,7 +561,7 @@ export function buildPerformanceInsights(summary: PerformanceSummary): Performan
         id: "ticket-trend",
         label: "Ticket moyen",
         value: `${delta >= 0 ? "+" : ""}${delta.toFixed(0)}%`,
-        description: `Le panier moyen est ${delta >= 0 ? "plus haut" : "plus bas"} sur la seconde moitie de periode.`,
+        description: `Le panier moyen est ${delta >= 0 ? "plus haut" : "plus bas"} sur la seconde moitié de période.`,
       });
     }
   }
@@ -572,8 +572,8 @@ export function buildPerformanceInsights(summary: PerformanceSummary): Performan
       label: "Satisfaction",
       value: `${summary.avgSatisfaction.toFixed(1)}/5`,
       description: summary.avgSatisfaction >= 4.5
-        ? "Les avis restent très positifs sur la periode."
-        : "Là satisfaction merite un suivi plus fin sur la periode.",
+        ? "Les avis restent très positifs sur la période."
+        : "La satisfaction mérite un suivi plus fin sur la période.",
     });
   }
 

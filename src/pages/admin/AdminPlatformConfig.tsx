@@ -147,7 +147,7 @@ export default function AdminPlatformConfig() {
       <DashboardPageHero
         badge="Feature flags"
         title="Configuration plateforme"
-        description="Ces toggles s'appliquent globalement. Lorsqu'un flag est coupe ici, l'UI est masquee, la route est protégée et les nouvelles actions backend sont refusees."
+        description="Ces toggles s'appliquent globalement. Lorsqu'un flag est coupé ici, l'UI est masquée, la route est protégée et les nouvelles actions backend sont refusées."
         icon={Settings2}
         tone="amber"
         visualLabel="Flags"

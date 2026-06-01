@@ -584,7 +584,7 @@ export default function Recherche() {
           </div>
         ) : (
           <div className="neon-panel rounded-[28px] border border-dashed py-20 text-center text-muted-foreground dark:text-slate-300">
-            <p className="text-lg font-semibold text-foreground dark:text-white">Aucun restaurant ne correspond à ces criteres</p>
+            <p className="text-lg font-semibold text-foreground dark:text-white">Aucun restaurant ne correspond à ces critères</p>
             <p className="mt-2 text-sm">Essayez une autre ville, une cuisine plus large ou reinitialisez les filtres.</p>
             <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
               Réinitialiser la recherche

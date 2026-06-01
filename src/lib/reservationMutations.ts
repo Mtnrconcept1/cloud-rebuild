@@ -99,7 +99,7 @@ export async function createReservationWithValidation(
   }
 
   if (!result.reservation_id) {
-    throw new Error("Reservation non créée.");
+    throw new Error("Réservation non créée.");
   }
 
   return {

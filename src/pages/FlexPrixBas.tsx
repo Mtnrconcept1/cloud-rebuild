@@ -134,7 +134,7 @@ export default function FlexPrixBas() {
             <div className="rounded-2xl bg-gradient-to-r from-emerald-500/5 to-green-500/5 border border-emerald-500/10 p-5 space-y-3">
               <h2 className="font-semibold">Comment ça marche ?</h2>
               <div className="grid grid-cols-3 gap-3 text-sm">
-                {[{ icon: Timer, t: "Fenêtre flexible", d: "1h à 3h" }, { icon: Zap, t: "Algo optimise", d: "Meilleur moment" }, { icon: Leaf, t: "Éco-responsable", d: "Moins de CO₂" }].map((x, i) => (
+                {[{ icon: Timer, t: "Fenêtre flexible", d: "1h à 3h" }, { icon: Zap, t: "Algo optimisé", d: "Meilleur moment" }, { icon: Leaf, t: "Éco-responsable", d: "Moins de CO₂" }].map((x, i) => (
                   <div key={i} className="rounded-xl border bg-card p-3 space-y-1"><x.icon className="h-5 w-5 text-emerald-500" /><p className="font-semibold text-xs">{x.t}</p><p className="text-[10px] text-muted-foreground">{x.d}</p></div>
                 ))}
               </div>

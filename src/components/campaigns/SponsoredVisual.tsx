@@ -14,7 +14,7 @@ interface SponsoredBadgeProps {
 export function SponsoredBadge({
   tone = "restaurant",
   className,
-  label = "Sponsorise",
+  label = "Sponsorisé",
 }: SponsoredBadgeProps) {
   const config = getSponsoredVisualConfig(tone);
 

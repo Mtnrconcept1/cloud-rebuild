@@ -48,7 +48,7 @@ export default function PerformanceBusinessTab({
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Analyse business</p>
           <h2 className="font-display text-2xl font-bold">Comprendre la trajectoire de votre restaurant</h2>
           <p className="text-sm text-muted-foreground">
-            Lecture periode, tendances de revenus, poids des remises et signaux utiles pour ajuster vos decisions.
+            Lecture période, tendances de revenus, poids des remises et signaux utiles pour ajuster vos décisions.
           </p>
         </div>
       </div>
@@ -88,7 +88,7 @@ export default function PerformanceBusinessTab({
             key: "period-reservations",
             label: "Reservations",
             value: String(summary.totalReservations),
-            helper: "Sur la periode",
+            helper: "Sur la période",
             icon: CalendarDays,
           },
           {
@@ -161,7 +161,7 @@ export default function PerformanceBusinessTab({
 
         <PerformanceServiceSplit
           title="Mix d'activite"
-          description="Lecture du poids du midi et du soir sur la periode choisie."
+          description="Lecture du poids du midi et du soir sur la période choisie."
           services={serviceSummary}
         />
       </div>
@@ -221,9 +221,9 @@ export default function PerformanceBusinessTab({
               </div>
             </div>
             <div className="space-y-1 text-sm text-muted-foreground">
-              <p>Le CA net exclut les commandes annulées, refusees et en échec de paiement.</p>
+              <p>Le CA net exclut les commandes annulées, refusées et en échec de paiement.</p>
               <p>Le CA brut estimé reconstitue les remises retrouvees dans les metadonnees de commande.</p>
-              <p>Les réservations sont bornees à la periode sélectionnée sans projection future.</p>
+              <p>Les réservations sont bornées à la période sélectionnée sans projection future.</p>
             </div>
           </CardContent>
         </Card>

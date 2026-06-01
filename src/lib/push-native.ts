@@ -115,7 +115,7 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
       });
 
       timeoutId = setTimeout(() => {
-        finish({ ok: false, reason: "Delai d'enregistrement push depasse." });
+        finish({ ok: false, reason: "Délai d'enregistrement push dépassé." });
       }, PUSH_REGISTRATION_TIMEOUT_MS);
 
       void PushNotifications.register().catch((error) => {

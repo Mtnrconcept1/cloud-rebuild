@@ -297,9 +297,9 @@ export default function DashboardService() {
                   <div className="space-y-3 rounded-xl border bg-muted/20 p-3">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <p className="text-sm font-semibold">Tables disponibles par creneau</p>
+                        <p className="text-sm font-semibold">Tables disponibles par créneau</p>
                         <p className="text-xs text-muted-foreground">
-                          Exemple : 10 tables entre 19:00 et 23:00. Quand la limite est atteinte, le creneau devient complet.
+                          Exemple : 10 tables entre 19:00 et 23:00. Quand la limite est atteinte, le créneau devient complet.
                         </p>
                       </div>
                       <Button type="button" variant="outline" size="sm" onClick={() => addCapacityWindow(period.key)}>
@@ -461,7 +461,7 @@ export default function DashboardService() {
         </Card>
 
         <Button onClick={handleSave} disabled={loading} size="lg">
-          {loading ? "Enregistrement..." : "Sauvegarder les parametres"}
+          {loading ? "Enregistrement..." : "Sauvegarder les paramètres"}
         </Button>
       </div>
     </DashboardLayout>

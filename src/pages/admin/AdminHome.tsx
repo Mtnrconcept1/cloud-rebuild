@@ -37,7 +37,7 @@ const supabase = getSupabase();
 const ADMIN_TOOLS = [
   {
     title: "Restaurants",
-    description: "Gerer les restaurants, activations et statuts.",
+    description: "Gérer les restaurants, activations et statuts.",
     icon: Store,
     href: "/admin/restaurants",
     feature: "admin-restaurants",
@@ -45,7 +45,7 @@ const ADMIN_TOOLS = [
   },
   {
     title: "Comptabilite",
-    description: "Gerer les reversements et les parts TOK.",
+    description: "Gérer les reversements et les parts TOK.",
     icon: Calculator,
     href: "/admin/compta",
     feature: "admin-compta",
@@ -140,7 +140,7 @@ const ADMIN_TOOLS = [
   },
   {
     title: "Packs de lancement",
-    description: "Gerer les packs achetes et le suivi des services.",
+    description: "Gérer les packs achetés et le suivi des services.",
     icon: Rocket,
     href: "/admin/packs",
     feature: "admin-packs",

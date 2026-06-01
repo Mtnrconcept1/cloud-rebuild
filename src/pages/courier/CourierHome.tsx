@@ -214,7 +214,7 @@ export default function CourierHome() {
               <div className="space-y-1">
                 <p className="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
                   <Navigation className="h-4 w-4" />
-                  Presence synchronisée
+                  Présence synchronisée
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {position

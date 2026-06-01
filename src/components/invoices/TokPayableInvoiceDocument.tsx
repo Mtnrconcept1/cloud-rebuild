@@ -307,7 +307,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                   isPrintMode ? "text-xs tracking-[0.18em]" : "text-xs tracking-[0.16em] sm:text-sm sm:tracking-[0.22em]",
                 )}
               >
-                Periode de facturation
+                Période de facturation
               </p>
               <div className={cn("mt-4 flex items-start gap-3", isPrintMode ? "mt-5 gap-4" : "sm:mt-5 sm:gap-4")}>
                 <div
@@ -328,7 +328,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                       isPrintMode ? "text-sm leading-6" : "text-sm leading-6 sm:text-base sm:leading-7",
                     )}
                   >
-                    Cette facturé regroupe l&apos;ensemble des montants factures par TOK durant la periode ci-dessus.
+                    Cette facture regroupe l&apos;ensemble des montants facturés par TOK durant la période ci-dessus.
                   </p>
                 </div>
               </div>

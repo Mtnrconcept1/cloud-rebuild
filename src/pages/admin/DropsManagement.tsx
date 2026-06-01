@@ -64,7 +64,7 @@ export default function DropsManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-drops"] });
-      toast({ title: editingId ? "Experience mise à jour" : "Experience créée" });
+      toast({ title: editingId ? "Expérience mise à jour" : "Expérience créée" });
       setEditingId(null);
       setForm(EMPTY_DROP);
     },
@@ -80,7 +80,7 @@ export default function DropsManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-drops"] });
-      toast({ title: "Experience supprimée" });
+      toast({ title: "Expérience supprimée" });
     },
     onError: (error: any) => {
       toast({ title: "Erreur", description: error.message || "Suppression impossible.", variant: "destructive" });
@@ -220,7 +220,7 @@ export default function DropsManagement() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Sert de date par défaut. Le client choisirà son creneau parmi les horaires du restaurant.
+                Sert de date par défaut. Le client choisira son créneau parmi les horaires du restaurant.
               </p>
             </div>
             <div className="space-y-2">
@@ -244,7 +244,7 @@ export default function DropsManagement() {
                 checked={form.is_active}
                 onChange={() => setForm({ ...form, is_active: !form.is_active })}
               />
-              <span>Experience active</span>
+              <span>Expérience active</span>
             </label>
             <div className="md:col-span-2 flex gap-2">
               <Button className="flex-1 bg-pink-500 hover:bg-pink-600" disabled={createOrUpdateMutation.isPending}>

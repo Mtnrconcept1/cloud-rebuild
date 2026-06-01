@@ -426,7 +426,7 @@ export default function DashboardReservations() {
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Periode</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Période</p>
                 <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Toutes" />
@@ -732,7 +732,7 @@ export default function DashboardReservations() {
                                           className={isConfirmedAck ? "bg-emerald-600 text-white hover:bg-emerald-600 disabled:opacity-100" : undefined}
                                         >
                                           <Check className="mr-1 h-4 w-4" />
-                                          Confirmee
+                                          Confirmée
                                           {isConfirmedAck ? (
                                             <span className="ml-2 rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                                               Vu

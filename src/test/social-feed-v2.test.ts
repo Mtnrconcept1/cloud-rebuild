@@ -131,7 +131,7 @@ describe("social feed v2 helpers", () => {
         favoriteRestaurantIds: [],
         interactedRestaurantIds: [],
       }),
-    ).toEqual(["Restaurant suivi", "Cuisine preferee", "A proximite"]);
+    ).toEqual(["Restaurant suivi", "Cuisine préférée", "À proximité"]);
   });
 
   it("scores marketing drafts with actionable recommendations", () => {

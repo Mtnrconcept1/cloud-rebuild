@@ -330,7 +330,7 @@ function ChefTableDropCard({
             ) : (
               <>
                 <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
-                <span className="min-w-0">Choisir creneau et convives</span>
+                <span className="min-w-0">Choisir créneau et convives</span>
               </>
             )}
           </Button>
@@ -403,7 +403,7 @@ export default function ChefsTable() {
           remaining: Number(drop.remaining_portions) || 0,
           image: drop.image_url || drop.restaurants?.image_url || "/images/octopus-fine-dining.jpeg",
           rating: Number(drop.restaurants?.rating) || 0,
-          cuisine: drop.restaurants?.cuisine_type || "Edition exclusive",
+          cuisine: drop.restaurants?.cuisine_type || "Édition exclusive",
           dropTime: drop.drop_time,
           serviceTimeLabel: serviceTimeFormatter.format(dropTime),
           dropMomentLabel: dropMomentFormatter.format(dropTime),
@@ -541,7 +541,7 @@ export default function ChefsTable() {
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
 
       toast({
-        title: "Paiement confirme",
+        title: "Paiement confirmé",
         description:
           reservations.length > 1
             ? `${reservations.length} réservations La Table du Chef ont été confirmées.`
@@ -576,7 +576,7 @@ export default function ChefsTable() {
     if (status === "cancelled") {
       setPendingCheckoutSessionId(null);
       toast({
-        title: "Paiement annule",
+        title: "Paiement annulé",
         description: "Vos expériences restent dans le panier, vous pouvez reessayer.",
         variant: "destructive",
       });
@@ -728,7 +728,7 @@ export default function ChefsTable() {
     <>
       <FeatureWizard
         title="La Table du Chef"
-        subtitle="Plats off-menu en edition ultra-limitée"
+        subtitle="Plats off-menu en édition ultra-limitée"
         icon={ChefHat}
         colorClass="amber-500"
         steps={[
@@ -835,7 +835,7 @@ export default function ChefsTable() {
                           Votre Table du Chef est presque confirmée
                         </p>
                         <p className="text-sm text-white/75">
-                          {reservedRestaurantCount} restaurant(s) · economie totale{" "}
+                          {reservedRestaurantCount} restaurant(s) · économie totale{" "}
                           <span className="font-semibold text-emerald-600">
                             {formatCurrency(reservedSavingsTotal)}
                           </span>

@@ -172,7 +172,7 @@ export default function ChefTableSlotDialog({
           </DialogTitle>
           <DialogDescription className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
             <span className="font-medium text-white">{chefName}</span> chez{" "}
-            <span className="font-medium text-white">{restaurantName}</span>. Choisissez le creneau, le nombre de convives, puis confirmez votre étape de paiement.
+            <span className="font-medium text-white">{restaurantName}</span>. Choisissez le créneau, le nombre de convives, puis confirmez votre étape de paiement.
           </DialogDescription>
 
           <div className="mt-5 flex flex-wrap gap-2">
@@ -181,7 +181,7 @@ export default function ChefTableSlotDialog({
               <p className="mt-1 text-sm font-medium text-white">{selectedDateLabel}</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-white/50">Creneau</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/50">Créneau</p>
               <p className="mt-1 text-sm font-medium text-white">{selectedTime || "A choisir"}</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
@@ -225,7 +225,7 @@ export default function ChefTableSlotDialog({
               <div className="space-y-4 rounded-[28px] border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50/70 p-4 dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(120,53,15,0.22),rgba(15,23,42,0.92))] dark:shadow-[0_0_28px_rgba(245,158,11,0.12)]">
                 <div className="flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-100">
                   <Clock3 className="h-4 w-4" />
-                  Choisissez votre creneau
+                  Choisissez votre créneau
                 </div>
                 <p className="text-xs leading-5 text-amber-800/75 dark:text-amber-100/75">
                   Les horaires affichés correspondent aux services disponibles pour cette expérience.
@@ -319,7 +319,7 @@ export default function ChefTableSlotDialog({
               <div className="mt-4 flex items-start gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-3 text-xs text-white/70">
                 <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
                 <p>
-                  Vos convives, votre date et votre creneau seront conserves dans le panier avant l'ouverture du paiement.
+                  Vos convives, votre date et votre créneau seront conservés dans le panier avant l'ouverture du paiement.
                 </p>
               </div>
             </div>

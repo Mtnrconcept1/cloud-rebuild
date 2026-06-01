@@ -103,7 +103,7 @@ export default function OrderConfirmation() {
     queryClient.invalidateQueries({ queryKey: ["donated-points-total"] });
 
     toast({
-      title: "Paiement confirme",
+      title: "Paiement confirmé",
       description: result.orders.length > 1
         ? "Vos commandes sont confirmées."
         : "Votre commande est confirmée.",
@@ -292,7 +292,7 @@ export default function OrderConfirmation() {
           <div className="space-y-4 rounded-3xl border bg-card p-8 shadow-sm">
             <div className="space-y-2 text-center">
               <CreditCard className="mx-auto h-10 w-10 text-muted-foreground" />
-              <h1 className="font-display text-3xl font-bold">Paiement annule</h1>
+              <h1 className="font-display text-3xl font-bold">Paiement annulé</h1>
               <p className="text-sm text-muted-foreground">
                 Votre panier a été conservé. Vous pouvez reprendre le paiement ou modifier votre commande.
               </p>
@@ -341,7 +341,7 @@ export default function OrderConfirmation() {
             <div className="space-y-4 rounded-3xl border bg-card p-8 shadow-sm">
               <div className="space-y-2 text-center">
                 <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" />
-                <h1 className="font-display text-3xl font-bold">Paiement confirme</h1>
+                <h1 className="font-display text-3xl font-bold">Paiement confirmé</h1>
                 <p className="text-sm text-muted-foreground">
                   {restaurantCount > 1
                     ? "Votre paiement a confirme plusieurs commandes. Retrouvez le détail ci-dessous."

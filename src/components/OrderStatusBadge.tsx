@@ -16,7 +16,7 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
     className: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-700",
   },
   confirmed: {
-    label: "Confirmee",
+    label: "Confirmée",
     className: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
   },
   preparing: {

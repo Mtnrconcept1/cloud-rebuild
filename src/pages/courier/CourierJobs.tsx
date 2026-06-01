@@ -102,7 +102,7 @@ export default function CourierJobs() {
     mutationFn: async ({ attemptId, decision }: { attemptId: string; decision: "accept" | "decline" }) =>
       respondToDispatchAttempt(attemptId, decision),
     onSuccess: (_, variables) => {
-      toast.success(variables.decision === "accept" ? "Mission acceptée" : "Mission refusee");
+      toast.success(variables.decision === "accept" ? "Mission acceptée" : "Mission refusée");
       refreshCourierQueries();
     },
     onError: (error) => {

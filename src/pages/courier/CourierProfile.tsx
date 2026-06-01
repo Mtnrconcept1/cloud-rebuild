@@ -289,7 +289,7 @@ export default function CourierProfile() {
             <Card>
               <CardHeader>
                 <CardTitle>Qualité de service</CardTitle>
-                <CardDescription>Indicateurs relies à vos missions.</CardDescription>
+                <CardDescription>Indicateurs reliés à vos missions.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between rounded-xl border p-3">
@@ -336,12 +336,12 @@ export default function CourierProfile() {
                     <div>
                       <p className="font-semibold">{day.label}</p>
                       <p className="text-sm text-muted-foreground">
-                        {slots.length > 0 ? `${slots.length} creneau(x)` : "Aucun creneau"}
+                        {slots.length > 0 ? `${slots.length} créneau(x)` : "Aucun créneau"}
                       </p>
                     </div>
                     <Button type="button" variant="outline" onClick={() => addShiftSlot(day.value)}>
                       <Plus className="mr-2 h-4 w-4" />
-                      Ajouter un creneau
+                      Ajouter un créneau
                     </Button>
                   </div>
 
@@ -366,7 +366,7 @@ export default function CourierProfile() {
                             />
                           </div>
                           <div className="flex items-center justify-between gap-3 md:justify-end">
-                            <span className="text-sm text-muted-foreground">Creneau {index + 1}</span>
+                            <span className="text-sm text-muted-foreground">Créneau {index + 1}</span>
                             <Button
                               type="button"
                               variant="ghost"
@@ -381,7 +381,7 @@ export default function CourierProfile() {
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                      Aucun creneau configure pour cette journée.
+                      Aucun créneau configuré pour cette journée.
                     </div>
                   )}
                 </div>

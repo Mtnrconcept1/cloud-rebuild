@@ -146,7 +146,7 @@ export const LOYALTY_BENEFITS: LoyaltyBenefit[] = [
   {
     id: "premium_refunds",
     title: "Traitement premium",
-    description: "Les dossiers sensibles de remboursement et litige beneficient d'une file de traitement dédiée.",
+    description: "Les dossiers sensibles de remboursement et litige bénéficient d'une file de traitement dédiée.",
     appliesFrom: "platinum",
   },
 ];

@@ -122,7 +122,7 @@ export default function DashboardReseauxSociaux() {
     ) {
       toast({
         title: "URL invalide",
-        description: "Utilisez des URLs HTTPS valides et les domaines attendus pour chaque reseau.",
+        description: "Utilisez des URLs HTTPS valides et les domaines attendus pour chaque réseau.",
         variant: "destructive",
       });
       return;
@@ -170,7 +170,7 @@ export default function DashboardReseauxSociaux() {
     <DashboardLayout>
       <div className="space-y-6">
         <DashboardPageHero
-          badge="Presence digitale"
+          badge="Présence digitale"
           title="Reseaux sociaux"
           description="Centralisez Instagram, Facebook, site web et TikTok pour maintenir une fiche restaurant coherente partout."
           icon={Globe}
@@ -178,8 +178,8 @@ export default function DashboardReseauxSociaux() {
           visualLabel="Social"
           stats={[
             { label: "Restaurants", value: items.length, icon: Globe },
-            { label: "Profils relies", value: connectedProfiles, icon: Instagram },
-            { label: "Edition", value: form.restaurant_id ? "Active" : "A choisir", icon: Facebook },
+            { label: "Profils reliés", value: connectedProfiles, icon: Instagram },
+            { label: "Édition", value: form.restaurant_id ? "Active" : "À choisir", icon: Facebook },
           ]}
         />
 
@@ -267,7 +267,7 @@ export default function DashboardReseauxSociaux() {
                 <CardContent className="space-y-3 pt-5">
                   <h3 className="font-semibold">{item.name}</h3>
                   {!hasAny ? (
-                    <p className="text-sm text-muted-foreground">Aucun reseau social connecté</p>
+                    <p className="text-sm text-muted-foreground">Aucun réseau social connecté</p>
                   ) : (
                     <div className="grid gap-2 sm:grid-cols-2">
                       {links.social_instagram ? (

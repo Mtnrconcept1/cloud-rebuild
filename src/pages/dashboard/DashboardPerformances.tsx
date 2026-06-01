@@ -202,7 +202,7 @@ export default function DashboardPerformances() {
           stats={[
             { label: "Restaurant", value: selectedRestaurant?.name || "Aucun", icon: BarChart3 },
             { label: "Commandes", value: summary.validOrdersCount, icon: TrendingUp },
-            { label: "CA periode", value: `${summary.totalRevenue.toFixed(2)} CHF`, icon: TrendingUp },
+            { label: "CA période", value: `${summary.totalRevenue.toFixed(2)} CHF`, icon: TrendingUp },
           ]}
           actions={(
           <Select value={period} onValueChange={setPeriod}>
@@ -258,7 +258,7 @@ export default function DashboardPerformances() {
               <Card>
                 <CardContent className="pt-6 text-center text-muted-foreground">
                   <TrendingUp className="mx-auto mb-2 h-10 w-10 opacity-40" />
-                  <p>Aucune donnee de performance sur cette periode.</p>
+                  <p>Aucune donnée de performance sur cette période.</p>
                 </CardContent>
               </Card>
             ) : null}

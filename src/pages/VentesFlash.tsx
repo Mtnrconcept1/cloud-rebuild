@@ -159,7 +159,7 @@ export default function VentesFlash() {
       newlyExpired.forEach((offer: any) => handleExpire(offer.id));
       toast({
         title: "Offres expirees",
-        description: `${newlyExpired.length} offre(s) ont expire depuis votre sélection. Elles ont été retirees.`,
+        description: `${newlyExpired.length} offre(s) ont expiré depuis votre sélection. Elles ont été retirées.`,
         variant: "destructive",
       });
       return;
@@ -179,7 +179,7 @@ export default function VentesFlash() {
     if (!canDeliverAll && !canTakeawayAll) {
       toast({
         title: "Offres incompatibles",
-        description: "Certaines ventes flash ne partagent pas le meme mode de recuperation.",
+        description: "Certaines ventes flash ne partagent pas le même mode de récupération.",
         variant: "destructive",
       });
       return;
@@ -301,7 +301,7 @@ export default function VentesFlash() {
             <div className="rounded-xl bg-amber-500/5 border border-amber-500/10 p-4 flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="text-sm text-muted-foreground">
-                <p className="font-semibold text-foreground mb-1">Comment ca marche ?</p>
+                <p className="font-semibold text-foreground mb-1">Comment ça marche ?</p>
                 <p>Les ventes flash expirent à l'heure de fin choisie par le restaurateur.{deliveryEnabled ? " Elles peuvent être disponibles en livraison, en emporter, ou les deux." : ""}</p>
               </div>
             </div>
@@ -347,7 +347,7 @@ export default function VentesFlash() {
                             />
                           )}
                           {isExpired && (
-                            <Badge variant="destructive" className="gap-1 text-xs"><Clock className="h-3 w-3" /> Expire</Badge>
+                            <Badge variant="destructive" className="gap-1 text-xs"><Clock className="h-3 w-3" /> Expiré</Badge>
                           )}
                         </div>
 

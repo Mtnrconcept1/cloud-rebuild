@@ -123,7 +123,7 @@ export default function DashboardPhotos() {
           stats={[
             { label: "Photos", value: items.length, icon: ImageIcon },
             { label: "Couverture", value: items.some((item) => item.is_cover) ? "Definie" : "A choisir", icon: Star },
-            { label: "Mode", value: editingId ? "Edition" : "Ajout", icon: Pencil },
+            { label: "Mode", value: editingId ? "Édition" : "Ajout", icon: Pencil },
           ]}
         />
 

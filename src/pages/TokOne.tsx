@@ -78,7 +78,7 @@ const BENEFITS = [
     id: "priority_support",
     icon: Headphones,
     title: "Support prioritaire",
-    desc: "Un temps de réponse accelere quand vous avez besoin d'aide.",
+    desc: "Un temps de réponse accéléré quand vous avez besoin d'aide.",
     detail: "Les demandes Tok One passent en file prioritaire avec une prise en charge renforcee.",
     tone: "from-[#a78bfa] to-[#5b21b6]",
   },
@@ -102,7 +102,7 @@ const FAQS = [
   { q: "L'essai gratuit m'engage-t-il ?", a: "Non. Vous pouvez résilier pendant les 14 jours sans être facturé." },
   { q: "Puis-je changer de formule ?", a: "Oui, la formule mensuelle ou annuelle se gere depuis votre profil." },
   { q: "Les avantages sont-ils cumulables ?", a: "Oui. Les avantages Tok One se cumulent avec les promos disponibles." },
-  { q: "Comment résilier ?", a: "Depuis Profil > Mon abonnement. Les avantages restent actifs jusqu’à la fin de la periode." },
+  { q: "Comment résilier ?", a: "Depuis Profil > Mon abonnement. Les avantages restent actifs jusqu’à la fin de la période." },
 ];
 
 const heroMotion = {
@@ -128,7 +128,7 @@ export default function TokOne() {
       queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
       window.history.replaceState({}, "", window.location.pathname);
     } else if (status === "cancelled") {
-      toast({ title: "Paiement annule", variant: "destructive" });
+      toast({ title: "Paiement annulé", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [toast, queryClient]);
@@ -241,7 +241,7 @@ export default function TokOne() {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Abonnement resilie", description: "Vous conservez vos avantages jusqu’à la fin de la periode en cours." });
+      toast({ title: "Abonnement résilié", description: "Vous conservez vos avantages jusqu’à la fin de la période en cours." });
       queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
     }
   };
@@ -469,7 +469,7 @@ export default function TokOne() {
                     title="Mensuel"
                     price={`${monthlyPrice.toFixed(2)} CHF`}
                     suffix="/mois"
-                    helper="Sans engagement, resiliez à tout moment."
+                    helper="Sans engagement, résiliez à tout moment."
                     icon={Flame}
                     onClick={() => setSelectedPeriod("monthly")}
                   />
@@ -496,17 +496,17 @@ export default function TokOne() {
               <p className="font-display text-2xl font-black text-[#ffe38a]">Votre abonnement Tok One est actif</p>
               <p className="mt-1 text-white/68">
                 {activeSubscription?.cancel_at_period_end
-                  ? "Le renouvellement est resilie, vos avantages restent actifs jusqu’à la fin de la periode."
+                  ? "Le renouvellement est résilié, vos avantages restent actifs jusqu’à la fin de la période."
                   : "Vos avantages sont automatiquement appliques dans le panier."}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button variant="secondary" asChild>
-                <Link to="/profil?tab=abonnement">Gerer</Link>
+                <Link to="/profil?tab=abonnement">Gérer</Link>
               </Button>
               {!activeSubscription?.cancel_at_period_end ? (
                 <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={handleCancel}>
-                  Resilier
+                  Résilier
                 </Button>
               ) : null}
             </div>
@@ -516,7 +516,7 @@ export default function TokOne() {
 
       <section className="container grid max-w-6xl gap-10 px-6 pb-20 lg:grid-cols-[0.8fr_1fr]">
         <div>
-          <h2 className="font-display text-3xl font-black">Comment ca marche ?</h2>
+          <h2 className="font-display text-3xl font-black">Comment ça marche ?</h2>
           <p className="mt-3 text-white/64">Tok One reste invisible quand tout va bien: vous commandez normalement, les avantages s'appliquent seuls.</p>
         </div>
         <div className="grid gap-4 md:grid-cols-3">

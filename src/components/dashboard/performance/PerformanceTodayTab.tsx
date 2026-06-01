@@ -29,7 +29,7 @@ function formatChf(value: number, digits = 2) {
 function translateStatus(status: string) {
   switch (status) {
     case "confirmed":
-      return "Confirmee";
+      return "Confirmée";
     case "pending":
       return "En attente";
     case "cancelled":

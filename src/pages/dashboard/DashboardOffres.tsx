@@ -175,7 +175,7 @@ export default function DashboardOffres() {
         ) : !offers?.length ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              Aucune offre anti-gaspi. Créez-en une pour reduire le gaspillage.
+              Aucune offre anti-gaspi. Créez-en une pour réduire le gaspillage.
             </CardContent>
           </Card>
         ) : (
@@ -300,11 +300,11 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
     }
 
     if (!availableDate || !pickupStart || !pickupEnd) {
-      toast({ title: "Creneau invalide", description: "Renseignez date et horaires de retrait.", variant: "destructive" });
+      toast({ title: "Créneau invalide", description: "Renseignez date et horaires de retrait.", variant: "destructive" });
       return;
     }
     if (pickupStart >= pickupEnd) {
-      toast({ title: "Creneau invalide", description: "L'heure de fin doit être après le début.", variant: "destructive" });
+      toast({ title: "Créneau invalide", description: "L'heure de fin doit être après le début.", variant: "destructive" });
       return;
     }
 
@@ -418,7 +418,7 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            L'offre apparaîtra aux clients pendant ce creneau et disparaitra à la fin.
+            L'offre apparaîtra aux clients pendant ce créneau et disparaîtra à la fin.
           </p>
 
           <Button type="submit" disabled={loading} className="w-full gap-2">

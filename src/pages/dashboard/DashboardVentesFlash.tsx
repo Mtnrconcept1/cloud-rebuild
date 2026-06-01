@@ -294,11 +294,11 @@ function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
     }
 
     if (!saleDate || !saleStart || !saleEnd) {
-      toast({ title: "Creneau invalide", description: "Renseignez date, début et fin.", variant: "destructive" });
+      toast({ title: "Créneau invalide", description: "Renseignez date, début et fin.", variant: "destructive" });
       return;
     }
     if (saleStart >= saleEnd) {
-      toast({ title: "Creneau invalide", description: "L'heure de fin doit être après le début.", variant: "destructive" });
+      toast({ title: "Créneau invalide", description: "L'heure de fin doit être après le début.", variant: "destructive" });
       return;
     }
 
@@ -395,7 +395,7 @@ function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            L'offre apparaîtra automatiquement aux clients au début du creneau et disparaitra à la fin.
+            L'offre apparaîtra automatiquement aux clients au début du créneau et disparaîtra à la fin.
           </p>
 
           <Button type="submit" disabled={loading} className="w-full gap-2">

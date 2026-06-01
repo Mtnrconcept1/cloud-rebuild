@@ -10,7 +10,7 @@ export type SocialFeedRankInput = {
 export const SOCIAL_FEED_SCOPES = [
   { value: "for_you", label: "Pour vous" },
   { value: "followed", label: "Suivis" },
-  { value: "nearby", label: "A proximite" },
+  { value: "nearby", label: "À proximité" },
   { value: "offers", label: "Offres" },
 ] as const;
 
@@ -60,7 +60,7 @@ export const SOCIAL_MARKETING_GOALS = [
   },
   {
     value: "loyalty",
-    label: "Fidelisation",
+    label: "Fidélisation",
     description: "Faire revenir les clients qui connaissent déjà le restaurant.",
     recommendedPostType: "annonce",
     recommendedCta: "none",
@@ -497,8 +497,8 @@ export function getSocialRecommendationReasons(item: SocialFeedRankableItem, inp
   if (followedRestaurantIds.has(item.restaurantId)) reasons.push("Restaurant suivi");
   if (favoriteRestaurantIds.has(item.restaurantId)) reasons.push("Dans vos favoris");
   if (interactedRestaurantIds.has(item.restaurantId)) reasons.push("Déjà commande ou réserve");
-  if (cuisine && favoriteCuisines.has(cuisine)) reasons.push("Cuisine preferee");
-  if (city && viewerCity && city === viewerCity) reasons.push("A proximite");
+  if (cuisine && favoriteCuisines.has(cuisine)) reasons.push("Cuisine préférée");
+  if (city && viewerCity && city === viewerCity) reasons.push("À proximité");
   if (item.postType === "promo") reasons.push("Offre en cours");
 
   return reasons.slice(0, 3);

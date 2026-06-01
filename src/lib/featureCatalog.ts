@@ -119,7 +119,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "emporter",
     label: "Emporter",
-    description: "Active le retrait click & collect et les flux relies.",
+    description: "Active le retrait click & collect et les flux reliés.",
     defaultEnabled: true,
     group: "journeys",
     critical: true,
@@ -222,7 +222,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "chefs-table",
     label: "La Table du Chef",
-    description: "Active les expériences exclusives et leurs pages associees.",
+    description: "Active les expériences exclusives et leurs pages associées.",
     defaultEnabled: true,
     group: "client_features",
     routeTargets: ["/chefs-table"],
@@ -321,7 +321,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-restaurant",
     label: "Dashboard: Mon restaurant",
-    description: "Expose l'edition de la fiche restaurant et des capacités locales.",
+    description: "Expose l'édition de la fiche restaurant et des capacités locales.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
@@ -366,7 +366,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-recommandations",
     label: "Dashboard: Recommandations",
-    description: "Expose les recommandations operationnelles cote restaurateur.",
+    description: "Expose les recommandations opérationnelles côté restaurateur.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
@@ -411,7 +411,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-reseaux-sociaux",
     label: "Dashboard: Reseaux sociaux",
-    description: "Expose les activations reseaux sociaux cote restaurateur.",
+    description: "Expose les activations réseaux sociaux côté restaurateur.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "campagnes-pub"],
@@ -429,7 +429,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-campagnes",
     label: "Dashboard: Campagnes avancees",
-    description: "Expose l'edition complète des campagnes sponsorisées.",
+    description: "Expose l'édition complète des campagnes sponsorisées.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "campagnes-pub"],
@@ -447,7 +447,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-factures-parametres",
     label: "Dashboard: Paramètres de facturation",
-    description: "Expose les parametres de facturation restaurateur.",
+    description: "Expose les paramètres de facturation restaurateur.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
@@ -456,7 +456,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-offres",
     label: "Dashboard: Anti-gaspi",
-    description: "Expose la gestion anti-gaspi cote restaurateur.",
+    description: "Expose la gestion anti-gaspi côté restaurateur.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "anti-gaspi"],
@@ -465,7 +465,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-ventes-flash",
     label: "Dashboard: Ventes flash",
-    description: "Expose la gestion des ventes flash cote restaurateur.",
+    description: "Expose la gestion des ventes flash côté restaurateur.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "ventes-flash"],
@@ -492,7 +492,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-plan-salle",
     label: "Dashboard: Plan de salle",
-    description: "Expose le plan de salle, l'edition des tables et l'affectation des réservations.",
+    description: "Expose le plan de salle, l'édition des tables et l'affectation des réservations.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "reservation"],

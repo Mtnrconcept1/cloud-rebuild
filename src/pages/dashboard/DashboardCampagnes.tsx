@@ -78,7 +78,7 @@ import { useDashboardRestaurant } from "./useDashboardRestaurant";
 const supabase = getSupabase();
 
 const CAMPAIGN_TYPES = [
-  { value: "boost", label: "Boost (Sponsorise)" },
+  { value: "boost", label: "Boost (Sponsorisé)" },
   { value: "banner", label: "Banniere" },
   { value: "push", label: "Push notification" },
 ];
@@ -103,7 +103,7 @@ const PAYMENT_STATUS_MAP: Record<string, { label: string; variant: "default" | "
   pending: { label: "Paiement manuel", variant: "secondary" },
   paid: { label: "Paye", variant: "default" },
   failed: { label: "Paiement refuse", variant: "destructive" },
-  cancelled: { label: "Paiement annule", variant: "destructive" },
+  cancelled: { label: "Paiement annulé", variant: "destructive" },
 };
 
 type ConversionByType = {
@@ -199,8 +199,8 @@ export default function DashboardCampagnes() {
             queryClient.setQueryData(["dashboard-campaigns", selectedId], freshCampaigns);
             setPaidCampaign(campaign);
             toast({
-              title: "Paiement confirme",
-              description: "Votre campagne a été payée avec succes et est maintenant active.",
+              title: "Paiement confirmé",
+              description: "Votre campagne a été payée avec succès et est maintenant active.",
             });
           } else {
             pollCampaignStatus(campaignId, attempts + 1);
@@ -234,7 +234,7 @@ export default function DashboardCampagnes() {
       }
     } else if (status === "cancelled") {
       toast({
-        title: "Paiement annule",
+        title: "Paiement annulé",
         description: "La campagne reste en brouillon tant que le paiement n est pas finalisé.",
         variant: "destructive",
       });
@@ -330,10 +330,10 @@ export default function DashboardCampagnes() {
             <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <CheckCircle2 className="h-6 w-6 text-green-600" />
             </div>
-            <AlertDialogTitle className="text-center">Paiement confirme</AlertDialogTitle>
+            <AlertDialogTitle className="text-center">Paiement confirmé</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-center">
-                <p>Votre campagne a été payée avec succes et est maintenant active.</p>
+                <p>Votre campagne a été payée avec succès et est maintenant active.</p>
                 {paidCampaign?.title && (
                   <div className="rounded-lg border bg-muted/50 p-3 text-left text-sm space-y-1.5">
                     <div className="flex justify-between">
@@ -378,7 +378,7 @@ export default function DashboardCampagnes() {
                     </div>
                     {(paidCampaign.start_date || paidCampaign.end_date) && (
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Periode</span>
+                        <span className="text-muted-foreground">Période</span>
                         <span className="font-medium">
                           {paidCampaign.start_date ? new Date(paidCampaign.start_date).toLocaleDateString("fr-CH") : "—"}
                           {" — "}
@@ -418,7 +418,7 @@ export default function DashboardCampagnes() {
           stats={[
             { label: "Campagnes", value: campaigns?.length || 0, icon: Megaphone },
             { label: "Conversions", value: loadingConversions ? "..." : conversionsByType.total, icon: Target },
-            { label: "Periode", value: `${periodDays} jours`, icon: CalendarDays },
+            { label: "Période", value: `${periodDays} jours`, icon: CalendarDays },
           ]}
           actions={(
           <div className="flex items-center gap-2">
@@ -947,7 +947,7 @@ function CampaignForm({
                 <p className="mt-1 text-lg font-semibold">{formatChf(dailyBudgetValue)}</p>
               </div>
               <div className="rounded-lg bg-muted/40 p-3 text-center">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Personnes touchees</p>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Personnes touchées</p>
                 <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedPeopleReached.toLocaleString()}</p>
               </div>
             </div>
@@ -1013,10 +1013,10 @@ function CampaignForm({
 
         <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-xl border bg-background p-3">
-            <p className="text-xs font-medium">Performance estimee</p>
+            <p className="text-xs font-medium">Performance estimée</p>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div className="rounded-lg bg-muted/40 px-3 py-3">
-                <p className="text-xs text-muted-foreground">Personnes touchees</p>
+                <p className="text-xs text-muted-foreground">Personnes touchées</p>
                 <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedPeopleReached.toLocaleString()}</p>
               </div>
               <div className="rounded-lg bg-muted/40 px-3 py-3">

@@ -338,9 +338,9 @@ export default function DashboardPack() {
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
             <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-green-800 text-sm">Paiement confirme !</p>
+              <p className="font-semibold text-green-800 text-sm">Paiement confirmé !</p>
               <p className="text-xs text-green-700 mt-0.5">
-                Votre pack a été active. Notre équipe vous contactera sous 48h.
+                Votre pack a été activé. Notre équipe vous contactera sous 48h.
               </p>
             </div>
           </div>
@@ -349,7 +349,7 @@ export default function DashboardPack() {
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-amber-800 text-sm">Paiement annule</p>
+              <p className="font-semibold text-amber-800 text-sm">Paiement annulé</p>
               <p className="text-xs text-amber-700 mt-0.5">
                 Vous pouvez re-essayer en selectionnant un pack ci-dessous.
               </p>

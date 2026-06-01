@@ -2713,7 +2713,7 @@ export default function DashboardPlanSalle() {
                   <p className="text-sm text-slate-500">
                     {isTemplateMode
                       ? "Studio de conception pour la structure permanente de la salle."
-                      : "Outil de placement optimise pour le service du jour, tablette ou desktop."}
+                      : "Outil de placement optimisé pour le service du jour, tablette ou desktop."}
                   </p>
                   {selectedRestaurant ? (
                     <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700">
@@ -3017,10 +3017,10 @@ export default function DashboardPlanSalle() {
               ) : (
                 <>
                   <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Periode</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Période</p>
                     <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
                       <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
-                        <SelectValue placeholder="Periode" />
+                        <SelectValue placeholder="Période" />
                       </SelectTrigger>
                       <SelectContent>
                         {DASHBOARD_TIME_RANGE_OPTIONS.map((option) => (

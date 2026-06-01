@@ -138,20 +138,20 @@ const FAQS = [
         a: "Rendez-vous dans l'historique de vos commandes, sélectionnez la commande concernée, puis appuyez sur 'Signaler un problème'. Décrivez le souci rencontré (article manquant, qualité insatisfaisante, retard excessif) et notre équipe traitera votre demande sous 48h ouvrées. Le remboursement sera effectué sur votre moyen de paiement d'origine ou en crédit Tok, selon la nature du problème.",
       },
       {
-        q: "Puis-je repasser la meme commande ?",
+        q: "Puis-je repasser la même commande ?",
         a: "Oui ! Depuis votre historique de commandes, appuyez sur 'Commander à nouveau' sur n'importe quelle commande passée. Le panier sera pré-rempli avec les mêmes articles, sous réserve de disponibilité au restaurant. Vous pourrez modifier les quantités ou ajouter d'autres articles avant de valider.",
       },
       {
         q: "Comment commander depuis plusieurs restaurants en une seule commande ?",
-        a: "Avec la fonctionnalité Multi-Restaurant, vous pouvez composer un repas complet en choisissant une entrée, un plat et un dessert depuis différents restaurants situés dans un rayon de 500m. Toutes les commandes sont synchronisées pour arriver en meme temps. Sélectionnez l'option 'Multi-Restaurant' depuis la page d'accueil pour commencer.",
+        a: "Avec la fonctionnalité Multi-Restaurant, vous pouvez composer un repas complet en choisissant une entrée, un plat et un dessert depuis différents restaurants situés dans un rayon de 500m. Toutes les commandes sont synchronisées pour arriver en même temps. Sélectionnez l'option 'Multi-Restaurant' depuis la page d'accueil pour commencer.",
       },
       {
         q: "Comment fonctionne la commande groupée ?",
-        a: "Avec Match Groupes, vous pouvez rejoindre un groupe existant ou en créer un nouveau. Chaque membre commande ses plats individuellement et bénéficie d'une réduction collective (jusqu’à -25%) grâce à la mutualisation de la livraison. Vous pouvez trouver les groupes actifs près de chez vous ou inviter vos proches a rejoindre le votre.",
+        a: "Avec Match Groupes, vous pouvez rejoindre un groupe existant ou en créer un nouveau. Chaque membre commande ses plats individuellement et bénéficie d'une réduction collective (jusqu’à -25%) grâce à la mutualisation de la livraison. Vous pouvez trouver les groupes actifs près de chez vous ou inviter vos proches à rejoindre le vôtre.",
       },
       {
-        q: "Puis-je commander pour quelqu'un a une autre adresse ?",
-        a: "Oui, grâce à la fonctionnalité Multi-Stop. Vous pouvez ajouter jusqu’à 4 adresses de livraison différentes dans une seule commande. Chaque arrêt a ses propres articles et destinataire. Les frais de livraison sont optimisés et partages entre les différents arrêts (base 5.90 CHF + 1.50 CHF par arrêt supplémentaire).",
+        q: "Puis-je commander pour quelqu'un à une autre adresse ?",
+        a: "Oui, grâce à la fonctionnalité Multi-Stop. Vous pouvez ajouter jusqu’à 4 adresses de livraison différentes dans une seule commande. Chaque arrêt a ses propres articles et destinataire. Les frais de livraison sont optimisés et partagés entre les différents arrêts (base 5.90 CHF + 1.50 CHF par arrêt supplémentaire).",
       },
       {
         q: "Mon plat est arrive froid, que faire ?",
@@ -164,11 +164,11 @@ const FAQS = [
     questions: [
       {
         q: "Comment créer un compte ?",
-        a: "Appuyez sur 'S'inscrire' depuis l'ecran de connexion. Vous pouvez créer un compte avec votre email ou vous connecter directement via Google ou Apple. Un email de vérification vous sera envoyé pour confirmer votre adresse. Votre compte vous donne accès à l'historique de commandes, aux points de fidélité, aux adresses enregistrées et a toutes les fonctionnalités de la plateforme.",
+        a: "Appuyez sur 'S'inscrire' depuis l'écran de connexion. Vous pouvez créer un compte avec votre email ou vous connecter directement via Google ou Apple. Un email de vérification vous sera envoyé pour confirmer votre adresse. Votre compte vous donne accès à l'historique de commandes, aux points de fidélité, aux adresses enregistrées et à toutes les fonctionnalités de la plateforme.",
       },
       {
         q: "Quels moyens de paiement sont acceptés ?",
-        a: "Tok accepté les moyens de paiement suivants : Visa, Mastercard, TWINT, Apple Pay et Google Pay. Vous pouvez également utiliser votre solde de crédit Tok (reçu via des remboursements ou des cadeaux de points). Pour les packs restaurateurs, PostFinance Card et PostFinance E-Finance sont également acceptés.",
+        a: "Tok accepte les moyens de paiement suivants : Visa, Mastercard, TWINT, Apple Pay et Google Pay. Vous pouvez également utiliser votre solde de crédit Tok (reçu via des remboursements ou des cadeaux de points). Pour les packs restaurateurs, PostFinance Card et PostFinance E-Finance sont également acceptés.",
       },
       {
         q: "Comment changer mon mode de paiement ?",
@@ -180,7 +180,7 @@ const FAQS = [
       },
       {
         q: "Comment modifier mes informations personnelles ?",
-        a: "Rendez-vous dans 'Profil' > 'Informations personnelles' pour modifier votre nom, email, numéro de téléphone ou adresse de livraison par défaut. Certaines modifications (comme l'email) peuvent necessiter une vérification par email.",
+        a: "Rendez-vous dans 'Profil' > 'Informations personnelles' pour modifier votre nom, email, numéro de téléphone ou adresse de livraison par défaut. Certaines modifications (comme l'email) peuvent nécessiter une vérification par email.",
       },
       {
         q: "Comment supprimer mon compte ?",
@@ -195,12 +195,12 @@ const FAQS = [
         a: "Depuis 'Profil' > 'Adresses', appuyez sur 'Ajouter une adresse'. Vous pouvez saisir votre adresse manuellement ou utiliser la géolocalisation. Ajoutez des détails pratiques (code d'entrée, étage, interphone) pour faciliter la livraison. Vous pouvez enregistrer plusieurs adresses (domicile, bureau, etc.) et définir une adresse par défaut.",
       },
       {
-        q: "J'ai été debite mais ma commande n'a pas été confirmée",
+        q: "J'ai été débité mais ma commande n'a pas été confirmée",
         a: `En cas de débit sans confirmation, vérifiez d'abord votre onglet 'Commandes' — la commande peut être en cours de traitement. Si rien n'apparaît, contactez notre support via le chat ou à ${SUPPORT_EMAIL} avec votre référence de paiement. Nous vérifierons le statut de la transaction et procéderons au remboursement si nécessaire sous 5 à 10 jours ouvrables.`,
       },
       {
         q: "Puis-je me connecter avec Google ou Apple ?",
-        a: "Oui, Tok supporte la connexion via Google et Apple. Si vous avez déjà un compte avec le meme email, les comptes seront lies automatiquement. Vous pouvez basculer entre les méthodes de connexion à tout moment depuis les parametres de votre profil.",
+        a: "Oui, Tok supporte la connexion via Google et Apple. Si vous avez déjà un compte avec le même email, les comptes seront liés automatiquement. Vous pouvez basculer entre les méthodes de connexion à tout moment depuis les paramètres de votre profil.",
       },
     ],
   },
@@ -217,11 +217,11 @@ const FAQS = [
       },
       {
         q: "Les frais de livraison sont-ils fixes ?",
-        a: "Les frais de livraison varient entre 2.90 CHF et 6.90 CHF selon la distance entre le restaurant et votre adresse. Ils sont clairement affichés avant validation. Les abonnés Tok One beneficient de la livraison gratuite sur les restaurants éligibles (sans minimum de commande). Les commandes groupees (Match Groupes) permettent aussi de reduire les frais par personne.",
+        a: "Les frais de livraison varient entre 2.90 CHF et 6.90 CHF selon la distance entre le restaurant et votre adresse. Ils sont clairement affichés avant validation. Les abonnés Tok One bénéficient de la livraison gratuite sur les restaurants éligibles (sans minimum de commande). Les commandes groupées (Match Groupes) permettent aussi de réduire les frais par personne.",
       },
       {
         q: "Je ne suis pas chez moi, que se passe-t-il ?",
-        a: "Le livreur tentera de vous contacter par téléphone. Si vous êtes injoignable, il attendra 5 minutes maximum sur place. Passe ce délai, la commande sera considérée comme livrée. Pour éviter ce problème, pensez a ajouter des instructions de livraison detaillees (code d'entrée, étage, digicode) et assurez-vous que votre téléphone est joignable.",
+        a: "Le livreur tentera de vous contacter par téléphone. Si vous êtes injoignable, il attendra 5 minutes maximum sur place. Passé ce délai, la commande sera considérée comme livrée. Pour éviter ce problème, pensez à ajouter des instructions de livraison détaillées (code d'entrée, étage, digicode) et assurez-vous que votre téléphone est joignable.",
       },
       {
         q: "Puis-je programmer une livraison à l'avance ?",
@@ -233,23 +233,23 @@ const FAQS = [
       },
       {
         q: "Mon livreur ne trouve pas mon adresse",
-        a: "Assurez-vous que votre adresse est correcte et complète dans votre profil. Ajoutez des instructions de livraison detaillees (numéro de batiment, code d'entrée, étage, interphone). Si le livreur est en difficulte, il vous contactera directement par téléphone. Vous pouvez également suivre sa position sur la carte et le guider par message.",
+        a: "Assurez-vous que votre adresse est correcte et complète dans votre profil. Ajoutez des instructions de livraison détaillées (numéro de bâtiment, code d'entrée, étage, interphone). Si le livreur est en difficulté, il vous contactera directement par téléphone. Vous pouvez également suivre sa position sur la carte et le guider par message.",
       },
       {
         q: "Que sont les Créneaux Garantis ?",
-        a: "Les Créneaux Garantis vous permettent de choisir un creneau de livraison précis avec une garantie de ponctualite. Trois niveaux sont disponibles : Ultra Precis (±15 min, remboursement a 100% si manque, +2.50 CHF), Standard (±30 min, 5 CHF de crédit, +1.00 CHF) et Flexible (±60 min, 2 CHF de crédit, gratuit). Si le livreur ne respecte pas le creneau, la compensation est automatique.",
+        a: "Les Créneaux Garantis vous permettent de choisir un créneau de livraison précis avec une garantie de ponctualité. Trois niveaux sont disponibles : Ultra Précis (±15 min, remboursement à 100% si manqué, +2.50 CHF), Standard (±30 min, 5 CHF de crédit, +1.00 CHF) et Flexible (±60 min, 2 CHF de crédit, gratuit). Si le livreur ne respecte pas le créneau, la compensation est automatique.",
       },
       {
         q: "Comment fonctionne Flex Prix Bas ?",
-        a: "Flex Prix Bas vous propose une réduction en échange d'une fenêtre de livraison plus large. Plus la fenêtre est grande, plus la réduction est importante : 1h (-15%), 1h30 (-25%), 2h (-35%), ou fenêtre max 3h (-45%). L'algorithme optimise le meilleur moment de livraison dans votre creneau. Cela reduit aussi l'empreinte carbone en optimisant les trajets (jusqu’à -30% de CO2).",
+        a: "Flex Prix Bas vous propose une réduction en échange d'une fenêtre de livraison plus large. Plus la fenêtre est grande, plus la réduction est importante : 1h (-15%), 1h30 (-25%), 2h (-35%), ou fenêtre max 3h (-45%). L'algorithme optimise le meilleur moment de livraison dans votre créneau. Cela réduit aussi l'empreinte carbone en optimisant les trajets (jusqu’à -30% de CO2).",
       },
       {
         q: "Que se passe-t-il si ma commande est en retard ?",
-        a: "Si vous avez choisi un Creneau Garanti, la compensation est automatique selon le niveau choisi. Pour les livraisons standards, si le retard depasse 15 minutes au-dela de l'estimation affichée, contactez le support via le chat. Nous evaluerons la situation et proposerons une compensation (crédit Tok ou livraison gratuite sur la prochaine commande).",
+        a: "Si vous avez choisi un Créneau Garanti, la compensation est automatique selon le niveau choisi. Pour les livraisons standards, si le retard dépasse 15 minutes au-delà de l'estimation affichée, contactez le support via le chat. Nous évaluerons la situation et proposerons une compensation (crédit Tok ou livraison gratuite sur la prochaine commande).",
       },
       {
-        q: "Livrez-vous le dimanche et les jours feries ?",
-        a: "Oui, la disponibilité de la livraison depend des horaires d'ouverture des restaurants partenaires. De nombreux restaurants sont ouverts le dimanche et certains jours feries. Les horaires de chaque restaurant sont affichés sur sa fiche. La plateforme est accessible 7 jours sur 7.",
+        q: "Livrez-vous le dimanche et les jours fériés ?",
+        a: "Oui, la disponibilité de la livraison dépend des horaires d'ouverture des restaurants partenaires. De nombreux restaurants sont ouverts le dimanche et certains jours fériés. Les horaires de chaque restaurant sont affichés sur sa fiche. La plateforme est accessible 7 jours sur 7.",
       },
     ],
   },
@@ -258,22 +258,22 @@ const FAQS = [
     questions: [
       {
         q: "Comment réserver une table ?",
-        a: "Rendez-vous sur la page du restaurant souhaite et appuyez sur 'Réserver'. Sélectionnez la date, l'heure et le nombre de convives. Votre réservation sera confirmée instantanément si le creneau est disponible. Vous recevrez une confirmation par notification et par email avec tous les détails.",
+        a: "Rendez-vous sur la page du restaurant souhaité et appuyez sur 'Réserver'. Sélectionnez la date, l'heure et le nombre de convives. Votre réservation sera confirmée instantanément si le créneau est disponible. Vous recevrez une confirmation par notification et par email avec tous les détails.",
       },
       {
         q: "Qu'est-ce que Zéro Attente ?",
-        a: "Zéro Attente est une expérience de réservation premium : vous reservez votre table ET précommandez vos plats en meme temps, le tout avec un paiement anticipe. À votre arrivée au restaurant, vos plats sont déjà en préparation — vous n'attendez plus. La réservation apparaît dans l'onglet 'Reservations' du restaurant (et non dans les commandes) avec un badge indigo distinctif.",
+        a: "Zéro Attente est une expérience de réservation premium : vous réservez votre table ET précommandez vos plats en même temps, le tout avec un paiement anticipé. À votre arrivée au restaurant, vos plats sont déjà en préparation — vous n'attendez plus. La réservation apparaît dans l'onglet 'Réservations' du restaurant (et non dans les commandes) avec un badge indigo distinctif.",
       },
       {
         q: "Comment fonctionne le paiement Zéro Attente ?",
-        a: "Lors de la réservation Zéro Attente, vous sélectionnez vos plats depuis le menu du restaurant, puis vous payez directement via Stripe (carte bancaire, TWINT, PostFinance). Le paiement est sécurisé et le montant inclut les plats précommandés. Dès que le paiement est confirme, votre réservation est automatiquement validée avec le statut 'Confirmee'.",
+        a: "Lors de la réservation Zéro Attente, vous sélectionnez vos plats depuis le menu du restaurant, puis vous payez directement via Stripe (carte bancaire, TWINT, PostFinance). Le paiement est sécurisé et le montant inclut les plats précommandés. Dès que le paiement est confirmé, votre réservation est automatiquement validée avec le statut 'Confirmée'.",
       },
       {
         q: "Puis-je annuler une réservation ?",
-        a: "L'annulation est possible jusqu’à 2 heures avant l'heure de la réservation. Passee ce délai, une annulation tardive pourrait entrainer des restrictions sur votre compte (signalement no-show). Pour les réservations Zéro Attente (payées), contactez le support pour discuter d'un remboursement ou d'un report de date.",
+        a: "L'annulation est possible jusqu’à 2 heures avant l'heure de la réservation. Passé ce délai, une annulation tardive pourrait entraîner des restrictions sur votre compte (signalement no-show). Pour les réservations Zéro Attente (payées), contactez le support pour discuter d'un remboursement ou d'un report de date.",
       },
       {
-        q: "Puis-je appliquer une formule a ma réservation ?",
+        q: "Puis-je appliquer une formule à ma réservation ?",
         a: "Oui, si le restaurant propose des formules (entrée + plat, plat + dessert, menu complet), elles sont applicables lors de la commande Zéro Attente. La réduction de la formule sera appliquée automatiquement au total. Les détails de la formule et la réduction apparaissent dans le récapitulatif.",
       },
       {
@@ -286,11 +286,11 @@ const FAQS = [
       },
       {
         q: "Que se passe-t-il si je ne me présente pas (no-show) ?",
-        a: "Si vous ne vous présentez pas sans avoir annule au préalable, cela sera enregistré comme un 'no-show'. Des no-shows répétés peuvent entrainer des restrictions sur votre capacité a réserver. Pour les réservations Zéro Attente, le paiement est conservé. Pensez toujours a annuler à l'avance si vos plans changent.",
+        a: "Si vous ne vous présentez pas sans avoir annulé au préalable, cela sera enregistré comme un 'no-show'. Des no-shows répétés peuvent entraîner des restrictions sur votre capacité à réserver. Pour les réservations Zéro Attente, le paiement est conservé. Pensez toujours à annuler à l'avance si vos plans changent.",
       },
       {
         q: "Puis-je modifier le nombre de convives après la réservation ?",
-        a: "Oui, vous pouvez modifier le nombre de convives tant que le creneau le permet (capacité disponible). Rendez-vous dans les détails de votre réservation et appuyez sur 'Modifier'. Si le restaurant ne peut pas accommoder le nouveau nombre, vous devrez annuler et réserver un autre creneau.",
+        a: "Oui, vous pouvez modifier le nombre de convives tant que le créneau le permet (capacité disponible). Rendez-vous dans les détails de votre réservation et appuyez sur 'Modifier'. Si le restaurant ne peut pas accommoder le nouveau nombre, vous devrez annuler et réserver un autre créneau.",
       },
     ],
   },
@@ -299,15 +299,15 @@ const FAQS = [
     questions: [
       {
         q: "Qu'est-ce que le Multi-Restaurant ?",
-        a: "Le Multi-Restaurant vous permet de composer un repas complet en commandant depuis plusieurs restaurants différents. Choisissez votre entrée chez un restaurant, votre plat chez un autre et votre dessert ailleurs — le tout dans un rayon de 500m. Toutes les preparations sont synchronisées pour que vos plats arrivent en meme temps chez vous.",
+        a: "Le Multi-Restaurant vous permet de composer un repas complet en commandant depuis plusieurs restaurants différents. Choisissez votre entrée chez un restaurant, votre plat chez un autre et votre dessert ailleurs — le tout dans un rayon de 500m. Toutes les préparations sont synchronisées pour que vos plats arrivent en même temps chez vous.",
       },
       {
         q: "Comment fonctionnent les Ventes Flash ?",
-        a: "Les Ventes Flash sont des offres limitées dans le temps avec des réductions allant jusqu’à -70%. Elles apparaissent avec un compte a rebours en temps réel. Une fois le délai expire, l'offre disparait automatiquement. Activez les notifications pour être alerté des nouvelles ventes flash. Disponible en livraison et à emporter.",
+        a: "Les Ventes Flash sont des offres limitées dans le temps avec des réductions allant jusqu’à -70%. Elles apparaissent avec un compte à rebours en temps réel. Une fois le délai expiré, l'offre disparaît automatiquement. Activez les notifications pour être alerté des nouvelles ventes flash. Disponible en livraison et à emporter.",
       },
       {
         q: "Comment fonctionne Match Groupes ?",
-        a: "Match Groupes permet de mutualiser une livraison avec d'autres personnes de votre quartier. Recherchez les groupes actifs près de chez vous ou créez le votre en définissant un creneau, une zone et un nombre maximum de membres. Chaque participant commande individuellement et bénéficie d'une réduction collective (jusqu’à -25%). La réduction CO2 atteint -45% par rapport a des commandes individuelles.",
+        a: "Match Groupes permet de mutualiser une livraison avec d'autres personnes de votre quartier. Recherchez les groupes actifs près de chez vous ou créez le vôtre en définissant un créneau, une zone et un nombre maximum de membres. Chaque participant commande individuellement et bénéficie d'une réduction collective (jusqu’à -25%). La réduction CO2 atteint -45% par rapport à des commandes individuelles.",
       },
       {
         q: "Comment fonctionne Multi-Stop ?",
@@ -315,7 +315,7 @@ const FAQS = [
       },
       {
         q: "Qu'est-ce que Budget Auto ?",
-        a: "Budget Auto est un outil intelligent qui compose automatiquement un menu optimise selon vos objectifs (budget, preferences alimentaires, decouverte). Definissez votre budget cible et vos criteres, et l'algorithme vous propose les meilleures combinaisons de plats disponibles dans les restaurants a proximite.",
+        a: "Budget Auto est un outil intelligent qui compose automatiquement un menu optimisé selon vos objectifs (budget, préférences alimentaires, découverte). Définissez votre budget cible et vos critères, et l'algorithme vous propose les meilleures combinaisons de plats disponibles dans les restaurants à proximité.",
       },
       {
         q: "Comment fonctionne l'Abonnement repas hebdomadaire ?",
@@ -323,11 +323,11 @@ const FAQS = [
       },
       {
         q: "Comment offrir des points de fidélité en cadeau ?",
-        a: "Rendez-vous dans 'Points cadeau' depuis le menu principal. Choisissez le montant de points a offrir (minimum 100 points), saisissez l'email du destinataire et ajoutez un message personnalise. Si le destinataire a déjà un compte, les points sont credites immédiatement. Sinon, un code cadeau lui est envoyé par email, valable 30 jours.",
+        a: "Rendez-vous dans 'Points cadeau' depuis le menu principal. Choisissez le montant de points à offrir (minimum 100 points), saisissez l'email du destinataire et ajoutez un message personnalisé. Si le destinataire a déjà un compte, les points sont crédités immédiatement. Sinon, un code cadeau lui est envoyé par email, valable 30 jours.",
       },
       {
-        q: "Puis-je donner des repas a des personnes dans le besoin ?",
-        a: "Oui ! Via le programme de dons solidaires, vous pouvez offrir des repas a des personnes en difficulte. Depuis la page Anti-gaspi, appuyez sur 'Dons Solidaires' et choisissez le nombre de repas a offrir. Vous pouvez aussi convertir vos points de fidélité en dons (1000 points = 1 repas offert). Chaque contribution fait une difference concrete.",
+        q: "Puis-je donner des repas à des personnes dans le besoin ?",
+        a: "Oui ! Via le programme de dons solidaires, vous pouvez offrir des repas à des personnes en difficulté. Depuis la page Anti-gaspi, appuyez sur 'Dons Solidaires' et choisissez le nombre de repas à offrir. Vous pouvez aussi convertir vos points de fidélité en dons (1000 points = 1 repas offert). Chaque contribution fait une différence concrète.",
       },
     ],
   },
@@ -336,7 +336,7 @@ const FAQS = [
     questions: [
       {
         q: "Qu'est-ce que l'Anti-Gaspi ?",
-        a: "Le programme Anti-Gaspi de Tok permet aux restaurants de proposer leurs invendus a prix reduit (jusqu’à -70%) plutôt que de les jeter. Vous contribuez a reduire le gaspillage alimentaire tout en profitant de repas de qualité a petit prix. Plus de 50 000 repas ont été sauves grâce à ce programme, et nous economisons 942 kg de nourriture par semaine.",
+        a: "Le programme Anti-Gaspi de Tok permet aux restaurants de proposer leurs invendus à prix réduit (jusqu’à -70%) plutôt que de les jeter. Vous contribuez à réduire le gaspillage alimentaire tout en profitant de repas de qualité à petit prix. Plus de 50 000 repas ont été sauvés grâce à ce programme, et nous économisons 942 kg de nourriture par semaine.",
       },
       {
         q: "Comment fonctionnent les Paniers Surprise ?",
@@ -344,19 +344,19 @@ const FAQS = [
       },
       {
         q: "Les produits anti-gaspi sont-ils de bonne qualité ?",
-        a: "Absolument. Il s'agit de plats et produits qui n'ont simplement pas été vendus dans là journée. Ils respectent les mêmes normes d'hygiène et de fraicheur que les commandes régulières. Les restaurants partenaires s'engagent à ne proposer que des produits encore parfaitement consommables.",
+        a: "Absolument. Il s'agit de plats et produits qui n'ont simplement pas été vendus dans la journée. Ils respectent les mêmes normes d'hygiène et de fraîcheur que les commandes régulières. Les restaurants partenaires s'engagent à ne proposer que des produits encore parfaitement consommables.",
       },
       {
         q: "Comment fonctionne le programme de dons solidaires ?",
-        a: "Le programme permet de financer des repas pour les personnes en difficulte. Vous pouvez faire un don direct en argent, convertir vos points de fidélité en repas (1000 points = 1 repas) ou arrondir le montant de votre commande au franc superieur pour la solidarite. Tous les dons sont redistribues a travers notre reseau de partenaires associatifs.",
+        a: "Le programme permet de financer des repas pour les personnes en difficulté. Vous pouvez faire un don direct en argent, convertir vos points de fidélité en repas (1000 points = 1 repas) ou arrondir le montant de votre commande au franc supérieur pour la solidarité. Tous les dons sont redistribués à travers notre réseau de partenaires associatifs.",
       },
       {
         q: "Quel est l'impact environnemental de ma commande ?",
-        a: "Chaque commande anti-gaspi affiche son impact : poids de nourriture sauvee et equivalent CO2 evite. Au global, Tok a permis de sauver plus de 50 000 repas et d'éviter des tonnes de dechets alimentaires. En utilisant Flex Prix Bas, vous reduisez aussi l'empreinte carbone de la livraison de 8 a 30% grâce à l'optimisation des trajets.",
+        a: "Chaque commande anti-gaspi affiche son impact : poids de nourriture sauvée et équivalent CO2 évité. Au global, Tok a permis de sauver plus de 50 000 repas et d'éviter des tonnes de déchets alimentaires. En utilisant Flex Prix Bas, vous réduisez aussi l'empreinte carbone de la livraison de 8 à 30% grâce à l'optimisation des trajets.",
       },
       {
-        q: "A quelles heures sont disponibles les offres anti-gaspi ?",
-        a: "Les offres anti-gaspi apparaissent généralement en fin de service (14h-15h pour le midi, 21h-22h pour le soir), quand les restaurants souhaitent ecouler leurs invendus. Les horaires varient selon chaque restaurant. Activez les notifications anti-gaspi pour être alerté des qu'une offre est disponible près de chez vous.",
+        q: "À quelles heures sont disponibles les offres anti-gaspi ?",
+        a: "Les offres anti-gaspi apparaissent généralement en fin de service (14h-15h pour le midi, 21h-22h pour le soir), quand les restaurants souhaitent écouler leurs invendus. Les horaires varient selon chaque restaurant. Activez les notifications anti-gaspi pour être alerté dès qu'une offre est disponible près de chez vous.",
       },
     ],
   },
@@ -365,15 +365,15 @@ const FAQS = [
     questions: [
       {
         q: "Quels sont les avantages de Tok One ?",
-        a: "Tok One vous offre : la livraison gratuite sur tous les restaurants éligibles (sans minimum de commande), des réductions exclusives allant jusqu’à 20%, un accès prioritaire aux La Table du Chefs et événements gastronomiques, un accès anticipe aux ventes flash et offres spéciales, un support client prioritaire avec temps de réponse accelere, et des offres surprises régulières réservées aux membres.",
+        a: "Tok One vous offre : la livraison gratuite sur tous les restaurants éligibles (sans minimum de commande), des réductions exclusives allant jusqu’à 20%, un accès prioritaire aux La Table du Chefs et événements gastronomiques, un accès anticipé aux ventes flash et offres spéciales, un support client prioritaire avec temps de réponse accéléré, et des offres surprises régulières réservées aux membres.",
       },
       {
-        q: "Combien coute l'abonnement Tok One ?",
-        a: "L'abonnement Tok One est disponible en deux formules : 9.90 CHF/mois (sans engagement) ou 89.90 CHF/an (soit 2 mois offerts par rapport au tarif mensuel). Vous pouvez essayer gratuitement pendant 14 jours avant d'être facturé. Aucun frais cache.",
+        q: "Combien coûte l'abonnement Tok One ?",
+        a: "L'abonnement Tok One est disponible en deux formules : 9.90 CHF/mois (sans engagement) ou 89.90 CHF/an (soit 2 mois offerts par rapport au tarif mensuel). Vous pouvez essayer gratuitement pendant 14 jours avant d'être facturé. Aucun frais caché.",
       },
       {
         q: "Comment résilier mon abonnement Tok One ?",
-        a: "Rendez-vous dans 'Profil' > 'Mon abonnement' > 'Gerer l'abonnement' > 'Resilier'. La résiliation prend effet à la fin de la periode en cours (mois ou année), et vous conservez tous vos avantages jusqu’à cette date. Aucun remboursement partiel n'est effectué pour la periode entamee. Vous pouvez vous réabonner à tout moment.",
+        a: "Rendez-vous dans 'Profil' > 'Mon abonnement' > 'Gérer l'abonnement' > 'Résilier'. La résiliation prend effet à la fin de la période en cours (mois ou année), et vous conservez tous vos avantages jusqu’à cette date. Aucun remboursement partiel n'est effectué pour la période entamée. Vous pouvez vous réabonner à tout moment.",
       },
       {
         q: "Quels restaurants sont éligibles à la livraison gratuite ?",
@@ -381,11 +381,11 @@ const FAQS = [
       },
       {
         q: "Puis-je partager mon abonnement Tok One ?",
-        a: "L'abonnement Tok One est personnel et lié a un seul compte. Il ne peut pas être partage ou transféré a une autre personne. Cependant, chaque membre de votre foyer peut souscrire à son propre abonnement et bénéficier de la periode d'essai gratuite de 14 jours.",
+        a: "L'abonnement Tok One est personnel et lié à un seul compte. Il ne peut pas être partagé ou transféré à une autre personne. Cependant, chaque membre de votre foyer peut souscrire à son propre abonnement et bénéficier de la période d'essai gratuite de 14 jours.",
       },
       {
         q: "L'essai gratuit de 14 jours m'engage-t-il ?",
-        a: "Non, l'essai gratuit est sans engagement. Vous pouvez résilier à tout moment pendant les 14 jours sans être facturé. Si vous ne resiliez pas, l'abonnement sera active automatiquement à la fin de la periode d'essai au tarif choisi (mensuel ou annuel).",
+        a: "Non, l'essai gratuit est sans engagement. Vous pouvez résilier à tout moment pendant les 14 jours sans être facturé. Si vous ne résiliez pas, l'abonnement sera activé automatiquement à la fin de la période d'essai au tarif choisi (mensuel ou annuel).",
       },
       {
         q: "Les avantages Tok One sont-ils cumulables avec les promos ?",
@@ -398,23 +398,23 @@ const FAQS = [
     questions: [
       {
         q: "Comment fonctionne le programme de fidélité ?",
-        a: "Chaque commande et réservation vous rapporte des points Miamz. Le nombre de points depend du montant dépensé. Vous pouvez consulter votre solde de points depuis votre profil. Les points sont cumulables et peuvent être convertis en réductions sur vos prochaines commandes, en cadeaux pour vos proches, ou en dons solidaires.",
+        a: "Chaque commande et réservation vous rapporte des points Miamz. Le nombre de points dépend du montant dépensé. Vous pouvez consulter votre solde de points depuis votre profil. Les points sont cumulables et peuvent être convertis en réductions sur vos prochaines commandes, en cadeaux pour vos proches, ou en dons solidaires.",
       },
       {
         q: "Comment utiliser mes points Miamz ?",
-        a: "Lors du checkout, vous pouvez appliquer tout ou partie de vos points Miamz pour reduire le montant de votre commande (100 Miamz ~ 1 CHF de réduction). Vous pouvez aussi les offrir en cadeau a un proche ou les convertir en repas solidaires. Rendez-vous dans 'Profil' > 'Mes points' pour voir votre solde et vos options.",
+        a: "Lors du checkout, vous pouvez appliquer tout ou partie de vos points Miamz pour réduire le montant de votre commande (100 Miamz ~ 1 CHF de réduction). Vous pouvez aussi les offrir en cadeau à un proche ou les convertir en repas solidaires. Rendez-vous dans 'Profil' > 'Mes points' pour voir votre solde et vos options.",
       },
       {
         q: "Mes points de fidélité expirent-ils ?",
-        a: "Les points Miamz restent valides tant que votre compte est actif. En cas de suppression de compte, tous les points accumulés sont perdus définitivement. Les points cadeau envoyés a un destinataire ont une validité de 30 jours pour être réclamés.",
+        a: "Les points Miamz restent valides tant que votre compte est actif. En cas de suppression de compte, tous les points accumulés sont perdus définitivement. Les points cadeau envoyés à un destinataire ont une validité de 30 jours pour être réclamés.",
       },
       {
-        q: "Comment offrir des points a un ami ?",
-        a: "Rendez-vous sur la page 'Points cadeau' accessible depuis le menu. Choisissez un montant (100, 250, 500 ou 1000 points, ou un montant personnalise), saisissez l'email de votre ami et ajoutez un message. Les points sont credites instantanément si votre ami a déjà un compte Tok. Sinon, il recevra un code cadeau a utiliser lors de son inscription.",
+        q: "Comment offrir des points à un ami ?",
+        a: "Rendez-vous sur la page 'Points cadeau' accessible depuis le menu. Choisissez un montant (100, 250, 500 ou 1000 points, ou un montant personnalisé), saisissez l'email de votre ami et ajoutez un message. Les points sont crédités instantanément si votre ami a déjà un compte Tok. Sinon, il recevra un code cadeau à utiliser lors de son inscription.",
       },
       {
         q: "Existe-t-il des niveaux de fidélité ?",
-        a: "Oui, le programme de fidélité comporte différents paliers qui offrent des avantages croissants : réductions supplémentaires, accès anticipe aux offres spéciales, bonus de points multiplies. Plus vous commandez, plus vous montez en niveau et débloquéz de récompenses.",
+        a: "Oui, le programme de fidélité comporte différents paliers qui offrent des avantages croissants : réductions supplémentaires, accès anticipé aux offres spéciales, bonus de points multipliés. Plus vous commandez, plus vous montez en niveau et débloquez de récompenses.",
       },
     ],
   },
@@ -431,11 +431,11 @@ const FAQS = [
       },
       {
         q: "Comment fonctionne le QR code de vérification ?",
-        a: "À la réception de votre commande, scannez le QR code sur l'emballage avec l'application Tok. Le scan confirme la chaine de qualité : température pendant le transport, intégrité du sac et délai de livraison. Si une anomalie est détectée, la compensation est déclenchée automatiquement.",
+        a: "À la réception de votre commande, scannez le QR code sur l'emballage avec l'application Tok. Le scan confirme la chaîne de qualité : température pendant le transport, intégrité du sac et délai de livraison. Si une anomalie est détectée, la compensation est déclenchée automatiquement.",
       },
       {
         q: "Comment les restaurants sont-ils sélectionnés ?",
-        a: "Chaque restaurant partenaire passe par un processus de vérification rigoureux avant d'être accepté sur la plateforme. Nous verifions les normes d'hygiène, la qualité des ingrédients, la régularité du service et les avis clients. Les restaurants sont notes en continu et ceux qui ne maintiennent pas nos standards sont retirés de la plateforme. 80% de nos partenaires sont des restaurants indépendants locaux.",
+        a: "Chaque restaurant partenaire passe par un processus de vérification rigoureux avant d'être accepté sur la plateforme. Nous vérifions les normes d'hygiène, la qualité des ingrédients, la régularité du service et les avis clients. Les restaurants sont notés en continu et ceux qui ne maintiennent pas nos standards sont retirés de la plateforme. 80% de nos partenaires sont des restaurants indépendants locaux.",
       },
       {
         q: "Les livreurs sont-ils formes ?",
@@ -452,19 +452,19 @@ const FAQS = [
     questions: [
       {
         q: "Comment inscrire mon restaurant sur Tok ?",
-        a: "Rendez-vous sur la page d'inscription restaurateur ou contactez-nous a contact@tok.ch. Notre équipe vous accompagnera dans le processus d'inscription : creation de votre profil, digitalisation de votre menu, configuration de vos horaires et de vos modes de service (livraison, emporter, sur place). Le processus prend généralement 48 a 72h.",
+        a: "Rendez-vous sur la page d'inscription restaurateur ou contactez-nous à contact@tok.ch. Notre équipe vous accompagnera dans le processus d'inscription : création de votre profil, digitalisation de votre menu, configuration de vos horaires et de vos modes de service (livraison, emporter, sur place). Le processus prend généralement 48 à 72h.",
       },
       {
         q: "Qu'est-ce que les Packs de Lancement ?",
-        a: "Les Packs de Lancement sont des formules d'accompagnement pour les restaurateurs qui souhaitent optimiser leur presence sur Tok. Quatre formules sont disponibles : Decouverte (490 CHF), Essentiel (990 CHF), Pro (1 990 CHF, le plus populaire) et Premium (3 490 CHF, VIP). Chaque pack inclut différents services : mise en place du compte, creation de menu, photos professionnelles, gestion des reseaux sociaux, campagnes publicitaires, plan de salle digital et account manager dédié.",
+        a: "Les Packs de Lancement sont des formules d'accompagnement pour les restaurateurs qui souhaitent optimiser leur présence sur Tok. Quatre formules sont disponibles : Découverte (490 CHF), Essentiel (990 CHF), Pro (1 990 CHF, le plus populaire) et Premium (3 490 CHF, VIP). Chaque pack inclut différents services : mise en place du compte, création de menu, photos professionnelles, gestion des réseaux sociaux, campagnes publicitaires, plan de salle digital et account manager dédié.",
       },
       {
         q: "Quels services sont inclus dans chaque pack ?",
-        a: "Pack Decouverte : mise en place basique + menu jusqu’à 20 plats. Pack Essentiel : mise en place complète + 40 plats + 10 photos pro + reseaux sociaux. Pack Pro : illimite + 25 photos + reseaux sociaux + 1 campagne pub (200 CHF budget) + plan de salle. Pack Premium : tout illimite + account manager dédié + 3 campagnes (500 CHF budget total) + 3 mois de gestion reseaux sociaux.",
+        a: "Pack Découverte : mise en place basique + menu jusqu’à 20 plats. Pack Essentiel : mise en place complète + 40 plats + 10 photos pro + réseaux sociaux. Pack Pro : illimité + 25 photos + réseaux sociaux + 1 campagne pub (200 CHF budget) + plan de salle. Pack Premium : tout illimité + account manager dédié + 3 campagnes (500 CHF budget total) + 3 mois de gestion réseaux sociaux.",
       },
       {
         q: "Comment fonctionne le dashboard restaurateur ?",
-        a: "Le dashboard vous donne un accès complet à la gestion de votre restaurant sur Tok. Vous y trouvez : vue d'ensemble avec indicateurs cles, gestion des commandes en temps réel, suivi des réservations (y compris Zéro Attente), edition du menu et des prix, galerie photo, performances et statistiques, facturation, gestion des campagnes publicitaires, et pilotage de service. Les sections accessibles dependent de votre pack de lancement.",
+        a: "Le dashboard vous donne un accès complet à la gestion de votre restaurant sur Tok. Vous y trouvez : vue d'ensemble avec indicateurs clés, gestion des commandes en temps réel, suivi des réservations (y compris Zéro Attente), édition du menu et des prix, galerie photo, performances et statistiques, facturation, gestion des campagnes publicitaires, et pilotage de service. Les sections accessibles dépendent de votre pack de lancement.",
       },
       {
         q: "Comment voir la progression de mon pack de lancement ?",
@@ -472,23 +472,23 @@ const FAQS = [
       },
       {
         q: "Pourquoi certains onglets du dashboard sont-ils verrouillés ?",
-        a: "Les onglets accessibles dans votre dashboard dependent du pack de lancement que vous avez choisi. Les fonctionnalités non incluses dans votre pack sont grisés et marquées d'un cadenas. Par exemple, le plan de salle n'est accessible qu'avec les packs Pro et Premium. Contactez notre équipe pour upgrader votre pack et debloquér de nouvelles fonctionnalités.",
+        a: "Les onglets accessibles dans votre dashboard dépendent du pack de lancement que vous avez choisi. Les fonctionnalités non incluses dans votre pack sont grisées et marquées d'un cadenas. Par exemple, le plan de salle n'est accessible qu'avec les packs Pro et Premium. Contactez notre équipe pour upgrader votre pack et débloquer de nouvelles fonctionnalités.",
       },
       {
         q: "Comment les réservations Zéro Attente apparaissent-elles dans mon dashboard ?",
-        a: "Les réservations Zéro Attente apparaissent dans l'onglet 'Reservations' de votre dashboard (pas dans les commandes). Elles sont visuellement distinctes avec une bordure et un fond indigo, ainsi qu'un badge 'Zéro Attente'. Vous y verrez les détails de la réservation, les plats précommandés, le montant paye et le mode de paiement. Le chiffre d'affaires des Zéro Attente est inclus dans vos statistiques de performance.",
+        a: "Les réservations Zéro Attente apparaissent dans l'onglet 'Réservations' de votre dashboard (pas dans les commandes). Elles sont visuellement distinctes avec une bordure et un fond indigo, ainsi qu'un badge 'Zéro Attente'. Vous y verrez les détails de la réservation, les plats précommandés, le montant payé et le mode de paiement. Le chiffre d'affaires des Zéro Attente est inclus dans vos statistiques de performance.",
       },
       {
-        q: "Comment sont calculees mes performances et mon chiffre d'affaires ?",
-        a: "Le chiffre d'affaires affiche dans votre dashboard inclut les revenus des commandes (livraison et à emporter) ainsi que les paiements des réservations Zéro Attente. Les commandes annulées, refusees ou en échec de paiement sont exclues. Vous pouvez consulter vos performances par periode (7, 30, 90 jours), voir les graphiques quotidiens, le panier moyen, le taux d'annulation et là satisfaction client.",
+        q: "Comment sont calculées mes performances et mon chiffre d'affaires ?",
+        a: "Le chiffre d'affaires affiché dans votre dashboard inclut les revenus des commandes (livraison et à emporter) ainsi que les paiements des réservations Zéro Attente. Les commandes annulées, refusées ou en échec de paiement sont exclues. Vous pouvez consulter vos performances par période (7, 30, 90 jours), voir les graphiques quotidiens, le panier moyen, le taux d'annulation et la satisfaction client.",
       },
       {
         q: "Comment gérer mon plan de salle ?",
-        a: "Depuis l'onglet 'Plan de salle' du dashboard (disponible avec les packs Pro et Premium), vous pouvez créer et editer visuellement votre plan de salle : ajouter des tables, définir leur capacité et leur forme, les disposer dans l'espace, et affecter des réservations aux tables. Le plan de salle est utilisé pour optimiser la gestion des réservations et la capacité de votre restaurant.",
+        a: "Depuis l'onglet 'Plan de salle' du dashboard (disponible avec les packs Pro et Premium), vous pouvez créer et éditer visuellement votre plan de salle : ajouter des tables, définir leur capacité et leur forme, les disposer dans l'espace, et affecter des réservations aux tables. Le plan de salle est utilisé pour optimiser la gestion des réservations et la capacité de votre restaurant.",
       },
       {
         q: "Comment utiliser Actualités comme outil marketing ?",
-        a: "Depuis le dashboard restaurateur, ouvrez 'Actualités'. Choisissez un objectif (notoriété, commandes, réservations, fidelisation ou offre limitée), une audience, un CTA et un modèle de publication. Le score marketing vous indique si le post contient une accroche suffisante, un média, un format adapté, un CTA clair et une programmation utile.",
+        a: "Depuis le dashboard restaurateur, ouvrez 'Actualités'. Choisissez un objectif (notoriété, commandes, réservations, fidélisation ou offre limitée), une audience, un CTA et un modèle de publication. Le score marketing vous indique si le post contient une accroche suffisante, un média, un format adapté, un CTA clair et une programmation utile.",
       },
       {
         q: "Quelles statistiques sont disponibles pour mes actualités ?",
@@ -500,7 +500,7 @@ const FAQS = [
       },
       {
         q: "Comment lancer une campagne publicitaire ?",
-        a: "Depuis l'onglet 'Campagnes' du dashboard (disponible avec les packs Pro et Premium), créez une campagne en définissant un titre, un budget et une audience cible. La campagne mettra en avant votre restaurant auprès des utilisateurs correspondants. Le paiement se fait à la creation de la campagne. Vous pouvez suivre les performances (impressions, clics, conversions) en temps réel.",
+        a: "Depuis l'onglet 'Campagnes' du dashboard (disponible avec les packs Pro et Premium), créez une campagne en définissant un titre, un budget et une audience cible. La campagne mettra en avant votre restaurant auprès des utilisateurs correspondants. Le paiement se fait à la création de la campagne. Vous pouvez suivre les performances (impressions, clics, conversions) en temps réel.",
       },
     ],
   },
@@ -638,7 +638,7 @@ export default function Aide() {
                 <HelpCircle className="h-10 w-10 mx-auto text-muted-foreground/50" />
                 <p className="font-medium">Aucun resultat trouve</p>
                 <p className="text-sm">
-                  Essayez avec d'autres mots-cles ou contactez notre support.
+                  Essayez avec d'autres mots-clés ou contactez notre support.
                 </p>
               </div>
             )}
@@ -746,7 +746,7 @@ export default function Aide() {
                   to="/a-propos"
                   className="flex items-center gap-1 text-sm text-primary font-semibold hover:underline"
                 >
-                  A propos de Tok <ChevronRight className="h-4 w-4" />
+                  À propos de Tok <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>

@@ -55,7 +55,7 @@ export default function DeliveryProofCard({ code, verifiedAt }: DeliveryProofCar
           <div className="rounded-2xl border border-dashed bg-background/60 p-4 text-sm text-muted-foreground">
             <p className="flex items-center gap-2 font-medium text-foreground">
               <ScanLine className="h-4 w-4 text-primary" />
-              Comment ca marche
+              Comment ça marche
             </p>
             <p className="mt-2">
               Le livreur scanne le QR ou saisit le code. La commande n'est marquée livrée qu'apres vérification.

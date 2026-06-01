@@ -222,7 +222,7 @@ export function scoreReservationPlacement({
 
   if (capacity >= 6 && partySize <= 2) {
     score -= 24;
-    reasons.push("Preserve les grandes tables");
+    reasons.push("Préserve les grandes tables");
   } else if (capacity >= 8 && partySize <= 4) {
     score -= 12;
     reasons.push("Garde une option groupe");

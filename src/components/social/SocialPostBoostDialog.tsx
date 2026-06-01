@@ -116,7 +116,7 @@ export default function SocialPostBoostDialog({
           checkout_kind: "campaign",
           items: [
             {
-              name: `Post sponsorise Actualites - ${post.restaurant.name}`,
+              name: `Post sponsorisé Actualités - ${post.restaurant.name}`,
               restaurant_name: post.restaurant.name,
               price: totalBudgetValue,
               quantity: 1,
@@ -209,11 +209,11 @@ export default function SocialPostBoostDialog({
               <p className="font-semibold">{formatChf(estimate.dailyBudget)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Personnes touchees</p>
+              <p className="text-xs text-muted-foreground">Personnes touchées</p>
               <p className="font-semibold">{estimate.estimatedPeopleReached.toLocaleString("fr-CH")}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Fin estimee</p>
+              <p className="text-xs text-muted-foreground">Fin estimée</p>
               <p className="font-semibold">{endsAt}</p>
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function SocialPostBoostDialog({
             </p>
             <Button type="submit" disabled={loading} className="gap-2">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
-              {loading ? "Preparation..." : "Payer et sponsoriser"}
+              {loading ? "Préparation..." : "Payer et sponsoriser"}
             </Button>
           </div>
         </form>

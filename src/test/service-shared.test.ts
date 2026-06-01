@@ -202,7 +202,7 @@ describe("service shared table state", () => {
     });
 
     expect(score.score).toBeLessThan(60);
-    expect(score.reasons).toContain("Preserve les grandes tables");
+    expect(score.reasons).toContain("Préserve les grandes tables");
   });
 
   it("penalizes tight rotations and explains the service risk", () => {

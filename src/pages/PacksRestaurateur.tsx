@@ -44,7 +44,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Puis-je changer de pack après achat ?",
-    a: "Oui, vous pouvez upgrader vers un pack superieur à tout moment. La difference de prix sera calculee et vous sera facturee. Le downgrade n'est pas possible une fois les services commences.",
+    a: "Oui, vous pouvez passer à un pack supérieur à tout moment. La différence de prix sera calculée et vous sera facturée. Le downgrade n'est pas possible une fois les services commencés.",
   },
   {
     q: "Les photos sont-elles realisees sur place ?",
@@ -56,7 +56,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Le paiement est-il unique ou recurrent ?",
-    a: "Le paiement est unique. Il n'y a aucun abonnement ni frais cache. Les services inclus dans votre pack sont delivres une seule fois lors de votre lancement.",
+    a: "Le paiement est unique. Il n'y a aucun abonnement ni frais caché. Les services inclus dans votre pack sont délivrés une seule fois lors de votre lancement.",
   },
 ];
 
@@ -333,9 +333,9 @@ function SuccessBanner() {
     <div className="bg-green-50 border border-green-200 rounded-2xl p-6 flex items-start gap-4">
       <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
       <div>
-        <h3 className="font-semibold text-green-800">Paiement confirme !</h3>
+        <h3 className="font-semibold text-green-800">Paiement confirmé !</h3>
         <p className="text-sm text-green-700 mt-1">
-          Votre pack de lancement a été active avec succes. Notre équipe vous contactera
+          Votre pack de lancement a été activé avec succès. Notre équipe vous contactera
           sous 48h pour planifier les services. Vous pouvez suivre l'avancement dans votre{" "}
           <Link to="/dashboard/pack" className="underline font-medium">
             dashboard
@@ -352,7 +352,7 @@ function CancelledBanner() {
     <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4">
       <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" />
       <div>
-        <h3 className="font-semibold text-amber-800">Paiement annule</h3>
+        <h3 className="font-semibold text-amber-800">Paiement annulé</h3>
         <p className="text-sm text-amber-700 mt-1">
           Le paiement a été annule. Vous pouvez re-essayer à tout moment en selectionnant un pack ci-dessous.
         </p>
@@ -461,7 +461,7 @@ export default function PacksRestaurateur() {
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
           Choisissez le pack qui correspond à vos besoins. Mise en place, photos
           professionnelles, campagnes publicitaires — on s'occupe de tout pour
-          que votre lancement soit un succes.
+          que votre lancement soit un succès.
         </p>
       </div>
 
@@ -502,7 +502,7 @@ export default function PacksRestaurateur() {
 
       {/* CTA */}
       <section className="text-center space-y-6 py-12 px-8 rounded-3xl bg-primary/5">
-        <h2 className="text-3xl font-bold">Pret a vous lancer ?</h2>
+        <h2 className="text-3xl font-bold">Prêt à vous lancer ?</h2>
         <p className="text-muted-foreground max-w-xl mx-auto">
           Rejoignez les centaines de restaurateurs qui font confiance a Tok.
           Inscrivez-vous et choisissez votre pack de lancement.

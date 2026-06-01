@@ -65,8 +65,8 @@ export default function DashboardActualites() {
   const recommendations = insights?.recommendations?.length
     ? insights.recommendations
     : [
-        "Publiez 3 a 5 actualités par semaine: plat phare, offre courte, coulisses et rappel réservation.",
-        "Ajoutez un CTA mesurable à chaque post qui doit generer du chiffre d'affaires.",
+        "Publiez 3 à 5 actualités par semaine: plat phare, offre courte, coulisses et rappel réservation.",
+        "Ajoutez un CTA mesurable à chaque post qui doit générer du chiffre d'affaires.",
       ];
 
   const refreshCampaignLinkedData = useCallback(() => {
@@ -83,13 +83,13 @@ export default function DashboardActualites() {
 
     if (status === "success") {
       toast({
-        title: "Paiement confirme",
-        description: "Votre post sponsorise est en cours d'activation. Les données peuvent prendre quelques secondes a se synchroniser.",
+        title: "Paiement confirmé",
+        description: "Votre post sponsorisé est en cours d'activation. Les données peuvent prendre quelques secondes à se synchroniser.",
       });
       refreshCampaignLinkedData();
     } else if (status === "cancelled") {
       toast({
-        title: "Paiement annule",
+        title: "Paiement annulé",
         description: "La mise en avant reste inactive tant que le paiement n'est pas finalisé.",
         variant: "destructive",
       });

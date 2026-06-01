@@ -268,7 +268,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <span className="block italic text-[#ff6b1c]">meilleur restaurant</span>
             </h1>
             <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] dark:text-slate-100 md:text-[1.55rem]">
-              Trouvez et reservez en quelques clics la table ideale
+              Trouvez et réservez en quelques clics la table idéale
             </p>
           </motion.div>
 
