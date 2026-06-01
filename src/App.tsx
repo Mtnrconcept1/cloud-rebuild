@@ -15,7 +15,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
-// Client-facing pages (eagerly loaded for instant first paint)
+
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 const Recherche = lazy(() => import("./pages/Recherche"));
@@ -25,9 +25,7 @@ const Panier = lazy(() => import("./pages/Panier"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SupportChat = lazy(() => import("./components/SupportChat"));
 const OrderConflictDialog = lazy(() => import("./components/OrderConflictDialog"));
-// New features (eagerly loaded — lightweight client pages)
 
-// ── Lazy-loaded chunks: Dashboard Restaurateur ──
 const Commandes = lazy(() => import("./pages/Commandes"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const Reservations = lazy(() => import("./pages/Reservations"));
@@ -82,13 +80,11 @@ const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSal
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
 const DashboardPack = lazy(() => import("./pages/dashboard/DashboardPack"));
 
-// ── Lazy-loaded chunks: Courier App ──
 const CourierHome = lazy(() => import("./pages/courier/CourierHome"));
 const CourierJobs = lazy(() => import("./pages/courier/CourierJobs"));
 const CourierEarnings = lazy(() => import("./pages/courier/CourierEarnings"));
 const CourierProfile = lazy(() => import("./pages/courier/CourierProfile"));
 
-// ── Lazy-loaded chunks: Admin Back-Office ──
 const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
 const AdminRestaurants = lazy(() => import("./pages/admin/AdminRestaurants"));
 const AdminUtilisateurs = lazy(() => import("./pages/admin/AdminUtilisateurs"));
@@ -104,6 +100,7 @@ const AdminCompta = lazy(() => import("./pages/admin/AdminCompta"));
 const AdminComptaInflow = lazy(() => import("./pages/admin/AdminComptaInflow"));
 const AdminComptaOutflow = lazy(() => import("./pages/admin/AdminComptaOutflow"));
 const AdminOrdersReservations = lazy(() => import("./pages/admin/AdminOrdersReservations"));
+const AdminOperationsCenter = lazy(() => import("./pages/admin/AdminOperationsCenter"));
 const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));
 
 const queryClient = new QueryClient({
@@ -127,7 +124,6 @@ function NativeIntegration() {
     ];
     let disposed = false;
 
-    // Setup native push notification tap handler
     import("@/lib/push-native").then(({ setupNativePushListeners }) => {
       if (disposed) return;
       cleanups.push(setupNativePushListeners((url) => navigate(url)));
@@ -142,15 +138,7 @@ function NativeIntegration() {
   return null;
 }
 
-function FeatureSwitch({
-  enabled,
-  fallback = "/",
-  children,
-}: {
-  enabled: boolean | null;
-  fallback?: string;
-  children: React.ReactNode;
-}) {
+function FeatureSwitch({ enabled, fallback = "/", children }: { enabled: boolean | null; fallback?: string; children: React.ReactNode }) {
   if (enabled === null) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -227,7 +215,6 @@ function AppShell() {
           <Route path="/recherche" element={<Recherche />} />
           <Route path="/restaurant/:id" element={<RestaurantDetail />} />
           <Route path="/anti-gaspi" element={<FeatureSwitch enabled={antiWasteEnabled}><AntiGaspi /></FeatureSwitch>} />
-
           <Route path="/panier" element={<Panier />} />
           <Route path="/commandes" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={commandesEnabled} fallback="/"><Commandes /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/commande/confirmation" element={<FeatureSwitch enabled={commandesEnabled} fallback="/"><OrderConfirmation /></FeatureSwitch>} />
@@ -259,18 +246,7 @@ function AppShell() {
           <Route path="/dashboard/performances" element={<DashboardRoute><FeatureSwitch enabled={dashboardPerformancesEnabled} fallback="/dashboard"><DashboardPerformances /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/comparaison" element={<DashboardRoute><FeatureSwitch enabled={dashboardComparaisonEnabled} fallback="/dashboard"><DashboardComparaison /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/avis" element={<DashboardRoute><FeatureSwitch enabled={dashboardAvisEnabled} fallback="/dashboard"><DashboardAvis /></FeatureSwitch></DashboardRoute>} />
-          <Route
-            path="/dashboard/compta"
-            element={
-              dashboardPerformancesEnabled === null
-                ? (
-                  <div className="flex items-center justify-center min-h-screen">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                  </div>
-                )
-                : <Navigate to={dashboardPerformancesEnabled ? "/dashboard/performances" : "/dashboard"} replace />
-            }
-          />
+          <Route path="/dashboard/compta" element={dashboardPerformancesEnabled === null ? <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div> : <Navigate to={dashboardPerformancesEnabled ? "/dashboard/performances" : "/dashboard"} replace />} />
           <Route path="/dashboard/factures" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard"><DashboardFactures /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/factures/entrees" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><DashboardFacturesInflow /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/factures/sorties" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><DashboardFacturesOutflow /></FeatureSwitch></DashboardRoute>} />
@@ -307,7 +283,7 @@ function AppShell() {
           <Route path="/admin/compta" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta/entrees" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaInflow /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta/sorties" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/commandes-reservations" element={<ProtectedRoute requiredRole="admin"><AdminOrdersReservations /></ProtectedRoute>} />
+          <Route path="/admin/commandes-reservations" element={<ProtectedRoute requiredRole="admin"><AdminOperationsCenter /></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
