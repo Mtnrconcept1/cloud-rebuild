@@ -163,30 +163,41 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
 
     steps:
+      - name: Trigger Vercel production deploy hook
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL != '' }}
+        run: curl -fsS -X POST "$VERCEL_DEPLOY_HOOK_URL"
+
       - name: Assert Vercel production secrets
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         run: |
           test -n "$VERCEL_TOKEN" || (echo "Missing VERCEL_TOKEN" && exit 1)
           test -n "$VERCEL_ORG_ID" || (echo "Missing VERCEL_ORG_ID" && exit 1)
           test -n "$VERCEL_PROJECT_ID" || (echo "Missing VERCEL_PROJECT_ID" && exit 1)
 
       - name: Checkout
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         uses: actions/checkout@v6
 
       - name: Enable pnpm
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Setup Node
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         run: pnpm install --frozen-lockfile
 
       - name: Write production frontend env
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         run: node ./scripts/write-production-env.mjs --out=.env.production
         env:
           GITHUB_SHA: ${{ github.sha }}
@@ -203,10 +214,13 @@ jobs:
           VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
       - name: Pull Vercel production project settings
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         run: pnpm dlx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Build Vercel production output
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         run: pnpm dlx vercel@latest build --prod --token="$VERCEL_TOKEN"
 
       - name: Deploy Vercel prebuilt production output
+        if: ${{ env.VERCEL_DEPLOY_HOOK_URL == '' }}
         run: pnpm dlx vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"
