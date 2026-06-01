@@ -28,6 +28,15 @@ type MarketplaceAlert = {
   metadata: Record<string, unknown> | null;
 };
 
+type AdminUrgentActionsProps = {
+  compact?: boolean;
+  title?: string;
+  description?: string;
+  sourceWhitelist?: string[];
+  maxItems?: number;
+  emptyLabel?: string;
+};
+
 function severityClass(severity: string) {
   switch (severity) {
     case "critical":
@@ -68,12 +77,21 @@ async function fetchAlerts(includeResolved: boolean) {
   return (data || []) as MarketplaceAlert[];
 }
 
-export default function AdminUrgentActions({ compact = false }: { compact?: boolean }) {
+export default function AdminUrgentActions({
+  compact = false,
+  title = "Actions urgentes marketplace",
+  description = "File unifiée des incidents critiques : commandes, paiements, dispatch, réservations, restaurants, campagnes et Edge Functions.",
+  sourceWhitelist,
+  maxItems,
+  emptyLabel = "Aucune alerte prioritaire ouverte avec ces filtres.",
+}: AdminUrgentActionsProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("open");
   const [includeResolved, setIncludeResolved] = useState(false);
   const [noteByAlert, setNoteByAlert] = useState<Record<string, string>>({});
 
@@ -101,18 +119,55 @@ export default function AdminUrgentActions({ compact = false }: { compact?: bool
     },
   });
 
-  const sources = useMemo(() => Array.from(new Set(alerts.map((alert) => alert.source).filter(Boolean))).sort(), [alerts]);
-  const filteredAlerts = useMemo(() => alerts.filter((alert) => {
+  const scopedAlerts = useMemo(() => {
+    if (!sourceWhitelist?.length) return alerts;
+    const allowedSources = new Set(sourceWhitelist);
+    return alerts.filter((alert) => allowedSources.has(alert.source));
+  }, [alerts, sourceWhitelist]);
+
+  const sources = useMemo(() => Array.from(new Set(scopedAlerts.map((alert) => alert.source).filter(Boolean))).sort(), [scopedAlerts]);
+  const filteredAlerts = useMemo(() => scopedAlerts.filter((alert) => {
+    const term = search.trim().toLowerCase();
     if (severityFilter !== "all" && alert.severity !== severityFilter) return false;
     if (sourceFilter !== "all" && alert.source !== sourceFilter) return false;
+    if (statusFilter === "open" && ["resolved", "ignored"].includes(alert.status)) return false;
+    if (statusFilter !== "all" && statusFilter !== "open" && alert.status !== statusFilter) return false;
+    if (term) {
+      const haystack = [
+        alert.title,
+        alert.description,
+        alert.recommended_action,
+        alert.source,
+        alert.entity_type,
+        alert.entity_id,
+        JSON.stringify(alert.metadata || {}),
+      ].join(" ").toLowerCase();
+      if (!haystack.includes(term)) return false;
+    }
     return true;
-  }), [alerts, severityFilter, sourceFilter]);
+  }), [scopedAlerts, search, severityFilter, sourceFilter, statusFilter]);
 
   const counters = useMemo(() => ({
-    critical: alerts.filter((alert) => alert.severity === "critical").length,
-    high: alerts.filter((alert) => alert.severity === "high").length,
-    open: alerts.filter((alert) => !["resolved", "ignored"].includes(alert.status)).length,
-  }), [alerts]);
+    critical: scopedAlerts.filter((alert) => alert.severity === "critical").length,
+    high: scopedAlerts.filter((alert) => alert.severity === "high").length,
+    open: scopedAlerts.filter((alert) => !["resolved", "ignored"].includes(alert.status)).length,
+  }), [scopedAlerts]);
+
+  function updateAlert(alert: MarketplaceAlert, status: "in_progress" | "resolved" | "ignored") {
+    const note = (noteByAlert[alert.alert_key] || "").trim();
+    if (["resolved", "ignored"].includes(status) && !note) return;
+
+    if (["resolved", "ignored"].includes(status)) {
+      const confirmed = window.confirm(
+        `Confirmer l'action "${status}" pour cette alerte ? La note admin sera enregistrée dans l'audit.`,
+      );
+      if (!confirmed) return;
+    }
+
+    updateAlertMutation.mutate({ alertKey: alert.alert_key, status, note });
+  }
+
+  const visibleAlerts = filteredAlerts.slice(0, maxItems ?? (compact ? 6 : 20));
 
   return (
     <Card className="border-red-200 bg-gradient-to-br from-red-50 via-background to-background">
@@ -121,10 +176,10 @@ export default function AdminUrgentActions({ compact = false }: { compact?: bool
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <ShieldAlert className="h-5 w-5 text-red-600" />
-              <CardTitle>Actions urgentes marketplace</CardTitle>
+              <CardTitle>{title}</CardTitle>
             </div>
             <p className="text-sm text-muted-foreground">
-              File unifiée des incidents critiques : commandes, paiements, dispatch, réservations, restaurants, campagnes et Edge Functions.
+              {description}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -135,7 +190,12 @@ export default function AdminUrgentActions({ compact = false }: { compact?: bool
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-3 lg:grid-cols-[180px_220px_auto]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_180px_220px_180px_auto]">
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Rechercher restaurant, client, ville, statut ou identifiant"
+          />
           <Select value={severityFilter} onValueChange={setSeverityFilter}>
             <SelectTrigger><SelectValue placeholder="Gravité" /></SelectTrigger>
             <SelectContent>
@@ -151,6 +211,25 @@ export default function AdminUrgentActions({ compact = false }: { compact?: bool
             <SelectContent>
               <SelectItem value="all">Toutes les sources</SelectItem>
               {sources.map((source) => <SelectItem key={source} value={source}>{source}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => {
+              setStatusFilter(value);
+              if (["all", "resolved", "ignored"].includes(value)) {
+                setIncludeResolved(true);
+              }
+            }}
+          >
+            <SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">Ouvertes</SelectItem>
+              <SelectItem value="new">Nouvelles</SelectItem>
+              <SelectItem value="in_progress">En cours</SelectItem>
+              <SelectItem value="resolved">Résolues</SelectItem>
+              <SelectItem value="ignored">Ignorées</SelectItem>
+              <SelectItem value="all">Tous</SelectItem>
             </SelectContent>
           </Select>
           <div className="flex flex-wrap gap-2">
@@ -173,11 +252,11 @@ export default function AdminUrgentActions({ compact = false }: { compact?: bool
           </div>
         ) : filteredAlerts.length === 0 ? (
           <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-            <CheckCircle2 className="h-4 w-4" /> Aucune alerte prioritaire ouverte avec ces filtres.
+            <CheckCircle2 className="h-4 w-4" /> {emptyLabel}
           </div>
         ) : (
           <div className={compact ? "grid gap-3" : "grid gap-3 xl:grid-cols-2"}>
-            {filteredAlerts.slice(0, compact ? 6 : 20).map((alert) => {
+            {visibleAlerts.map((alert) => {
               const note = noteByAlert[alert.alert_key] || "";
               return (
                 <div key={alert.alert_key} className={`rounded-xl border p-4 ${severityClass(alert.severity)}`}>
@@ -209,13 +288,13 @@ export default function AdminUrgentActions({ compact = false }: { compact?: bool
                       onChange={(event) => setNoteByAlert((previous) => ({ ...previous, [alert.alert_key]: event.target.value }))}
                       placeholder="Note admin obligatoire pour résoudre/ignorer"
                     />
-                    <Button type="button" variant="outline" onClick={() => updateAlertMutation.mutate({ alertKey: alert.alert_key, status: "in_progress", note })}>
+                    <Button type="button" variant="outline" onClick={() => updateAlert(alert, "in_progress")}>
                       Prendre
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => updateAlertMutation.mutate({ alertKey: alert.alert_key, status: "ignored", note })} disabled={!note.trim()}>
+                    <Button type="button" variant="outline" onClick={() => updateAlert(alert, "ignored")} disabled={!note.trim()}>
                       Ignorer
                     </Button>
-                    <Button type="button" onClick={() => updateAlertMutation.mutate({ alertKey: alert.alert_key, status: "resolved", note })} disabled={!note.trim()}>
+                    <Button type="button" onClick={() => updateAlert(alert, "resolved")} disabled={!note.trim()}>
                       Résoudre
                     </Button>
                   </div>
