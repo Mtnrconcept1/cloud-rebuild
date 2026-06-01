@@ -775,7 +775,7 @@ export default function AdminRestaurants() {
           onActivateOverride={handleActivateOverride}
           onRequestCorrection={() => recordRestaurantAction("request_correction", "Demande de correction journalisée", true)}
           onReindexCatalog={() => recordRestaurantAction("reindex_catalog", "Réindexation catalogue journalisée")}
-          onSendNotification={() => recordRestaurantAction("send_notification", "Notification restaurant journalisée", true)}
+          onSendNotification={() => recordRestaurantAction("send_notification", "Notification restaurant envoyée", true)}
         />
       ) : null}
 
