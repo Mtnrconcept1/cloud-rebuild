@@ -19,6 +19,9 @@ DECLARE
   v_count integer;
   v_internal_actor boolean;
 BEGIN
+  PERFORM set_config('request.jwt.claim.role', 'service_role', true);
+  PERFORM set_config('request.jwt.claims', jsonb_build_object('role', 'service_role')::text, true);
+
   INSERT INTO auth.users (
     instance_id,
     id,
