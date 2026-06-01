@@ -1,4 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": false
+  },
   "installCommand": "corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile",
   "buildCommand": "pnpm run build:prod",
   "devCommand": "pnpm run dev",
