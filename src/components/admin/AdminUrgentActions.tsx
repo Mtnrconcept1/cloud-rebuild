@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Clock, ExternalLink, Loader2, ShieldAlert } from "lucide-react";
+import { CheckCircle2, Clock, ExternalLink, Loader2, ShieldAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
