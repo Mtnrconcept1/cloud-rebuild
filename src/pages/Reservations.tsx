@@ -184,9 +184,9 @@ export default function Reservations() {
                 <SelectValue placeholder="Trier les réservations" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="reservation_date_desc">Date de table : plus recente</SelectItem>
+                <SelectItem value="reservation_date_desc">Date de table : plus récente</SelectItem>
                 <SelectItem value="reservation_date_asc">Date de table : plus ancienne</SelectItem>
-                <SelectItem value="created_at_desc">Date de creation : plus recente</SelectItem>
+                <SelectItem value="created_at_desc">Date de creation : plus récente</SelectItem>
                 <SelectItem value="created_at_asc">Date de creation : plus ancienne</SelectItem>
               </SelectContent>
             </Select>

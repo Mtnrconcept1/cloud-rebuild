@@ -61,7 +61,7 @@ export default function SignupApplicationStatusCard({
               Dossier {getSignupRoleLabel(application.requested_role).toLowerCase()} soumis le{" "}
               {application.submitted_at
                 ? new Date(application.submitted_at).toLocaleDateString("fr-CH")
-                : "recentement"}
+                : "récemment"}
             </CardDescription>
           </div>
           <Badge className={statusMeta.tone}>{statusMeta.label}</Badge>

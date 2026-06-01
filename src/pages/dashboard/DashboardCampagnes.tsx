@@ -200,7 +200,7 @@ export default function DashboardCampagnes() {
             setPaidCampaign(campaign);
             toast({
               title: "Paiement confirme",
-              description: "Votre campagne a été payee avec succes et est maintenant active.",
+              description: "Votre campagne a été payée avec succes et est maintenant active.",
             });
           } else {
             pollCampaignStatus(campaignId, attempts + 1);
@@ -235,7 +235,7 @@ export default function DashboardCampagnes() {
     } else if (status === "cancelled") {
       toast({
         title: "Paiement annule",
-        description: "La campagne reste en brouillon tant que le paiement n est pas finalise.",
+        description: "La campagne reste en brouillon tant que le paiement n est pas finalisé.",
         variant: "destructive",
       });
     }
@@ -333,7 +333,7 @@ export default function DashboardCampagnes() {
             <AlertDialogTitle className="text-center">Paiement confirme</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-center">
-                <p>Votre campagne a été payee avec succes et est maintenant active.</p>
+                <p>Votre campagne a été payée avec succes et est maintenant active.</p>
                 {paidCampaign?.title && (
                   <div className="rounded-lg border bg-muted/50 p-3 text-left text-sm space-y-1.5">
                     <div className="flex justify-between">
@@ -411,7 +411,7 @@ export default function DashboardCampagnes() {
         <DashboardPageHero
           badge="Acquisition"
           title="Campagnes publicitaires"
-          description={selectedRestaurant ? `Pilotage de ${selectedRestaurant.name}: ciblage, budget, conversions et statut de paiement restent regroupes.` : "Selectionnez un restaurant dans la barre laterale pour preparer ses campagnes."}
+          description={selectedRestaurant ? `Pilotage de ${selectedRestaurant.name}: ciblage, budget, conversions et statut de paiement restent regroupés.` : "Sélectionnez un restaurant dans la barre latérale pour préparer ses campagnes."}
           icon={Megaphone}
           tone="rose"
           visualLabel="Ads"
@@ -470,7 +470,7 @@ export default function DashboardCampagnes() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card>
             <CardContent className="py-4">
-              <p className="text-xs text-muted-foreground">Conversions sponsorisees ({periodDays}j)</p>
+              <p className="text-xs text-muted-foreground">Conversions sponsorisées ({periodDays}j)</p>
               <p className="text-2xl font-bold">{loadingConversions ? "..." : conversionsByType.total}</p>
             </CardContent>
           </Card>
@@ -499,7 +499,7 @@ export default function DashboardCampagnes() {
         {!selectedId ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              Selectionnez un restaurant pour gerer ses campagnes.
+              Sélectionnez un restaurant pour gérer ses campagnes.
             </CardContent>
           </Card>
         ) : isLoading ? (
@@ -864,12 +864,12 @@ function CampaignForm({
 
       <div className="space-y-2">
         <Label>Titre</Label>
-        <Input value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Ex: Offre speciale week-end" />
+        <Input value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Ex: Offre spéciale week-end" />
       </div>
 
       <div className="space-y-2">
         <Label>Description</Label>
-        <Textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder="Decrivez le message que verront vos clients..." rows={3} />
+        <Textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder="Décrivez le message que verront vos clients..." rows={3} />
       </div>
 
       <ImageUpload value={imageUrl} onChange={setImageUrl} label="Image de la campagne" bucket="images" />
@@ -1082,11 +1082,11 @@ function CampaignForm({
           setPaymentMethod={setPaymentMethod}
           allowedMethods={allowedPaymentMethods}
           cashDescription="Le reglement manuel n active pas la campagne tant qu il n est pas valide."
-          secureDescription="Paiement sécurisé via Stripe. La campagne est activée apres confirmation."
+          secureDescription="Paiement sécurisé via Stripe. La campagne est activée après confirmation."
         />
         {isPaidCampaign ? (
           <p className="text-xs text-green-600">
-            Campagne déjà payee a hauteur de {Number(initial?.paid_amount || 0).toFixed(2)} CHF via {String(initial?.payment_method || "card").toUpperCase()}.
+            Campagne déjà payée a hauteur de {Number(initial?.paid_amount || 0).toFixed(2)} CHF via {String(initial?.payment_method || "card").toUpperCase()}.
           </p>
         ) : null}
       </div>

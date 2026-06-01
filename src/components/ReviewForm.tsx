@@ -36,9 +36,9 @@ function getReviewSubmissionErrorMessage(error: unknown) {
   switch (message) {
     case "auth_required":
     case "permission denied for function submit_verified_review":
-      return "Votre session a expire. Reconnectez-vous puis reessayez.";
+      return "Votre session a expiré. Reconnectez-vous puis réessayez.";
     case "review_not_eligible":
-      return "Vous ne pouvez laisser un avis qu'apres une réservation honoree ou une commande terminée.";
+      return "Vous ne pouvez laisser un avis qu'apres une réservation honorée ou une commande terminée.";
     case "review_already_submitted":
       return "Vous avez dejà laisse un avis pour ce restaurant.";
     case "rating_out_of_range":
@@ -108,7 +108,7 @@ export default function ReviewForm({ restaurantId, onSuccess }: ReviewFormProps)
         <RatingSlider label="Rapidite" value={speedRating} onChange={setSpeedRating} />
       </div>
       <p className="text-xs text-muted-foreground">
-        Les avis sont réservés aux visites effectivement honorees et vérifiées cote serveur.
+        Les avis sont réservés aux visites effectivement honorées et vérifiées côté serveur.
       </p>
       <div className="flex items-center justify-between rounded-lg border bg-primary/5 px-3 py-2">
         <span className="text-sm font-medium">Note globale</span>

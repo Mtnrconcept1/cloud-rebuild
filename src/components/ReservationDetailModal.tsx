@@ -212,7 +212,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
   const isNoShow = reservation.status === "no_show";
   const isLateCancellation = !canCancel(reservation);
   const cancellationLockMessage = isCancelled
-    ? "Cette réservation a déjà été annulee."
+    ? "Cette réservation a déjà été annulée."
     : isNoShow
       ? "Cette réservation est déjà terminée."
       : isLateCancellation
@@ -472,7 +472,7 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
               disabled
             >
               <X className="h-4 w-4 mr-2" />
-              Annulation verrouillee
+              Annulation verrouillée
             </Button>
             <p className="text-xs text-muted-foreground">{cancellationLockMessage}</p>
           </DialogFooter>

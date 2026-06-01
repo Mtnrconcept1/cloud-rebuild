@@ -65,7 +65,7 @@ function InvoiceTableRow({
             </Button>
             {canMarkPaid && !isPaid ? (
               <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
-                Marquer payee
+                Marquer payée
               </Button>
             ) : null}
           </div>
@@ -133,7 +133,7 @@ function InvoiceTable({
                 <div className="flex flex-wrap gap-2">
                   {canMarkPaid && !isPaid ? (
                     <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
-                      Marquer payee
+                      Marquer payée
                     </Button>
                   ) : null}
                 </div>
@@ -197,7 +197,7 @@ export default function DashboardFacturesOutflow() {
       return;
     }
 
-    toast({ title: "Facture marquee comme payee" });
+    toast({ title: "Facture marquée comme payée" });
     if (selectedRestaurant) {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["dashboard-invoices-v2", selectedRestaurant.id] }),
@@ -215,14 +215,14 @@ export default function DashboardFacturesOutflow() {
           title="Factures recues de TOK"
           description={selectedRestaurant
             ? `Commencez par ce qui est déjà facturé par TOK, puis regardez ce qui risque d'arriver dans la prochaine facturé.`
-            : "Selectionnez un restaurant pour afficher ses sorties d'argent."}
+            : "Sélectionnez un restaurant pour afficher ses sorties d'argent."}
           actions={(
             <>
               <Button asChild size="sm" variant="outline">
                 <Link to="/dashboard/factures">Vue d&apos;ensemble</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link to="/dashboard/factures/entrees">Entrees d&apos;argent</Link>
+                <Link to="/dashboard/factures/entrees">Entrées d&apos;argent</Link>
               </Button>
               <Button asChild size="sm">
                 <Link to="/dashboard/factures/sorties">Sorties d&apos;argent</Link>
@@ -230,7 +230,7 @@ export default function DashboardFacturesOutflow() {
               <Button asChild size="sm" variant="outline">
                 <Link to="/dashboard/factures/parametres">
                   <Settings className="mr-2 h-4 w-4" />
-                  Parametres
+                  Paramètres
                 </Link>
               </Button>
             </>
@@ -240,7 +240,7 @@ export default function DashboardFacturesOutflow() {
         {!selectedRestaurant && !isLoading ? (
           <Card className="tok-dashboard-section rounded-3xl border border-border/70">
             <CardContent className="py-10 text-center text-muted-foreground dark:text-slate-100/78">
-              Selectionnez un restaurant dans la barre laterale pour afficher ses sorties d&apos;argent.
+              Sélectionnez un restaurant dans la barre latérale pour afficher ses sorties d&apos;argent.
             </CardContent>
           </Card>
         ) : null}
@@ -267,7 +267,7 @@ export default function DashboardFacturesOutflow() {
               />
               <AccountingMetricCard
                 icon={Wallet}
-                label="Deja paye a TOK"
+                label="Déjà paye a TOK"
                 value={formatAmount(summary.outflow.alreadyPaidToTok)}
                 description="Historique des factures TOK déjà reglees."
               />
@@ -287,7 +287,7 @@ export default function DashboardFacturesOutflow() {
                 title="Regler les factures TOK déjà emises"
                 description="La première lecture doit vous dire ce qui est déjà payable, sans vous forcer à lire tous les détails de composition."
                 value={formatAmount(summary.outflow.payableToTok)}
-                valueLabel="Deja facturé"
+                valueLabel="Déjà facturé"
               >
                 <AccountingFactList
                   tone="orange"
@@ -298,7 +298,7 @@ export default function DashboardFacturesOutflow() {
                       helper: "Documents visibles dans la section A regler",
                     },
                     {
-                      label: "Deja paye a TOK",
+                      label: "Déjà paye a TOK",
                       value: formatAmount(summary.outflow.alreadyPaidToTok),
                     },
                   ]}
@@ -356,7 +356,7 @@ export default function DashboardFacturesOutflow() {
                     value: formatAmount(payableAccruals.totalAmount),
                   },
                   {
-                    label: "Deja regle",
+                    label: "Déjà regle",
                     value: formatAmount(summary.outflow.alreadyPaidToTok),
                   },
                 ]}

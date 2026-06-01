@@ -68,7 +68,7 @@ export const LOYALTY_BENEFITS: LoyaltyBenefit[] = [
   },
   {
     id: "early_deals",
-    title: "Acces bons plans",
+    title: "Accès bons plans",
     description: "Découvrez les opérations locales avant leur mise en avant générale dans l'application.",
     appliesFrom: "bronze",
   },
@@ -94,27 +94,27 @@ export const LOYALTY_BENEFITS: LoyaltyBenefit[] = [
   {
     id: "exclusive_partner_events",
     title: "Evenements partenaires",
-    description: "Recevez des invitations a des menus tests, ouvertures et experiences locales sélectionnées.",
+    description: "Recevez des invitations a des menus tests, ouvertures et expériences locales sélectionnées.",
     appliesFrom: "silver",
   },
   {
     id: "gold_multiplier",
     title: "Multiplicateur Gold",
-    description: "Les commandes et réservations éligibles rapportent un bonus Miamz superieur au niveau Silver.",
+    description: "Les commandes et réservations éligibles rapportent un bonus Miamz supérieur au niveau Silver.",
     appliesFrom: "gold",
     highlight: true,
   },
   {
     id: "priority_support",
     title: "Support prioritaire",
-    description: "Vos demandes support liees aux commandes, réservations et remboursements sont traitées en priorite.",
+    description: "Vos demandes support liees aux commandes, réservations et remboursements sont traitées en priorité.",
     appliesFrom: "gold",
     highlight: true,
   },
   {
     id: "premium_slots",
     title: "Créneaux premium",
-    description: "Accedez en priorite à certains créneaux très demandes quand les restaurants les ouvrent.",
+    description: "Accedez en priorité à certains créneaux très demandes quand les restaurants les ouvrent.",
     appliesFrom: "gold",
   },
   {
@@ -132,8 +132,8 @@ export const LOYALTY_BENEFITS: LoyaltyBenefit[] = [
   },
   {
     id: "vip_table_access",
-    title: "Acces tables VIP",
-    description: "Profitez d'un accès prioritaire aux tables rares et experiences premium ouvertes par les partenaires.",
+    title: "Accès tables VIP",
+    description: "Profitez d'un accès prioritaire aux tables rares et expériences premium ouvertes par les partenaires.",
     appliesFrom: "platinum",
     highlight: true,
   },
@@ -146,7 +146,7 @@ export const LOYALTY_BENEFITS: LoyaltyBenefit[] = [
   {
     id: "premium_refunds",
     title: "Traitement premium",
-    description: "Les dossiers sensibles de remboursement et litige beneficient d'une file de traitement dediee.",
+    description: "Les dossiers sensibles de remboursement et litige beneficient d'une file de traitement dédiée.",
     appliesFrom: "platinum",
   },
 ];

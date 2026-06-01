@@ -90,7 +90,7 @@ export default function DashboardActualites() {
     } else if (status === "cancelled") {
       toast({
         title: "Paiement annule",
-        description: "La mise en avant reste inactive tant que le paiement n'est pas finalise.",
+        description: "La mise en avant reste inactive tant que le paiement n'est pas finalisé.",
         variant: "destructive",
       });
     }
@@ -110,7 +110,7 @@ export default function DashboardActualites() {
         <DashboardPageHero
           badge="Fil social"
           title="Actualités"
-          description="Pilotez vos actualités comme un canal marketing: objectifs, audiences, CTA, planning, conversions sponsorisees et performance."
+          description="Pilotez vos actualités comme un canal marketing: objectifs, audiences, CTA, planning, conversions sponsorisées et performance."
           icon={Newspaper}
           tone="sky"
           visualLabel="Actualités"
@@ -154,7 +154,7 @@ export default function DashboardActualites() {
                       <div className="rounded-lg border p-3">
                         <CalendarClock className="mb-2 h-4 w-4 text-primary" />
                         <p className="text-2xl font-bold">{scheduledCount}</p>
-                        <p className="text-xs text-muted-foreground">posts programmes</p>
+                        <p className="text-xs text-muted-foreground">posts programmés</p>
                       </div>
                       <div className="rounded-lg border p-3">
                         <TrendingUp className="mb-2 h-4 w-4 text-primary" />
@@ -170,7 +170,7 @@ export default function DashboardActualites() {
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Conversions sponsorisees</p>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Conversions sponsorisées</p>
                       <h2 className="font-display text-lg font-semibold">Impact Actualités</h2>
                     </div>
                     <Target className="h-5 w-5 text-primary" />

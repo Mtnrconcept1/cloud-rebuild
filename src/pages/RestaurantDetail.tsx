@@ -177,7 +177,7 @@ export default function RestaurantDetail() {
   const canOrderItems = showDelivery || takeawayAvailable;
   const menuUnavailableReason = canOrderItems
     ? undefined
-    : "Commande indisponible: livraison et emporter sont desactives pour ce restaurant.";
+    : "Commande indisponible: livraison et emporter sont désactivés pour ce restaurant.";
   const cartItemsForCurrentRestaurant = useMemo(
     () => cartItems.filter((item) => item.restaurantId === id),
     [cartItems, id],
@@ -276,8 +276,8 @@ export default function RestaurantDetail() {
                   <h2 className="mt-1 font-display text-xl font-bold">Commencez en quelques secondes</h2>
                   <p className="text-sm text-muted-foreground">
                     {user
-                      ? "Selectionnez un mode puis ajoutez vos plats ou finalisez une réservation."
-                      : "Vous pouvez constituer votre panier maintenant. La connexion sera demandee juste avant le paiement ou pour confirmer une réservation."}
+                      ? "Sélectionnez un mode puis ajoutez vos plats ou finaliséz une réservation."
+                      : "Vous pouvez constituer votre panier maintenant. La connexion sera demandée juste avant le paiement ou pour confirmer une réservation."}
                   </p>
                 </div>
                 {!user ? (
@@ -322,7 +322,7 @@ export default function RestaurantDetail() {
                 <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold">Panier invite actif</p>
-                    <p className="text-xs text-muted-foreground">Ajoutez vos plats maintenant. La connexion sera demandee uniquement pour finaliser la commande ou confirmer une réservation.</p>
+                    <p className="text-xs text-muted-foreground">Ajoutez vos plats maintenant. La connexion sera demandée uniquement pour finaliser la commande ou confirmer une réservation.</p>
                   </div>
                   <Button className="gap-2 self-start rounded-full" onClick={() => navigate(authRedirectTarget)}>
                     <LogIn className="h-4 w-4" />

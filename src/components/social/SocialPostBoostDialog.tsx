@@ -79,7 +79,7 @@ export default function SocialPostBoostDialog({
       return;
     }
     if (totalBudgetValue <= 0) {
-      toast({ title: "Budget requis", description: "Le budget doit être superieur a 0 CHF.", variant: "destructive" });
+      toast({ title: "Budget requis", description: "Le budget doit être supérieur à 0 CHF.", variant: "destructive" });
       return;
     }
 
@@ -165,14 +165,14 @@ export default function SocialPostBoostDialog({
         <DialogHeader>
           <DialogTitle>Mettre en avant ce post</DialogTitle>
           <DialogDescription>
-            Créez une campagne liee à cette actualité. Elle apparaîtra comme sponsorisee quand la campagne sera payee et active.
+            Créez une campagne liee à cette actualité. Elle apparaîtra comme sponsorisée quand la campagne sera payée et active.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="rounded-xl border bg-muted/30 p-3">
             <div className="mb-2 flex items-center justify-between gap-3">
-              <Badge variant="secondary" className="rounded-full">Actualités sponsorisees</Badge>
+              <Badge variant="secondary" className="rounded-full">Actualités sponsorisées</Badge>
               <Badge variant="outline" className="rounded-full">{post.restaurant.name}</Badge>
             </div>
             <p className="text-sm leading-6 text-muted-foreground">{compactText(post.body, 260)}</p>

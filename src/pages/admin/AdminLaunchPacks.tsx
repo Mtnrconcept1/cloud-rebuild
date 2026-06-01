@@ -269,7 +269,7 @@ function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
         restaurantId: pack.restaurant_id,
         disabledFeatures: Array.from(draft),
       });
-      toast.success("Acces dashboard mis à jour");
+      toast.success("Accès dashboard mis à jour");
     } catch {
       toast.error("Erreur lors de la mise à jour");
     } finally {
@@ -281,7 +281,7 @@ function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Acces dashboard</CardTitle>
+          <CardTitle className="text-base">Accès dashboard</CardTitle>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="ghost" onClick={resetToPackDefaults} title="Réinitialiser selon le pack">
               <RotateCcw className="h-3 w-3 mr-1" /> Defaut pack
@@ -295,7 +295,7 @@ function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
-          Activez ou desactivez les onglets du dashboard pour ce restaurant. Les onglets desactives sont grises et inaccessibles.
+          Activez ou désactivez les onglets du dashboard pour ce restaurant. Les onglets désactivés sont grisés et inaccessibles.
         </p>
       </CardHeader>
       <CardContent>

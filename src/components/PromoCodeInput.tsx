@@ -43,7 +43,7 @@ export default function PromoCodeInput({ restaurantId, userId, subtotal, onAppli
 
       // Validate dates
       if (promo.valid_from && promo.valid_from > now) { setError("Ce code n'est pas encore actif."); setLoading(false); return; }
-      if (promo.valid_until && promo.valid_until < now) { setError("Ce code a expire."); setLoading(false); return; }
+      if (promo.valid_until && promo.valid_until < now) { setError("Ce code a expiré."); setLoading(false); return; }
 
       // Validate uses
       if (promo.max_uses != null && promo.current_uses >= promo.max_uses) { setError("Ce code a atteint sa limite d'utilisation."); setLoading(false); return; }

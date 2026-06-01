@@ -181,7 +181,7 @@ export default function DashboardMenu() {
         />
 
         {!restaurant ? (
-          <p className="py-8 text-center text-muted-foreground">Selectionnez un restaurant pour gerer ses produits.</p>
+          <p className="py-8 text-center text-muted-foreground">Sélectionnez un restaurant pour gérer ses produits.</p>
         ) : (
           <div className="space-y-3">
             {items?.map((item) => (

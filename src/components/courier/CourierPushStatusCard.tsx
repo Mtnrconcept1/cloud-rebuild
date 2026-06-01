@@ -10,9 +10,9 @@ import { useCourierPushStatus } from "@/hooks/useCourierPushStatus";
 function getStatusMeta(status: ReturnType<typeof useCourierPushStatus>["data"]) {
   if (!status) {
     return {
-      label: "Verification",
+      label: "Vérification",
       tone: "bg-muted text-muted-foreground",
-      description: "Verification de l'etat des alertes push sur cet appareil.",
+      description: "Vérification de l'état des alertes push sur cet appareil.",
     };
   }
 
@@ -44,7 +44,7 @@ function getStatusMeta(status: ReturnType<typeof useCourierPushStatus>["data"]) 
     return {
       label: "Bloquees",
       tone: "bg-amber-100 text-amber-700",
-      description: "Le navigateur bloque actuellement les notifications push. Il faut les reautoriser dans les reglages du site.",
+      description: "Le navigateur bloqué actuellement les notifications push. Il faut les reautoriser dans les reglages du site.",
     };
   }
 
@@ -71,7 +71,7 @@ export default function CourierPushStatusCard() {
       return;
     }
 
-    toast("Alertes push non activees", {
+    toast("Alertes push non activées", {
       description: result.reason || "Impossible d'activer les notifications push.",
     });
   };
@@ -82,11 +82,11 @@ export default function CourierPushStatusCard() {
     setLoadingAction(null);
 
     if (result.ok) {
-      toast.success("Alertes push desactivees sur cet appareil");
+      toast.success("Alertes push désactivées sur cet appareil");
       return;
     }
 
-    toast.error(result.reason || "Impossible de desactiver les notifications push.");
+    toast.error(result.reason || "Impossible de désactiver les notifications push.");
   };
 
   return (
@@ -108,7 +108,7 @@ export default function CourierPushStatusCard() {
               <p className="text-sm font-medium">Cet appareil</p>
               <p className="text-xs text-muted-foreground">
                 {isLoading
-                  ? "Verification en cours..."
+                  ? "Vérification en cours..."
                   : pushStatus?.enabled
                     ? `${pushStatus.tokenCount} token actif`
                     : "Aucun token push actif"}
@@ -134,7 +134,7 @@ export default function CourierPushStatusCard() {
               disabled={loadingAction !== null || isLoading}
             >
               <BellOff className="mr-2 h-4 w-4" />
-              Desactiver sur cet appareil
+              Désactiver sur cet appareil
             </Button>
           )}
         </div>

@@ -34,7 +34,7 @@ const ALL_SERVICES: { slug: LaunchPackServiceSlug; label: string }[] = [
   { slug: "social_media_setup", label: "Reseaux sociaux" },
   { slug: "advertising_campaign", label: "Campagne publicitaire" },
   { slug: "floor_plan_design", label: "Plan de salle" },
-  { slug: "account_manager", label: "Account manager dedie" },
+  { slug: "account_manager", label: "Account manager dédié" },
 ];
 
 const FAQ_ITEMS = [
@@ -43,7 +43,7 @@ const FAQ_ITEMS = [
     a: "Après votre inscription et le paiement du pack, notre équipe vous contacte sous 48h pour planifier chaque service. La mise en place et la création de menu sont généralement réalisées dans la première semaine.",
   },
   {
-    q: "Puis-je changer de pack apres achat ?",
+    q: "Puis-je changer de pack après achat ?",
     a: "Oui, vous pouvez upgrader vers un pack superieur à tout moment. La difference de prix sera calculee et vous sera facturee. Le downgrade n'est pas possible une fois les services commences.",
   },
   {
@@ -52,7 +52,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Comment fonctionne le budget publicitaire inclus ?",
-    a: "Le budget est utilise pour des campagnes sponsorisees sur la plateforme Tok (placement en avant, bannieres, notifications push). Notre équipe marketing crée et gere les campagnes pour vous.",
+    a: "Le budget est utilisé pour des campagnes sponsorisées sur la plateforme Tok (placement en avant, bannieres, notifications push). Notre équipe marketing crée et gere les campagnes pour vous.",
   },
   {
     q: "Le paiement est-il unique ou recurrent ?",

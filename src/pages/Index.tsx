@@ -461,7 +461,7 @@ export default function Index() {
                           </Link>
                         </Button>
                         {card.key === "cart" ? (
-                          <span className="text-xs font-medium text-muted-foreground">Retour direct au bon etat</span>
+                          <span className="text-xs font-medium text-muted-foreground">Retour direct au bon état</span>
                         ) : null}
                       </div>
                     </div>

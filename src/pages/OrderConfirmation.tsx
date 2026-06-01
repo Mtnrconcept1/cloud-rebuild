@@ -105,8 +105,8 @@ export default function OrderConfirmation() {
     toast({
       title: "Paiement confirme",
       description: result.orders.length > 1
-        ? "Vos commandes sont confirmees."
-        : "Votre commande est confirmee.",
+        ? "Vos commandes sont confirmées."
+        : "Votre commande est confirmée.",
     });
   }, [clearCart, queryClient, syncPendingCheckoutSessionId, toast]);
 
@@ -312,7 +312,7 @@ export default function OrderConfirmation() {
           <div className="space-y-4 rounded-3xl border border-destructive/20 bg-destructive/5 p-8 shadow-sm">
             <div className="space-y-2 text-center">
               <CreditCard className="mx-auto h-10 w-10 text-destructive" />
-              <h1 className="font-display text-3xl font-bold">Confirmation en echec</h1>
+              <h1 className="font-display text-3xl font-bold">Confirmation en échec</h1>
               <p className="text-sm text-destructive">
                 {errorMessage || "Le paiement semble valide, mais la finalisation n'a pas abouti."}
               </p>

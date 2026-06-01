@@ -19,7 +19,7 @@ export type SocialFeedScope = (typeof SOCIAL_FEED_SCOPES)[number]["value"];
 export const SOCIAL_POST_TYPES = [
   { value: "plat", label: "Plat" },
   { value: "promo", label: "Promo" },
-  { value: "evenement", label: "Evenement" },
+  { value: "evenement", label: "Événement" },
   { value: "coulisses", label: "Coulisses" },
   { value: "annonce", label: "Annonce" },
 ] as const;
@@ -47,14 +47,14 @@ export const SOCIAL_MARKETING_GOALS = [
   {
     value: "orders",
     label: "Commandes",
-    description: "Transformer une actualité en commandes immediates.",
+    description: "Transformer une actualité en commandes immédiates.",
     recommendedPostType: "plat",
     recommendedCta: "order",
   },
   {
     value: "bookings",
     label: "Reservations",
-    description: "Remplir les services a venir et les soirees speciales.",
+    description: "Remplir les services a venir et les soirees spéciales.",
     recommendedPostType: "evenement",
     recommendedCta: "reserve",
   },
@@ -116,7 +116,7 @@ export const SOCIAL_MARKETING_TEMPLATES = [
     goal: "offer",
     postType: "promo",
     ctaType: "offer",
-    body: "Offre limitée aujourd'hui: une attention speciale sur une sélection de plats. Disponible jusqu’à epuisement des stocks.",
+    body: "Offre limitée aujourd'hui: une attention spéciale sur une sélection de plats. Disponible jusqu’à épuisement des stocks.",
   },
 ] as const;
 
@@ -380,11 +380,11 @@ export function scoreSocialMarketingDraft(input: SocialMarketingScoreInput): Soc
   const score = Math.min(100, Math.round((checks.filter((check) => check.passed).length / checks.length) * 100));
   const recommendations: string[] = [];
 
-  if (body.length < 80) recommendations.push("Ajoutez une accroche plus précise: produit, moment, benefice client.");
+  if (body.length < 80) recommendations.push("Ajoutez une accroche plus précise: produit, moment, bénéfice client.");
   if (filesCount === 0) recommendations.push("Ajoutez une photo ou une courte video pour augmenter l'arrêt sur le fil.");
   if (ctaType !== pair.recommendedCta) recommendations.push(`CTA conseille: ${SOCIAL_POST_CTAS.find((cta) => cta.value === pair.recommendedCta)?.label}.`);
   if (postType !== pair.recommendedPostType) recommendations.push(`Format conseille: ${SOCIAL_POST_TYPES.find((type) => type.value === pair.recommendedPostType)?.label}.`);
-  if (!input.scheduledAt) recommendations.push("Programmez le post sur un temps fort: avant midi, avant le service du soir ou la veille d'un evenement.");
+  if (!input.scheduledAt) recommendations.push("Programmez le post sur un temps fort: avant midi, avant le service du soir ou la veille d'un événement.");
 
   return {
     score,
@@ -496,7 +496,7 @@ export function getSocialRecommendationReasons(item: SocialFeedRankableItem, inp
 
   if (followedRestaurantIds.has(item.restaurantId)) reasons.push("Restaurant suivi");
   if (favoriteRestaurantIds.has(item.restaurantId)) reasons.push("Dans vos favoris");
-  if (interactedRestaurantIds.has(item.restaurantId)) reasons.push("Deja commande ou réserve");
+  if (interactedRestaurantIds.has(item.restaurantId)) reasons.push("Déjà commande ou réserve");
   if (cuisine && favoriteCuisines.has(cuisine)) reasons.push("Cuisine preferee");
   if (city && viewerCity && city === viewerCity) reasons.push("A proximite");
   if (item.postType === "promo") reasons.push("Offre en cours");

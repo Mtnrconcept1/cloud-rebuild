@@ -52,12 +52,12 @@ export const FEATURE_FLAG_GROUP_LABELS: Record<FeatureFlagGroup, string> = {
 };
 
 export const FEATURE_FLAG_GROUP_DESCRIPTIONS: Record<FeatureFlagGroup, string> = {
-  payments: "Controle les moyens de paiement acceptés par la plateforme.",
-  journeys: "Pilote les modes de commande et de réservation exposes à l'echelle globale.",
-  client_features: "Active ou coupe les experiences client et modules exclusifs.",
-  restaurant_dashboard: "Controle le dashboard restaurateur, ses routes et ses sections metier.",
-  courier: "Controle le dashboard livreur et ses routes internes.",
-  admin_tools: "Controle les modules accessibles depuis l'administration.",
+  payments: "Contrôle les moyens de paiement acceptés par la plateforme.",
+  journeys: "Pilote les modes de commande et de réservation exposés à l'echelle globale.",
+  client_features: "Active ou coupe les expériences client et modules exclusifs.",
+  restaurant_dashboard: "Contrôle le dashboard restaurateur, ses routes et ses sections métier.",
+  courier: "Contrôle le dashboard livreur et ses routes internes.",
+  admin_tools: "Contrôle les modules accessibles depuis l'administration.",
   custom: "Flags trouves en base mais non catalogues dans le frontend.",
 };
 
@@ -111,7 +111,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "livraison",
     label: "Livraison",
-    description: "Expose les parcours de livraison cote client, restaurateur et livreur.",
+    description: "Expose les parcours de livraison côté client, restaurateur et livreur.",
     defaultEnabled: true,
     group: "journeys",
     critical: true,
@@ -127,14 +127,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "sur-place",
     label: "Sur place",
-    description: "Active les experiences dine-in et les parcours associés.",
+    description: "Active les expériences dine-in et les parcours associés.",
     defaultEnabled: true,
     group: "journeys",
   },
   {
     name: "reservation",
     label: "Reservation",
-    description: "Active les réservations cote client, restaurateur et leurs routes dediees.",
+    description: "Active les réservations côté client, restaurateur et leurs routes dédiées.",
     defaultEnabled: true,
     group: "journeys",
     routeTargets: ["/reservations"],
@@ -152,7 +152,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "anti-gaspi",
     label: "Anti-gaspi",
-    description: "Active les offres anti-gaspi cote client et restaurateur.",
+    description: "Active les offres anti-gaspi côté client et restaurateur.",
     defaultEnabled: true,
     group: "client_features",
     dependsOn: ["emporter"],
@@ -169,7 +169,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "actualites-sociales",
     label: "Actualités sociales",
-    description: "Active le fil social client dedie aux restaurants.",
+    description: "Active le fil social client dédié aux restaurants.",
     defaultEnabled: true,
     group: "client_features",
     routeTargets: ["/actualites"],
@@ -177,7 +177,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "creneaux-garantis",
     label: "Créneaux garantis",
-    description: "Active la promesse de livraison ponctuelle ou remboursee.",
+    description: "Active la promesse de livraison ponctuelle ou remboursée.",
     defaultEnabled: true,
     group: "client_features",
     dependsOn: ["livraison"],
@@ -222,7 +222,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "chefs-table",
     label: "La Table du Chef",
-    description: "Active les experiences exclusives et leurs pages associees.",
+    description: "Active les expériences exclusives et leurs pages associees.",
     defaultEnabled: true,
     group: "client_features",
     routeTargets: ["/chefs-table"],
@@ -230,7 +230,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "zero-attente",
     label: "Zéro attente",
-    description: "Active la précommande synchronisée sur réservation payee.",
+    description: "Active la précommande synchronisée sur réservation payée.",
     defaultEnabled: true,
     group: "client_features",
     dependsOn: ["reservation", "sur-place"],
@@ -281,7 +281,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "campagnes-pub",
     label: "Campagnes pub",
-    description: "Active les mises en avant sponsorisees et la gestion des campagnes.",
+    description: "Active les mises en avant sponsorisées et la gestion des campagnes.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
   },
@@ -321,7 +321,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-restaurant",
     label: "Dashboard: Mon restaurant",
-    description: "Expose l'edition de la fiche restaurant et des capacites locales.",
+    description: "Expose l'edition de la fiche restaurant et des capacités locales.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
@@ -429,7 +429,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "dashboard-campagnes",
     label: "Dashboard: Campagnes avancees",
-    description: "Expose l'edition complète des campagnes sponsorisees.",
+    description: "Expose l'edition complète des campagnes sponsorisées.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "campagnes-pub"],
@@ -446,7 +446,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "dashboard-factures-parametres",
-    label: "Dashboard: Parametres de facturation",
+    label: "Dashboard: Paramètres de facturation",
     description: "Expose les parametres de facturation restaurateur.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
@@ -528,7 +528,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "espace-livreur",
     label: "Dashboard coursier",
-    description: "Expose l'entrée du dashboard coursier et ses routes dediees.",
+    description: "Expose l'entrée du dashboard coursier et ses routes dédiées.",
     defaultEnabled: true,
     group: "courier",
     critical: true,
@@ -636,7 +636,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "admin-audit",
     label: "Admin: Audit",
-    description: "Expose les journaux d'audit et les executions edge.",
+    description: "Expose les journaux d'audit et les exécutions Edge.",
     defaultEnabled: true,
     group: "admin_tools",
     routeTargets: ["/admin/audit"],

@@ -37,7 +37,7 @@ export default function CartItemList({ items, updateQuantity, removeItem }: Cart
               <div className="space-y-1 text-xs text-muted-foreground">
                 <p>
                   {item.metadata?.chef_name ? `${item.metadata.chef_name} - ` : ""}
-                  {item.metadata?.service_time ? `service ${item.metadata.service_time}` : "service dedie"}
+                  {item.metadata?.service_time ? `service ${item.metadata.service_time}` : "service dédié"}
                 </p>
                 <p>{item.quantity} convive{item.quantity > 1 ? "s" : ""}</p>
               </div>

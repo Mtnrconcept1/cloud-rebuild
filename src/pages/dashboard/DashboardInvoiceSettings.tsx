@@ -138,7 +138,7 @@ export default function DashboardInvoiceSettings() {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Parametres sauvegardes" });
+      toast({ title: "Paramètres sauvegardes" });
       const { data } = await supabase
         .from("restaurant_invoice_settings")
         .select("*")
@@ -163,7 +163,7 @@ export default function DashboardInvoiceSettings() {
       <div className="space-y-6">
         <DashboardPageHero
           badge="Facturation"
-          title="Parametres de facturation"
+          title="Paramètres de facturation"
           description="Renseignez les informations legales, bancaires et de presentation qui alimentent vos factures restaurateur."
           icon={FileText}
           tone="sky"
@@ -338,7 +338,7 @@ export default function DashboardInvoiceSettings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <CreditCard className="h-5 w-5" />
-                  Coordonnees bancaires
+                  Coordonnées bancaires
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -494,7 +494,7 @@ export default function DashboardInvoiceSettings() {
 
                   {settings.iban ? (
                     <div className="rounded bg-gray-50 p-3 text-xs">
-                      <p className="font-semibold">Coordonnees bancaires</p>
+                      <p className="font-semibold">Coordonnées bancaires</p>
                       <p>
                         IBAN : {settings.iban}
                         {settings.bic ? ` - BIC : ${settings.bic}` : ""}

@@ -46,7 +46,7 @@ function InvoiceTableRow({
           <div className="font-mono text-xs">{invoice.invoice_number || invoice.id.slice(0, 8)}</div>
           <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
           <div className="text-xs text-muted-foreground">
-            Facture adressee a : {invoice.restaurants?.name || "-"}
+            Facture adressée à : {invoice.restaurants?.name || "-"}
           </div>
         </TableCell>
         <TableCell className="text-sm">{invoice.restaurants?.name || "-"}</TableCell>
@@ -67,7 +67,7 @@ function InvoiceTableRow({
               <span className="text-xs text-muted-foreground">Reglee</span>
             ) : (
               <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
-                Marquer payee
+                Marquer payée
               </Button>
             )}
           </div>
@@ -171,7 +171,7 @@ function MobileInvoiceCard({
             </Button>
             {!isPaid ? (
               <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
-                Marquer payee
+                Marquer payée
               </Button>
             ) : (
               <span className="text-xs text-muted-foreground">Reglee</span>
@@ -262,7 +262,7 @@ export default function AdminComptaInflow() {
       return;
     }
 
-    toast({ title: "Facture marquee comme payee" });
+    toast({ title: "Facture marquée comme payée" });
     await queryClient.invalidateQueries({ queryKey: ["admin-compta-payable-invoices-v3"] });
   };
 
@@ -278,7 +278,7 @@ export default function AdminComptaInflow() {
               <Link to="/admin/compta">Vue d&apos;ensemble</Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/admin/compta/entrees">Entrees d&apos;argent</Link>
+              <Link to="/admin/compta/entrees">Entrées d&apos;argent</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
               <Link to="/admin/compta/sorties">Sorties d&apos;argent</Link>
@@ -331,14 +331,14 @@ export default function AdminComptaInflow() {
             <AccountingMetricCard
               tone="amber"
               icon={RefreshCcw}
-              label="Encore a facturer"
+              label="Encore à facturer"
               value={formatAmount(payableAccruals.totalAmount)}
               description={`${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} payable${payableAccruals.totalCount > 1 ? "s" : ""} attendent encore une facturé.`}
             />
             <AccountingMetricCard
               tone="orange"
               icon={FileDown}
-              label="Deja facturé, a encaisser"
+              label="Déjà facturé, à encaisser"
               value={formatAmount(summary.inflow.payableOutstanding)}
               description={`${payableInvoiceSections.actionable.length} facturé${payableInvoiceSections.actionable.length > 1 ? "s" : ""} ouverte${payableInvoiceSections.actionable.length > 1 ? "s" : ""} cote restaurateurs.`}
             />
@@ -351,7 +351,7 @@ export default function AdminComptaInflow() {
             />
             <AccountingMetricCard
               icon={Wallet}
-              label="Deja encaisse"
+              label="Déjà encaisse"
               value={formatAmount(summary.inflow.payableCollected)}
               description="Historique regle sur les factures payables déjà emises."
             />
@@ -400,7 +400,7 @@ export default function AdminComptaInflow() {
               icon={FileDown}
               eyebrow="A faire maintenant"
               title="Suivre les factures déjà emises"
-              description="Une fois la facturé créée, la priorite devient l'encaissement cote restaurateur."
+              description="Une fois la facturé créée, la priorité devient l'encaissement cote restaurateur."
               value={formatAmount(summary.inflow.payableOutstanding)}
               valueLabel="A encaisser"
             >
@@ -417,7 +417,7 @@ export default function AdminComptaInflow() {
                     value: formatAmount(summary.inflow.payableCollected),
                   },
                   {
-                    label: "Ouvert total cote entrees",
+                    label: "Ouvert total cote entrées",
                     value: formatAmount(totalPayableOpen),
                   },
                 ]}
@@ -481,7 +481,7 @@ export default function AdminComptaInflow() {
               icon={Wallet}
               eyebrow="Comprendre les flux"
               title="Remboursements clients"
-              description="Les remboursements sont separes des commissions et des factures TOK pour garder une lecture claire des encaissements."
+              description="Les remboursements sont séparés des commissions et des factures TOK pour garder une lecture claire des encaissements."
               value={formatAmount(refundsIssuedTotal)}
               valueLabel="Remboursements"
             >

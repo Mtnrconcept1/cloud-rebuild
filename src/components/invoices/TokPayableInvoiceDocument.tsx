@@ -360,7 +360,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                 isPrintMode ? "text-2xl tracking-[0.05em]" : "text-xl sm:text-3xl sm:tracking-[0.05em]",
               )}
             >
-              Detail de la facturation
+              Détail de la facturation
             </h2>
             {!isPrintMode ? (
               <div className="space-y-3 md:hidden">
@@ -389,7 +389,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                   >
                     <tr>
                       <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Type</th>
-                      <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Detail</th>
+                      <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Détail</th>
                       <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Quantite</th>
                       <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Base de calcul</th>
                       <th className={cn("border-b border-[#f6b790]", isPrintMode ? "px-4 py-3" : "px-5 py-4")}>Facturation TOK</th>

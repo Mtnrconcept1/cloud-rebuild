@@ -67,7 +67,7 @@ export default function CourierMissionDialog({
                     {formatCurrency(Number(mission.estimatedEarnings || 0))}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {mission.distanceKm ? `${mission.distanceKm.toFixed(1)} km jusqu’àu premier retrait` : "Distance calculee au dispatch"}
+                    {mission.distanceKm ? `${mission.distanceKm.toFixed(1)} km jusqu’au premier retrait` : "Distance calculee au dispatch"}
                   </p>
                 </div>
 
@@ -88,7 +88,7 @@ export default function CourierMissionDialog({
               <div className="space-y-3 rounded-2xl border p-4">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <Package className="h-4 w-4 text-primary" />
-                  Details de livraison
+                  Détails de livraison
                 </div>
                 {mission.itemsSummary ? (
                   <p className="text-sm text-foreground">{mission.itemsSummary}</p>
@@ -149,7 +149,7 @@ export default function CourierMissionDialog({
                   <DeliveryMap routeStops={geoSteps} className="h-[280px] md:h-[420px]" />
                 ) : (
                   <div className="flex h-[280px] items-center justify-center rounded-2xl border border-dashed bg-card px-6 text-center text-sm text-muted-foreground">
-                    Coordonnees insuffisantes pour afficher le parcours. Le détail de la mission reste disponible ci-contre.
+                    Coordonnées insuffisantes pour afficher le parcours. Le détail de la mission reste disponible ci-contre.
                   </div>
                 )}
               </div>

@@ -110,11 +110,11 @@ export function getOrderStatusLockReason(entity: Pick<StatusLockEntity, "metadat
 export function getReservationStatusLockMessage(entity: StatusLockEntity) {
   const reason = getReservationStatusLockReason(entity);
   if (reason === "cancelled") {
-    return "Statut verrouille apres annulation.";
+    return "Statut verrouillé après annulation.";
   }
 
   if (reason === "paid_special") {
-    return "Statut verrouille apres paiement pour cette réservation.";
+    return "Statut verrouillé après paiement pour cette réservation.";
   }
 
   return null;
@@ -122,6 +122,6 @@ export function getReservationStatusLockMessage(entity: StatusLockEntity) {
 
 export function getOrderStatusLockMessage(entity: Pick<StatusLockEntity, "metadata" | "payment_status">) {
   return getOrderStatusLockReason(entity)
-    ? "Statut verrouille apres paiement pour cette commande speciale."
+    ? "Statut verrouillé après paiement pour cette commande spéciale."
     : null;
 }

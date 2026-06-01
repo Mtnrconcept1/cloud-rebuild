@@ -73,13 +73,13 @@ async function getFreshAccessToken(forceRefresh = false) {
   if (forceRefresh || !activeSession || expiresSoon) {
     const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
     if (refreshError) {
-      throw new Error("Session expiree. Reconnectez-vous pour finaliser votre réservation.");
+      throw new Error("Session expirée. Reconnectez-vous pour finaliser votre réservation.");
     }
     activeSession = refreshedData.session;
   }
 
   if (!activeSession?.access_token) {
-    throw new Error("Session expiree. Reconnectez-vous pour finaliser votre réservation.");
+    throw new Error("Session expirée. Reconnectez-vous pour finaliser votre réservation.");
   }
 
   return activeSession.access_token;
@@ -318,7 +318,7 @@ export default function ZeroAttente() {
       }
       toast({
         title: "Moyen de paiement indisponible",
-        description: "Selectionnez un moyen de paiement sécurisé encore actif.",
+        description: "Sélectionnez un moyen de paiement sécurisé encore actif.",
         variant: "destructive",
       });
       return;
@@ -406,7 +406,7 @@ export default function ZeroAttente() {
 
     try {
       if (!user?.id) {
-        throw new Error("Reconnectez-vous pour recuperer votre réservation Zéro Attente.");
+        throw new Error("Reconnectez-vous pour récupérer votre réservation Zéro Attente.");
       }
 
       const fetchReservation = async () => {
@@ -421,7 +421,7 @@ export default function ZeroAttente() {
           .maybeSingle();
 
         if (error) {
-          throw new Error(error.message || "Impossible de recuperer la réservation Zéro Attente.");
+          throw new Error(error.message || "Impossible de récupérer la réservation Zéro Attente.");
         }
         return data;
       };
@@ -700,7 +700,7 @@ export default function ZeroAttente() {
         authPromptKeyRef.current = processingKey;
         toast({
           title: "Reconnectez-vous",
-          description: "Le paiement a été valide. Reconnectez-vous pour finaliser la réservation Zéro Attente.",
+          description: "Le paiement a été validé. Reconnectez-vous pour finaliser la réservation Zéro Attente.",
           variant: "destructive",
         });
       }

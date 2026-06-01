@@ -1684,7 +1684,7 @@ export default function DashboardPlanSalle() {
   const saveMutation = useMutation({
     mutationFn: async (options?: SaveMutationOptions) => {
       void options;
-      if (!selectedBranchId) throw new Error("Selectionnez d'abord une salle.");
+      if (!selectedBranchId) throw new Error("Sélectionnez d'abord une salle.");
 
       const persistAssignments = async (tempIdToPersistedId: Map<string, string>) => {
         const normalizedAssignments = Object.fromEntries(
@@ -2024,7 +2024,7 @@ export default function DashboardPlanSalle() {
 
   const addTableFromPreset = (presetId: string) => {
     if (!selectedBranchId) {
-      toast({ title: "Sélection requise", description: "Selectionnez d'abord une salle.", variant: "destructive" });
+      toast({ title: "Sélection requise", description: "Sélectionnez d'abord une salle.", variant: "destructive" });
       return;
     }
     if (!isTemplateMode) {
@@ -2680,7 +2680,7 @@ export default function DashboardPlanSalle() {
         }
       : {
           label: "Plan du jour synchronise",
-          detail: "Les placements affiches correspondent à la version en base.",
+          detail: "Les placements affichés correspondent à la version en base.",
           tone: "border-emerald-200 bg-emerald-50 text-emerald-800",
         };
   })();
@@ -2800,7 +2800,7 @@ export default function DashboardPlanSalle() {
                       className="h-11 w-11 rounded-xl"
                       onClick={redoFloorPlan}
                       disabled={!canRedoFloorPlan || saveMutation.isPending}
-                      title="Retablir l'action annulee"
+                      title="Retablir l'action annulée"
                     >
                       <Redo2 className={cn("h-4 w-4", canRedoFloorPlan ? "text-slate-700" : "text-slate-400")} />
                     </Button>
@@ -2943,7 +2943,7 @@ export default function DashboardPlanSalle() {
         {!selectedId && !restaurantsLoading ? (
           <Card>
             <CardContent className="py-10 text-center text-muted-foreground">
-              Selectionnez un restaurant depuis la barre laterale pour ouvrir son plan de salle.
+              Sélectionnez un restaurant depuis la barre latérale pour ouvrir son plan de salle.
             </CardContent>
           </Card>
         ) : null}

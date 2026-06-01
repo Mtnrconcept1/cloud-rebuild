@@ -64,7 +64,7 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
     className: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
   },
   payment_failed: {
-    label: "Paiement echoue",
+    label: "Paiement échoué",
     className: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-700",
   },
 };

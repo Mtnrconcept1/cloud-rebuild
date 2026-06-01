@@ -283,12 +283,12 @@ export async function updateCourierJobStatus(dispatchJobId: string, status: stri
 export async function verifyCourierDelivery(
   dispatchJobId: string,
   proofCode: string,
-  verificationMethod: "qr" | "manual_code",
+  vérificationMethod: "qr" | "manual_code",
 ) {
   return invokeCourierPortal<{ dispatch_job: any; proof: any }>("verify_delivery_proof", {
     dispatch_job_id: dispatchJobId,
     proof_code: proofCode,
-    verification_method: verificationMethod,
+    vérification_method: vérificationMethod,
   });
 }
 

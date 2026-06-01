@@ -300,7 +300,7 @@ async function fetchDispatchHealthRows() {
   const { data, error } = await (supabase as any)
     .from("dispatch_jobs")
     .select("id, status, created_at, courier_id")
-    .not("status", "in", "(delivered,cancelled,canceled,complèted)")
+    .not("status", "in", "(delivered,cancelled,canceled,completed)")
     .order("created_at", { ascending: false })
     .limit(250);
 
@@ -549,7 +549,7 @@ export default function AdminOrdersReservations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-refund-queue"] });
       setSelectedRefund(null);
-      toast({ title: "Remboursement marque", description: "La ligne a été marquee comme remboursee." });
+      toast({ title: "Remboursement marque", description: "La ligne a été marquée comme remboursée." });
     },
     onError: (error: Error) => {
       toast({ title: "Mise à jour impossible", description: error.message, variant: "destructive" });
@@ -561,7 +561,7 @@ export default function AdminOrdersReservations() {
       <DashboardPageHero
         badge="Operations admin"
         title="Commandes et Reservations"
-        description="Historique admin des operations clients, avec recherche par client, restaurant, référence et détails complets par operation."
+        description="Historique admin des opérations clients, avec recherche par client, restaurant, référence et détails complets par opération."
         icon={ShoppingCart}
         tone="violet"
         visualLabel="Operations"
@@ -731,7 +731,7 @@ export default function AdminOrdersReservations() {
                       <TableHead>Commande</TableHead>
                       <TableHead>Client</TableHead>
                       <TableHead>Restaurant</TableHead>
-                      <TableHead>Details</TableHead>
+                      <TableHead>Détails</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Montant</TableHead>
                       <TableHead className="text-right">Action</TableHead>
@@ -837,7 +837,7 @@ export default function AdminOrdersReservations() {
                       <TableHead>Reservation</TableHead>
                       <TableHead>Client</TableHead>
                       <TableHead>Restaurant</TableHead>
-                      <TableHead>Details</TableHead>
+                      <TableHead>Détails</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Montant</TableHead>
                       <TableHead className="text-right">Action</TableHead>
@@ -936,7 +936,7 @@ export default function AdminOrdersReservations() {
                       <TableHead>Reference</TableHead>
                       <TableHead>Client</TableHead>
                       <TableHead>Restaurant</TableHead>
-                      <TableHead>Details</TableHead>
+                      <TableHead>Détails</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Montant</TableHead>
                       <TableHead className="text-right">Action</TableHead>

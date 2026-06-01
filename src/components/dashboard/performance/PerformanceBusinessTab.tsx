@@ -221,7 +221,7 @@ export default function PerformanceBusinessTab({
               </div>
             </div>
             <div className="space-y-1 text-sm text-muted-foreground">
-              <p>Le CA net exclut les commandes annulees, refusees et en echec de paiement.</p>
+              <p>Le CA net exclut les commandes annulées, refusees et en échec de paiement.</p>
               <p>Le CA brut estimé reconstitue les remises retrouvees dans les metadonnees de commande.</p>
               <p>Les réservations sont bornees à la periode sélectionnée sans projection future.</p>
             </div>
@@ -236,7 +236,7 @@ export default function PerformanceBusinessTab({
         <CardContent className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
             <p className="text-sm font-semibold">
-              {latestInvoice ? `Derniere facturé: ${latestInvoice.period_start} -> ${latestInvoice.period_end}` : "Aucune facturé recente"}
+              {latestInvoice ? `Derniere facturé: ${latestInvoice.period_start} -> ${latestInvoice.period_end}` : "Aucune facturé récente"}
             </p>
             <p className="text-sm text-muted-foreground">
               {latestInvoice

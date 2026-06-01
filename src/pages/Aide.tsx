@@ -119,15 +119,15 @@ const FAQS = [
       },
       {
         q: "Comment annuler une commande ?",
-        a: "L'annulation est possible tant que le restaurant n'a pas commence la préparation. Rendez-vous dans les détails de votre commande et appuyez sur 'Annuler la commande'. Si l'option n'apparaît plus, le restaurant a déjà débuté la préparation et l'annulation n'est plus possible. Le remboursement est effectué sous 5 a 10 jours ouvrables sur votre moyen de paiement d'origine.",
+        a: "L'annulation est possible tant que le restaurant n'a pas commencé la préparation. Rendez-vous dans les détails de votre commande et appuyez sur 'Annuler la commande'. Si l'option n'apparaît plus, le restaurant a déjà débuté la préparation et l'annulation n'est plus possible. Le remboursement est effectué sous 5 à 10 jours ouvrables sur votre moyen de paiement d'origine.",
       },
       {
         q: "Il manque un article dans ma commande",
-        a: `Nous en sommes désolés. Signalez le problème via le chat de support ou contactez-nous directement a ${SUPPORT_EMAIL} en précisant votre numéro de commande et l'article manquant. Apres vérification auprès du restaurant, un remboursement partiel ou un crédit Tok sera appliqué sous 48h.`,
+        a: `Nous en sommes désolés. Signalez le problème via le chat de support ou contactez-nous directement à ${SUPPORT_EMAIL} en précisant votre numéro de commande et l'article manquant. Après vérification auprès du restaurant, un remboursement partiel ou un crédit Tok sera appliqué sous 48h.`,
       },
       {
-        q: "Comment modifier ma commande apres validation ?",
-        a: "Pour toute modification apres validation, contactez notre support via le chat en bas de page dans les premières minutes suivant votre commande. Passe le début de préparation par le restaurant, la modification n'est plus possible — vous devrez annuler la commande et en passer une nouvelle.",
+        q: "Comment modifier ma commande après validation ?",
+        a: "Pour toute modification après validation, contactez notre support via le chat en bas de page dans les premières minutes suivant votre commande. Passe le début de préparation par le restaurant, la modification n'est plus possible — vous devrez annuler la commande et en passer une nouvelle.",
       },
       {
         q: "Comment utiliser un code promo ?",
@@ -135,7 +135,7 @@ const FAQS = [
       },
       {
         q: "Je souhaite demander un remboursement",
-        a: "Rendez-vous dans l'historique de vos commandes, sélectionnez la commande concernee, puis appuyez sur 'Signaler un problème'. Decrivez le souci rencontre (article manquant, qualité insatisfaisante, retard excessif) et notre équipe traiterà votre demande sous 48h ouvrees. Le remboursement sera effectué sur votre moyen de paiement d'origine ou en crédit Tok, selon la nature du problème.",
+        a: "Rendez-vous dans l'historique de vos commandes, sélectionnez la commande concernée, puis appuyez sur 'Signaler un problème'. Décrivez le souci rencontré (article manquant, qualité insatisfaisante, retard excessif) et notre équipe traitera votre demande sous 48h ouvrées. Le remboursement sera effectué sur votre moyen de paiement d'origine ou en crédit Tok, selon la nature du problème.",
       },
       {
         q: "Puis-je repasser la meme commande ?",
@@ -143,7 +143,7 @@ const FAQS = [
       },
       {
         q: "Comment commander depuis plusieurs restaurants en une seule commande ?",
-        a: "Avec la fonctionnalité Multi-Restaurant, vous pouvez composer un repas complet en choisissant une entrée, un plat et un dessert depuis différents restaurants situés dans un rayon de 500m. Toutes les commandes sont synchronisées pour arriver en meme temps. Selectionnez l'option 'Multi-Restaurant' depuis la page d'accueil pour commencer.",
+        a: "Avec la fonctionnalité Multi-Restaurant, vous pouvez composer un repas complet en choisissant une entrée, un plat et un dessert depuis différents restaurants situés dans un rayon de 500m. Toutes les commandes sont synchronisées pour arriver en meme temps. Sélectionnez l'option 'Multi-Restaurant' depuis la page d'accueil pour commencer.",
       },
       {
         q: "Comment fonctionne la commande groupée ?",
@@ -155,7 +155,7 @@ const FAQS = [
       },
       {
         q: "Mon plat est arrive froid, que faire ?",
-        a: "Si vous avez souscrit à la Garantie Qualité (+1.50 CHF), notre système détecte automatiquement les anomalies de température et vous serez remboursé a 100% si la température est inférieure a 55°C. Sans la garantie, signalez le problème via le chat de support avec une photo si possible — notre équipe evaluerà la situation et proposera une compensation appropriée.",
+        a: "Si vous avez souscrit à la Garantie Qualité (+1.50 CHF), notre système détecte automatiquement les anomalies de température et vous serez remboursé à 100% si la température est inférieure à 55°C. Sans la garantie, signalez le problème via le chat de support avec une photo si possible — notre équipe évaluera la situation et proposera une compensation appropriée.",
       },
     ],
   },
@@ -176,7 +176,7 @@ const FAQS = [
       },
       {
         q: "Réinitialiser mon mot de passe",
-        a: `Cliquez sur 'Mot de passe oublié' sur la page de connexion. Saisissez votre email et vous recevrez un lien de réinitialisation valable 24 heures. Si vous ne recevez pas l'email, vérifiez vos spams ou contactez le support a ${SUPPORT_EMAIL}.`,
+        a: `Cliquez sur 'Mot de passe oublié' sur la page de connexion. Saisissez votre email et vous recevrez un lien de réinitialisation valable 24 heures. Si vous ne recevez pas l'email, vérifiez vos spams ou contactez le support à ${SUPPORT_EMAIL}.`,
       },
       {
         q: "Comment modifier mes informations personnelles ?",
@@ -184,7 +184,7 @@ const FAQS = [
       },
       {
         q: "Comment supprimer mon compte ?",
-        a: "Vous pouvez demander la suppression de votre compte depuis 'Profil' > 'Parametres' > 'Supprimer mon compte'. Cette action est irréversible et entraîne la perte de vos points de fidélité, crédits, historique de commandes et réservations. La suppression sera effective sous 30 jours. Conformément à la LPD et au RGPD, vos données personnelles seront supprimées de nos serveurs.",
+        a: "Vous pouvez demander la suppression de votre compte depuis 'Profil' > 'Paramètres' > 'Supprimer mon compte'. Cette action est irréversible et entraîne la perte de vos points de fidélité, crédits, historique de commandes et réservations. La suppression sera effective sous 30 jours. Conformément à la LPD et au RGPD, vos données personnelles seront supprimées de nos serveurs.",
       },
       {
         q: "Mes paiements sont-ils sécurisés ?",
@@ -195,8 +195,8 @@ const FAQS = [
         a: "Depuis 'Profil' > 'Adresses', appuyez sur 'Ajouter une adresse'. Vous pouvez saisir votre adresse manuellement ou utiliser la géolocalisation. Ajoutez des détails pratiques (code d'entrée, étage, interphone) pour faciliter la livraison. Vous pouvez enregistrer plusieurs adresses (domicile, bureau, etc.) et définir une adresse par défaut.",
       },
       {
-        q: "J'ai été debite mais ma commande n'a pas été confirmee",
-        a: `En cas de débit sans confirmation, vérifiez d'abord votre onglet 'Commandes' — la commande peut être en cours de traitement. Si rien n'apparaît, contactez notre support via le chat ou a ${SUPPORT_EMAIL} avec votre référence de paiement. Nous vérifierons le statut de la transaction et procéderons au remboursement si nécessaire sous 5 a 10 jours ouvrables.`,
+        q: "J'ai été debite mais ma commande n'a pas été confirmée",
+        a: `En cas de débit sans confirmation, vérifiez d'abord votre onglet 'Commandes' — la commande peut être en cours de traitement. Si rien n'apparaît, contactez notre support via le chat ou à ${SUPPORT_EMAIL} avec votre référence de paiement. Nous vérifierons le statut de la transaction et procéderons au remboursement si nécessaire sous 5 à 10 jours ouvrables.`,
       },
       {
         q: "Puis-je me connecter avec Google ou Apple ?",
@@ -217,7 +217,7 @@ const FAQS = [
       },
       {
         q: "Les frais de livraison sont-ils fixes ?",
-        a: "Les frais de livraison varient entre 2.90 CHF et 6.90 CHF selon la distance entre le restaurant et votre adresse. Ils sont clairement affiches avant validation. Les abonnes Tok One beneficient de la livraison gratuite sur les restaurants éligibles (sans minimum de commande). Les commandes groupees (Match Groupes) permettent aussi de reduire les frais par personne.",
+        a: "Les frais de livraison varient entre 2.90 CHF et 6.90 CHF selon la distance entre le restaurant et votre adresse. Ils sont clairement affichés avant validation. Les abonnés Tok One beneficient de la livraison gratuite sur les restaurants éligibles (sans minimum de commande). Les commandes groupees (Match Groupes) permettent aussi de reduire les frais par personne.",
       },
       {
         q: "Je ne suis pas chez moi, que se passe-t-il ?",
@@ -245,7 +245,7 @@ const FAQS = [
       },
       {
         q: "Que se passe-t-il si ma commande est en retard ?",
-        a: "Si vous avez choisi un Creneau Garanti, la compensation est automatique selon le niveau choisi. Pour les livraisons standards, si le retard depasse 15 minutes au-dela de l'estimation affichee, contactez le support via le chat. Nous evaluerons la situation et proposerons une compensation (crédit Tok ou livraison gratuite sur la prochaine commande).",
+        a: "Si vous avez choisi un Creneau Garanti, la compensation est automatique selon le niveau choisi. Pour les livraisons standards, si le retard depasse 15 minutes au-dela de l'estimation affichée, contactez le support via le chat. Nous evaluerons la situation et proposerons une compensation (crédit Tok ou livraison gratuite sur la prochaine commande).",
       },
       {
         q: "Livrez-vous le dimanche et les jours feries ?",
@@ -258,11 +258,11 @@ const FAQS = [
     questions: [
       {
         q: "Comment réserver une table ?",
-        a: "Rendez-vous sur la page du restaurant souhaite et appuyez sur 'Réserver'. Selectionnez la date, l'heure et le nombre de convives. Votre réservation sera confirmee instantanément si le creneau est disponible. Vous recevrez une confirmation par notification et par email avec tous les détails.",
+        a: "Rendez-vous sur la page du restaurant souhaite et appuyez sur 'Réserver'. Sélectionnez la date, l'heure et le nombre de convives. Votre réservation sera confirmée instantanément si le creneau est disponible. Vous recevrez une confirmation par notification et par email avec tous les détails.",
       },
       {
         q: "Qu'est-ce que Zéro Attente ?",
-        a: "Zéro Attente est une expérience de réservation premium : vous reservez votre table ET precommandez vos plats en meme temps, le tout avec un paiement anticipe. À votre arrivée au restaurant, vos plats sont déjà en préparation — vous n'attendez plus. La réservation apparaît dans l'onglet 'Reservations' du restaurant (et non dans les commandes) avec un badge indigo distinctif.",
+        a: "Zéro Attente est une expérience de réservation premium : vous reservez votre table ET précommandez vos plats en meme temps, le tout avec un paiement anticipe. À votre arrivée au restaurant, vos plats sont déjà en préparation — vous n'attendez plus. La réservation apparaît dans l'onglet 'Reservations' du restaurant (et non dans les commandes) avec un badge indigo distinctif.",
       },
       {
         q: "Comment fonctionne le paiement Zéro Attente ?",
@@ -270,7 +270,7 @@ const FAQS = [
       },
       {
         q: "Puis-je annuler une réservation ?",
-        a: "L'annulation est possible jusqu’à 2 heures avant l'heure de la réservation. Passee ce délai, une annulation tardive pourrait entrainer des restrictions sur votre compte (signalement no-show). Pour les réservations Zéro Attente (payees), contactez le support pour discuter d'un remboursement ou d'un report de date.",
+        a: "L'annulation est possible jusqu’à 2 heures avant l'heure de la réservation. Passee ce délai, une annulation tardive pourrait entrainer des restrictions sur votre compte (signalement no-show). Pour les réservations Zéro Attente (payées), contactez le support pour discuter d'un remboursement ou d'un report de date.",
       },
       {
         q: "Puis-je appliquer une formule a ma réservation ?",
@@ -278,19 +278,19 @@ const FAQS = [
       },
       {
         q: "Qu'est-ce qu'un La Table du Chef ?",
-        a: "Un La Table du Chef est un evenement gastronomique exclusif : le chef prepare des plats signature hors-carte en quantite ultra-limitée. Les portions disponibles sont affichees en temps réel et partent très vite. Pour y participer, reservez une table au restaurant et sélectionnez les plats La Table du Chef disponibles. Les abonnes Tok One ont un accès prioritaire.",
+        a: "Un La Table du Chef est un événement gastronomique exclusif : le chef prépare des plats signature hors-carte en quantité ultra-limitée. Les portions disponibles sont affichées en temps réel et partent très vite. Pour y participer, réservez une table au restaurant et sélectionnez les plats La Table du Chef disponibles. Les abonnés Tok One ont un accès prioritaire.",
       },
       {
-        q: "Comment savoir si ma réservation est confirmee ?",
-        a: "Apres votre réservation, vous recevez une notification et un email de confirmation. Vous pouvez aussi vérifier le statut de toutes vos réservations depuis l'onglet 'Reservations' de votre profil. Les statuts possibles sont : en attente, confirmee, arrivée, annulee et no-show.",
+        q: "Comment savoir si ma réservation est confirmée ?",
+        a: "Après votre réservation, vous recevez une notification et un email de confirmation. Vous pouvez aussi vérifier le statut de toutes vos réservations depuis l'onglet 'Reservations' de votre profil. Les statuts possibles sont : en attente, confirmée, arrivée, annulée et no-show.",
       },
       {
-        q: "Que se passe-t-il si je ne me presente pas (no-show) ?",
-        a: "Si vous ne vous presentez pas sans avoir annule au préalable, cela sera enregistré comme un 'no-show'. Des no-shows répétés peuvent entrainer des restrictions sur votre capacite a réserver. Pour les réservations Zéro Attente, le paiement est conservé. Pensez toujours a annuler à l'avance si vos plans changent.",
+        q: "Que se passe-t-il si je ne me présente pas (no-show) ?",
+        a: "Si vous ne vous présentez pas sans avoir annule au préalable, cela sera enregistré comme un 'no-show'. Des no-shows répétés peuvent entrainer des restrictions sur votre capacité a réserver. Pour les réservations Zéro Attente, le paiement est conservé. Pensez toujours a annuler à l'avance si vos plans changent.",
       },
       {
-        q: "Puis-je modifier le nombre de convives apres la réservation ?",
-        a: "Oui, vous pouvez modifier le nombre de convives tant que le creneau le permet (capacite disponible). Rendez-vous dans les détails de votre réservation et appuyez sur 'Modifier'. Si le restaurant ne peut pas accommoder le nouveau nombre, vous devrez annuler et réserver un autre creneau.",
+        q: "Puis-je modifier le nombre de convives après la réservation ?",
+        a: "Oui, vous pouvez modifier le nombre de convives tant que le creneau le permet (capacité disponible). Rendez-vous dans les détails de votre réservation et appuyez sur 'Modifier'. Si le restaurant ne peut pas accommoder le nouveau nombre, vous devrez annuler et réserver un autre creneau.",
       },
     ],
   },
@@ -323,7 +323,7 @@ const FAQS = [
       },
       {
         q: "Comment offrir des points de fidélité en cadeau ?",
-        a: "Rendez-vous dans 'Points cadeau' depuis le menu principal. Choisissez le montant de points a offrir (minimum 100 points), saisissez l'email du destinataire et ajoutez un message personnalise. Si le destinataire a déjà un compte, les points sont credites immediatement. Sinon, un code cadeau lui est envoyé par email, valable 30 jours.",
+        a: "Rendez-vous dans 'Points cadeau' depuis le menu principal. Choisissez le montant de points a offrir (minimum 100 points), saisissez l'email du destinataire et ajoutez un message personnalise. Si le destinataire a déjà un compte, les points sont credites immédiatement. Sinon, un code cadeau lui est envoyé par email, valable 30 jours.",
       },
       {
         q: "Puis-je donner des repas a des personnes dans le besoin ?",
@@ -365,7 +365,7 @@ const FAQS = [
     questions: [
       {
         q: "Quels sont les avantages de Tok One ?",
-        a: "Tok One vous offre : la livraison gratuite sur tous les restaurants éligibles (sans minimum de commande), des réductions exclusives allant jusqu’à 20%, un accès prioritaire aux La Table du Chefs et événements gastronomiques, un accès anticipe aux ventes flash et offres speciales, un support client prioritaire avec temps de réponse accelere, et des offres surprises régulières réservées aux membres.",
+        a: "Tok One vous offre : la livraison gratuite sur tous les restaurants éligibles (sans minimum de commande), des réductions exclusives allant jusqu’à 20%, un accès prioritaire aux La Table du Chefs et événements gastronomiques, un accès anticipe aux ventes flash et offres spéciales, un support client prioritaire avec temps de réponse accelere, et des offres surprises régulières réservées aux membres.",
       },
       {
         q: "Combien coute l'abonnement Tok One ?",
@@ -414,7 +414,7 @@ const FAQS = [
       },
       {
         q: "Existe-t-il des niveaux de fidélité ?",
-        a: "Oui, le programme de fidélité comporte différents paliers qui offrent des avantages croissants : réductions supplémentaires, accès anticipe aux offres speciales, bonus de points multiplies. Plus vous commandez, plus vous montez en niveau et débloquez de récompenses.",
+        a: "Oui, le programme de fidélité comporte différents paliers qui offrent des avantages croissants : réductions supplémentaires, accès anticipe aux offres spéciales, bonus de points multiplies. Plus vous commandez, plus vous montez en niveau et débloquéz de récompenses.",
       },
     ],
   },
@@ -427,14 +427,14 @@ const FAQS = [
       },
       {
         q: "Comment fonctionne la compensation automatique ?",
-        a: "Avec la Garantie Qualité, les compensations sont appliquées automatiquement : température inférieure a 55°C = remboursement a 100%, température entre 55-60°C = 50% en crédit Tok, sac endommage = remboursement a 100% + 5 CHF de crédit, retard superieur a 15 minutes = livraison gratuite sur la prochaine commande. Aucune demarche de votre part n'est nécessaire.",
+        a: "Avec la Garantie Qualité, les compensations sont appliquées automatiquement : température inférieure à 55°C = remboursement à 100%, température entre 55-60°C = 50% en crédit Tok, sac endommagé = remboursement à 100% + 5 CHF de crédit, retard supérieur à 15 minutes = livraison gratuite sur la prochaine commande. Aucune démarche de votre part n'est nécessaire.",
       },
       {
         q: "Comment fonctionne le QR code de vérification ?",
         a: "À la réception de votre commande, scannez le QR code sur l'emballage avec l'application Tok. Le scan confirme la chaine de qualité : température pendant le transport, intégrité du sac et délai de livraison. Si une anomalie est détectée, la compensation est déclenchée automatiquement.",
       },
       {
-        q: "Comment les restaurants sont-ils selectionnes ?",
+        q: "Comment les restaurants sont-ils sélectionnés ?",
         a: "Chaque restaurant partenaire passe par un processus de vérification rigoureux avant d'être accepté sur la plateforme. Nous verifions les normes d'hygiène, la qualité des ingrédients, la régularité du service et les avis clients. Les restaurants sont notes en continu et ceux qui ne maintiennent pas nos standards sont retirés de la plateforme. 80% de nos partenaires sont des restaurants indépendants locaux.",
       },
       {
@@ -443,7 +443,7 @@ const FAQS = [
       },
       {
         q: "Comment signaler un problème de qualité ?",
-        a: `Si vous rencontrez un problème de qualité (plat froid, emballage endommage, article non conforme), signalez-le immediatement via le chat de support ou en envoyant un email a ${SUPPORT_EMAIL} avec votre numéro de commande et une photo si possible. Notre équipe traiterà votre reclamation sous 48h ouvrees.`,
+        a: `Si vous rencontrez un problème de qualité (plat froid, emballage endommagé, article non conforme), signalez-le immédiatement via le chat de support ou en envoyant un email à ${SUPPORT_EMAIL} avec votre numéro de commande et une photo si possible. Notre équipe traitera votre réclamation sous 48h ouvrées.`,
       },
     ],
   },
@@ -456,11 +456,11 @@ const FAQS = [
       },
       {
         q: "Qu'est-ce que les Packs de Lancement ?",
-        a: "Les Packs de Lancement sont des formules d'accompagnement pour les restaurateurs qui souhaitent optimiser leur presence sur Tok. Quatre formules sont disponibles : Decouverte (490 CHF), Essentiel (990 CHF), Pro (1 990 CHF, le plus populaire) et Premium (3 490 CHF, VIP). Chaque pack inclut différents services : mise en place du compte, creation de menu, photos professionnelles, gestion des reseaux sociaux, campagnes publicitaires, plan de salle digital et account manager dedie.",
+        a: "Les Packs de Lancement sont des formules d'accompagnement pour les restaurateurs qui souhaitent optimiser leur presence sur Tok. Quatre formules sont disponibles : Decouverte (490 CHF), Essentiel (990 CHF), Pro (1 990 CHF, le plus populaire) et Premium (3 490 CHF, VIP). Chaque pack inclut différents services : mise en place du compte, creation de menu, photos professionnelles, gestion des reseaux sociaux, campagnes publicitaires, plan de salle digital et account manager dédié.",
       },
       {
         q: "Quels services sont inclus dans chaque pack ?",
-        a: "Pack Decouverte : mise en place basique + menu jusqu’à 20 plats. Pack Essentiel : mise en place complète + 40 plats + 10 photos pro + reseaux sociaux. Pack Pro : illimite + 25 photos + reseaux sociaux + 1 campagne pub (200 CHF budget) + plan de salle. Pack Premium : tout illimite + account manager dedie + 3 campagnes (500 CHF budget total) + 3 mois de gestion reseaux sociaux.",
+        a: "Pack Decouverte : mise en place basique + menu jusqu’à 20 plats. Pack Essentiel : mise en place complète + 40 plats + 10 photos pro + reseaux sociaux. Pack Pro : illimite + 25 photos + reseaux sociaux + 1 campagne pub (200 CHF budget) + plan de salle. Pack Premium : tout illimite + account manager dédié + 3 campagnes (500 CHF budget total) + 3 mois de gestion reseaux sociaux.",
       },
       {
         q: "Comment fonctionne le dashboard restaurateur ?",
@@ -471,8 +471,8 @@ const FAQS = [
         a: "Depuis votre dashboard, rendez-vous dans 'Pack de lancement'. Vous y verrez le pack souscrit, une barre de progression globale et le statut de chaque service inclus (en attente, planifié, en cours, terminé). Notre équipe met à jour l'avancement au fur et à mesure des étapes accomplies. Vous recevrez des notifications à chaque mise à jour.",
       },
       {
-        q: "Pourquoi certains onglets du dashboard sont-ils verrouilles ?",
-        a: "Les onglets accessibles dans votre dashboard dependent du pack de lancement que vous avez choisi. Les fonctionnalités non incluses dans votre pack sont grises et marquees d'un cadenas. Par exemple, le plan de salle n'est accessible qu'avec les packs Pro et Premium. Contactez notre équipe pour upgrader votre pack et debloquer de nouvelles fonctionnalités.",
+        q: "Pourquoi certains onglets du dashboard sont-ils verrouillés ?",
+        a: "Les onglets accessibles dans votre dashboard dependent du pack de lancement que vous avez choisi. Les fonctionnalités non incluses dans votre pack sont grisés et marquées d'un cadenas. Par exemple, le plan de salle n'est accessible qu'avec les packs Pro et Premium. Contactez notre équipe pour upgrader votre pack et debloquér de nouvelles fonctionnalités.",
       },
       {
         q: "Comment les réservations Zéro Attente apparaissent-elles dans mon dashboard ?",
@@ -480,11 +480,11 @@ const FAQS = [
       },
       {
         q: "Comment sont calculees mes performances et mon chiffre d'affaires ?",
-        a: "Le chiffre d'affaires affiche dans votre dashboard inclut les revenus des commandes (livraison et à emporter) ainsi que les paiements des réservations Zéro Attente. Les commandes annulees, refusees ou en echec de paiement sont exclues. Vous pouvez consulter vos performances par periode (7, 30, 90 jours), voir les graphiques quotidiens, le panier moyen, le taux d'annulation et là satisfaction client.",
+        a: "Le chiffre d'affaires affiche dans votre dashboard inclut les revenus des commandes (livraison et à emporter) ainsi que les paiements des réservations Zéro Attente. Les commandes annulées, refusees ou en échec de paiement sont exclues. Vous pouvez consulter vos performances par periode (7, 30, 90 jours), voir les graphiques quotidiens, le panier moyen, le taux d'annulation et là satisfaction client.",
       },
       {
-        q: "Comment gerer mon plan de salle ?",
-        a: "Depuis l'onglet 'Plan de salle' du dashboard (disponible avec les packs Pro et Premium), vous pouvez créer et editer visuellement votre plan de salle : ajouter des tables, définir leur capacite et leur forme, les disposer dans l'espace, et affecter des réservations aux tables. Le plan de salle est utilise pour optimiser la gestion des réservations et la capacite de votre restaurant.",
+        q: "Comment gérer mon plan de salle ?",
+        a: "Depuis l'onglet 'Plan de salle' du dashboard (disponible avec les packs Pro et Premium), vous pouvez créer et editer visuellement votre plan de salle : ajouter des tables, définir leur capacité et leur forme, les disposer dans l'espace, et affecter des réservations aux tables. Le plan de salle est utilisé pour optimiser la gestion des réservations et la capacité de votre restaurant.",
       },
       {
         q: "Comment utiliser Actualités comme outil marketing ?",
@@ -492,7 +492,7 @@ const FAQS = [
       },
       {
         q: "Quelles statistiques sont disponibles pour mes actualités ?",
-        a: "Le cockpit Actualités affiche les impressions, clics, clics CTA, réactions, commentaires, sauvegardes, partages, taux d'engagement, posts programmes et répartition par objectif marketing. Ces données vous aident à comprendre quels contenus génèrent de la visibilité, des commandes ou des réservations.",
+        a: "Le cockpit Actualités affiche les impressions, clics, clics CTA, réactions, commentaires, sauvegardes, partages, taux d'engagement, posts programmés et répartition par objectif marketing. Ces données vous aident à comprendre quels contenus génèrent de la visibilité, des commandes ou des réservations.",
       },
       {
         q: "Qui modere les publications et signalements Actualités ?",

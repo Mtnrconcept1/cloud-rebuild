@@ -302,7 +302,7 @@ function getPostTypeLabel(post: SocialFeedPost) {
   const labels: Record<string, string> = {
     plat: "Plat",
     promo: "Promo",
-    evenement: "Evenement",
+    evenement: "Événement",
     coulisses: "Coulisses",
     annonce: "Annonce",
   };

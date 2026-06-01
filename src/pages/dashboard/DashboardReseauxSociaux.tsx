@@ -98,7 +98,7 @@ export default function DashboardReseauxSociaux() {
     event.preventDefault();
 
     if (!form.restaurant_id) {
-      toast({ title: "Validation", description: "Selectionnez un restaurant.", variant: "destructive" });
+      toast({ title: "Validation", description: "Sélectionnez un restaurant.", variant: "destructive" });
       return;
     }
 

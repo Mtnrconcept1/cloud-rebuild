@@ -24,23 +24,23 @@ export const TOK_ONE_DEFAULT_BENEFITS = [
   },
   {
     id: "discount_percentage",
-    label: "Reductions exclusives",
-    description: "Jusqu'a 20% sur les plats éligibles.",
+    label: "Réductions exclusives",
+    description: "Jusqu'à 20% sur les plats éligibles.",
   },
   {
     id: "chef_table_priority",
-    label: "Acces prioritaire La Table du Chef",
-    description: "Acces prioritaire aux experiences gastronomiques.",
+    label: "Accès prioritaire La Table du Chef",
+    description: "Accès prioritaire aux expériences gastronomiques.",
   },
   {
     id: "flash_early_access",
     label: "Ventes flash en avance",
-    description: "Acces anticipe aux offres limitées.",
+    description: "Accès anticipé aux offres limitées.",
   },
   {
     id: "priority_support",
     label: "Support prioritaire",
-    description: "Demandes traitées en priorite.",
+    description: "Demandes traitées en priorité.",
   },
   {
     id: "surprise_offers",

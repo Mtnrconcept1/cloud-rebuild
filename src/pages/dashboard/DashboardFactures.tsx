@@ -55,14 +55,14 @@ export default function DashboardFactures() {
           title="Vue comptable"
           description={selectedRestaurant
             ? "Les chiffres essentiels: ce que Tok vous doit, ce que vous devez a Tok, les Miamz pris en charge et le net ouvert."
-            : "Selectionnez un restaurant depuis la barre laterale pour ouvrir la comptabilite."}
+            : "Sélectionnez un restaurant depuis la barre latérale pour ouvrir la comptabilité."}
           actions={(
             <>
               <Button asChild size="sm">
                 <Link to="/dashboard/factures">Vue d&apos;ensemble</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link to="/dashboard/factures/entrees">Entrees</Link>
+                <Link to="/dashboard/factures/entrees">Entrées</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
                 <Link to="/dashboard/factures/sorties">Sorties</Link>
@@ -70,7 +70,7 @@ export default function DashboardFactures() {
               <Button asChild size="sm" variant="outline">
                 <Link to="/dashboard/factures/parametres">
                   <Settings className="mr-2 h-4 w-4" />
-                  Parametres
+                  Paramètres
                 </Link>
               </Button>
             </>
@@ -81,7 +81,7 @@ export default function DashboardFactures() {
           <Card className="tok-dashboard-section rounded-3xl border border-border/70">
             <CardContent className="py-10 text-center text-muted-foreground dark:text-slate-100/78">
               <ReceiptText className="mx-auto mb-3 h-10 w-10 text-[#ff6a1a] opacity-80" />
-              <p>Selectionnez un restaurant dans la barre laterale pour afficher sa comptabilite.</p>
+              <p>Sélectionnez un restaurant dans la barre latérale pour afficher sa comptabilité.</p>
             </CardContent>
           </Card>
         ) : null}
@@ -100,7 +100,7 @@ export default function DashboardFactures() {
                   icon: ArrowDownRight,
                   label: "A recevoir de Tok",
                   value: formatAmount(totalReceivable),
-                  helper: `${formatAmount(summary.inflow.receivableFromTok)} déjà facturé, ${formatAmount(uninvoicedRestaurantShareTotal)} a facturer.`,
+                  helper: `${formatAmount(summary.inflow.receivableFromTok)} déjà facturé, ${formatAmount(uninvoicedRestaurantShareTotal)} à facturer.`,
                 },
                 {
                   tone: "orange",
@@ -114,7 +114,7 @@ export default function DashboardFactures() {
                   icon: HandCoins,
                   label: "Miamz pris en charge",
                   value: formatAmount(tokCoveredMiamzAmount),
-                  helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz remboursee par Tok.`,
+                  helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz remboursée par Tok.`,
                 },
                 {
                   tone: netOpen >= 0 ? "emerald" : "rose",
@@ -132,7 +132,7 @@ export default function DashboardFactures() {
                 icon={ArrowDownRight}
                 eyebrow="Action"
                 title="Ce que Tok vous doit"
-                description="La part restaurant a recuperer, separee entre facturé déjà emise et encours."
+                description="La part restaurant a récupérer, separee entre facturé déjà emise et encours."
                 value={formatAmount(totalReceivable)}
                 valueLabel="Entrees ouvertes"
               >
@@ -140,22 +140,22 @@ export default function DashboardFactures() {
                   tone="primary"
                   items={[
                     {
-                      label: "Deja facturé et en attente",
+                      label: "Déjà facturé et en attente",
                       value: formatAmount(summary.inflow.receivableFromTok),
                     },
                     {
-                      label: "Encore a facturer",
+                      label: "Encore à facturer",
                       value: formatAmount(uninvoicedRestaurantShareTotal),
                       helper: "Part 90% déjà acquise mais pas encore emise.",
                     },
                     {
-                      label: "Deja reçu de Tok",
+                      label: "Déjà reçu de Tok",
                       value: formatAmount(summary.inflow.receivedFromTok),
                     },
                   ]}
                 />
                 <Button asChild>
-                  <Link to="/dashboard/factures/entrees">Ouvrir les entrees</Link>
+                  <Link to="/dashboard/factures/entrees">Ouvrir les entrées</Link>
                 </Button>
               </AccountingPanel>
 
@@ -181,7 +181,7 @@ export default function DashboardFactures() {
                       helper: `${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} en attente.`,
                     },
                     {
-                      label: "Deja paye a Tok",
+                      label: "Déjà paye a Tok",
                       value: formatAmount(summary.outflow.alreadyPaidToTok),
                     },
                   ]}
@@ -196,7 +196,7 @@ export default function DashboardFactures() {
               <AccountingPanel
                 tone="emerald"
                 icon={Coins}
-                title="Ce qui explique vos entrees"
+                title="Ce qui explique vos entrées"
                 description="La base client, la part restaurant et le montant Miamz finance par Tok."
                 value={formatAmount(totalRestaurantShare)}
                 valueLabel="Part restaurant"
@@ -216,7 +216,7 @@ export default function DashboardFactures() {
                     {
                       label: "Miamz pris en charge par Tok",
                       value: formatAmount(tokCoveredMiamzAmount),
-                      helper: "Reduction client ajoutee à votre base de reversement.",
+                      helper: "Réduction client ajoutee à votre base de reversement.",
                     },
                     ...COMMISSION_SOURCE_ORDER.map((source) => ({
                       label: COMMISSION_SOURCE_LABELS[source],
@@ -238,7 +238,7 @@ export default function DashboardFactures() {
                   tone="violet"
                   items={[
                     {
-                      label: "Campagnes payees",
+                      label: "Campagnes payées",
                       value: formatAmount(paidCampaignsTotal),
                       helper: `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""}.`,
                     },

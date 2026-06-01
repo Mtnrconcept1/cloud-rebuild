@@ -105,7 +105,7 @@ const DELIVERY_STATUS_SEQUENCE = ["confirmed", "preparing", "delivering", "deliv
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
   pending_payment: "Paiement en attente",
-  payment_failed: "Paiement echoue",
+  payment_failed: "Paiement échoué",
   confirmed: "Confirmee",
   preparing: "En préparation",
   ready: "Prete a retirer",
@@ -301,7 +301,7 @@ export default function DashboardCommandes() {
 
       if (data.refundAttempted && data.refundResult?.ok) {
         toast({
-          title: "Commande annulee",
+          title: "Commande annulée",
           description: `Remboursement lance pour ${Number(data.refundResult.refundAmountChf || 0).toFixed(2)} CHF.`,
         });
         return;
@@ -309,7 +309,7 @@ export default function DashboardCommandes() {
 
       if (data.refundAttempted && !data.refundResult?.ok) {
         toast({
-          title: "Commande annulee, remboursement en attente",
+          title: "Commande annulée, remboursement en attente",
           description: data.refundResult?.errorMessage || "Le remboursement reste disponible dans la file admin.",
           variant: "destructive",
         });
@@ -318,14 +318,14 @@ export default function DashboardCommandes() {
 
       if (data.refundEligible) {
         toast({
-          title: "Commande annulee",
+          title: "Commande annulée",
           description: "La demande de remboursement reste disponible dans la file admin.",
         });
         return;
       }
 
       toast({
-        title: "Commande annulee",
+        title: "Commande annulée",
         description: "La raison a été enregistrée.",
       });
     },
@@ -378,7 +378,7 @@ export default function DashboardCommandes() {
     if (dispatchState === "failed") {
       const dispatchError = typeof data?.dispatch?.error === "string" ? data.dispatch.error : "Impossible de notifier les livreurs.";
       toast({
-        title: "Statut mis à jour (alerté livreur echouee)",
+        title: "Statut mis à jour (alerté livreur échouée)",
         description: dispatchError,
         variant: "destructive",
       });
@@ -427,7 +427,7 @@ export default function DashboardCommandes() {
           <p className="text-muted-foreground">Aucun restaurant lié à votre compte.</p>
         ) : null}
         {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
-          <p className="text-muted-foreground">Selectionnez un restaurant depuis la barre laterale pour afficher les commandes.</p>
+          <p className="text-muted-foreground">Sélectionnez un restaurant depuis la barre latérale pour afficher les commandes.</p>
         ) : null}
         {ordersError ? (
           <p className="text-destructive">Erreur lors du chargement des commandes : {(ordersError as Error).message}</p>
@@ -669,7 +669,7 @@ export default function DashboardCommandes() {
                               <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                                   <Package2 className="h-4 w-4" />
-                                  Detail de la commande
+                                  Détail de la commande
                                 </div>
                                 <div className="space-y-2 rounded-xl bg-muted/30 p-3">
                                   {items.map((item) => (

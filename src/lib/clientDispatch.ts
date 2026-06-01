@@ -35,6 +35,6 @@ export async function dispatchToCouriersClientSide(
   return {
     notifiedCount: 0,
     courierIds: [],
-    errors: ["Le fallback de dispatch cote client est desactive pour raisons de sécurité."],
+    errors: ["Le fallback de dispatch côté client est désactivé pour raisons de sécurité."],
   };
 }

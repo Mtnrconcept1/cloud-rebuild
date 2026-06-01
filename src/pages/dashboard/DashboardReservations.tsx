@@ -241,22 +241,22 @@ export default function DashboardReservations() {
     onSuccess: (data) => {
       if (data.refundAttempted && data.refundResult?.ok) {
         toast({
-          title: "Reservation annulee",
+          title: "Reservation annulée",
           description: `Remboursement lance pour ${Number(data.refundResult.refundAmountChf || 0).toFixed(2)} CHF.`,
         });
       } else if (data.refundAttempted && !data.refundResult?.ok) {
         toast({
-          title: "Reservation annulee, remboursement en attente",
+          title: "Reservation annulée, remboursement en attente",
           description: data.refundResult?.errorMessage || "Le remboursement reste disponible dans la file admin.",
           variant: "destructive",
         });
       } else if (data.refundEligible) {
         toast({
-          title: "Reservation annulee",
+          title: "Reservation annulée",
           description: "La demande de remboursement reste disponible dans la file admin.",
         });
       } else {
-        toast({ title: "Reservation annulee", description: "La raison a été enregistrée." });
+        toast({ title: "Reservation annulée", description: "La raison a été enregistrée." });
       }
       queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
       setCancelTarget(null);
@@ -403,7 +403,7 @@ export default function DashboardReservations() {
           <p className="text-muted-foreground">Aucun restaurant lié à votre compte.</p>
         ) : null}
         {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
-          <p className="text-muted-foreground">Selectionnez un restaurant depuis la barre laterale pour afficher les réservations.</p>
+          <p className="text-muted-foreground">Sélectionnez un restaurant depuis la barre latérale pour afficher les réservations.</p>
         ) : null}
         {reservationsError ? (
           <p className="text-destructive">Erreur lors du chargement des réservations : {(reservationsError as Error).message}</p>
@@ -577,7 +577,7 @@ export default function DashboardReservations() {
                                 const isCardLocked = isReservationLocked || isArrived;
                                 const isConfirmedAck = reservation.status === "confirmed";
                                 const effectiveLockMessage = isArrived
-                                  ? "Carte verrouillee apres l'arrivée du client."
+                                  ? "Carte verrouillée après l'arrivée du client."
                                   : statusLockMessage;
 
                                 const isZeroAttente = reservation.feature === "zero-attente";
@@ -758,7 +758,7 @@ export default function DashboardReservations() {
                 ))}
               </Accordion>
             ) : (
-              <p className="py-10 text-center text-muted-foreground">Aucune réservation pour les filtres selectionnes.</p>
+              <p className="py-10 text-center text-muted-foreground">Aucune réservation pour les filtres sélectionnés.</p>
             )}
           </>
         ) : null}

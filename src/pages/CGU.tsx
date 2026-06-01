@@ -40,7 +40,7 @@ export default function CGU() {
             <li>Consultation des menus, cartes et informations des Restaurants partenaires.</li>
             <li>Réservation de tables en ligne avec confirmation instantanée.</li>
             <li>Commande de repas en livraison à domicile ou à emporter (click & collect).</li>
-            <li>Accès à des offres exclusives, promotions et programmes de fidélité.</li>
+            <li>Accès à des offres exclusives, promotions et programmés de fidélité.</li>
             <li>Suivi en temps réel des commandes et des livraisons.</li>
             <li>Accès aux avis et évaluations d'autres Utilisateurs.</li>
             <li>Abonnement Tok One offrant des avantages premium (livraison gratuite, réductions exclusives, accès prioritaire aux événements).</li>

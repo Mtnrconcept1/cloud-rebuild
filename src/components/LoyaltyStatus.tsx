@@ -83,7 +83,7 @@ export default function LoyaltyStatus() {
             <DialogHeader className="border-b bg-background/95 px-4 py-4 pr-12 text-left backdrop-blur sm:px-6">
               <DialogTitle>Avantages {config.label}</DialogTitle>
               <DialogDescription>
-                Tous vos avantages actifs et ceux a debloquer, lisibles sur mobile.
+                Tous vos avantages actifs et ceux a debloquér, lisibles sur mobile.
               </DialogDescription>
             </DialogHeader>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
@@ -91,7 +91,7 @@ export default function LoyaltyStatus() {
                 <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <span className="font-medium">{points.toLocaleString()} Miamz</span>
                   <span className="text-muted-foreground">
-                    {nextTierLabel ? `${loyalty.pointsToNextTier} Miamz avant ${nextTierLabel}` : "Tous les avantages sont debloques"}
+                    {nextTierLabel ? `${loyalty.pointsToNextTier} Miamz avant ${nextTierLabel}` : "Tous les avantages sont debloqués"}
                   </span>
                 </div>
                 <Progress value={loyalty.progressPercent} className="mt-3 h-2" />
@@ -114,7 +114,7 @@ export default function LoyaltyStatus() {
 
               {lockedBenefits.length > 0 ? (
                 <div className="mt-5 space-y-2 pb-2">
-                  <p className="text-sm font-semibold">A debloquer ensuite</p>
+                  <p className="text-sm font-semibold">A debloquér ensuite</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {lockedBenefits.slice(0, 6).map((benefit) => (
                       <div key={benefit.id} className="rounded-lg border border-dashed p-3 text-sm opacity-80">

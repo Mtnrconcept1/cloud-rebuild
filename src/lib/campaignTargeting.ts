@@ -31,7 +31,7 @@ export const CUSTOMER_SEGMENT_OPTIONS: { value: CampaignCustomerSegment; label: 
   { value: "new", label: "Nouveaux clients" },
   { value: "returning", label: "Clients déjà actifs" },
   { value: "loyal", label: "Clients fideles" },
-  { value: "inactive", label: "Clients a reactiver" },
+  { value: "inactive", label: "Clients a réactiver" },
 ];
 
 export const JOURNEY_TYPE_OPTIONS: { value: CampaignJourneyType; label: string }[] = [

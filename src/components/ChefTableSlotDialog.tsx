@@ -228,7 +228,7 @@ export default function ChefTableSlotDialog({
                   Choisissez votre creneau
                 </div>
                 <p className="text-xs leading-5 text-amber-800/75 dark:text-amber-100/75">
-                  Les horaires affiches correspondent aux services disponibles pour cette expérience.
+                  Les horaires affichés correspondent aux services disponibles pour cette expérience.
                 </p>
                 {renderSlotGroup("Service du midi", slots.lunch)}
                 {renderSlotGroup("Service du soir", slots.dinner)}
@@ -247,7 +247,7 @@ export default function ChefTableSlotDialog({
                 Nombre de convives
               </div>
               <p className="mt-1 text-xs leading-5 text-amber-700/80 dark:text-amber-100/75">
-                Ce nombre determiné la réservation et le nombre d'experiences facturees.
+                Ce nombre determiné la réservation et le nombre d'expériences facturees.
               </p>
 
               <div className="mt-4 flex items-center justify-between rounded-[24px] bg-white p-2 shadow-sm dark:border dark:border-amber-300/25 dark:bg-slate-950 dark:shadow-[0_0_24px_rgba(245,158,11,0.12)]">

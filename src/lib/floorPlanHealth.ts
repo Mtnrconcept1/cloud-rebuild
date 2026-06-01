@@ -41,7 +41,7 @@ function formatCriticalHealthDetail(input: {
 }) {
   return [
     formatProblemCount(input.invalidAssignments, "affectation invalide"),
-    formatProblemCount(input.overCapacityAssignments, "table en sur-capacite", "tables en sur-capacite"),
+    formatProblemCount(input.overCapacityAssignments, "table en sur-capacité", "tables en sur-capacité"),
     formatProblemCount(input.overlappingAssignments, "collision horaire sur une table", "collisions horaires sur une table"),
   ].filter(Boolean).join(", ");
 }
@@ -176,7 +176,7 @@ export function getFloorPlanHealthSummary(input: {
     activeReservableTables: activeReservableTables.length,
     totalReservableCapacity,
     assignedCovers,
-    headline: "Service pret",
+    headline: "Service prêt",
     detail: "Toutes les réservations visibles sont placees correctement.",
   };
 }

@@ -153,7 +153,7 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
           </div>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Coordonnees</h3>
+            <h3 className="text-sm font-semibold">Coordonnées</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border p-4">
                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -275,7 +275,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </div>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Coordonnees</h3>
+            <h3 className="text-sm font-semibold">Coordonnées</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border p-4">
                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -316,14 +316,14 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Details de réservation</h3>
+            <h3 className="text-sm font-semibold">Détails de réservation</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border p-4 text-sm text-muted-foreground">
                 <p className="mb-2 inline-flex items-center gap-2 font-medium text-foreground">
                   <Clock3 className="h-4 w-4 text-primary" />
                   Horaires
                 </p>
-                <p>Heure affichee : {reservation.displayTime}</p>
+                <p>Heure affichée : {reservation.displayTime}</p>
                 {reservation.reservationTime && reservation.reservationTime !== reservation.displayTime ? (
                   <p>Heure système : {reservation.reservationTime}</p>
                 ) : null}
@@ -342,7 +342,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Precommandes</h3>
+            <h3 className="text-sm font-semibold">Précommandes</h3>
             {reservation.preorderItems.length > 0 ? (
               <div className="space-y-3">
                 {reservation.preorderItems.map((item, index) => (
@@ -361,14 +361,14 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
               </div>
             ) : (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                Aucune précommande rattachee à cette réservation.
+                Aucune précommande rattachée à cette réservation.
               </div>
             )}
           </section>
 
           {reservation.specialRequests ? (
             <section className="space-y-2 grid grid-cols-1">
-              <h3 className="text-sm font-semibold">Demandes speciales</h3>
+              <h3 className="text-sm font-semibold">Demandes spéciales</h3>
               <div className="max-w-full whitespace-pre-wrap break-words rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
                 {reservation.specialRequests}
               </div>
@@ -399,7 +399,7 @@ export default function AdminOperationDetailSheet({ operation, onOpenChange }: P
         {operation?.kind === "reservation" ? <ReservationDetailContent reservation={operation.item} /> : null}
         {!operation ? (
           <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
-            Selectionnez une operation.
+            Sélectionnez une opération.
           </div>
         ) : null}
       </SheetContent>

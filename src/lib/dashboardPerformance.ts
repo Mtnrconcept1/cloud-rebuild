@@ -544,7 +544,7 @@ export function buildPerformanceInsights(summary: PerformanceSummary): Performan
       id: "discount-driver",
       label: "Remise dominante",
       value: top.key,
-      description: `${top.key.charAt(0).toUpperCase()}${top.key.slice(1)} representent ${((top.value / summary.discounts.total) * 100).toFixed(0)}% des remises.`,
+      description: `${top.key.charAt(0).toUpperCase()}${top.key.slice(1)} représentent ${((top.value / summary.discounts.total) * 100).toFixed(0)}% des remises.`,
     });
   }
 

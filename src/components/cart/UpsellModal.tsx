@@ -125,9 +125,9 @@ export default function UpsellModal({
   };
 
   // If no suggestions, we shouldn't really show the modal, or it will just be an empty state.
-  // We handle that in the parent by closing it immediately or not opening it, 
+  // We handle that in the parent by closing it immediately or not opening it,
   // but just in case, we can show a loader or fallback.
-  
+
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!val) onClose(); }}>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-background">

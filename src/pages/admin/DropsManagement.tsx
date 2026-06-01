@@ -90,7 +90,7 @@ export default function DropsManagement() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.restaurant_id) {
-      toast({ title: "Validation", description: "Selectionnez un restaurant.", variant: "destructive" });
+      toast({ title: "Validation", description: "Sélectionnez un restaurant.", variant: "destructive" });
       return;
     }
 
@@ -130,7 +130,7 @@ export default function DropsManagement() {
       <DashboardPageHero
         badge="Experiences"
         title="La Table du Chef"
-        description="Créez, modifiez et desactivez les experiences exclusives proposees par vos chefs avec une vue claire des drops actifs."
+        description="Créez, modifiez et désactivez les expériences exclusives proposées par vos chefs avec une vue claire des drops actifs."
         icon={UtensilsCrossed}
         tone="rose"
         visualLabel="Chef"
@@ -208,7 +208,7 @@ export default function DropsManagement() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Quantite limitée, comme une vente flash. Le compteur diminue à chaque réservation confirmee.
+                Quantite limitée, comme une vente flash. Le compteur diminue à chaque réservation confirmée.
               </p>
             </div>
             <div className="space-y-2">

@@ -2,7 +2,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/env";
 
 const ACCESS_TOKEN_REFRESH_THRESHOLD_MS = 60_000;
-const SESSION_EXPIRED_MESSAGE = "Session expiree. Reconnectez-vous.";
+const SESSION_EXPIRED_MESSAGE = "Session expirée. Reconnectez-vous.";
 
 function getFunctionsErrorStatus(error: unknown) {
   if (!error || typeof error !== "object" || !("status" in error)) return null;

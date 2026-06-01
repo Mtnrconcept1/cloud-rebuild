@@ -274,7 +274,7 @@ export default function DashboardRestaurant() {
             </div>
             <div className="space-y-2">
               <Label>Resume des catégories</Label>
-              <Input value={cuisineSummary} readOnly placeholder="Selectionnez un ou plusieurs types" />
+              <Input value={cuisineSummary} readOnly placeholder="Sélectionnez un ou plusieurs types" />
             </div>
           </div>
 
@@ -368,7 +368,7 @@ export default function DashboardRestaurant() {
             </>
           ) : (
             <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-              La livraison est actuellement desactivee par l'administration globale.
+              La livraison est actuellement désactivée par l'administration globale.
             </div>
           )}
 
@@ -405,7 +405,7 @@ export default function DashboardRestaurant() {
                 <CreditCard className="h-5 w-5" /> Moyens de paiement acceptés
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Desactivez les moyens de paiement que vous ne souhaitez pas proposer à vos clients.
+                Désactivez les moyens de paiement que vous ne souhaitez pas proposer à vos clients.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {([
@@ -432,7 +432,7 @@ export default function DashboardRestaurant() {
                       <div>
                         <p className="text-sm font-medium">{method.label}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          {globallyEnabled ? method.description : "Desactive globalement par l'administration"}
+                          {globallyEnabled ? method.description : "Désactivé globalement par l'administration"}
                         </p>
                       </div>
                     </div>

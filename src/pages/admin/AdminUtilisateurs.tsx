@@ -363,7 +363,7 @@ export default function AdminUtilisateurs() {
       <DashboardPageHero
         badge="Identites et roles"
         title="Gestion des utilisateurs"
-        description="Administrez les roles applicatifs, les comptes et les dossiers d'inscription verifies dans une interface unique."
+        description="Administrez les roles applicatifs, les comptes et les dossiers d'inscription vérifiés dans une interface unique."
         icon={Users}
         tone="sky"
         visualLabel="Utilisateurs"
@@ -600,7 +600,7 @@ export default function AdminUtilisateurs() {
                           Soumis le{" "}
                           {application.submitted_at
                             ? new Date(application.submitted_at).toLocaleDateString("fr-CH")
-                            : "recentement"}
+                            : "récemment"}
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -919,7 +919,7 @@ export default function AdminUtilisateurs() {
                         onClick={() => reviewCourierProfile(courier.id, "approved")}
                         disabled={isReviewing || courier.status === "approved"}
                       >
-                        {isReviewing ? "Enregistrement..." : courier.status === "approved" ? "Deja approuve" : "Approuver"}
+                        {isReviewing ? "Enregistrement..." : courier.status === "approved" ? "Déjà approuve" : "Approuver"}
                       </Button>
                     </div>
                   </div>

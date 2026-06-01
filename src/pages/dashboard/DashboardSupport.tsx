@@ -43,7 +43,7 @@ const FAQ = [
   { q: "Comment activer la livraison ?", a: "Dans « Mon restaurant », activez l'option livraison et configurez les frais et le montant minimum de commande." },
   { q: "Qu'est-ce que l'anti-gaspi ?", a: "Les offres anti-gaspi permettent de vendre vos invendus à prix réduit avant la fermeture. Créez-les dans « Anti-gaspi »." },
   { q: "Comment transformer une actualité en action marketing ?", a: "Dans « Actualités », sélectionnez un objectif, une audience, un CTA et un modèle. Le score marketing vous aide a ajouter média, accroche, programmation et bouton d'action avant publication." },
-  { q: "Comment lire les performances Actualités ?", a: "Le cockpit suit impressions, clics, clics CTA, engagement, sauvegardes, posts programmes et objectifs de campagne pour identifier ce qui amène visibilité, commandes ou réservations." },
+  { q: "Comment lire les performances Actualités ?", a: "Le cockpit suit impressions, clics, clics CTA, engagement, sauvegardes, posts programmés et objectifs de campagne pour identifier ce qui amène visibilité, commandes ou réservations." },
   { q: "Comment lancer une campagne marketing ?", a: "Rendez-vous dans « Campagnes » pour créer des campagnes publicitaires ciblées avec un budget quotidien." },
 ];
 

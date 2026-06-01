@@ -124,8 +124,8 @@ export default function CourierJobs() {
   });
 
   const verifyMutation = useMutation({
-    mutationFn: async ({ dispatchJobId, proofCode, verificationMethod }: { dispatchJobId: string; proofCode: string; verificationMethod: "qr" | "manual_code" }) =>
-      verifyCourierDelivery(dispatchJobId, proofCode, verificationMethod),
+    mutationFn: async ({ dispatchJobId, proofCode, vérificationMethod }: { dispatchJobId: string; proofCode: string; vérificationMethod: "qr" | "manual_code" }) =>
+      verifyCourierDelivery(dispatchJobId, proofCode, vérificationMethod),
     onSuccess: () => {
       toast.success("Livraison validée");
       refreshCourierQueries();
@@ -349,11 +349,11 @@ export default function CourierJobs() {
                       {requiresProof ? (
                         <DeliveryProofPanel
                           isLoading={verifyMutation.isPending}
-                          onVerify={({ code, verificationMethod }) =>
+                          onVerify={({ code, vérificationMethod }) =>
                             verifyMutation.mutate({
                               dispatchJobId: job.id,
                               proofCode: code,
-                              verificationMethod,
+                              vérificationMethod,
                             })}
                         />
                       ) : null}
@@ -372,7 +372,7 @@ export default function CourierJobs() {
         <Card>
           <CardHeader>
             <CardTitle>Historique récent</CardTitle>
-            <CardDescription>Vos dernieres missions terminées ou annulees.</CardDescription>
+            <CardDescription>Vos dernieres missions terminées ou annulées.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentJobs.length > 0 ? (

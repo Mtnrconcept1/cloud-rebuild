@@ -126,7 +126,7 @@ export default function PerformanceTodayTab({
             key: "today-orders",
             label: "Commandes",
             value: String(snapshot.totalOrders),
-            helper: `${snapshot.invalidOrdersCount} annulee(s) ou refusee(s)`,
+            helper: `${snapshot.invalidOrdersCount} annulée(s) ou refusee(s)`,
             icon: ShoppingCart,
           },
           {

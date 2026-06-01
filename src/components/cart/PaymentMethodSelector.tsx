@@ -63,7 +63,7 @@ export default function PaymentMethodSelector({
         <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/6 p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-white">Confirmation immédiate apres paiement</p>
+            <p className="text-sm font-semibold text-white">Confirmation immédiate après paiement</p>
             <p className="text-xs leading-5 text-white/72">
               Vos créneaux Table du Chef et votre nombre de convives sont déjà pris en compte dans cette étape.
             </p>

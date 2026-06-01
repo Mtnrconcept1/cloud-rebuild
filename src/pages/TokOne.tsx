@@ -53,24 +53,24 @@ const BENEFITS = [
   {
     id: "discount_percentage",
     icon: Percent,
-    title: "Reductions exclusives",
-    desc: "Jusqu'a 20% de réduction sur une sélection de plats chaque semaine.",
-    detail: "Les remises Tok One se cumulent avec les codes promo et les offres speciales disponibles.",
+    title: "Réductions exclusives",
+    desc: "Jusqu'à 20% de réduction sur une sélection de plats chaque semaine.",
+    detail: "Les remises Tok One se cumulent avec les codes promo et les offres spéciales disponibles.",
     tone: "from-[#35c778] to-[#12603f]",
   },
   {
     id: "chef_table_priority",
     icon: ChefHat,
-    title: "Acces prioritaire La Table du Chef",
+    title: "Accès prioritaire La Table du Chef",
     desc: "Réservez en avant-première les meilleures tables des chefs.",
-    detail: "Les drops gastronomiques sont debloques 24h avant l'ouverture publique.",
+    detail: "Les drops gastronomiques sont debloqués 24h avant l'ouverture publique.",
     tone: "from-[#ffb34f] to-[#bf4c0a]",
   },
   {
     id: "flash_early_access",
     icon: Zap,
     title: "Ventes flash en avance",
-    desc: "Acces anticipe aux offres limitées avant le lancement officiel.",
+    desc: "Accès anticipé aux offres limitées avant le lancement officiel.",
     detail: "Recevez les alertes prioritaires et commandez avant que les quantités ne partent.",
     tone: "from-[#facc15] to-[#b45309]",
   },
@@ -287,7 +287,7 @@ export default function TokOne() {
                 <div className="rounded-2xl border border-[#f6c453]/45 bg-[#f6c453]/10 px-5 py-4">
                   <p className="font-bold text-[#ffe38a]">Tok One est actif</p>
                   <p className="text-sm text-white/72">
-                    Jusqu'au {activeSubscription ? new Date(activeSubscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : ""}
+                    Jusqu'àu {activeSubscription ? new Date(activeSubscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : ""}
                   </p>
                 </div>
               ) : (

@@ -161,7 +161,7 @@ export default function AdminLoyalty() {
       }
 
       if (!savedPlanId) {
-        throw new Error("Identifiant du forfait introuvable apres sauvegarde.");
+        throw new Error("Identifiant du forfait introuvable après sauvegarde.");
       }
 
       const { error: deleteBenefitsError } = await supabase
@@ -289,7 +289,7 @@ export default function AdminLoyalty() {
       <Card>
         <CardHeader>
           <CardTitle>Catalogue des avantages</CardTitle>
-          <CardDescription>Avantages client affiches dans le programme fidélité, par niveau débloque.</CardDescription>
+          <CardDescription>Avantages client affichés dans le programme fidélité, par niveau débloqué.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {LOYALTY_TIER_ORDER.map((tierId) => {

@@ -68,8 +68,8 @@ const SUGGESTED_ACTIONS = [
   },
   {
     id: "suggest-furniture",
-    label: "Suggerer du mobilier",
-    description: "Plantes, bar, separateurs...",
+    label: "Suggérer du mobilier",
+    description: "Plantes, bar, séparateurs...",
     icon: Sofa,
     color: "text-emerald-500",
     bg: "bg-emerald-500/10 hover:bg-emerald-500/20",

@@ -188,7 +188,7 @@ export default function VentesFlash() {
     if (!selectedOrderMode) {
       toast({
         title: "Choisissez un mode",
-        description: "Selectionnez un mode de recuperation pour continuer.",
+        description: "Sélectionnez un mode de recuperation pour continuer.",
         variant: "destructive",
       });
       return;
@@ -251,7 +251,7 @@ export default function VentesFlash() {
             size="sm"
             onClick={async () => {
               if (!user) {
-                toast({ title: "Connectez-vous", description: "Activez les alertes apres connexion.", variant: "destructive" });
+                toast({ title: "Connectez-vous", description: "Activez les alertes après connexion.", variant: "destructive" });
                 return;
               }
               if (notifyEnabled) {
@@ -267,7 +267,7 @@ export default function VentesFlash() {
               }
               queryClient.invalidateQueries({ queryKey: ["flash-subscription", user.id] });
               toast({
-                title: notifyEnabled ? "Alertes desactivees" : "Alertes flash activees",
+                title: notifyEnabled ? "Alertes désactivées" : "Alertes flash activées",
                 description: notifyEnabled ? "" : "Vous serez notifié des prochaines ventes flash",
               });
             }}
@@ -294,7 +294,7 @@ export default function VentesFlash() {
               <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/10 p-3 text-center">
                 <TrendingDown className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
                 <p className="text-lg font-bold">-70%</p>
-                <p className="text-[10px] text-muted-foreground">Jusqu'a</p>
+                <p className="text-[10px] text-muted-foreground">Jusqu'à</p>
               </div>
             </div>
 

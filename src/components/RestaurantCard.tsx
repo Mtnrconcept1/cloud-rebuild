@@ -322,7 +322,7 @@ export default function RestaurantCard({
           {bestDiscount > 0 ? (
             <div className="absolute bottom-3 left-3">
               <Badge className="gap-1 rounded-full border border-white/20 bg-white/90 px-3 py-1 text-[10px] font-bold text-emerald-700 shadow-sm ring-1 ring-black/5 backdrop-blur-md hover:bg-white dark:border-emerald-200/70 dark:bg-emerald-950/95 dark:text-emerald-50 dark:ring-emerald-200/20 dark:shadow-[0_0_24px_rgba(16,185,129,0.36),0_10px_24px_rgba(0,0,0,0.35)] dark:hover:bg-emerald-900">
-                <Percent className="h-3 w-3" /> Jusqu'a -{bestDiscount}%
+                <Percent className="h-3 w-3" /> Jusqu'à -{bestDiscount}%
               </Badge>
             </div>
           ) : null}

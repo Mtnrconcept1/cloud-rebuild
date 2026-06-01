@@ -86,7 +86,7 @@ describe("campaignTargeting", () => {
       maxDaysSinceOrder: 30,
     });
 
-    expect(summary).toContain("Clients a reactiver");
+    expect(summary).toContain("Clients a réactiver");
     expect(summary).toContain("2 villes");
     expect(summary).toContain("2+ commandes");
     expect(summary).toContain("Fans du restaurant");

@@ -327,7 +327,7 @@ function PresetFormulaCard({
       }
 
       onSaved();
-      toast({ title: active ? "Formule activée" : "Formule desactivee" });
+      toast({ title: active ? "Formule activée" : "Formule désactivée" });
     } catch (error: any) {
       toast({
         title: "Enregistrement impossible",
@@ -442,7 +442,7 @@ function PresetFormulaCard({
           <div className="space-y-4 border-t pt-4">
             <div className="flex items-center gap-4">
               <div className="w-32 space-y-1">
-                <Label className="text-xs font-medium">Reduction</Label>
+                <Label className="text-xs font-medium">Réduction</Label>
                 <div className="relative">
                   <Input
                     type="number"
@@ -490,7 +490,7 @@ function PresetFormulaCard({
               <div>
                 <Label className="text-xs font-medium">Services disponibles</Label>
                 <p className="text-[11px] text-muted-foreground">
-                  Active chaque formule sur le midi, le soir, ou les deux avec une plage horaire dediee.
+                  Active chaque formule sur le midi, le soir, ou les deux avec une plage horaire dédiée.
                 </p>
               </div>
               <div className="grid gap-3 md:grid-cols-2">

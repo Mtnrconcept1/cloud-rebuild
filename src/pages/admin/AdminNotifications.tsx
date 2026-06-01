@@ -150,7 +150,7 @@ export default function AdminNotifications() {
     } catch (dispatchError) {
       dispatchWarning = dispatchError instanceof Error
         ? dispatchError.message
-        : "Le traitement immediat des notifications a echoue.";
+        : "Le traitement immédiat des notifications a échoué.";
     }
 
     const result = Array.isArray(data) ? data[0] : data;
@@ -191,7 +191,7 @@ export default function AdminNotifications() {
     } catch (dispatchError) {
       dispatchWarning = dispatchError instanceof Error
         ? dispatchError.message
-        : "Le traitement immediat des notifications a echoue.";
+        : "Le traitement immédiat des notifications a échoué.";
     }
 
     const dueCount = Array.isArray(data) ? data.length : 0;
@@ -400,7 +400,7 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
 
     if (emailEnabled && deliverability.status === "blocked") {
       toast({
-        title: "Newsletter bloquee",
+        title: "Newsletter bloquée",
         description: `Corrigez la delivrabilite avant l'envoi: ${deliverability.blockers.join(", ")}`,
         variant: "destructive",
       });
@@ -522,7 +522,7 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-primary" />
             <div>
-              <p className="text-sm font-semibold">Controle anti-spam</p>
+              <p className="text-sm font-semibold">Contrôle anti-spam</p>
               <p className="text-xs text-muted-foreground">Consentement marketing, lien preferences, SPF/DKIM/DMARC et contenu a risque.</p>
             </div>
           </div>
@@ -536,7 +536,7 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
             <span>Domaine email authentifie</span>
           </label>
           <div className="rounded-md border px-3 py-2">
-            Statut: {deliverability.status === "ready" ? "pret" : deliverability.status === "blocked" ? "bloque" : "a vérifier"}
+            Statut: {deliverability.status === "ready" ? "prêt" : deliverability.status === "blocked" ? "bloqué" : "a vérifier"}
           </div>
         </div>
         {[...deliverability.blockers, ...deliverability.warnings].length > 0 ? (

@@ -35,12 +35,12 @@ const SERVICE_PERIODS: Array<{
   {
     key: "lunch",
     icon: SunMedium,
-    description: "Parametres de réservation et capacite pour le service du midi.",
+    description: "Paramètres de réservation et capacité pour le service du midi.",
   },
   {
     key: "dinner",
     icon: MoonStar,
-    description: "Parametres de réservation et capacite pour le service du soir.",
+    description: "Paramètres de réservation et capacité pour le service du soir.",
   },
 ];
 
@@ -199,7 +199,7 @@ export default function DashboardService() {
         <DashboardPageHero
           badge="Services restaurant"
           title="Pilotage de service"
-          description="Scindez distinctement le service du midi et le service du soir pour les réservations, la capacite et les options de livraison."
+          description="Scindez distinctement le service du midi et le service du soir pour les réservations, la capacité et les options de livraison."
           icon={Settings}
           tone="amber"
           visualLabel="Service"
@@ -213,7 +213,7 @@ export default function DashboardService() {
           {!reservationEnabled ? (
             <p className="text-sm text-muted-foreground">
               Les réservations sont actuellement coupees globalement. Les reglages ci-dessous restent editables mais ne
-              seront pas exposes cote client tant que le flag global reste desactive.
+              seront pas exposés côté client tant que le flag global reste désactivé.
             </p>
           ) : null}
         </div>
@@ -442,7 +442,7 @@ export default function DashboardService() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-              La livraison est desactivee par l'administration globale. Le pilotage reste centre sur les services de réservation.
+              La livraison est désactivée par l'administration globale. Le pilotage reste centre sur les services de réservation.
             </CardContent>
           </Card>
         )}
@@ -456,7 +456,7 @@ export default function DashboardService() {
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-1">
             <p>Le split midi/soir est maintenant partage avec le module de réservation client.</p>
-            <p>La capacite, les plages horaires et l'ouverture en ligne sont gerees separément par service.</p>
+            <p>La capacité, les plages horaires et l'ouverture en ligne sont gérées séparément par service.</p>
           </CardContent>
         </Card>
 

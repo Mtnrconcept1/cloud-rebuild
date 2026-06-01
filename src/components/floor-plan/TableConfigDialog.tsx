@@ -834,7 +834,7 @@ export default function TableConfigDialog({
                 <div className="rounded-[26px] border border-slate-200 bg-white/80 p-4 sm:p-5">
                   <div className="mb-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">1. Base</p>
-                    <p className="mt-1 text-sm text-slate-500">Choisissez la forme et la capacite cible. Les dimensions se calculent automatiquement.</p>
+                    <p className="mt-1 text-sm text-slate-500">Choisissez la forme et la capacité cible. Les dimensions se calculent automatiquement.</p>
                   </div>
 
                   <div className="space-y-4">

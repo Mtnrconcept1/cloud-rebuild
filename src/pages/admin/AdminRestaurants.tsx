@@ -336,7 +336,7 @@ export default function AdminRestaurants() {
                       <Switch
                         checked={restaurant.is_active ?? true}
                         onCheckedChange={(checked) =>
-                          updateRestaurant(restaurant.id, { is_active: checked }, checked ? "Restaurant active" : "Restaurant desactive")
+                          updateRestaurant(restaurant.id, { is_active: checked }, checked ? "Restaurant activé" : "Restaurant désactivé")
                         }
                       />
                     </label>
@@ -357,7 +357,7 @@ export default function AdminRestaurants() {
                           updateRestaurant(
                             restaurant.id,
                             { supports_reservation: checked },
-                            checked ? "Reservations activees" : "Reservations desactivees"
+                            checked ? "Reservations activées" : "Reservations désactivées"
                           )
                         }
                       />
@@ -389,11 +389,11 @@ export default function AdminRestaurants() {
                       updateRestaurant(
                         restaurant.id,
                         { supports_pickup: !(restaurant.supports_pickup ?? true) },
-                        restaurant.supports_pickup ? "Retrait desactive" : "Retrait active"
+                        restaurant.supports_pickup ? "Retrait désactivé" : "Retrait activé"
                       )
                     }
                   >
-                    {restaurant.supports_pickup ? "Desactiver retrait" : "Activer retrait"}
+                    {restaurant.supports_pickup ? "Désactiver retrait" : "Activer retrait"}
                   </Button>
                   <Button
                     variant="outline"
@@ -402,11 +402,11 @@ export default function AdminRestaurants() {
                       updateRestaurant(
                         restaurant.id,
                         { supports_dinein: !(restaurant.supports_dinein ?? false) },
-                        restaurant.supports_dinein ? "Sur place desactive" : "Sur place active"
+                        restaurant.supports_dinein ? "Sur place désactivé" : "Sur place activé"
                       )
                     }
                   >
-                    {restaurant.supports_dinein ? "Desactiver sur place" : "Activer sur place"}
+                    {restaurant.supports_dinein ? "Désactiver sur place" : "Activer sur place"}
                   </Button>
                 </div>
               </CardContent>

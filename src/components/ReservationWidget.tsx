@@ -205,7 +205,7 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
             </div>
           ) : isSlotAvailabilityLoading ? (
             <div className="rounded-xl border p-3 text-xs text-muted-foreground">
-              Verification des disponibilités...
+              Vérification des disponibilités...
             </div>
           ) : slotGroups.length > 0 ? (
             <div className="space-y-2">

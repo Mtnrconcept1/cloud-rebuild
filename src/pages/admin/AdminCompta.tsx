@@ -67,7 +67,7 @@ export default function AdminCompta() {
               <Link to="/admin/compta">Vue d&apos;ensemble</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link to="/admin/compta/entrees">Entrees</Link>
+              <Link to="/admin/compta/entrees">Entrées</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
               <Link to="/admin/compta/sorties">Sorties</Link>
@@ -127,7 +127,7 @@ export default function AdminCompta() {
               <div className="space-y-1">
                 <p className="font-semibold">Ecart financier a vérifier</p>
                 <p className="text-sm text-amber-900">
-                  {financialHealth.confirmedNotCaptured} capture manquante, {financialHealth.refundPending} remboursement en attente, {financialHealth.failedPayments} paiement echoue.
+                  {financialHealth.confirmedNotCaptured} capture manquante, {financialHealth.refundPending} remboursement en attente, {financialHealth.failedPayments} paiement échoué.
                 </p>
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function AdminCompta() {
                 icon: HandCoins,
                 label: "Miamz pris en charge",
                 value: formatAmount(tokCoveredMiamzAmount),
-                helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz financee par Tok.`,
+                helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz financée par Tok.`,
               },
               {
                 tone: netOpen >= 0 ? "amber" : "rose",
@@ -181,7 +181,7 @@ export default function AdminCompta() {
               icon={ArrowDownRight}
               eyebrow="Action"
               title="Encaisser les restaurateurs"
-              description="Le montant a suivre cote entrees, separe entre facturé déjà emise et encours a facturer."
+              description="Le montant a suivre cote entrées, separe entre facturé déjà emise et encours à facturer."
               value={formatAmount(totalPayableOpen)}
               valueLabel="A encaisser"
             >
@@ -189,7 +189,7 @@ export default function AdminCompta() {
                 tone="amber"
                 items={[
                   {
-                    label: "Encore a facturer",
+                    label: "Encore à facturer",
                     value: formatAmount(payableAccruals.totalAmount),
                     helper: `${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} non facturee${payableAccruals.totalCount > 1 ? "s" : ""}`,
                   },
@@ -199,13 +199,13 @@ export default function AdminCompta() {
                     helper: `${payableInvoiceSections.actionable.length} facturé${payableInvoiceSections.actionable.length > 1 ? "s" : ""} ouverte${payableInvoiceSections.actionable.length > 1 ? "s" : ""}`,
                   },
                   {
-                    label: "Deja encaisse",
+                    label: "Déjà encaisse",
                     value: formatAmount(summary.inflow.payableCollected),
                   },
                 ]}
               />
               <Button asChild>
-                <Link to="/admin/compta/entrees">Ouvrir les entrees</Link>
+                <Link to="/admin/compta/entrees">Ouvrir les entrées</Link>
               </Button>
             </AccountingPanel>
 
@@ -226,7 +226,7 @@ export default function AdminCompta() {
                     value: formatAmount(summary.outflow.payoutsOutstanding),
                   },
                   {
-                    label: "Deja reverse",
+                    label: "Déjà reverse",
                     value: formatAmount(summary.outflow.payoutsPaid),
                   },
                   {
@@ -262,12 +262,12 @@ export default function AdminCompta() {
                   {
                     label: "Frais de réservation",
                     value: formatAmount(reservationFeeRevenueAmount),
-                    helper: "Frais fixes factures sur les réservations confirmees.",
+                    helper: "Frais fixes factures sur les réservations confirmées.",
                   },
                   {
                     label: "Campagnes publicitaires",
                     value: formatAmount(paidCampaignsTotal),
-                    helper: `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""} payee${paidCampaignsCount > 1 ? "s" : ""}.`,
+                    helper: `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""} payée${paidCampaignsCount > 1 ? "s" : ""}.`,
                   },
                   {
                     label: "Abonnements Tok One",
@@ -281,7 +281,7 @@ export default function AdminCompta() {
             <AccountingPanel
               tone="sky"
               icon={Megaphone}
-              title="Controles utiles"
+              title="Contrôles utiles"
               description="Les lignes qui expliquent les ecarts sans alourdir la page."
               value={formatAmount(tokCoveredMiamzAmount)}
               valueLabel="Miamz Tok"
@@ -297,7 +297,7 @@ export default function AdminCompta() {
                   {
                     label: "Miamz pris en charge par Tok",
                     value: formatAmount(tokCoveredMiamzAmount),
-                    helper: "Reduction client ajoutee à la base de reversement restaurant, hors revenu Tok.",
+                    helper: "Réduction client ajoutee à la base de reversement restaurant, hors revenu Tok.",
                   },
                 ]}
               />

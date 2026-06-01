@@ -106,7 +106,7 @@ function formatCurrency(value: number) {
 
 function buildRestaurantAddress(restaurant?: { address?: string | null; city?: string | null }) {
   const parts = [restaurant?.address, restaurant?.city].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "Adresse communiquee apres réservation";
+  return parts.length > 0 ? parts.join(", ") : "Adresse communiquee après réservation";
 }
 
 function buildChefTableMenuItemId(dropId: string) {
@@ -544,8 +544,8 @@ export default function ChefsTable() {
         title: "Paiement confirme",
         description:
           reservations.length > 1
-            ? `${reservations.length} réservations La Table du Chef ont été confirmees.`
-            : "Votre réservation La Table du Chef est confirmee.",
+            ? `${reservations.length} réservations La Table du Chef ont été confirmées.`
+            : "Votre réservation La Table du Chef est confirmée.",
       });
     } catch (error) {
       toast({
@@ -577,7 +577,7 @@ export default function ChefsTable() {
       setPendingCheckoutSessionId(null);
       toast({
         title: "Paiement annule",
-        description: "Vos experiences restent dans le panier, vous pouvez reessayer.",
+        description: "Vos expériences restent dans le panier, vous pouvez reessayer.",
         variant: "destructive",
       });
       window.history.replaceState({}, "", window.location.pathname);
@@ -592,7 +592,7 @@ export default function ChefsTable() {
       attemptedFinalizationRef.current.add(pendingCheckoutSessionId);
       toast({
         title: "Reconnectez-vous",
-        description: "Le paiement a été valide. Reconnectez-vous pour recuperer votre réservation La Table du Chef.",
+        description: "Le paiement a été validé. Reconnectez-vous pour récupérer votre réservation La Table du Chef.",
         variant: "destructive",
       });
       return;
@@ -743,7 +743,7 @@ export default function ChefsTable() {
               if (!user) {
                 toast({
                   title: "Connectez-vous",
-                  description: "Activez les alertes apres connexion.",
+                  description: "Activez les alertes après connexion.",
                   variant: "destructive",
                 });
                 return;
@@ -766,7 +766,7 @@ export default function ChefsTable() {
 
               queryClient.invalidateQueries({ queryKey: ["chefs-table-subscription", user.id] });
               toast({
-                title: notifyAll ? "Alertes desactivees" : "Alertes La Table du Chef activees",
+                title: notifyAll ? "Alertes désactivées" : "Alertes La Table du Chef activées",
               });
             }}
             className="gap-2"
@@ -832,7 +832,7 @@ export default function ChefsTable() {
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                       <div className="space-y-2">
                         <p className="font-display text-2xl font-bold leading-tight text-white">
-                          Votre Table du Chef est presque confirmee
+                          Votre Table du Chef est presque confirmée
                         </p>
                         <p className="text-sm text-white/75">
                           {reservedRestaurantCount} restaurant(s) · economie totale{" "}
@@ -842,7 +842,7 @@ export default function ChefsTable() {
                         </p>
                         <p className="flex items-center gap-1 text-xs text-white/70">
                           <Users className="h-3 w-3" />
-                          Paiement sécurisé requis pour verrouiller {reservedGuestTotal} convive{reservedGuestTotal > 1 ? "s" : ""} et vos portions exclusives
+                          Paiement sécurisé requis pour verrouillér {reservedGuestTotal} convive{reservedGuestTotal > 1 ? "s" : ""} et vos portions exclusives
                         </p>
                         <div className="grid gap-2 sm:grid-cols-2">
                           {reservedSummary.map((entry) => (
@@ -882,11 +882,11 @@ export default function ChefsTable() {
             <div className="space-y-6">
               <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6 text-center space-y-2">
                 <CheckCircle2 className="mx-auto h-12 w-12 text-amber-500" />
-                <h2 className="font-display text-xl font-bold">Reservation confirmee !</h2>
+                <h2 className="font-display text-xl font-bold">Reservation confirmée !</h2>
                 <p className="text-sm text-muted-foreground">
                   {confirmedReservations.length > 1
-                    ? `${confirmedReservations.length} réservations La Table du Chef ont été confirmees apres paiement.`
-                    : "Votre table et vos plats exclusifs sont réservés apres paiement."}
+                    ? `${confirmedReservations.length} réservations La Table du Chef ont été confirmées après paiement.`
+                    : "Votre table et vos plats exclusifs sont réservés après paiement."}
                 </p>
               </div>
 

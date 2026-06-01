@@ -8,7 +8,7 @@ import { normalizeDeliveryProofCode } from "@/lib/deliveryProof";
 
 type DeliveryProofPanelProps = {
   isLoading?: boolean;
-  onVerify: (payload: { code: string; verificationMethod: "qr" | "manual_code" }) => void;
+  onVerify: (payload: { code: string; vérificationMethod: "qr" | "manual_code" }) => void;
 };
 
 type BarcodeDetectorCtor = {
@@ -172,7 +172,7 @@ export default function DeliveryProofPanel({ isLoading = false, onVerify }: Deli
             type="button"
             onClick={() => onVerify({
               code: normalizedCode,
-              verificationMethod: detectedByScanner ? "qr" : "manual_code",
+              vérificationMethod: detectedByScanner ? "qr" : "manual_code",
             })}
             disabled={normalizedCode.length !== 6 || isLoading}
           >

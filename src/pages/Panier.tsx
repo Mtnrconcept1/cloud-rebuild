@@ -475,11 +475,11 @@ export default function Panier() {
         accessToken = await withTimeout(
           getFreshAccessToken(),
           AUTH_TIMEOUT_MS,
-          "Le rafraichissement de session prend trop de temps. Reconnectez-vous puis reessayez.",
+          "Le rafraîchissement de session prend trop de temps. Reconnectez-vous puis réessayez.",
         );
       } catch {
         await supabase.auth.signOut();
-        toast({ title: "Session expiree", description: "Veuillez vous reconnecter.", variant: "destructive" });
+        toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
         return navigate("/auth");
       }
 
@@ -545,7 +545,7 @@ export default function Panier() {
       if (!hasJourneyAvailable) {
         return toast({
           title: "Parcours indisponible",
-          description: "Livraison et emporter sont desactives pour ce restaurant.",
+          description: "Livraison et emporter sont désactivés pour ce restaurant.",
           variant: "destructive",
         });
       }
@@ -567,7 +567,7 @@ export default function Panier() {
         }
         return toast({
           title: "Moyen de paiement indisponible",
-          description: "Selectionnez un moyen de paiement encore actif.",
+          description: "Sélectionnez un moyen de paiement encore actif.",
           variant: "destructive",
         });
       }
@@ -601,7 +601,7 @@ export default function Panier() {
         if (deliverySelection?.latitude == null || deliverySelection?.longitude == null) {
           return toast({
             title: "Adresse invalide",
-            description: "Selectionnez une adresse dans la liste pour calculer correctement le trajet de livraison.",
+            description: "Sélectionnez une adresse dans la liste pour calculer correctement le trajet de livraison.",
             variant: "destructive",
           });
         }
@@ -826,7 +826,7 @@ export default function Panier() {
       if (paymentMethod !== "cash" && !authoritativeRequiresStripeCheckout) {
         toast({
           title: "Aucun paiement requis",
-          description: "Votre total est entierement couvert par vos avantages. La commande est confirmee sans passage Stripe.",
+          description: "Votre total est entièrement couvert par vos avantages. La commande est confirmée sans passage Stripe.",
         });
       }
 
@@ -1122,7 +1122,7 @@ export default function Panier() {
             </div>
 
             <div className="rounded-2xl bg-muted/40 p-4 text-xs text-muted-foreground">
-              Les promotions, Miamz, Tok One, le choix du paiement et les informations de livraison apparaissent juste apres la connexion.
+              Les promotions, Miamz, Tok One, le choix du paiement et les informations de livraison apparaissent juste après la connexion.
             </div>
           </div>
         </div>
@@ -1179,7 +1179,7 @@ export default function Panier() {
                 <div>
                   <p className="text-sm font-semibold text-foreground">Paiement visible et prioritaire</p>
                   <p className="text-xs text-muted-foreground">
-                    Les convives choisis dans La Table du Chef sont déjà integres dans cette étape de paiement.
+                    Les convives choisis dans La Table du Chef sont déjà intégrés dans cette étape de paiement.
                   </p>
                 </div>
                 <span className="font-display text-2xl font-bold text-foreground">{finalTotal.toFixed(2)} CHF</span>
@@ -1240,7 +1240,7 @@ export default function Panier() {
                       }`}
                   >
                     <p className="font-semibold">Dès que possible</p>
-                    <p className="text-xs text-muted-foreground">Lancement immediat apres validation.</p>
+                    <p className="text-xs text-muted-foreground">Lancement immédiat après validation.</p>
                   </button>
 
                   <button
@@ -1427,7 +1427,7 @@ export default function Panier() {
           {effectivePromoDiscount > 0 && <div className="flex justify-between text-sm text-primary font-medium"><span>Promotion ({effectivePromoName})</span><span>-{effectivePromoDiscount.toFixed(2)} CHF</span></div>}
           {tokOneDiscount > 0 && (
             <div className="flex justify-between text-sm text-violet-600 font-medium">
-              <span className="flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />Reduction Tok One ({tokOneDiscountPercent.toFixed(0)}%)</span>
+              <span className="flex items-center gap-1.5"><Crown className="h-3.5 w-3.5" />Réduction Tok One ({tokOneDiscountPercent.toFixed(0)}%)</span>
               <span>-{tokOneDiscount.toFixed(2)} CHF</span>
             </div>
           )}

@@ -333,7 +333,7 @@ export default function Abonnement() {
 
     toast({
       title: "Abonnement active",
-      description: `${activeMeals.length} repas/semaine - ${billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu’àu ${billingSummary.endDate}`,
+      description: `${activeMeals.length} repas/semaine - ${billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu’au ${billingSummary.endDate}`,
     });
     navigate("/panier");
   };
@@ -618,7 +618,7 @@ export default function Abonnement() {
               <CheckCircle2 className="mx-auto h-10 w-10 text-purple-500" />
               <p className="text-lg font-semibold">Abonnement actif</p>
               <p className="text-sm text-muted-foreground">
-                {summary.activeMealsCount} repas/semaine - {activeRestaurantNames.length} restaurant{activeRestaurantNames.length > 1 ? "s" : ""} - {billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu’àu {billingSummary.endDate}
+                {summary.activeMealsCount} repas/semaine - {activeRestaurantNames.length} restaurant{activeRestaurantNames.length > 1 ? "s" : ""} - {billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu’au {billingSummary.endDate}
               </p>
               <p className="text-xs text-muted-foreground">Plats de plusieurs restaurants synchronises dans un seul panier, modifiable à tout moment</p>
             </div>

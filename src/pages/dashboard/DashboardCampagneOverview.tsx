@@ -138,7 +138,7 @@ export default function DashboardCampagneOverview() {
         <DashboardPageHero
           badge="Marketing restaurant"
           title="Vue d ensemble des campagnes"
-          description={selectedRestaurant ? `Synthese de ${selectedRestaurant.name}: depenses, rythme, clics et conversions restent visibles avant le détail des campagnes.` : "Selectionnez un restaurant dans la barre laterale pour afficher la synthese marketing."}
+          description={selectedRestaurant ? `Synthèse de ${selectedRestaurant.name}: dépenses, rythme, clics et conversions restent visibles avant le détail des campagnes.` : "Sélectionnez un restaurant dans la barre latérale pour afficher la synthese marketing."}
           icon={BarChart3}
           tone="rose"
           visualLabel="Marketing"

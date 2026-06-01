@@ -467,7 +467,7 @@ export default function ReservationDialog({
                   ) : isSlotAvailabilityLoading ? (
                     <div className="flex items-center rounded-xl border p-4 text-sm text-muted-foreground">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verification des disponibilités...
+                      Vérification des disponibilités...
                     </div>
                   ) : slotGroups.length > 0 ? (
                     <div className="space-y-3">
@@ -533,7 +533,7 @@ export default function ReservationDialog({
                       <Zap className="h-6 w-6" />
                       <div>
                         <p className="text-sm font-semibold">Zéro Attente</p>
-                        <p className="text-xs text-muted-foreground">Precommande, tout sera pret à l'arrivée.</p>
+                        <p className="text-xs text-muted-foreground">Précommande, tout sera prêt à l'arrivée.</p>
                       </div>
                     </div>
                   </button>
@@ -572,7 +572,7 @@ export default function ReservationDialog({
                     <Utensils className="h-5 w-5" />
                     <div>
                       <p className="text-sm font-semibold">À la carte</p>
-                      <p className="text-xs text-muted-foreground">Reservation sans offre speciale.</p>
+                      <p className="text-xs text-muted-foreground">Reservation sans offre spéciale.</p>
                     </div>
                   </div>
                 </button>

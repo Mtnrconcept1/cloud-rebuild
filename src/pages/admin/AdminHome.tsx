@@ -108,7 +108,7 @@ const ADMIN_TOOLS = [
   },
   {
     title: "La Table du Chef",
-    description: "Créer et gerer les experiences exclusives La Table du Chef.",
+    description: "Créer et gérer les expériences exclusives La Table du Chef.",
     icon: UtensilsCrossed,
     href: "/admin/drops",
     feature: "admin-drops",
@@ -132,7 +132,7 @@ const ADMIN_TOOLS = [
   },
   {
     title: "Audit et sécurité",
-    description: "Surveiller les executions edge et les mutations sensibles.",
+    description: "Surveiller les exécutions Edge et les mutations sensibles.",
     icon: Shield,
     href: "/admin/audit",
     feature: "admin-audit",
@@ -481,7 +481,7 @@ export default function AdminHome() {
               Revenu actif estimé pour {tokOneStats?.activeCount || 0} abonnement{(tokOneStats?.activeCount || 0) > 1 ? "s" : ""}
             </p>
             <p className="text-[11px] text-amber-700/90">
-              Revenu estimé sur base mensuelle, utilise comme fallback de sécurité.
+              Revenu estimé sur base mensuelle, utilisé comme fallback de sécurité.
             </p>
           </CardContent>
         </Card>
@@ -596,7 +596,7 @@ export default function AdminHome() {
                   </div>
                 ))}
                 {(!recentOrders || recentOrders.length === 0) ? (
-                  <p className="py-4 text-center text-sm text-muted-foreground">Aucune commande recente</p>
+                  <p className="py-4 text-center text-sm text-muted-foreground">Aucune commande récente</p>
                 ) : null}
               </div>
             </ScrollArea>

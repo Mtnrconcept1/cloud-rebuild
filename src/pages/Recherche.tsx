@@ -570,7 +570,7 @@ export default function Recherche() {
                 <p className="text-sm font-semibold dark:text-white">{promo === "true" ? "Bons plans disponibles" : "Sélection disponible"}</p>
                 <p className="text-xs text-muted-foreground dark:text-slate-300">
                   {promo === "true"
-                    ? "Les promotions et activations remontees sont affichees en priorite."
+                    ? "Les promotions et activations remontees sont affichées en priorité."
                     : "Affinez si nécessaire, sinon ouvrez directement une fiche restaurant."}
                 </p>
               </div>

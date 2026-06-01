@@ -125,7 +125,7 @@ function PaymentBreakdown({ order }: { order: any }) {
             <Gift className="h-3 w-3" />
             <span>
               <span className="block">Miamz pris en charge par Tok</span>
-              <span className="block text-[10px] leading-4 text-muted-foreground">Reduction fidélité appliquée</span>
+              <span className="block text-[10px] leading-4 text-muted-foreground">Réduction fidélité appliquée</span>
             </span>
           </span>
           <span>-{pointsDiscount.toFixed(2)} CHF</span>
@@ -211,7 +211,7 @@ export default function Commandes() {
       }
     },
     onSuccess: () => {
-      toast({ title: "Commande annulee" });
+      toast({ title: "Commande annulée" });
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
     },
     onError: (err: Error) => {
@@ -384,7 +384,7 @@ export default function Commandes() {
                           ) : null}
                           {displayStatus === "payment_failed" ? (
                             <p className="text-xs text-muted-foreground">
-                              Le paiement a echoue ou la session Stripe a expire. Vous pouvez relancer cette commande.
+                              Le paiement a échoué ou la session Stripe a expiré. Vous pouvez relancer cette commande.
                             </p>
                           ) : null}
                           <div className="flex flex-wrap gap-2">
@@ -412,7 +412,7 @@ export default function Commandes() {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Annuler la commande ?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Cette action est irréversible. Vous serez remboursé sous 5 a 10 jours ouvrables.
+                                      Cette action est irréversible. Vous serez remboursé sous 5 à 10 jours ouvrables.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>

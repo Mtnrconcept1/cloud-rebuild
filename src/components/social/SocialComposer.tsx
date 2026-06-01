@@ -79,7 +79,7 @@ export default function SocialComposer({
     if (files.length === 0) return "Media";
     return `${files.length}/10`;
   }, [files.length]);
-  const scheduleLabel = scheduledAt ? "Publication programmee" : "Publication immédiate";
+  const scheduleLabel = scheduledAt ? "Publication programmée" : "Publication immédiate";
   const utmCampaign = useMemo(() => {
     const source = campaignName.trim() || `${campaignGoal}-${restaurantName || "tok"}`;
     return source

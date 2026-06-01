@@ -171,7 +171,7 @@ export default function AdminAvis() {
       <DashboardPageHero
         badge="Moderation"
         title="Moderation des avis"
-        description="Controlez la visibilité des avis, les signalements et les réponses admin sans perdre le contexte restaurant."
+        description="Contrôlez la visibilité des avis, les signalements et les réponses admin sans perdre le contexte restaurant."
         icon={MessageSquareText}
         tone="sky"
         visualLabel="Avis"

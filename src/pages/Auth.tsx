@@ -846,7 +846,7 @@ export default function Auth() {
               }}
               className="text-sm text-muted-foreground transition-colors hover:text-primary"
             >
-              {isLogin ? "Pas encore de compte ? S'inscrire" : "Deja un compte ? Se connecter"}
+              {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
             </button>
           </div>
         </CardContent>

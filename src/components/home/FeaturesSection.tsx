@@ -18,13 +18,13 @@ interface FeaturesSectionProps {
 }
 
 const FEATURES = [
-  { icon: Shield, label: "Créneaux garantis", desc: "Livraison ponctuelle ou remboursee", to: "/creneaux-garantis", feature: "creneaux-garantis", bg: "bg-blue-500/10", fg: "text-blue-500" },
+  { icon: Shield, label: "Créneaux garantis", desc: "Livraison ponctuelle ou remboursée", to: "/creneaux-garantis", feature: "creneaux-garantis", bg: "bg-blue-500/10", fg: "text-blue-500" },
   { icon: Gift, label: "Offres", desc: "Fenetre flexible, prix reduit", to: "/flex-prix-bas", feature: "flex-prix-bas", bg: "bg-emerald-500/10", fg: "text-emerald-500" },
   { icon: Users, label: "Match groupes", desc: "Commandez ensemble, payez moins", to: "/match-groupes", feature: "match-groupes", bg: "bg-violet-500/10", fg: "text-violet-500" },
   { icon: Route, label: "Multi-stop", desc: "Un trajet, plusieurs adresses", to: "/multi-stop", feature: "multi-stop", bg: "bg-orange-500/10", fg: "text-orange-500" },
   { icon: Layers, label: "Multi-restos", desc: "Plats de différents restos", to: "/multi-restaurant", feature: "multi-restaurant", bg: "bg-pink-500/10", fg: "text-pink-500" },
   { icon: ChefHat, label: "La Table du Chef", desc: "Plats off-menu en edition limitée", to: "/chefs-table", feature: "chefs-table", bg: "bg-amber-500/10", fg: "text-amber-500" },
-  { icon: Timer, label: "Zéro attente", desc: "Precommande synchronisée", to: "/zero-attente", feature: "zero-attente", bg: "bg-indigo-500/10", fg: "text-indigo-500" },
+  { icon: Timer, label: "Zéro attente", desc: "Précommande synchronisée", to: "/zero-attente", feature: "zero-attente", bg: "bg-indigo-500/10", fg: "text-indigo-500" },
   { icon: ShieldCheck, label: "Garantie qualité", desc: "Chaud garanti ou remboursé", to: "/garantie-qualite", feature: "garantie-qualite", bg: "bg-teal-500/10", fg: "text-teal-500" },
   { icon: Calculator, label: "Budget auto", desc: "Menus optimisés par objectifs", to: "/budget-auto", feature: "budget-auto", bg: "bg-cyan-500/10", fg: "text-cyan-500" },
   { icon: Repeat, label: "Abonnement", desc: "Repas récurrents planifiés", to: "/abonnement", feature: "abonnement", bg: "bg-purple-500/10", fg: "text-purple-500" },

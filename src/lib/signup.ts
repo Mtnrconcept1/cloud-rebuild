@@ -180,7 +180,7 @@ export function getSignupStatusMeta(status: string | null | undefined) {
       return {
         label: "Approuve",
         tone: "bg-emerald-100 text-emerald-700",
-        description: "Votre dossier est valide. Les controles documentaires sont terminés.",
+        description: "Votre dossier est valide. Les contrôles documentaires sont terminés.",
       };
     case "needs_changes":
       return {
@@ -198,7 +198,7 @@ export function getSignupStatusMeta(status: string | null | undefined) {
       return {
         label: "En revue",
         tone: "bg-sky-100 text-sky-700",
-        description: "Les justificatifs ont été recus et sont en cours de vérification.",
+        description: "Les justificatifs ont été reçus et sont en cours de vérification.",
       };
   }
 }

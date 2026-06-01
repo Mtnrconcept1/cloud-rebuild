@@ -86,7 +86,7 @@ export default function RestaurantCancellationDialog({
           </DialogTitle>
           <DialogDescription>
             {targetLabel ? <span className="font-medium">{targetLabel}. </span> : null}
-            Une raison est obligatoire. Si un paiement a été capture, vous pouvez declencher le remboursement immediatement ou laisser la demande en file admin.
+            Une raison est obligatoire. Si un paiement a été capture, vous pouvez déclencher le remboursement immédiatement ou laisser la demande en file admin.
           </DialogDescription>
         </DialogHeader>
 
@@ -113,7 +113,7 @@ export default function RestaurantCancellationDialog({
                       </Label>
                       <p className="text-xs text-muted-foreground">
                         {refundNow
-                          ? "La carte Stripe sera remboursee des la confirmation."
+                          ? "La carte Stripe sera remboursée des la confirmation."
                           : "L'annulation sera enregistrée, puis le remboursement restera disponible dans la file admin."}
                       </p>
                     </div>
@@ -145,7 +145,7 @@ export default function RestaurantCancellationDialog({
 
           <div className="space-y-2">
             <Label htmlFor="cancel-details">
-              Details{" "}
+              Détails{" "}
               {needsDetails ? (
                 <span className="text-destructive">*</span>
               ) : (

@@ -185,7 +185,7 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
                   <div>
                     <h3 className="text-sm font-semibold text-fuchsia-950">Miamz pris en charge par Tok</h3>
                     <p className="mt-1 text-sm text-fuchsia-900">
-                      Reduction fidélité appliquée au client et financee par Tok sur cette commande.
+                      Réduction fidélité appliquée au client et financée par Tok sur cette commande.
                     </p>
                   </div>
                 </div>
@@ -197,7 +197,7 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
           ) : null}
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Coordonnees</h3>
+            <h3 className="text-sm font-semibold">Coordonnées</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border p-4">
                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -319,7 +319,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </div>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Coordonnees</h3>
+            <h3 className="text-sm font-semibold">Coordonnées</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border p-4">
                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -360,14 +360,14 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Details de réservation</h3>
+            <h3 className="text-sm font-semibold">Détails de réservation</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border p-4 text-sm text-muted-foreground">
                 <p className="mb-2 inline-flex items-center gap-2 font-medium text-foreground">
                   <Clock3 className="h-4 w-4 text-primary" />
                   Horaires
                 </p>
-                <p>Heure affichee : {reservation.displayTime}</p>
+                <p>Heure affichée : {reservation.displayTime}</p>
                 {reservation.reservationTime && reservation.reservationTime !== reservation.displayTime ? (
                   <p>Heure système : {reservation.reservationTime}</p>
                 ) : null}
@@ -386,7 +386,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Precommandes</h3>
+            <h3 className="text-sm font-semibold">Précommandes</h3>
             {reservation.preorderItems.length > 0 ? (
               <div className="space-y-3">
                 {reservation.preorderItems.map((item, index) => (
@@ -405,14 +405,14 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
               </div>
             ) : (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                Aucune précommande rattachee à cette réservation.
+                Aucune précommande rattachée à cette réservation.
               </div>
             )}
           </section>
 
           {reservation.specialRequests ? (
             <section className="space-y-2">
-              <h3 className="text-sm font-semibold">Demandes speciales</h3>
+              <h3 className="text-sm font-semibold">Demandes spéciales</h3>
               <div className="max-w-full whitespace-pre-wrap break-words rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground">
                 {reservation.specialRequests}
               </div>
@@ -577,10 +577,10 @@ export function InvoiceOperationDetailDialog({ target, open, onOpenChange }: Pro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] min-h-0 w-[calc(100vw-1rem)] max-w-[760px] flex-col gap-0 overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
         <DialogTitle className="sr-only">
-          {target?.kind === "order" ? "Detail de commande" : "Detail de réservation"}
+          {target?.kind === "order" ? "Détail de commande" : "Détail de réservation"}
         </DialogTitle>
         <DialogDescription className="sr-only">
-          Consultation d&apos;une operation ouverte depuis une ligne de facturé.
+          Consultation d&apos;une opération ouverte depuis une ligne de facturé.
         </DialogDescription>
 
         {detailQuery.isLoading ? (

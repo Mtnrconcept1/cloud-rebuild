@@ -55,7 +55,7 @@ function CampaignBannerItem({
   const heading = campaign.title || restaurant?.name || "Découvrez cette adresse mise en avant";
   const description =
     campaign.body
-    || `Retrouvez ${restaurant?.name || "ce partenaire"} dans la sélection sponsorisee du moment sur Tok.`;
+    || `Retrouvez ${restaurant?.name || "ce partenaire"} dans la sélection sponsorisée du moment sur Tok.`;
   const bannerRef = useSponsoredImpressionOnView({
     campaignId: campaign.id,
     restaurantId: restaurant?.id,

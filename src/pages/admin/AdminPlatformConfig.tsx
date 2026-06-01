@@ -117,7 +117,7 @@ export default function AdminPlatformConfig() {
     }
 
     toast({
-      title: flag.explicitEnabled ? "Fonctionnalité desactivee" : "Fonctionnalité activée",
+      title: flag.explicitEnabled ? "Fonctionnalité désactivée" : "Fonctionnalité activée",
       description: `${flag.label} a été mise à jour.`,
     });
   };
@@ -159,7 +159,7 @@ export default function AdminPlatformConfig() {
         actions={(
         <Button onClick={handleActivateAll} disabled={loading || submitting} className="gap-2">
           <Rocket className="h-4 w-4" />
-          Tout reactiver
+          Tout réactiver
         </Button>
         )}
       />
@@ -182,7 +182,7 @@ export default function AdminPlatformConfig() {
             </Badge>
             <Badge variant="outline" className="gap-1">
               <XCircle className="h-3 w-3 text-destructive" />
-              Etat effectif bloque
+              Etat effectif bloqué
             </Badge>
             <Badge variant="outline" className="gap-1">
               <Power className="h-3 w-3 text-primary" />
@@ -219,10 +219,10 @@ export default function AdminPlatformConfig() {
                             <Badge variant="destructive">Bloque</Badge>
                           )}
                           {!flag.explicitEnabled ? (
-                            <Badge variant="secondary">Desactive explicitement</Badge>
+                            <Badge variant="secondary">Désactivé explicitement</Badge>
                           ) : null}
                           {blockedByDependency ? (
-                            <Badge variant="outline">Desactive par dependance</Badge>
+                            <Badge variant="outline">Désactivé par dependance</Badge>
                           ) : null}
                           {flag.group === "custom" ? (
                             <Badge variant="outline">Custom</Badge>
@@ -277,7 +277,7 @@ export default function AdminPlatformConfig() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Desactiver {pendingToggle?.label} ?
+              Désactiver {pendingToggle?.label} ?
             </AlertDialogTitle>
             <AlertDialogDescription>
               Ce flag est critique. La desactivation est immédiate pour les nouvelles actions, y compris hors UI.

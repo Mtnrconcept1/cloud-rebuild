@@ -248,13 +248,13 @@ export default function Profil() {
             <TabsTrigger value="abonnement" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Crown className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Abonnement</span><span className="sm:hidden">Abo.</span></TabsTrigger>
             <TabsTrigger value="notifications" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Bell className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Notifications</span><span className="sm:hidden">Notifs</span></TabsTrigger>
             <TabsTrigger value="fidelite" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Trophy className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Fidélité</span><span className="sm:hidden">Points</span></TabsTrigger>
-            <TabsTrigger value="parametres" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Settings className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Parametres</span><span className="sm:hidden">Param.</span></TabsTrigger>
+            <TabsTrigger value="parametres" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Settings className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Paramètres</span><span className="sm:hidden">Param.</span></TabsTrigger>
           </TabsList>
 
           <TabsContent value="infos" className="space-y-6 pt-4">
             <SignupApplicationStatusCard
               application={signupApplication}
-              title="Verification du compte client"
+              title="Vérification du compte client"
               emptyDescription="Aucun dossier documentaire client n'a encore été soumis."
             />
 
@@ -417,7 +417,7 @@ export default function Profil() {
                     if (!res.ok) {
                       toast({ title: "Erreur", description: res.reason, variant: "destructive" });
                     } else {
-                      toast({ title: "Push desactive" });
+                      toast({ title: "Push désactivé" });
                     }
                   }}
                 >
@@ -647,7 +647,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Resilier Tok One ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Vous conserverez vos avantages jusqu’àu {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Apres cette date, les frais de livraison et réductions exclusives ne s'appliqueront plus.
+                      Vous conserverez vos avantages jusqu’au {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Après cette date, les frais de livraison et réductions exclusives ne s'appliqueront plus.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

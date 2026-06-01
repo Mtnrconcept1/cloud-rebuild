@@ -84,7 +84,7 @@ function InvoiceListItem({
               </span>
             ) : (
               <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => void onMarkPaid(invoice)}>
-                Marquer payee
+                Marquer payée
               </Button>
             )}
           </div>
@@ -209,7 +209,7 @@ export default function AdminComptaOutflow() {
               <Link to="/admin/compta">Vue d&apos;ensemble</Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link to="/admin/compta/entrees">Entrees d&apos;argent</Link>
+              <Link to="/admin/compta/entrees">Entrées d&apos;argent</Link>
             </Button>
             <Button asChild size="sm">
               <Link to="/admin/compta/sorties">Sorties d&apos;argent</Link>
@@ -264,7 +264,7 @@ export default function AdminComptaOutflow() {
             />
             <AccountingMetricCard
               icon={Wallet}
-              label="Deja reverse"
+              label="Déjà reverse"
               value={formatAmount(summary.outflow.payoutsPaid)}
               description="Historique des reversements déjà règles par TOK."
             />
@@ -280,7 +280,7 @@ export default function AdminComptaOutflow() {
               icon={HandCoins}
               label="Miamz pris en charge"
               value={formatAmount(tokCoveredMiamzAmount)}
-              description={`${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz financee par Tok.`}
+              description={`${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz financée par Tok.`}
             />
             <AccountingMetricCard
               tone="violet"
@@ -310,7 +310,7 @@ export default function AdminComptaOutflow() {
                     helper: "Documents visibles dans la section A regler",
                   },
                   {
-                    label: "Deja regle",
+                    label: "Déjà regle",
                     value: formatAmount(summary.outflow.payoutsPaid),
                   },
                   {
@@ -394,7 +394,7 @@ export default function AdminComptaOutflow() {
                     value: formatAmount(summary.outflow.payoutsOutstanding),
                   },
                   {
-                    label: "Deja reverse",
+                    label: "Déjà reverse",
                     value: formatAmount(summary.outflow.payoutsPaid),
                   },
                   {

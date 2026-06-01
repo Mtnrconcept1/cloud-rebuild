@@ -216,7 +216,7 @@ export default function CourierProfile() {
           <Card>
             <CardHeader>
               <CardTitle>Informations générales</CardTitle>
-              <CardDescription>Coordonnees, vehicule et informations de paiement.</CardDescription>
+              <CardDescription>Coordonnées, vehicule et informations de paiement.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">

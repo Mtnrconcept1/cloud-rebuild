@@ -81,7 +81,7 @@ export default function DashboardOffres() {
     if (isSoldOut) {
       toast({
         title: "Offre epuisee",
-        description: "Ajoutez à nouveau du stock avant de reactiver cette offre.",
+        description: "Ajoutez à nouveau du stock avant de réactiver cette offre.",
         variant: "destructive",
       });
       return;
@@ -99,7 +99,7 @@ export default function DashboardOffres() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["dashboard-offers", selectedId] });
-    toast({ title: current ? "Offre desactivee" : "Offre activée" });
+    toast({ title: current ? "Offre désactivée" : "Offre activée" });
   };
 
   const deleteOffer = async (id: string) => {
@@ -163,7 +163,7 @@ export default function DashboardOffres() {
         {!selectedId ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              Selectionnez un restaurant pour gerer ses offres anti-gaspi.
+              Sélectionnez un restaurant pour gérer ses offres anti-gaspi.
             </CardContent>
           </Card>
         ) : isLoading ? (
@@ -304,7 +304,7 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
       return;
     }
     if (pickupStart >= pickupEnd) {
-      toast({ title: "Creneau invalide", description: "L'heure de fin doit être apres le début.", variant: "destructive" });
+      toast({ title: "Creneau invalide", description: "L'heure de fin doit être après le début.", variant: "destructive" });
       return;
     }
 
@@ -335,7 +335,7 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
   };
 
   if (!restaurantId) {
-    return <p className="text-sm text-muted-foreground">Selectionnez un restaurant pour choisir ses produits.</p>;
+    return <p className="text-sm text-muted-foreground">Sélectionnez un restaurant pour choisir ses produits.</p>;
   }
 
   return (
@@ -378,7 +378,7 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">
               <Percent className="h-3.5 w-3.5" />
-              Reduction (%)
+              Réduction (%)
             </Label>
             <Input
               type="number"
@@ -413,7 +413,7 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
               <Input type="time" value={pickupStart} onChange={(e) => setPickupStart(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Jusqu'a</Label>
+              <Label>Jusqu'à</Label>
               <Input type="time" value={pickupEnd} onChange={(e) => setPickupEnd(e.target.value)} />
             </div>
           </div>

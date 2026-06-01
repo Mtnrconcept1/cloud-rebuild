@@ -213,10 +213,10 @@ export const validateServiceSettings = (settings: ServiceSettings): string | nul
     const windowStart = parseServiceTime(window.start_time);
     const windowEnd = parseServiceTime(window.end_time);
     if (windowStart === null || windowEnd === null) {
-      return "Les plages de capacite doivent être au format HH:MM.";
+      return "Les plages de capacité doivent être au format HH:MM.";
     }
     if (windowStart > windowEnd) {
-      return "Le début d'une plage de capacite doit être avant sa fin.";
+      return "Le début d'une plage de capacité doit être avant sa fin.";
     }
     if (window.max_tables < 1) {
       return "Chaque plage doit avoir au moins une table disponible.";

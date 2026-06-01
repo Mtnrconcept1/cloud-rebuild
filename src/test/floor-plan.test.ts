@@ -601,7 +601,7 @@ describe("floor plan helpers", () => {
     });
 
     expect(summary.status).toBe("ready");
-    expect(summary.headline).toBe("Service pret");
+    expect(summary.headline).toBe("Service prêt");
     expect(summary.assignedCovers).toBe(6);
   });
 });
