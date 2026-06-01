@@ -122,7 +122,7 @@ export default function DashboardPhotos() {
           visualLabel="Galerie"
           stats={[
             { label: "Photos", value: items.length, icon: ImageIcon },
-            { label: "Couverture", value: items.some((item) => item.is_cover) ? "Definie" : "A choisir", icon: Star },
+            { label: "Couverture", value: items.some((item) => item.is_cover) ? "Définie" : "À choisir", icon: Star },
             { label: "Mode", value: editingId ? "Édition" : "Ajout", icon: Pencil },
           ]}
         />

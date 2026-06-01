@@ -46,7 +46,7 @@ const supabase = getSupabase();
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof CreditCard }> = {
   card: { label: "Carte bancaire", icon: CreditCard },
   twint: { label: "TWINT", icon: CreditCard },
-  cash: { label: "Especes", icon: Banknote },
+  cash: { label: "Espèces", icon: Banknote },
 };
 
 function PaymentBreakdown({ order }: { order: any }) {

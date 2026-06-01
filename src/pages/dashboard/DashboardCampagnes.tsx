@@ -235,7 +235,7 @@ export default function DashboardCampagnes() {
     } else if (status === "cancelled") {
       toast({
         title: "Paiement annulé",
-        description: "La campagne reste en brouillon tant que le paiement n est pas finalisé.",
+        description: "La campagne reste en brouillon tant que le paiement n'est pas finalisé.",
         variant: "destructive",
       });
     }
@@ -606,7 +606,7 @@ export default function DashboardCampagnes() {
                           <span className="flex items-center gap-1"><MousePointer className="h-3 w-3" />{campaign.clicks || 0} clics</span>
                           <span className="flex items-center gap-1"><ShoppingCart className="h-3 w-3" />{campaign.conversions || 0} conversions</span>
                           <span>Budget: {formatChf(Number(campaign.spent || 0))}/{formatChf(Number(campaign.total_budget || 0))}</span>
-                          <span>Paye: {formatChf(Number(campaign.paid_amount || 0))}</span>
+                          <span>Payé: {formatChf(Number(campaign.paid_amount || 0))}</span>
                         </div>
 
                         <div className="mt-3 rounded-xl border bg-muted/30 p-3">
@@ -616,9 +616,9 @@ export default function DashboardCampagnes() {
                             <span className="rounded-full bg-background px-2.5 py-1">TOK: {formatChf(pricing.conversionRate)} / conversion</span>
                           </div>
                           <div className="mt-2 flex flex-wrap gap-4 text-[11px] text-muted-foreground">
-                            <span>Observe: eCPM {observed.effectiveCpm > 0 ? formatChf(observed.effectiveCpm) : "—"}</span>
-                            <span>Observe: CPC {observed.effectiveCpc > 0 ? formatChf(observed.effectiveCpc) : "—"}</span>
-                            <span>Observe: CPA {observed.effectiveCpa > 0 ? formatChf(observed.effectiveCpa) : "—"}</span>
+                            <span>Observé: eCPM {observed.effectiveCpm > 0 ? formatChf(observed.effectiveCpm) : "—"}</span>
+                            <span>Observé: CPC {observed.effectiveCpc > 0 ? formatChf(observed.effectiveCpc) : "—"}</span>
+                            <span>Observé: CPA {observed.effectiveCpa > 0 ? formatChf(observed.effectiveCpa) : "—"}</span>
                           </div>
                         </div>
                       </div>
@@ -831,7 +831,7 @@ function CampaignForm({
       if (paymentMethod === "cash" && totalBudgetValue > 0 && !isPaidCampaign) {
         toast({
           title: "Campagne en attente",
-          description: "La campagne est en attente de reglement manuel avant activation.",
+          description: "La campagne est en attente de règlement manuel avant activation.",
         });
       }
 
@@ -1074,14 +1074,14 @@ function CampaignForm({
         <div>
           <p className="text-sm font-semibold">Paiement de la campagne</p>
           <p className="text-xs text-muted-foreground">
-            Les paiements en ligne activent automatiquement la campagne. Le reglement manuel là laisse en attente.
+            Les paiements en ligne activent automatiquement la campagne. Le règlement manuel la laisse en attente.
           </p>
         </div>
         <PaymentMethodSelector
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           allowedMethods={allowedPaymentMethods}
-          cashDescription="Le reglement manuel n active pas la campagne tant qu il n est pas valide."
+          cashDescription="Le règlement manuel n'active pas la campagne tant qu'il n'est pas validé."
           secureDescription="Paiement sécurisé via Stripe. La campagne est activée après confirmation."
         />
         {isPaidCampaign ? (

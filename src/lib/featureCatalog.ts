@@ -103,8 +103,8 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     name: "payment-cash",
-    label: "Paiement especes",
-    description: "Autorise le reglement manuel ou sur place quand le parcours le permet.",
+    label: "Paiement espèces",
+    description: "Autorise le règlement manuel ou sur place quand le parcours le permet.",
     defaultEnabled: true,
     group: "payments",
   },

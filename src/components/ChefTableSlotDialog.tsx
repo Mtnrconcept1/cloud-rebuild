@@ -182,7 +182,7 @@ export default function ChefTableSlotDialog({
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
               <p className="text-[10px] uppercase tracking-[0.18em] text-white/50">Créneau</p>
-              <p className="mt-1 text-sm font-medium text-white">{selectedTime || "A choisir"}</p>
+              <p className="mt-1 text-sm font-medium text-white">{selectedTime || "À choisir"}</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
               <p className="text-[10px] uppercase tracking-[0.18em] text-white/50">Convives</p>

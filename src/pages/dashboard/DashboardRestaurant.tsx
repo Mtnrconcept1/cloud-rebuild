@@ -273,7 +273,7 @@ export default function DashboardRestaurant() {
               <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
             </div>
             <div className="space-y-2">
-              <Label>Resume des catégories</Label>
+              <Label>Résumé des catégories</Label>
               <Input value={cuisineSummary} readOnly placeholder="Sélectionnez un ou plusieurs types" />
             </div>
           </div>
@@ -413,7 +413,7 @@ export default function DashboardRestaurant() {
                   { id: "twint", label: "TWINT", icon: Smartphone, description: "Paiement mobile suisse" },
                   { id: "postfinance_card", label: "PostFinance Card", icon: Wallet, description: "Carte PostFinance" },
                   { id: "postfinance_efinance", label: "PostFinance E-Finance", icon: Wallet, description: "E-banking PostFinance" },
-                  { id: "cash", label: "Especes", icon: Banknote, description: "Paiement sur place" },
+                  { id: "cash", label: "Espèces", icon: Banknote, description: "Paiement sur place" },
                 ] as const).map((method) => {
                   const enabled = !disabledPaymentMethods.includes(method.id);
                   const globallyEnabled = globallyEnabledPaymentMethods.has(method.id);

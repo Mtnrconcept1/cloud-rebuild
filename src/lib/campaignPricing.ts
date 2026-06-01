@@ -56,7 +56,7 @@ export const CAMPAIGN_STRATEGY_CONFIG: Record<CampaignPricingStrategy, CampaignS
     label: "Visibilite",
     shortLabel: "Visibilite",
     description: "Touchez un maximum de personnes autour de votre restaurant.",
-    recommendationHint: "Ideal pour faire connaitre votre adresse et vos nouveautes.",
+    recommendationHint: "Idéal pour faire connaître votre adresse et vos nouveautés.",
     pricing: {
       cpmRate: 6.5,
       cpcRate: 1.05,

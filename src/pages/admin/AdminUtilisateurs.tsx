@@ -806,7 +806,7 @@ export default function AdminUtilisateurs() {
                           Mis à jour le{" "}
                           {courier.updated_at
                             ? new Date(courier.updated_at).toLocaleDateString("fr-CH")
-                            : "recemment"}
+                            : "récemment"}
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">

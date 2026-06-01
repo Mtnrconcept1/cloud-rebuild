@@ -18,7 +18,7 @@ const METHODS: { id: PaymentMethodId; label: string; icon: any; description: str
   { id: "twint", label: "TWINT", icon: Smartphone, description: "Paiement mobile suisse" },
   { id: "postfinance_card", label: "PostFinance Card", icon: Wallet, description: "Carte PostFinance" },
   { id: "postfinance_efinance", label: "PostFinance E-Finance", icon: Wallet, description: "E-banking PostFinance" },
-  { id: "cash", label: "Especes", icon: Banknote, description: "Paiement sur place ou reglement manuel" },
+  { id: "cash", label: "Espèces", icon: Banknote, description: "Paiement sur place ou règlement manuel" },
 ];
 
 export default function PaymentMethodSelector({

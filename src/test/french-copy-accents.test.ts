@@ -72,6 +72,21 @@ const FORBIDDEN_COPY_SNIPPETS = [
   "Fidelisation",
   "Presence digitale",
   "Edition exclusive",
+  "nouveautes",
+  "a choisir",
+  "preferez",
+  "recemment",
+  "resume simple",
+  "Paye:",
+  "Observe:",
+  "n est pas",
+  "reglement manuel",
+  "Especes",
+  "especes",
+  "Ideal pour",
+  "Definie",
+  "Resume des",
+  "a utiliser pour les virements",
 ];
 
 function collectSourceFiles(dir: string): string[] {

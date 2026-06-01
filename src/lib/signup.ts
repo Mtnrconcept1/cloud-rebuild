@@ -132,7 +132,7 @@ function getCourierRequirements(vehicleType: string | null | undefined): SignupD
     {
       type: "iban_proof",
       label: "Justificatif IBAN",
-      description: "Preuve du compte bancaire ou postal a utiliser pour les virements.",
+      description: "Preuve du compte bancaire ou postal à utiliser pour les virements.",
       accept: ".pdf,.png,.jpg,.jpeg",
     },
   ];
