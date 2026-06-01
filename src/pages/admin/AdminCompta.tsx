@@ -1,16 +1,23 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, HandCoins, Megaphone, Percent, Receipt, Store, Wallet } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, FileDown, HandCoins, Lock, Megaphone, Percent, Receipt, Store, Unlock, Wallet } from "lucide-react";
 
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { getSupabase } from "@/integrations/supabase/client";
 import {
+  downloadAccountingCsv,
   formatAmount,
+  toAmount,
   useAdminComptaData,
 } from "./adminComptaShared";
+
+const supabase = getSupabase();
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;

@@ -105,6 +105,39 @@ type AdminTokOnePaymentRow = {
   metadata: unknown;
 };
 
+export type AccountingStripeReconciliationRow = {
+  item_kind: string;
+  expected_count: number;
+  expected_amount: number | string | null;
+  received_count: number;
+  received_amount: number | string | null;
+  refunded_amount: number | string | null;
+  orphan_count: number;
+  mismatch_count: number;
+  details: Record<string, unknown> | null;
+};
+
+export type AccountingMonthLockRow = {
+  period_month: string;
+  status: "open" | "closed" | "reopened";
+  reason: string | null;
+  official_totals: Record<string, unknown> | null;
+  closed_by: string | null;
+  closed_at: string | null;
+  reopened_by: string | null;
+  reopened_at: string | null;
+  updated_by: string | null;
+  updated_at: string | null;
+};
+
+export type AccountingPeriodControl = {
+  period_month: string;
+  status: "open" | "closed" | "reopened";
+  is_closed: boolean;
+  lock: AccountingMonthLockRow | null;
+  stripe_reconciliation: AccountingStripeReconciliationRow[];
+};
+
 export type AdminReservationFeeAccrualRow = {
   id: string;
   restaurant_id: string;
@@ -203,6 +236,26 @@ export function formatDate(value: string | null | undefined) {
 
 export function formatPeriod(start: string, end: string) {
   return `${format(new Date(start), "dd MMM", { locale: fr })} - ${format(new Date(end), "dd MMM", { locale: fr })}`;
+}
+
+function csvEscape(value: unknown) {
+  const text = value == null ? "" : String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+export function downloadAccountingCsv(filename: string, rows: Array<Array<unknown>>) {
+  const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export function isAccountingPeriodClosed(periodControl: AccountingPeriodControl | null | undefined) {
+  return Boolean(periodControl?.is_closed || periodControl?.status === "closed");
 }
 
 export function getInvoiceStatusClass(status: string | null) {
@@ -536,6 +589,30 @@ export function useAdminReservationFeeInvoiceDetailLines(invoiceId: string | nul
 export function useAdminComptaData(selectedRestaurant: string, selectedMonth: string) {
   const monthBounds = useMemo(() => buildMonthBounds(selectedMonth), [selectedMonth]);
   const monthOptions = useMemo(() => buildMonthOptions(), []);
+
+  const periodControlQuery = useQuery({
+    queryKey: ["admin-compta-period-control", selectedMonth],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("admin_get_accounting_period_control", {
+        p_month: monthBounds.monthStart,
+      });
+
+      if (error) throw error;
+      return (data || null) as AccountingPeriodControl | null;
+    },
+  });
+
+  const stripeReconciliationQuery = useQuery({
+    queryKey: ["admin-compta-stripe-reconciliation", selectedMonth],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("admin_get_accounting_stripe_reconciliation", {
+        p_month: monthBounds.monthStart,
+      });
+
+      if (error) throw error;
+      return (data || []) as AccountingStripeReconciliationRow[];
+    },
+  });
 
   const restaurantsQuery = useQuery({
     queryKey: ["admin-restaurants-list"],
@@ -1105,8 +1182,13 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     refundsPendingAmount,
     refundsPendingCount,
     financialHealth,
+    periodControl: periodControlQuery.data || null,
+    stripeReconciliation: stripeReconciliationQuery.data || [],
+    isPeriodClosed: isAccountingPeriodClosed(periodControlQuery.data),
     monthOptions,
-    isLoading: restaurantsQuery.isLoading
+    isLoading: periodControlQuery.isLoading
+      || stripeReconciliationQuery.isLoading
+      || restaurantsQuery.isLoading
       || ordersQuery.isLoading
       || financialHealthOrdersQuery.isLoading
       || reservationsQuery.isLoading
@@ -1118,7 +1200,9 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || payableLineItemsQuery.isLoading
       || refundedOrdersQuery.isLoading
       || refundedReservationsQuery.isLoading,
-    error: restaurantsQuery.error
+    error: periodControlQuery.error
+      || stripeReconciliationQuery.error
+      || restaurantsQuery.error
       || ordersQuery.error
       || financialHealthOrdersQuery.error
       || reservationsQuery.error
