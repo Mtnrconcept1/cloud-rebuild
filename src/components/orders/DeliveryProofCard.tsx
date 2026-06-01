@@ -28,7 +28,7 @@ export default function DeliveryProofCard({ code, verifiedAt }: DeliveryProofCar
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          Presentez ce QR au livreur a l'arrivee. En secours, vous pouvez aussi lui donner le code a 6 chiffres.
+          Presentez ce QR au livreur à l'arrivée. En secours, vous pouvez aussi lui donner le code a 6 chiffres.
         </p>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-[220px_1fr] md:items-center">
@@ -58,7 +58,7 @@ export default function DeliveryProofCard({ code, verifiedAt }: DeliveryProofCar
               Comment ca marche
             </p>
             <p className="mt-2">
-              Le livreur scanne le QR ou saisit le code. La commande n'est marquee livree qu'apres verification.
+              Le livreur scanne le QR ou saisit le code. La commande n'est marquee livrée qu'apres vérification.
             </p>
           </div>
         </div>

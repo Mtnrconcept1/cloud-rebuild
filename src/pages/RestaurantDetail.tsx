@@ -276,8 +276,8 @@ export default function RestaurantDetail() {
                   <h2 className="mt-1 font-display text-xl font-bold">Commencez en quelques secondes</h2>
                   <p className="text-sm text-muted-foreground">
                     {user
-                      ? "Selectionnez un mode puis ajoutez vos plats ou finalisez une reservation."
-                      : "Vous pouvez constituer votre panier maintenant. La connexion sera demandee juste avant le paiement ou pour confirmer une reservation."}
+                      ? "Selectionnez un mode puis ajoutez vos plats ou finalisez une réservation."
+                      : "Vous pouvez constituer votre panier maintenant. La connexion sera demandee juste avant le paiement ou pour confirmer une réservation."}
                   </p>
                 </div>
                 {!user ? (
@@ -322,7 +322,7 @@ export default function RestaurantDetail() {
                 <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold">Panier invite actif</p>
-                    <p className="text-xs text-muted-foreground">Ajoutez vos plats maintenant. La connexion sera demandee uniquement pour finaliser la commande ou confirmer une reservation.</p>
+                    <p className="text-xs text-muted-foreground">Ajoutez vos plats maintenant. La connexion sera demandee uniquement pour finaliser la commande ou confirmer une réservation.</p>
                   </div>
                   <Button className="gap-2 self-start rounded-full" onClick={() => navigate(authRedirectTarget)}>
                     <LogIn className="h-4 w-4" />
@@ -333,7 +333,7 @@ export default function RestaurantDetail() {
             </div>
             {!reservationAvailable && !showDelivery && !takeawayAvailable ? (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                Les parcours reservation, livraison et emporter sont actuellement indisponibles pour ce restaurant.
+                Les parcours réservation, livraison et emporter sont actuellement indisponibles pour ce restaurant.
               </div>
             ) : null}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -665,7 +665,7 @@ export default function RestaurantDetail() {
                 <ReservationWidget restaurantId={id!} restaurantName={restaurant.name} onReserve={handleWidgetReserve} />
               ) : (
                 <div className="rounded-2xl border border-dashed bg-card p-4 text-sm text-muted-foreground">
-                  Les reservations sont actuellement indisponibles pour ce restaurant.
+                  Les réservations sont actuellement indisponibles pour ce restaurant.
                 </div>
               )}
               {cartItemsForCurrentRestaurant.length > 0 && (

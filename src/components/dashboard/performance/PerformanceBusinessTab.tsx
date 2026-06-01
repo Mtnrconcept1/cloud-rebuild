@@ -184,7 +184,7 @@ export default function PerformanceBusinessTab({
               <span>-{summary.discounts.promo.toFixed(2)} CHF</span>
             </div>
             <div className="flex justify-between rounded-lg bg-muted/20 px-3 py-2">
-              <span>Fidelite</span>
+              <span>Fidélité</span>
               <span>-{summary.discounts.loyalty.toFixed(2)} CHF</span>
             </div>
             <div className="flex justify-between rounded-lg bg-muted/20 px-3 py-2">
@@ -212,7 +212,7 @@ export default function PerformanceBusinessTab({
                 <p className="mt-1 text-xl font-semibold">{formatChf(summary.totalRevenue)}</p>
               </div>
               <div className="rounded-xl border bg-muted/20 p-3">
-                <p className="text-xs text-muted-foreground">CA brut estime</p>
+                <p className="text-xs text-muted-foreground">CA brut estimé</p>
                 <p className="mt-1 text-xl font-semibold">{formatChf(summary.grossRevenue)}</p>
               </div>
               <div className="rounded-xl border bg-muted/20 p-3">
@@ -222,8 +222,8 @@ export default function PerformanceBusinessTab({
             </div>
             <div className="space-y-1 text-sm text-muted-foreground">
               <p>Le CA net exclut les commandes annulees, refusees et en echec de paiement.</p>
-              <p>Le CA brut estime reconstitue les remises retrouvees dans les metadonnees de commande.</p>
-              <p>Les reservations sont bornees a la periode selectionnee sans projection future.</p>
+              <p>Le CA brut estimé reconstitue les remises retrouvees dans les metadonnees de commande.</p>
+              <p>Les réservations sont bornees à la periode sélectionnée sans projection future.</p>
             </div>
           </CardContent>
         </Card>
@@ -236,7 +236,7 @@ export default function PerformanceBusinessTab({
         <CardContent className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
             <p className="text-sm font-semibold">
-              {latestInvoice ? `Derniere facture: ${latestInvoice.period_start} -> ${latestInvoice.period_end}` : "Aucune facture recente"}
+              {latestInvoice ? `Derniere facturé: ${latestInvoice.period_start} -> ${latestInvoice.period_end}` : "Aucune facturé recente"}
             </p>
             <p className="text-sm text-muted-foreground">
               {latestInvoice
@@ -244,7 +244,7 @@ export default function PerformanceBusinessTab({
                 : "Consultez la compta pour voir vos documents et encours."}
             </p>
             {draftCount > 0 ? (
-              <p className="text-xs text-muted-foreground">{draftCount} facture(s) encore en brouillon ou a relire.</p>
+              <p className="text-xs text-muted-foreground">{draftCount} facturé(s) encore en brouillon ou a relire.</p>
             ) : null}
           </div>
           <Button asChild variant="outline">

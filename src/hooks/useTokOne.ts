@@ -124,7 +124,7 @@ function normalizeBenefitText(value: string) {
 
 const TOK_ONE_CONTEXT_ALIASES: Record<TokOneJourney, string[]> = {
   delivery: ["delivery", "livraison"],
-  takeaway: ["takeaway", "pickup", "pick up", "emporter", "a emporter"],
+  takeaway: ["takeaway", "pickup", "pick up", "emporter", "à emporter"],
   reservation: ["reservation", "booking", "dine in", "dinein", "sur place", "surplace", "on site", "onsite"],
   "zero-attente": [
     "zero attente",
@@ -142,7 +142,7 @@ const TOK_ONE_CONTEXT_ALIASES: Record<TokOneJourney, string[]> = {
     "pickup",
     "pick up",
     "emporter",
-    "a emporter",
+    "à emporter",
   ],
 };
 

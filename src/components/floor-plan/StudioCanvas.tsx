@@ -250,7 +250,7 @@ export default function StudioCanvas({
                     <LayoutPanelTop className="h-10 w-10 text-primary/60" />
                     <div className="space-y-1">
                       <p className="font-medium text-slate-900">Aucun element dans ce secteur</p>
-                      <p className="text-sm">Ajoutez des presets depuis la palette pour commencer a construire la salle.</p>
+                      <p className="text-sm">Ajoutez des presets depuis la palette pour commencer à construire la salle.</p>
                     </div>
                   </div>
                 ) : null}

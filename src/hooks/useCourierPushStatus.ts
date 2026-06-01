@@ -24,7 +24,7 @@ export function useCourierPushStatus() {
 
   const enable = async () => {
     if (!user?.id) {
-      return { ok: false, reason: "Utilisateur non connecte." };
+      return { ok: false, reason: "Utilisateur non connecté." };
     }
 
     const result = await enablePush(user.id);
@@ -34,7 +34,7 @@ export function useCourierPushStatus() {
 
   const disable = async () => {
     if (!user?.id) {
-      return { ok: false, reason: "Utilisateur non connecte." };
+      return { ok: false, reason: "Utilisateur non connecté." };
     }
 
     const result = await disablePush(user.id);

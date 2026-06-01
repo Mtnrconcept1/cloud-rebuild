@@ -118,7 +118,7 @@ describe("social feed v2 helpers", () => {
     ).toEqual([
       "Le texte du post est requis.",
       "Maximum 10 medias par post.",
-      "La programmation doit etre dans le futur.",
+      "La programmation doit être dans le futur.",
     ]);
   });
 

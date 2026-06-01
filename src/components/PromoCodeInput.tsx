@@ -67,7 +67,7 @@ export default function PromoCodeInput({ restaurantId, userId, subtotal, onAppli
           .eq("user_id", userId);
 
         if (count != null && count >= promo.per_user_limit) {
-          setError("Vous avez deja utilise ce code.");
+          setError("Vous avez déjà utilise ce code.");
           setLoading(false);
           return;
         }
@@ -82,7 +82,7 @@ export default function PromoCodeInput({ restaurantId, userId, subtotal, onAppli
           .neq("status", "cancelled");
 
         if (count != null && count > 0) {
-          setError("Ce code est reserve a la premiere commande.");
+          setError("Ce code est réservé à la première commande.");
           setLoading(false);
           return;
         }
@@ -102,7 +102,7 @@ export default function PromoCodeInput({ restaurantId, userId, subtotal, onAppli
       setApplied({ name, discount });
       onApplied(discount, name, promo.id);
     } catch {
-      setError("Erreur lors de la verification du code.");
+      setError("Erreur lors de la vérification du code.");
     } finally {
       setLoading(false);
     }

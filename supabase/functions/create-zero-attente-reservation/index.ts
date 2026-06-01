@@ -273,7 +273,7 @@ Deno.serve(async (req) => {
       );
 
       if (reservationError || !createdReservationId) {
-        throw new HttpError(500, reservationError?.message || "Creation de reservation impossible.");
+        throw new HttpError(500, reservationError?.message || "Création de réservation impossible.");
       }
       reservationId = createdReservationId;
     }

@@ -58,7 +58,7 @@ function normalizePayableLines(
         quantity: 1,
         unitAmount: billingFee,
         baseAmount: billingFee,
-        rateLabel: `${billingFee.toFixed(2)} CHF / reservation`,
+        rateLabel: `${billingFee.toFixed(2)} CHF / réservation`,
         rateValue: null,
         amountHt: billingFee,
         amountTva: 0,
@@ -162,7 +162,7 @@ function useTokPayableInvoiceDocumentData(invoice: PayableInvoiceRow | null, ena
     queryFn: async () => {
       if (!invoice) return null;
       if (!isPayableInvoiceType(invoice.invoice_type)) {
-        throw new Error(`Type de facture non pris en charge: ${String(invoice.invoice_type)}`);
+        throw new Error(`Type de facturé non pris en charge: ${String(invoice.invoice_type)}`);
       }
 
       const linesPromise = invoice.invoice_type === "payable"
@@ -228,7 +228,7 @@ export function TokPayableInvoiceDialog({
               <div className="min-w-0 space-y-1 sm:pr-8">
                 <DialogTitle className="font-display text-xl sm:text-2xl">Facture recue de TOK</DialogTitle>
                 <DialogDescription className="text-sm">
-                  Apercu admin/dashboard restaurateur de la facture payable canonique.
+                  Apercu admin/dashboard restaurateur de la facturé payable canonique.
                 </DialogDescription>
               </div>
               <Button className="w-full justify-center sm:w-auto" onClick={handlePrint} disabled={!query.data}>
@@ -242,13 +242,13 @@ export function TokPayableInvoiceDialog({
             {query.isLoading ? (
               <div className="flex min-h-[420px] items-center justify-center text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Chargement de la facture...
+                Chargement de la facturé...
               </div>
             ) : null}
 
             {!query.isLoading && query.error ? (
               <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                Impossible de charger la facture. {getErrorMessage(query.error)}
+                Impossible de charger la facturé. {getErrorMessage(query.error)}
               </div>
             ) : null}
 

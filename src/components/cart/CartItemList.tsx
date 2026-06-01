@@ -27,7 +27,7 @@ export default function CartItemList({ items, updateQuantity, removeItem }: Cart
               <div className="space-y-1 text-xs text-muted-foreground">
                 {item.restaurantName ? <p>{item.restaurantName}</p> : null}
                 <p>
-                  {item.metadata.subscription_day || "Jour planifie"} - livraison {item.metadata.preferred_time || "12:00"}
+                  {item.metadata.subscription_day || "Jour planifié"} - livraison {item.metadata.preferred_time || "12:00"}
                 </p>
               </div>
             ) : item.restaurantName ? (

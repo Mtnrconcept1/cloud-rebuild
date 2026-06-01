@@ -322,7 +322,7 @@ function getCta(post: SocialFeedPost) {
 
   switch (post.ctaType) {
     case "reserve":
-      return { label: "Reserver", icon: CalendarCheck, to: `${restaurantPath}?reserve=1` };
+      return { label: "Réserver", icon: CalendarCheck, to: `${restaurantPath}?reserve=1` };
     case "order":
       return { label: "Commander", icon: ShoppingBag, to: `${restaurantPath}?order=1` };
     case "menu":

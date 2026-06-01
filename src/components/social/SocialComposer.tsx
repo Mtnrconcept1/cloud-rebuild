@@ -79,7 +79,7 @@ export default function SocialComposer({
     if (files.length === 0) return "Media";
     return `${files.length}/10`;
   }, [files.length]);
-  const scheduleLabel = scheduledAt ? "Publication programmee" : "Publication immediate";
+  const scheduleLabel = scheduledAt ? "Publication programmee" : "Publication immédiate";
   const utmCampaign = useMemo(() => {
     const source = campaignName.trim() || `${campaignGoal}-${restaurantName || "tok"}`;
     return source
@@ -123,7 +123,7 @@ export default function SocialComposer({
     <section className="rounded-lg border bg-background p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-lg font-semibold">Nouvelle actualite</h2>
+          <h2 className="font-display text-lg font-semibold">Nouvelle actualité</h2>
           {restaurantName ? <p className="text-sm text-muted-foreground">{restaurantName}</p> : null}
         </div>
         <Badge variant="secondary" className="rounded-full">{scheduleLabel}</Badge>
@@ -251,7 +251,7 @@ export default function SocialComposer({
                 type="button"
                 onClick={() => setFiles((current) => current.filter((_, itemIndex) => itemIndex !== index))}
                 className="absolute right-2 top-2 rounded-full bg-background/90 p-1 shadow-sm hover:bg-background"
-                aria-label="Retirer le media"
+                aria-label="Retirer le média"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -272,7 +272,7 @@ export default function SocialComposer({
                 type="button"
                 onClick={() => setFiles((current) => current.filter((_, itemIndex) => itemIndex !== index))}
                 className="rounded-full p-0.5 hover:bg-muted"
-                aria-label="Retirer le media"
+                aria-label="Retirer le média"
               >
                 <X className="h-3 w-3" />
               </button>

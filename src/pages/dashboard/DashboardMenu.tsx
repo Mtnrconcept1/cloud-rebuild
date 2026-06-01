@@ -117,7 +117,7 @@ export default function DashboardMenu() {
       }
     }
 
-    toast({ title: editingId ? "Plat mis a jour" : "Plat ajoute" });
+    toast({ title: editingId ? "Plat mis à jour" : "Plat ajoute" });
     setDialogOpen(false);
     refreshMenu();
   };
@@ -163,7 +163,7 @@ export default function DashboardMenu() {
         <DashboardPageHero
           badge="Carte restaurant"
           title="Menu"
-          description="Organisez les plats, les prix, les photos et la disponibilite avant qu'ils apparaissent dans les parcours client."
+          description="Organisez les plats, les prix, les photos et la disponibilité avant qu'ils apparaissent dans les parcours client."
           icon={BookOpen}
           tone="emerald"
           visualLabel="Catalogue"

@@ -59,7 +59,7 @@ export type InvoiceLineTableProps = PayoutInvoiceLineTableProps | ReservationFee
 
 const SOURCE_PRESENTATION: Record<InvoiceDetailSource, { label: string; className: string }> = {
   orders: { label: "Commande", className: "bg-slate-100 text-slate-700" },
-  zero_attente: { label: "Zero attente", className: "bg-cyan-100 text-cyan-700" },
+  zero_attente: { label: "Zéro attente", className: "bg-cyan-100 text-cyan-700" },
   chefs_table: { label: "La Table du Chef", className: "bg-violet-100 text-violet-700" },
   flash_sales: { label: "Vente flash", className: "bg-amber-100 text-amber-700" },
   anti_gaspi: { label: "Anti-gaspi", className: "bg-emerald-100 text-emerald-700" },
@@ -171,7 +171,7 @@ export function InvoiceLineTable(props: InvoiceLineTableProps) {
                     </div>
                   </div>
                   <div className="shrink-0 lg:text-right">
-                    <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Montant facture</p>
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Montant facturé</p>
                     <p className="mt-1 text-base font-semibold">{formatCurrency(payoutLine.invoicedAmount)}</p>
                   </div>
                 </div>

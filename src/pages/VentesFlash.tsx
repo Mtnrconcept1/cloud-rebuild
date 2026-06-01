@@ -159,7 +159,7 @@ export default function VentesFlash() {
       newlyExpired.forEach((offer: any) => handleExpire(offer.id));
       toast({
         title: "Offres expirees",
-        description: `${newlyExpired.length} offre(s) ont expire depuis votre selection. Elles ont ete retirees.`,
+        description: `${newlyExpired.length} offre(s) ont expire depuis votre sélection. Elles ont été retirees.`,
         variant: "destructive",
       });
       return;
@@ -224,7 +224,7 @@ export default function VentesFlash() {
 
   const handleGoToCart = () => {
     toast({
-      title: "Ventes flash reservees !",
+      title: "Ventes flash réservées !",
       description: `${selectedOffers.length} offre${selectedOffers.length > 1 ? "s" : ""} · ${totalDiscounted.toFixed(2)} CHF`,
     });
     navigate("/panier");
@@ -243,7 +243,7 @@ export default function VentesFlash() {
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold">Ventes Flash</h1>
-              <p className="text-muted-foreground text-xs">Offres limitees dans le temps</p>
+              <p className="text-muted-foreground text-xs">Offres limitées dans le temps</p>
             </div>
           </div>
           <Button
@@ -268,7 +268,7 @@ export default function VentesFlash() {
               queryClient.invalidateQueries({ queryKey: ["flash-subscription", user.id] });
               toast({
                 title: notifyEnabled ? "Alertes desactivees" : "Alertes flash activees",
-                description: notifyEnabled ? "" : "Vous serez notifie des prochaines ventes flash",
+                description: notifyEnabled ? "" : "Vous serez notifié des prochaines ventes flash",
               });
             }}
             className="gap-1.5"
@@ -302,7 +302,7 @@ export default function VentesFlash() {
               <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="text-sm text-muted-foreground">
                 <p className="font-semibold text-foreground mb-1">Comment ca marche ?</p>
-                <p>Les ventes flash expirent a l'heure de fin choisie par le restaurateur.{deliveryEnabled ? " Elles peuvent etre disponibles en livraison, en emporter, ou les deux." : ""}</p>
+                <p>Les ventes flash expirent à l'heure de fin choisie par le restaurateur.{deliveryEnabled ? " Elles peuvent être disponibles en livraison, en emporter, ou les deux." : ""}</p>
               </div>
             </div>
 
@@ -436,7 +436,7 @@ export default function VentesFlash() {
               <div className="text-center py-16 space-y-3 bg-secondary/20 rounded-2xl border-2 border-dashed">
                 <Zap className="h-10 w-10 text-muted-foreground/20 mx-auto" />
                 <p className="font-semibold text-muted-foreground">Aucune vente flash en cours</p>
-                <p className="text-xs text-muted-foreground">Activez les alertes pour etre notifie !</p>
+                <p className="text-xs text-muted-foreground">Activez les alertes pour être notifié !</p>
               </div>
             )}
 
@@ -482,7 +482,7 @@ export default function VentesFlash() {
                   </div>
                   {selectedOrderMode && (
                     <p className="text-[11px] text-muted-foreground">
-                      Mode selectionne : {selectedOrderMode === "delivery" ? "Livraison" : "Emporter"}
+                      Mode sélectionné : {selectedOrderMode === "delivery" ? "Livraison" : "Emporter"}
                     </p>
                   )}
                 </div>
@@ -498,9 +498,9 @@ export default function VentesFlash() {
           <div className="space-y-6">
             <div className="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-6 text-center space-y-3">
               <CheckCircle2 className="h-14 w-14 text-amber-500 mx-auto" />
-              <h2 className="font-display text-xl font-bold">Ventes flash reservees !</h2>
+              <h2 className="font-display text-xl font-bold">Ventes flash réservées !</h2>
               <p className="text-sm text-muted-foreground">
-                {selectedOffers.length} offre{selectedOffers.length > 1 ? "s" : ""} ajoutee{selectedOffers.length > 1 ? "s" : ""} a votre panier
+                {selectedOffers.length} offre{selectedOffers.length > 1 ? "s" : ""} ajoutee{selectedOffers.length > 1 ? "s" : ""} à votre panier
               </p>
             </div>
 

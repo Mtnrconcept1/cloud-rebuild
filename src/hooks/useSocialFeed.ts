@@ -380,10 +380,10 @@ function assertMediaFiles(files: File[]) {
   if (files.length > MAX_POST_MEDIA) throw new Error(`Maximum ${MAX_POST_MEDIA} medias par post.`);
   for (const file of files) {
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      throw new Error("Formats acceptes : images et videos uniquement.");
+      throw new Error("Formats acceptés : images et vidéos uniquement.");
     }
     if (file.size > 25 * 1024 * 1024) {
-      throw new Error("Chaque media doit faire moins de 25 Mo.");
+      throw new Error("Chaque média doit faire moins de 25 Mo.");
     }
   }
 }
@@ -399,11 +399,11 @@ function validateSocialPostDraft(input: {
   if (!input.body || input.body.length < 8) errors.push("Ajoutez un message d'au moins 8 caracteres.");
   if (input.body.length > 2200) errors.push("Le message est limite a 2200 caracteres.");
   if (input.filesCount === 0 && input.postType === "plat") errors.push("Ajoutez une photo ou une video pour un post plat.");
-  if (input.ctaType === "offer" && input.postType !== "promo") errors.push("Le CTA offre doit etre associe a un post de type promo.");
+  if (input.ctaType === "offer" && input.postType !== "promo") errors.push("Le CTA offre doit être associe a un post de type promo.");
   if (input.scheduledAt) {
     const date = new Date(input.scheduledAt);
     if (!Number.isFinite(date.getTime()) || date.getTime() < Date.now() - 60 * 1000) {
-      errors.push("La date de programmation doit etre dans le futur.");
+      errors.push("La date de programmation doit être dans le futur.");
     }
   }
   return errors;
@@ -505,7 +505,7 @@ export function useSocialInsights(restaurantId?: string | null) {
       }
 
       if (insightsRpc.error && !isMissingRpc(insightsRpc.error)) {
-        console.warn("Actualites insights RPC unavailable", insightsRpc.error);
+        console.warn("Actualités insights RPC unavailable", insightsRpc.error);
       }
 
       let postsResult = await (supabase.from("social_posts" as any) as any)
@@ -573,10 +573,10 @@ export function useSocialInsights(restaurantId?: string | null) {
       const conversionFocus = posts.length > 0 ? Math.round((postsWithCta / posts.length) * 100) : 0;
       const recommendations = [
         postsWithCta < Math.ceil(posts.length * 0.6)
-          ? "Ajoutez un CTA clair sur les posts qui doivent generer commandes, reservations ou offres."
+          ? "Ajoutez un CTA clair sur les posts qui doivent generer commandes, réservations ou offres."
           : null,
         scheduledCount < Math.ceil(posts.length * 0.4)
-          ? "Programmez les actualites avant les pics: 10h30-11h30, 17h30-18h30 ou la veille d'un evenement."
+          ? "Programmez les actualités avant les pics: 10h30-11h30, 17h30-18h30 ou la veille d'un evenement."
           : null,
         totals.impressions > 0 && totals.ctaClicks === 0
           ? "Les posts sont vus mais ne convertissent pas encore: testez une offre courte ou un bouton Commander."
@@ -998,7 +998,7 @@ export function useSocialFeedFeedback() {
       if (feedbackType === "hide_post" || feedbackType === "hide_restaurant" || feedbackType === "not_interested") {
         removeSocialPost(queryClient, input.post.id);
       }
-      toast.success(feedbackType === "show_more" ? "Preference prise en compte." : "Le fil s'adapte a votre retour.");
+      toast.success(feedbackType === "show_more" ? "Preference prise en compte." : "Le fil s'adapté à votre retour.");
       invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error((error as Error).message),
@@ -1273,7 +1273,7 @@ export function useModerateSocialContent() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Moderation mise a jour.");
+      toast.success("Moderation mise à jour.");
       invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error((error as Error).message),

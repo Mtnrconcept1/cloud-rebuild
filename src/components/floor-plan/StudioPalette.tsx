@@ -268,7 +268,7 @@ export default function StudioPalette({
                 <span className="font-medium">Ajout rapide</span>
               </div>
               <p className="mt-2">
-                Un tap ajoute le preset dans le secteur actif. Le configurateur n'apparait que pour les vraies tables.
+                Un tap ajoute le preset dans le secteur actif. Le configurateur n'apparaît que pour les vraies tables.
               </p>
             </div>
           </div>

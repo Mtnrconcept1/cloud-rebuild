@@ -140,8 +140,8 @@ export default function DashboardPageHero({
                   );
                 }) : (
                   <div className={cn("tok-dashboard-kpi rounded-2xl px-4 py-4", toneClasses.toneClass)}>
-                    <p className="tok-kpi-value text-lg font-bold">Vue prete</p>
-                    <p className="text-xs text-muted-foreground dark:text-slate-100/64">Les donnees utiles restent au premier plan.</p>
+                    <p className="tok-kpi-value text-lg font-bold">Vue prête</p>
+                    <p className="text-xs text-muted-foreground dark:text-slate-100/64">Les données utiles restent au premier plan.</p>
                   </div>
                 )}
               </div>

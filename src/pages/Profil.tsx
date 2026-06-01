@@ -255,7 +255,7 @@ export default function Profil() {
             <SignupApplicationStatusCard
               application={signupApplication}
               title="Verification du compte client"
-              emptyDescription="Aucun dossier documentaire client n'a encore ete soumis."
+              emptyDescription="Aucun dossier documentaire client n'a encore été soumis."
             />
 
             <div className="flex flex-col items-center gap-4 mb-6">
@@ -391,7 +391,7 @@ export default function Profil() {
             <div className="rounded-xl border bg-card p-4 space-y-3">
               <h3 className="font-semibold text-sm">Push web</h3>
               <p className="text-xs text-muted-foreground">
-                Activez les notifications push pour recevoir les alertes en temps reel.
+                Activez les notifications push pour recevoir les alertes en temps réel.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -483,7 +483,7 @@ export default function Profil() {
 
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  La suppression de votre compte est definitive et entraine la perte de vos points de fidelite, credits, historique de commandes et reservations.
+                  La suppression de votre compte est definitive et entraîne la perte de vos points de fidélité, crédits, historique de commandes et réservations.
                 </p>
 
                 <AlertDialog>
@@ -495,9 +495,9 @@ export default function Profil() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Supprimer definitivement votre compte ?</AlertDialogTitle>
+                      <AlertDialogTitle>Supprimer définitivement votre compte ?</AlertDialogTitle>
                       <AlertDialogDescription className="space-y-3">
-                        <span className="block">Cette action est irreversible. Toutes vos donnees seront supprimees.</span>
+                        <span className="block">Cette action est irréversible. Toutes vos données seront supprimées.</span>
                         <span className="block">Pour confirmer, saisissez votre email : <strong>{user?.email}</strong></span>
                         <Input
                           value={deleteConfirmEmail}
@@ -518,7 +518,7 @@ export default function Profil() {
                             const { error } = await supabase.functions.invoke("delete-account");
                             if (error) throw error;
                             await supabase.auth.signOut();
-                            toast({ title: "Compte supprime", description: "Votre compte a ete supprime avec succes." });
+                            toast({ title: "Compte supprime", description: "Votre compte a été supprime avec succes." });
                             navigate("/");
                           } catch (err: any) {
                             toast({ title: "Erreur", description: err.message || "Impossible de supprimer le compte.", variant: "destructive" });
@@ -528,7 +528,7 @@ export default function Profil() {
                           }
                         }}
                       >
-                        {deleting ? "Suppression..." : "Supprimer definitivement"}
+                        {deleting ? "Suppression..." : "Supprimer définitivement"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -647,7 +647,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Resilier Tok One ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Vous conserverez vos avantages jusqu'au {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Apres cette date, les frais de livraison et reductions exclusives ne s'appliqueront plus.
+                      Vous conserverez vos avantages jusqu’àu {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Apres cette date, les frais de livraison et réductions exclusives ne s'appliqueront plus.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -661,12 +661,12 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
                         if (error) {
                           toast({ title: "Erreur", description: error.message, variant: "destructive" });
                         } else {
-                          toast({ title: "Abonnement resilie", description: "Vos avantages restent actifs jusqu'a la fin de la periode." });
+                          toast({ title: "Abonnement resilie", description: "Vos avantages restent actifs jusqu’à la fin de la periode." });
                           queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
                         }
                       }}
                     >
-                      Confirmer la resiliation
+                      Confirmer la résiliation
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -707,7 +707,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           {subscription.cancel_at_period_end && (
             <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
               <p className="text-sm text-amber-800">
-                Votre abonnement ne sera pas renouvele. Vous conservez vos avantages jusqu'a la fin de la periode en cours.
+                Votre abonnement ne sera pas renouvele. Vous conservez vos avantages jusqu’à la fin de la periode en cours.
               </p>
             </div>
           )}
@@ -719,7 +719,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           </div>
           <h3 className="font-bold text-xl">Aucun abonnement actif</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Rejoignez Tok One pour beneficier de la livraison gratuite, de reductions exclusives et d'un acces VIP.
+            Rejoignez Tok One pour bénéficier de la livraison gratuite, de réductions exclusives et d'un accès VIP.
           </p>
           {plans && plans.length > 0 && (
             <p className="text-sm text-violet-600 font-medium">
@@ -761,7 +761,7 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
       <div className="space-y-3">
         <h3 className="font-bold text-lg flex items-center gap-2">
           <Truck className="h-5 w-5 text-violet-500" />
-          Historique des avantages utilises
+          Historique des avantages utilisés
         </h3>
         {ordersLoading ? (
           <div className="text-center py-6 text-muted-foreground text-sm">Chargement...</div>
@@ -799,8 +799,8 @@ function TokOneTab({ userId, subscription, isActive, plans }: TokOneTabProps) {
           <div className="rounded-xl border border-dashed p-6 text-center">
             <p className="text-sm text-muted-foreground">
               {isActive
-                ? "Aucune commande avec Tok One pour l'instant. Passez votre premiere commande pour voir vos economies ici."
-                : "Abonnez-vous a Tok One pour commencer a profiter de la livraison gratuite et voir vos economies ici."}
+                ? "Aucune commande avec Tok One pour l'instant. Passez votre première commande pour voir vos économies ici."
+                : "Abonnez-vous à Tok One pour commencer à profiter de la livraison gratuite et voir vos économies ici."}
             </p>
           </div>
         )}

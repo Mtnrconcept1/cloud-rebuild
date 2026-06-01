@@ -114,7 +114,7 @@ export function getReservationStatusLockMessage(entity: StatusLockEntity) {
   }
 
   if (reason === "paid_special") {
-    return "Statut verrouille apres paiement pour cette reservation.";
+    return "Statut verrouille apres paiement pour cette réservation.";
   }
 
   return null;

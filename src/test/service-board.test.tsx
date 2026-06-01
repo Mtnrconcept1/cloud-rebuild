@@ -244,7 +244,7 @@ describe("ServiceBoard", () => {
     });
 
     expect(getByText("Conflit horaire")).toBeInTheDocument();
-    expect(getByText("2 reservations")).toBeInTheDocument();
+    expect(getByText("2 réservations")).toBeInTheDocument();
   });
 
   it("shows quick service actions on the selected assigned table", () => {

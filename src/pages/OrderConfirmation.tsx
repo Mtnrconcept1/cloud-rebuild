@@ -173,7 +173,7 @@ export default function OrderConfirmation() {
     if (!user || !session?.access_token) {
       if (reconnectPromptRef.current !== processingKey) {
         reconnectPromptRef.current = processingKey;
-        setErrorMessage("Reconnectez-vous pour finaliser et afficher le recapitulatif de votre commande.");
+        setErrorMessage("Reconnectez-vous pour finaliser et afficher le récapitulatif de votre commande.");
         setState("error");
       }
       return;
@@ -197,7 +197,7 @@ export default function OrderConfirmation() {
 
         const completedOrders = Array.isArray(data?.orders) ? data.orders : [];
         if (completedOrders.length === 0) {
-          throw new Error("Paiement valide, mais aucune commande n'a ete retrouvee.");
+          throw new Error("Paiement valide, mais aucune commande n'a été retrouvee.");
         }
 
         finalizeSuccess(data ?? {
@@ -226,7 +226,7 @@ export default function OrderConfirmation() {
             : null;
         const fallbackMessage =
           errorStatus === 401 || errorStatus === 403
-            ? "Le paiement est valide, mais votre session doit etre revalidee pour afficher le recapitulatif."
+            ? "Le paiement est valide, mais votre session doit être revalidee pour afficher le récapitulatif."
             : error instanceof Error
               ? error.message
               : "Impossible de finaliser le paiement.";
@@ -283,7 +283,7 @@ export default function OrderConfirmation() {
             <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
             <h1 className="mt-4 font-display text-3xl font-bold">Confirmation du paiement</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Nous finalisons votre commande Stripe et preparons le recapitulatif.
+              Nous finalisons votre commande Stripe et preparons le récapitulatif.
             </p>
           </div>
         ) : null}
@@ -294,7 +294,7 @@ export default function OrderConfirmation() {
               <CreditCard className="mx-auto h-10 w-10 text-muted-foreground" />
               <h1 className="font-display text-3xl font-bold">Paiement annule</h1>
               <p className="text-sm text-muted-foreground">
-                Votre panier a ete conserve. Vous pouvez reprendre le paiement ou modifier votre commande.
+                Votre panier a été conservé. Vous pouvez reprendre le paiement ou modifier votre commande.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-3">
@@ -344,8 +344,8 @@ export default function OrderConfirmation() {
                 <h1 className="font-display text-3xl font-bold">Paiement confirme</h1>
                 <p className="text-sm text-muted-foreground">
                   {restaurantCount > 1
-                    ? "Votre paiement a confirme plusieurs commandes. Retrouvez le detail ci-dessous."
-                    : "Votre commande est bien enregistree. Retrouvez le detail ci-dessous."}
+                    ? "Votre paiement a confirme plusieurs commandes. Retrouvez le détail ci-dessous."
+                    : "Votre commande est bien enregistrée. Retrouvez le détail ci-dessous."}
                 </p>
               </div>
 
@@ -369,7 +369,7 @@ export default function OrderConfirmation() {
                   <Button asChild>
                     <Link to={`/commande/${primaryOrderId}`}>
                       <Package className="mr-2 h-4 w-4" />
-                      {restaurantCount > 1 ? "Suivre la premiere commande" : "Suivre la commande"}
+                      {restaurantCount > 1 ? "Suivre la première commande" : "Suivre la commande"}
                     </Link>
                   </Button>
                 ) : null}
@@ -382,7 +382,7 @@ export default function OrderConfirmation() {
             {detailsLoading ? (
               <div className="rounded-3xl border bg-card p-8 text-center shadow-sm">
                 <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-                <p className="mt-3 text-sm text-muted-foreground">Chargement du recapitulatif detaille...</p>
+                <p className="mt-3 text-sm text-muted-foreground">Chargement du récapitulatif detaille...</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -428,7 +428,7 @@ export default function OrderConfirmation() {
 
                       {metadata.scheduled_delivery_label ? (
                         <p className="mt-4 text-sm text-muted-foreground">
-                          Livraison planifiee : {String(metadata.scheduled_delivery_label)}
+                          Livraison planifiée : {String(metadata.scheduled_delivery_label)}
                         </p>
                       ) : null}
 

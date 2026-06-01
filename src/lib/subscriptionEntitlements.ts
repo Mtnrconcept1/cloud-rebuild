@@ -25,7 +25,7 @@ export const TOK_ONE_DEFAULT_BENEFITS = [
   {
     id: "discount_percentage",
     label: "Reductions exclusives",
-    description: "Jusqu'a 20% sur les plats eligibles.",
+    description: "Jusqu'a 20% sur les plats éligibles.",
   },
   {
     id: "chef_table_priority",
@@ -35,17 +35,17 @@ export const TOK_ONE_DEFAULT_BENEFITS = [
   {
     id: "flash_early_access",
     label: "Ventes flash en avance",
-    description: "Acces anticipe aux offres limitees.",
+    description: "Acces anticipe aux offres limitées.",
   },
   {
     id: "priority_support",
     label: "Support prioritaire",
-    description: "Demandes traitees en priorite.",
+    description: "Demandes traitées en priorite.",
   },
   {
     id: "surprise_offers",
     label: "Offres surprises",
-    description: "Attentions reservees aux membres Tok One.",
+    description: "Attentions réservées aux membres Tok One.",
   },
 ] as const;
 

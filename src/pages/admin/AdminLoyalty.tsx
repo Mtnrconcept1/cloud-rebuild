@@ -191,7 +191,7 @@ export default function AdminLoyalty() {
     setBenefitForm(EMPTY_BENEFIT_FORM);
     queryClient.invalidateQueries({ queryKey: ["admin-subscription-plans"] });
     queryClient.invalidateQueries({ queryKey: ["admin-subscription-benefits"] });
-    toast({ title: editingPlan ? "Forfait mis a jour" : "Forfait cree" });
+    toast({ title: editingPlan ? "Forfait mis à jour" : "Forfait crée" });
   };
 
   const deletePlan = async (id: string) => {
@@ -257,7 +257,7 @@ export default function AdminLoyalty() {
     setEditingTier(null);
     setTierForm(EMPTY_TIER);
     queryClient.invalidateQueries({ queryKey: ["admin-loyalty-tiers"] });
-    toast({ title: editingTier ? "Palier mis a jour" : "Palier cree" });
+    toast({ title: editingTier ? "Palier mis à jour" : "Palier crée" });
   };
 
   const deleteTier = async (id: string) => {
@@ -273,9 +273,9 @@ export default function AdminLoyalty() {
   return (
     <div className="container py-8 space-y-6">
       <DashboardPageHero
-        badge="Fidelite"
-        title="Fidelite et abonnement"
-        description="Configurez Tok One et les paliers de fidelite avec une lecture rapide des plans actifs."
+        badge="Fidélité"
+        title="Fidélité et abonnement"
+        description="Configurez Tok One et les paliers de fidélité avec une lecture rapide des plans actifs."
         icon={Crown}
         tone="amber"
         visualLabel="Loyalty"
@@ -289,7 +289,7 @@ export default function AdminLoyalty() {
       <Card>
         <CardHeader>
           <CardTitle>Catalogue des avantages</CardTitle>
-          <CardDescription>Avantages client affiches dans le programme fidelite, par niveau debloque.</CardDescription>
+          <CardDescription>Avantages client affiches dans le programme fidélité, par niveau débloque.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {LOYALTY_TIER_ORDER.map((tierId) => {
@@ -325,7 +325,7 @@ export default function AdminLoyalty() {
               </div>
               <Dialog open={planOpen} onOpenChange={setPlanOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={openNewPlan}>Creer forfait</Button>
+                  <Button variant="outline" size="sm" onClick={openNewPlan}>Créer forfait</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <DialogHeader><DialogTitle>{editingPlan ? "Modifier le forfait" : "Nouveau forfait"}</DialogTitle></DialogHeader>
@@ -386,7 +386,7 @@ export default function AdminLoyalty() {
                       <option value="active">active</option>
                       <option value="archived">archived</option>
                     </select>
-                    <Button type="submit" className="w-full" disabled={savingPlan}>{savingPlan ? "Enregistrement..." : editingPlan ? "Mettre a jour" : "Creer"}</Button>
+                    <Button type="submit" className="w-full" disabled={savingPlan}>{savingPlan ? "Enregistrement..." : editingPlan ? "Mettre à jour" : "Creer"}</Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -431,7 +431,7 @@ export default function AdminLoyalty() {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-500" />
-                <CardTitle>Paliers de fidelite</CardTitle>
+                <CardTitle>Paliers de fidélité</CardTitle>
               </div>
               <Dialog open={tierOpen} onOpenChange={setTierOpen}>
                 <DialogTrigger asChild>
@@ -446,12 +446,12 @@ export default function AdminLoyalty() {
                       <Input placeholder="Multiplicateur" type="number" step="0.1" value={tierForm.multiplier} onChange={(event) => setTierForm((prev) => ({ ...prev, multiplier: event.target.value }))} required />
                     </div>
                     <Textarea placeholder='Avantages JSON ex: {"priority_support": true}' value={tierForm.benefits} onChange={(event) => setTierForm((prev) => ({ ...prev, benefits: event.target.value }))} />
-                    <Button type="submit" className="w-full" disabled={savingTier}>{savingTier ? "Enregistrement..." : editingTier ? "Mettre a jour" : "Creer"}</Button>
+                    <Button type="submit" className="w-full" disabled={savingTier}>{savingTier ? "Enregistrement..." : editingTier ? "Mettre à jour" : "Creer"}</Button>
                   </form>
                 </DialogContent>
               </Dialog>
             </div>
-            <CardDescription>Paliers de points et multiplicateurs associes</CardDescription>
+            <CardDescription>Paliers de points et multiplicateurs associés</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {tiers.map((tier: any) => (

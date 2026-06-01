@@ -20,7 +20,7 @@ export default function CityAutocomplete({
   value,
   onCitySelect,
   onValueChange,
-  placeholder = "Commencez a saisir une ville...",
+  placeholder = "Commencez à saisir une ville...",
   className,
   inputClassName,
   id,

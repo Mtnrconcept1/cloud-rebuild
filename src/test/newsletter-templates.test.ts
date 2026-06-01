@@ -21,7 +21,7 @@ describe("newsletterTemplates", () => {
     });
 
     expect(campaign).toMatchObject({
-      title: "Vos avantages Gold sont prets",
+      title: "Vos avantages Gold sont prêts",
       category: "marketing",
       status: "scheduled",
       scheduled_at: "2026-06-01T09:00:00.000Z",
@@ -57,4 +57,3 @@ describe("newsletterTemplates", () => {
     expect(risky.blockers).toContain("missing_unsubscribe_link");
   });
 });
-

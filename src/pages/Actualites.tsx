@@ -68,7 +68,7 @@ export default function Actualites() {
             <div className="min-w-0">
               <div className="mb-2 flex items-center gap-2">
                 <Newspaper className="h-5 w-5 text-primary" />
-                <Badge variant="secondary" className="rounded-full">Actualites</Badge>
+                <Badge variant="secondary" className="rounded-full">Actualités</Badge>
               </div>
               <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Fil restaurant</h1>
             </div>
@@ -109,7 +109,7 @@ export default function Actualites() {
                 </>
               ) : (
                 <div className="rounded-lg border bg-background p-4 text-sm text-muted-foreground">
-                  Aucun restaurant rattache a ce compte.
+                  Aucun restaurant rattache à ce compte.
                 </div>
               )}
             </div>
@@ -153,7 +153,7 @@ export default function Actualites() {
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border bg-background p-10 text-center text-muted-foreground">Aucune actualite pour le moment.</div>
+            <div className="rounded-lg border bg-background p-10 text-center text-muted-foreground">Aucune actualité pour le moment.</div>
           )}
         </section>
 

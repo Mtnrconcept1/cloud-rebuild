@@ -41,7 +41,7 @@ const SORT_OPTIONS: { value: SortValue; label: string }[] = [
   { value: "popularite", label: "Popularite" },
   { value: "nouveaux", label: "Nouveaux restaurants" },
   { value: "mieux_notes_mois", label: "Mieux notes du mois" },
-  { value: "plus_reserves_mois", label: "Plus reserves du mois" },
+  { value: "plus_reserves_mois", label: "Plus réservés du mois" },
 ];
 
 const ORDER_OPTIONS: { value: SortDirection; label: string }[] = [
@@ -424,7 +424,7 @@ export default function Recherche() {
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Explorer</p>
                 <h1 className="font-display text-3xl font-bold dark:text-white">Trouvez le bon restaurant, plus vite</h1>
                 <p className="max-w-2xl text-sm text-muted-foreground dark:text-slate-300">
-                  Recherchez par nom, cuisine ou ville, puis affinez uniquement si necessaire.
+                  Recherchez par nom, cuisine ou ville, puis affinez uniquement si nécessaire.
                 </p>
               </div>
               <div className="rounded-2xl bg-primary/5 px-4 py-3 text-right dark:border dark:border-primary/25 dark:bg-primary/10 dark:shadow-[0_0_26px_rgba(249,115,22,0.16)]">
@@ -567,11 +567,11 @@ export default function Recherche() {
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold dark:text-white">{promo === "true" ? "Bons plans disponibles" : "Selection disponible"}</p>
+                <p className="text-sm font-semibold dark:text-white">{promo === "true" ? "Bons plans disponibles" : "Sélection disponible"}</p>
                 <p className="text-xs text-muted-foreground dark:text-slate-300">
                   {promo === "true"
                     ? "Les promotions et activations remontees sont affichees en priorite."
-                    : "Affinez si necessaire, sinon ouvrez directement une fiche restaurant."}
+                    : "Affinez si nécessaire, sinon ouvrez directement une fiche restaurant."}
                 </p>
               </div>
               <p className="text-sm font-medium text-muted-foreground dark:text-slate-300"><span className="text-foreground dark:text-white">{mergedCards.length}</span> resultat(s)</p>
@@ -584,10 +584,10 @@ export default function Recherche() {
           </div>
         ) : (
           <div className="neon-panel rounded-[28px] border border-dashed py-20 text-center text-muted-foreground dark:text-slate-300">
-            <p className="text-lg font-semibold text-foreground dark:text-white">Aucun restaurant ne correspond a ces criteres</p>
+            <p className="text-lg font-semibold text-foreground dark:text-white">Aucun restaurant ne correspond à ces criteres</p>
             <p className="mt-2 text-sm">Essayez une autre ville, une cuisine plus large ou reinitialisez les filtres.</p>
             <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
-              Reinitialiser la recherche
+              Réinitialiser la recherche
             </Button>
           </div>
         )}

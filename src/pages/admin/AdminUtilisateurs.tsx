@@ -289,7 +289,7 @@ export default function AdminUtilisateurs() {
       delete clone[userId];
       return clone;
     });
-    toast({ title: "Roles mis a jour" });
+    toast({ title: "Roles mis à jour" });
     queryClient.invalidateQueries({ queryKey: ["admin-users-full"] });
   };
 
@@ -309,7 +309,7 @@ export default function AdminUtilisateurs() {
       return;
     }
 
-    toast({ title: "Dossier mis a jour" });
+    toast({ title: "Dossier mis à jour" });
     queryClient.invalidateQueries({ queryKey: ["admin-signup-applications"] });
   };
 
@@ -329,7 +329,7 @@ export default function AdminUtilisateurs() {
       return;
     }
 
-    toast({ title: "Profil livreur mis a jour" });
+    toast({ title: "Profil livreur mis à jour" });
     queryClient.invalidateQueries({ queryKey: ["admin-couriers"] });
     queryClient.invalidateQueries({ queryKey: ["admin-users-full"] });
     queryClient.invalidateQueries({ queryKey: ["admin-signup-applications"] });
@@ -611,7 +611,7 @@ export default function AdminUtilisateurs() {
 
                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                       <div className="rounded-xl border p-3 text-sm">
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Telephone</p>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Téléphone</p>
                         <p className="pt-1 font-medium">{application.phone || "Non renseigne"}</p>
                       </div>
                       <div className="rounded-xl border p-3 text-sm">
@@ -627,7 +627,7 @@ export default function AdminUtilisateurs() {
                       <div className="rounded-xl border p-3 text-sm">
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">Vehicule / IBAN</p>
                         <p className="pt-1 font-medium">
-                          {application.vehicle_type || application.iban || "Sans detail"}
+                          {application.vehicle_type || application.iban || "Sans détail"}
                         </p>
                       </div>
                     </div>
@@ -673,7 +673,7 @@ export default function AdminUtilisateurs() {
                         </div>
                       ) : (
                         <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                          Aucun document n'est rattache a ce dossier.
+                          Aucun document n'est rattache à ce dossier.
                         </div>
                       )}
                     </div>
@@ -751,7 +751,7 @@ export default function AdminUtilisateurs() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-9"
-                placeholder="Rechercher par nom, email, telephone, plaque ou ID..."
+                placeholder="Rechercher par nom, email, téléphone, plaque ou ID..."
                 value={courierSearch}
                 onChange={(event) => setCourierSearch(event.target.value)}
               />
@@ -803,7 +803,7 @@ export default function AdminUtilisateurs() {
                           {linkedUser?.email || courier.user_id}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Mis a jour le{" "}
+                          Mis à jour le{" "}
                           {courier.updated_at
                             ? new Date(courier.updated_at).toLocaleDateString("fr-CH")
                             : "recemment"}
@@ -820,7 +820,7 @@ export default function AdminUtilisateurs() {
 
                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                       <div className="rounded-xl border p-3 text-sm">
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Telephone</p>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Téléphone</p>
                         <p className="pt-1 font-medium">{courier.phone || linkedApplication?.phone || "Non renseigne"}</p>
                       </div>
                       <div className="rounded-xl border p-3 text-sm">
@@ -845,14 +845,14 @@ export default function AdminUtilisateurs() {
                     <div className="rounded-xl border p-3 text-sm">
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
-                          <p className="font-medium">Dossier de verification livreur</p>
+                          <p className="font-medium">Dossier de vérification livreur</p>
                           {linkedApplication ? (
                             <p className="text-xs text-muted-foreground">
                               {documentsCount} document{documentsCount > 1 ? "s" : ""} - statut dossier{" "}
                               <span className="font-medium">{applicationStatusMeta.label}</span>
                             </p>
                           ) : (
-                            <p className="text-xs text-muted-foreground">Aucun dossier d'inscription lie a ce profil.</p>
+                            <p className="text-xs text-muted-foreground">Aucun dossier d'inscription lié à ce profil.</p>
                           )}
                         </div>
                         {linkedApplication ? (

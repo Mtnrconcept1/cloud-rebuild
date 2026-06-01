@@ -370,7 +370,7 @@ export default function RestaurantCard({
             </p>
           ) : (
             <p className="mt-2 text-sm leading-6 text-muted-foreground dark:text-slate-300/90">
-              Ouvrez la fiche pour voir le menu, les disponibilites et les details.
+              Ouvrez la fiche pour voir le menu, les disponibilités et les détails.
             </p>
           )}
 
@@ -423,7 +423,7 @@ export default function RestaurantCard({
             </div>
             {timeSlots.length > 0 ? (
               <p className="mt-2 text-xs text-muted-foreground dark:text-slate-300/90">
-                Prochains creneaux visibles. Plus d'options sur la fiche.
+                Prochains créneaux visibles. Plus d'options sur la fiche.
               </p>
             ) : null}
           </div>

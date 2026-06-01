@@ -32,7 +32,7 @@ export default function AdminActualites() {
     <main className="container space-y-6 py-8">
       <DashboardPageHero
         badge="Moderation"
-        title="Actualites sociales"
+        title="Actualités sociales"
         description="Surveillez les posts, signalements et contenus masques du fil social."
         icon={ShieldCheck}
         tone="amber"

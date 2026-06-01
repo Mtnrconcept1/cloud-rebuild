@@ -28,7 +28,7 @@ export async function cancelOrderByCustomer(
 
   const result = getFirstRow<SafeOrderMutationRow>(data);
   if (!result) {
-    throw new Error("Reponse serveur invalide.");
+    throw new Error("Réponse serveur invalide.");
   }
 
   if (!result.ok) {

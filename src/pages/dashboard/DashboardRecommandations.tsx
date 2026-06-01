@@ -109,7 +109,7 @@ export default function DashboardRecommandations() {
         <DashboardPageHero
           badge="Conseils operationnels"
           title="Recommandations"
-          description="Traitez les opportunites de revenu, qualite et risque avec une liste priorisee par restaurant."
+          description="Traitez les opportunités de revenu, qualité et risque avec une liste priorisee par restaurant."
           icon={Lightbulb}
           tone="amber"
           visualLabel="Conseils"

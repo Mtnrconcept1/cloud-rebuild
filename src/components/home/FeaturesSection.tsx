@@ -18,16 +18,16 @@ interface FeaturesSectionProps {
 }
 
 const FEATURES = [
-  { icon: Shield, label: "Creneaux garantis", desc: "Livraison ponctuelle ou remboursee", to: "/creneaux-garantis", feature: "creneaux-garantis", bg: "bg-blue-500/10", fg: "text-blue-500" },
+  { icon: Shield, label: "Créneaux garantis", desc: "Livraison ponctuelle ou remboursee", to: "/creneaux-garantis", feature: "creneaux-garantis", bg: "bg-blue-500/10", fg: "text-blue-500" },
   { icon: Gift, label: "Offres", desc: "Fenetre flexible, prix reduit", to: "/flex-prix-bas", feature: "flex-prix-bas", bg: "bg-emerald-500/10", fg: "text-emerald-500" },
   { icon: Users, label: "Match groupes", desc: "Commandez ensemble, payez moins", to: "/match-groupes", feature: "match-groupes", bg: "bg-violet-500/10", fg: "text-violet-500" },
   { icon: Route, label: "Multi-stop", desc: "Un trajet, plusieurs adresses", to: "/multi-stop", feature: "multi-stop", bg: "bg-orange-500/10", fg: "text-orange-500" },
-  { icon: Layers, label: "Multi-restos", desc: "Plats de differents restos", to: "/multi-restaurant", feature: "multi-restaurant", bg: "bg-pink-500/10", fg: "text-pink-500" },
-  { icon: ChefHat, label: "La Table du Chef", desc: "Plats off-menu en edition limitee", to: "/chefs-table", feature: "chefs-table", bg: "bg-amber-500/10", fg: "text-amber-500" },
-  { icon: Timer, label: "Zero attente", desc: "Precommande synchronisee", to: "/zero-attente", feature: "zero-attente", bg: "bg-indigo-500/10", fg: "text-indigo-500" },
-  { icon: ShieldCheck, label: "Garantie qualite", desc: "Chaud garanti ou rembourse", to: "/garantie-qualite", feature: "garantie-qualite", bg: "bg-teal-500/10", fg: "text-teal-500" },
-  { icon: Calculator, label: "Budget auto", desc: "Menus optimises par objectifs", to: "/budget-auto", feature: "budget-auto", bg: "bg-cyan-500/10", fg: "text-cyan-500" },
-  { icon: Repeat, label: "Abonnement", desc: "Repas recurrents planifies", to: "/abonnement", feature: "abonnement", bg: "bg-purple-500/10", fg: "text-purple-500" },
+  { icon: Layers, label: "Multi-restos", desc: "Plats de différents restos", to: "/multi-restaurant", feature: "multi-restaurant", bg: "bg-pink-500/10", fg: "text-pink-500" },
+  { icon: ChefHat, label: "La Table du Chef", desc: "Plats off-menu en edition limitée", to: "/chefs-table", feature: "chefs-table", bg: "bg-amber-500/10", fg: "text-amber-500" },
+  { icon: Timer, label: "Zéro attente", desc: "Precommande synchronisée", to: "/zero-attente", feature: "zero-attente", bg: "bg-indigo-500/10", fg: "text-indigo-500" },
+  { icon: ShieldCheck, label: "Garantie qualité", desc: "Chaud garanti ou remboursé", to: "/garantie-qualite", feature: "garantie-qualite", bg: "bg-teal-500/10", fg: "text-teal-500" },
+  { icon: Calculator, label: "Budget auto", desc: "Menus optimisés par objectifs", to: "/budget-auto", feature: "budget-auto", bg: "bg-cyan-500/10", fg: "text-cyan-500" },
+  { icon: Repeat, label: "Abonnement", desc: "Repas récurrents planifiés", to: "/abonnement", feature: "abonnement", bg: "bg-purple-500/10", fg: "text-purple-500" },
 ];
 
 export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps) {
@@ -40,10 +40,10 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
         <div className="space-y-2 text-center">
           <div className="flex items-center justify-center gap-2">
             <Sparkles className="h-5 w-5 text-primary dark:drop-shadow-[0_0_16px_rgba(249,115,22,0.55)]" />
-            <h2 className="font-display text-2xl font-bold dark:text-white md:text-3xl">Fonctionnalites exclusives</h2>
+            <h2 className="font-display text-2xl font-bold dark:text-white md:text-3xl">Fonctionnalités exclusives</h2>
           </div>
           <p className="mx-auto max-w-lg text-sm text-muted-foreground dark:text-slate-300">
-            Des innovations uniques pour une experience food inedite
+            Des innovations uniques pour une expérience food inedite
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">

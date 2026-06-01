@@ -12,7 +12,7 @@ export default function PolitiqueConfidentialite() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">1. Responsable du traitement</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Tok SA, société de droit suisse (ci-après « Tok », « nous »), est responsable du traitement des données personnelles collectées via la plateforme Tok (site web et application mobile).
+            Tok SA, société de droit suisse (ci-après « Tok », « nous »), est responsable du traitement des données personnelles collectées vià la plateforme Tok (site web et application mobile).
           </p>
           <ul className="list-none space-y-2 text-foreground/80">
             <li><span className="font-medium text-foreground">Email :</span> privacy@tok.ch</li>
@@ -29,8 +29,8 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Données de commande :</span> historique des commandes, montants, préférences alimentaires, restaurants favoris.</li>
             <li><span className="font-medium text-foreground">Données de paiement :</span> méthode de paiement choisie. Les données bancaires sont traitées directement par notre prestataire Stripe et ne sont pas stockées sur nos serveurs.</li>
             <li><span className="font-medium text-foreground">Données de navigation :</span> pages visitées, interactions avec la plateforme, recherches effectuées.</li>
-            <li><span className="font-medium text-foreground">Données du fil Actualites :</span> abonnements a des restaurants, reactions, commentaires, signalements, sauvegardes, partages, clics sur les boutons d'action et preferences de contenu.</li>
-            <li><span className="font-medium text-foreground">Données marketing restaurateur :</span> objectifs de campagne, segments d'audience, contenus publies, codes d'offres, statistiques d'impressions, clics, engagement et performance des actualites.</li>
+            <li><span className="font-medium text-foreground">Données du fil Actualités :</span> abonnements a des restaurants, réactions, commentaires, signalements, sauvegardes, partages, clics sur les boutons d'action et preferences de contenu.</li>
+            <li><span className="font-medium text-foreground">Données marketing restaurateur :</span> objectifs de campagne, segments d'audience, contenus publies, codes d'offres, statistiques d'impressions, clics, engagement et performance des actualités.</li>
             <li><span className="font-medium text-foreground">Données techniques :</span> adresse IP, type de navigateur, système d'exploitation, identifiant d'appareil.</li>
             <li><span className="font-medium text-foreground">Données de géolocalisation :</span> position GPS (uniquement avec votre consentement explicite).</li>
           </ul>
@@ -42,7 +42,7 @@ export default function PolitiqueConfidentialite() {
           <ul className="list-disc pl-6 space-y-2 text-foreground/80">
             <li><span className="font-medium text-foreground">Exécution du contrat :</span> gestion de votre compte, traitement des commandes, livraison, facturation, gestion des réservations.</li>
             <li><span className="font-medium text-foreground">Intérêt légitime :</span> amélioration de nos services, personnalisation de l'expérience, prévention de la fraude, analyses statistiques anonymisées.</li>
-            <li><span className="font-medium text-foreground">Mesure et moderation des Actualites :</span> recommandation du fil social, detection d'abus, traitement des signalements et statistiques agrégées mises a disposition des Restaurants.</li>
+            <li><span className="font-medium text-foreground">Mesure et moderation des Actualités :</span> recommandation du fil social, detection d'abus, traitement des signalements et statistiques agrégées mises a disposition des Restaurants.</li>
             <li><span className="font-medium text-foreground">Consentement :</span> envoi de notifications push, géolocalisation, cookies non essentiels, communications marketing.</li>
             <li><span className="font-medium text-foreground">Obligation légale :</span> conservation des factures, conformité fiscale.</li>
           </ul>
@@ -56,7 +56,7 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Supabase (AWS) :</span> hébergement de la base de données et authentification. Données hébergées en Europe.</li>
             <li><span className="font-medium text-foreground">Firebase (Google) :</span> envoi de notifications push sur mobile.</li>
             <li><span className="font-medium text-foreground">Restaurants partenaires :</span> transmission des informations nécessaires à la préparation et livraison de votre commande (nom, adresse de livraison, contenu de la commande).</li>
-            <li><span className="font-medium text-foreground">Restaurants publieurs :</span> acces a des statistiques agrégées sur leurs actualites (impressions, clics, reactions, commentaires, sauvegardes, partages) sans vente de donnees personnelles nominatives.</li>
+            <li><span className="font-medium text-foreground">Restaurants publieurs :</span> accès a des statistiques agrégées sur leurs actualités (impressions, clics, réactions, commentaires, sauvegardes, partages) sans vente de données personnelles nominatives.</li>
             <li><span className="font-medium text-foreground">Livreurs partenaires :</span> adresse de livraison et informations de contact nécessaires à la livraison.</li>
           </ul>
           <p className="text-foreground/80 leading-relaxed">
@@ -104,7 +104,7 @@ export default function PolitiqueConfidentialite() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">8. Suppression du compte</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Vous pouvez demander la suppression de votre compte et de toutes vos données personnelles à tout moment en nous contactant à <span className="font-medium text-foreground">privacy@tok.ch</span> ou depuis les paramètres de votre profil dans l'application.
+            Vous pouvez demander la suppression de votre compte et de toutes vos données personnelles à tout moment en nous contactant à <span className="font-medium text-foreground">privacy@tok.ch</span> ou depuis les paramètrès de votre profil dans l'application.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             La suppression sera effective dans un délai de 30 jours. Certaines données pourront être conservées au-delà si la loi l'exige (données de facturation, obligations fiscales).

@@ -87,7 +87,7 @@ export async function createReservationWithValidation(
 
   const result = getFirstRow<SafeReservationCreateRow>(data);
   if (!result) {
-    throw new Error("Reponse serveur invalide.");
+    throw new Error("Réponse serveur invalide.");
   }
 
   if (result.error_message) {
@@ -99,7 +99,7 @@ export async function createReservationWithValidation(
   }
 
   if (!result.reservation_id) {
-    throw new Error("Reservation non creee.");
+    throw new Error("Reservation non créée.");
   }
 
   return {
@@ -121,14 +121,14 @@ export async function updateRestaurantReservationStatus(
 
   const result = getFirstRow<SafeReservationStatusRow>(data);
   if (!result) {
-    throw new Error("Reponse serveur invalide.");
+    throw new Error("Réponse serveur invalide.");
   }
 
   if (!result.updated) {
     return {
       ok: false,
       errorCode: result.error_code || "validation_error",
-      errorMessage: result.error_message || "Mise a jour impossible.",
+      errorMessage: result.error_message || "Mise à jour impossible.",
     };
   }
 
@@ -146,7 +146,7 @@ export async function cancelReservationByCustomer(
 
   const result = getFirstRow<SafeReservationMutationRow>(data);
   if (!result) {
-    throw new Error("Reponse serveur invalide.");
+    throw new Error("Réponse serveur invalide.");
   }
 
   if (!result.ok) {
@@ -175,7 +175,7 @@ export async function cancelReservationByRestaurant(
 
   const result = getFirstRow<SafeReservationMutationRow>(data);
   if (!result) {
-    throw new Error("Reponse serveur invalide.");
+    throw new Error("Réponse serveur invalide.");
   }
 
   if (!result.ok) {

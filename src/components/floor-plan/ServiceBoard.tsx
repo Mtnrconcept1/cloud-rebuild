@@ -115,7 +115,7 @@ function getSurfaceState({
       ? {
           haloClass: "bg-teal-300/55 shadow-[0_28px_65px_-38px_rgba(20,184,166,0.45)]",
           chipClass: "border-teal-300 bg-teal-50 text-teal-700",
-          label: "Zero Attente",
+          label: "Zéro Attente",
         }
       : {
           haloClass: "bg-sky-300/55 shadow-[0_28px_65px_-38px_rgba(14,165,233,0.45)]",

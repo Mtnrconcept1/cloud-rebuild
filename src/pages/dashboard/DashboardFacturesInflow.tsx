@@ -47,7 +47,7 @@ function InvoiceTableRow({
 }) {
   const detailQuery = useDashboardPayoutInvoiceDetailLines(isExpanded ? invoice.id : null);
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-  const detailButtonLabel = isExpanded ? "Masquer le detail" : "Voir le detail";
+  const detailButtonLabel = isExpanded ? "Masquer le détail" : "Voir le détail";
 
   return (
     <>
@@ -120,7 +120,7 @@ function InvoiceTable({
     return (
       <Card className="border-dashed">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Aucune facture sur cette section.
+          Aucune facturé sur cette section.
         </CardContent>
       </Card>
     );
@@ -265,7 +265,7 @@ export default function DashboardFacturesInflow() {
       return;
     }
 
-    toast({ title: `${Number(data?.generated || 0)} facture(s) de reversement generee(s)` });
+    toast({ title: `${Number(data?.generated || 0)} facturé(s) de reversement generee(s)` });
     await queryClient.invalidateQueries({ queryKey: ["dashboard-invoices-v2", selectedRestaurant.id] });
     await queryClient.invalidateQueries({ queryKey: ["dashboard-compta-orders-v2", selectedRestaurant.id] });
     await queryClient.invalidateQueries({ queryKey: ["dashboard-compta-reservations-v2", selectedRestaurant.id] });
@@ -302,7 +302,7 @@ export default function DashboardFacturesInflow() {
           badge="Entrees d'argent"
           title="Factures faites a TOK"
           description={selectedRestaurant
-            ? `Commencez par les montants que vous devez encore facturer a TOK, puis par les factures deja emises et non reglees.`
+            ? `Commencez par les montants que vous devez encore facturer a TOK, puis par les factures déjà emises et non reglees.`
             : "Selectionnez un restaurant pour afficher ses entrees d'argent."}
           actions={(
             <>
@@ -341,7 +341,7 @@ export default function DashboardFacturesInflow() {
           </Card>
         ) : null}
 
-        {isLoading ? <p className="text-sm text-muted-foreground">Chargement des donnees comptables...</p> : null}
+        {isLoading ? <p className="text-sm text-muted-foreground">Chargement des données comptables...</p> : null}
         {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
 
         {selectedRestaurant && !isLoading && !error ? (
@@ -352,20 +352,20 @@ export default function DashboardFacturesInflow() {
                 icon={ArrowDownRight}
                 label="A recevoir de TOK"
                 value={formatAmount(totalOpenReceivable)}
-                description={`${formatAmount(summary.inflow.receivableFromTok)} deja facture et ${formatAmount(uninvoicedRestaurantShareTotal)} encore a emettre.`}
+                description={`${formatAmount(summary.inflow.receivableFromTok)} déjà facturé et ${formatAmount(uninvoicedRestaurantShareTotal)} encore a emettre.`}
               />
               <AccountingMetricCard
                 tone="emerald"
                 icon={RefreshCcw}
                 label="Encore a facturer"
                 value={formatAmount(uninvoicedRestaurantShareTotal)}
-                description="Part 90% deja acquise mais pas encore emise a TOK."
+                description="Part 90% déjà acquise mais pas encore emise a TOK."
               />
               <AccountingMetricCard
                 icon={Wallet}
-                label="Deja recu de TOK"
+                label="Deja reçu de TOK"
                 value={formatAmount(summary.inflow.receivedFromTok)}
-                description="Historique des factures de payout deja encaissees."
+                description="Historique des factures de payout déjà encaissees."
               />
               <AccountingMetricCard
                 tone="violet"
@@ -382,21 +382,21 @@ export default function DashboardFacturesInflow() {
                 icon={FileUp}
                 eyebrow="A faire maintenant"
                 title="Facturer l'encours"
-                description="La priorite est simple: emettre ce qui est deja du a votre restaurant avant de parcourir l'historique."
+                description="La priorite est simple: emettre ce qui est déjà du à votre restaurant avant de parcourir l'historique."
                 value={formatAmount(uninvoicedRestaurantShareTotal)}
-                valueLabel="Encours non facture"
+                valueLabel="Encours non facturé"
               >
                 <AccountingFactList
                   tone="primary"
                   items={[
                     {
-                      label: "Part 90% deja gagnee",
+                      label: "Part 90% déjà gagnee",
                       value: formatAmount(totalRestaurantShare),
                     },
                     {
                       label: "Encore a emettre",
                       value: formatAmount(uninvoicedRestaurantShareTotal),
-                      helper: "Ce montant peut partir en facture des maintenant",
+                      helper: "Ce montant peut partir en facturé des maintenant",
                     },
                     {
                       label: "Remboursements encore a traiter",
@@ -408,7 +408,7 @@ export default function DashboardFacturesInflow() {
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={handleGenerateInvoices} disabled={generating || uninvoicedRestaurantShareTotal <= 0}>
                     <RefreshCcw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-                    Generer la facture
+                    Generer la facturé
                   </Button>
                 </div>
               </AccountingPanel>
@@ -417,10 +417,10 @@ export default function DashboardFacturesInflow() {
                 tone="emerald"
                 icon={ArrowDownRight}
                 eyebrow="A faire maintenant"
-                title="Suivre les factures deja emises"
-                description="Une fois la facture envoyee, l'etape suivante est le suivi du reglement cote TOK."
+                title="Suivre les factures déjà emises"
+                description="Une fois la facturé envoyée, l'étape suivante est le suivi du reglement cote TOK."
                 value={formatAmount(summary.inflow.receivableFromTok)}
-                valueLabel="Deja facture"
+                valueLabel="Deja facturé"
               >
                 <AccountingFactList
                   tone="emerald"
@@ -428,10 +428,10 @@ export default function DashboardFacturesInflow() {
                     {
                       label: "Factures ouvertes",
                       value: String(payoutInvoiceSections.actionable.length),
-                      helper: "Documents deja emis et visibles plus bas",
+                      helper: "Documents déjà emis et visibles plus bas",
                     },
                     {
-                      label: "Deja recu",
+                      label: "Deja reçu",
                       value: formatAmount(summary.inflow.receivedFromTok),
                     },
                     {
@@ -449,7 +449,7 @@ export default function DashboardFacturesInflow() {
                 icon={Coins}
                 eyebrow="Comprendre les flux"
                 title="D'ou vient votre part 90%"
-                description="Chaque source montre a la fois le total gagne et ce qui reste encore a facturer."
+                description="Chaque source montre à la fois le total gagne et ce qui reste encore a facturer."
                 value={formatAmount(totalRestaurantShare)}
                 valueLabel="Part restaurant"
               >
@@ -458,7 +458,7 @@ export default function DashboardFacturesInflow() {
                   items={inflowSourceBreakdown.map((sourceDetail) => ({
                     label: sourceDetail.label,
                     value: formatAmount(sourceDetail.total),
-                    helper: `Encore a facturer: ${formatAmount(sourceDetail.uninvoiced)} | Deja emis ou recu: ${formatAmount(sourceDetail.alreadyInvoicedOrReceived)}`,
+                    helper: `Encore a facturer: ${formatAmount(sourceDetail.uninvoiced)} | Deja emis ou reçu: ${formatAmount(sourceDetail.alreadyInvoicedOrReceived)}`,
                   }))}
                 />
               </AccountingPanel>
@@ -468,7 +468,7 @@ export default function DashboardFacturesInflow() {
                 icon={Wallet}
                 eyebrow="Comprendre les flux"
                 title="Remboursements emis"
-                description="Les remboursements clients sont isoles pour ne pas brouiller la lecture des reversements a emettre ou deja encaisses."
+                description="Les remboursements clients sont isoles pour ne pas brouiller la lecture des reversements a emettre ou déjà encaisses."
                 value={formatAmount(refundsIssuedTotal)}
                 valueLabel="Remboursements"
               >

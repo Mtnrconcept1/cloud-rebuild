@@ -53,7 +53,7 @@ export default function CourierMissionDialog({
                   {mission.restaurantName || "Mission livraison"}
                 </DialogTitle>
                 <DialogDescription className="text-sm">
-                  {mission.orderNumber ? `Commande ${mission.orderNumber}` : "Mission en attente de reponse"}
+                  {mission.orderNumber ? `Commande ${mission.orderNumber}` : "Mission en attente de réponse"}
                 </DialogDescription>
               </DialogHeader>
 
@@ -61,13 +61,13 @@ export default function CourierMissionDialog({
                 <div className="rounded-2xl border bg-muted/40 p-4">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Wallet className="h-4 w-4 text-primary" />
-                    Gain estime
+                    Gain estimé
                   </div>
                   <p className="mt-2 text-lg font-semibold">
                     {formatCurrency(Number(mission.estimatedEarnings || 0))}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {mission.distanceKm ? `${mission.distanceKm.toFixed(1)} km jusqu'au premier retrait` : "Distance calculee au dispatch"}
+                    {mission.distanceKm ? `${mission.distanceKm.toFixed(1)} km jusqu’àu premier retrait` : "Distance calculee au dispatch"}
                   </p>
                 </div>
 
@@ -77,7 +77,7 @@ export default function CourierMissionDialog({
                     Fenetre
                   </div>
                   <p className="mt-2 text-lg font-semibold">
-                    {mission.scheduledDeliveryLabel || mission.deliveryWindowLabel || "Des que possible"}
+                    {mission.scheduledDeliveryLabel || mission.deliveryWindowLabel || "Dès que possible"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {mission.totalAmount ? `${formatCurrency(Number(mission.totalAmount))} de commande` : "Montant client disponible dans la mission"}
@@ -100,7 +100,7 @@ export default function CourierMissionDialog({
                       Retraits
                     </div>
                     <p className="text-muted-foreground">
-                      {mission.routeSteps.filter((step) => step.type === "pickup").length} etape(s)
+                      {mission.routeSteps.filter((step) => step.type === "pickup").length} étape(s)
                     </p>
                   </div>
                   <div className="rounded-xl bg-muted/40 p-3 text-sm">
@@ -149,7 +149,7 @@ export default function CourierMissionDialog({
                   <DeliveryMap routeStops={geoSteps} className="h-[280px] md:h-[420px]" />
                 ) : (
                   <div className="flex h-[280px] items-center justify-center rounded-2xl border border-dashed bg-card px-6 text-center text-sm text-muted-foreground">
-                    Coordonnees insuffisantes pour afficher le parcours. Le detail de la mission reste disponible ci-contre.
+                    Coordonnees insuffisantes pour afficher le parcours. Le détail de la mission reste disponible ci-contre.
                   </div>
                 )}
               </div>

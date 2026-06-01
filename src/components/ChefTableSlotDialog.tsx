@@ -172,7 +172,7 @@ export default function ChefTableSlotDialog({
           </DialogTitle>
           <DialogDescription className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
             <span className="font-medium text-white">{chefName}</span> chez{" "}
-            <span className="font-medium text-white">{restaurantName}</span>. Choisissez le creneau, le nombre de convives, puis confirmez votre etape de paiement.
+            <span className="font-medium text-white">{restaurantName}</span>. Choisissez le creneau, le nombre de convives, puis confirmez votre étape de paiement.
           </DialogDescription>
 
           <div className="mt-5 flex flex-wrap gap-2">
@@ -196,7 +196,7 @@ export default function ChefTableSlotDialog({
         <div className="grid gap-6 px-6 pb-6 pt-5 lg:grid-cols-[minmax(0,1.15fr)_280px]">
           <div className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-semibold dark:text-slate-100">Date de reservation</label>
+              <label className="text-sm font-semibold dark:text-slate-100">Date de réservation</label>
               <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="h-12 w-full justify-start rounded-2xl border-amber-200 text-left font-normal dark:border-amber-300/30 dark:bg-slate-950 dark:text-white dark:hover:bg-amber-400/20">
@@ -228,14 +228,14 @@ export default function ChefTableSlotDialog({
                   Choisissez votre creneau
                 </div>
                 <p className="text-xs leading-5 text-amber-800/75 dark:text-amber-100/75">
-                  Les horaires affiches correspondent aux services disponibles pour cette experience.
+                  Les horaires affiches correspondent aux services disponibles pour cette expérience.
                 </p>
                 {renderSlotGroup("Service du midi", slots.lunch)}
                 {renderSlotGroup("Service du soir", slots.dinner)}
               </div>
             ) : (
               <p className="rounded-2xl border border-dashed border-border p-4 text-xs text-muted-foreground">
-                Le restaurant n'a pas configure d'horaires de reservation en ligne.
+                Le restaurant n'a pas configure d'horaires de réservation en ligne.
               </p>
             )}
           </div>
@@ -247,7 +247,7 @@ export default function ChefTableSlotDialog({
                 Nombre de convives
               </div>
               <p className="mt-1 text-xs leading-5 text-amber-700/80 dark:text-amber-100/75">
-                Ce nombre determine la reservation et le nombre d'experiences facturees.
+                Ce nombre determiné la réservation et le nombre d'experiences facturees.
               </p>
 
               <div className="mt-4 flex items-center justify-between rounded-[24px] bg-white p-2 shadow-sm dark:border dark:border-amber-300/25 dark:bg-slate-950 dark:shadow-[0_0_24px_rgba(245,158,11,0.12)]">
@@ -288,9 +288,9 @@ export default function ChefTableSlotDialog({
               <div className="flex items-start gap-3">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
                 <div>
-                  <p className="text-sm font-semibold text-white">Paiement securise ensuite</p>
+                  <p className="text-sm font-semibold text-white">Paiement sécurisé ensuite</p>
                   <p className="mt-1 text-xs leading-5 text-white/68">
-                    Cette etape prepare votre reservation. Le paiement confirme ensuite votre Table du Chef.
+                    Cette étape prepare votre réservation. Le paiement confirme ensuite votre Table du Chef.
                   </p>
                 </div>
               </div>
@@ -302,13 +302,13 @@ export default function ChefTableSlotDialog({
                 </div>
                 <div className="mt-3 flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">Total estime</p>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/50">Total estimé</p>
                     <p className="mt-1 font-display text-3xl font-bold text-white">
                       {pricePerGuest ? formatCurrency(totalAmount) : "--"}
                     </p>
                   </div>
                   <div className="rounded-2xl border border-amber-300/30 bg-amber-500/20 px-3 py-2 text-right">
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">Selection</p>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">Sélection</p>
                     <p className="mt-1 text-sm font-semibold text-amber-100">
                       {selectedTime || "--:--"} · {partySize} convive{partySize > 1 ? "s" : ""}
                     </p>

@@ -73,13 +73,13 @@ async function getFreshAccessToken(forceRefresh = false) {
   if (forceRefresh || !activeSession || expiresSoon) {
     const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
     if (refreshError) {
-      throw new Error("Session expiree. Reconnectez-vous pour finaliser votre reservation.");
+      throw new Error("Session expiree. Reconnectez-vous pour finaliser votre réservation.");
     }
     activeSession = refreshedData.session;
   }
 
   if (!activeSession?.access_token) {
-    throw new Error("Session expiree. Reconnectez-vous pour finaliser votre reservation.");
+    throw new Error("Session expiree. Reconnectez-vous pour finaliser votre réservation.");
   }
 
   return activeSession.access_token;
@@ -294,7 +294,7 @@ export default function ZeroAttente() {
     if (!selectedRestaurant.supports_reservation || !selectedRestaurant.supports_dinein) {
       toast({
         title: "Restaurant indisponible",
-        description: "Ce restaurant ne propose plus Zero Attente actuellement.",
+        description: "Ce restaurant ne propose plus Zéro Attente actuellement.",
         variant: "destructive",
       });
       return;
@@ -302,7 +302,7 @@ export default function ZeroAttente() {
     if (allowedPaymentMethods.length === 0) {
       toast({
         title: "Paiement indisponible",
-        description: "Aucun moyen de paiement securise n'est actuellement disponible.",
+        description: "Aucun moyen de paiement sécurisé n'est actuellement disponible.",
         variant: "destructive",
       });
       return;
@@ -318,7 +318,7 @@ export default function ZeroAttente() {
       }
       toast({
         title: "Moyen de paiement indisponible",
-        description: "Selectionnez un moyen de paiement securise encore actif.",
+        description: "Selectionnez un moyen de paiement sécurisé encore actif.",
         variant: "destructive",
       });
       return;
@@ -396,7 +396,7 @@ export default function ZeroAttente() {
     setLoading(false);
     toast({
       title: "Paiement requis",
-      description: "Zero Attente n'accepte que les paiements securises a l'avance.",
+      description: "Zéro Attente n'accepté que les paiements sécurisés à l'avance.",
       variant: "destructive",
     });
   };
@@ -406,7 +406,7 @@ export default function ZeroAttente() {
 
     try {
       if (!user?.id) {
-        throw new Error("Reconnectez-vous pour recuperer votre reservation Zero Attente.");
+        throw new Error("Reconnectez-vous pour recuperer votre réservation Zéro Attente.");
       }
 
       const fetchReservation = async () => {
@@ -421,7 +421,7 @@ export default function ZeroAttente() {
           .maybeSingle();
 
         if (error) {
-          throw new Error(error.message || "Impossible de recuperer la reservation Zero Attente.");
+          throw new Error(error.message || "Impossible de recuperer la réservation Zéro Attente.");
         }
         return data;
       };
@@ -437,9 +437,9 @@ export default function ZeroAttente() {
         if (finalizeError) {
           const status = getFunctionsErrorStatus(finalizeError);
           if (status === 401 || status === 403) {
-            throw new Error("Reconnectez-vous pour finaliser la reservation Zero Attente.");
+            throw new Error("Reconnectez-vous pour finaliser la réservation Zéro Attente.");
           }
-          throw new Error(finalizeError.message || "Impossible de finaliser la reservation Zero Attente.");
+          throw new Error(finalizeError.message || "Impossible de finaliser la réservation Zéro Attente.");
         }
       }
 
@@ -452,7 +452,7 @@ export default function ZeroAttente() {
       }
 
       if (!reservationRecord) {
-        throw new Error("Paiement valide, reservation en cours de finalisation. Rechargez la page dans quelques secondes.");
+        throw new Error("Paiement valide, réservation en cours de finalisation. Rechargez la page dans quelques secondes.");
       }
 
       const metadata = reservationRecord.metadata && typeof reservationRecord.metadata === "object" && !Array.isArray(reservationRecord.metadata)
@@ -517,14 +517,14 @@ export default function ZeroAttente() {
             paymentMethod: (metadata.payment_method as PaymentMethodId) || paymentMethod,
           });
         } catch (trackingError) {
-          console.error("Zero-attente conversion tracking failed:", trackingError);
+          console.error("Zéro-attente conversion tracking failed:", trackingError);
         }
       }
     } catch (error) {
       attemptedProcessingKeyRef.current = null;
       toast({
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Creation de reservation impossible.",
+        description: error instanceof Error ? error.message : "Création de réservation impossible.",
         variant: "destructive",
       });
     } finally {
@@ -700,7 +700,7 @@ export default function ZeroAttente() {
         authPromptKeyRef.current = processingKey;
         toast({
           title: "Reconnectez-vous",
-          description: "Le paiement a ete valide. Reconnectez-vous pour finaliser la reservation Zero Attente.",
+          description: "Le paiement a été valide. Reconnectez-vous pour finaliser la réservation Zéro Attente.",
           variant: "destructive",
         });
       }
@@ -809,7 +809,7 @@ export default function ZeroAttente() {
                   <Input type="number" min={1} max={20} value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} className="w-20" />
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground">Le chef démarrera la préparation automatiquement selon votre ETA</p>
+              <p className="text-sm text-muted-foreground">Le chef démarrerà la préparation automatiquement selon votre ETA</p>
               <WizardNextButton
                 onClick={() => {
                   if (preSelectedRestaurantId && selectedRestaurant) setStep("menu");

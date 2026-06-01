@@ -46,15 +46,15 @@ const BENEFITS = [
     id: "free_delivery",
     icon: Truck,
     title: "Livraison gratuite",
-    desc: "Sur tous les restaurants eligibles, sans minimum de commande.",
-    detail: "Les frais de livraison express, standard ou flex sont automatiquement retires dans le panier.",
+    desc: "Sur tous les restaurants éligibles, sans minimum de commande.",
+    detail: "Les frais de livraison express, standard ou flex sont automatiquement retirés dans le panier.",
     tone: "from-[#715bff] to-[#3137c9]",
   },
   {
     id: "discount_percentage",
     icon: Percent,
     title: "Reductions exclusives",
-    desc: "Jusqu'a 20% de reduction sur une selection de plats chaque semaine.",
+    desc: "Jusqu'a 20% de réduction sur une sélection de plats chaque semaine.",
     detail: "Les remises Tok One se cumulent avec les codes promo et les offres speciales disponibles.",
     tone: "from-[#35c778] to-[#12603f]",
   },
@@ -62,7 +62,7 @@ const BENEFITS = [
     id: "chef_table_priority",
     icon: ChefHat,
     title: "Acces prioritaire La Table du Chef",
-    desc: "Reservez en avant-premiere les meilleures tables des chefs.",
+    desc: "Réservez en avant-première les meilleures tables des chefs.",
     detail: "Les drops gastronomiques sont debloques 24h avant l'ouverture publique.",
     tone: "from-[#ffb34f] to-[#bf4c0a]",
   },
@@ -70,15 +70,15 @@ const BENEFITS = [
     id: "flash_early_access",
     icon: Zap,
     title: "Ventes flash en avance",
-    desc: "Acces anticipe aux offres limitees avant le lancement officiel.",
-    detail: "Recevez les alertes prioritaires et commandez avant que les quantites ne partent.",
+    desc: "Acces anticipe aux offres limitées avant le lancement officiel.",
+    detail: "Recevez les alertes prioritaires et commandez avant que les quantités ne partent.",
     tone: "from-[#facc15] to-[#b45309]",
   },
   {
     id: "priority_support",
     icon: Headphones,
     title: "Support prioritaire",
-    desc: "Un temps de reponse accelere quand vous avez besoin d'aide.",
+    desc: "Un temps de réponse accelere quand vous avez besoin d'aide.",
     detail: "Les demandes Tok One passent en file prioritaire avec une prise en charge renforcee.",
     tone: "from-[#a78bfa] to-[#5b21b6]",
   },
@@ -86,23 +86,23 @@ const BENEFITS = [
     id: "surprise_offers",
     icon: Gift,
     title: "Offres surprises",
-    desc: "Des attentions regulieres reservees aux membres.",
+    desc: "Des attentions régulières réservées aux membres.",
     detail: "Desserts offerts, points bonus et invitations culinaires selon vos habitudes.",
     tone: "from-[#fb7185] to-[#be123c]",
   },
 ];
 
 const TRUST_PILLS = [
-  { icon: ShieldCheck, label: "Paiement securise Stripe" },
+  { icon: ShieldCheck, label: "Paiement sécurisé Stripe" },
   { icon: Clock3, label: "Activation en moins de 2 min" },
-  { icon: X, label: "Annulation a tout moment" },
+  { icon: X, label: "Annulation à tout moment" },
 ];
 
 const FAQS = [
-  { q: "L'essai gratuit m'engage-t-il ?", a: "Non. Vous pouvez resilier pendant les 14 jours sans etre facture." },
+  { q: "L'essai gratuit m'engage-t-il ?", a: "Non. Vous pouvez résilier pendant les 14 jours sans être facturé." },
   { q: "Puis-je changer de formule ?", a: "Oui, la formule mensuelle ou annuelle se gere depuis votre profil." },
   { q: "Les avantages sont-ils cumulables ?", a: "Oui. Les avantages Tok One se cumulent avec les promos disponibles." },
-  { q: "Comment resilier ?", a: "Depuis Profil > Mon abonnement. Les avantages restent actifs jusqu'a la fin de la periode." },
+  { q: "Comment résilier ?", a: "Depuis Profil > Mon abonnement. Les avantages restent actifs jusqu’à la fin de la periode." },
 ];
 
 const heroMotion = {
@@ -162,13 +162,13 @@ export default function TokOne() {
     {
       icon: Percent,
       value: `${entitlements.discountPercent}%`,
-      label: "de remise sur les plats eligibles",
+      label: "de remise sur les plats éligibles",
       tone: "text-[#37d27d]",
     },
     {
       icon: Clock3,
       value: entitlements.flags.chefTablePriority ? "VIP" : "Selon plan",
-      label: "d'acces prioritaire a La Table du Chef",
+      label: "d'accès prioritaire a La Table du Chef",
       tone: "text-[#ffad42]",
     },
   ];
@@ -241,7 +241,7 @@ export default function TokOne() {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Abonnement resilie", description: "Vous conservez vos avantages jusqu'a la fin de la periode en cours." });
+      toast({ title: "Abonnement resilie", description: "Vous conservez vos avantages jusqu’à la fin de la periode en cours." });
       queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
     }
   };
@@ -269,7 +269,7 @@ export default function TokOne() {
                 Tok <span className="bg-gradient-to-b from-[#ffe38a] via-[#f6c453] to-[#d89a13] bg-clip-text text-transparent">One</span>
               </h1>
               <p className="max-w-xl text-2xl leading-[1.35] text-white/88 md:text-3xl">
-                L'experience ultime de la livraison gastronomique. Livraison gratuite, reductions exclusives et acces VIP aux evenements culinaires.
+                L'expérience ultime de la livraison gastronomique. Livraison gratuite, réductions exclusives et accès VIP aux événements culinaires.
               </p>
             </motion.div>
 
@@ -325,7 +325,7 @@ export default function TokOne() {
                   <ShieldCheck className="h-7 w-7" />
                 </div>
                 <p className="text-3xl font-black">+2 000</p>
-                <p className="text-sm text-white/78">membres deja conquis</p>
+                <p className="text-sm text-white/78">membres déjà conquis</p>
                 <div className="mt-4 flex justify-center -space-x-2">
                   {["A", "M", "L", "S", "R", "J"].map((initial, index) => (
                     <span key={initial} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#150c3d] bg-gradient-to-br from-[#ffcf72] to-[#7c2d12] text-xs font-bold" style={{ zIndex: 10 - index }}>
@@ -367,7 +367,7 @@ export default function TokOne() {
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-4xl font-black md:text-5xl">Vos avantages exclusifs</h2>
           <p className="mt-3 text-lg leading-8 text-white/68">
-            Chaque avantage est automatiquement applique a votre compte. Pas de code a saisir, pas de manipulation, tout est inclus.
+            Chaque avantage est automatiquement applique à votre compte. Pas de code à saisir, pas de manipulation, tout est inclus.
           </p>
         </div>
 
@@ -469,7 +469,7 @@ export default function TokOne() {
                     title="Mensuel"
                     price={`${monthlyPrice.toFixed(2)} CHF`}
                     suffix="/mois"
-                    helper="Sans engagement, resiliez a tout moment."
+                    helper="Sans engagement, resiliez à tout moment."
                     icon={Flame}
                     onClick={() => setSelectedPeriod("monthly")}
                   />
@@ -486,7 +486,7 @@ export default function TokOne() {
                 </div>
               </div>
             )}
-            {plan ? <p className="mt-5 text-center text-sm text-white/58">Selection actuelle: {plan.name} - {selectedPriceLabel}</p> : null}
+            {plan ? <p className="mt-5 text-center text-sm text-white/58">Sélection actuelle: {plan.name} - {selectedPriceLabel}</p> : null}
           </div>
         </section>
       ) : (
@@ -496,7 +496,7 @@ export default function TokOne() {
               <p className="font-display text-2xl font-black text-[#ffe38a]">Votre abonnement Tok One est actif</p>
               <p className="mt-1 text-white/68">
                 {activeSubscription?.cancel_at_period_end
-                  ? "Le renouvellement est resilie, vos avantages restent actifs jusqu'a la fin de la periode."
+                  ? "Le renouvellement est resilie, vos avantages restent actifs jusqu’à la fin de la periode."
                   : "Vos avantages sont automatiquement appliques dans le panier."}
               </p>
             </div>
@@ -521,9 +521,9 @@ export default function TokOne() {
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            { step: "1", title: "Activez", desc: "Souscription securisee en quelques secondes.", icon: Crown },
-            { step: "2", title: "Commandez", desc: "Restaurants, paniers et reservations restent inchanges.", icon: CalendarCheck },
-            { step: "3", title: "Economisez", desc: "Livraison, remises et acces VIP sont appliques.", icon: Gift },
+            { step: "1", title: "Activez", desc: "Souscription sécurisée en quelques secondes.", icon: Crown },
+            { step: "2", title: "Commandez", desc: "Restaurants, paniers et réservations restent inchanges.", icon: CalendarCheck },
+            { step: "3", title: "Economisez", desc: "Livraison, remises et accès VIP sont appliques.", icon: Gift },
           ].map((item) => (
             <div key={item.step} className="rounded-[1.25rem] border border-white/10 bg-white/[0.045] p-5">
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 font-black text-[#f6c453]">{item.step}</div>

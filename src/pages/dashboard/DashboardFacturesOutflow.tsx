@@ -61,7 +61,7 @@ function InvoiceTableRow({
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
-              Voir la facture
+              Voir la facturé
             </Button>
             {canMarkPaid && !isPaid ? (
               <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice.id)}>
@@ -91,7 +91,7 @@ function InvoiceTable({
     return (
       <Card className="border-dashed">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Aucune facture sur cette section.
+          Aucune facturé sur cette section.
         </CardContent>
       </Card>
     );
@@ -214,7 +214,7 @@ export default function DashboardFacturesOutflow() {
           badge="Sorties d'argent"
           title="Factures recues de TOK"
           description={selectedRestaurant
-            ? `Commencez par ce qui est deja facture par TOK, puis regardez ce qui risque d'arriver dans la prochaine facture.`
+            ? `Commencez par ce qui est déjà facturé par TOK, puis regardez ce qui risque d'arriver dans la prochaine facturé.`
             : "Selectionnez un restaurant pour afficher ses sorties d'argent."}
           actions={(
             <>
@@ -245,7 +245,7 @@ export default function DashboardFacturesOutflow() {
           </Card>
         ) : null}
 
-        {isLoading ? <p className="text-sm text-muted-foreground">Chargement des donnees comptables...</p> : null}
+        {isLoading ? <p className="text-sm text-muted-foreground">Chargement des données comptables...</p> : null}
         {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
 
         {selectedRestaurant && !isLoading && !error ? (
@@ -256,20 +256,20 @@ export default function DashboardFacturesOutflow() {
                 icon={ArrowUpRight}
                 label="Factures TOK a payer"
                 value={formatAmount(summary.outflow.payableToTok)}
-                description="Montants deja factures par TOK et encore ouverts."
+                description="Montants déjà factures par TOK et encore ouverts."
               />
               <AccountingMetricCard
                 tone="amber"
                 icon={Wallet}
-                label="Encours non facture"
+                label="Encours non facturé"
                 value={formatAmount(payableAccruals.totalAmount)}
-                description={`${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} attend${payableAccruals.totalCount > 1 ? "ent" : ""} encore une facture.`}
+                description={`${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} attend${payableAccruals.totalCount > 1 ? "ent" : ""} encore une facturé.`}
               />
               <AccountingMetricCard
                 icon={Wallet}
                 label="Deja paye a TOK"
                 value={formatAmount(summary.outflow.alreadyPaidToTok)}
-                description="Historique des factures TOK deja reglees."
+                description="Historique des factures TOK déjà reglees."
               />
               <AccountingMetricCard
                 icon={ReceiptText}
@@ -284,10 +284,10 @@ export default function DashboardFacturesOutflow() {
                 tone="orange"
                 icon={ArrowUpRight}
                 eyebrow="A faire maintenant"
-                title="Regler les factures TOK deja emises"
-                description="La premiere lecture doit vous dire ce qui est deja payable, sans vous forcer a lire tous les details de composition."
+                title="Regler les factures TOK déjà emises"
+                description="La première lecture doit vous dire ce qui est déjà payable, sans vous forcer à lire tous les détails de composition."
                 value={formatAmount(summary.outflow.payableToTok)}
-                valueLabel="Deja facture"
+                valueLabel="Deja facturé"
               >
                 <AccountingFactList
                   tone="orange"
@@ -309,10 +309,10 @@ export default function DashboardFacturesOutflow() {
                 tone="amber"
                 icon={Wallet}
                 eyebrow="A faire maintenant"
-                title="Anticiper la prochaine facture"
-                description="Ce bloc montre le contenu potentiel de la prochaine facture TOK avant emission."
+                title="Anticiper la prochaine facturé"
+                description="Ce bloc montre le contenu potentiel de la prochaine facturé TOK avant emission."
                 value={formatAmount(payableAccruals.totalAmount)}
-                valueLabel="Encours non facture"
+                valueLabel="Encours non facturé"
               >
                 <AccountingFactList
                   tone="amber"
@@ -322,11 +322,11 @@ export default function DashboardFacturesOutflow() {
                       value: formatAmount(payableAccruals.orderCommissionAmount),
                     },
                     {
-                      label: "Commission reservations",
+                      label: "Commission réservations",
                       value: formatAmount(payableAccruals.reservationCommissionAmount),
                     },
                     {
-                      label: "Frais de reservation",
+                      label: "Frais de réservation",
                       value: formatAmount(payableAccruals.reservationFeeAmount),
                     },
                     {
@@ -341,18 +341,18 @@ export default function DashboardFacturesOutflow() {
             <AccountingPanel
               eyebrow="Comprendre les flux"
               title="Lecture simple de vos sorties"
-              description="La sortie totale regroupe ce qui est deja facture et ce qui ne l'est pas encore. L'historique reste volontairement en bas pour ne pas polluer la lecture."
+              description="La sortie totale regroupe ce qui est déjà facturé et ce qui ne l'est pas encore. L'historique reste volontairement en bas pour ne pas polluer la lecture."
               value={formatAmount(summary.outflow.totalOutstanding)}
               valueLabel="Sortie ouverte totale"
             >
               <AccountingFactList
                 items={[
                   {
-                    label: "Factures TOK deja emises",
+                    label: "Factures TOK déjà emises",
                     value: formatAmount(summary.outflow.payableToTok),
                   },
                   {
-                    label: "Encore non facture",
+                    label: "Encore non facturé",
                     value: formatAmount(payableAccruals.totalAmount),
                   },
                   {

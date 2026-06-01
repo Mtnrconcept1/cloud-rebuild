@@ -185,7 +185,7 @@ function OrderDetailContent({ order }: { order: AdminOrderHistoryItem }) {
                   <div>
                     <h3 className="text-sm font-semibold text-fuchsia-950">Miamz pris en charge par Tok</h3>
                     <p className="mt-1 text-sm text-fuchsia-900">
-                      Reduction fidelite appliquee au client et financee par Tok sur cette commande.
+                      Reduction fidélité appliquée au client et financee par Tok sur cette commande.
                     </p>
                   </div>
                 </div>
@@ -352,7 +352,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
                   <p>{reservation.restaurant.name}</p>
                   <p className="inline-flex items-center gap-2">
                     <CalendarDays className="h-3.5 w-3.5" />
-                    Creee le {formatDateTime(reservation.createdAt)}
+                    Créee le {formatDateTime(reservation.createdAt)}
                   </p>
                 </div>
               </div>
@@ -360,7 +360,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Details de reservation</h3>
+            <h3 className="text-sm font-semibold">Details de réservation</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border p-4 text-sm text-muted-foreground">
                 <p className="mb-2 inline-flex items-center gap-2 font-medium text-foreground">
@@ -369,7 +369,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
                 </p>
                 <p>Heure affichee : {reservation.displayTime}</p>
                 {reservation.reservationTime && reservation.reservationTime !== reservation.displayTime ? (
-                  <p>Heure systeme : {reservation.reservationTime}</p>
+                  <p>Heure système : {reservation.reservationTime}</p>
                 ) : null}
               </div>
 
@@ -378,7 +378,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
                   <CreditCard className="h-4 w-4 text-primary" />
                   Paiement
                 </p>
-                <p>Methode : {reservation.paymentMethod || "-"}</p>
+                <p>Méthode : {reservation.paymentMethod || "-"}</p>
                 <p>Frais TOK : {formatAmount(reservation.billingFeeChf)}</p>
                 {reservation.orderReference ? <p>Reference : {reservation.orderReference}</p> : null}
               </div>
@@ -405,7 +405,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
               </div>
             ) : (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                Aucune precommande rattachee a cette reservation.
+                Aucune précommande rattachee à cette réservation.
               </div>
             )}
           </section>
@@ -577,19 +577,19 @@ export function InvoiceOperationDetailDialog({ target, open, onOpenChange }: Pro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] min-h-0 w-[calc(100vw-1rem)] max-w-[760px] flex-col gap-0 overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
         <DialogTitle className="sr-only">
-          {target?.kind === "order" ? "Detail de commande" : "Detail de reservation"}
+          {target?.kind === "order" ? "Detail de commande" : "Detail de réservation"}
         </DialogTitle>
         <DialogDescription className="sr-only">
-          Consultation d&apos;une operation ouverte depuis une ligne de facture.
+          Consultation d&apos;une operation ouverte depuis une ligne de facturé.
         </DialogDescription>
 
         {detailQuery.isLoading ? (
-          <div className="p-6 text-sm text-muted-foreground">Chargement du detail...</div>
+          <div className="p-6 text-sm text-muted-foreground">Chargement du détail...</div>
         ) : null}
 
         {detailQuery.error ? (
           <div className="p-6 text-sm text-destructive">
-            Impossible de charger le detail. {detailQuery.error instanceof Error ? detailQuery.error.message : String(detailQuery.error)}
+            Impossible de charger le détail. {detailQuery.error instanceof Error ? detailQuery.error.message : String(detailQuery.error)}
           </div>
         ) : null}
 

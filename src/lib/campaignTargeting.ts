@@ -29,7 +29,7 @@ export interface AudienceSnapshot {
 export const CUSTOMER_SEGMENT_OPTIONS: { value: CampaignCustomerSegment; label: string }[] = [
   { value: "all", label: "Tous les clients" },
   { value: "new", label: "Nouveaux clients" },
-  { value: "returning", label: "Clients deja actifs" },
+  { value: "returning", label: "Clients déjà actifs" },
   { value: "loyal", label: "Clients fideles" },
   { value: "inactive", label: "Clients a reactiver" },
 ];
@@ -38,7 +38,7 @@ export const JOURNEY_TYPE_OPTIONS: { value: CampaignJourneyType; label: string }
   { value: "delivery", label: "Livraison" },
   { value: "takeaway", label: "Retrait" },
   { value: "reservation", label: "Reservation" },
-  { value: "zero_attente", label: "Zero Attente" },
+  { value: "zero_attente", label: "Zéro Attente" },
 ];
 
 export const SERVICE_MOMENT_OPTIONS: { value: CampaignServiceMoment; label: string }[] = [

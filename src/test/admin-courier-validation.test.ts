@@ -64,7 +64,7 @@ describe("admin courier profile validation", () => {
     expect(adminUsers).toContain('value="couriers"');
     expect(adminUsers).toContain('queryKey: ["admin-couriers"]');
     expect(adminUsers).toContain("admin_review_courier_profile");
-    expect(adminUsers).toContain("Profil livreur mis a jour");
+    expect(adminUsers).toContain("Profil livreur mis à jour");
     expect(adminHome).toContain("/admin/utilisateurs?tab=couriers");
     expect(adminHome).toContain("Profils livreurs");
   });

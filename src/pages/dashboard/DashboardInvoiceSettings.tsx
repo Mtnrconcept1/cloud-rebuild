@@ -241,8 +241,8 @@ export default function DashboardInvoiceSettings() {
                   )}
 
                   <div className="space-y-1 text-sm text-muted-foreground">
-                    <p>Ce logo apparaitra en haut de vos factures.</p>
-                    <p>Formats acceptes : PNG, JPG. Taille recommandee : 400x200 px.</p>
+                    <p>Ce logo apparaîtra en haut de vos factures.</p>
+                    <p>Formats acceptés : PNG, JPG. Taille recommandee : 400x200 px.</p>
                   </div>
                 </div>
               </CardContent>
@@ -293,7 +293,7 @@ export default function DashboardInvoiceSettings() {
                       value={settings.company_city}
                       onValueChange={(value) => update("company_city", value)}
                       onCitySelect={(city) => update("company_city", city)}
-                      placeholder="Geneve"
+                      placeholder="Genève"
                     />
                   </div>
                 </div>
@@ -394,7 +394,7 @@ export default function DashboardInvoiceSettings() {
                   />
                 </div>
                 <div>
-                  <Label>Telephone</Label>
+                  <Label>Téléphone</Label>
                   <Input
                     value={settings.phone}
                     onChange={(event) => update("phone", event.target.value)}
@@ -424,14 +424,14 @@ export default function DashboardInvoiceSettings() {
                   rows={4}
                 />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Ce texte apparaitra en bas de chaque facture generee.
+                  Ce texte apparaîtra en bas de chaque facturé generee.
                 </p>
               </CardContent>
             </Card>
 
             <Card className="md:col-span-2">
               <CardHeader>
-                <CardTitle className="text-lg">Apercu de la facture</CardTitle>
+                <CardTitle className="text-lg">Apercu de la facturé</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="mx-auto max-w-2xl space-y-6 rounded-lg border bg-white p-8 text-sm text-black">

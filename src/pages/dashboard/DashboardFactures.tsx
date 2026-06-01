@@ -86,7 +86,7 @@ export default function DashboardFactures() {
           </Card>
         ) : null}
 
-        {isLoading ? <p className="text-sm text-muted-foreground">Chargement des donnees comptables...</p> : null}
+        {isLoading ? <p className="text-sm text-muted-foreground">Chargement des données comptables...</p> : null}
         {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
 
         {selectedRestaurant && !isLoading && !error ? (
@@ -100,21 +100,21 @@ export default function DashboardFactures() {
                   icon: ArrowDownRight,
                   label: "A recevoir de Tok",
                   value: formatAmount(totalReceivable),
-                  helper: `${formatAmount(summary.inflow.receivableFromTok)} deja facture, ${formatAmount(uninvoicedRestaurantShareTotal)} a facturer.`,
+                  helper: `${formatAmount(summary.inflow.receivableFromTok)} déjà facturé, ${formatAmount(uninvoicedRestaurantShareTotal)} a facturer.`,
                 },
                 {
                   tone: "orange",
                   icon: ArrowUpRight,
                   label: "A payer a Tok",
                   value: formatAmount(totalPayable),
-                  helper: `${formatAmount(summary.outflow.payableToTok)} facture, ${formatAmount(payableAccruals.totalAmount)} en attente.`,
+                  helper: `${formatAmount(summary.outflow.payableToTok)} facturé, ${formatAmount(payableAccruals.totalAmount)} en attente.`,
                 },
                 {
                   tone: "violet",
                   icon: HandCoins,
                   label: "Miamz pris en charge",
                   value: formatAmount(tokCoveredMiamzAmount),
-                  helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec reduction Miamz remboursee par Tok.`,
+                  helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz remboursee par Tok.`,
                 },
                 {
                   tone: netOpen >= 0 ? "emerald" : "rose",
@@ -132,7 +132,7 @@ export default function DashboardFactures() {
                 icon={ArrowDownRight}
                 eyebrow="Action"
                 title="Ce que Tok vous doit"
-                description="La part restaurant a recuperer, separee entre facture deja emise et encours."
+                description="La part restaurant a recuperer, separee entre facturé déjà emise et encours."
                 value={formatAmount(totalReceivable)}
                 valueLabel="Entrees ouvertes"
               >
@@ -140,16 +140,16 @@ export default function DashboardFactures() {
                   tone="primary"
                   items={[
                     {
-                      label: "Deja facture et en attente",
+                      label: "Deja facturé et en attente",
                       value: formatAmount(summary.inflow.receivableFromTok),
                     },
                     {
                       label: "Encore a facturer",
                       value: formatAmount(uninvoicedRestaurantShareTotal),
-                      helper: "Part 90% deja acquise mais pas encore emise.",
+                      helper: "Part 90% déjà acquise mais pas encore emise.",
                     },
                     {
-                      label: "Deja recu de Tok",
+                      label: "Deja reçu de Tok",
                       value: formatAmount(summary.inflow.receivedFromTok),
                     },
                   ]}
@@ -164,7 +164,7 @@ export default function DashboardFactures() {
                 icon={ArrowUpRight}
                 eyebrow="Action"
                 title="Ce que vous devez a Tok"
-                description="Les factures Tok ouvertes et les lignes qui arriveront dans une prochaine facture."
+                description="Les factures Tok ouvertes et les lignes qui arriveront dans une prochaine facturé."
                 value={formatAmount(totalPayable)}
                 valueLabel="Sorties ouvertes"
               >
@@ -172,11 +172,11 @@ export default function DashboardFactures() {
                   tone="orange"
                   items={[
                     {
-                      label: "Factures Tok deja emises",
+                      label: "Factures Tok déjà emises",
                       value: formatAmount(summary.outflow.payableToTok),
                     },
                     {
-                      label: "Encours non facture",
+                      label: "Encours non facturé",
                       value: formatAmount(payableAccruals.totalAmount),
                       helper: `${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} en attente.`,
                     },
@@ -216,7 +216,7 @@ export default function DashboardFactures() {
                     {
                       label: "Miamz pris en charge par Tok",
                       value: formatAmount(tokCoveredMiamzAmount),
-                      helper: "Reduction client ajoutee a votre base de reversement.",
+                      helper: "Reduction client ajoutee à votre base de reversement.",
                     },
                     ...COMMISSION_SOURCE_ORDER.map((source) => ({
                       label: COMMISSION_SOURCE_LABELS[source],

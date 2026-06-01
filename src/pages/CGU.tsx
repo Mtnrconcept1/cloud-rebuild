@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 export default function CGU() {
   return (
@@ -27,7 +28,7 @@ export default function CGU() {
             L'utilisation de la Plateforme implique l'acceptation pleine et entière des présentes CGU. L'Utilisateur reconnaît en avoir pris connaissance et s'engage à les respecter.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            En créant un compte ou en passant une commande, l'Utilisateur déclare avoir lu, compris et accepté sans réserve les présentes CGU. Si l'Utilisateur n'accepte pas ces conditions, il est invité à ne pas utiliser la Plateforme.
+            En créant un compte ou en passant une commande, l'Utilisateur déclare avoir lu, compris et accepté sans réserve les présentes CGU. Si l'Utilisateur n'accepté pas ces conditions, il est invité à ne pas utiliser la Plateforme.
           </p>
         </section>
 
@@ -100,7 +101,7 @@ export default function CGU() {
             L'Utilisateur s'engage à fournir une adresse de livraison exacte et complète, ainsi qu'à être disponible pour réceptionner sa commande. En cas d'absence ou d'adresse incorrecte, Tok ne pourra être tenu responsable de la non-livraison.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Les zones de livraison sont limitées et dépendent de la localisation du Restaurant partenaire. La disponibilité de la livraison est indiquée lors de la saisie de l'adresse de livraison.
+            Les zones de livraison sont limitées et dépendent de la localisation du Restaurant partenaire. La disponibilité de la livraison est indiquée lors de là saisie de l'adresse de livraison.
           </p>
         </section>
 
@@ -125,7 +126,7 @@ export default function CGU() {
             L'abonnement Tok One est un service premium payant offrant des avantages exclusifs, notamment la livraison gratuite sur les restaurants éligibles, des réductions supplémentaires et un accès prioritaire aux événements gastronomiques (La Table du Chefs). Les conditions spécifiques de l'abonnement sont détaillées lors de la souscription.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            L'abonnement Tok One est renouvelé automatiquement à chaque période. L'Utilisateur peut résilier son abonnement à tout moment depuis les paramètres de son compte, la résiliation prenant effet à la fin de la période en cours.
+            L'abonnement Tok One est renouvelé automatiquement à chaque période. L'Utilisateur peut résilier son abonnement à tout moment depuis les paramètrès de son compte, la résiliation prenant effet à la fin de la période en cours.
           </p>
         </section>
 
@@ -142,18 +143,18 @@ export default function CGU() {
 
         {/* 9 bis. Actualites sociales et contenus promotionnels */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">9 bis. Actualites sociales et contenus promotionnels</h2>
+          <h2 className="text-2xl font-semibold">9 bis. Actualités sociales et contenus promotionnels</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Les Restaurants peuvent publier des actualites, photos, videos, offres, evenements et appels a l'action dans le fil social Tok. Ces publications sont des contenus professionnels sous la responsabilite du Restaurant qui les cree ou les valide.
+            Les Restaurants peuvent publier des actualités, photos, vidéos, offres, événements et appels à l'action dans le fil social Tok. Ces publications sont des contenus professionnels sous la responsabilité du Restaurant qui les crée ou les valide.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Le Restaurant s'engage a publier des informations exactes, loyales et verifiables, notamment concernant les prix, disponibilites, durees d'offres, conditions de reservation, allergenes, droits sur les visuels et autorisations des personnes identifiables.
+            Le Restaurant s'engage a publier des informations exactes, loyales et vérifiables, notamment concernant les prix, disponibilités, durées d'offres, conditions de réservation, allergènes, droits sur les visuels et autorisations des personnes identifiables.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Tok peut mesurer les impressions, clics, reactions, commentaires, sauvegardes, partages et conversions associes aux actualites afin de fournir des statistiques marketing au Restaurant. Ces indicateurs sont informatifs et ne garantissent aucun volume de commandes, reservations ou chiffre d'affaires.
+            Tok peut mesurer les impressions, clics, réactions, commentaires, sauvegardes, partages et conversions associés aux actualités afin de fournir des statistiques marketing au Restaurant. Ces indicateurs sont informatifs et ne garantissent aucun volume de commandes, réservations ou chiffre d'affaires.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Tok se reserve le droit de masquer, moderer, supprimer ou declasser toute actualite ou campagne contraire a la loi, aux droits de tiers, aux presentes CGU, aux regles de moderation ou susceptible d'induire les Utilisateurs en erreur.
+            Tok se réserve le droit de masquer, modérer, supprimer ou déclasser toute actualité ou campagne contraire à la loi, aux droits de tiers, aux présentes CGU, aux règles de moderation ou susceptible d'induire les Utilisateurs en erreur.
           </p>
         </section>
 
@@ -189,7 +190,7 @@ export default function CGU() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">12. Cookies</h2>
           <p className="text-foreground/80 leading-relaxed">
-            La Plateforme utilise des cookies et technologies similaires pour améliorer l'expérience utilisateur, analyser le trafic et personnaliser les contenus. L'Utilisateur peut gérer ses préférences en matière de cookies via les paramètres de son navigateur ou le bandeau de consentement affiché lors de sa première visite.
+            La Plateforme utilise des cookies et technologies similaires pour améliorer l'expérience utilisateur, analyser le trafic et personnaliser les contenus. L'Utilisateur peut gérer ses préférences en matière de cookies via les paramètrès de son navigateur ou le bandeau de consentement affiché lors de sa première visite.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             Les cookies essentiels au fonctionnement de la Plateforme ne peuvent pas être désactivés. Les cookies analytiques et publicitaires sont soumis au consentement préalable de l'Utilisateur.
@@ -248,7 +249,7 @@ export default function CGU() {
             Pour toute question relative aux présentes CGU, vous pouvez nous contacter :
           </p>
           <ul className="list-none space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Email :</span> support@tok.ch</li>
+            <li><span className="font-medium text-foreground">Email :</span> {SUPPORT_EMAIL}</li>
             <li><span className="font-medium text-foreground">Formulaire :</span> via notre <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>
             <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide Tok</Link></li>
           </ul>

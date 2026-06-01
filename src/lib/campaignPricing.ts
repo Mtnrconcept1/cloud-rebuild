@@ -97,7 +97,7 @@ export const CAMPAIGN_STRATEGY_CONFIG: Record<CampaignPricingStrategy, CampaignS
     key: "conversion",
     label: "Conversion",
     shortLabel: "Conversion",
-    description: "Cherchez d abord des commandes et reservations attribuables.",
+    description: "Cherchez d abord des commandes et réservations attribuables.",
     recommendationHint: "Le moteur privilegie les signaux qui menent a une action concrete.",
     pricing: {
       cpmRate: 9.5,

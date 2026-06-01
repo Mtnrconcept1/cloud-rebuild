@@ -46,7 +46,7 @@ const PRESET_FORMULAS: PresetFormula[] = [
   {
     formula_key: "entree_plat",
     name: "Entree + Plat",
-    description: "Offrez une reduction lorsque le client prend une entree et un plat.",
+    description: "Offrez une réduction lorsque le client prend une entrée et un plat.",
     categories: ["Entrees", "Plats"],
     defaultDiscount: 15,
     icon: Salad,
@@ -327,11 +327,11 @@ function PresetFormulaCard({
       }
 
       onSaved();
-      toast({ title: active ? "Formule activee" : "Formule desactivee" });
+      toast({ title: active ? "Formule activée" : "Formule desactivee" });
     } catch (error: any) {
       toast({
         title: "Enregistrement impossible",
-        description: error?.message || "La formule n'a pas pu etre enregistree.",
+        description: error?.message || "La formule n'a pas pu être enregistrée.",
         variant: "destructive",
       });
       setIsActive(existing?.is_active ?? false);
@@ -459,7 +459,7 @@ function PresetFormulaCard({
               </div>
               <div className="flex-1">
                 <p className="text-[11px] text-muted-foreground">
-                  Le pourcentage de reduction applique sur le total de la formule.
+                  Le pourcentage de réduction applique sur le total de la formule.
                 </p>
               </div>
             </div>

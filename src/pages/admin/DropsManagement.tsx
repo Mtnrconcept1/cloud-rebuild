@@ -64,7 +64,7 @@ export default function DropsManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-drops"] });
-      toast({ title: editingId ? "Experience mise a jour" : "Experience creee" });
+      toast({ title: editingId ? "Experience mise à jour" : "Experience créée" });
       setEditingId(null);
       setForm(EMPTY_DROP);
     },
@@ -80,7 +80,7 @@ export default function DropsManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-drops"] });
-      toast({ title: "Experience supprimee" });
+      toast({ title: "Experience supprimée" });
     },
     onError: (error: any) => {
       toast({ title: "Erreur", description: error.message || "Suppression impossible.", variant: "destructive" });
@@ -130,7 +130,7 @@ export default function DropsManagement() {
       <DashboardPageHero
         badge="Experiences"
         title="La Table du Chef"
-        description="Creez, modifiez et desactivez les experiences exclusives proposees par vos chefs avec une vue claire des drops actifs."
+        description="Créez, modifiez et desactivez les experiences exclusives proposees par vos chefs avec une vue claire des drops actifs."
         icon={UtensilsCrossed}
         tone="rose"
         visualLabel="Chef"
@@ -143,7 +143,7 @@ export default function DropsManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{editingId ? "Modifier l'experience" : "Nouvelle experience La Table du Chef"}</CardTitle>
+          <CardTitle>{editingId ? "Modifier l'expérience" : "Nouvelle expérience La Table du Chef"}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -208,11 +208,11 @@ export default function DropsManagement() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Quantite limitee, comme une vente flash. Le compteur diminue a chaque reservation confirmee.
+                Quantite limitée, comme une vente flash. Le compteur diminue à chaque réservation confirmee.
               </p>
             </div>
             <div className="space-y-2">
-              <Label>Date de reference</Label>
+              <Label>Date de référence</Label>
               <Input
                 type="datetime-local"
                 value={form.drop_time}
@@ -220,7 +220,7 @@ export default function DropsManagement() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Sert de date par defaut. Le client choisira son creneau parmi les horaires du restaurant.
+                Sert de date par défaut. Le client choisirà son creneau parmi les horaires du restaurant.
               </p>
             </div>
             <div className="space-y-2">
@@ -249,7 +249,7 @@ export default function DropsManagement() {
             <div className="md:col-span-2 flex gap-2">
               <Button className="flex-1 bg-pink-500 hover:bg-pink-600" disabled={createOrUpdateMutation.isPending}>
                 <Plus className="h-4 w-4 mr-2" />
-                {editingId ? "Mettre a jour l'experience" : "Creer l'experience"}
+                {editingId ? "Mettre à jour l'expérience" : "Créer l'expérience"}
               </Button>
               {editingId ? (
                 <Button
@@ -307,7 +307,7 @@ export default function DropsManagement() {
           </Card>
         ))}
         {drops.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucune experience definie.</p>
+          <p className="text-sm text-muted-foreground">Aucune expérience définie.</p>
         ) : null}
       </div>
     </div>

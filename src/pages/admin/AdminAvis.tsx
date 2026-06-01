@@ -107,17 +107,17 @@ export default function AdminAvis() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
-    toast({ title: "Statut de l'avis mis a jour" });
+    toast({ title: "Statut de l'avis mis à jour" });
   };
 
   const saveReply = async (review: AdminReview) => {
     const replyText = (replyDrafts[review.id] ?? review.review_replies?.[0]?.reply_text ?? "").trim();
     if (!replyText) {
-      toast({ title: "Reponse vide", description: "Saisissez une reponse avant d'enregistrer.", variant: "destructive" });
+      toast({ title: "Réponse vide", description: "Saisissez une réponse avant d'enregistrer.", variant: "destructive" });
       return;
     }
     if (!user?.id) {
-      toast({ title: "Session invalide", description: "Impossible d'identifier l'admin connecte.", variant: "destructive" });
+      toast({ title: "Session invalide", description: "Impossible d'identifier l'admin connecté.", variant: "destructive" });
       return;
     }
 
@@ -141,7 +141,7 @@ export default function AdminAvis() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
-    toast({ title: existingReply ? "Reponse mise a jour" : "Reponse publiee" });
+    toast({ title: existingReply ? "Réponse mise à jour" : "Réponse publiée" });
   };
 
   const handleDelete = async (id: string) => {
@@ -171,7 +171,7 @@ export default function AdminAvis() {
       <DashboardPageHero
         badge="Moderation"
         title="Moderation des avis"
-        description="Controlez la visibilite des avis, les signalements et les reponses admin sans perdre le contexte restaurant."
+        description="Controlez la visibilité des avis, les signalements et les réponses admin sans perdre le contexte restaurant."
         icon={MessageSquareText}
         tone="sky"
         visualLabel="Avis"
@@ -280,7 +280,7 @@ export default function AdminAvis() {
 
                       <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
                         <span>Service {Number(review.service_rating ?? review.rating ?? 0).toFixed(1)}/5</span>
-                        <span>Qualite {Number(review.quality_rating ?? review.food_rating ?? review.rating ?? 0).toFixed(1)}/5</span>
+                        <span>Qualité {Number(review.quality_rating ?? review.food_rating ?? review.rating ?? 0).toFixed(1)}/5</span>
                         <span>Rapide {Number(review.speed_rating ?? review.rating ?? 0).toFixed(1)}/5</span>
                         <span>Client {review.user_id}</span>
                       </div>
@@ -324,10 +324,10 @@ export default function AdminAvis() {
 
                   <div className="rounded-xl border p-3 space-y-3">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">Reponse admin</p>
+                      <p className="text-sm font-medium">Réponse admin</p>
                       {existingReply ? (
                         <span className="text-xs text-muted-foreground">
-                          Derniere mise a jour le {new Date(existingReply.created_at).toLocaleDateString("fr-FR")}
+                          Derniere mise à jour le {new Date(existingReply.created_at).toLocaleDateString("fr-FR")}
                         </span>
                       ) : null}
                     </div>
@@ -340,11 +340,11 @@ export default function AdminAvis() {
                           [review.id]: event.target.value,
                         }))
                       }
-                      placeholder="Saisir une reponse publique pour cet avis"
+                      placeholder="Saisir une réponse publique pour cet avis"
                     />
                     <div className="flex justify-end">
                       <Button onClick={() => saveReply(review)} disabled={savingReplyId === review.id}>
-                        {savingReplyId === review.id ? "Enregistrement..." : existingReply ? "Mettre a jour la reponse" : "Publier la reponse"}
+                        {savingReplyId === review.id ? "Enregistrement..." : existingReply ? "Mettre à jour la réponse" : "Publier la réponse"}
                       </Button>
                     </div>
                   </div>

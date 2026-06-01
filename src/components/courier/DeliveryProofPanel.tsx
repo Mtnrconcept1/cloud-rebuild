@@ -102,7 +102,7 @@ export default function DeliveryProofPanel({ isLoading = false, onVerify }: Deli
 
         animationFrameRef.current = window.requestAnimationFrame(scanFrame);
       } catch (error) {
-        setScannerError(error instanceof Error ? error.message : "Impossible d'acceder a la camera.");
+        setScannerError(error instanceof Error ? error.message : "Impossible d'acceder à la camera.");
         setScannerActive(false);
       }
     };

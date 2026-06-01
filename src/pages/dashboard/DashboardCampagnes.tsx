@@ -200,7 +200,7 @@ export default function DashboardCampagnes() {
             setPaidCampaign(campaign);
             toast({
               title: "Paiement confirme",
-              description: "Votre campagne a ete payee avec succes et est maintenant active.",
+              description: "Votre campagne a été payee avec succes et est maintenant active.",
             });
           } else {
             pollCampaignStatus(campaignId, attempts + 1);
@@ -319,7 +319,7 @@ export default function DashboardCampagnes() {
       return;
     }
     queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
-    toast({ title: "Campagne supprimee" });
+    toast({ title: "Campagne supprimée" });
   };
 
   return (
@@ -333,7 +333,7 @@ export default function DashboardCampagnes() {
             <AlertDialogTitle className="text-center">Paiement confirme</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-center">
-                <p>Votre campagne a ete payee avec succes et est maintenant active.</p>
+                <p>Votre campagne a été payee avec succes et est maintenant active.</p>
                 {paidCampaign?.title && (
                   <div className="rounded-lg border bg-muted/50 p-3 text-left text-sm space-y-1.5">
                     <div className="flex justify-between">
@@ -457,7 +457,7 @@ export default function DashboardCampagnes() {
                       setEditing(null);
                       queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
                       queryClient.invalidateQueries({ queryKey: ["dashboard-campaign-conversions-by-type", selectedId] });
-                      toast({ title: editing ? "Campagne mise a jour" : "Campagne enregistree" });
+                      toast({ title: editing ? "Campagne mise à jour" : "Campagne enregistrée" });
                     }}
                   />
                 ) : null}
@@ -488,13 +488,13 @@ export default function DashboardCampagnes() {
           </Card>
           <Card>
             <CardContent className="py-4">
-              <p className="text-xs text-muted-foreground flex items-center gap-1"><Timer className="h-3 w-3" />Zero Attente</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1"><Timer className="h-3 w-3" />Zéro Attente</p>
               <p className="text-2xl font-bold">{loadingConversions ? "..." : conversionsByType.zeroAttente}</p>
             </CardContent>
           </Card>
         </div>
 
-        {conversionsError ? <p className="text-xs text-destructive">Impossible de charger le detail des conversions.</p> : null}
+        {conversionsError ? <p className="text-xs text-destructive">Impossible de charger le détail des conversions.</p> : null}
 
         {!selectedId ? (
           <Card>
@@ -507,7 +507,7 @@ export default function DashboardCampagnes() {
         ) : !campaigns?.length ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              Aucune campagne. Boostez la visibilite de votre restaurant !
+              Aucune campagne. Boostez la visibilité de votre restaurant !
             </CardContent>
           </Card>
         ) : (
@@ -598,7 +598,7 @@ export default function DashboardCampagnes() {
                             ))}
                           </div>
                         ) : (
-                          <p className="mt-2 text-xs text-muted-foreground">Diffusion large sans ciblage supplementaire.</p>
+                          <p className="mt-2 text-xs text-muted-foreground">Diffusion large sans ciblage supplémentaire.</p>
                         )}
 
                         <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mt-3">
@@ -762,7 +762,7 @@ function CampaignForm({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!restaurantId) {
-      toast({ title: "Restaurant requis", description: "Aucun restaurant selectionne.", variant: "destructive" });
+      toast({ title: "Restaurant requis", description: "Aucun restaurant sélectionné.", variant: "destructive" });
       return;
     }
     if (allowedPaymentMethods.length === 0) {
@@ -821,7 +821,7 @@ function CampaignForm({
         });
 
         if (checkoutError || !checkoutData?.url) {
-          throw new Error(checkoutError?.message || "Impossible de creer la session de paiement.");
+          throw new Error(checkoutError?.message || "Impossible de créer la session de paiement.");
         }
 
         window.location.href = checkoutData.url;
@@ -921,7 +921,7 @@ function CampaignForm({
               />
             </div>
             <div className="space-y-2">
-              <Label>Date de debut</Label>
+              <Label>Date de début</Label>
               <Input type="date" value={startsAt} onChange={(event) => setStartsAt(event.target.value || getDefaultCampaignStartDate())} />
             </div>
             <div className="space-y-2">
@@ -1032,11 +1032,11 @@ function CampaignForm({
                 <p className="mt-1 text-lg font-semibold">{plannerEstimate.projectedConversions}</p>
               </div>
               <div className="rounded-lg bg-muted/40 px-3 py-3">
-                <p className="text-xs text-muted-foreground">CPC estime</p>
+                <p className="text-xs text-muted-foreground">CPC estimé</p>
                 <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedCpc > 0 ? formatChf(plannerEstimate.estimatedCpc) : "—"}</p>
               </div>
               <div className="rounded-lg bg-muted/40 px-3 py-3">
-                <p className="text-xs text-muted-foreground">CPA estime</p>
+                <p className="text-xs text-muted-foreground">CPA estimé</p>
                 <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedCpa > 0 ? formatChf(plannerEstimate.estimatedCpa) : "—"}</p>
               </div>
             </div>
@@ -1048,7 +1048,7 @@ function CampaignForm({
               <p>Meta Food & Beverage: env. {CAMPAIGN_MARKET_BENCHMARKS.metaFoodCpmUsd.toFixed(2)} USD CPM et {CAMPAIGN_MARKET_BENCHMARKS.metaFoodCpcUsd.toFixed(2)} USD CPC.</p>
               <p>Google Search Food: env. {CAMPAIGN_MARKET_BENCHMARKS.googleSearchFoodCpcUsd.toFixed(2)} USD CPC et {CAMPAIGN_MARKET_BENCHMARKS.googleSearchFoodCpaUsd.toFixed(2)} USD CPA.</p>
               <p>DoorDash: {CAMPAIGN_MARKET_BENCHMARKS.doordashPricingLabel}. Uber Eats: {CAMPAIGN_MARKET_BENCHMARKS.uberPricingLabel}.</p>
-              <p>La formule active applique un mix hybride reel de prix impression, clic et conversion.</p>
+              <p>La formule active applique un mix hybride réel de prix impression, clic et conversion.</p>
             </div>
           </div>
         </div>
@@ -1074,7 +1074,7 @@ function CampaignForm({
         <div>
           <p className="text-sm font-semibold">Paiement de la campagne</p>
           <p className="text-xs text-muted-foreground">
-            Les paiements en ligne activent automatiquement la campagne. Le reglement manuel la laisse en attente.
+            Les paiements en ligne activent automatiquement la campagne. Le reglement manuel là laisse en attente.
           </p>
         </div>
         <PaymentMethodSelector
@@ -1082,11 +1082,11 @@ function CampaignForm({
           setPaymentMethod={setPaymentMethod}
           allowedMethods={allowedPaymentMethods}
           cashDescription="Le reglement manuel n active pas la campagne tant qu il n est pas valide."
-          secureDescription="Paiement securise via Stripe. La campagne est activee apres confirmation."
+          secureDescription="Paiement sécurisé via Stripe. La campagne est activée apres confirmation."
         />
         {isPaidCampaign ? (
           <p className="text-xs text-green-600">
-            Campagne deja payee a hauteur de {Number(initial?.paid_amount || 0).toFixed(2)} CHF via {String(initial?.payment_method || "card").toUpperCase()}.
+            Campagne déjà payee a hauteur de {Number(initial?.paid_amount || 0).toFixed(2)} CHF via {String(initial?.payment_method || "card").toUpperCase()}.
           </p>
         ) : null}
       </div>
@@ -1098,7 +1098,7 @@ function CampaignForm({
             ? "Payer et lancer la campagne"
             : initial
               ? "Enregistrer la campagne"
-              : "Creer la campagne"}
+              : "Créer la campagne"}
       </Button>
     </form>
   );

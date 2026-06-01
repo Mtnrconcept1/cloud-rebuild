@@ -300,7 +300,7 @@ async function fetchDispatchHealthRows() {
   const { data, error } = await (supabase as any)
     .from("dispatch_jobs")
     .select("id, status, created_at, courier_id")
-    .not("status", "in", "(delivered,cancelled,canceled,completed)")
+    .not("status", "in", "(delivered,cancelled,canceled,complèted)")
     .order("created_at", { ascending: false })
     .limit(250);
 
@@ -314,7 +314,7 @@ async function fetchReservationInventoryRows() {
     .select(`
       reservation_id,
       table_id,
-      reservations (
+      réservations (
         id,
         restaurant_id,
         date,
@@ -524,7 +524,7 @@ export default function AdminOrdersReservations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-refund-queue"] });
       setSelectedRefund(null);
-      toast({ title: "Remboursement lance", description: "Le remboursement Stripe a ete enregistre." });
+      toast({ title: "Remboursement lance", description: "Le remboursement Stripe a été enregistré." });
     },
     onError: (error: Error) => {
       toast({ title: "Remboursement impossible", description: error.message, variant: "destructive" });
@@ -541,7 +541,7 @@ export default function AdminOrdersReservations() {
       });
 
       if (!result.ok) {
-        throw new Error(result.errorMessage || "Mise a jour impossible.");
+        throw new Error(result.errorMessage || "Mise à jour impossible.");
       }
 
       return result;
@@ -549,10 +549,10 @@ export default function AdminOrdersReservations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-refund-queue"] });
       setSelectedRefund(null);
-      toast({ title: "Remboursement marque", description: "La ligne a ete marquee comme remboursee." });
+      toast({ title: "Remboursement marque", description: "La ligne a été marquee comme remboursee." });
     },
     onError: (error: Error) => {
-      toast({ title: "Mise a jour impossible", description: error.message, variant: "destructive" });
+      toast({ title: "Mise à jour impossible", description: error.message, variant: "destructive" });
     },
   });
 
@@ -561,7 +561,7 @@ export default function AdminOrdersReservations() {
       <DashboardPageHero
         badge="Operations admin"
         title="Commandes et Reservations"
-        description="Historique admin des operations clients, avec recherche par client, restaurant, reference et details complets par operation."
+        description="Historique admin des operations clients, avec recherche par client, restaurant, référence et détails complets par operation."
         icon={ShoppingCart}
         tone="violet"
         visualLabel="Operations"
@@ -580,7 +580,7 @@ export default function AdminOrdersReservations() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Rechercher un client, un restaurant, une reference, une note ou un article"
+                placeholder="Rechercher un client, un restaurant, une référence, une note ou un article"
                 className="pl-9"
               />
             </div>
@@ -614,12 +614,12 @@ export default function AdminOrdersReservations() {
               }}
             >
               <RotateCcw className="h-4 w-4" />
-              Reinitialiser
+              Réinitialiser
             </Button>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <Badge variant="secondary">Periode par defaut: 30 derniers jours</Badge>
+            <Badge variant="secondary">Periode par défaut: 30 derniers jours</Badge>
             <span>Efface les dates pour elargir la recherche.</span>
             {restaurantsError ? <span className="text-destructive">Impossible de charger les restaurants.</span> : null}
           </div>
@@ -660,7 +660,7 @@ export default function AdminOrdersReservations() {
           title={activeTab === "orders"
             ? "Volume commandes"
             : activeTab === "reservations"
-              ? "Montant reservations"
+              ? "Montant réservations"
               : "Montant a rembourser"}
           value={formatAmount(currentMetrics.totalAmount)}
           description={activeTab === "orders"
@@ -816,7 +816,7 @@ export default function AdminOrdersReservations() {
         <TabsContent value="reservations" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Historique des reservations</CardTitle>
+              <CardTitle>Historique des réservations</CardTitle>
             </CardHeader>
             <CardContent className="py-0">
               {activeLoading ? (
@@ -827,7 +827,7 @@ export default function AdminOrdersReservations() {
                 </div>
               ) : activeError ? (
                 <div className="py-10 text-center text-destructive">
-                  Impossible de charger l&apos;historique des reservations.
+                  Impossible de charger l&apos;historique des réservations.
                 </div>
               ) : (
                 <Table>
@@ -874,7 +874,7 @@ export default function AdminOrdersReservations() {
                             <div className="space-y-1">
                               {feature ? <Badge className={feature.className}>{feature.label}</Badge> : null}
                               <p className="text-xs text-muted-foreground">
-                                {reservation.partySize} pers. · {reservation.preorderItems.length} precommande{reservation.preorderItems.length > 1 ? "s" : ""}
+                                {reservation.partySize} pers. · {reservation.preorderItems.length} précommande{reservation.preorderItems.length > 1 ? "s" : ""}
                               </p>
                             </div>
                           </TableCell>
@@ -901,7 +901,7 @@ export default function AdminOrdersReservations() {
                     {filteredReservations.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
-                          Aucune reservation ne correspond au filtre courant.
+                          Aucune réservation ne correspond au filtre courant.
                         </TableCell>
                       </TableRow>
                     ) : null}
@@ -1078,7 +1078,7 @@ export default function AdminOrdersReservations() {
                 refundMarkMutation.mutate(selectedRefund);
               }}
             >
-              {refundMarkMutation.isPending ? "Mise a jour..." : "Marquer rembourse"}
+              {refundMarkMutation.isPending ? "Mise à jour..." : "Marquer remboursé"}
             </Button>
             <Button
               disabled={!selectedRefund || refundStripeMutation.isPending || refundMarkMutation.isPending}

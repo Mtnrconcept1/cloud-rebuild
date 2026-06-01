@@ -68,7 +68,7 @@ export default function DashboardPromotions() {
         <DashboardPageHero
           badge="Activation client"
           title="Promotions"
-          description="Creez et suivez les remises par audience pour relancer la demande sans perdre le controle des campagnes."
+          description="Créez et suivez les remises par audience pour relancer la demande sans perdre le contrôle des campagnes."
           icon={BadgePercent}
           tone="orange"
           visualLabel="Promos"

@@ -125,7 +125,7 @@ export default function CourierHome() {
       queryClient.invalidateQueries({ queryKey: ["courier-profile", user?.id] });
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Impossible de mettre a jour le statut.");
+      toast.error(error instanceof Error ? error.message : "Impossible de mettre à jour le statut.");
     },
     onSettled: () => {
       setIsToggling(false);
@@ -135,7 +135,7 @@ export default function CourierHome() {
   const handleToggleOnline = async () => {
     if (!profile) return;
     if (!profile.is_online && String(profile.status || "") !== "approved") {
-      toast.error("Le compte coursier doit etre approuve avant de passer en ligne.");
+      toast.error("Le compte coursier doit être approuve avant de passer en ligne.");
       return;
     }
 
@@ -145,7 +145,7 @@ export default function CourierHome() {
         toast.success("Alertes push actives pour les nouvelles missions");
       } else {
         toast("Alertes push indisponibles", {
-          description: `${pushResult.reason || "Activation impossible."} Les offres resteront visibles en temps reel si l'app reste ouverte.`,
+          description: `${pushResult.reason || "Activation impossible."} Les offres resteront visibles en temps réel si l'app reste ouverte.`,
         });
       }
     }
@@ -214,7 +214,7 @@ export default function CourierHome() {
               <div className="space-y-1">
                 <p className="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
                   <Navigation className="h-4 w-4" />
-                  Presence synchronisee
+                  Presence synchronisée
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {position
@@ -230,7 +230,7 @@ export default function CourierHome() {
                     {locationError}
                   </span>
                 ) : (
-                  <span>Les missions seront geolocalisees en temps reel.</span>
+                  <span>Les missions seront geolocalisees en temps réel.</span>
                 )}
               </div>
             </CardContent>
@@ -364,7 +364,7 @@ export default function CourierHome() {
                   <Link to="/courier/earnings">Consulter mes gains</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link to="/courier/profile">Mettre a jour mon profil</Link>
+                  <Link to="/courier/profile">Mettre à jour mon profil</Link>
                 </Button>
               </CardContent>
             </Card>

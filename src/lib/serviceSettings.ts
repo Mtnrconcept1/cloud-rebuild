@@ -206,17 +206,17 @@ export const validateServiceSettings = (settings: ServiceSettings): string | nul
   }
 
   if (settings.max_tables_per_slot < 1 || settings.slot_interval_minutes < 5) {
-    return "Les tables par creneau et l'intervalle doivent etre positifs.";
+    return "Les tables par creneau et l'intervalle doivent être positifs.";
   }
 
   for (const window of settings.slot_capacity_windows) {
     const windowStart = parseServiceTime(window.start_time);
     const windowEnd = parseServiceTime(window.end_time);
     if (windowStart === null || windowEnd === null) {
-      return "Les plages de capacite doivent etre au format HH:MM.";
+      return "Les plages de capacite doivent être au format HH:MM.";
     }
     if (windowStart > windowEnd) {
-      return "Le debut d'une plage de capacite doit etre avant sa fin.";
+      return "Le début d'une plage de capacite doit être avant sa fin.";
     }
     if (window.max_tables < 1) {
       return "Chaque plage doit avoir au moins une table disponible.";

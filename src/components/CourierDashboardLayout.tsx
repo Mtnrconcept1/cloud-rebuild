@@ -43,7 +43,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
     mutationFn: async ({ attemptId, decision }: { attemptId: string; decision: "accept" | "decline" }) =>
       respondToDispatchAttempt(attemptId, decision),
     onSuccess: (_, variables) => {
-      toast.success(variables.decision === "accept" ? "Mission acceptee" : "Mission refusee");
+      toast.success(variables.decision === "accept" ? "Mission acceptée" : "Mission refusee");
       setMissionDialogOpen(false);
       refreshCourierQueries();
       if (variables.decision === "accept") {

@@ -21,7 +21,7 @@ export default function CityMultiSelect({
   value,
   onChange,
   placeholder = "Ajoutez une ville...",
-  emptyLabel = "Aucune ville selectionnee",
+  emptyLabel = "Aucune ville sélectionnée",
 }: CityMultiSelectProps) {
   const [draft, setDraft] = useState("");
   const cities = useMemo(

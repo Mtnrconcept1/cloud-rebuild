@@ -44,7 +44,7 @@ export default function LoyaltyStatus() {
       <div className="relative z-10 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Programme Fidelite</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Programme Fidélité</p>
             <h3 className="font-display text-2xl font-bold flex items-center gap-2">
               {points.toLocaleString()} <span className="text-pink-500 text-sm uppercase">Miamz</span>
             </h3>

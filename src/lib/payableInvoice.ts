@@ -103,7 +103,7 @@ export type PayableInvoiceDocumentData = {
 const TOK_SENDER: PayableInvoiceRecipient & { website: string } = {
   name: "Newdogs Sarl",
   addressLine1: "Rue Moillebeau 59",
-  addressLine2: "1209 Geneve",
+  addressLine2: "1209 Genève",
   country: "Suisse",
   vatNumber: "CHE-123.456.789",
   email: "facturation@tok.app",
@@ -134,14 +134,14 @@ const GROUP_META: Record<
     sortOrder: 20,
     title: "Reservations payantes",
     subtitle: "TOK percoit 10%",
-    detailLabel: "Montant des reservations payantes via TOK",
+    detailLabel: "Montant des réservations payantes via TOK",
     quantityUnit: "reservation",
     footerLabel: "Commission TOK (10%)",
   },
   reservation_fee: {
     sortOrder: 30,
     title: "Reservations",
-    subtitle: "TOK percoit un forfait par reservation",
+    subtitle: "TOK percoit un forfait par réservation",
     detailLabel: "Reservations effectuees via TOK",
     quantityUnit: "reservation",
     footerLabel: "Frais TOK",
@@ -152,7 +152,7 @@ const GROUP_META: Record<
     subtitle: "Montants factures hors marketplace",
     detailLabel: "Campagnes publicitaires facturees",
     quantityUnit: "campagne",
-    footerLabel: "Montant facture",
+    footerLabel: "Montant facturé",
   },
   manual_adjustment: {
     sortOrder: 50,
@@ -377,8 +377,8 @@ export function buildPayableInvoiceDocumentData(input: {
     totalTva: toPayableAmount(input.invoice.amount_tva),
     totalTtc,
     paymentMessage: statusLabel === "Payee"
-      ? `Le montant de ${formatPayableAmount(totalTtc)} a deja ete regle. Aucune action n'est requise.`
-      : `Le montant de ${formatPayableAmount(totalTtc)} doit etre regle avant le ${formatPayableDate(input.invoice.due_at)}.`,
+      ? `Le montant de ${formatPayableAmount(totalTtc)} a déjà été regle. Aucune action n'est requise.`
+      : `Le montant de ${formatPayableAmount(totalTtc)} doit être regle avant le ${formatPayableDate(input.invoice.due_at)}.`,
     footerMessage: "Merci d'utiliser TOK !",
   } satisfies PayableInvoiceDocumentData;
 }

@@ -227,12 +227,12 @@ export default function Dashboard() {
         <div className="space-y-6">
           <SignupApplicationStatusCard
             application={signupApplication}
-            title="Dossier de verification restaurateur"
-            emptyDescription="Aucun dossier restaurateur n'a encore ete soumis."
+            title="Dossier de vérification restaurateur"
+            emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
           />
           <div className="space-y-4 py-12 text-center">
             <h2 className="font-display text-2xl font-bold">Aucun restaurant</h2>
-            <p className="text-muted-foreground">Creez votre restaurant depuis l'onglet "Mon restaurant".</p>
+            <p className="text-muted-foreground">Créez votre restaurant depuis l'onglet "Mon restaurant".</p>
           </div>
         </div>
       </DashboardLayout>
@@ -245,7 +245,7 @@ export default function Dashboard() {
         <DashboardPageHero
           badge="Dashboard restaurateur"
           title={<>Bonjour, <span className="text-[#ff6a1a]">{restaurant.name}</span></>}
-          description="Vue courte de l'activite du restaurant: commandes, reservations, service du jour et revenu du mois restent visibles sans chercher dans les onglets."
+          description="Vue courte de l'activite du restaurant: commandes, réservations, service du jour et revenu du mois restent visibles sans chercher dans les onglets."
           icon={LayoutDashboard}
           tone="orange"
           visualLabel="Accueil"
@@ -258,8 +258,8 @@ export default function Dashboard() {
 
         <SignupApplicationStatusCard
           application={signupApplication}
-          title="Dossier de verification restaurateur"
-          emptyDescription="Aucun dossier restaurateur n'a encore ete soumis."
+          title="Dossier de vérification restaurateur"
+          emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
         />
 
         <div className="space-y-4">
@@ -302,7 +302,7 @@ export default function Dashboard() {
                 <span className="tok-kpi-icon tok-tone-sky flex h-12 w-12 items-center justify-center rounded-2xl">
                   <FileText className="h-6 w-6" />
                 </span>
-                Commandes recentes
+                Commandes récentes
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -339,7 +339,7 @@ export default function Dashboard() {
                   </div>
                 );
               })}
-              {(!upcomingReservations || upcomingReservations.length === 0) ? <p className="text-sm text-muted-foreground">Aucune reservation</p> : null}
+              {(!upcomingReservations || upcomingReservations.length === 0) ? <p className="text-sm text-muted-foreground">Aucune réservation</p> : null}
             </CardContent>
           </Card>
         </div>

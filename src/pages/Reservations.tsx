@@ -74,7 +74,7 @@ const getRestaurantName = (restaurant: ReservationWithRestaurant["restaurants"])
 
 const getFeatureBadge = (feature: string) => {
   switch (feature) {
-    case "zero-attente": return { label: "Zero attente", className: "border-indigo-200 text-indigo-600 bg-indigo-50" };
+    case "zero-attente": return { label: "Zéro attente", className: "border-indigo-200 text-indigo-600 bg-indigo-50" };
     case "chefs_table": return { label: "La Table du Chef", className: "border-amber-200 text-amber-600 bg-amber-50" };
     case "promo-formule": return { label: "Formule promo", className: "border-emerald-200 text-emerald-600 bg-emerald-50" };
     case "promo-offre": return { label: "Offre promo", className: "border-emerald-200 text-emerald-600 bg-emerald-50" };
@@ -177,11 +177,11 @@ export default function Reservations() {
     <CustomerDashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="font-display text-3xl font-bold">Mes reservations</h1>
+          <h1 className="font-display text-3xl font-bold">Mes réservations</h1>
           <div className="w-full sm:w-[320px]">
             <Select value={sortBy} onValueChange={(value) => setSortBy(value as ReservationSort)}>
               <SelectTrigger>
-                <SelectValue placeholder="Trier les reservations" />
+                <SelectValue placeholder="Trier les réservations" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="reservation_date_desc">Date de table : plus recente</SelectItem>
@@ -236,7 +236,7 @@ export default function Reservations() {
                           </Badge>
                         ) : !featureBadge && isZeroAttente ? (
                           <Badge variant="outline" className="mt-1 text-[10px] uppercase tracking-widest border-indigo-200 bg-indigo-50 text-indigo-600">
-                            Zero attente
+                            Zéro attente
                           </Badge>
                         ) : null}
                       </div>
@@ -268,7 +268,7 @@ export default function Reservations() {
                         <div className="space-y-2">
                           <h4 className="flex items-center gap-2 text-sm font-semibold">
                             <Utensils className="h-4 w-4 text-muted-foreground" />
-                            Plats precommandes
+                            Plats précommandés
                           </h4>
                           <div className="divide-y rounded-lg border">
                             {preorderItems.map((item, index) => (
@@ -306,7 +306,7 @@ export default function Reservations() {
         ) : (
           <div className="space-y-2 py-12 text-center">
             <CalendarDays className="mx-auto h-10 w-10 text-muted-foreground" />
-            <p className="text-muted-foreground">Aucune reservation pour le moment</p>
+            <p className="text-muted-foreground">Aucune réservation pour le moment</p>
           </div>
         )}
       </div>

@@ -70,7 +70,7 @@ export default function DashboardVentesFlash() {
     if (isSoldOut) {
       toast({
         title: "Vente epuisee",
-        description: "Ajoutez a nouveau du stock avant de reactiver cette vente.",
+        description: "Ajoutez à nouveau du stock avant de reactiver cette vente.",
         variant: "destructive",
       });
       return;
@@ -88,7 +88,7 @@ export default function DashboardVentesFlash() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["dashboard-flash-sales", selectedId] });
-    toast({ title: current ? "Vente desactivee" : "Vente activee" });
+    toast({ title: current ? "Vente desactivee" : "Vente activée" });
   };
 
   const deleteSale = async (id: string) => {
@@ -106,7 +106,7 @@ export default function DashboardVentesFlash() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["dashboard-flash-sales", selectedId] });
-    toast({ title: "Vente supprimee" });
+    toast({ title: "Vente supprimée" });
   };
 
   return (
@@ -115,7 +115,7 @@ export default function DashboardVentesFlash() {
         <DashboardPageHero
           badge="Ventes courtes"
           title="Ventes Flash"
-          description="Declenchez des offres limitees dans le temps, suivez le stock restant et gardez la mise en ligne sous controle."
+          description="Declenchez des offres limitées dans le temps, suivez le stock restant et gardez la mise en ligne sous contrôle."
           icon={Zap}
           tone="amber"
           visualLabel="Flash"
@@ -141,7 +141,7 @@ export default function DashboardVentesFlash() {
                 onSaved={() => {
                   setOpen(false);
                   queryClient.invalidateQueries({ queryKey: ["dashboard-flash-sales", selectedId] });
-                  toast({ title: "Vente creee" });
+                  toast({ title: "Vente créée" });
                 }}
               />
             </DialogContent>
@@ -164,7 +164,7 @@ export default function DashboardVentesFlash() {
         ) : !sales?.length ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              Aucune vente flash. Creez-en une pour booster vos ventes.
+              Aucune vente flash. Créez-en une pour booster vos ventes.
             </CardContent>
           </Card>
         ) : (
@@ -287,18 +287,18 @@ function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
     if (!restaurantId || !selectedItem || selectedItem.restaurant_id !== restaurantId) {
       toast({
         title: "Produit invalide",
-        description: "Choisissez un produit du restaurant selectionne.",
+        description: "Choisissez un produit du restaurant sélectionné.",
         variant: "destructive",
       });
       return;
     }
 
     if (!saleDate || !saleStart || !saleEnd) {
-      toast({ title: "Creneau invalide", description: "Renseignez date, debut et fin.", variant: "destructive" });
+      toast({ title: "Creneau invalide", description: "Renseignez date, début et fin.", variant: "destructive" });
       return;
     }
     if (saleStart >= saleEnd) {
-      toast({ title: "Creneau invalide", description: "L'heure de fin doit etre apres le debut.", variant: "destructive" });
+      toast({ title: "Creneau invalide", description: "L'heure de fin doit être apres le début.", variant: "destructive" });
       return;
     }
 
@@ -395,12 +395,12 @@ function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            L'offre apparaitra automatiquement aux clients au debut du creneau et disparaitra a la fin.
+            L'offre apparaîtra automatiquement aux clients au début du creneau et disparaitra à la fin.
           </p>
 
           <Button type="submit" disabled={loading} className="w-full gap-2">
             <Zap className="h-4 w-4" />
-            {loading ? "Creation..." : "Activer la vente flash"}
+            {loading ? "Création..." : "Activer la vente flash"}
           </Button>
         </>
       )}

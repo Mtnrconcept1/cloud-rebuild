@@ -334,7 +334,7 @@ export default function SuiviCommande() {
   const orderMeta = asMetadata(liveOrder.metadata);
   const isDelivery = Boolean(liveOrder.delivery_address) && orderMeta.feature !== "zero-attente" && !orderMeta.pickup_time;
   const pickupTime = orderMeta.pickup_time || orderMeta.arrival_time;
-  const modeLabel = orderMeta.feature === "zero-attente" ? "Zero attente" : pickupTime ? "A emporter" : "Sur place";
+  const modeLabel = orderMeta.feature === "zero-attente" ? "Zéro attente" : pickupTime ? "A emporter" : "Sur place";
   const totalAmount = orders.reduce((sum: number, entry: any) => sum + Number(entry.total_amount || 0), 0);
   const restaurantLabel = orders.length > 1 ? `${orders.length} restaurants` : liveOrder.restaurants?.name || "Restaurant";
   const ordersWithPricing = orders.filter((entry: any) => {

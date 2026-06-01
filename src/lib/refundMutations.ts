@@ -69,7 +69,7 @@ async function parseMutationResponse(promise: Promise<unknown>): Promise<Mutatio
   const result = getFirstRow<SafeMutationRow>(data as SafeMutationRow[] | SafeMutationRow | null | undefined);
 
   if (!result) {
-    throw new Error("Reponse serveur invalide.");
+    throw new Error("Réponse serveur invalide.");
   }
 
   if (!result.ok) {

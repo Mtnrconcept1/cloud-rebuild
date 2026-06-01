@@ -154,7 +154,7 @@ export default function CourierEarnings() {
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                  Les mouvements de gains apparaitront ici apres vos premieres livraisons.
+                  Les mouvements de gains apparaitront ici apres vos premières livraisons.
                 </div>
               )}
             </CardContent>
@@ -185,7 +185,7 @@ export default function CourierEarnings() {
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                  Aucun gain n'a encore ete genere.
+                  Aucun gain n'a encore été genere.
                 </div>
               )}
             </CardContent>

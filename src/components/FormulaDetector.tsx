@@ -63,7 +63,7 @@ export default function FormulaDetector({ items, restaurantId, onDiscountCalcula
     <div className="flex items-center gap-2 p-3 rounded-xl bg-accent/10 border border-accent/20">
       <Sparkles className="h-5 w-5 text-accent shrink-0" />
       <div className="flex-1">
-        <p className="text-sm font-semibold text-accent">Formule detectee : {matchedFormula.name}</p>
+        <p className="text-sm font-semibold text-accent">Formule détectée : {matchedFormula.name}</p>
         <p className="text-xs text-muted-foreground">-{matchedFormula.discountPercent}% applique sur votre panier</p>
       </div>
       <Badge className="bg-accent text-accent-foreground">

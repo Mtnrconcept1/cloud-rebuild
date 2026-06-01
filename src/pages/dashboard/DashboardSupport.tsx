@@ -21,9 +21,18 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, CircleHelp, Mail, MessageSquare, Search, ShieldQuestion } from "lucide-react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
+
+const HTML_ENTITIES: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
 
 const FAQ = [
   { q: "Comment modifier mes horaires d'ouverture ?", a: "Rendez-vous dans « Pilotage de service » pour configurer vos horaires par jour de la semaine." },
@@ -33,8 +42,8 @@ const FAQ = [
   { q: "Comment voir mes factures ?", a: "La section « Factures » liste toutes vos factures avec leur statut de paiement." },
   { q: "Comment activer la livraison ?", a: "Dans « Mon restaurant », activez l'option livraison et configurez les frais et le montant minimum de commande." },
   { q: "Qu'est-ce que l'anti-gaspi ?", a: "Les offres anti-gaspi permettent de vendre vos invendus à prix réduit avant la fermeture. Créez-les dans « Anti-gaspi »." },
-  { q: "Comment transformer une actualite en action marketing ?", a: "Dans « Actualites », selectionnez un objectif, une audience, un CTA et un modele. Le score marketing vous aide a ajouter media, accroche, programmation et bouton d'action avant publication." },
-  { q: "Comment lire les performances Actualites ?", a: "Le cockpit suit impressions, clics, clics CTA, engagement, sauvegardes, posts programmes et objectifs de campagne pour identifier ce qui amene visibilite, commandes ou reservations." },
+  { q: "Comment transformer une actualité en action marketing ?", a: "Dans « Actualités », sélectionnez un objectif, une audience, un CTA et un modèle. Le score marketing vous aide a ajouter média, accroche, programmation et bouton d'action avant publication." },
+  { q: "Comment lire les performances Actualités ?", a: "Le cockpit suit impressions, clics, clics CTA, engagement, sauvegardes, posts programmes et objectifs de campagne pour identifier ce qui amène visibilité, commandes ou réservations." },
   { q: "Comment lancer une campagne marketing ?", a: "Rendez-vous dans « Campagnes » pour créer des campagnes publicitaires ciblées avec un budget quotidien." },
 ];
 
@@ -86,12 +95,16 @@ function getCategoryLabel(category: string) {
     refund_request: "Remboursement",
     payment_issue: "Paiement",
     reservation_issue: "Réservation",
-    zero_attente_issue: "Zero Attente",
+    zero_attente_issue: "Zéro Attente",
     delivery_issue: "Livraison",
     restaurant_issue: "Restaurant",
     technical_issue: "Technique",
   };
   return labels[category] || category.replace(/_/g, " ");
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => HTML_ENTITIES[char] || char);
 }
 
 export default function DashboardSupport() {
@@ -138,12 +151,15 @@ export default function DashboardSupport() {
 
     const restaurantLabel = selectedRestaurant?.name || selectedId || "N/A";
     const userEmail = user?.email || "inconnu";
+    const safeUserEmail = escapeHtml(userEmail);
+    const safeRestaurantLabel = escapeHtml(restaurantLabel);
+    const safeMessageHtml = escapeHtml(message).replace(/\n/g, "<br/>");
 
     const { error } = await supabase.from("email_queue" as any).insert({
-      to_email: "support@tok.ch",
+      to_email: SUPPORT_EMAIL,
       subject: `[Support] ${subject}`,
       body_text: `De: ${userEmail}\nRestaurant: ${restaurantLabel}\n\n${message}`,
-      body_html: `<p><strong>De:</strong> ${userEmail}</p><p><strong>Restaurant:</strong> ${restaurantLabel}</p><hr/><p>${message.replace(/\n/g, "<br/>")}</p>`,
+      body_html: `<p><strong>De:</strong> ${safeUserEmail}</p><p><strong>Restaurant:</strong> ${safeRestaurantLabel}</p><hr/><p>${safeMessageHtml}</p>`,
       status: "queued",
     });
 
@@ -165,7 +181,7 @@ export default function DashboardSupport() {
         <DashboardPageHero
           badge="Support restaurateur"
           title="Aide et support"
-          description="Retrouvez les reponses rapides, suivez les incidents clients et contactez l'equipe support avec le contexte du restaurant selectionne."
+          description="Retrouvez les réponses rapides, suivez les incidents clients et contactez l'équipe support avec le contexte du restaurant sélectionné."
           icon={CircleHelp}
           tone="sky"
           visualLabel="Support"

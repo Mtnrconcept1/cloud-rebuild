@@ -28,7 +28,7 @@ export type SocialPostType = (typeof SOCIAL_POST_TYPES)[number]["value"];
 
 export const SOCIAL_POST_CTAS = [
   { value: "none", label: "Aucun" },
-  { value: "reserve", label: "Reserver" },
+  { value: "reserve", label: "Réserver" },
   { value: "order", label: "Commander" },
   { value: "menu", label: "Voir menu" },
   { value: "offer", label: "Voir offre" },
@@ -39,7 +39,7 @@ export type SocialPostCtaType = (typeof SOCIAL_POST_CTAS)[number]["value"];
 export const SOCIAL_MARKETING_GOALS = [
   {
     value: "awareness",
-    label: "Notoriete",
+    label: "Notoriété",
     description: "Rendre le restaurant plus visible dans le fil local.",
     recommendedPostType: "coulisses",
     recommendedCta: "menu",
@@ -47,7 +47,7 @@ export const SOCIAL_MARKETING_GOALS = [
   {
     value: "orders",
     label: "Commandes",
-    description: "Transformer une actualite en commandes immediates.",
+    description: "Transformer une actualité en commandes immediates.",
     recommendedPostType: "plat",
     recommendedCta: "order",
   },
@@ -61,13 +61,13 @@ export const SOCIAL_MARKETING_GOALS = [
   {
     value: "loyalty",
     label: "Fidelisation",
-    description: "Faire revenir les clients qui connaissent deja le restaurant.",
+    description: "Faire revenir les clients qui connaissent déjà le restaurant.",
     recommendedPostType: "annonce",
     recommendedCta: "none",
   },
   {
     value: "offer",
-    label: "Offre limitee",
+    label: "Offre limitée",
     description: "Mettre en avant une promotion avec une action claire.",
     recommendedPostType: "promo",
     recommendedCta: "offer",
@@ -92,7 +92,7 @@ export const SOCIAL_MARKETING_TEMPLATES = [
     goal: "orders",
     postType: "plat",
     ctaType: "order",
-    body: "Service de midi lance: plat du jour, preparation rapide et quantites limitees. Commandez maintenant pour etre servi sans attendre.",
+    body: "Service de midi lance: plat du jour, préparation rapide et quantités limitées. Commandez maintenant pour être servi sans attendre.",
   },
   {
     id: "empty-tables",
@@ -100,7 +100,7 @@ export const SOCIAL_MARKETING_TEMPLATES = [
     goal: "bookings",
     postType: "evenement",
     ctaType: "reserve",
-    body: "Quelques tables viennent de se liberer ce soir. Reservez votre place et profitez d'un service calme avec nos suggestions du moment.",
+    body: "Quelques tables viennent de se libérer ce soir. Réservez votre place et profitez d'un service calme avec nos suggestions du moment.",
   },
   {
     id: "behind-scenes",
@@ -108,7 +108,7 @@ export const SOCIAL_MARKETING_TEMPLATES = [
     goal: "awareness",
     postType: "coulisses",
     ctaType: "menu",
-    body: "En cuisine aujourd'hui: un arrivage frais, une preparation maison et une equipe prete pour le service. Decouvrez la carte du moment.",
+    body: "En cuisine aujourd'hui: un arrivage frais, une préparation maison et une équipe prête pour le service. Découvrez la carte du moment.",
   },
   {
     id: "limited-offer",
@@ -116,7 +116,7 @@ export const SOCIAL_MARKETING_TEMPLATES = [
     goal: "offer",
     postType: "promo",
     ctaType: "offer",
-    body: "Offre limitee aujourd'hui: une attention speciale sur une selection de plats. Disponible jusqu'a epuisement des stocks.",
+    body: "Offre limitée aujourd'hui: une attention speciale sur une sélection de plats. Disponible jusqu’à epuisement des stocks.",
   },
 ] as const;
 
@@ -327,7 +327,7 @@ export function validateSocialPostDraft({
     if (!Number.isFinite(scheduledMs)) {
       errors.push("Date de programmation invalide.");
     } else if (scheduledMs <= nowMs) {
-      errors.push("La programmation doit etre dans le futur.");
+      errors.push("La programmation doit être dans le futur.");
     }
   }
 
@@ -372,16 +372,16 @@ export function scoreSocialMarketingDraft(input: SocialMarketingScoreInput): Soc
     { label: "Accroche concrete", passed: body.length >= 80 },
     { label: "Media ajoute", passed: filesCount > 0 },
     { label: "CTA aligne", passed: ctaType === pair.recommendedCta },
-    { label: "Format adapte a l'objectif", passed: postType === pair.recommendedPostType },
-    { label: "Audience definie", passed: Boolean(segment) },
-    { label: "Publication planifiee", passed: Boolean(input.scheduledAt) },
+    { label: "Format adapté à l'objectif", passed: postType === pair.recommendedPostType },
+    { label: "Audience définie", passed: Boolean(segment) },
+    { label: "Publication planifiée", passed: Boolean(input.scheduledAt) },
   ];
 
   const score = Math.min(100, Math.round((checks.filter((check) => check.passed).length / checks.length) * 100));
   const recommendations: string[] = [];
 
-  if (body.length < 80) recommendations.push("Ajoutez une accroche plus precise: produit, moment, benefice client.");
-  if (filesCount === 0) recommendations.push("Ajoutez une photo ou une courte video pour augmenter l'arret sur le fil.");
+  if (body.length < 80) recommendations.push("Ajoutez une accroche plus précise: produit, moment, benefice client.");
+  if (filesCount === 0) recommendations.push("Ajoutez une photo ou une courte video pour augmenter l'arrêt sur le fil.");
   if (ctaType !== pair.recommendedCta) recommendations.push(`CTA conseille: ${SOCIAL_POST_CTAS.find((cta) => cta.value === pair.recommendedCta)?.label}.`);
   if (postType !== pair.recommendedPostType) recommendations.push(`Format conseille: ${SOCIAL_POST_TYPES.find((type) => type.value === pair.recommendedPostType)?.label}.`);
   if (!input.scheduledAt) recommendations.push("Programmez le post sur un temps fort: avant midi, avant le service du soir ou la veille d'un evenement.");
@@ -496,7 +496,7 @@ export function getSocialRecommendationReasons(item: SocialFeedRankableItem, inp
 
   if (followedRestaurantIds.has(item.restaurantId)) reasons.push("Restaurant suivi");
   if (favoriteRestaurantIds.has(item.restaurantId)) reasons.push("Dans vos favoris");
-  if (interactedRestaurantIds.has(item.restaurantId)) reasons.push("Deja commande ou reserve");
+  if (interactedRestaurantIds.has(item.restaurantId)) reasons.push("Deja commande ou réserve");
   if (cuisine && favoriteCuisines.has(cuisine)) reasons.push("Cuisine preferee");
   if (city && viewerCity && city === viewerCity) reasons.push("A proximite");
   if (item.postType === "promo") reasons.push("Offre en cours");

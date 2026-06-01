@@ -63,9 +63,9 @@ export default function PaymentMethodSelector({
         <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/6 p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-white">Confirmation immediate apres paiement</p>
+            <p className="text-sm font-semibold text-white">Confirmation immédiate apres paiement</p>
             <p className="text-xs leading-5 text-white/72">
-              Vos creneaux Table du Chef et votre nombre de convives sont deja pris en compte dans cette etape.
+              Vos créneaux Table du Chef et votre nombre de convives sont déjà pris en compte dans cette étape.
             </p>
           </div>
         </div>
@@ -118,8 +118,8 @@ export default function PaymentMethodSelector({
         )}
       >
         {paymentMethod === "cash"
-          ? (cashDescription || "Le paiement sera effectue sur place lors du retrait ou de la livraison")
-          : (secureDescription || "Paiement securise via Stripe")}
+          ? (cashDescription || "Le paiement sera effectué sur place lors du retrait ou de la livraison")
+          : (secureDescription || "Paiement sécurisé via Stripe")}
       </p>
     </div>
   );

@@ -106,7 +106,7 @@ function formatCurrency(value: number) {
 
 function buildRestaurantAddress(restaurant?: { address?: string | null; city?: string | null }) {
   const parts = [restaurant?.address, restaurant?.city].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "Adresse communiquee apres reservation";
+  return parts.length > 0 ? parts.join(", ") : "Adresse communiquee apres réservation";
 }
 
 function buildChefTableMenuItemId(dropId: string) {
@@ -165,7 +165,7 @@ function ChefTableDropCard({
           <div className="max-w-2xl space-y-3">
             <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-white/70">
-                Creation hors carte
+                Création hors carte
               </p>
               <h3 className="font-display text-2xl font-bold leading-tight drop-shadow-sm">
                 {drop.dish}
@@ -275,7 +275,7 @@ function ChefTableDropCard({
             </div>
             {selectedPartySize ? (
               <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Selection</span>
+                <span className="text-muted-foreground">Sélection</span>
                 <span className="font-medium text-foreground">
                   {selectedPartySize} convive{selectedPartySize > 1 ? "s" : ""}
                 </span>
@@ -286,7 +286,7 @@ function ChefTableDropCard({
           {drop.quickTimeSlots.length > 0 ? (
             <div className="space-y-2">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Creneaux rapides
+                Créneaux rapides
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {drop.quickTimeSlots.map((time) => {
@@ -394,7 +394,7 @@ export default function ChefsTable() {
           restaurantId: drop.restaurant_id,
           dish: drop.dish_name,
           description:
-            drop.description || "Creation signee servie en quantite tres limitee pour un service unique.",
+            drop.description || "Création signée servie en quantité très limitée pour un service unique.",
           price,
           originalPrice,
           savingsAmount,
@@ -524,7 +524,7 @@ export default function ChefsTable() {
       });
 
       if (error) {
-        throw new Error(error.message || "Impossible de finaliser la reservation La Table du Chef.");
+        throw new Error(error.message || "Impossible de finaliser la réservation La Table du Chef.");
       }
 
       const reservations = Array.isArray(data?.reservations)
@@ -532,7 +532,7 @@ export default function ChefsTable() {
         : [];
 
       if (reservations.length === 0) {
-        throw new Error("Paiement valide, reservation en cours de finalisation. Rechargez la page dans quelques secondes.");
+        throw new Error("Paiement valide, réservation en cours de finalisation. Rechargez la page dans quelques secondes.");
       }
 
       clearCart();
@@ -544,16 +544,16 @@ export default function ChefsTable() {
         title: "Paiement confirme",
         description:
           reservations.length > 1
-            ? `${reservations.length} reservations La Table du Chef ont ete confirmees.`
-            : "Votre reservation La Table du Chef est confirmee.",
+            ? `${reservations.length} réservations La Table du Chef ont été confirmees.`
+            : "Votre réservation La Table du Chef est confirmee.",
       });
     } catch (error) {
       toast({
-        title: "Paiement en verification",
+        title: "Paiement en vérification",
         description:
           error instanceof Error
             ? error.message
-            : "Impossible de finaliser la reservation La Table du Chef.",
+            : "Impossible de finaliser la réservation La Table du Chef.",
         variant: "destructive",
       });
     } finally {
@@ -592,7 +592,7 @@ export default function ChefsTable() {
       attemptedFinalizationRef.current.add(pendingCheckoutSessionId);
       toast({
         title: "Reconnectez-vous",
-        description: "Le paiement a ete valide. Reconnectez-vous pour recuperer votre reservation La Table du Chef.",
+        description: "Le paiement a été valide. Reconnectez-vous pour recuperer votre réservation La Table du Chef.",
         variant: "destructive",
       });
       return;
@@ -613,8 +613,8 @@ export default function ChefsTable() {
   const ensureCartIsAvailable = () => {
     if (!hasForeignCartItems) return true;
     toast({
-      title: "Panier deja en cours",
-      description: "Finalisez ou videz votre panier actuel avant d'ajouter une experience La Table du Chef.",
+      title: "Panier déjà en cours",
+      description: "Finalisez ou videz votre panier actuel avant d'ajouter une expérience La Table du Chef.",
       variant: "destructive",
     });
     navigate("/panier");
@@ -667,7 +667,7 @@ export default function ChefsTable() {
       removeItem(menuItemId);
       toast({
         title: "Retire du panier",
-        description: `${drop.dish} a ete retire de votre panier La Table du Chef.`,
+        description: `${drop.dish} a été retire de votre panier La Table du Chef.`,
       });
       return;
     }
@@ -728,11 +728,11 @@ export default function ChefsTable() {
     <>
       <FeatureWizard
         title="La Table du Chef"
-        subtitle="Plats off-menu en edition ultra-limitee"
+        subtitle="Plats off-menu en edition ultra-limitée"
         icon={ChefHat}
         colorClass="amber-500"
         steps={[
-          { id: "selection", label: "Selection" },
+          { id: "selection", label: "Sélection" },
           { id: "confirm", label: "Confirmation" },
         ]}
         currentStepId={confirmed ? "confirm" : "selection"}
@@ -783,7 +783,7 @@ export default function ChefsTable() {
               <span className="font-semibold text-amber-700">
                 {drops.reduce((sum, drop) => sum + drop.remaining, 0)} portions
               </span>{" "}
-              disponibles sur la selection live
+              disponibles sur la sélection live
             </p>
             <Badge variant="outline" className="ml-auto gap-1 border-amber-300/70 bg-white/70">
               <Zap className="h-3 w-3" />
@@ -796,9 +796,9 @@ export default function ChefsTable() {
               {isFinalizingCheckout ? (
                 <div className="rounded-[28px] border border-amber-200 bg-amber-50/50 p-10 text-center">
                   <Sparkles className="mx-auto h-12 w-12 text-amber-500" />
-                  <h2 className="mt-4 font-display text-2xl font-bold">Paiement recu</h2>
+                  <h2 className="mt-4 font-display text-2xl font-bold">Paiement reçu</h2>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                    Nous finalisons vos reservations La Table du Chef. Cela prend seulement quelques secondes.
+                    Nous finalisons vos réservations La Table du Chef. Cela prend seulement quelques secondes.
                   </p>
                 </div>
               ) : drops.length > 0 ? (
@@ -821,7 +821,7 @@ export default function ChefsTable() {
                   <ChefHat className="mx-auto h-12 w-12 text-amber-500" />
                   <h2 className="mt-4 font-display text-2xl font-bold">Aucun drop en ce moment</h2>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                    Activez les alertes pour etre prevenu des prochaines creations exclusives des chefs.
+                    Activez les alertes pour être prevenu des prochaines creations exclusives des chefs.
                   </p>
                 </div>
               )}
@@ -842,7 +842,7 @@ export default function ChefsTable() {
                         </p>
                         <p className="flex items-center gap-1 text-xs text-white/70">
                           <Users className="h-3 w-3" />
-                          Paiement securise requis pour verrouiller {reservedGuestTotal} convive{reservedGuestTotal > 1 ? "s" : ""} et vos portions exclusives
+                          Paiement sécurisé requis pour verrouiller {reservedGuestTotal} convive{reservedGuestTotal > 1 ? "s" : ""} et vos portions exclusives
                         </p>
                         <div className="grid gap-2 sm:grid-cols-2">
                           {reservedSummary.map((entry) => (
@@ -885,14 +885,14 @@ export default function ChefsTable() {
                 <h2 className="font-display text-xl font-bold">Reservation confirmee !</h2>
                 <p className="text-sm text-muted-foreground">
                   {confirmedReservations.length > 1
-                    ? `${confirmedReservations.length} reservations La Table du Chef ont ete confirmees apres paiement.`
-                    : "Votre table et vos plats exclusifs sont reserves apres paiement."}
+                    ? `${confirmedReservations.length} réservations La Table du Chef ont été confirmees apres paiement.`
+                    : "Votre table et vos plats exclusifs sont réservés apres paiement."}
                 </p>
               </div>
 
               <WizardNextButton
                 onClick={handleGoToReservations}
-                label="Voir mes reservations"
+                label="Voir mes réservations"
                 colorClass="amber-500"
               />
             </div>

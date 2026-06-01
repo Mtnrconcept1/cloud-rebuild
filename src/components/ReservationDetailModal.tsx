@@ -212,11 +212,11 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
   const isNoShow = reservation.status === "no_show";
   const isLateCancellation = !canCancel(reservation);
   const cancellationLockMessage = isCancelled
-    ? "Cette reservation a deja ete annulee."
+    ? "Cette réservation a déjà été annulee."
     : isNoShow
-      ? "Cette reservation est deja terminee."
+      ? "Cette réservation est déjà terminée."
       : isLateCancellation
-        ? "Annulation impossible moins de 2h avant la reservation."
+        ? "Annulation impossible moins de 2h avant la réservation."
         : null;
   const isCancellable = !isCancelled && !isNoShow && !isLateCancellation;
 

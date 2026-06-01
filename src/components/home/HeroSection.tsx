@@ -264,7 +264,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
           <motion.div variants={fadeUp} className="max-w-[960px] space-y-3">
             <h1 className="font-display text-[3.95rem] font-bold leading-[0.96] tracking-normal text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)] lg:text-[5.15rem]">
-              <span className="block">Decouvrez et reservez le</span>
+              <span className="block">Découvrez et réservez le</span>
               <span className="block italic text-[#ff6b1c]">meilleur restaurant</span>
             </h1>
             <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] dark:text-slate-100 md:text-[1.55rem]">

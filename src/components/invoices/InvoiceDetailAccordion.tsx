@@ -39,7 +39,7 @@ function getErrorMessage(error: Error | string | null | undefined) {
 
 export function InvoiceDetailAccordion(props: InvoiceDetailAccordionProps) {
   if (props.loading) {
-    return <div className={props.className}>Chargement du detail...</div>;
+    return <div className={props.className}>Chargement du détail...</div>;
   }
 
   const errorMessage = getErrorMessage(props.error);
@@ -47,14 +47,14 @@ export function InvoiceDetailAccordion(props: InvoiceDetailAccordionProps) {
     return (
       <div className={props.className}>
         <p className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          Impossible de charger le detail de facture. {errorMessage}
+          Impossible de charger le détail de facturé. {errorMessage}
         </p>
       </div>
     );
   }
 
   if (!props.lines.length) {
-    return <div className={props.className}>Aucune ligne sur cette facture.</div>;
+    return <div className={props.className}>Aucune ligne sur cette facturé.</div>;
   }
 
   const totalLines = props.lines.reduce((sum, line) => sum + ("invoicedAmount" in line ? line.invoicedAmount : line.billingFeeChf), 0);

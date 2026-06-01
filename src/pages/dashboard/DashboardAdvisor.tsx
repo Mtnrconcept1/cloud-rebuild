@@ -20,7 +20,7 @@ type Message = { role: "user" | "assistant"; content: string };
 
 const SUGGESTED_PROMPTS = [
   { icon: TrendingUp, label: "Analyser mes ventes", prompt: "Analyse mes ventes des 30 derniers jours et donne-moi des recommandations pour augmenter mon chiffre d'affaires." },
-  { icon: Star, label: "Améliorer mes avis", prompt: "Analyse mes avis clients et propose des actions concrètes pour améliorer ma note et la satisfaction." },
+  { icon: Star, label: "Améliorer mes avis", prompt: "Analyse mes avis clients et propose des actions concrètes pour améliorer ma note et là satisfaction." },
   { icon: BarChart3, label: "Optimiser mon menu", prompt: "Analyse mon menu (prix, photos, catégories) et propose des optimisations pour augmenter le panier moyen." },
   { icon: Megaphone, label: "ROI campagnes", prompt: "Analyse les performances de mes campagnes marketing et propose des améliorations pour un meilleur ROI." },
   { icon: Camera, label: "Audit photos", prompt: "Fais un audit de mes photos et de ma page restaurant. Que dois-je améliorer pour attirer plus de clients ?" },

@@ -308,7 +308,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
                   <p>{reservation.restaurant.name}</p>
                   <p className="inline-flex items-center gap-2">
                     <CalendarDays className="h-3.5 w-3.5" />
-                    Creee le {formatDateTime(reservation.createdAt)}
+                    Créee le {formatDateTime(reservation.createdAt)}
                   </p>
                 </div>
               </div>
@@ -316,7 +316,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold">Details de reservation</h3>
+            <h3 className="text-sm font-semibold">Details de réservation</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border p-4 text-sm text-muted-foreground">
                 <p className="mb-2 inline-flex items-center gap-2 font-medium text-foreground">
@@ -325,7 +325,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
                 </p>
                 <p>Heure affichee : {reservation.displayTime}</p>
                 {reservation.reservationTime && reservation.reservationTime !== reservation.displayTime ? (
-                  <p>Heure systeme : {reservation.reservationTime}</p>
+                  <p>Heure système : {reservation.reservationTime}</p>
                 ) : null}
               </div>
 
@@ -334,7 +334,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
                   <CreditCard className="h-4 w-4 text-primary" />
                   Paiement
                 </p>
-                <p>Methode : {reservation.paymentMethod || "-"}</p>
+                <p>Méthode : {reservation.paymentMethod || "-"}</p>
                 <p>Frais TOK : {formatAmount(reservation.billingFeeChf)}</p>
                 {reservation.orderReference ? <p>Reference : {reservation.orderReference}</p> : null}
               </div>
@@ -361,7 +361,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
               </div>
             ) : (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                Aucune precommande rattachee a cette reservation.
+                Aucune précommande rattachee à cette réservation.
               </div>
             )}
           </section>

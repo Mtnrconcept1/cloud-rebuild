@@ -1834,7 +1834,7 @@ export const FLOOR_PLAN_PRESETS: FloorPlanTablePreset[] = [
   {
     id: "plant",
     label: "Plante",
-    description: "Repere vegetal pour structurer la salle.",
+    description: "Repère végétal pour structurer la salle.",
     category: "furniture",
     kind: "plant",
     capacity: 0,

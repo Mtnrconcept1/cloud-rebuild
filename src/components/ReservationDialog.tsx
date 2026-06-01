@@ -278,7 +278,7 @@ export default function ReservationDialog({
 
     const offerPrefix = selectedPromo
       ? `[FORMULE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
-      : "[A la carte] ";
+      : "[À la carte] ";
 
     let reservationResult: Awaited<ReturnType<typeof createReservationWithValidation>>;
     try {
@@ -295,7 +295,7 @@ export default function ReservationDialog({
       setLoading(false);
       toast({
         title: "Erreur",
-        description: reservationError instanceof Error ? reservationError.message : "Creation de reservation impossible.",
+        description: reservationError instanceof Error ? reservationError.message : "Création de réservation impossible.",
         variant: "destructive",
       });
       return;
@@ -324,7 +324,7 @@ export default function ReservationDialog({
     if (donatePoints && loyaltyPoints >= 0 && earnedXp > 0) {
       await (supabase.rpc as any)("donate_points_for_meal", {
         points_param: earnedXp,
-        description_param: `Don solidaire (reservation chez ${restaurantName})`,
+        description_param: `Don solidaire (réservation chez ${restaurantName})`,
       });
     }
 
@@ -394,7 +394,7 @@ export default function ReservationDialog({
         <DialogContent className="overflow-hidden p-0 sm:max-w-md">
           <DialogTitle className="sr-only">Reservation</DialogTitle>
           <DialogDescription className="sr-only">
-            Choisissez une date, un creneau disponible et le nombre de convives pour reserver une table.
+            Choisissez une date, un creneau disponible et le nombre de convives pour réserver une table.
           </DialogDescription>
 
           <div className="flex items-center justify-center gap-2 px-6 pt-6">
@@ -421,10 +421,10 @@ export default function ReservationDialog({
 
           <DialogHeader className="px-6 pb-0 pt-4">
             <div className="text-lg font-semibold leading-none tracking-tight">
-              {step === "datetime" && `Reserver chez ${restaurantName}`}
-              {step === "mode" && "Type de reservation"}
+              {step === "datetime" && `Réserver chez ${restaurantName}`}
+              {step === "mode" && "Type de réservation"}
               {step === "promo" && "Choisir une formule"}
-              {step === "confirm" && "Confirmer la reservation"}
+              {step === "confirm" && "Confirmer la réservation"}
             </div>
           </DialogHeader>
 
@@ -467,7 +467,7 @@ export default function ReservationDialog({
                   ) : isSlotAvailabilityLoading ? (
                     <div className="flex items-center rounded-xl border p-4 text-sm text-muted-foreground">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verification des disponibilites...
+                      Verification des disponibilités...
                     </div>
                   ) : slotGroups.length > 0 ? (
                     <div className="space-y-3">
@@ -532,8 +532,8 @@ export default function ReservationDialog({
                     <div className="flex items-center gap-3">
                       <Zap className="h-6 w-6" />
                       <div>
-                        <p className="text-sm font-semibold">Zero Attente</p>
-                        <p className="text-xs text-muted-foreground">Precommande, tout sera pret a l'arrivee.</p>
+                        <p className="text-sm font-semibold">Zéro Attente</p>
+                        <p className="text-xs text-muted-foreground">Precommande, tout sera pret à l'arrivée.</p>
                       </div>
                     </div>
                   </button>
@@ -555,7 +555,7 @@ export default function ReservationDialog({
                     }}
                     className="flex-1"
                   >
-                    {reservationMode === "zero-attente" ? "Zero Attente" : "Suivant"}
+                    {reservationMode === "zero-attente" ? "Zéro Attente" : "Suivant"}
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -571,7 +571,7 @@ export default function ReservationDialog({
                   <div className="flex items-center gap-3">
                     <Utensils className="h-5 w-5" />
                     <div>
-                      <p className="text-sm font-semibold">A la carte</p>
+                      <p className="text-sm font-semibold">À la carte</p>
                       <p className="text-xs text-muted-foreground">Reservation sans offre speciale.</p>
                     </div>
                   </div>

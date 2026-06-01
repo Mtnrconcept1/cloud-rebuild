@@ -141,7 +141,7 @@ describe("ReservationQueue", () => {
         ["r1", {
           table: table("t4", "T4"),
           score: 94,
-          reasons: ["Capacite parfaite", "Rotation confortable"],
+          reasons: ["Capacité parfaite", "Rotation confortable"],
         }],
       ]),
       onAssignReservationToTable,

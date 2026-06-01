@@ -141,7 +141,7 @@ export default function AdminNotifications() {
     try {
       const dispatchResult = await dispatchQueuedNotifications("admin-notification-campaign");
       if ("skipped" in dispatchResult && dispatchResult.skipped) {
-        dispatchWarning = dispatchResult.reason || "Le traitement differe des notifications a ete reporte.";
+        dispatchWarning = dispatchResult.reason || "Le traitement differe des notifications a été reporte.";
       } else if (Array.isArray(dispatchResult.channel_errors) && dispatchResult.channel_errors.length > 0) {
         dispatchWarning = dispatchResult.channel_errors
           .map((channelError) => `${channelError.channel}: ${channelError.message}`)
@@ -155,11 +155,11 @@ export default function AdminNotifications() {
 
     const result = Array.isArray(data) ? data[0] : data;
     const baseDescription = result
-      ? `${result.recipients || 0} destinataires, ${result.deliveries_total || 0} livraisons creees.`
+      ? `${result.recipients || 0} destinataires, ${result.deliveries_total || 0} livraisons créées.`
       : undefined;
 
     toast({
-      title: "Campagne envoyee",
+      title: "Campagne envoyée",
       description: [baseDescription, dispatchWarning].filter(Boolean).join(" "),
     });
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
@@ -182,7 +182,7 @@ export default function AdminNotifications() {
     try {
       const dispatchResult = await dispatchQueuedNotifications("admin-due-newsletter-campaigns");
       if ("skipped" in dispatchResult && dispatchResult.skipped) {
-        dispatchWarning = dispatchResult.reason || "Le traitement differe des notifications a ete reporte.";
+        dispatchWarning = dispatchResult.reason || "Le traitement differe des notifications a été reporte.";
       } else if (Array.isArray(dispatchResult.channel_errors) && dispatchResult.channel_errors.length > 0) {
         dispatchWarning = dispatchResult.channel_errors
           .map((channelError) => `${channelError.channel}: ${channelError.message}`)
@@ -196,8 +196,8 @@ export default function AdminNotifications() {
 
     const dueCount = Array.isArray(data) ? data.length : 0;
     toast({
-      title: "Campagnes planifiees traitees",
-      description: [`${dueCount} campagne(s) due(s) declenchee(s).`, dispatchWarning].filter(Boolean).join(" "),
+      title: "Campagnes planifiées traitées",
+      description: [`${dueCount} campagne(s) due(s) déclenchée(s).`, dispatchWarning].filter(Boolean).join(" "),
     });
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaign-stats"] });
@@ -211,7 +211,7 @@ export default function AdminNotifications() {
     }
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaign-stats"] });
-    toast({ title: "Campagne supprimee" });
+    toast({ title: "Campagne supprimée" });
   };
 
   return (
@@ -219,7 +219,7 @@ export default function AdminNotifications() {
       <DashboardPageHero
         badge="Communication"
         title="Campagnes de notifications"
-        description="Creer, cibler et envoyer les notifications depuis l'admin, avec suivi des canaux in-app, email et push."
+        description="Créer, cibler et envoyer les notifications depuis l'admin, avec suivi des canaux in-app, email et push."
         icon={Bell}
         tone="sky"
         visualLabel="Notifications"
@@ -232,7 +232,7 @@ export default function AdminNotifications() {
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" className="gap-2" onClick={processDueCampaigns} disabled={processingDue}>
             <CalendarClock className="h-4 w-4" />
-            {processingDue ? "Traitement..." : "Traiter les planifiees"}
+            {processingDue ? "Traitement..." : "Traiter les planifiées"}
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -248,7 +248,7 @@ export default function AdminNotifications() {
                 onSaved={() => {
                   setOpen(false);
                   queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
-                  toast({ title: "Campagne creee" });
+                  toast({ title: "Campagne créée" });
                 }}
               />
             </DialogContent>
@@ -450,7 +450,7 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
           <Label>Template newsletter</Label>
           <Select value={selectedTemplateId} onValueChange={applyTemplate}>
             <SelectTrigger>
-              <SelectValue placeholder="Choisir parmi 20 newsletters pretes" />
+              <SelectValue placeholder="Choisir parmi 20 newsletters prêtes" />
             </SelectTrigger>
             <SelectContent>
               {NEWSLETTER_TEMPLATES.map((template) => (
@@ -536,7 +536,7 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
             <span>Domaine email authentifie</span>
           </label>
           <div className="rounded-md border px-3 py-2">
-            Statut: {deliverability.status === "ready" ? "pret" : deliverability.status === "blocked" ? "bloque" : "a verifier"}
+            Statut: {deliverability.status === "ready" ? "pret" : deliverability.status === "blocked" ? "bloque" : "a vérifier"}
           </div>
         </div>
         {[...deliverability.blockers, ...deliverability.warnings].length > 0 ? (
@@ -585,7 +585,7 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
       </div>
 
       <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Creation..." : scheduledAt ? "Programmer la newsletter" : "Creer la campagne"}
+        {loading ? "Création..." : scheduledAt ? "Programmer la newsletter" : "Créer la campagne"}
       </Button>
     </form>
   );

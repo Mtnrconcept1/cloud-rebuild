@@ -60,7 +60,7 @@ const ROLE_CONFIG: Record<
 > = {
   client: {
     label: "Client",
-    desc: "Commander et decouvrir des restaurants",
+    desc: "Commander et découvrir des restaurants",
     icon: ShoppingBag,
     to: "/",
     color: "border-primary bg-primary/5 text-primary",
@@ -119,18 +119,18 @@ function getSignupValidationError(role: SignupRole, form: SignupFormState) {
   if (!form.password.trim() || form.password.length < 6) return "Le mot de passe doit contenir au moins 6 caracteres.";
 
   if (role === "restaurateur") {
-    if (!form.phone.trim()) return "Le telephone est requis.";
+    if (!form.phone.trim()) return "Le téléphone est requis.";
     if (!form.city.trim()) return "La ville est requise.";
     if (!form.address.trim()) return "L'adresse est requise.";
     if (!form.businessName.trim()) return "Le nom commercial est requis.";
     if (!form.legalName.trim()) return "La raison sociale est requise.";
-    if (!form.businessRegistrationNumber.trim()) return "Le numero d'immatriculation est requis.";
+    if (!form.businessRegistrationNumber.trim()) return "Le numéro d'immatriculation est requis.";
     if (!form.restaurantName.trim()) return "Le nom du restaurant est requis.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
   }
 
   if (role === "courier") {
-    if (!form.phone.trim()) return "Le telephone est requis.";
+    if (!form.phone.trim()) return "Le téléphone est requis.";
     if (!form.city.trim()) return "La ville est requise.";
     if (!form.address.trim()) return "L'adresse est requise.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
@@ -218,7 +218,7 @@ export default function Auth() {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
       toast({
-        title: "Email envoye",
+        title: "Email envoyé",
         description: "Consultez votre boite mail pour reinitialiser votre mot de passe.",
       });
       setForgotPassword(false);
@@ -298,11 +298,11 @@ export default function Auth() {
 
       if (!activeUser?.id || !activeSession) {
         toast({
-          title: "Compte cree",
+          title: "Compte crée",
           description:
             roleMode === "client"
               ? "Confirmez votre email puis reconnectez-vous pour finaliser votre parcours."
-              : "Confirmez votre email puis reconnectez-vous pour finaliser l'envoi des documents de verification.",
+              : "Confirmez votre email puis reconnectez-vous pour finaliser l'envoi des documents de vérification.",
         });
         return;
       }
@@ -353,11 +353,11 @@ export default function Auth() {
       }
 
       toast({
-        title: roleMode === "client" ? "Compte cree" : "Inscription enregistree",
+        title: roleMode === "client" ? "Compte crée" : "Inscription enregistrée",
         description:
           roleMode === "client"
             ? "Votre compte est actif. Vous pouvez continuer votre parcours."
-            : "Votre compte et votre dossier documentaire ont ete transmis pour verification.",
+            : "Votre compte et votre dossier documentaire ont été transmis pour vérification.",
       });
 
       if (roleMode === "client") {
@@ -420,13 +420,13 @@ export default function Auth() {
         <CardHeader className="text-center space-y-3">
           <img src={LOGO_URL} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
           <CardTitle className="font-display text-2xl">
-            {isLogin ? "Bon retour" : isClientSignup ? "Creer votre compte" : "Creer un compte verifie"}
+            {isLogin ? "Bon retour" : isClientSignup ? "Créer votre compte" : "Créer un compte vérifié"}
           </CardTitle>
           <CardDescription>
             {isLogin
               ? postAuthRedirectTarget
-                ? "Connectez-vous pour reprendre votre commande, reservation ou parcours en cours."
-                : "Connectez-vous pour acceder a vos espaces client, restaurateur, livreur ou admin."
+                ? "Connectez-vous pour reprendre votre commande, réservation ou parcours en cours."
+                : "Connectez-vous pour acceder à vos espaces client, restaurateur, livreur ou admin."
               : isClientSignup
                 ? "Inscription en moins d'une minute. Adresse et paiement seront demandes uniquement au bon moment."
                 : "Choisissez un profil, renseignez vos informations et ajoutez les justificatifs requis."}
@@ -437,7 +437,7 @@ export default function Auth() {
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
               <p className="font-medium">Connexion requise pour continuer</p>
               <p className="pt-1 text-muted-foreground">
-                Une fois connecte, vous reviendrez automatiquement a votre parcours en cours.
+                Une fois connecté, vous reviendrez automatiquement à votre parcours en cours.
               </p>
             </div>
           ) : null}
@@ -472,14 +472,14 @@ export default function Auth() {
                 />
               </div>
               <Button className="w-full" onClick={handleResetPassword} disabled={loading}>
-                {loading ? "Envoi..." : "Reinitialiser le mot de passe"}
+                {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
               </Button>
               <button
                 type="button"
                 onClick={() => setForgotPassword(false)}
                 className="w-full text-sm text-muted-foreground transition-colors hover:text-primary"
               >
-                Retour a la connexion
+                Retour à la connexion
               </button>
             </div>
           ) : (
@@ -543,7 +543,7 @@ export default function Auth() {
                 {showExtendedIdentityFields ? (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Telephone</Label>
+                      <Label htmlFor="phone">Téléphone</Label>
                       <Input
                         id="phone"
                         value={signupForm.phone}
@@ -572,7 +572,7 @@ export default function Auth() {
                           updateSignupField("address", address);
                           if (city) updateSignupField("city", city);
                         }}
-                        placeholder="Rue, numero, code postal"
+                        placeholder="Rue, numéro, code postal"
                       />
                     </div>
                   </>
@@ -583,7 +583,7 @@ export default function Auth() {
                 <div className="rounded-2xl border bg-card/50 p-4 text-sm">
                   <p className="font-medium">Inscription simplifiee</p>
                   <p className="pt-1 text-muted-foreground">
-                    Aucun document d&apos;identite n&apos;est demande pour un compte client. Vos coordonnees de livraison seront renseignees plus tard, uniquement si necessaire.
+                    Aucun document d&apos;identite n&apos;est demande pour un compte client. Vos coordonnees de livraison seront renseignees plus tard, uniquement si nécessaire.
                   </p>
                 </div>
               ) : null}
@@ -609,7 +609,7 @@ export default function Auth() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="businessRegistrationNumber">Numero d'immatriculation</Label>
+                    <Label htmlFor="businessRegistrationNumber">Numéro d'immatriculation</Label>
                     <Input
                       id="businessRegistrationNumber"
                       value={signupForm.businessRegistrationNumber}
@@ -620,7 +620,7 @@ export default function Auth() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="taxId">Numero TVA (optionnel)</Label>
+                    <Label htmlFor="taxId">Numéro TVA (optionnel)</Label>
                     <Input
                       id="taxId"
                       value={signupForm.taxId}
@@ -706,7 +706,7 @@ export default function Auth() {
                   <div>
                     <p className="font-medium">Documents a fournir</p>
                     <p className="text-sm text-muted-foreground">
-                      Chaque profil impose des pieces justificatives differentes. Les fichiers sont
+                      Chaque profil impose des pieces justificatives différentes. Les fichiers sont
                       stockes dans un espace prive et revus par l'administration.
                     </p>
                   </div>
@@ -726,7 +726,7 @@ export default function Auth() {
                           <div className="flex items-center justify-between gap-3 rounded-lg border bg-background px-3 py-2 text-sm">
                             <div className="min-w-0">
                               <p className="truncate">
-                                {selectedFile ? selectedFile.name : "Aucun fichier selectionne"}
+                                {selectedFile ? selectedFile.name : "Aucun fichier sélectionné"}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {selectedFile ? `${Math.round(selectedFile.size / 1024)} KB` : requirement.accept}
@@ -761,11 +761,11 @@ export default function Auth() {
                 ) : isLogin ? (
                   "Se connecter"
                 ) : isClientSignup ? (
-                  "Creer mon compte"
+                  "Créer mon compte"
                 ) : (
                   <>
                     <FileText className="mr-2 h-4 w-4" />
-                    Envoyer mon inscription verifiee
+                    Envoyer mon inscription vérifiée
                   </>
                 )}
               </Button>
@@ -832,7 +832,7 @@ export default function Auth() {
                 onClick={() => setForgotPassword(true)}
                 className="text-xs text-muted-foreground transition-colors hover:text-primary"
               >
-                Mot de passe oublie ?
+                Mot de passe oublié ?
               </button>
             </div>
           ) : null}

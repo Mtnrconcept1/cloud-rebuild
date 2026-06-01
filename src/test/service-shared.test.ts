@@ -87,7 +87,7 @@ describe("service shared table state", () => {
 
     expect(state.key).toBe("conflict");
     expect(state.label).toBe("Conflit horaire");
-    expect(state.detail).toBe("2 reservations");
+    expect(state.detail).toBe("2 réservations");
   });
 
   it("ignores released reservations when detecting table conflicts", () => {
@@ -165,7 +165,7 @@ describe("service shared table state", () => {
     });
 
     expect(state.key).toBe("zero-attente");
-    expect(state.label).toBe("Zero Attente");
+    expect(state.label).toBe("Zéro Attente");
   });
 
   it("marks furniture separately from reservable table states", () => {
@@ -191,7 +191,7 @@ describe("service shared table state", () => {
     });
 
     expect(exact.score).toBeGreaterThan(oversized.score);
-    expect(exact.reasons).toContain("Capacite parfaite");
+    expect(exact.reasons).toContain("Capacité parfaite");
     expect(oversized.reasons).toContain("4 place(s) libres");
   });
 

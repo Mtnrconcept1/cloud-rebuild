@@ -106,7 +106,7 @@ export default function AdminCatalog() {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Cuisine supprimee" });
+    toast({ title: "Cuisine supprimée" });
     queryClient.invalidateQueries({ queryKey: ["admin-cuisines"] });
   };
 
@@ -170,7 +170,7 @@ export default function AdminCatalog() {
         .single();
       if (error || !data?.id) {
         setSavingCollection(false);
-        toast({ title: "Erreur", description: error?.message || "Impossible de creer la collection.", variant: "destructive" });
+        toast({ title: "Erreur", description: error?.message || "Impossible de créer la collection.", variant: "destructive" });
         return;
       }
       collectionId = data.id;
@@ -203,7 +203,7 @@ export default function AdminCatalog() {
     setEditingCollection(null);
     setCollectionForm(EMPTY_COLLECTION_FORM);
     queryClient.invalidateQueries({ queryKey: ["admin-collections-raw"] });
-    toast({ title: editingCollection ? "Collection mise a jour" : "Collection creee" });
+    toast({ title: editingCollection ? "Collection mise à jour" : "Collection créée" });
   };
 
   const deleteCollection = async (id: string) => {
@@ -212,7 +212,7 @@ export default function AdminCatalog() {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Collection supprimee" });
+    toast({ title: "Collection supprimée" });
     queryClient.invalidateQueries({ queryKey: ["admin-collections-raw"] });
   };
 
@@ -235,7 +235,7 @@ export default function AdminCatalog() {
           <DialogTrigger asChild>
             <Button onClick={openCreateCollection}>
               <Plus className="w-4 h-4 mr-2" />
-              Creer une collection
+              Créer une collection
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
@@ -266,7 +266,7 @@ export default function AdminCatalog() {
                 <span>Collection active</span>
               </label>
               <div className="space-y-2">
-                <p className="text-sm font-medium">Restaurants associes</p>
+                <p className="text-sm font-medium">Restaurants associés</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-56 overflow-y-auto rounded-lg border p-3">
                   {restaurants.map((restaurant: any) => (
                     <label key={restaurant.id} className="flex items-center gap-2 text-sm">
@@ -281,7 +281,7 @@ export default function AdminCatalog() {
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={savingCollection}>
-                {savingCollection ? "Enregistrement..." : editingCollection ? "Mettre a jour" : "Creer"}
+                {savingCollection ? "Enregistrement..." : editingCollection ? "Mettre à jour" : "Creer"}
               </Button>
             </form>
           </DialogContent>
@@ -317,7 +317,7 @@ export default function AdminCatalog() {
                   </Button>
                 </div>
               ))}
-              {cuisines.length === 0 ? <p className="text-sm text-muted-foreground">Aucune cuisine definie.</p> : null}
+              {cuisines.length === 0 ? <p className="text-sm text-muted-foreground">Aucune cuisine définie.</p> : null}
             </div>
           </CardContent>
         </Card>
@@ -326,7 +326,7 @@ export default function AdminCatalog() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Layers className="w-5 h-5 text-amber-500" />
-              <CardTitle>Collections a la une</CardTitle>
+              <CardTitle>Collections à la une</CardTitle>
             </div>
             <CardDescription>Carrousels thematiques de la page d'accueil</CardDescription>
           </CardHeader>
@@ -357,7 +357,7 @@ export default function AdminCatalog() {
                 </div>
               </div>
             ))}
-            {collections.length === 0 ? <p className="text-sm text-muted-foreground">Aucune collection definie.</p> : null}
+            {collections.length === 0 ? <p className="text-sm text-muted-foreground">Aucune collection définie.</p> : null}
           </CardContent>
         </Card>
       </div>

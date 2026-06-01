@@ -226,7 +226,7 @@ function EmptyState({
             <h3 className="text-xl font-bold">Lancez-vous avec un pack</h3>
             <p className="text-muted-foreground text-sm">
               Mise en place, photos professionnelles, campagnes publicitaires —
-              choisissez le pack qui correspond a vos besoins.
+              choisissez le pack qui correspond à vos besoins.
             </p>
           </div>
         </CardContent>
@@ -302,7 +302,7 @@ export default function DashboardPack() {
 
       if (checkoutError || !checkoutData?.url) {
         throw new Error(
-          (checkoutError as Error | null)?.message || "Impossible de creer la session de paiement."
+          (checkoutError as Error | null)?.message || "Impossible de créer la session de paiement."
         );
       }
 
@@ -340,7 +340,7 @@ export default function DashboardPack() {
             <div>
               <p className="font-semibold text-green-800 text-sm">Paiement confirme !</p>
               <p className="text-xs text-green-700 mt-0.5">
-                Votre pack a ete active. Notre equipe vous contactera sous 48h.
+                Votre pack a été active. Notre équipe vous contactera sous 48h.
               </p>
             </div>
           </div>
@@ -409,7 +409,7 @@ export default function DashboardPack() {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {fulfillments.filter((f) => f.status === "completed").length} /{" "}
-                      {fulfillments.length} services termines
+                      {fulfillments.length} services terminés
                     </p>
                   </div>
                 )}

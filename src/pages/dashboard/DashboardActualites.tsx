@@ -65,8 +65,8 @@ export default function DashboardActualites() {
   const recommendations = insights?.recommendations?.length
     ? insights.recommendations
     : [
-        "Publiez 3 a 5 actualites par semaine: plat phare, offre courte, coulisses et rappel reservation.",
-        "Ajoutez un CTA mesurable a chaque post qui doit generer du chiffre d'affaires.",
+        "Publiez 3 a 5 actualités par semaine: plat phare, offre courte, coulisses et rappel réservation.",
+        "Ajoutez un CTA mesurable à chaque post qui doit generer du chiffre d'affaires.",
       ];
 
   const refreshCampaignLinkedData = useCallback(() => {
@@ -84,7 +84,7 @@ export default function DashboardActualites() {
     if (status === "success") {
       toast({
         title: "Paiement confirme",
-        description: "Votre post sponsorise est en cours d'activation. Les donnees peuvent prendre quelques secondes a se synchroniser.",
+        description: "Votre post sponsorise est en cours d'activation. Les données peuvent prendre quelques secondes a se synchroniser.",
       });
       refreshCampaignLinkedData();
     } else if (status === "cancelled") {
@@ -109,11 +109,11 @@ export default function DashboardActualites() {
       <div className="space-y-6">
         <DashboardPageHero
           badge="Fil social"
-          title="Actualites"
-          description="Pilotez vos actualites comme un canal marketing: objectifs, audiences, CTA, planning, conversions sponsorisees et performance."
+          title="Actualités"
+          description="Pilotez vos actualités comme un canal marketing: objectifs, audiences, CTA, planning, conversions sponsorisees et performance."
           icon={Newspaper}
           tone="sky"
-          visualLabel="Actualites"
+          visualLabel="Actualités"
           stats={[
             { label: "Publies", value: insights?.publishedCount ?? publishedCount, icon: Newspaper },
             { label: "Interactions", value: insights?.interactions ?? interactions, icon: ThumbsUp },
@@ -148,7 +148,7 @@ export default function DashboardActualites() {
                         <span className="text-sm font-medium">Objectif dominant</span>
                         <span className="text-sm text-muted-foreground">{topGoal?.count || 0} posts</span>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{topGoal?.label || "Notoriete"} · {topGoal?.description || "Developper la visibilite locale."}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{topGoal?.label || "Notoriete"} · {topGoal?.description || "Developper la visibilité locale."}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-lg border p-3">
@@ -171,7 +171,7 @@ export default function DashboardActualites() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-muted-foreground">Conversions sponsorisees</p>
-                      <h2 className="font-display text-lg font-semibold">Impact Actualites</h2>
+                      <h2 className="font-display text-lg font-semibold">Impact Actualités</h2>
                     </div>
                     <Target className="h-5 w-5 text-primary" />
                   </div>
@@ -194,12 +194,12 @@ export default function DashboardActualites() {
                     <div className="rounded-lg border bg-background/80 p-3">
                       <CalendarCheck className="mb-2 h-4 w-4 text-primary" />
                       <p className="text-2xl font-bold">{reservationConversions}</p>
-                      <p className="text-xs text-muted-foreground">reservations</p>
+                      <p className="text-xs text-muted-foreground">réservations</p>
                     </div>
                     <div className="rounded-lg border bg-background/80 p-3 col-span-2">
                       <Timer className="mb-2 h-4 w-4 text-primary" />
                       <p className="text-2xl font-bold">{zeroAttenteConversions}</p>
-                      <p className="text-xs text-muted-foreground">Zero Attente attribues</p>
+                      <p className="text-xs text-muted-foreground">Zéro Attente attribues</p>
                     </div>
                   </div>
                 </CardContent>

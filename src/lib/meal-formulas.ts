@@ -285,7 +285,7 @@ export function detectBestMealFormula(input: {
 
 export function formatMissingCoursesText(courses: FormulaCourse[]): string {
   const labels = courses.map((course) => {
-    if (course === "entree") return "une entree";
+    if (course === "entree") return "une entrée";
     if (course === "plat") return "un plat";
     return "un dessert";
   });

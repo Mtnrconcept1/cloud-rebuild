@@ -133,7 +133,7 @@ export default function CourierProfile() {
         shifts: toShiftPayload(shiftGroups),
       }),
     onSuccess: () => {
-      toast.success("Profil coursier mis a jour");
+      toast.success("Profil coursier mis à jour");
       queryClient.invalidateQueries({ queryKey: ["courier-profile", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["courier-shifts"] });
     },
@@ -208,14 +208,14 @@ export default function CourierProfile() {
 
         <SignupApplicationStatusCard
           application={signupApplication}
-          title="Dossier de verification livreur"
-          emptyDescription="Aucun dossier livreur n'a encore ete soumis."
+          title="Dossier de vérification livreur"
+          emptyDescription="Aucun dossier livreur n'a encore été soumis."
         />
 
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <Card>
             <CardHeader>
-              <CardTitle>Informations generales</CardTitle>
+              <CardTitle>Informations générales</CardTitle>
               <CardDescription>Coordonnees, vehicule et informations de paiement.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
@@ -236,7 +236,7 @@ export default function CourierProfile() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Telephone</Label>
+                <Label htmlFor="phone">Téléphone</Label>
                 <Input
                   id="phone"
                   value={form.phone}
@@ -288,8 +288,8 @@ export default function CourierProfile() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Qualite de service</CardTitle>
-                <CardDescription>Indicateurs relies a vos missions.</CardDescription>
+                <CardTitle>Qualité de service</CardTitle>
+                <CardDescription>Indicateurs relies à vos missions.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between rounded-xl border p-3">
@@ -324,7 +324,7 @@ export default function CourierProfile() {
           <CardHeader>
             <CardTitle>Disponibilites hebdomadaires</CardTitle>
             <CardDescription>
-              Ajoutez plusieurs plages horaires par jour. Ces creneaux servent a votre planning et a la diffusion des missions.
+              Ajoutez plusieurs plages horaires par jour. Ces créneaux servent à votre planning et à la diffusion des missions.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -381,7 +381,7 @@ export default function CourierProfile() {
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                      Aucun creneau configure pour cette journee.
+                      Aucun creneau configure pour cette journée.
                     </div>
                   )}
                 </div>

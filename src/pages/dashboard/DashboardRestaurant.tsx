@@ -216,7 +216,7 @@ export default function DashboardRestaurant() {
         await syncRestaurantCuisines(restaurantId);
       }
 
-      toast({ title: restaurant ? "Restaurant mis a jour !" : "Restaurant cree !" });
+      toast({ title: restaurant ? "Restaurant mis à jour !" : "Restaurant crée !" });
       queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
       queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
       queryClient.invalidateQueries({ queryKey: ["restaurant-cuisine-links"] });
@@ -255,8 +255,8 @@ export default function DashboardRestaurant() {
       <div className="space-y-6">
         <DashboardPageHero
           badge="Identite restaurant"
-          title={restaurant ? "Mon restaurant" : "Creer mon restaurant"}
-          description="Gardez l'identite, l'adresse, les categories, les moyens de paiement et les options de service au meme niveau de controle."
+          title={restaurant ? "Mon restaurant" : "Créer mon restaurant"}
+          description="Gardez l'identite, l'adresse, les catégories, les moyens de paiement et les options de service au meme niveau de contrôle."
           icon={Store}
           tone="orange"
           visualLabel="Profil"
@@ -273,7 +273,7 @@ export default function DashboardRestaurant() {
               <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
             </div>
             <div className="space-y-2">
-              <Label>Resume des categories</Label>
+              <Label>Resume des catégories</Label>
               <Input value={cuisineSummary} readOnly placeholder="Selectionnez un ou plusieurs types" />
             </div>
           </div>
@@ -281,7 +281,7 @@ export default function DashboardRestaurant() {
           <div className="space-y-2">
             <Label>Types de restauration</Label>
             <p className="text-xs text-muted-foreground">
-              Selection multiple. Ces categories alimentent la recherche et decrivent precisement votre offre.
+              Sélection multiple. Ces catégories alimentent la recherche et decrivent precisement votre offre.
             </p>
             <div className="flex flex-wrap gap-2 rounded-xl border p-3">
               {cuisineOptions.map((option) => {
@@ -338,7 +338,7 @@ export default function DashboardRestaurant() {
           </div>
 
           <div className="space-y-2">
-            <Label>Telephone</Label>
+            <Label>Téléphone</Label>
             <Input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
           </div>
 
@@ -402,10 +402,10 @@ export default function DashboardRestaurant() {
           {restaurant && (
             <div className="mt-6 border-t pt-4">
               <h3 className="mb-4 flex items-center gap-2 font-semibold">
-                <CreditCard className="h-5 w-5" /> Moyens de paiement acceptes
+                <CreditCard className="h-5 w-5" /> Moyens de paiement acceptés
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Desactivez les moyens de paiement que vous ne souhaitez pas proposer a vos clients.
+                Desactivez les moyens de paiement que vous ne souhaitez pas proposer à vos clients.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {([
@@ -454,7 +454,7 @@ export default function DashboardRestaurant() {
                 <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
                   <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-green-800">Compte Stripe connecte</p>
+                    <p className="text-sm font-semibold text-green-800">Compte Stripe connecté</p>
                     <p className="font-mono text-xs text-green-600">{(restaurant as any).stripe_account_id}</p>
                   </div>
                   <Button variant="outline" size="sm" onClick={handleStripeConnect} disabled={connectLoading} className="gap-1.5">

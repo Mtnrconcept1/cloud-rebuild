@@ -109,7 +109,7 @@ function ReservationQueueItem({
             </span>
             {isZeroAttente ? (
               <Badge className={cn("border", isSelected ? "border-teal-300 bg-teal-400/20 text-teal-50" : "border-teal-200 bg-teal-50 text-teal-800")}>
-                Zero Attente
+                Zéro Attente
               </Badge>
             ) : null}
             <Badge className={cn("border", isSelected ? "border-white/15 bg-white/10 text-white" : getReservationStatusTone(reservation.status))}>

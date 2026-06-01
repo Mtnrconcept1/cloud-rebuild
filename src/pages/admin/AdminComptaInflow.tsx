@@ -61,7 +61,7 @@ function InvoiceTableRow({
         <TableCell className="text-right">
           <div className="flex flex-col items-end gap-2">
             <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
-              Voir la facture
+              Voir la facturé
             </Button>
             {isPaid ? (
               <span className="text-xs text-muted-foreground">Reglee</span>
@@ -89,7 +89,7 @@ function InvoiceTable({
     return (
       <Card className="border-dashed">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Aucune facture sur cette section.
+          Aucune facturé sur cette section.
         </CardContent>
       </Card>
     );
@@ -167,7 +167,7 @@ function MobileInvoiceCard({
           </div>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
-              Voir la facture
+              Voir la facturé
             </Button>
             {!isPaid ? (
               <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
@@ -226,10 +226,10 @@ export default function AdminComptaInflow() {
 
       const generated = selectedRestaurant === "all" ? Number(data ?? 0) : data ? 1 : 0;
       toast({
-        title: generated > 0 ? "Factures TOK generees" : "Aucune facture generee",
+        title: generated > 0 ? "Factures TOK generees" : "Aucune facturé generee",
         description: generated > 0
-          ? `${generated} facture${generated > 1 ? "s" : ""} ajoutee${generated > 1 ? "s" : ""} pour ${selectedMonth}.`
-          : "Aucune nouvelle facture a produire sur cette periode.",
+          ? `${generated} facturé${generated > 1 ? "s" : ""} ajoutee${generated > 1 ? "s" : ""} pour ${selectedMonth}.`
+          : "Aucune nouvelle facturé a produire sur cette periode.",
       });
 
       await Promise.all([
@@ -271,7 +271,7 @@ export default function AdminComptaInflow() {
       <AccountingHero
         badge="Entrees d'argent"
         title="Factures faites aux restaurateurs"
-        description="Commencez par ce qui doit etre facture, puis par ce qui est deja emis et attend l'encaissement. Les explications sur le contenu des factures restent visibles plus bas."
+        description="Commencez par ce qui doit être facturé, puis par ce qui est déjà emis et attend l'encaissement. Les explications sur le contenu des factures restent visibles plus bas."
         actions={(
           <>
             <Button asChild size="sm" variant="outline">
@@ -322,7 +322,7 @@ export default function AdminComptaInflow() {
         </CardContent>
       </Card>
 
-      {isLoading ? <p className="text-sm text-muted-foreground">Chargement des donnees comptables...</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">Chargement des données comptables...</p> : null}
       {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
 
       {!isLoading && !error ? (
@@ -333,14 +333,14 @@ export default function AdminComptaInflow() {
               icon={RefreshCcw}
               label="Encore a facturer"
               value={formatAmount(payableAccruals.totalAmount)}
-              description={`${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} payable${payableAccruals.totalCount > 1 ? "s" : ""} attendent encore une facture.`}
+              description={`${payableAccruals.totalCount} ligne${payableAccruals.totalCount > 1 ? "s" : ""} payable${payableAccruals.totalCount > 1 ? "s" : ""} attendent encore une facturé.`}
             />
             <AccountingMetricCard
               tone="orange"
               icon={FileDown}
-              label="Deja facture, a encaisser"
+              label="Deja facturé, a encaisser"
               value={formatAmount(summary.inflow.payableOutstanding)}
-              description={`${payableInvoiceSections.actionable.length} facture${payableInvoiceSections.actionable.length > 1 ? "s" : ""} ouverte${payableInvoiceSections.actionable.length > 1 ? "s" : ""} cote restaurateurs.`}
+              description={`${payableInvoiceSections.actionable.length} facturé${payableInvoiceSections.actionable.length > 1 ? "s" : ""} ouverte${payableInvoiceSections.actionable.length > 1 ? "s" : ""} cote restaurateurs.`}
             />
             <AccountingMetricCard
               tone="emerald"
@@ -353,7 +353,7 @@ export default function AdminComptaInflow() {
               icon={Wallet}
               label="Deja encaisse"
               value={formatAmount(summary.inflow.payableCollected)}
-              description="Historique regle sur les factures payables deja emises."
+              description="Historique regle sur les factures payables déjà emises."
             />
           </div>
 
@@ -363,9 +363,9 @@ export default function AdminComptaInflow() {
               icon={RefreshCcw}
               eyebrow="A faire maintenant"
               title="Generer les factures du mois"
-              description="Ce bloc vous dit ce qui doit partir en facture avant meme d'ouvrir le tableau detaille."
+              description="Ce bloc vous dit ce qui doit partir en facturé avant meme d'ouvrir le tableau detaille."
               value={formatAmount(payableAccruals.totalAmount)}
-              valueLabel="Encours non facture"
+              valueLabel="Encours non facturé"
             >
               <AccountingFactList
                 tone="amber"
@@ -376,7 +376,7 @@ export default function AdminComptaInflow() {
                     helper: `${payableAccruals.orderCommissionCount} ligne${payableAccruals.orderCommissionCount > 1 ? "s" : ""}`,
                   },
                   {
-                    label: "Commissions reservations + frais",
+                    label: "Commissions réservations + frais",
                     value: formatAmount(payableAccruals.reservationCommissionAmount + payableAccruals.reservationFeeAmount),
                     helper: `${payableAccruals.reservationCommissionCount + payableAccruals.reservationFeeCount} ligne${payableAccruals.reservationCommissionCount + payableAccruals.reservationFeeCount > 1 ? "s" : ""}`,
                   },
@@ -399,8 +399,8 @@ export default function AdminComptaInflow() {
               tone="orange"
               icon={FileDown}
               eyebrow="A faire maintenant"
-              title="Suivre les factures deja emises"
-              description="Une fois la facture creee, la priorite devient l'encaissement cote restaurateur."
+              title="Suivre les factures déjà emises"
+              description="Une fois la facturé créée, la priorite devient l'encaissement cote restaurateur."
               value={formatAmount(summary.inflow.payableOutstanding)}
               valueLabel="A encaisser"
             >
@@ -410,7 +410,7 @@ export default function AdminComptaInflow() {
                   {
                     label: "Factures ouvertes",
                     value: String(payableInvoiceSections.actionable.length),
-                    helper: "Documents deja visibles dans la section A encaisser",
+                    helper: "Documents déjà visibles dans la section A encaisser",
                   },
                   {
                     label: "Historique encaisse",
@@ -430,8 +430,8 @@ export default function AdminComptaInflow() {
               tone="primary"
               icon={Receipt}
               eyebrow="Comprendre les flux"
-              title="Ce que contient la facture restaurateur"
-              description="La facture payable unique agrège seulement ce que le restaurateur doit a TOK sur la periode."
+              title="Ce que contient la facturé restaurateur"
+              description="La facturé payable unique agrège seulement ce que le restaurateur doit a TOK sur la periode."
               value={formatAmount(totalPayableOpen)}
               valueLabel="Ouvert total"
             >
@@ -443,11 +443,11 @@ export default function AdminComptaInflow() {
                     value: formatAmount(payableAccruals.orderCommissionAmount),
                   },
                   {
-                    label: "Commission reservations",
+                    label: "Commission réservations",
                     value: formatAmount(payableAccruals.reservationCommissionAmount),
                   },
                   {
-                    label: "Frais de reservation",
+                    label: "Frais de réservation",
                     value: formatAmount(payableAccruals.reservationFeeAmount),
                   },
                   {
@@ -503,7 +503,7 @@ export default function AdminComptaInflow() {
                   {
                     label: "Lecture comptable",
                     value: "Flux separe",
-                    helper: "Visible a part meme si ce n'est pas le coeur de la facture payable",
+                    helper: "Visible a part meme si ce n'est pas le coeur de la facturé payable",
                   },
                 ]}
               />

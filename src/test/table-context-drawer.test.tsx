@@ -67,7 +67,7 @@ describe("TableContextDrawer", () => {
         selectedReservationSpecialRequest={null}
         selectedPairDropState={null}
         compatibleTables={[
-          { table: bestTable, placement: { score: 96, wastedSeats: 0, reasons: ["Capacite parfaite", "Rotation confortable"] } },
+          { table: bestTable, placement: { score: 96, wastedSeats: 0, reasons: ["Capacité parfaite", "Rotation confortable"] } },
           { table: fallbackTable, placement: { score: 68, wastedSeats: 4, reasons: ["4 place(s) libres"] } },
         ]}
         compatibleReservations={[]}
@@ -83,7 +83,7 @@ describe("TableContextDrawer", () => {
     expect(screen.getByText("Table recommandee")).toBeInTheDocument();
     expect(screen.getByText("T4")).toBeInTheDocument();
     expect(screen.getByText("Score 96/100")).toBeInTheDocument();
-    expect(screen.getByText("Capacite parfaite")).toBeInTheDocument();
+    expect(screen.getByText("Capacité parfaite")).toBeInTheDocument();
     expect(screen.getByText("Rotation confortable")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Affecter table recommandee T4" }));

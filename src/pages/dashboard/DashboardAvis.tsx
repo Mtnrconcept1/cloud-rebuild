@@ -114,14 +114,14 @@ export default function DashboardAvis() {
         <DashboardPageHero
           badge="Relation client"
           title="Avis clients"
-          description="Suivez les retours, gardez les notes visibles et preparez les reponses sans melanger moderation et lecture operationnelle."
+          description="Suivez les retours, gardez les notes visibles et preparez les réponses sans melanger moderation et lecture operationnelle."
           icon={MessageSquareText}
           tone="sky"
           visualLabel="Reputation"
           stats={[
             { label: "Avis charges", value: items.length, icon: Star },
             { label: "Restaurants", value: restaurants.length, icon: Store },
-            { label: "Mode", value: editingId ? "Edition" : "Creation", icon: MessageSquareText },
+            { label: "Mode", value: editingId ? "Édition" : "Création", icon: MessageSquareText },
           ]}
         />
         <Card>

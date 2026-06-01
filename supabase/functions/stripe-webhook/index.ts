@@ -704,7 +704,7 @@ Deno.serve(async (req) => {
             );
 
             if (reservationError || !createdReservationId) {
-              throw new Error(reservationError?.message || "Creation de reservation Zero Attente impossible.");
+              throw new Error(reservationError?.message || "Création de réservation Zéro Attente impossible.");
             }
             reservationId = createdReservationId;
           }
@@ -1034,8 +1034,8 @@ Deno.serve(async (req) => {
           await enqueueNotification({
             adminClient: supabaseAdmin,
             userId: syncResult.row.user_id,
-            title: "Abonnement Tok One mis a jour",
-            body: "Votre abonnement Tok One n'est plus actif. Mettez a jour votre moyen de paiement pour retrouver vos avantages.",
+            title: "Abonnement Tok One mis à jour",
+            body: "Votre abonnement Tok One n'est plus actif. Mettez à jour votre moyen de paiement pour retrouver vos avantages.",
             type: "subscription",
             category: "transactional",
             data: {

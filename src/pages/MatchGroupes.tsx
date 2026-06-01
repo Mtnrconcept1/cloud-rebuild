@@ -473,7 +473,7 @@ export default function MatchGroupes() {
     const restaurant = group.restaurant || group.restaurants || restaurants.find((row: any) => row.id === group.restaurant_id);
     if (!restaurant) return toast({ title: "Restaurant indisponible", variant: "destructive" });
     if (group.member_count >= group.max_members) {
-      return toast({ title: "Groupe complet", description: "Ce groupe accepte au maximum 10 clients.", variant: "destructive" });
+      return toast({ title: "Groupe complet", description: "Ce groupe accepté au maximum 10 clients.", variant: "destructive" });
     }
 
     setActiveGroup(group);

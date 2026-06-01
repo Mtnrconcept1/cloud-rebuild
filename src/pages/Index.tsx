@@ -315,7 +315,7 @@ export default function Index() {
   const primaryRail = lunchFocus
     ? {
       title: "Pour ce midi",
-      subtitle: deliveryEnabled ? "Rapide et fiable" : "Selection du midi",
+      subtitle: deliveryEnabled ? "Rapide et fiable" : "Sélection du midi",
       icon: SunMedium,
       iconColor: "text-amber-500",
       restaurants: lunchCards,
@@ -353,7 +353,7 @@ export default function Index() {
     }
     : {
       title: "Pour ce midi",
-      subtitle: deliveryEnabled ? "Rapide et fiable" : "Selection du midi",
+      subtitle: deliveryEnabled ? "Rapide et fiable" : "Sélection du midi",
       icon: SunMedium,
       iconColor: "text-amber-500",
       restaurants: lunchCards,
@@ -372,7 +372,7 @@ export default function Index() {
         key: "cart",
         eyebrow: "A reprendre",
         title: "Votre panier vous attend",
-        description: `Vous avez deja ${itemCount} article${itemCount > 1 ? "s" : ""} en attente. Reprenez le parcours au bon endroit.`,
+        description: `Vous avez déjà ${itemCount} article${itemCount > 1 ? "s" : ""} en attente. Reprenez le parcours au bon endroit.`,
         cta: "Revenir au panier",
         href: "/panier",
         icon: ShoppingCart,
@@ -397,7 +397,7 @@ export default function Index() {
       ? {
         key: "discover",
         eyebrow: "Decouverte",
-        title: "Lancez votre premiere selection",
+        title: "Lancez votre première sélection",
         description: "Commencez par une recherche simple. Le reste du parcours restera ensuite beaucoup plus personnalise.",
         cta: "Explorer les restaurants",
         href: buildSearchLink({ city: userContext?.city || null }),

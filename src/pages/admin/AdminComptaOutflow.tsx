@@ -60,7 +60,7 @@ function InvoiceListItem({
 }) {
   const detailQuery = useAdminPayoutInvoiceDetailLines(isExpanded ? invoice.id : null);
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
-  const detailButtonLabel = isExpanded ? "Masquer le detail" : "Voir le detail";
+  const detailButtonLabel = isExpanded ? "Masquer le détail" : "Voir le détail";
 
   return (
     <div className="rounded-xl border bg-background p-4">
@@ -131,7 +131,7 @@ function InvoiceTable({
   if (invoices.length === 0) {
     return (
       <div className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">
-        Aucune facture sur cette section.
+        Aucune facturé sur cette section.
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default function AdminComptaOutflow() {
       <AccountingHero
         badge="Sorties d'argent"
         title="Factures recues des restaurateurs"
-        description="Commencez par les reversements a regler, puis descendez vers l'explication des flux et enfin vers le detail facture par facture."
+        description="Commencez par les reversements a regler, puis descendez vers l'explication des flux et enfin vers le détail facturé par facturé."
         actions={(
           <>
             <Button asChild size="sm" variant="outline">
@@ -249,7 +249,7 @@ export default function AdminComptaOutflow() {
         </CardContent>
       </Card>
 
-      {isLoading ? <p className="text-sm text-muted-foreground">Chargement des donnees comptables...</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">Chargement des données comptables...</p> : null}
       {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
 
       {!isLoading && !error ? (
@@ -260,13 +260,13 @@ export default function AdminComptaOutflow() {
               icon={ArrowUpRight}
               label="A regler maintenant"
               value={formatAmount(summary.outflow.payoutsOutstanding)}
-              description={`${payoutInvoiceSections.actionable.length} facture${payoutInvoiceSections.actionable.length > 1 ? "s" : ""} de payout encore ouverte${payoutInvoiceSections.actionable.length > 1 ? "s" : ""}.`}
+              description={`${payoutInvoiceSections.actionable.length} facturé${payoutInvoiceSections.actionable.length > 1 ? "s" : ""} de payout encore ouverte${payoutInvoiceSections.actionable.length > 1 ? "s" : ""}.`}
             />
             <AccountingMetricCard
               icon={Wallet}
               label="Deja reverse"
               value={formatAmount(summary.outflow.payoutsPaid)}
-              description="Historique des reversements deja regles par TOK."
+              description="Historique des reversements déjà règles par TOK."
             />
             <AccountingMetricCard
               tone="emerald"
@@ -280,7 +280,7 @@ export default function AdminComptaOutflow() {
               icon={HandCoins}
               label="Miamz pris en charge"
               value={formatAmount(tokCoveredMiamzAmount)}
-              description={`${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec reduction Miamz financee par Tok.`}
+              description={`${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz financee par Tok.`}
             />
             <AccountingMetricCard
               tone="violet"
@@ -297,7 +297,7 @@ export default function AdminComptaOutflow() {
               icon={FileUp}
               eyebrow="A faire maintenant"
               title="Reversements a regler"
-              description="Ce bloc condense ce qui doit etre regle par TOK avant de descendre dans le tableau detaille."
+              description="Ce bloc condense ce qui doit être regle par TOK avant de descendre dans le tableau detaille."
               value={formatAmount(summary.outflow.payoutsOutstanding)}
               valueLabel="A regler"
             >
@@ -336,7 +336,7 @@ export default function AdminComptaOutflow() {
                   {
                     label: "Miamz pris en charge par Tok",
                     value: formatAmount(tokCoveredMiamzAmount),
-                    helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec reduction fidelite.`,
+                    helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction fidélité.`,
                   },
                   {
                     label: "Encore a traiter",
@@ -383,7 +383,7 @@ export default function AdminComptaOutflow() {
               icon={Receipt}
               eyebrow="Comprendre les flux"
               title="Lecture du mois"
-              description="Cette vue fait volontairement passer le pilotage avant le detail. L'historique reste accessible plus bas."
+              description="Cette vue fait volontairement passer le pilotage avant le détail. L'historique reste accessible plus bas."
               value={formatAmount(summary.outflow.payoutsOutstanding)}
               valueLabel="Ouvert du mois"
             >

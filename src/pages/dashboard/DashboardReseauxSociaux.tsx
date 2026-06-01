@@ -267,7 +267,7 @@ export default function DashboardReseauxSociaux() {
                 <CardContent className="space-y-3 pt-5">
                   <h3 className="font-semibold">{item.name}</h3>
                   {!hasAny ? (
-                    <p className="text-sm text-muted-foreground">Aucun reseau social connecte</p>
+                    <p className="text-sm text-muted-foreground">Aucun reseau social connecté</p>
                   ) : (
                     <div className="grid gap-2 sm:grid-cols-2">
                       {links.social_instagram ? (

@@ -138,7 +138,7 @@ export default function DashboardCampagneOverview() {
         <DashboardPageHero
           badge="Marketing restaurant"
           title="Vue d ensemble des campagnes"
-          description={selectedRestaurant ? `Synthese de ${selectedRestaurant.name}: depenses, rythme, clics et conversions restent visibles avant le detail des campagnes.` : "Selectionnez un restaurant dans la barre laterale pour afficher la synthese marketing."}
+          description={selectedRestaurant ? `Synthese de ${selectedRestaurant.name}: depenses, rythme, clics et conversions restent visibles avant le détail des campagnes.` : "Selectionnez un restaurant dans la barre laterale pour afficher la synthese marketing."}
           icon={BarChart3}
           tone="rose"
           visualLabel="Marketing"
@@ -201,7 +201,7 @@ export default function DashboardCampagneOverview() {
         {loadingRestaurants || loading ? <p className="text-muted-foreground">Chargement...</p> : null}
         {restaurantError || error ? <p className="text-destructive">Erreur: {restaurantError || error}</p> : null}
         {!loading && !error && selectedId && !campaigns.length ? (
-          <p className="text-muted-foreground">Aucune campagne. Creez-en une depuis l onglet Campagnes.</p>
+          <p className="text-muted-foreground">Aucune campagne. Créez-en une depuis l onglet Campagnes.</p>
         ) : null}
 
         <div className="space-y-3">

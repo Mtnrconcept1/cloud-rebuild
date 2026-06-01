@@ -82,7 +82,7 @@ export default function SignupApplicationStatusCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium">
             <FileText className="h-4 w-4 text-primary" />
-            Documents de verification
+            Documents de vérification
           </div>
           {documents.length > 0 ? (
             <div className="grid gap-2 md:grid-cols-2">
@@ -108,7 +108,7 @@ export default function SignupApplicationStatusCard({
             </div>
           ) : (
             <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-              Aucun document n'est encore rattache a ce dossier.
+              Aucun document n'est encore rattache à ce dossier.
             </div>
           )}
         </div>

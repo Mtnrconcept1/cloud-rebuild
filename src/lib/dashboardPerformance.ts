@@ -492,8 +492,8 @@ export function buildPerformanceAlerts(input: {
     alerts.push({
       id: "no-reservation",
       tone: "neutral",
-      title: "Aucune reservation enregistree aujourd'hui",
-      description: "Surveillez vos disponibilites et vos campagnes pour remplir le service restant.",
+      title: "Aucune réservation enregistrée aujourd'hui",
+      description: "Surveillez vos disponibilités et vos campagnes pour remplir le service restant.",
     });
   } else if (todayServices.strongestService && todayServices.weakestService && todayServices.strongestService !== todayServices.weakestService) {
     const weak = todayServices[todayServices.weakestService];
@@ -501,7 +501,7 @@ export function buildPerformanceAlerts(input: {
       id: "service-gap",
       tone: "neutral",
       title: "Un service reste plus faible",
-      description: `${todayServices.weakestService === "lunch" ? "Le midi" : "Le soir"} ne compte que ${weak.count} reservation(s) aujourd'hui.`,
+      description: `${todayServices.weakestService === "lunch" ? "Le midi" : "Le soir"} ne compte que ${weak.count} réservation(s) aujourd'hui.`,
     });
   }
 
@@ -572,8 +572,8 @@ export function buildPerformanceInsights(summary: PerformanceSummary): Performan
       label: "Satisfaction",
       value: `${summary.avgSatisfaction.toFixed(1)}/5`,
       description: summary.avgSatisfaction >= 4.5
-        ? "Les avis restent tres positifs sur la periode."
-        : "La satisfaction merite un suivi plus fin sur la periode.",
+        ? "Les avis restent très positifs sur la periode."
+        : "Là satisfaction merite un suivi plus fin sur la periode.",
     });
   }
 

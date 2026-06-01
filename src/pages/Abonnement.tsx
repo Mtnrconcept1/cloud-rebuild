@@ -202,7 +202,7 @@ export default function Abonnement() {
       toast({
         title: status === "paused" ? "Abonnement en pause" : "Abonnement repris",
         description: status === "paused"
-          ? "Aucune commande repas ne sera preparee jusqu'a la reprise."
+          ? "Aucune commande repas ne sera préparée jusqu’à la reprise."
           : "Votre planning repas est de nouveau actif.",
       });
     },
@@ -324,8 +324,8 @@ export default function Abonnement() {
     const syncedItemsCount = syncSubscriptionCart();
     if (syncedItemsCount === 0) {
       toast({
-        title: "Aucun repas planifie",
-        description: "Ajoutez au moins un plat a votre abonnement avant d'ouvrir le panier.",
+        title: "Aucun repas planifié",
+        description: "Ajoutez au moins un plat à votre abonnement avant d'ouvrir le panier.",
         variant: "destructive",
       });
       return;
@@ -333,7 +333,7 @@ export default function Abonnement() {
 
     toast({
       title: "Abonnement active",
-      description: `${activeMeals.length} repas/semaine - ${billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu'au ${billingSummary.endDate}`,
+      description: `${activeMeals.length} repas/semaine - ${billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu’àu ${billingSummary.endDate}`,
     });
     navigate("/panier");
   };
@@ -369,7 +369,7 @@ export default function Abonnement() {
           <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
             <Pause className="h-5 w-5 shrink-0 text-amber-500" />
             <p className="text-sm text-amber-700">
-              Abonnement en pause. Aucune commande ne sera preparee jusqu'a la reprise.
+              Abonnement en pause. Aucune commande ne sera préparée jusqu’à la reprise.
             </p>
           </div>
         ) : null}
@@ -389,7 +389,7 @@ export default function Abonnement() {
           </Button>
           <div className="text-center">
             <p className="font-semibold">{weekLabel}</p>
-            <p className="text-xs text-muted-foreground">{summary.activeMealsCount} repas planifies</p>
+            <p className="text-xs text-muted-foreground">{summary.activeMealsCount} repas planifiés</p>
           </div>
           <Button
             variant="ghost"
@@ -416,7 +416,7 @@ export default function Abonnement() {
             className="w-full sm:w-48"
           />
           <p className="text-xs text-muted-foreground">
-            {billingSummary.occurrencesCount} livraison{billingSummary.occurrencesCount > 1 ? "s" : ""} planifiee{billingSummary.occurrencesCount > 1 ? "s" : ""} - total a payer {billingSummary.subscriptionTotal.toFixed(2)} CHF
+            {billingSummary.occurrencesCount} livraison{billingSummary.occurrencesCount > 1 ? "s" : ""} planifiée{billingSummary.occurrencesCount > 1 ? "s" : ""} - total a payer {billingSummary.subscriptionTotal.toFixed(2)} CHF
           </p>
         </div>
 
@@ -618,9 +618,9 @@ export default function Abonnement() {
               <CheckCircle2 className="mx-auto h-10 w-10 text-purple-500" />
               <p className="text-lg font-semibold">Abonnement actif</p>
               <p className="text-sm text-muted-foreground">
-                {summary.activeMealsCount} repas/semaine - {activeRestaurantNames.length} restaurant{activeRestaurantNames.length > 1 ? "s" : ""} - {billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu'au {billingSummary.endDate}
+                {summary.activeMealsCount} repas/semaine - {activeRestaurantNames.length} restaurant{activeRestaurantNames.length > 1 ? "s" : ""} - {billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu’àu {billingSummary.endDate}
               </p>
-              <p className="text-xs text-muted-foreground">Plats de plusieurs restaurants synchronises dans un seul panier, modifiable a tout moment</p>
+              <p className="text-xs text-muted-foreground">Plats de plusieurs restaurants synchronises dans un seul panier, modifiable à tout moment</p>
             </div>
             <Button onClick={handleGoToCart} className="w-full gap-2 bg-purple-500 hover:bg-purple-600" size="lg">
               Voir le panier <ChevronRight className="h-4 w-4" />

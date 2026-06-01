@@ -129,7 +129,7 @@ export function getFloorPlanHealthSummary(input: {
       totalReservableCapacity: 0,
       assignedCovers,
       headline: "Aucune table active",
-      detail: "Activez ou creez des tables avant de placer les reservations.",
+      detail: "Activez ou créez des tables avant de placer les réservations.",
     };
   }
 
@@ -163,7 +163,7 @@ export function getFloorPlanHealthSummary(input: {
       totalReservableCapacity,
       assignedCovers,
       headline: "Placement incomplet",
-      detail: `${unassignedReservations} reservation(s) restent sans table.`,
+      detail: `${unassignedReservations} réservation(s) restent sans table.`,
     };
   }
 
@@ -177,6 +177,6 @@ export function getFloorPlanHealthSummary(input: {
     totalReservableCapacity,
     assignedCovers,
     headline: "Service pret",
-    detail: "Toutes les reservations visibles sont placees correctement.",
+    detail: "Toutes les réservations visibles sont placees correctement.",
   };
 }

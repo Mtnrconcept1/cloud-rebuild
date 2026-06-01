@@ -87,7 +87,7 @@ function CatalogQualityNotice({ restaurant }: { restaurant: AdminRestaurant }) {
       </Badge>
       {!quality.publishable ? (
         <p className="text-xs text-amber-700">
-          A completer: {formatMissingFields(quality.missingFields)}
+          À compléter: {formatMissingFields(quality.missingFields)}
         </p>
       ) : null}
     </>
@@ -195,7 +195,7 @@ export default function AdminRestaurants() {
       <DashboardPageHero
         badge="Admin restaurants"
         title="Gestion des restaurants"
-        description="Activez les restaurants, gerez leur visibilite, leurs options de service et les mises en avant depuis une vue de pilotage."
+        description="Activez les restaurants, gerez leur visibilité, leurs options de service et les mises en avant depuis une vue de pilotage."
         icon={Store}
         tone="emerald"
         visualLabel="Restaurants"
@@ -274,7 +274,7 @@ export default function AdminRestaurants() {
             <option value="active">Actifs</option>
             <option value="inactive">Inactifs</option>
             <option value="featured">Mis en avant</option>
-            <option value="incomplete">A completer</option>
+            <option value="incomplete">À compléter</option>
           </select>
         </CardContent>
       </Card>
@@ -314,7 +314,7 @@ export default function AdminRestaurants() {
                         <CatalogQualityNotice restaurant={restaurant} />
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {[restaurant.city, restaurant.cuisine_type].filter(Boolean).join(" | ") || "Informations incompletes"}
+                        {[restaurant.city, restaurant.cuisine_type].filter(Boolean).join(" | ") || "Informations incomplètes"}
                       </p>
                       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
@@ -345,7 +345,7 @@ export default function AdminRestaurants() {
                       <Switch
                         checked={restaurant.is_featured ?? false}
                         onCheckedChange={(checked) =>
-                          updateRestaurant(restaurant.id, { is_featured: checked }, checked ? "Restaurant mis en avant" : "Restaurant retire de la selection")
+                          updateRestaurant(restaurant.id, { is_featured: checked }, checked ? "Restaurant mis en avant" : "Restaurant retire de la sélection")
                         }
                       />
                     </label>
@@ -367,7 +367,7 @@ export default function AdminRestaurants() {
                       <select
                         value={restaurant.status || "active"}
                         onChange={(event) =>
-                          updateRestaurant(restaurant.id, { status: event.target.value }, "Statut du restaurant mis a jour")
+                          updateRestaurant(restaurant.id, { status: event.target.value }, "Statut du restaurant mis à jour")
                         }
                         className="w-full rounded-md border bg-background px-2 py-1.5 text-sm"
                       >

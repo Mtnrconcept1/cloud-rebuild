@@ -35,12 +35,12 @@ const SERVICE_PERIODS: Array<{
   {
     key: "lunch",
     icon: SunMedium,
-    description: "Parametres de reservation et capacite pour le service du midi.",
+    description: "Parametres de réservation et capacite pour le service du midi.",
   },
   {
     key: "dinner",
     icon: MoonStar,
-    description: "Parametres de reservation et capacite pour le service du soir.",
+    description: "Parametres de réservation et capacite pour le service du soir.",
   },
 ];
 
@@ -199,7 +199,7 @@ export default function DashboardService() {
         <DashboardPageHero
           badge="Services restaurant"
           title="Pilotage de service"
-          description="Scindez distinctement le service du midi et le service du soir pour les reservations, la capacite et les options de livraison."
+          description="Scindez distinctement le service du midi et le service du soir pour les réservations, la capacite et les options de livraison."
           icon={Settings}
           tone="amber"
           visualLabel="Service"
@@ -212,7 +212,7 @@ export default function DashboardService() {
         <div className="space-y-2">
           {!reservationEnabled ? (
             <p className="text-sm text-muted-foreground">
-              Les reservations sont actuellement coupees globalement. Les reglages ci-dessous restent editables mais ne
+              Les réservations sont actuellement coupees globalement. Les reglages ci-dessous restent editables mais ne
               seront pas exposes cote client tant que le flag global reste desactive.
             </p>
           ) : null}
@@ -255,7 +255,7 @@ export default function DashboardService() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Derniere reservation</Label>
+                      <Label>Derniere réservation</Label>
                       <Input
                         type="time"
                         value={settings.last_reservation_time}
@@ -320,7 +320,7 @@ export default function DashboardService() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Tables par defaut</Label>
+                        <Label>Tables par défaut</Label>
                         <Input
                           type="number"
                           min={1}
@@ -442,7 +442,7 @@ export default function DashboardService() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-              La livraison est desactivee par l'administration globale. Le pilotage reste centre sur les services de reservation.
+              La livraison est desactivee par l'administration globale. Le pilotage reste centre sur les services de réservation.
             </CardContent>
           </Card>
         )}
@@ -455,7 +455,7 @@ export default function DashboardService() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-1">
-            <p>Le split midi/soir est maintenant partage avec le module de reservation client.</p>
+            <p>Le split midi/soir est maintenant partage avec le module de réservation client.</p>
             <p>La capacite, les plages horaires et l'ouverture en ligne sont gerees separément par service.</p>
           </CardContent>
         </Card>

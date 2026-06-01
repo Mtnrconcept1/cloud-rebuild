@@ -212,7 +212,7 @@ export function scoreReservationPlacement({
 
   if (wastedSeats === 0) {
     score += 8;
-    reasons.push("Capacite parfaite");
+    reasons.push("Capacité parfaite");
   } else if (wastedSeats <= 2) {
     score += 3;
     reasons.push(`${wastedSeats} place(s) de marge`);
@@ -241,12 +241,12 @@ export function scoreReservationPlacement({
   } else if (load === 0) {
     reasons.push("Rotation simple");
   } else {
-    reasons.push(`Table deja planifiee (${load})`);
+    reasons.push(`Table déjà planifiée (${load})`);
   }
 
   if (isZeroAttenteReservation(reservation)) {
     score += 4;
-    reasons.push("Zero Attente priorise");
+    reasons.push("Zéro Attente priorise");
   }
 
   return {
@@ -448,7 +448,7 @@ export function getTableServiceState({
     return {
       key: "conflict",
       label: "Conflit horaire",
-      detail: `${blockingAssignments.length} reservations`,
+      detail: `${blockingAssignments.length} réservations`,
       haloClass: "bg-rose-400/65 shadow-[0_28px_70px_-34px_rgba(225,29,72,0.55)]",
       chipClass: "border-rose-400 bg-rose-50 text-rose-800",
     };
@@ -501,7 +501,7 @@ export function getTableServiceState({
   if (isZeroAttenteReservation(primary)) {
     return {
       key: "zero-attente",
-      label: "Zero Attente",
+      label: "Zéro Attente",
       detail: getSafeTime(primary.time),
       haloClass: "bg-teal-300/55 shadow-[0_28px_65px_-38px_rgba(20,184,166,0.45)]",
       chipClass: "border-teal-300 bg-teal-50 text-teal-700",

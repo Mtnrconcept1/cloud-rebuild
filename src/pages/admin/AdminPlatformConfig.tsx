@@ -110,15 +110,15 @@ export default function AdminPlatformConfig() {
     if (!result.success) {
       toast({
         title: "Erreur",
-        description: result.error || "Impossible de modifier la fonctionnalite.",
+        description: result.error || "Impossible de modifier la fonctionnalité.",
         variant: "destructive",
       });
       return;
     }
 
     toast({
-      title: flag.explicitEnabled ? "Fonctionnalite desactivee" : "Fonctionnalite activee",
-      description: `${flag.label} a ete mise a jour.`,
+      title: flag.explicitEnabled ? "Fonctionnalité desactivee" : "Fonctionnalité activée",
+      description: `${flag.label} a été mise à jour.`,
     });
   };
 
@@ -137,8 +137,8 @@ export default function AdminPlatformConfig() {
     }
 
     toast({
-      title: "Activation terminee",
-      description: "Tous les flags connus sont a nouveau actifs.",
+      title: "Activation terminée",
+      description: "Tous les flags connus sont à nouveau actifs.",
     });
   };
 
@@ -147,7 +147,7 @@ export default function AdminPlatformConfig() {
       <DashboardPageHero
         badge="Feature flags"
         title="Configuration plateforme"
-        description="Ces toggles s'appliquent globalement. Lorsqu'un flag est coupe ici, l'UI est masquee, la route est protegee et les nouvelles actions backend sont refusees."
+        description="Ces toggles s'appliquent globalement. Lorsqu'un flag est coupe ici, l'UI est masquee, la route est protégée et les nouvelles actions backend sont refusees."
         icon={Settings2}
         tone="amber"
         visualLabel="Flags"
@@ -245,7 +245,7 @@ export default function AdminPlatformConfig() {
                         {showGlobalOverride ? (
                           <p className="text-xs text-muted-foreground">
                             Override globale: les reglages restaurant correspondants ne peuvent pas re-activer cette
-                            fonctionnalite tant que ce flag reste coupe.
+                            fonctionnalité tant que ce flag reste coupe.
                           </p>
                         ) : null}
                       </div>
@@ -267,7 +267,7 @@ export default function AdminPlatformConfig() {
       {!loading && groupedFlags.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            Aucun flag ne correspond a votre recherche.
+            Aucun flag ne correspond à votre recherche.
           </CardContent>
         </Card>
       ) : null}
@@ -280,7 +280,7 @@ export default function AdminPlatformConfig() {
               Desactiver {pendingToggle?.label} ?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Ce flag est critique. La desactivation est immediate pour les nouvelles actions, y compris hors UI.
+              Ce flag est critique. La desactivation est immédiate pour les nouvelles actions, y compris hors UI.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

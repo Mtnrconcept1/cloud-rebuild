@@ -102,7 +102,7 @@ export default function CourierJobs() {
     mutationFn: async ({ attemptId, decision }: { attemptId: string; decision: "accept" | "decline" }) =>
       respondToDispatchAttempt(attemptId, decision),
     onSuccess: (_, variables) => {
-      toast.success(variables.decision === "accept" ? "Mission acceptee" : "Mission refusee");
+      toast.success(variables.decision === "accept" ? "Mission acceptée" : "Mission refusee");
       refreshCourierQueries();
     },
     onError: (error) => {
@@ -115,11 +115,11 @@ export default function CourierJobs() {
       updateCourierJobStatus(dispatchJobId, status),
     onSuccess: (_, variables) => {
       const meta = COURIER_JOB_STATUS_META[variables.status];
-      toast.success(meta?.label || "Mission mise a jour");
+      toast.success(meta?.label || "Mission mise à jour");
       refreshCourierQueries();
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Impossible de mettre a jour la mission.");
+      toast.error(error instanceof Error ? error.message : "Impossible de mettre à jour la mission.");
     },
   });
 
@@ -127,11 +127,11 @@ export default function CourierJobs() {
     mutationFn: async ({ dispatchJobId, proofCode, verificationMethod }: { dispatchJobId: string; proofCode: string; verificationMethod: "qr" | "manual_code" }) =>
       verifyCourierDelivery(dispatchJobId, proofCode, verificationMethod),
     onSuccess: () => {
-      toast.success("Livraison validee");
+      toast.success("Livraison validée");
       refreshCourierQueries();
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Impossible de verifier la preuve client.");
+      toast.error(error instanceof Error ? error.message : "Impossible de vérifier la preuve client.");
     },
   });
 
@@ -153,7 +153,7 @@ export default function CourierJobs() {
         <div className="space-y-2">
           <h1 className="font-display text-3xl font-bold">Missions</h1>
           <p className="text-sm text-muted-foreground">
-            Offres en attente, livraisons actives et historique recent.
+            Offres en attente, livraisons actives et historique récent.
           </p>
         </div>
 
@@ -362,7 +362,7 @@ export default function CourierJobs() {
                 })
               ) : (
                 <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                  Les missions acceptees apparaitront ici avec le prochain statut a valider.
+                  Les missions acceptées apparaitront ici avec le prochain statut a valider.
                 </div>
               )}
             </CardContent>
@@ -371,8 +371,8 @@ export default function CourierJobs() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Historique recent</CardTitle>
-            <CardDescription>Vos dernieres missions terminees ou annulees.</CardDescription>
+            <CardTitle>Historique récent</CardTitle>
+            <CardDescription>Vos dernieres missions terminées ou annulees.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentJobs.length > 0 ? (
@@ -396,7 +396,7 @@ export default function CourierJobs() {
               })
             ) : (
               <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                Aucune mission terminee pour l'instant.
+                Aucune mission terminée pour l'instant.
               </div>
             )}
           </CardContent>

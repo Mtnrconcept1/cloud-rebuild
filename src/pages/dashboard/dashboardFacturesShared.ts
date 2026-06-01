@@ -145,7 +145,7 @@ export type ReservationFeeInvoiceDetailLine = {
 
 export const INVOICE_DETAIL_SOURCE_PRESENTATION: Record<InvoiceDetailSource, InvoiceDetailSourcePresentation> = {
   orders: { label: "Commande", className: "bg-slate-100 text-slate-700" },
-  zero_attente: { label: "Zero attente", className: "bg-cyan-100 text-cyan-700" },
+  zero_attente: { label: "Zéro attente", className: "bg-cyan-100 text-cyan-700" },
   chefs_table: { label: "La Table du Chef", className: "bg-violet-100 text-violet-700" },
   flash_sales: { label: "Vente flash", className: "bg-amber-100 text-amber-700" },
   anti_gaspi: { label: "Anti-gaspi", className: "bg-emerald-100 text-emerald-700" },

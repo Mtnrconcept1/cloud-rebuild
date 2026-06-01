@@ -186,7 +186,7 @@ function FulfillmentEditor({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label className="text-xs flex items-center gap-1">
-            <Calendar className="h-3 w-3" /> Date planifiee
+            <Calendar className="h-3 w-3" /> Date planifiée
           </Label>
           <Input
             type="date"
@@ -269,9 +269,9 @@ function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
         restaurantId: pack.restaurant_id,
         disabledFeatures: Array.from(draft),
       });
-      toast.success("Acces dashboard mis a jour");
+      toast.success("Acces dashboard mis à jour");
     } catch {
-      toast.error("Erreur lors de la mise a jour");
+      toast.error("Erreur lors de la mise à jour");
     } finally {
       setSaving(false);
     }
@@ -283,7 +283,7 @@ function FeatureGatingEditor({ pack }: { pack: AdminRestaurantPack }) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Acces dashboard</CardTitle>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={resetToPackDefaults} title="Reinitialiser selon le pack">
+            <Button size="sm" variant="ghost" onClick={resetToPackDefaults} title="Réinitialiser selon le pack">
               <RotateCcw className="h-3 w-3 mr-1" /> Defaut pack
             </Button>
             {hasChanges && (
@@ -354,9 +354,9 @@ function PackDetailView({
     setSavingId(id);
     try {
       await updateFulfillment.mutateAsync({ id, ...patch } as Parameters<typeof updateFulfillment.mutateAsync>[0]);
-      toast.success("Service mis a jour");
+      toast.success("Service mis à jour");
     } catch (e) {
-      toast.error("Erreur lors de la mise a jour");
+      toast.error("Erreur lors de la mise à jour");
     } finally {
       setSavingId(null);
     }
@@ -368,9 +368,9 @@ function PackDetailView({
         id: pack.id,
         status: newStatus as PackPurchaseStatus,
       });
-      toast.success("Statut du pack mis a jour");
+      toast.success("Statut du pack mis à jour");
     } catch (e) {
-      toast.error("Erreur lors de la mise a jour du statut");
+      toast.error("Erreur lors de la mise à jour du statut");
     }
   }
 
@@ -430,7 +430,7 @@ function PackDetailView({
             <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-between">
               <p className="text-sm text-blue-800">
                 {suggestedStatus === "completed"
-                  ? "Tous les services sont termines. Marquer le pack comme termine ?"
+                  ? "Tous les services sont terminés. Marquer le pack comme terminé ?"
                   : "Des services ont demarre. Passer le pack en cours ?"}
               </p>
               <Button
@@ -518,7 +518,7 @@ export default function AdminLaunchPacks() {
       <DashboardPageHero
         badge="Services admin"
         title="Packs de lancement"
-        description="Suivez les packs achetes, les activations de fonctionnalites et l'avancement des services promis aux restaurants."
+        description="Suivez les packs achetes, les activations de fonctionnalités et l'avancement des services promis aux restaurants."
         icon={Package}
         tone="violet"
         visualLabel="Packs"
@@ -637,7 +637,7 @@ export default function AdminLaunchPacks() {
                           </span>
                         )}
                         <span>
-                          {completed}/{fulfillments.length} services termines
+                          {completed}/{fulfillments.length} services terminés
                         </span>
                       </div>
                     </div>

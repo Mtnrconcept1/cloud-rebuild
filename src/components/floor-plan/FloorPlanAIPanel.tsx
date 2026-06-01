@@ -53,7 +53,7 @@ const SUGGESTED_ACTIONS = [
   {
     id: "generate",
     label: "Generer un plan",
-    description: "Cree un plan optimise de A a Z",
+    description: "Crée un plan optimisé de A à Z",
     icon: LayoutGrid,
     color: "text-blue-500",
     bg: "bg-blue-500/10 hover:bg-blue-500/20",
@@ -101,7 +101,7 @@ export default function FloorPlanAIPanel({
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      throw new Error("Non connecte");
+      throw new Error("Non connecté");
     }
 
     const { data, error } = await supabase.functions.invoke("floorplan-ai", {
@@ -116,13 +116,13 @@ export default function FloorPlanAIPanel({
     });
 
     if (error) {
-      throw new Error(error.message || "Erreur lors de l'appel a la fonction");
+      throw new Error(error.message || "Erreur lors de l'appel à la fonction");
     }
 
     const aiData = data as AIFloorPlanResult;
 
     if (!aiData?.tables || !Array.isArray(aiData.tables)) {
-      throw new Error("Reponse IA invalide");
+      throw new Error("Réponse IA invalide");
     }
 
     setResult(aiData);
@@ -172,7 +172,7 @@ export default function FloorPlanAIPanel({
         <Input
           value={customPrompt}
           onChange={(e) => setCustomPrompt(e.target.value)}
-          placeholder="Demande personnalisee..."
+          placeholder="Demande personnalisée..."
           className="h-8 text-xs"
           disabled={loading || disabled}
         />

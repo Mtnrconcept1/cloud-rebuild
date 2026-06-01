@@ -72,7 +72,7 @@ export async function dispatchQueuedNotifications(
   }
 
   if (Array.isArray(data?.channel_errors) && data.channel_errors.length > 0) {
-    console.warn("[notifications] dispatch completed with channel errors:", data.channel_errors);
+    console.warn("[notifications] dispatch complèted with channel errors:", data.channel_errors);
   }
 
   return data;

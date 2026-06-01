@@ -407,7 +407,7 @@ async function computePromoCodeDiscount(input: {
 
     if (ordersError) throw new Error(ordersError.message);
     if (count != null && count > 0) {
-      throw new Error("Ce code est reserve a la premiere commande.");
+      throw new Error("Ce code est réservé à la première commande.");
     }
   }
 

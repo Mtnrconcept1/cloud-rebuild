@@ -216,7 +216,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                     : "sm:grid-cols-[170px_minmax(0,1fr)] sm:gap-3 sm:text-lg",
                 )}
               >
-                <span className="font-medium text-slate-600">Date de facture :</span>
+                <span className="font-medium text-slate-600">Date de facturé :</span>
                 <span>{data.createdAtLabel}</span>
                 <span className="font-medium text-slate-600">Echeance :</span>
                 <span>{data.dueAtLabel}</span>
@@ -328,7 +328,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
                       isPrintMode ? "text-sm leading-6" : "text-sm leading-6 sm:text-base sm:leading-7",
                     )}
                   >
-                    Cette facture regroupe l&apos;ensemble des montants factures par TOK durant la periode ci-dessus.
+                    Cette facturé regroupe l&apos;ensemble des montants factures par TOK durant la periode ci-dessus.
                   </p>
                 </div>
               </div>
@@ -470,7 +470,7 @@ export const TokPayableInvoiceDocument = forwardRef<HTMLDivElement, TokPayableIn
               </div>
               <div className="space-y-2">
                 <p className={cn("text-slate-600", isPrintMode ? "text-lg" : "text-base sm:text-lg")}>Merci pour votre confiance.</p>
-                <p className={cn("font-semibold text-slate-950", isPrintMode ? "text-2xl" : "text-xl sm:text-2xl")}>L&apos;equipe TOK</p>
+                <p className={cn("font-semibold text-slate-950", isPrintMode ? "text-2xl" : "text-xl sm:text-2xl")}>L&apos;équipe TOK</p>
               </div>
             </div>
 

@@ -20,7 +20,7 @@ function getStatusMeta(status: ReturnType<typeof useCourierPushStatus>["data"]) 
     return {
       label: "Non supporte",
       tone: "bg-red-100 text-red-700",
-      description: "Ce navigateur ne permet pas les alertes push. Gardez l'app ouverte pour recevoir les offres en temps reel.",
+      description: "Ce navigateur ne permet pas les alertes push. Gardez l'app ouverte pour recevoir les offres en temps réel.",
     };
   }
 
@@ -28,7 +28,7 @@ function getStatusMeta(status: ReturnType<typeof useCourierPushStatus>["data"]) 
     return {
       label: "Configuration manquante",
       tone: "bg-red-100 text-red-700",
-      description: "La configuration push n'est pas complete sur cette instance.",
+      description: "La configuration push n'est pas complète sur cette instance.",
     };
   }
 

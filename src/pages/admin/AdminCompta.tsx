@@ -60,7 +60,7 @@ export default function AdminCompta() {
       <AccountingHero
         badge="Comptabilite TOK"
         title="Vue comptable admin"
-        description="Lecture courte: revenu Tok, montants ouverts, reversements et prises en charge. Les details restent limites aux lignes utiles pour agir."
+        description="Lecture courte: revenu Tok, montants ouverts, reversements et prises en charge. Les détails restent limites aux lignes utiles pour agir."
         actions={(
           <>
             <Button asChild size="sm">
@@ -117,7 +117,7 @@ export default function AdminCompta() {
         </CardContent>
       </Card>
 
-      {isLoading ? <p className="text-sm text-muted-foreground">Chargement des donnees comptables...</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">Chargement des données comptables...</p> : null}
       {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
       {!isLoading && !error && !financialHealth.healthy ? (
         <Card className="border-amber-200 bg-amber-50 text-amber-950">
@@ -125,7 +125,7 @@ export default function AdminCompta() {
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
               <div className="space-y-1">
-                <p className="font-semibold">Ecart financier a verifier</p>
+                <p className="font-semibold">Ecart financier a vérifier</p>
                 <p className="text-sm text-amber-900">
                   {financialHealth.confirmedNotCaptured} capture manquante, {financialHealth.refundPending} remboursement en attente, {financialHealth.failedPayments} paiement echoue.
                 </p>
@@ -149,7 +149,7 @@ export default function AdminCompta() {
                 icon: Coins,
                 label: "Revenu Tok",
                 value: formatAmount(totalRevenue),
-                helper: "Commissions, frais reservation, campagnes et Tok One.",
+                helper: "Commissions, frais réservation, campagnes et Tok One.",
               },
               {
                 tone: "primary",
@@ -163,7 +163,7 @@ export default function AdminCompta() {
                 icon: HandCoins,
                 label: "Miamz pris en charge",
                 value: formatAmount(tokCoveredMiamzAmount),
-                helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec reduction Miamz financee par Tok.`,
+                helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz financee par Tok.`,
               },
               {
                 tone: netOpen >= 0 ? "amber" : "rose",
@@ -181,7 +181,7 @@ export default function AdminCompta() {
               icon={ArrowDownRight}
               eyebrow="Action"
               title="Encaisser les restaurateurs"
-              description="Le montant a suivre cote entrees, separe entre facture deja emise et encours a facturer."
+              description="Le montant a suivre cote entrees, separe entre facturé déjà emise et encours a facturer."
               value={formatAmount(totalPayableOpen)}
               valueLabel="A encaisser"
             >
@@ -196,7 +196,7 @@ export default function AdminCompta() {
                   {
                     label: "Facture, pas encore encaisse",
                     value: formatAmount(summary.inflow.payableOutstanding),
-                    helper: `${payableInvoiceSections.actionable.length} facture${payableInvoiceSections.actionable.length > 1 ? "s" : ""} ouverte${payableInvoiceSections.actionable.length > 1 ? "s" : ""}`,
+                    helper: `${payableInvoiceSections.actionable.length} facturé${payableInvoiceSections.actionable.length > 1 ? "s" : ""} ouverte${payableInvoiceSections.actionable.length > 1 ? "s" : ""}`,
                   },
                   {
                     label: "Deja encaisse",
@@ -260,9 +260,9 @@ export default function AdminCompta() {
                     helper: `${formatAmount(paidEventGross)} encaisses via Tok avant separation 10% / 90%.`,
                   },
                   {
-                    label: "Frais de reservation",
+                    label: "Frais de réservation",
                     value: formatAmount(reservationFeeRevenueAmount),
-                    helper: "Frais fixes factures sur les reservations confirmees.",
+                    helper: "Frais fixes factures sur les réservations confirmees.",
                   },
                   {
                     label: "Campagnes publicitaires",
@@ -297,7 +297,7 @@ export default function AdminCompta() {
                   {
                     label: "Miamz pris en charge par Tok",
                     value: formatAmount(tokCoveredMiamzAmount),
-                    helper: "Reduction client ajoutee a la base de reversement restaurant, hors revenu Tok.",
+                    helper: "Reduction client ajoutee à la base de reversement restaurant, hors revenu Tok.",
                   },
                 ]}
               />

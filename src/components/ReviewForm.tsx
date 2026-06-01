@@ -38,11 +38,11 @@ function getReviewSubmissionErrorMessage(error: unknown) {
     case "permission denied for function submit_verified_review":
       return "Votre session a expire. Reconnectez-vous puis reessayez.";
     case "review_not_eligible":
-      return "Vous ne pouvez laisser un avis qu'apres une reservation honoree ou une commande terminee.";
+      return "Vous ne pouvez laisser un avis qu'apres une réservation honoree ou une commande terminée.";
     case "review_already_submitted":
-      return "Vous avez deja laisse un avis pour ce restaurant.";
+      return "Vous avez dejà laisse un avis pour ce restaurant.";
     case "rating_out_of_range":
-      return "Les notes doivent etre comprises entre 1 et 10.";
+      return "Les notes doivent être comprises entre 1 et 10.";
     default:
       return message;
   }
@@ -104,11 +104,11 @@ export default function ReviewForm({ restaurantId, onSuccess }: ReviewFormProps)
       <h4 className="text-sm font-semibold">Laisser un avis</h4>
       <div className="space-y-3 rounded-lg border bg-secondary/20 p-3">
         <RatingSlider label="Service" value={serviceRating} onChange={setServiceRating} />
-        <RatingSlider label="Qualite" value={qualityRating} onChange={setQualityRating} />
+        <RatingSlider label="Qualité" value={qualityRating} onChange={setQualityRating} />
         <RatingSlider label="Rapidite" value={speedRating} onChange={setSpeedRating} />
       </div>
       <p className="text-xs text-muted-foreground">
-        Les avis sont reserves aux visites effectivement honorees et verifiees cote serveur.
+        Les avis sont réservés aux visites effectivement honorees et vérifiées cote serveur.
       </p>
       <div className="flex items-center justify-between rounded-lg border bg-primary/5 px-3 py-2">
         <span className="text-sm font-medium">Note globale</span>

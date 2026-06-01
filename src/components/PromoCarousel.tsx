@@ -19,8 +19,8 @@ const PROMOS = [
     feature: "anti-gaspi",
   },
   {
-    title: "Programme Fidelite",
-    desc: "Gagnez des Miamz a chaque commande.",
+    title: "Programme Fidélité",
+    desc: "Gagnez des Miamz à chaque commande.",
     img: "/images/mixed-grill-platter.jpeg",
     link: "/profil",
     badge: "Nouveau",
@@ -28,7 +28,7 @@ const PROMOS = [
   },
   {
     title: "La Table du Chef",
-    desc: "Decouvrez des plats exclusifs en edition limitee.",
+    desc: "Découvrez des plats exclusifs en édition limitée.",
     img: "/images/octopus-fine-dining.jpeg",
     link: "/chefs-table",
     badge: "Exclusif",

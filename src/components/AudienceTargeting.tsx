@@ -216,7 +216,7 @@ export default function AudienceTargeting({ criteria, onChange, restaurantId }: 
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">Minimum de commandes ou reservations</Label>
+              <Label className="text-xs">Minimum de commandes ou réservations</Label>
               <Badge variant="outline">{normalizedCriteria.minOrders}+</Badge>
             </div>
             <Slider

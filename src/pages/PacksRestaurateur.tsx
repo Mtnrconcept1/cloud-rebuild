@@ -29,7 +29,7 @@ const supabase = getSupabase();
 // All possible services for comparison table
 const ALL_SERVICES: { slug: LaunchPackServiceSlug; label: string }[] = [
   { slug: "mise_en_place", label: "Mise en place" },
-  { slug: "menu_creation", label: "Creation de menu" },
+  { slug: "menu_creation", label: "Création de menu" },
   { slug: "product_photography", label: "Photos produits" },
   { slug: "social_media_setup", label: "Reseaux sociaux" },
   { slug: "advertising_campaign", label: "Campagne publicitaire" },
@@ -40,11 +40,11 @@ const ALL_SERVICES: { slug: LaunchPackServiceSlug; label: string }[] = [
 const FAQ_ITEMS = [
   {
     q: "Quand les services sont-ils delivres ?",
-    a: "Apres votre inscription et le paiement du pack, notre equipe vous contacte sous 48h pour planifier chaque service. La mise en place et la creation de menu sont generalement realisees dans la premiere semaine.",
+    a: "Après votre inscription et le paiement du pack, notre équipe vous contacte sous 48h pour planifier chaque service. La mise en place et la création de menu sont généralement réalisées dans la première semaine.",
   },
   {
     q: "Puis-je changer de pack apres achat ?",
-    a: "Oui, vous pouvez upgrader vers un pack superieur a tout moment. La difference de prix sera calculee et vous sera facturee. Le downgrade n'est pas possible une fois les services commences.",
+    a: "Oui, vous pouvez upgrader vers un pack superieur à tout moment. La difference de prix sera calculee et vous sera facturee. Le downgrade n'est pas possible une fois les services commences.",
   },
   {
     q: "Les photos sont-elles realisees sur place ?",
@@ -52,7 +52,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Comment fonctionne le budget publicitaire inclus ?",
-    a: "Le budget est utilise pour des campagnes sponsorisees sur la plateforme Tok (placement en avant, bannieres, notifications push). Notre equipe marketing cree et gere les campagnes pour vous.",
+    a: "Le budget est utilise pour des campagnes sponsorisees sur la plateforme Tok (placement en avant, bannieres, notifications push). Notre équipe marketing crée et gere les campagnes pour vous.",
   },
   {
     q: "Le paiement est-il unique ou recurrent ?",
@@ -335,7 +335,7 @@ function SuccessBanner() {
       <div>
         <h3 className="font-semibold text-green-800">Paiement confirme !</h3>
         <p className="text-sm text-green-700 mt-1">
-          Votre pack de lancement a ete active avec succes. Notre equipe vous contactera
+          Votre pack de lancement a été active avec succes. Notre équipe vous contactera
           sous 48h pour planifier les services. Vous pouvez suivre l'avancement dans votre{" "}
           <Link to="/dashboard/pack" className="underline font-medium">
             dashboard
@@ -354,7 +354,7 @@ function CancelledBanner() {
       <div>
         <h3 className="font-semibold text-amber-800">Paiement annule</h3>
         <p className="text-sm text-amber-700 mt-1">
-          Le paiement a ete annule. Vous pouvez re-essayer a tout moment en selectionnant un pack ci-dessous.
+          Le paiement a été annule. Vous pouvez re-essayer à tout moment en selectionnant un pack ci-dessous.
         </p>
       </div>
     </div>
@@ -393,7 +393,7 @@ export default function PacksRestaurateur() {
       return;
     }
     if (restaurants.length === 0) {
-      toast.error("Vous devez d'abord creer un restaurant pour acheter un pack.");
+      toast.error("Vous devez d'abord créer un restaurant pour acheter un pack.");
       return;
     }
     setSelectedPack(pack);
@@ -430,7 +430,7 @@ export default function PacksRestaurateur() {
 
       if (checkoutError || !checkoutData?.url) {
         throw new Error(
-          (checkoutError as Error | null)?.message || "Impossible de creer la session de paiement."
+          (checkoutError as Error | null)?.message || "Impossible de créer la session de paiement."
         );
       }
 
@@ -459,7 +459,7 @@ export default function PacksRestaurateur() {
           Lancez votre restaurant sur Tok
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-          Choisissez le pack qui correspond a vos besoins. Mise en place, photos
+          Choisissez le pack qui correspond à vos besoins. Mise en place, photos
           professionnelles, campagnes publicitaires — on s'occupe de tout pour
           que votre lancement soit un succes.
         </p>
@@ -509,7 +509,7 @@ export default function PacksRestaurateur() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg">
-            <Link to="/auth">Creer mon compte restaurateur</Link>
+            <Link to="/auth">Créer mon compte restaurateur</Link>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link to="/contact">Nous contacter</Link>

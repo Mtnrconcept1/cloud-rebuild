@@ -3,6 +3,7 @@ import { X, Send, User, Phone, Mail, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/contact";
 
 type Node = {
   id: string;
@@ -383,11 +384,11 @@ export default function SupportChat() {
                         <div className="mt-4 space-y-2">
                           <div className="p-3 bg-primary/5 rounded-xl space-y-2 border border-primary/10">
                             <a
-                              href="mailto:support@tok.ch"
+                              href={SUPPORT_MAILTO}
                               className="flex items-center gap-2 text-primary font-bold hover:underline"
                             >
                               <Mail className="h-4 w-4" />
-                              support@tok.ch
+                              {SUPPORT_EMAIL}
                             </a>
                             <a
                               href="tel:+33123456789"

@@ -107,7 +107,7 @@ const STATUS_LABELS: Record<string, string> = {
   pending_payment: "Paiement en attente",
   payment_failed: "Paiement echoue",
   confirmed: "Confirmee",
-  preparing: "En preparation",
+  preparing: "En préparation",
   ready: "Prete a retirer",
   delivering: "En livraison",
   delivered: "Livree",
@@ -326,7 +326,7 @@ export default function DashboardCommandes() {
 
       toast({
         title: "Commande annulee",
-        description: "La raison a ete enregistree.",
+        description: "La raison a été enregistrée.",
       });
     },
     onError: (error: Error) => {
@@ -378,7 +378,7 @@ export default function DashboardCommandes() {
     if (dispatchState === "failed") {
       const dispatchError = typeof data?.dispatch?.error === "string" ? data.dispatch.error : "Impossible de notifier les livreurs.";
       toast({
-        title: "Statut mis a jour (alerte livreur echouee)",
+        title: "Statut mis à jour (alerté livreur echouee)",
         description: dispatchError,
         variant: "destructive",
       });
@@ -386,12 +386,12 @@ export default function DashboardCommandes() {
     }
 
     const description = dispatchState === "queued"
-      ? "Le statut est passe en preparation et les livreurs ont ete alertes."
+      ? "Le statut est passe en préparation et les livreurs ont été alertes."
       : dispatchState === "scheduled"
-        ? "Le statut est passe en preparation. La recherche de livreur demarrera au bon creneau."
+        ? "Le statut est passe en préparation. La recherche de livreur demarrera au bon creneau."
         : `La commande est maintenant "${STATUS_LABELS[String(normalizedStatus)] || normalizedStatus}".`;
 
-    toast({ title: "Statut mis a jour", description });
+    toast({ title: "Statut mis à jour", description });
   };
 
   const handleStatusSelection = (order: DashboardOrder, status: string) => {
@@ -424,7 +424,7 @@ export default function DashboardCommandes() {
         {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
         {restaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p> : null}
         {!restaurantsLoading && !restaurantsError && restaurants.length === 0 ? (
-          <p className="text-muted-foreground">Aucun restaurant lie a votre compte.</p>
+          <p className="text-muted-foreground">Aucun restaurant lié à votre compte.</p>
         ) : null}
         {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
           <p className="text-muted-foreground">Selectionnez un restaurant depuis la barre laterale pour afficher les commandes.</p>
@@ -465,7 +465,7 @@ export default function DashboardCommandes() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de reference</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de référence</p>
                 <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
               </div>
               <div className="rounded-xl bg-muted/30 p-3">
@@ -592,7 +592,7 @@ export default function DashboardCommandes() {
                                     </p>
                                   ) : null}
                                   <div className="flex flex-col items-end">
-                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Paiement recu</p>
+                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Paiement reçu</p>
                                     {paymentMeta.payment_method ? (
                                       <div className="mt-1 flex items-center gap-1.5">
                                         <CreditCard className="h-3 w-3 text-muted-foreground" />
@@ -661,7 +661,7 @@ export default function DashboardCommandes() {
                                       <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
                                       {customerAddress}
                                     </div>
-                                    {scheduledLabel ? <div className="text-xs text-muted-foreground">Livraison planifiee : {scheduledLabel}</div> : null}
+                                    {scheduledLabel ? <div className="text-xs text-muted-foreground">Livraison planifiée : {scheduledLabel}</div> : null}
                                   </div>
                                 </div>
                               </div>
@@ -715,7 +715,7 @@ export default function DashboardCommandes() {
                                   <div className="space-y-1">
                                     <p className="text-sm font-semibold">Parcours de livraison</p>
                                     <p className="text-xs text-muted-foreground">
-                                      {routeSteps.length} etape(s) du retrait a la remise client.
+                                      {routeSteps.length} étape(s) du retrait à la remise client.
                                     </p>
                                   </div>
                                   <button
@@ -761,7 +761,7 @@ export default function DashboardCommandes() {
                 ))}
               </Accordion>
             ) : null}
-            {filteredOrders.length === 0 ? <p className="py-8 text-center text-muted-foreground">Aucune commande pour la periode selectionnee.</p> : null}
+            {filteredOrders.length === 0 ? <p className="py-8 text-center text-muted-foreground">Aucune commande pour la periode sélectionnée.</p> : null}
           </div>
         ) : null}
       </div>

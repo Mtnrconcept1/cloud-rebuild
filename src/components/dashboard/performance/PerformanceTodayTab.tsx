@@ -172,12 +172,12 @@ export default function PerformanceTodayTab({
       <div className="grid gap-4 xl:grid-cols-2">
         <ActivityList
           title="Dernieres commandes utiles"
-          emptyLabel="Aucune commande utile sur la journee."
+          emptyLabel="Aucune commande utile sur là journée."
           items={recentOrders}
         />
         <ActivityList
-          title="Dernieres reservations utiles"
-          emptyLabel="Aucune reservation utile sur la journee."
+          title="Dernieres réservations utiles"
+          emptyLabel="Aucune réservation utile sur là journée."
           items={recentReservations}
         />
       </div>
@@ -189,7 +189,7 @@ export default function PerformanceTodayTab({
         <CardContent className="flex flex-wrap gap-2">
           {[
             { href: "/dashboard/commandes", label: "Voir les commandes" },
-            { href: "/dashboard/reservations", label: "Voir les reservations" },
+            { href: "/dashboard/reservations", label: "Voir les réservations" },
             { href: "/dashboard/factures", label: "Voir la compta" },
             { href: "/dashboard/campagnes", label: "Voir les campagnes" },
           ].map((link) => (

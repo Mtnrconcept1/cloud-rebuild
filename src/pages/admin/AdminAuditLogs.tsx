@@ -87,7 +87,7 @@ function formatAnomalyKind(kind: string) {
     succeeded_order_charge_without_order: "Paiement réussi sans commande",
     paid_campaign_not_active: "Campagne payée non active",
     paid_campaign_without_transaction: "Campagne payée sans transaction",
-    zero_attente_transaction_without_reservation: "Zero Attente sans réservation",
+    zero_attente_transaction_without_reservation: "Zéro Attente sans réservation",
   };
 
   return labels[kind] || kind.replace(/_/g, " ");
@@ -217,9 +217,9 @@ export default function AdminAuditLogs() {
   return (
     <div className="container py-8 space-y-6">
       <DashboardPageHero
-        badge="Securite admin"
-        title="Audit et securite"
-        description="Historique des executions edge sensibles, mutations historisees et anomalies de paiement a verifier."
+        badge="Sécurité admin"
+        title="Audit et sécurité"
+        description="Historique des executions edge sensibles, mutations historisees et anomalies de paiement a vérifier."
         icon={Shield}
         tone="rose"
         visualLabel="Audit"
@@ -262,7 +262,7 @@ export default function AdminAuditLogs() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Jobs planifies 24h</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Jobs planifiés 24h</CardTitle>
             <Badge variant="outline" className="text-[10px]">Cron</Badge>
           </CardHeader>
           <CardContent><p className="text-2xl font-bold">{stats.schedulers24h}</p></CardContent>
@@ -277,7 +277,7 @@ export default function AdminAuditLogs() {
               Integrite paiements
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Detection automatique des paiements orphelins, commandes en attente, campagnes payees non actives et reservations introuvables.
+              Detection automatique des paiements orphelins, commandes en attente, campagnes payees non actives et réservations introuvables.
             </p>
           </div>
           <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => refetchPaymentIntegrity()} disabled={paymentIntegrityLoading}>
@@ -296,7 +296,7 @@ export default function AdminAuditLogs() {
             </div>
           ) : paymentAnomalies.length === 0 ? (
             <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
-              Aucune anomalie critique detectee sur les {paymentIntegrity?.windowHours || 48} dernieres heures.
+              Aucune anomalie critique détectée sur les {paymentIntegrity?.windowHours || 48} dernieres heures.
             </div>
           ) : (
             <Table>

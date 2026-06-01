@@ -213,7 +213,7 @@ export default function TableContextDrawer({
                             {getReservationCustomerLabel(selectedReservation)}
                           </p>
                           {isZeroAttenteReservation(selectedReservation) ? (
-                            <Badge className="border border-teal-200 bg-teal-50 text-teal-800">Zero Attente</Badge>
+                            <Badge className="border border-teal-200 bg-teal-50 text-teal-800">Zéro Attente</Badge>
                           ) : null}
                           <Badge className={cn("border", getReservationStatusTone(selectedReservation.status))}>
                             {selectedReservation.status || "pending"}

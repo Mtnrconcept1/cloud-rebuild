@@ -53,7 +53,7 @@ function buildFallbackCampaign({
   const city = String(restaurant.city || "").trim();
   const firstCategory = categories.find(Boolean) || cuisineType || "vos specialites";
 
-  let title = `Decouvrez ${restaurantName}`;
+  let title = `Découvrez ${restaurantName}`;
   let body = `${restaurantName} met a l'honneur ${firstCategory}${city ? ` a ${city}` : ""}. Donnez envie aux clients de passer commande aujourd'hui.`;
   const type = "boost";
   let targetPages = ["home", "search"];

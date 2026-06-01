@@ -188,10 +188,10 @@ export default function DashboardReservations() {
     },
     onError: (error: Error, _variables, context) => {
       if (context?.queryKey) queryClient.setQueryData(context.queryKey, context.previousReservations);
-      toast({ title: "Erreur de mise a jour", description: error.message, variant: "destructive" });
+      toast({ title: "Erreur de mise à jour", description: error.message, variant: "destructive" });
     },
     onSuccess: ({ status }) => {
-      toast({ title: "Statut mis a jour", description: `La reservation est maintenant "${status}".` });
+      toast({ title: "Statut mis à jour", description: `La réservation est maintenant "${status}".` });
     },
     onSettled: (_data, _error, _variables, context) => {
       if (context?.queryKey) queryClient.invalidateQueries({ queryKey: context.queryKey });
@@ -256,7 +256,7 @@ export default function DashboardReservations() {
           description: "La demande de remboursement reste disponible dans la file admin.",
         });
       } else {
-        toast({ title: "Reservation annulee", description: "La raison a ete enregistree." });
+        toast({ title: "Reservation annulee", description: "La raison a été enregistrée." });
       }
       queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", selectedId] });
       setCancelTarget(null);
@@ -381,7 +381,7 @@ export default function DashboardReservations() {
         <DashboardPageHero
           badge="Salle et couverts"
           title="Reservations"
-          description="Suivez les tables a confirmer, les services midi/soir, les risques de no-show et les details de paiement par jour."
+          description="Suivez les tables a confirmer, les services midi/soir, les risques de no-show et les détails de paiement par jour."
           icon={CalendarDays}
           tone="amber"
           visualLabel="Planning"
@@ -400,13 +400,13 @@ export default function DashboardReservations() {
         {restaurantsLoading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
         {restaurantsError ? <p className="text-destructive">Erreur lors du chargement des restaurants : {restaurantsError}</p> : null}
         {!restaurantsLoading && !restaurantsError && restaurants.length === 0 ? (
-          <p className="text-muted-foreground">Aucun restaurant lie a votre compte.</p>
+          <p className="text-muted-foreground">Aucun restaurant lié à votre compte.</p>
         ) : null}
         {!restaurantsLoading && !restaurantsError && restaurants.length > 0 && !selectedRestaurant ? (
-          <p className="text-muted-foreground">Selectionnez un restaurant depuis la barre laterale pour afficher les reservations.</p>
+          <p className="text-muted-foreground">Selectionnez un restaurant depuis la barre laterale pour afficher les réservations.</p>
         ) : null}
         {reservationsError ? (
-          <p className="text-destructive">Erreur lors du chargement des reservations : {(reservationsError as Error).message}</p>
+          <p className="text-destructive">Erreur lors du chargement des réservations : {(reservationsError as Error).message}</p>
         ) : null}
 
         {selectedRestaurant && !reservationsError ? (
@@ -441,7 +441,7 @@ export default function DashboardReservations() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de reference</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de référence</p>
                 <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
               </div>
               <div className="space-y-1">
@@ -479,7 +479,7 @@ export default function DashboardReservations() {
                     <SelectValue placeholder="Trier" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="time">Heure d'arrivee</SelectItem>
+                    <SelectItem value="time">Heure d'arrivée</SelectItem>
                     <SelectItem value="party_size">Taille du groupe</SelectItem>
                     <SelectItem value="status">Statut</SelectItem>
                   </SelectContent>
@@ -541,7 +541,7 @@ export default function DashboardReservations() {
                         <div>
                           <p className="text-sm font-semibold capitalize">{dateGroup.dateLabel}</p>
                           <p className="text-xs text-muted-foreground">
-                            {dateGroup.reservationCount} reservation(s) - {dateGroup.totalGuests} couverts
+                            {dateGroup.reservationCount} réservation(s) - {dateGroup.totalGuests} couverts
                           </p>
                         </div>
                       </div>
@@ -556,7 +556,7 @@ export default function DashboardReservations() {
                                 <span>{group.slot}</span>
                               </div>
                               <p className="text-muted-foreground">
-                                {group.reservationCount} reservation(s) - {group.totalGuests} couverts
+                                {group.reservationCount} réservation(s) - {group.totalGuests} couverts
                               </p>
                             </div>
                             <div className="space-y-2">
@@ -577,7 +577,7 @@ export default function DashboardReservations() {
                                 const isCardLocked = isReservationLocked || isArrived;
                                 const isConfirmedAck = reservation.status === "confirmed";
                                 const effectiveLockMessage = isArrived
-                                  ? "Carte verrouillee apres l'arrivee du client."
+                                  ? "Carte verrouillee apres l'arrivée du client."
                                   : statusLockMessage;
 
                                 const isZeroAttente = reservation.feature === "zero-attente";
@@ -601,7 +601,7 @@ export default function DashboardReservations() {
                                           <Badge variant="secondary">{reservation.party_size} pers.</Badge>
                                           <Badge variant="outline">{getServicePeriodLabel(servicePeriod)}</Badge>
                                           {isZeroAttente && (
-                                            <Badge className="border-indigo-300 bg-indigo-500 text-[10px] uppercase tracking-widest text-white">Zero Attente</Badge>
+                                            <Badge className="border-indigo-300 bg-indigo-500 text-[10px] uppercase tracking-widest text-white">Zéro Attente</Badge>
                                           )}
                                           {isChefTable && (
                                             <Badge className="border-amber-300 bg-amber-500 text-[10px] uppercase tracking-widest text-white">La Table du Chef</Badge>
@@ -649,7 +649,7 @@ export default function DashboardReservations() {
                                               <div className="space-y-1.5">
                                                 <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase text-muted-foreground">
                                                   <Utensils className="h-3 w-3" />
-                                                  Plats reserves
+                                                  Plats réservés
                                                 </p>
                                                 <div className="grid grid-cols-1 gap-1.5">
                                                   {metadata.preorder_items.map((item, index) => (
@@ -758,7 +758,7 @@ export default function DashboardReservations() {
                 ))}
               </Accordion>
             ) : (
-              <p className="py-10 text-center text-muted-foreground">Aucune reservation pour les filtres selectionnes.</p>
+              <p className="py-10 text-center text-muted-foreground">Aucune réservation pour les filtres selectionnes.</p>
             )}
           </>
         ) : null}

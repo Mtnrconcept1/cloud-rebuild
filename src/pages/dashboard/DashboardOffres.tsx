@@ -81,7 +81,7 @@ export default function DashboardOffres() {
     if (isSoldOut) {
       toast({
         title: "Offre epuisee",
-        description: "Ajoutez a nouveau du stock avant de reactiver cette offre.",
+        description: "Ajoutez à nouveau du stock avant de reactiver cette offre.",
         variant: "destructive",
       });
       return;
@@ -99,7 +99,7 @@ export default function DashboardOffres() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["dashboard-offers", selectedId] });
-    toast({ title: current ? "Offre desactivee" : "Offre activee" });
+    toast({ title: current ? "Offre desactivee" : "Offre activée" });
   };
 
   const deleteOffer = async (id: string) => {
@@ -117,7 +117,7 @@ export default function DashboardOffres() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["dashboard-offers", selectedId] });
-    toast({ title: "Offre supprimee" });
+    toast({ title: "Offre supprimée" });
   };
 
   return (
@@ -126,7 +126,7 @@ export default function DashboardOffres() {
         <DashboardPageHero
           badge="Offres restaurant"
           title="Offres Anti-gaspi"
-          description="Publiez les stocks courts, surveillez les offres epuisees et gardez la disponibilite client sous controle."
+          description="Publiez les stocks courts, surveillez les offres epuisees et gardez la disponibilité client sous contrôle."
           icon={Leaf}
           tone="emerald"
           visualLabel="Anti-gaspi"
@@ -152,7 +152,7 @@ export default function DashboardOffres() {
                 onSaved={() => {
                   setOpen(false);
                   queryClient.invalidateQueries({ queryKey: ["dashboard-offers", selectedId] });
-                  toast({ title: "Offre creee" });
+                  toast({ title: "Offre créée" });
                 }}
               />
             </DialogContent>
@@ -175,7 +175,7 @@ export default function DashboardOffres() {
         ) : !offers?.length ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              Aucune offre anti-gaspi. Creez-en une pour reduire le gaspillage.
+              Aucune offre anti-gaspi. Créez-en une pour reduire le gaspillage.
             </CardContent>
           </Card>
         ) : (
@@ -293,7 +293,7 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
     if (!restaurantId || !selectedItem || selectedItem.restaurant_id !== restaurantId) {
       toast({
         title: "Produit invalide",
-        description: "Choisissez un produit du restaurant selectionne.",
+        description: "Choisissez un produit du restaurant sélectionné.",
         variant: "destructive",
       });
       return;
@@ -304,7 +304,7 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
       return;
     }
     if (pickupStart >= pickupEnd) {
-      toast({ title: "Creneau invalide", description: "L'heure de fin doit etre apres le debut.", variant: "destructive" });
+      toast({ title: "Creneau invalide", description: "L'heure de fin doit être apres le début.", variant: "destructive" });
       return;
     }
 
@@ -403,7 +403,7 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
           </div>
 
           <div className="space-y-2">
-            <Label>Date de disponibilite</Label>
+            <Label>Date de disponibilité</Label>
             <Input type="date" value={availableDate} min={todayIso()} onChange={(e) => setAvailableDate(e.target.value)} />
           </div>
 
@@ -418,12 +418,12 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            L'offre apparaitra aux clients pendant ce creneau et disparaitra a la fin.
+            L'offre apparaîtra aux clients pendant ce creneau et disparaitra à la fin.
           </p>
 
           <Button type="submit" disabled={loading} className="w-full gap-2">
             <Leaf className="h-4 w-4" />
-            {loading ? "Creation..." : "Activer l'offre anti-gaspi"}
+            {loading ? "Création..." : "Activer l'offre anti-gaspi"}
           </Button>
         </>
       )}

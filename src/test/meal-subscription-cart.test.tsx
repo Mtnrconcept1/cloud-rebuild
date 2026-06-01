@@ -206,7 +206,7 @@ describe("Abonnement cart sync", () => {
 
     renderAbonnement();
 
-    expect(await screen.findByText("0 repas planifies")).toBeInTheDocument();
+    expect(await screen.findByText("0 repas planifiés")).toBeInTheDocument();
     expect(screen.getAllByText("Jour libre")).toHaveLength(7);
     expect(screen.getByRole("button", { name: /S'abonner - 0\.00 CHF/i })).toBeDisabled();
   });

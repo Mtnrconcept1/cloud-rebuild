@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); alert("Votre message a été envoyé !"); };
@@ -31,7 +32,7 @@ export default function Contact() {
           <h2 className="text-2xl font-semibold">Nos coordonnées</h2>
           <div className="space-y-4">
             {[
-              { icon: Mail, label: "Email", value: "contact@miamz.ch" },
+              { icon: Mail, label: "Email", value: SUPPORT_EMAIL },
               { icon: Phone, label: "Téléphone", value: "+33 (0)1 23 45 67 89" },
               { icon: MapPin, label: "Adresse", value: "123 Rue de la Gastronomie, 75001 Paris" },
             ].map((item) => (

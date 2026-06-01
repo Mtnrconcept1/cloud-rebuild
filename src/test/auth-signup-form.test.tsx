@@ -128,7 +128,7 @@ describe("Auth signup form", () => {
     fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
     fireEvent.change(screen.getByLabelText("Mot de passe"), { target: { value: "secret123" } });
-    fireEvent.click(screen.getByRole("button", { name: "Creer mon compte" }));
+    fireEvent.click(screen.getByRole("button", { name: "Créer mon compte" }));
 
     await waitFor(() => {
       expect(supabaseMocks.signUp).toHaveBeenCalledWith(
@@ -146,7 +146,7 @@ describe("Auth signup form", () => {
     const emailInput = screen.getByLabelText("Email");
     fireEvent.change(emailInput, { target: { value: "restaurant@example.com" } });
 
-    expect(screen.getByRole("heading", { name: "Creer un compte verifie" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Créer un compte vérifié" })).toBeInTheDocument();
     expect(emailInput).toHaveAttribute("type", "email");
     expect(emailInput).toHaveValue("restaurant@example.com");
   });

@@ -491,14 +491,14 @@ export default function Panier() {
         if (allowedPaymentMethods.length === 0) {
           return toast({
             title: "Paiement indisponible",
-            description: "Aucun moyen de paiement securise n'est actuellement disponible.",
+            description: "Aucun moyen de paiement sécurisé n'est actuellement disponible.",
             variant: "destructive",
           });
         }
         if (paymentMethod === "cash") {
           return toast({
-            title: "Paiement securise requis",
-            description: "La Table du Chef doit etre regle a l'avance pour confirmer la reservation.",
+            title: "Paiement sécurisé requis",
+            description: "La Table du Chef doit être regle à l'avance pour confirmer la réservation.",
             variant: "destructive",
           });
         }
@@ -575,7 +575,7 @@ export default function Panier() {
         if (takeawayAvailable) setOrderMode("takeaway", { force: true });
         return toast({
           title: "Livraison indisponible",
-          description: "Ce restaurant n'accepte plus la livraison actuellement.",
+          description: "Ce restaurant n'accepté plus la livraison actuellement.",
           variant: "destructive",
         });
       }
@@ -583,11 +583,11 @@ export default function Panier() {
         if (deliveryAvailable) setOrderMode("delivery", { force: true });
         return toast({
           title: "Emporter indisponible",
-          description: "Ce restaurant n'accepte plus l'emporter actuellement.",
+          description: "Ce restaurant n'accepté plus l'emporter actuellement.",
           variant: "destructive",
         });
       }
-      if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.", variant: "destructive" });
+      if (hasAntiGaspi && orderMode !== "takeaway") return toast({ title: "Mode incompatible", description: "Les offres anti-gaspi sont uniquement disponibles à l'emporter.", variant: "destructive" });
 
       const hasIncompatibleFlashMode = flashItems.some((item) => {
         const canDelivery = item.metadata?.delivery_available !== false;
@@ -609,7 +609,7 @@ export default function Panier() {
           if (!canScheduleDelivery) {
             return toast({
               title: "Planification indisponible",
-              description: "La livraison planifiee est disponible pour une commande sur un seul restaurant.",
+              description: "La livraison planifiée est disponible pour une commande sur un seul restaurant.",
               variant: "destructive",
             });
           }
@@ -703,7 +703,7 @@ export default function Panier() {
             },
           }),
           ORDER_VALIDATION_TIMEOUT_MS,
-          "La verification du montant prend trop de temps. Reessayez dans quelques instants.",
+          "La vérification du montant prend trop de temps. Reessayez dans quelques instants.",
         );
 
         if (error) throw new Error(error.message);
@@ -723,7 +723,7 @@ export default function Panier() {
       if (authoritativeRequiresStripeCheckout) {
         if (!requiresStripeCheckout) {
           toast({
-            title: "Montant mis a jour",
+            title: "Montant mis à jour",
             description: `Le total confirme est de ${authoritativeTotal.toFixed(2)} CHF. Redirection vers le paiement.`,
           });
         }
@@ -791,7 +791,7 @@ export default function Panier() {
               }
             }),
             ORDER_VALIDATION_TIMEOUT_MS,
-            "La preparation de votre commande prend trop de temps. Reessayez dans quelques instants.",
+            "La préparation de votre commande prend trop de temps. Reessayez dans quelques instants.",
           );
 
           if (validateError) throw new Error(validateError.message);
@@ -1061,10 +1061,10 @@ export default function Panier() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <ShieldCheck className="h-4 w-4 text-primary" />
-                  Connexion demandee a l&apos;etape finale
+                  Connexion demandee a l&apos;étape finale
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Votre panier reste intact. Une fois connecte, vous retrouverez automatiquement vos plats et pourrez terminer la commande.
+                  Votre panier reste intact. Une fois connecté, vous retrouverez automatiquement vos plats et pourrez terminér la commande.
                 </p>
               </div>
               <Button asChild size="lg" className="gap-2 rounded-full px-6">
@@ -1084,10 +1084,10 @@ export default function Panier() {
                 <p className="text-sm font-semibold">{isChefsTableCheckout ? "Reservation La Table du Chef" : cartRestaurantSummaryLabel}</p>
                 <p className="text-xs text-muted-foreground">
                   {isChefsTableCheckout
-                    ? `${chefsTableReservationGroups.length} reservation(s) a confirmer`
+                    ? `${chefsTableReservationGroups.length} réservation(s) a confirmer`
                     : orderMode === "delivery"
-                      ? "Mode selectionne: livraison"
-                      : "Mode selectionne: emporter"}
+                      ? "Mode sélectionné: livraison"
+                      : "Mode sélectionné: emporter"}
                 </p>
               </div>
               <Link to={continueShoppingHref} className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80">
@@ -1108,7 +1108,7 @@ export default function Panier() {
                 </div>
               ) : null}
               <div className="flex items-center justify-between border-t pt-2 text-base font-bold">
-                <span>Total estime</span>
+                <span>Total estimé</span>
                 <span>{finalTotal.toFixed(2)} CHF</span>
               </div>
             </div>
@@ -1133,7 +1133,7 @@ export default function Panier() {
         <h1 className="font-display text-3xl font-bold">Votre panier</h1>
         <p className="text-sm text-muted-foreground">
           {isChefsTableCheckout
-            ? `${chefsTableReservationGroups.length} reservation(s) La Table du Chef a confirmer`
+            ? `${chefsTableReservationGroups.length} réservation(s) La Table du Chef a confirmer`
             : cartRestaurantSummaryLabel}
         </p>
 
@@ -1146,7 +1146,7 @@ export default function Panier() {
               <p className="font-semibold">Reservation La Table du Chef</p>
             </div>
             <p className="text-sm text-muted-foreground">
-              Le paiement securise confirme la reservation et les plats precommandes. Chaque drop garde son horaire de service et son nombre de convives.
+              Le paiement sécurisé confirme la réservation et les plats précommandés. Chaque drop garde son horaire de service et son nombre de convives.
             </p>
             <div className="space-y-3">
               {chefsTableReservationGroups.map((group) => (
@@ -1171,7 +1171,7 @@ export default function Panier() {
                 <div>
                   <p className="text-sm font-semibold text-foreground">Paiement visible et prioritaire</p>
                   <p className="text-xs text-muted-foreground">
-                    Les convives choisis dans La Table du Chef sont deja integres dans cette etape de paiement.
+                    Les convives choisis dans La Table du Chef sont déjà integres dans cette étape de paiement.
                   </p>
                 </div>
                 <span className="font-display text-2xl font-bold text-foreground">{finalTotal.toFixed(2)} CHF</span>
@@ -1191,7 +1191,7 @@ export default function Panier() {
             <div className="rounded-2xl border bg-card/60 p-4 space-y-2">
               <p className="text-sm font-semibold">Paiement avant confirmation</p>
               <p className="text-sm text-muted-foreground">
-                Chef&apos;s Table fonctionne uniquement avec un paiement securise a l&apos;avance. Une fois le paiement accepte, vos reservations apparaissent dans l&apos;espace reservations.
+                Chef&apos;s Table fonctionne uniquement avec un paiement sécurisé a l&apos;avance. Une fois le paiement accepté, vos réservations apparaissent dans l&apos;espace réservations.
               </p>
             </div>
           ) : orderMode === "delivery" ? (
@@ -1218,7 +1218,7 @@ export default function Panier() {
                 <div className="space-y-1">
                   <Label>Heure de livraison</Label>
                   <p className="text-xs text-muted-foreground">
-                    Les creneaux respectent les services midi et soir du restaurant.
+                    Les créneaux respectent les services midi et soir du restaurant.
                   </p>
                 </div>
 
@@ -1231,7 +1231,7 @@ export default function Panier() {
                         : "border-border bg-background hover:bg-muted/40"
                       }`}
                   >
-                    <p className="font-semibold">Des que possible</p>
+                    <p className="font-semibold">Dès que possible</p>
                     <p className="text-xs text-muted-foreground">Lancement immediat apres validation.</p>
                   </button>
 
@@ -1247,7 +1247,7 @@ export default function Panier() {
                     <p className="font-semibold">Programmer une heure</p>
                     <p className="text-xs text-muted-foreground">
                       {canScheduleDelivery
-                        ? "Choisissez une heure d'arrivee par service."
+                        ? "Choisissez une heure d'arrivée par service."
                         : "Disponible pour un panier d'un seul restaurant."}
                     </p>
                   </button>
@@ -1297,13 +1297,13 @@ export default function Panier() {
                       </div>
                     ) : (
                       <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
-                        Aucun creneau disponible a cette date. Essayez un autre jour de service.
+                        Aucun creneau disponible à cette date. Essayez un autre jour de service.
                       </div>
                     )}
 
                     {scheduledDeliveryLabel ? (
                       <div className="rounded-xl bg-primary/5 p-3 text-sm">
-                        <span className="font-semibold">Livraison planifiee :</span> {scheduledDeliveryLabel}
+                        <span className="font-semibold">Livraison planifiée :</span> {scheduledDeliveryLabel}
                       </div>
                     ) : null}
                   </div>
@@ -1324,17 +1324,17 @@ export default function Panier() {
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2">
                   <div className="flex items-center gap-2 text-amber-600 font-bold"><Zap className="h-4 w-4" /><span>Retrait Vente Flash</span></div>
                   <div className="text-sm space-y-1">
-                    <p className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-muted-foreground" /><span>Le <strong>{flashPickupDate ? new Date(flashPickupDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : "date definie par l'offre"}</strong></span></p>
+                    <p className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-muted-foreground" /><span>Le <strong>{flashPickupDate ? new Date(flashPickupDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : "date définie par l'offre"}</strong></span></p>
                     <p className="flex items-center gap-2 pl-5"><span className="text-muted-foreground">Creneau fixe :</span><strong>{flashPickupStart || "--:--"} - {flashPickupEnd || "--:--"}</strong></p>
-                    <p className="text-xs text-muted-foreground pl-5">Le creneau de retrait est impose par la vente flash et ne peut pas etre modifie.</p>
+                    <p className="text-xs text-muted-foreground pl-5">Le creneau de retrait est impose par la vente flash et ne peut pas être modifie.</p>
                   </div>
                 </div>
               ) : needsTakeawaySlots ? (
                 <div className="space-y-4 rounded-2xl border bg-card/60 p-4">
                   <div className="space-y-1">
-                    <Label>Retrait a emporter</Label>
+                    <Label>Retrait à emporter</Label>
                     <p className="text-xs text-muted-foreground">
-                      Les creneaux respectent les heures de service du restaurant.
+                      Les créneaux respectent les heures de service du restaurant.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -1378,7 +1378,7 @@ export default function Panier() {
                     </div>
                   ) : (
                     <div className="rounded-xl bg-muted/40 p-3 text-sm text-muted-foreground">
-                      Aucun creneau disponible a cette date. Essayez un autre jour de service.
+                      Aucun creneau disponible à cette date. Essayez un autre jour de service.
                     </div>
                   )}
                   {pickupTime && (
@@ -1432,7 +1432,7 @@ export default function Panier() {
             <div className="flex justify-between text-sm"><span>{`Frais de livraison (${orderMode === "takeaway" ? "À l'emporter" : "Livraison"})`}</span><span>{deliveryFee.toFixed(2)} CHF</span></div>
           )}
           {orderMode === "delivery" && scheduledDeliveryLabel ? (
-            <div className="flex justify-between text-sm text-muted-foreground"><span>Livraison planifiee</span><span>{scheduledDeliveryLabel}</span></div>
+            <div className="flex justify-between text-sm text-muted-foreground"><span>Livraison planifiée</span><span>{scheduledDeliveryLabel}</span></div>
           ) : null}
           {pointsDiscount > 0 && <div className="flex justify-between text-sm font-medium text-pink-500"><span>Réduction Fidélité ({pointsToRedeem} pts)</span><span>-{pointsDiscount.toFixed(2)} CHF</span></div>}
           {flexDiscount > 0 && <div className="flex justify-between text-sm font-medium text-emerald-600"><span>Réduction Offres (10%)</span><span>-{flexDiscount.toFixed(2)} CHF</span></div>}
@@ -1449,8 +1449,8 @@ export default function Panier() {
           <Link to="/tok-one" className="flex items-center gap-3 p-3 rounded-xl bg-violet-50 border border-violet-200 hover:bg-violet-100 transition-colors">
             <Crown className="h-5 w-5 text-violet-600 shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-violet-900">Economisez jusqu'a {(quotedDeliveryFee + roundMoney((discountableSubtotal * TOK_ONE_DEFAULT_DISCOUNT_PERCENT) / 100)).toFixed(2)} CHF avec Tok One</p>
-              <p className="text-xs text-violet-600">Livraison offerte et jusqu'a {TOK_ONE_DEFAULT_DISCOUNT_PERCENT}% de remise sur vos plats</p>
+              <p className="text-sm font-medium text-violet-900">Economisez jusqu’à {(quotedDeliveryFee + roundMoney((discountableSubtotal * TOK_ONE_DEFAULT_DISCOUNT_PERCENT) / 100)).toFixed(2)} CHF avec Tok One</p>
+              <p className="text-xs text-violet-600">Livraison offerte et jusqu’à {TOK_ONE_DEFAULT_DISCOUNT_PERCENT}% de remise sur vos plats</p>
             </div>
             <span className="text-xs font-semibold text-violet-600 shrink-0">Decouvrir →</span>
           </Link>

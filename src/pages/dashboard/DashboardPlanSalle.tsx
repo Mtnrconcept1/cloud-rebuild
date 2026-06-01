@@ -1381,7 +1381,7 @@ export default function DashboardPlanSalle() {
         if (conflictingReservation) {
           return {
             ok: false,
-            reason: `${table.table_number} est deja pris autour de ${getSafeTime(conflictingReservation.time)}.`,
+            reason: `${table.table_number} est déjà pris autour de ${getSafeTime(conflictingReservation.time)}.`,
           };
         }
 
@@ -1635,15 +1635,15 @@ export default function DashboardPlanSalle() {
 
   const createDefaultBranchMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedId) throw new Error("Aucun restaurant selectionne.");
+      if (!selectedId) throw new Error("Aucun restaurant sélectionné.");
 
       const branchCount = branches.length + 1;
       const address = typeof restaurantDetails?.address === "string" && restaurantDetails.address.trim()
         ? restaurantDetails.address.trim()
-        : "Adresse a completer";
+        : "Adresse à compléter";
       const city = typeof restaurantDetails?.city === "string" && restaurantDetails.city.trim()
         ? restaurantDetails.city.trim()
-        : "Ville a completer";
+        : "Ville à compléter";
       const postalCode = typeof restaurantDetails?.postal_code === "string" && restaurantDetails.postal_code.trim()
         ? restaurantDetails.postal_code.trim()
         : "0000";
@@ -1673,7 +1673,7 @@ export default function DashboardPlanSalle() {
       queryClient.invalidateQueries({ queryKey: ["floor-plan-branches", selectedId] });
       toast({
         title: "Plan de salle initialise",
-        description: "La premiere salle est prete. Vous pouvez maintenant ajouter des tables.",
+        description: "La première salle est prête. Vous pouvez maintenant ajouter des tables.",
       });
     },
     onError: (error: Error) => {
@@ -1832,8 +1832,8 @@ export default function DashboardPlanSalle() {
         toast({
           title: isTemplateMode ? "Template sauvegarde" : "Plan du jour sauvegarde",
           description: isTemplateMode
-            ? "Le plan par defaut a ete mis a jour pour les prochains jours."
-            : `Les deplacements du ${formatDashboardDateHeading(referenceDate)} ont ete enregistres.`,
+            ? "Le plan par défaut a été mis à jour pour les prochains jours."
+            : `Les deplacements du ${formatDashboardDateHeading(referenceDate)} ont été enregistres.`,
         });
       }
     },
@@ -1887,7 +1887,7 @@ export default function DashboardPlanSalle() {
     },
     onSuccess: ({ status }) => {
       toast({
-        title: "Statut mis a jour",
+        title: "Statut mis à jour",
         description: `Reservation ${getReservationStatusLabel(status)}.`,
       });
     },
@@ -2024,7 +2024,7 @@ export default function DashboardPlanSalle() {
 
   const addTableFromPreset = (presetId: string) => {
     if (!selectedBranchId) {
-      toast({ title: "Selection requise", description: "Selectionnez d'abord une salle.", variant: "destructive" });
+      toast({ title: "Sélection requise", description: "Selectionnez d'abord une salle.", variant: "destructive" });
       return;
     }
     if (!isTemplateMode) {
@@ -2225,7 +2225,7 @@ export default function DashboardPlanSalle() {
 
     commitHistorySnapshot(buildHistorySnapshot(newTables, draftAssignments, null));
     toast({
-      title: "Disposition IA appliquee",
+      title: "Disposition IA appliquée",
       description: `${newTables.length} elements places, ${newTables.reduce((s, t) => s + t.capacity, 0)} couverts au total.`,
     });
   };
@@ -2353,7 +2353,7 @@ export default function DashboardPlanSalle() {
     if (conflictingReservation) {
       return {
         ok: false,
-        reason: `${table.table_number} est deja pris autour de ${getSafeTime(conflictingReservation.time)}.`,
+        reason: `${table.table_number} est déjà pris autour de ${getSafeTime(conflictingReservation.time)}.`,
       };
     }
 
@@ -2413,7 +2413,7 @@ export default function DashboardPlanSalle() {
     if (placed.length === 0) {
       toast({
         title: "Aucun placement possible",
-        description: "Aucune reservation visible ne trouve une table compatible sans conflit.",
+        description: "Aucune réservation visible ne trouve une table compatible sans conflit.",
       });
       return;
     }
@@ -2423,7 +2423,7 @@ export default function DashboardPlanSalle() {
     setSelectedReservationId(lastPlaced?.reservation.id || null);
     toast({
       title: "Placement automatique applique",
-      description: `${placed.length} reservation(s) placee(s). Dernier score: ${lastPlaced.score}/100.`,
+      description: `${placed.length} réservation(s) placee(s). Dernier score: ${lastPlaced.score}/100.`,
     });
   };
 
@@ -2651,7 +2651,7 @@ export default function DashboardPlanSalle() {
     if (saveMutation.isPending) {
       return {
         label: "Sauvegarde en cours",
-        detail: "Les derniers ajustements sont en train d'etre synchronises.",
+        detail: "Les derniers ajustements sont en train d'être synchronises.",
         tone: "border-amber-200 bg-amber-50 text-amber-800",
       };
     }
@@ -2660,12 +2660,12 @@ export default function DashboardPlanSalle() {
       return hasUnpersistedDraftTables
         ? {
             label: "Template a enregistrer",
-            detail: "De nouveaux elements doivent etre sauvegardes avant diffusion.",
+            detail: "De nouveaux elements doivent être sauvegardes avant diffusion.",
             tone: "border-amber-200 bg-amber-50 text-amber-800",
           }
         : {
             label: "Template synchronise",
-            detail: "La structure de salle est a jour.",
+            detail: "La structure de salle est à jour.",
             tone: "border-emerald-200 bg-emerald-50 text-emerald-800",
           };
     }
@@ -2680,7 +2680,7 @@ export default function DashboardPlanSalle() {
         }
       : {
           label: "Plan du jour synchronise",
-          detail: "Les placements affiches correspondent a la version en base.",
+          detail: "Les placements affiches correspondent à la version en base.",
           tone: "border-emerald-200 bg-emerald-50 text-emerald-800",
         };
   })();
@@ -2937,7 +2937,7 @@ export default function DashboardPlanSalle() {
         {branchesError ? <p className="text-destructive">Erreur salles : {(branchesError as Error).message}</p> : null}
         {tablesError ? <p className="text-destructive">Erreur tables : {(tablesError as Error).message}</p> : null}
         {layoutOverridesError ? <p className="text-destructive">Erreur plan du jour : {(layoutOverridesError as Error).message}</p> : null}
-        {reservationsError ? <p className="text-destructive">Erreur reservations : {(reservationsError as Error).message}</p> : null}
+        {reservationsError ? <p className="text-destructive">Erreur réservations : {(reservationsError as Error).message}</p> : null}
         {slotsError ? <p className="text-destructive">Erreur affectations : {(slotsError as Error).message}</p> : null}
 
         {!selectedId && !restaurantsLoading ? (
@@ -2953,16 +2953,16 @@ export default function DashboardPlanSalle() {
             <CardHeader>
               <CardTitle>Commencer par une salle principale</CardTitle>
               <CardDescription>
-                Le plan de salle s'appuie sur une branche de service. Creez-en une premiere, puis ajoutez vos tables et vos secteurs.
+                Le plan de salle s'appuie sur une branche de service. Créez-en une première, puis ajoutez vos tables et vos secteurs.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap items-center gap-3">
               <Button onClick={() => createDefaultBranchMutation.mutate()} disabled={createDefaultBranchMutation.isPending}>
                 <Sparkles className="mr-2 h-4 w-4" />
-                {createDefaultBranchMutation.isPending ? "Creation..." : "Creer la salle principale"}
+                {createDefaultBranchMutation.isPending ? "Création..." : "Créer la salle principale"}
               </Button>
               <p className="text-sm text-muted-foreground">
-                Adresse pre-remplie a partir de la fiche restaurant, editable ensuite si besoin.
+                Adresse pré-remplie à partir de la fiche restaurant, editable ensuite si besoin.
               </p>
             </CardContent>
           </Card>
@@ -3074,7 +3074,7 @@ export default function DashboardPlanSalle() {
                         <SelectValue placeholder="Heure" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="time">Heure d'arrivee</SelectItem>
+                        <SelectItem value="time">Heure d'arrivée</SelectItem>
                         <SelectItem value="party_size">Taille du groupe</SelectItem>
                         <SelectItem value="status">Statut</SelectItem>
                       </SelectContent>
@@ -3379,7 +3379,7 @@ export default function DashboardPlanSalle() {
                           </Button>
                           <div className="h-px w-full bg-slate-200" />
                           <div className="rounded-[20px] border border-slate-200 bg-white px-3 py-4 text-center">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Selection</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Sélection</p>
                             <p className="mt-2 text-sm font-semibold text-slate-900">
                               {selectedTable ? selectedTable.table_number : "Aucune"}
                             </p>
@@ -3480,7 +3480,7 @@ export default function DashboardPlanSalle() {
               <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
                 <ServiceBoard
                   selectedSector={selectedSector}
-                  subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} reservation(s) visibles`}
+                  subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} réservation(s) visibles`}
                   activeReservationLabel={activeServiceReservation ? getReservationCustomerLabel(activeServiceReservation) : null}
                   canvasWidth={canvasWidth}
                   canvasZoom={canvasZoom}
@@ -3599,7 +3599,7 @@ export default function DashboardPlanSalle() {
           <SheetHeader className="border-b border-slate-200 px-6 py-5">
             <SheetTitle>Palette studio</SheetTitle>
             <SheetDescription>
-              Ajoutez tables et mobilier sans quitter le canevas. Les r?glages d?taill?s restent dans l'inspecteur.
+              Ajoutez tables et mobilier sans quitter le canevas. Les réglages détaillés restent dans l'inspecteur.
             </SheetDescription>
           </SheetHeader>
           <div className="flex min-h-0 flex-1 flex-col p-4">

@@ -45,7 +45,7 @@ export default function SocialPostBoostDialog({
 }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState(`Boost Actualites - ${post.restaurant.name}`);
+  const [title, setTitle] = useState(`Boost Actualités - ${post.restaurant.name}`);
   const [body, setBody] = useState(compactText(post.body, 220));
   const [totalBudget, setTotalBudget] = useState("25");
   const [startsAt, setStartsAt] = useState(toDateInputValue(new Date()));
@@ -79,7 +79,7 @@ export default function SocialPostBoostDialog({
       return;
     }
     if (totalBudgetValue <= 0) {
-      toast({ title: "Budget requis", description: "Le budget doit etre superieur a 0 CHF.", variant: "destructive" });
+      toast({ title: "Budget requis", description: "Le budget doit être superieur a 0 CHF.", variant: "destructive" });
       return;
     }
 
@@ -109,7 +109,7 @@ export default function SocialPostBoostDialog({
 
       if (error) throw error;
       const campaignId = data?.campaign?.id;
-      if (!campaignId) throw new Error("Impossible de creer la mise en avant.");
+      if (!campaignId) throw new Error("Impossible de créer la mise en avant.");
 
       const checkout = await invokeSupabaseFunction<{ url?: string }>("create-checkout", {
         body: {
@@ -138,7 +138,7 @@ export default function SocialPostBoostDialog({
       });
 
       if (checkout.error || !checkout.data?.url) {
-        throw new Error(checkout.error?.message || "Impossible de creer la session de paiement.");
+        throw new Error(checkout.error?.message || "Impossible de créer la session de paiement.");
       }
 
       onCreated?.();
@@ -146,7 +146,7 @@ export default function SocialPostBoostDialog({
     } catch (error) {
       toast({
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible de creer la mise en avant.",
+        description: error instanceof Error ? error.message : "Impossible de créer la mise en avant.",
         variant: "destructive",
       });
       setLoading(false);
@@ -165,14 +165,14 @@ export default function SocialPostBoostDialog({
         <DialogHeader>
           <DialogTitle>Mettre en avant ce post</DialogTitle>
           <DialogDescription>
-            Creez une campagne liee a cette actualite. Elle apparaitra comme sponsorisee quand la campagne sera payee et active.
+            Créez une campagne liee à cette actualité. Elle apparaîtra comme sponsorisee quand la campagne sera payee et active.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="rounded-xl border bg-muted/30 p-3">
             <div className="mb-2 flex items-center justify-between gap-3">
-              <Badge variant="secondary" className="rounded-full">Actualites sponsorisees</Badge>
+              <Badge variant="secondary" className="rounded-full">Actualités sponsorisees</Badge>
               <Badge variant="outline" className="rounded-full">{post.restaurant.name}</Badge>
             </div>
             <p className="text-sm leading-6 text-muted-foreground">{compactText(post.body, 260)}</p>
@@ -198,7 +198,7 @@ export default function SocialPostBoostDialog({
               <Input type="number" min="1" step="1" value={durationDays} onChange={(event) => setDurationDays(Math.max(1, Math.round(Number(event.target.value) || 1)))} required />
             </div>
             <div className="space-y-2">
-              <Label>Date de debut</Label>
+              <Label>Date de début</Label>
               <Input type="date" value={startsAt} onChange={(event) => setStartsAt(event.target.value || toDateInputValue(new Date()))} required />
             </div>
           </div>
@@ -221,7 +221,7 @@ export default function SocialPostBoostDialog({
           <div className="flex items-center justify-between gap-3">
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <Target className="h-3.5 w-3.5" />
-              Placement: fil Actualites
+              Placement: fil Actualités
             </p>
             <Button type="submit" disabled={loading} className="gap-2">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}

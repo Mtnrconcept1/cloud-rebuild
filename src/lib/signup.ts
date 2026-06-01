@@ -81,7 +81,7 @@ export const SIGNUP_ROLE_META: Record<
 > = {
   client: {
     label: "Client",
-    description: "Creer un compte en quelques secondes pour commander et reserver. Adresse et paiement plus tard.",
+    description: "Créer un compte en quelques secondes pour commander et réserver. Adresse et paiement plus tard.",
   },
   restaurateur: {
     label: "Restaurateur",
@@ -97,7 +97,7 @@ const BASE_REQUIREMENTS: SignupDocumentRequirement[] = [
   {
     type: "identity_document",
     label: "Piece d'identite",
-    description: "Carte d'identite, passeport ou permis de sejour en cours de validite.",
+    description: "Carte d'identite, passeport ou permis de sejour en cours de validité.",
     accept: ".pdf,.png,.jpg,.jpeg,.webp",
   },
 ];
@@ -126,7 +126,7 @@ function getCourierRequirements(vehicleType: string | null | undefined): SignupD
     {
       type: "work_permit",
       label: "Permis de travail / sejour",
-      description: "Autorisation de travail ou document de residence si necessaire.",
+      description: "Autorisation de travail ou document de residence si nécessaire.",
       accept: ".pdf,.png,.jpg,.jpeg",
     },
     {
@@ -180,25 +180,25 @@ export function getSignupStatusMeta(status: string | null | undefined) {
       return {
         label: "Approuve",
         tone: "bg-emerald-100 text-emerald-700",
-        description: "Votre dossier est valide. Les controles documentaires sont termines.",
+        description: "Votre dossier est valide. Les controles documentaires sont terminés.",
       };
     case "needs_changes":
       return {
         label: "Corrections demandees",
         tone: "bg-amber-100 text-amber-700",
-        description: "Des ajustements ou des documents complementaires sont necessaires.",
+        description: "Des ajustements ou des documents complémentaires sont nécessaires.",
       };
     case "rejected":
       return {
         label: "Refuse",
         tone: "bg-red-100 text-red-700",
-        description: "Le dossier a ete refuse. Consultez la note de revue pour corriger la demande.",
+        description: "Le dossier a été refuse. Consultez la note de revue pour corriger la demande.",
       };
     default:
       return {
         label: "En revue",
         tone: "bg-sky-100 text-sky-700",
-        description: "Les justificatifs ont ete recus et sont en cours de verification.",
+        description: "Les justificatifs ont été recus et sont en cours de vérification.",
       };
   }
 }

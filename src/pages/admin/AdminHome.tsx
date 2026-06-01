@@ -52,8 +52,8 @@ const ADMIN_TOOLS = [
     color: "text-emerald-500",
   },
   {
-    title: "Commandes et reservations",
-    description: "Retrouver une commande ou une reservation avec le detail complet.",
+    title: "Commandes et réservations",
+    description: "Retrouver une commande ou une réservation avec le détail complet.",
     icon: ClipboardList,
     href: "/admin/commandes-reservations",
     color: "text-orange-500",
@@ -99,7 +99,7 @@ const ADMIN_TOOLS = [
     color: "text-indigo-500",
   },
   {
-    title: "Fidelite et abonnement",
+    title: "Fidélité et abonnement",
     description: "Configurer Miamz+ et les avantages.",
     icon: Crown,
     href: "/admin/loyalty",
@@ -108,7 +108,7 @@ const ADMIN_TOOLS = [
   },
   {
     title: "La Table du Chef",
-    description: "Creer et gerer les experiences exclusives La Table du Chef.",
+    description: "Créer et gerer les experiences exclusives La Table du Chef.",
     icon: UtensilsCrossed,
     href: "/admin/drops",
     feature: "admin-drops",
@@ -116,14 +116,14 @@ const ADMIN_TOOLS = [
   },
   {
     title: "Notifications",
-    description: "Piloter les campagnes et alertes ciblees.",
+    description: "Piloter les campagnes et alertes ciblées.",
     icon: Bell,
     href: "/admin/notifications",
     feature: "admin-notifications",
     color: "text-orange-500",
   },
   {
-    title: "Actualites sociales",
+    title: "Actualités sociales",
     description: "Moderation du fil restaurateurs et des signalements.",
     icon: Newspaper,
     href: "/admin/actualites",
@@ -131,7 +131,7 @@ const ADMIN_TOOLS = [
     color: "text-sky-500",
   },
   {
-    title: "Audit et securite",
+    title: "Audit et sécurité",
     description: "Surveiller les executions edge et les mutations sensibles.",
     icon: Shield,
     href: "/admin/audit",
@@ -408,7 +408,7 @@ export default function AdminHome() {
       <DashboardPageHero
         badge="Back-office TOK"
         title="Administration"
-        description="Tableau de bord global pour piloter les restaurants, les commandes, les reservations, la configuration et les modules admin actifs."
+        description="Tableau de bord global pour piloter les restaurants, les commandes, les réservations, la configuration et les modules admin actifs."
         icon={Settings2}
         tone="orange"
         visualLabel="Admin"
@@ -478,10 +478,10 @@ export default function AdminHome() {
               {(tokOneStats?.estimatedRevenue || 0).toFixed(2)} <span className="text-sm font-normal">CHF</span>
             </p>
             <p className="text-xs text-amber-800">
-              Revenu actif estime pour {tokOneStats?.activeCount || 0} abonnement{(tokOneStats?.activeCount || 0) > 1 ? "s" : ""}
+              Revenu actif estimé pour {tokOneStats?.activeCount || 0} abonnement{(tokOneStats?.activeCount || 0) > 1 ? "s" : ""}
             </p>
             <p className="text-[11px] text-amber-700/90">
-              Revenu estime sur base mensuelle, utilise comme fallback de securite.
+              Revenu estimé sur base mensuelle, utilise comme fallback de sécurité.
             </p>
           </CardContent>
         </Card>
@@ -492,7 +492,7 @@ export default function AdminHome() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Rocket className="h-5 w-5 text-primary" />
-              <p className="font-semibold">Configuration globale des fonctionnalites</p>
+              <p className="font-semibold">Configuration globale des fonctionnalités</p>
             </div>
             <p className="text-sm text-muted-foreground">
               Activez ou coupez les paiements, parcours client, onglets restaurateur, modules coursier et outils admin.
@@ -571,7 +571,7 @@ export default function AdminHome() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-primary" />
-              <CardTitle>Commandes recentes</CardTitle>
+              <CardTitle>Commandes récentes</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
