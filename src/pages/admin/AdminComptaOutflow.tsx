@@ -16,6 +16,7 @@ import {
   formatDate,
   formatPeriod,
   getInvoiceStatusClass,
+  downloadAccountingCsv,
   type AdminInvoiceRow,
   useAdminPayoutInvoiceDetailLines,
   useAdminComptaData,
@@ -26,6 +27,12 @@ const supabase = getSupabase();
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   return error ? String(error) : "";
+}
+
+function downloadInvoicePdf(invoice: AdminInvoiceRow) {
+  if (invoice.pdf_url) {
+    window.open(invoice.pdf_url, "_blank", "noopener,noreferrer");
+  }
 }
 
 function InvoiceMeta({
@@ -78,6 +85,11 @@ function InvoiceListItem({
             <Button size="sm" variant="ghost" className="whitespace-nowrap" onClick={() => onToggleDetail(invoice.id)}>
               {detailButtonLabel}
             </Button>
+            {invoice.pdf_url ? (
+              <Button size="sm" variant="ghost" className="whitespace-nowrap" onClick={() => downloadInvoicePdf(invoice)}>
+                PDF
+              </Button>
+            ) : null}
             {isPaid ? (
               <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                 Reglee
@@ -167,6 +179,7 @@ export default function AdminComptaOutflow() {
     summary,
     payoutInvoiceSections,
     monthOptions,
+    isPeriodClosed,
     refundsIssuedCount,
     refundsIssuedTotal,
     refundsPendingAmount,
@@ -178,10 +191,17 @@ export default function AdminComptaOutflow() {
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
 
   const handleMarkPaid = async (invoice: AdminInvoiceRow) => {
-    const { error: updateError } = await supabase
-      .from("restaurant_invoices")
-      .update({ status: "paid", paid_at: new Date().toISOString() })
-      .eq("id", invoice.id);
+    if (isPeriodClosed) {
+      toast({ title: "Période clôturée", description: "Rouvrez le mois avant de marquer une facture payée.", variant: "destructive" });
+      return;
+    }
+
+    const confirmed = window.confirm("Marquer ce reversement comme paye ? L'action sera auditee.");
+    if (!confirmed) return;
+
+    const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
+      p_invoice_id: invoice.id,
+    });
 
     if (updateError) {
       toast({ title: "Erreur", description: updateError.message, variant: "destructive" });
@@ -196,6 +216,19 @@ export default function AdminComptaOutflow() {
     (sum, source) => sum + summary.outflow.bySource[source],
     0,
   );
+  const exportOutflowCsv = () => {
+    downloadAccountingCsv(`tok-compta-sorties-${selectedMonth}-${selectedRestaurant}.csv`, [
+      ["Mois", selectedMonth],
+      ["A regler maintenant", summary.outflow.payoutsOutstanding],
+      ["Deja reverse", summary.outflow.payoutsPaid],
+      ["Part restaurants 90%", totalRestaurantShare],
+      ["Miamz pris en charge", tokCoveredMiamzAmount],
+      ["Remboursements emis", refundsIssuedTotal],
+      ["Remboursements en attente", refundsPendingAmount],
+      ["Factures ouvertes", payoutInvoiceSections.actionable.length],
+      ["Factures historiques", payoutInvoiceSections.history.length],
+    ]);
+  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 text-foreground dark:text-slate-100">
@@ -213,6 +246,10 @@ export default function AdminComptaOutflow() {
             </Button>
             <Button asChild size="sm">
               <Link to="/admin/compta/sorties">Sorties d&apos;argent</Link>
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportOutflowCsv}>
+              <FileUp className="mr-2 h-4 w-4" />
+              Export CSV
             </Button>
           </>
         )}

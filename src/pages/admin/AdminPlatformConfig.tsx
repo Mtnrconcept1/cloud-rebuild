@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
+  History,
   Power,
   Rocket,
   Search,
+  ShieldCheck,
   Settings2,
   XCircle,
 } from "lucide-react";
@@ -30,7 +32,9 @@ import {
   FEATURE_FLAG_GROUP_DESCRIPTIONS,
   FEATURE_FLAG_GROUP_LABELS,
   FEATURE_FLAG_GROUP_ORDER,
+  FEATURE_FLAG_PRESETS,
   getFeatureDefinition,
+  validateFeatureFlagPreset,
   type FeatureFlag,
   useFeatureFlags,
 } from "@/lib/featureFlags";
@@ -56,6 +60,13 @@ const GLOBAL_OVERRIDE_FLAGS = new Set([
   "reservation",
 ]);
 
+const REQUIRED_PRESET_NAMES = [
+  "production stable",
+  "maintenance paiements",
+  "maintenance livraison",
+  "mode lecture seule",
+];
+
 function getDependencyLabels(flag: FeatureFlag) {
   return flag.blockedBy
     .filter((dependency) => dependency !== flag.name)
@@ -64,9 +75,18 @@ function getDependencyLabels(flag: FeatureFlag) {
 
 export default function AdminPlatformConfig() {
   const { toast } = useToast();
-  const { flags, loading, toggleFlag, activateAllFlags } = useFeatureFlags(true);
+  const {
+    flags,
+    flagAuditLogs,
+    loading,
+    toggleFlag,
+    activateAllFlags,
+    applyFeatureFlagPreset,
+  } = useFeatureFlags(true);
   const [query, setQuery] = useState("");
   const [pendingToggle, setPendingToggle] = useState<FeatureFlag | null>(null);
+  const [pendingReason, setPendingReason] = useState("");
+  const [presetReason, setPresetReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -96,16 +116,27 @@ export default function AdminPlatformConfig() {
     const nextExplicitState = !flag.explicitEnabled;
     if (!nextExplicitState && CRITICAL_FLAGS.has(flag.name)) {
       setPendingToggle(flag);
+      setPendingReason("");
       return;
     }
-    await executeToggle(flag);
+    await executeToggle(flag, nextExplicitState ? "Activation depuis la configuration plateforme" : "Desactivation non critique depuis la configuration plateforme");
   };
 
-  const executeToggle = async (flag: FeatureFlag) => {
+  const executeToggle = async (flag: FeatureFlag, reason: string) => {
+    if (!reason.trim()) {
+      toast({
+        title: "Raison obligatoire",
+        description: "Chaque changement sensible doit etre justifie pour l'historique.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSubmitting(true);
-    const result = await toggleFlag(flag.id);
+    const result = await toggleFlag(flag.id, reason.trim());
     setSubmitting(false);
     setPendingToggle(null);
+    setPendingReason("");
 
     if (!result.success) {
       toast({
@@ -119,6 +150,35 @@ export default function AdminPlatformConfig() {
     toast({
       title: flag.explicitEnabled ? "Fonctionnalité désactivée" : "Fonctionnalité activée",
       description: `${flag.label} a été mise à jour.`,
+    });
+  };
+
+  const handleApplyPreset = async (presetName: string) => {
+    if (!presetReason.trim()) {
+      toast({
+        title: "Raison obligatoire",
+        description: "Indiquez pourquoi ce preset est applique.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    const result = await applyFeatureFlagPreset(presetName, presetReason.trim());
+    setSubmitting(false);
+
+    if (!result.success) {
+      toast({
+        title: "Preset refuse",
+        description: result.error || "Impossible d'appliquer le preset.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Preset applique",
+      description: `${presetName} a ete applique et audite.`,
     });
   };
 
@@ -188,6 +248,61 @@ export default function AdminPlatformConfig() {
               <Power className="h-3 w-3 text-primary" />
               Toggle explicite
             </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-emerald-600" />
+            Presets de gouvernance
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Les presets appliquent plusieurs flags avec validation des dependances, raison obligatoire et audit.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4" data-preset-names={REQUIRED_PRESET_NAMES.join(" ")}>
+          <Input
+            value={presetReason}
+            onChange={(event) => setPresetReason(event.target.value)}
+            placeholder="Raison obligatoire avant application d'un preset"
+          />
+          <div className="grid gap-3 lg:grid-cols-2">
+            {FEATURE_FLAG_PRESETS.map((preset) => {
+              const warnings = validateFeatureFlagPreset(preset, flags);
+              return (
+                <div key={preset.name} className="rounded-2xl border p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold">{preset.label}</p>
+                      <p className="text-sm text-muted-foreground">{preset.description}</p>
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-muted-foreground">Routes impactees</p>
+                        <div className="flex flex-wrap gap-1">
+                          {preset.routes.map((route) => (
+                            <Badge key={route} variant="outline">{route}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      {warnings.length > 0 ? (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+                          {warnings.join(" ")}
+                        </div>
+                      ) : null}
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => void handleApplyPreset(preset.name)}
+                      disabled={loading || submitting || !presetReason.trim() || warnings.length > 0}
+                    >
+                      Appliquer
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -283,18 +398,50 @@ export default function AdminPlatformConfig() {
               Ce flag est critique. La desactivation est immédiate pour les nouvelles actions, y compris hors UI.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <Input
+            value={pendingReason}
+            onChange={(event) => setPendingReason(event.target.value)}
+            placeholder="Raison obligatoire"
+          />
           <AlertDialogFooter>
             <AlertDialogCancel disabled={submitting}>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              disabled={submitting || !pendingToggle}
+              disabled={submitting || !pendingToggle || !pendingReason.trim()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => pendingToggle && executeToggle(pendingToggle)}
+              onClick={() => pendingToggle && executeToggle(pendingToggle, pendingReason)}
             >
               Confirmer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5 text-muted-foreground" />
+            Historique
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {flagAuditLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucun changement audité récemment.</p>
+          ) : (
+            flagAuditLogs.slice(0, 20).map((log) => (
+              <div key={log.id} className="rounded-xl border p-3 text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline">{log.flag_name}</Badge>
+                  <Badge variant={log.new_state ? "secondary" : "destructive"}>
+                    {log.previous_state === null ? "creation" : `${log.previous_state ? "on" : "off"} -> ${log.new_state ? "on" : "off"}`}
+                  </Badge>
+                  {log.preset_name ? <Badge variant="outline">{log.preset_name}</Badge> : null}
+                </div>
+                <p className="mt-2 text-muted-foreground">{log.reason || "Sans raison renseignee"}</p>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Tag, Layers, Trash2, Pencil } from "lucide-react";
+import { ArrowDown, ArrowUp, ImagePlus, Layers, Pencil, Plus, Tag, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const supabase = getSupabase();
@@ -17,6 +17,7 @@ type CollectionFormState = {
   description: string;
   image_url: string;
   is_active: boolean;
+  sort_order: number;
   restaurant_ids: string[];
 };
 
@@ -24,7 +25,8 @@ const EMPTY_COLLECTION_FORM: CollectionFormState = {
   title: "",
   description: "",
   image_url: "",
-  is_active: true,
+  is_active: false,
+  sort_order: 0,
   restaurant_ids: [],
 };
 
@@ -50,22 +52,19 @@ export default function AdminCatalog() {
     queryKey: ["admin-collections-raw"],
     queryFn: async () => {
       const [collectionsRes, linksRes] = await Promise.all([
-        supabase.from("collections").select("*").order("title"),
+        supabase.from("collections").select("*").order("sort_order").order("title"),
         supabase.from("collection_restaurants").select("collection_id, restaurant_id, sort_order").order("sort_order"),
       ]);
       if (collectionsRes.error) throw collectionsRes.error;
       if (linksRes.error) throw linksRes.error;
-      return {
-        collections: collectionsRes.data || [],
-        links: linksRes.data || [],
-      };
+      return { collections: collectionsRes.data || [], links: linksRes.data || [] };
     },
   });
 
   const { data: restaurants = [] } = useQuery({
     queryKey: ["admin-catalog-restaurants"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("restaurants").select("id, name").order("name");
+      const { data, error } = await supabase.from("restaurants").select("id, name, is_active, image_url").order("name");
       if (error) throw error;
       return data || [];
     },
@@ -85,16 +84,24 @@ export default function AdminCatalog() {
     }));
   }, [collectionsRaw]);
 
+  const uploadCatalogMedia = async (file: File) => {
+    const path = `catalog/${crypto.randomUUID()}-${file.name}`;
+    const { error } = await supabase.storage.from("catalog-media").upload(path, file, { upsert: false });
+    if (error) {
+      toast({ title: "Erreur upload", description: error.message, variant: "destructive" });
+      return;
+    }
+    const { data } = supabase.storage.from("catalog-media").getPublicUrl(path);
+    setCollectionForm((prev) => ({ ...prev, image_url: data.publicUrl }));
+  };
+
   const handleAddCuisine = async () => {
     if (!newCuisine.trim()) return;
-    const cuisineName = newCuisine.trim();
-    const { error } = await supabase.from("cuisines").insert({ name: cuisineName });
-
+    const { error } = await supabase.from("cuisines").insert({ name: newCuisine.trim() });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-
     toast({ title: "Cuisine ajoutee" });
     setNewCuisine("");
     queryClient.invalidateQueries({ queryKey: ["admin-cuisines"] });
@@ -106,13 +113,13 @@ export default function AdminCatalog() {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Cuisine supprimée" });
+    toast({ title: "Cuisine supprimee" });
     queryClient.invalidateQueries({ queryKey: ["admin-cuisines"] });
   };
 
   const openCreateCollection = () => {
     setEditingCollection(null);
-    setCollectionForm(EMPTY_COLLECTION_FORM);
+    setCollectionForm({ ...EMPTY_COLLECTION_FORM, sort_order: collections.length });
     setCollectionOpen(true);
   };
 
@@ -122,7 +129,8 @@ export default function AdminCatalog() {
       title: collection.title || "",
       description: collection.description || "",
       image_url: collection.image_url || "",
-      is_active: collection.is_active ?? true,
+      is_active: collection.is_active ?? false,
+      sort_order: Number(collection.sort_order || 0),
       restaurant_ids: collection.restaurant_ids || [],
     });
     setCollectionOpen(true);
@@ -137,91 +145,77 @@ export default function AdminCatalog() {
     }));
   };
 
-  const saveCollection = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setSavingCollection(true);
-
-    let collectionId = editingCollection?.id as string | undefined;
-    if (editingCollection) {
-      const { error } = await supabase
-        .from("collections")
-        .update({
-          title: collectionForm.title,
-          description: collectionForm.description || null,
-          image_url: collectionForm.image_url || null,
-          is_active: collectionForm.is_active,
-        })
-        .eq("id", collectionId);
-      if (error) {
-        setSavingCollection(false);
-        toast({ title: "Erreur", description: error.message, variant: "destructive" });
-        return;
-      }
-    } else {
-      const { data, error } = await supabase
-        .from("collections")
-        .insert({
-          title: collectionForm.title,
-          description: collectionForm.description || null,
-          image_url: collectionForm.image_url || null,
-          is_active: collectionForm.is_active,
-        })
-        .select("id")
-        .single();
-      if (error || !data?.id) {
-        setSavingCollection(false);
-        toast({ title: "Erreur", description: error?.message || "Impossible de créer la collection.", variant: "destructive" });
-        return;
-      }
-      collectionId = data.id;
-    }
-
-    const { error: deleteLinksError } = await supabase.from("collection_restaurants").delete().eq("collection_id", collectionId);
-    if (deleteLinksError) {
-      setSavingCollection(false);
-      toast({ title: "Erreur", description: deleteLinksError.message, variant: "destructive" });
-      return;
-    }
-
-    if (collectionForm.restaurant_ids.length > 0) {
-      const { error: insertLinksError } = await supabase.from("collection_restaurants").insert(
-        collectionForm.restaurant_ids.map((restaurantId, index) => ({
-          collection_id: collectionId,
-          restaurant_id: restaurantId,
-          sort_order: index,
-        }))
-      );
-      if (insertLinksError) {
-        setSavingCollection(false);
-        toast({ title: "Erreur", description: insertLinksError.message, variant: "destructive" });
-        return;
-      }
-    }
-
-    setSavingCollection(false);
-    setCollectionOpen(false);
-    setEditingCollection(null);
-    setCollectionForm(EMPTY_COLLECTION_FORM);
-    queryClient.invalidateQueries({ queryKey: ["admin-collections-raw"] });
-    toast({ title: editingCollection ? "Collection mise à jour" : "Collection créée" });
-  };
-
-  const deleteCollection = async (id: string) => {
-    const { error } = await supabase.from("collections").delete().eq("id", id);
+  const reorderCollection = async (collectionId: string, direction: -1 | 1) => {
+    const ids = collections.map((collection: any) => collection.id);
+    const index = ids.indexOf(collectionId);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= ids.length) return;
+    [ids[index], ids[target]] = [ids[target], ids[index]];
+    const { error } = await (supabase.rpc as any)("admin_reorder_catalog_collections", { p_collection_ids: ids });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Collection supprimée" });
     queryClient.invalidateQueries({ queryKey: ["admin-collections-raw"] });
   };
+
+  const saveCollection = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (collectionForm.is_active && collectionForm.restaurant_ids.length === 0) {
+      toast({ title: "Publication bloquee", description: "Une collection publiee doit contenir au moins un restaurant.", variant: "destructive" });
+      return;
+    }
+    setSavingCollection(true);
+
+    const { error } = await (supabase.rpc as any)("admin_save_catalog_collection", {
+      p_collection_id: editingCollection?.id || null,
+      p_payload: {
+        title: collectionForm.title,
+        description: collectionForm.description || null,
+        image_url: collectionForm.image_url || null,
+        is_active: collectionForm.is_active,
+        sort_order: collectionForm.sort_order,
+      },
+      p_restaurant_ids: collectionForm.restaurant_ids,
+      p_reason: editingCollection ? "Mise a jour collection catalogue" : "Creation collection catalogue",
+    });
+
+    setSavingCollection(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    setCollectionOpen(false);
+    setEditingCollection(null);
+    setCollectionForm(EMPTY_COLLECTION_FORM);
+    queryClient.invalidateQueries({ queryKey: ["admin-collections-raw"] });
+    toast({ title: editingCollection ? "Collection mise a jour" : "Collection creee" });
+  };
+
+  const deleteCollection = async (id: string) => {
+    const reason = window.prompt("Raison obligatoire pour archiver la collection.");
+    if (!reason?.trim()) return;
+    const { error } = await (supabase.rpc as any)("admin_archive_catalog_collection", {
+      p_collection_id: id,
+      p_reason: reason.trim(),
+    });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Collection archivee" });
+    queryClient.invalidateQueries({ queryKey: ["admin-collections-raw"] });
+  };
+
+  const selectedRestaurants = restaurants.filter((restaurant: any) => collectionForm.restaurant_ids.includes(restaurant.id));
 
   return (
     <div className="container py-8 space-y-6">
       <DashboardPageHero
         badge="Catalogue"
         title="Catalogue Global"
-        description="Gerez les cuisines, collections et restaurants mis en avant avec une lecture claire du contenu visible."
+        description="Gerez cuisines, collections, medias, ordre et validation publication."
         icon={Layers}
         tone="violet"
         visualLabel="Catalogue"
@@ -231,84 +225,86 @@ export default function AdminCatalog() {
           { label: "Restaurants", value: restaurants.length, icon: Layers },
         ]}
         actions={(
-        <Dialog open={collectionOpen} onOpenChange={setCollectionOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openCreateCollection}>
-              <Plus className="w-4 h-4 mr-2" />
-              Créer une collection
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader><DialogTitle>{editingCollection ? "Modifier la collection" : "Nouvelle collection"}</DialogTitle></DialogHeader>
-            <form onSubmit={saveCollection} className="space-y-4">
-              <Input
-                placeholder="Titre de collection"
-                value={collectionForm.title}
-                onChange={(event) => setCollectionForm((prev) => ({ ...prev, title: event.target.value }))}
-                required
-              />
-              <Textarea
-                placeholder="Description"
-                value={collectionForm.description}
-                onChange={(event) => setCollectionForm((prev) => ({ ...prev, description: event.target.value }))}
-              />
-              <Input
-                placeholder="Image URL"
-                value={collectionForm.image_url}
-                onChange={(event) => setCollectionForm((prev) => ({ ...prev, image_url: event.target.value }))}
-              />
-              <label className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={collectionForm.is_active}
-                  onChange={() => setCollectionForm((prev) => ({ ...prev, is_active: !prev.is_active }))}
-                />
-                <span>Collection active</span>
-              </label>
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Restaurants associés</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-56 overflow-y-auto rounded-lg border p-3">
-                  {restaurants.map((restaurant: any) => (
-                    <label key={restaurant.id} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={collectionForm.restaurant_ids.includes(restaurant.id)}
-                        onChange={() => toggleRestaurant(restaurant.id)}
-                      />
-                      <span>{restaurant.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <Button type="submit" className="w-full" disabled={savingCollection}>
-                {savingCollection ? "Enregistrement..." : editingCollection ? "Mettre à jour" : "Creer"}
+          <Dialog open={collectionOpen} onOpenChange={setCollectionOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openCreateCollection}>
+                <Plus className="w-4 h-4 mr-2" />
+                Creer une collection
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader><DialogTitle>{editingCollection ? "Modifier la collection" : "Nouvelle collection"}</DialogTitle></DialogHeader>
+              <form onSubmit={saveCollection} className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+                <div className="space-y-4">
+                  <Input placeholder="Titre de collection" value={collectionForm.title} onChange={(event) => setCollectionForm((prev) => ({ ...prev, title: event.target.value }))} required />
+                  <Textarea placeholder="Description" value={collectionForm.description} onChange={(event) => setCollectionForm((prev) => ({ ...prev, description: event.target.value }))} />
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                    <ImagePlus className="h-4 w-4" />
+                    <span>Uploader un media catalogue</span>
+                    <input className="sr-only" type="file" accept="image/*" onChange={(event) => event.target.files?.[0] && uploadCatalogMedia(event.target.files[0])} />
+                  </label>
+                  <Input placeholder="URL media controlee" value={collectionForm.image_url} onChange={(event) => setCollectionForm((prev) => ({ ...prev, image_url: event.target.value }))} />
+                  <label className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                    <input type="checkbox" checked={collectionForm.is_active} onChange={() => setCollectionForm((prev) => ({ ...prev, is_active: !prev.is_active }))} />
+                    <span>Collection active</span>
+                  </label>
+                  {collectionForm.is_active && collectionForm.restaurant_ids.length === 0 ? (
+                    <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm text-destructive">Collection vide non publiable.</p>
+                  ) : null}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Restaurants associes</p>
+                    <div className="grid max-h-56 grid-cols-1 gap-2 overflow-y-auto rounded-lg border p-3 md:grid-cols-2">
+                      {restaurants.map((restaurant: any) => (
+                        <label key={restaurant.id} className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" checked={collectionForm.restaurant_ids.includes(restaurant.id)} onChange={() => toggleRestaurant(restaurant.id)} />
+                          <span>{restaurant.name}</span>
+                          {!restaurant.is_active ? <span className="text-xs text-amber-600">inactif</span> : null}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Card>
+                    <CardHeader><CardTitle>Apercu public</CardTitle></CardHeader>
+                    <CardContent className="space-y-3">
+                      {collectionForm.image_url ? <img src={collectionForm.image_url} alt="" className="h-32 w-full rounded-md object-cover" /> : <div className="flex h-32 items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">Media requis recommande</div>}
+                      <div>
+                        <p className="font-semibold">{collectionForm.title || "Titre collection"}</p>
+                        <p className="text-sm text-muted-foreground">{collectionForm.description || "Description collection"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        {selectedRestaurants.slice(0, 4).map((restaurant: any) => (
+                          <div key={restaurant.id} className="rounded-md border px-2 py-1 text-sm">{restaurant.name}</div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Button type="submit" className="w-full" disabled={savingCollection || (collectionForm.is_active && collectionForm.restaurant_ids.length === 0)}>
+                    {savingCollection ? "Enregistrement..." : editingCollection ? "Mettre a jour" : "Creer"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         )}
       />
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Tag className="w-5 h-5 text-primary" />
               <CardTitle>Cuisines</CardTitle>
             </div>
-            <CardDescription>Tags globaux assignables aux restaurants</CardDescription>
+            <CardDescription>Tags globaux assignables aux restaurants.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
-              <Input
-                placeholder="Nouvelle specialite..."
-                value={newCuisine}
-                onChange={(event) => setNewCuisine(event.target.value)}
-              />
+              <Input placeholder="Nouvelle specialite..." value={newCuisine} onChange={(event) => setNewCuisine(event.target.value)} />
               <Button onClick={handleAddCuisine}><Plus className="w-4 h-4" /></Button>
             </div>
-
-            <div className="space-y-2 mt-4">
+            <div className="mt-4 space-y-2">
               {cuisines.map((cuisine: any) => (
                 <div key={cuisine.id} className="flex items-center justify-between rounded-lg border px-3 py-2">
                   <span className="text-sm">{cuisine.name}</span>
@@ -317,7 +313,7 @@ export default function AdminCatalog() {
                   </Button>
                 </div>
               ))}
-              {cuisines.length === 0 ? <p className="text-sm text-muted-foreground">Aucune cuisine définie.</p> : null}
+              {cuisines.length === 0 ? <p className="text-sm text-muted-foreground">Aucune cuisine definie.</p> : null}
             </div>
           </CardContent>
         </Card>
@@ -326,38 +322,33 @@ export default function AdminCatalog() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Layers className="w-5 h-5 text-amber-500" />
-              <CardTitle>Collections à la une</CardTitle>
+              <CardTitle>Collections a la une</CardTitle>
             </div>
-            <CardDescription>Carrousels thematiques de la page d'accueil</CardDescription>
+            <CardDescription>Ordre, publication, preview et validation des carrousels.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {collections.map((collection: any) => (
-              <div key={collection.id} className="border p-3 rounded-lg space-y-3">
-                <div className="flex justify-between items-start gap-3">
+            {collections.map((collection: any, index: number) => (
+              <div key={collection.id} className="space-y-3 rounded-lg border p-3">
+                <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{collection.title}</p>
                     <p className="text-xs text-muted-foreground">{collection.description || "Sans description"}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {collection.restaurant_ids.length} restaurant(s) associe(s)
-                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{collection.restaurant_ids.length} restaurant(s) associe(s)</p>
+                    {collection.is_active && collection.restaurant_ids.length === 0 ? <p className="text-xs text-destructive">Collection vide non publiable</p> : null}
                   </div>
-                  <span className={`px-2 py-1 text-xs rounded-full ${collection.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
+                  <span className={`rounded-full px-2 py-1 text-xs ${collection.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
                     {collection.is_active ? "Actif" : "Inactif"}
                   </span>
                 </div>
-                <div className="flex items-center justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => openEditCollection(collection)}>
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Modifier
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteCollection(collection.id)}>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Supprimer
-                  </Button>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Button variant="outline" size="sm" disabled={index === 0} onClick={() => reorderCollection(collection.id, -1)}><ArrowUp className="w-4 h-4 mr-2" />Monter</Button>
+                  <Button variant="outline" size="sm" disabled={index === collections.length - 1} onClick={() => reorderCollection(collection.id, 1)}><ArrowDown className="w-4 h-4 mr-2" />Descendre</Button>
+                  <Button variant="outline" size="sm" onClick={() => openEditCollection(collection)}><Pencil className="w-4 h-4 mr-2" />Modifier</Button>
+                  <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteCollection(collection.id)}><Trash2 className="w-4 h-4 mr-2" />Archiver</Button>
                 </div>
               </div>
             ))}
-            {collections.length === 0 ? <p className="text-sm text-muted-foreground">Aucune collection définie.</p> : null}
+            {collections.length === 0 ? <p className="text-sm text-muted-foreground">Aucune collection definie.</p> : null}
           </CardContent>
         </Card>
       </div>

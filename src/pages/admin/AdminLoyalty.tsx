@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
-import { Crown, ShieldCheck, Trash2, Pencil } from "lucide-react";
+import { Crown, History, Pencil, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -45,6 +45,17 @@ const EMPTY_TIER = {
   min_points: "",
   multiplier: "1",
   benefits: "",
+  status: "active",
+};
+
+type TokOneMetrics = {
+  activePlans?: number;
+  activeSubscribers?: number;
+  monthlyRevenue?: number;
+  churnCount?: number;
+  benefitsConsumed?: number;
+  estimatedBenefitCost?: number;
+  marginImpact?: number;
 };
 
 export default function AdminLoyalty() {
@@ -87,6 +98,28 @@ export default function AdminLoyalty() {
     },
   });
 
+  const { data: tokOneMetrics = {} as TokOneMetrics } = useQuery({
+    queryKey: ["admin-tok-one-metrics"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("admin_get_tok_one_metrics");
+      if (error) throw error;
+      return (data || {}) as TokOneMetrics;
+    },
+  });
+
+  const { data: loyaltyHistory = [] } = useQuery({
+    queryKey: ["admin-loyalty-change-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("admin_loyalty_change_history")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(8);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const getPlanBenefits = (planId: string): SubscriptionBenefitInput[] =>
     subscriptionBenefits
       .filter((benefit: any) => benefit.plan_id === planId)
@@ -102,14 +135,29 @@ export default function AdminLoyalty() {
     const entitlements = buildTokOneEntitlements({ plan, benefits });
     return {
       discountPercent: entitlements.discountPercent,
-      freeDeliveryMinOrder: Number.isFinite(entitlements.freeDeliveryMinOrder)
-        ? entitlements.freeDeliveryMinOrder
-        : 0,
+      freeDeliveryMinOrder: Number.isFinite(entitlements.freeDeliveryMinOrder) ? entitlements.freeDeliveryMinOrder : 0,
       chefTablePriority: entitlements.flags.chefTablePriority,
       flashEarlyAccess: entitlements.flags.flashEarlyAccess,
       prioritySupport: entitlements.flags.prioritySupport,
       surpriseOffers: entitlements.flags.surpriseOffers,
     };
+  };
+
+  const simulationMarge = {
+    revenue: Number(tokOneMetrics.monthlyRevenue || 0),
+    estimatedCost:
+      Number(tokOneMetrics.estimatedBenefitCost || 0) +
+      Number(benefitForm.discountPercent || 0) * Number(tokOneMetrics.activeSubscribers || 0) * 0.25 +
+      Number(tierForm.multiplier || 1) * 0.5,
+  };
+  const simulatedMargin = simulationMarge.revenue - simulationMarge.estimatedCost;
+
+  const invalidateLoyalty = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-subscription-plans"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-subscription-benefits"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-loyalty-tiers"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-tok-one-metrics"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-loyalty-change-history"] });
   };
 
   const openNewPlan = () => {
@@ -149,31 +197,17 @@ export default function AdminLoyalty() {
     };
 
     try {
-      let savedPlanId = editingPlan?.id as string | undefined;
-
-      if (editingPlan) {
-        const { error } = await supabase.from("user_subscription_plans").update(payload).eq("id", editingPlan.id);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase.from("user_subscription_plans").insert(payload).select("id").single();
-        if (error) throw error;
-        savedPlanId = data?.id;
-      }
-
-      if (!savedPlanId) {
-        throw new Error("Identifiant du forfait introuvable après sauvegarde.");
-      }
-
-      const { error: deleteBenefitsError } = await supabase
-        .from("subscription_benefits")
-        .delete()
-        .eq("plan_id", savedPlanId);
-      if (deleteBenefitsError) throw deleteBenefitsError;
-
-      const { error: insertBenefitsError } = await supabase
-        .from("subscription_benefits")
-        .insert(buildSubscriptionBenefitRows(savedPlanId, benefitForm) as any);
-      if (insertBenefitsError) throw insertBenefitsError;
+      if (payload.price_monthly < 0 || payload.price_yearly < 0) throw new Error("Le prix ne peut pas etre negatif.");
+      const benefitRows = buildSubscriptionBenefitRows(editingPlan?.id || "00000000-0000-0000-0000-000000000000", benefitForm).map(
+        ({ benefit_type, value }) => ({ benefit_type, value }),
+      );
+      const { error } = await (supabase.rpc as any)("admin_save_subscription_plan", {
+        p_plan_id: editingPlan?.id || null,
+        p_payload: payload,
+        p_benefits: benefitRows,
+        p_reason: editingPlan ? "Mise a jour admin Tok One" : "Creation admin Tok One",
+      });
+      if (error) throw error;
     } catch (error) {
       setSavingPlan(false);
       toast({
@@ -189,19 +223,23 @@ export default function AdminLoyalty() {
     setEditingPlan(null);
     setPlanForm(EMPTY_PLAN);
     setBenefitForm(EMPTY_BENEFIT_FORM);
-    queryClient.invalidateQueries({ queryKey: ["admin-subscription-plans"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-subscription-benefits"] });
-    toast({ title: editingPlan ? "Forfait mis à jour" : "Forfait crée" });
+    invalidateLoyalty();
+    toast({ title: editingPlan ? "Forfait mis a jour" : "Forfait cree" });
   };
 
   const deletePlan = async (id: string) => {
-    const { error } = await supabase.from("user_subscription_plans").delete().eq("id", id);
+    const reason = window.prompt("Raison obligatoire pour archiver ce forfait utilise ou publiable.");
+    if (!reason?.trim()) return;
+    const { error } = await (supabase.rpc as any)("admin_archive_subscription_plan", {
+      p_plan_id: id,
+      p_reason: reason.trim(),
+    });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    queryClient.invalidateQueries({ queryKey: ["admin-subscription-plans"] });
-    toast({ title: "Forfait supprime" });
+    invalidateLoyalty();
+    toast({ title: "Forfait archive" });
   };
 
   const openNewTier = () => {
@@ -217,6 +255,7 @@ export default function AdminLoyalty() {
       min_points: String(tier.min_points ?? ""),
       multiplier: String(tier.multiplier ?? 1),
       benefits: tier.benefits ? JSON.stringify(tier.benefits, null, 2) : "",
+      status: tier.status || "active",
     });
     setTierOpen(true);
   };
@@ -225,7 +264,7 @@ export default function AdminLoyalty() {
     event.preventDefault();
     setSavingTier(true);
 
-    let benefitsPayload: Record<string, unknown> | null = null;
+    let benefitsPayload: Record<string, unknown> = {};
     if (tierForm.benefits.trim()) {
       try {
         benefitsPayload = JSON.parse(tierForm.benefits);
@@ -241,11 +280,20 @@ export default function AdminLoyalty() {
       min_points: Number(tierForm.min_points || 0),
       multiplier: Number(tierForm.multiplier || 1),
       benefits: benefitsPayload,
+      status: tierForm.status,
     };
 
-    const { error } = editingTier
-      ? await supabase.from("loyalty_tiers").update(payload).eq("id", editingTier.id)
-      : await supabase.from("loyalty_tiers").insert(payload);
+    if (payload.multiplier <= 0 || payload.multiplier > 10) {
+      setSavingTier(false);
+      toast({ title: "Erreur", description: "Multiplicateur invalide.", variant: "destructive" });
+      return;
+    }
+
+    const { error } = await (supabase.rpc as any)("admin_save_loyalty_tier", {
+      p_tier_id: editingTier?.id || null,
+      p_payload: payload,
+      p_reason: editingTier ? "Mise a jour palier fidelite" : "Creation palier fidelite",
+    });
 
     setSavingTier(false);
     if (error) {
@@ -256,40 +304,102 @@ export default function AdminLoyalty() {
     setTierOpen(false);
     setEditingTier(null);
     setTierForm(EMPTY_TIER);
-    queryClient.invalidateQueries({ queryKey: ["admin-loyalty-tiers"] });
-    toast({ title: editingTier ? "Palier mis à jour" : "Palier crée" });
+    invalidateLoyalty();
+    toast({ title: editingTier ? "Palier mis a jour" : "Palier cree" });
   };
 
   const deleteTier = async (id: string) => {
-    const { error } = await supabase.from("loyalty_tiers").delete().eq("id", id);
+    const reason = window.prompt("Raison obligatoire pour archiver ce palier.");
+    if (!reason?.trim()) return;
+    const { error } = await (supabase.rpc as any)("admin_archive_loyalty_tier", {
+      p_tier_id: id,
+      p_reason: reason.trim(),
+    });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    queryClient.invalidateQueries({ queryKey: ["admin-loyalty-tiers"] });
-    toast({ title: "Palier supprime" });
+    invalidateLoyalty();
+    toast({ title: "Palier archive" });
   };
 
   return (
     <div className="container py-8 space-y-6">
       <DashboardPageHero
-        badge="Fidélité"
-        title="Fidélité et abonnement"
-        description="Configurez Tok One et les paliers de fidélité avec une lecture rapide des plans actifs."
+        badge="Fidelite"
+        title="Fidelite et abonnement"
+        description="Configurez Tok One et les paliers de fidelite avec controle marge, audit et archivage."
         icon={Crown}
         tone="amber"
         visualLabel="Loyalty"
         stats={[
           { label: "Forfaits", value: subscriptionPlans.length, icon: ShieldCheck },
+          { label: "Abonnes", value: Number(tokOneMetrics.activeSubscribers || 0), icon: ShieldCheck },
           { label: "Paliers", value: tiers.length, icon: Crown },
-          { label: "Actifs", value: subscriptionPlans.filter((plan: any) => plan.status === "active").length, icon: ShieldCheck },
         ]}
       />
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Revenu mensuel Tok One</CardTitle></CardHeader>
+          <CardContent className="text-2xl font-bold">{Number(tokOneMetrics.monthlyRevenue || 0).toFixed(2)} EUR</CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Avantages consommes</CardTitle></CardHeader>
+          <CardContent className="text-2xl font-bold">{Number(tokOneMetrics.benefitsConsumed || 0)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Cout avantages</CardTitle></CardHeader>
+          <CardContent className="text-2xl font-bold">{Number(tokOneMetrics.estimatedBenefitCost || 0).toFixed(2)} EUR</CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Impact marge</CardTitle></CardHeader>
+          <CardContent className="text-2xl font-bold">{Number(tokOneMetrics.marginImpact || 0).toFixed(2)} EUR</CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Simulation marge</CardTitle>
+            <CardDescription>Variation indicative selon remise, multiplicateur et volume abonnés courant.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Revenu</p>
+              <p className="text-lg font-semibold">{simulationMarge.revenue.toFixed(2)} EUR</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Cout simule</p>
+              <p className="text-lg font-semibold">{simulationMarge.estimatedCost.toFixed(2)} EUR</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Impact marge simule</p>
+              <p className="text-lg font-semibold">{simulatedMargin.toFixed(2)} EUR</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><History className="h-4 w-4" />Historique des changements</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {loyaltyHistory.slice(0, 5).map((entry: any) => (
+              <div key={entry.id} className="rounded-md border p-2 text-xs">
+                <p className="font-medium">{entry.action} · {entry.entity_type}</p>
+                <p className="text-muted-foreground">{entry.reason || "Sans raison"}</p>
+              </div>
+            ))}
+            {loyaltyHistory.length === 0 ? <p className="text-sm text-muted-foreground">Aucun changement audite.</p> : null}
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Catalogue des avantages</CardTitle>
-          <CardDescription>Avantages client affichés dans le programme fidélité, par niveau débloqué.</CardDescription>
+          <CardDescription>Avantages client affiches dans le programme fidelite, par niveau debloque.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {LOYALTY_TIER_ORDER.map((tierId) => {
@@ -315,17 +425,17 @@ export default function AdminLoyalty() {
         </CardContent>
       </Card>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-primary" />
+                <ShieldCheck className="h-5 w-5 text-primary" />
                 <CardTitle>Abonnements</CardTitle>
               </div>
               <Dialog open={planOpen} onOpenChange={setPlanOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={openNewPlan}>Créer forfait</Button>
+                  <Button variant="outline" size="sm" onClick={openNewPlan}>Creer forfait</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <DialogHeader><DialogTitle>{editingPlan ? "Modifier le forfait" : "Nouveau forfait"}</DialogTitle></DialogHeader>
@@ -343,22 +453,8 @@ export default function AdminLoyalty() {
                     <div className="rounded-md border p-3 space-y-3">
                       <p className="text-sm font-semibold">Avantages Tok One</p>
                       <div className="grid grid-cols-2 gap-3">
-                        <Input
-                          aria-label="Remise Tok One en pourcentage"
-                          placeholder="Remise en %"
-                          type="number"
-                          step="1"
-                          value={benefitForm.discountPercent}
-                          onChange={(event) => setBenefitForm((prev) => ({ ...prev, discountPercent: Number(event.target.value || 0) }))}
-                        />
-                        <Input
-                          aria-label="Minimum livraison offerte"
-                          placeholder="Minimum livraison"
-                          type="number"
-                          step="0.01"
-                          value={benefitForm.freeDeliveryMinOrder}
-                          onChange={(event) => setBenefitForm((prev) => ({ ...prev, freeDeliveryMinOrder: Number(event.target.value || 0) }))}
-                        />
+                        <Input aria-label="Remise Tok One en pourcentage" placeholder="Remise en %" type="number" step="1" value={benefitForm.discountPercent} onChange={(event) => setBenefitForm((prev) => ({ ...prev, discountPercent: Number(event.target.value || 0) }))} />
+                        <Input aria-label="Minimum livraison offerte" placeholder="Minimum livraison" type="number" step="0.01" value={benefitForm.freeDeliveryMinOrder} onChange={(event) => setBenefitForm((prev) => ({ ...prev, freeDeliveryMinOrder: Number(event.target.value || 0) }))} />
                       </div>
                       <div className="grid gap-2 sm:grid-cols-2">
                         {[
@@ -368,15 +464,7 @@ export default function AdminLoyalty() {
                           ["surpriseOffers", "Offres surprises"],
                         ].map(([key, label]) => (
                           <label key={key} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
-                            <Checkbox
-                              checked={Boolean(benefitForm[key as keyof TokOneBenefitForm])}
-                              onCheckedChange={(checked) =>
-                                setBenefitForm((prev) => ({
-                                  ...prev,
-                                  [key]: checked === true,
-                                }))
-                              }
-                            />
+                            <Checkbox checked={Boolean(benefitForm[key as keyof TokOneBenefitForm])} onCheckedChange={(checked) => setBenefitForm((prev) => ({ ...prev, [key]: checked === true }))} />
                             <span>{label}</span>
                           </label>
                         ))}
@@ -386,38 +474,35 @@ export default function AdminLoyalty() {
                       <option value="active">active</option>
                       <option value="archived">archived</option>
                     </select>
-                    <Button type="submit" className="w-full" disabled={savingPlan}>{savingPlan ? "Enregistrement..." : editingPlan ? "Mettre à jour" : "Creer"}</Button>
+                    <Button type="submit" className="w-full" disabled={savingPlan}>{savingPlan ? "Enregistrement..." : editingPlan ? "Mettre a jour" : "Creer"}</Button>
                   </form>
                 </DialogContent>
               </Dialog>
             </div>
-            <CardDescription>Forfaits de livraison et d'avantages partenaires</CardDescription>
+            <CardDescription>Forfaits de livraison et d'avantages partenaires.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {subscriptionPlans.map((plan: any) => {
               const entitlements = buildTokOneEntitlements({ plan, benefits: getPlanBenefits(plan.id) });
               const enabledBenefits = entitlements.displayBenefits.filter((benefit) => benefit.enabled);
-
               return (
-                <div key={plan.id} className="p-4 border rounded-xl flex justify-between items-start gap-4">
+                <div key={plan.id} className="flex items-start justify-between gap-4 rounded-xl border p-4">
                   <div>
-                    <p className="font-bold text-lg">{plan.name}</p>
-                    <p className="text-sm text-muted-foreground">{Number(plan.price_monthly || 0).toFixed(2)} {plan.currency || "EUR"} / mois</p>
+                    <p className="text-lg font-bold">{plan.name}</p>
+                    <p className="text-sm text-muted-foreground">{Number(plan.price_monthly || 0).toFixed(2)} {plan.currency || "EUR"} / mois · {plan.status || "active"}</p>
                     <p className="text-xs text-muted-foreground">{plan.description || "Sans description"}</p>
-                    <p className="text-xs text-green-600 mt-1">
+                    <p className="mt-1 text-xs text-green-600">
                       Livraison offerte {Number.isFinite(entitlements.freeDeliveryMinOrder) && entitlements.freeDeliveryMinOrder > 0 ? `(des ${entitlements.freeDeliveryMinOrder} ${plan.currency || "EUR"})` : "sans minimum"}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {enabledBenefits.map((benefit) => (
-                        <span key={benefit.id} className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                          {benefit.label}
-                        </span>
+                        <span key={benefit.id} className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">{benefit.label}</span>
                       ))}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={() => openEditPlan(plan)}><Pencil className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deletePlan(plan.id)}><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={() => openEditPlan(plan)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deletePlan(plan.id)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 </div>
               );
@@ -430,8 +515,8 @@ export default function AdminLoyalty() {
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Crown className="w-5 h-5 text-amber-500" />
-                <CardTitle>Paliers de fidélité</CardTitle>
+                <Crown className="h-5 w-5 text-amber-500" />
+                <CardTitle>Paliers de fidelite</CardTitle>
               </div>
               <Dialog open={tierOpen} onOpenChange={setTierOpen}>
                 <DialogTrigger asChild>
@@ -446,27 +531,31 @@ export default function AdminLoyalty() {
                       <Input placeholder="Multiplicateur" type="number" step="0.1" value={tierForm.multiplier} onChange={(event) => setTierForm((prev) => ({ ...prev, multiplier: event.target.value }))} required />
                     </div>
                     <Textarea placeholder='Avantages JSON ex: {"priority_support": true}' value={tierForm.benefits} onChange={(event) => setTierForm((prev) => ({ ...prev, benefits: event.target.value }))} />
-                    <Button type="submit" className="w-full" disabled={savingTier}>{savingTier ? "Enregistrement..." : editingTier ? "Mettre à jour" : "Creer"}</Button>
+                    <select value={tierForm.status} onChange={(event) => setTierForm((prev) => ({ ...prev, status: event.target.value }))} className="w-full rounded-md border bg-background px-3 py-2 text-sm">
+                      <option value="active">active</option>
+                      <option value="archived">archived</option>
+                    </select>
+                    <Button type="submit" className="w-full" disabled={savingTier}>{savingTier ? "Enregistrement..." : editingTier ? "Mettre a jour" : "Creer"}</Button>
                   </form>
                 </DialogContent>
               </Dialog>
             </div>
-            <CardDescription>Paliers de points et multiplicateurs associés</CardDescription>
+            <CardDescription>Paliers de points et multiplicateurs associes.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {tiers.map((tier: any) => (
-              <div key={tier.id} className="p-4 border rounded-xl bg-gradient-to-tr from-card to-muted/50 flex items-start justify-between gap-4">
+              <div key={tier.id} className="flex items-start justify-between gap-4 rounded-xl border bg-gradient-to-tr from-card to-muted/50 p-4">
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-bold capitalize">{tier.name}</p>
-                    <span className="text-sm bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Des {tier.min_points} pts</span>
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-sm text-primary-foreground">Des {tier.min_points} pts</span>
                   </div>
-                  <div className="mt-2 text-sm text-muted-foreground">Multiplicateur: x{tier.multiplier}</div>
+                  <div className="mt-2 text-sm text-muted-foreground">Multiplicateur: x{tier.multiplier} · {tier.status || "active"}</div>
                   <div className="mt-1 text-xs text-muted-foreground">{tier.benefits ? JSON.stringify(tier.benefits) : "Aucun avantage JSON configure"}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => openEditTier(tier)}><Pencil className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteTier(tier.id)}><Trash2 className="w-4 h-4" /></Button>
+                  <Button variant="outline" size="icon" onClick={() => openEditTier(tier)}><Pencil className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteTier(tier.id)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               </div>
             ))}

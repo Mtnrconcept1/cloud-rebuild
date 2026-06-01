@@ -42,7 +42,11 @@ const ROLE_OPTIONS = [
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
   scheduled: { label: "Planifiee", variant: "secondary" },
+  queued: { label: "En file", variant: "secondary" },
+  running: { label: "En cours", variant: "secondary" },
   sent: { label: "Envoyee", variant: "default" },
+  failed: { label: "Echouee", variant: "outline" },
+  cancelled: { label: "Annulee", variant: "outline" },
 };
 
 type CampaignStat = {
@@ -203,15 +207,55 @@ export default function AdminNotifications() {
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaign-stats"] });
   };
 
-  const deleteCampaign = async (id: string) => {
-    const { error: deleteError } = await supabase.from("notification_campaigns").delete().eq("id", id);
+  const cancelCampaign = async (id: string) => {
+    const { error: deleteError } = await supabase.from("notification_campaigns").update({ status: "cancelled" }).eq("id", id);
     if (deleteError) {
       toast({ title: "Erreur", description: deleteError.message, variant: "destructive" });
       return;
     }
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaign-stats"] });
-    toast({ title: "Campagne supprimée" });
+    toast({ title: "Campagne annulée" });
+  };
+
+  const duplicateCampaign = async (campaign: CampaignRow) => {
+    const { error } = await supabase.from("notification_campaigns").insert({
+      title: `${campaign.title} - copie`,
+      body: campaign.body,
+      category: campaign.category,
+      status: "draft",
+      scheduled_at: null,
+      created_by: user?.id || null,
+      target_roles: campaign.target_roles || [],
+      target_cities: campaign.target_cities || [],
+      channels: campaign.channels || { in_app: true, email: true, push: false },
+    });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
+    toast({ title: "Campagne dupliquee" });
+  };
+
+  const sendTestCampaign = async (campaign: CampaignRow) => {
+    if (!user?.id) {
+      toast({ title: "Session invalide", description: "Impossible d'envoyer le test sans admin connecte.", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.from("notifications").insert({
+      user_id: user.id,
+      title: `[TEST] ${campaign.title}`,
+      body: campaign.body,
+      type: "campaign_test",
+      category: campaign.category,
+      data: { campaign_id: campaign.id, test: true },
+    });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Test envoye" });
   };
 
   return (
@@ -257,6 +301,23 @@ export default function AdminNotifications() {
         )}
       />
 
+      <Card>
+        <CardContent className="grid gap-3 py-4 md:grid-cols-3">
+          <div>
+            <p className="text-xs text-muted-foreground">Dernier run scheduler</p>
+            <p className="font-semibold">{new Date().toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Erreurs recentes</p>
+            <p className="font-semibold">{campaignStats.reduce((sum, stat) => sum + Number(stat.deliveries_failed || 0), 0)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Desabonnement marketing</p>
+            <p className="font-semibold">Filtre preferences requis avant envoi marketing</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map((index) => <div key={index} className="h-28 bg-muted animate-pulse rounded-xl" />)}</div>
       ) : error ? (
@@ -301,7 +362,9 @@ export default function AdminNotifications() {
                           {sendingId === campaign.id ? "Envoi..." : "Envoyer"}
                         </Button>
                       ) : null}
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => deleteCampaign(campaign.id)}>
+                      <Button size="sm" variant="outline" onClick={() => sendTestCampaign(campaign)}>Envoyer un test</Button>
+                      <Button size="sm" variant="outline" onClick={() => duplicateCampaign(campaign)}>Dupliquer</Button>
+                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => cancelCampaign(campaign.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -515,6 +578,27 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="rounded-lg border p-3">
+        <p className="text-sm font-semibold">Preview multi-canal</p>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          <div className="rounded-md border p-2 text-xs">
+            <p className="font-medium">In-app</p>
+            <p>{title || "Titre"}</p>
+            <p className="text-muted-foreground">{body || "Message"}</p>
+          </div>
+          <div className="rounded-md border p-2 text-xs">
+            <p className="font-medium">Email</p>
+            <p>{title || "Objet"}</p>
+            <p className="text-muted-foreground">{body || "Contenu email avec lien preferences/desinscription."}</p>
+          </div>
+          <div className="rounded-md border p-2 text-xs">
+            <p className="font-medium">Push</p>
+            <p>{title || "Push"}</p>
+            <p className="text-muted-foreground">{(body || "Notification push").slice(0, 90)}</p>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-lg border p-3">

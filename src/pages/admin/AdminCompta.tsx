@@ -25,6 +25,8 @@ function getErrorMessage(error: unknown) {
 }
 
 export default function AdminCompta() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedRestaurant, setSelectedRestaurant] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const currentDate = new Date();
@@ -52,6 +54,9 @@ export default function AdminCompta() {
     refundsPendingAmount,
     refundsPendingCount,
     financialHealth,
+    periodControl,
+    stripeReconciliation,
+    isPeriodClosed,
     isLoading,
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
@@ -61,6 +66,65 @@ export default function AdminCompta() {
   const selectedRestaurantName = selectedRestaurant === "all"
     ? "Tous les restaurateurs"
     : restaurants.find((restaurant) => restaurant.id === selectedRestaurant)?.name || "Restaurateur";
+  const lockStatusLabel = isPeriodClosed
+    ? "Mois cloture"
+    : periodControl?.status === "reopened"
+      ? "Mois rouvert"
+      : "Mois ouvert";
+
+  const exportAdminComptaCsv = () => {
+    downloadAccountingCsv(`tok-compta-${selectedMonth}-${selectedRestaurant}.csv`, [
+      ["Mois", selectedMonth],
+      ["Portee", selectedRestaurantName],
+      ["Statut periode", lockStatusLabel],
+      ["Revenu Tok", totalRevenue],
+      ["Part developpeur", developerReservedShare],
+      ["A encaisser", totalPayableOpen],
+      ["A reverser", summary.outflow.payoutsOutstanding],
+      ["Net ouvert", netOpen],
+      ["Commissions", summary.inflow.totalCommissions],
+      ["Campagnes", paidCampaignsTotal],
+      ["Tok One", tokOneSubscriptionAmount],
+      ["Miamz Tok", tokCoveredMiamzAmount],
+      ["Remboursements emis", refundsIssuedTotal],
+    ]);
+  };
+
+  const setAccountingMonthLock = async (status: "closed" | "reopened") => {
+    const reason = window.prompt(
+      status === "closed"
+        ? "Raison de cloture du mois"
+        : "Raison de reouverture du mois",
+    );
+    if (!reason?.trim()) {
+      toast({
+        title: "Raison obligatoire",
+        description: "La cloture ou reouverture comptable doit etre justifiee pour l'audit.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error: lockError } = await (supabase.rpc as any)("admin_set_accounting_month_lock", {
+      p_month: `${selectedMonth}-01`,
+      p_status: status,
+      p_reason: reason.trim(),
+    });
+
+    if (lockError) {
+      toast({ title: "Controle comptable impossible", description: lockError.message, variant: "destructive" });
+      return;
+    }
+
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["admin-compta-period-control"] }),
+      queryClient.invalidateQueries({ queryKey: ["admin-compta-stripe-reconciliation"] }),
+    ]);
+    toast({
+      title: status === "closed" ? "Mois cloture" : "Mois rouvert",
+      description: "Le changement est enregistre dans l'audit admin.",
+    });
+  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 text-foreground dark:text-slate-100">
@@ -78,6 +142,10 @@ export default function AdminCompta() {
             </Button>
             <Button asChild size="sm" variant="outline">
               <Link to="/admin/compta/sorties">Sorties</Link>
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportAdminComptaCsv}>
+              <FileDown className="mr-2 h-4 w-4" />
+              Export CSV
             </Button>
           </>
         )}
@@ -147,6 +215,52 @@ export default function AdminCompta() {
 
       {!isLoading && !error ? (
         <>
+          <Card className="border-border/70">
+            <CardContent className="grid gap-4 p-5 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold">{lockStatusLabel}</span>
+                  {isPeriodClosed ? <Lock className="h-4 w-4 text-amber-700" /> : <Unlock className="h-4 w-4 text-emerald-700" />}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  La cloture fige les totaux officiels du mois et bloque les mutations destructives sans reouverture auditee.
+                </p>
+                {periodControl?.lock?.reason ? (
+                  <p className="text-xs text-muted-foreground">Derniere raison : {periodControl.lock.reason}</p>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" onClick={() => void setAccountingMonthLock("closed")} disabled={isPeriodClosed}>
+                  <Lock className="mr-2 h-4 w-4" />
+                  Clôturer le mois
+                </Button>
+                <Button type="button" variant="outline" onClick={() => void setAccountingMonthLock("reopened")} disabled={!isPeriodClosed}>
+                  <Unlock className="mr-2 h-4 w-4" />
+                  Réouvrir
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <AccountingPanel
+            tone="slate"
+            icon={AlertTriangle}
+            title="Écarts Stripe"
+            description="Rapprochement mensuel entre les flux attendus, recus, rembourses, orphelins ou incoherents."
+            value={String(stripeReconciliation.reduce((sum, row) => sum + Number(row.orphan_count || 0) + Number(row.mismatch_count || 0), 0))}
+            valueLabel="Ecarts detectes"
+          >
+            <AccountingFactList
+              items={stripeReconciliation.length > 0
+                ? stripeReconciliation.map((row) => ({
+                  label: row.item_kind,
+                  value: formatAmount(toAmount(row.received_amount)),
+                  helper: `${row.received_count} recus, ${row.orphan_count} orphelins, ${row.mismatch_count} incoherents, ${formatAmount(row.refunded_amount)} rembourses.`,
+                }))
+                : [{ label: "Rapprochement", value: "Aucun ecart", helper: "Aucun signal Stripe/Base sur cette periode." }]}
+            />
+          </AccountingPanel>
+
           <AccountingDigestCard
             title="A lire en premier"
             description="Les chiffres prioritaires pour piloter le mois sans parcourir toutes les factures."

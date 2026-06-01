@@ -5,7 +5,7 @@ Workspace local : `C:\Users\Pc\cloud-rebuild-recovered`
 Stack : React + Vite + TypeScript + Tailwind/shadcn-ui + Supabase + Stripe + Vercel + Capacitor
 Gestionnaire de paquets : `pnpm@10.28.1`
 Branche de travail actuelle : `main`
-Objectif de cette session : creer ce fichier de contexte pour guider les prochaines conversations Codex.
+Objectif de cette session : traiter les issues GitHub ouvertes liees a l'admin, Supabase, comptabilite, feature flags, notifications, catalogue, avis, fidelite/Tok One, Operations Center, support et dispatch, en respectant `docs/skills/TOK_APPLICATION_SKILL.md`.
 
 # Etat actuel
 
@@ -17,15 +17,17 @@ Objectif de cette session : creer ce fichier de contexte pour guider les prochai
 - Workflow de production GitHub Actions present dans `.github/workflows/deploy-production.yml`.
 - Configuration Vercel presente dans `vercel.json`, avec `deploymentEnabled: false` pour eviter les previews automatiques.
 - Scripts de verification, release readiness, ciblage Supabase et builds mobiles presents dans `package.json`.
+- Admin compta renforcee avec exports CSV/PDF, verrouillage mensuel, rapprochement Stripe et RPC auditees.
+- Feature flags admin renforces avec presets, historique audite et raisons obligatoires pour les bascules critiques.
+- Admin avis renforce avec moderation priorisee et RPC auditees.
+- Admin fidelite/Tok One renforce avec archivage non destructif, metriques et simulation marge.
+- Admin catalogue renforce avec upload media, tri, preview publique et validation avant publication.
+- Admin notifications renforce avec preview multi-canal, envoi test, duplication, annulation non destructive et visibilite scheduler/desabonnements.
 
 ## Ce qui est partiellement fait
 
-- La copie locale contient des changements non commites sur :
-  - `src/pages/admin/AdminCompta.tsx`
-  - `src/pages/admin/adminComptaShared.ts`
-  - `src/test/admin-compta-governance.test.ts`
-  - `supabase/migrations/20260601043333_admin_compta_governance_controls.sql`
-- Ces fichiers semblent concerner la gouvernance comptable admin. Les traiter comme travail en cours tant que l'utilisateur ne demande pas explicitement autre chose.
+- Les migrations Supabase ajoutees localement doivent etre appliquees via le workflow habituel du repo, pas directement en production depuis une session Codex.
+- La validation visuelle authentifiee de l'admin Operations Center n'a pas ete faite dans cette session.
 
 ## Ce qui ne doit pas etre touche sans demande explicite
 
@@ -60,4 +62,4 @@ Objectif de cette session : creer ce fichier de contexte pour guider les prochai
 
 # Tache actuelle
 
-Creer et maintenir ce fichier de contexte projet pour que les prochaines conversations disposent des regles, contraintes et etats importants du repo.
+Finaliser le traitement local des issues GitHub ouvertes, publier un statut factuel sur les issues et laisser la production au workflow GitHub Actions.

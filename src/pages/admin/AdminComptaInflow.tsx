@@ -18,6 +18,8 @@ import {
   formatDate,
   formatPeriod,
   getInvoiceStatusClass,
+  downloadAccountingCsv,
+  isAccountingPeriodClosed,
   type AdminInvoiceRow,
   useAdminComptaData,
 } from "./adminComptaShared";
@@ -27,6 +29,12 @@ const supabase = getSupabase();
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   return error ? String(error) : "";
+}
+
+function downloadInvoicePdf(invoice: AdminInvoiceRow) {
+  if (invoice.pdf_url) {
+    window.open(invoice.pdf_url, "_blank", "noopener,noreferrer");
+  }
 }
 
 function InvoiceTableRow({
@@ -61,8 +69,13 @@ function InvoiceTableRow({
         <TableCell className="text-right">
           <div className="flex flex-col items-end gap-2">
             <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
-              Voir la facturé
+              Voir la facture
             </Button>
+            {invoice.pdf_url ? (
+              <Button size="sm" variant="ghost" onClick={() => downloadInvoicePdf(invoice)}>
+                PDF
+              </Button>
+            ) : null}
             {isPaid ? (
               <span className="text-xs text-muted-foreground">Reglee</span>
             ) : (
@@ -167,8 +180,13 @@ function MobileInvoiceCard({
           </div>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
-              Voir la facturé
+              Voir la facture
             </Button>
+            {invoice.pdf_url ? (
+              <Button size="sm" variant="ghost" onClick={() => downloadInvoicePdf(invoice)}>
+                PDF
+              </Button>
+            ) : null}
             {!isPaid ? (
               <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
                 Marquer payée
@@ -200,6 +218,8 @@ export default function AdminComptaInflow() {
     payableAccruals,
     monthOptions,
     payableInvoiceSections,
+    periodControl,
+    isPeriodClosed,
     refundsIssuedCount,
     refundsIssuedTotal,
     refundsPendingAmount,
@@ -208,15 +228,38 @@ export default function AdminComptaInflow() {
     error,
   } = useAdminComptaData(selectedRestaurant, selectedMonth);
   const totalPayableOpen = summary.inflow.payableOutstanding + payableAccruals.totalAmount;
+  const exportInflowCsv = () => {
+    downloadAccountingCsv(`tok-compta-entrees-${selectedMonth}-${selectedRestaurant}.csv`, [
+      ["Mois", selectedMonth],
+      ["Période fermée", isAccountingPeriodClosed(periodControl) ? "oui" : "non"],
+      ["Encore a facturer", payableAccruals.totalAmount],
+      ["Factures ouvertes", summary.inflow.payableOutstanding],
+      ["Deja encaisse", summary.inflow.payableCollected],
+      ["Commissions commandes", payableAccruals.orderCommissionAmount],
+      ["Commissions reservations", payableAccruals.reservationCommissionAmount],
+      ["Frais reservations", payableAccruals.reservationFeeAmount],
+      ["Campagnes", payableAccruals.campaignAmount],
+      ["Remboursements emis", refundsIssuedTotal],
+      ["Remboursements en attente", refundsPendingAmount],
+    ]);
+  };
 
   const handleGenerateInvoices = async () => {
+    if (isPeriodClosed) {
+      toast({ title: "Période clôturée", description: "Rouvrez le mois avant de générer des factures.", variant: "destructive" });
+      return;
+    }
+
+    const confirmed = window.confirm("Generer les factures TOK du mois selectionne ? L'action sera auditee.");
+    if (!confirmed) return;
+
     setGenerating(true);
     try {
       const firstOfMonth = `${selectedMonth}-01`;
       const { data, error: rpcError } = await supabase.rpc(
         selectedRestaurant === "all"
-          ? "generate_tok_payable_invoices_all"
-          : "generate_tok_payable_invoice",
+          ? "admin_generate_tok_payable_invoices_all"
+          : "admin_generate_tok_payable_invoice",
         selectedRestaurant === "all"
           ? { p_month: firstOfMonth }
           : { p_restaurant_id: selectedRestaurant, p_month: firstOfMonth },
@@ -252,10 +295,17 @@ export default function AdminComptaInflow() {
   };
 
   const handleMarkPaid = async (invoice: AdminInvoiceRow) => {
-    const { error: updateError } = await supabase
-      .from("restaurant_invoices")
-      .update({ status: "paid", paid_at: new Date().toISOString() })
-      .eq("id", invoice.id);
+    if (isPeriodClosed) {
+      toast({ title: "Période clôturée", description: "Rouvrez le mois avant de marquer une facture payée.", variant: "destructive" });
+      return;
+    }
+
+    const confirmed = window.confirm("Marquer cette facture comme payee ? L'action sera auditee.");
+    if (!confirmed) return;
+
+    const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
+      p_invoice_id: invoice.id,
+    });
 
     if (updateError) {
       toast({ title: "Erreur", description: updateError.message, variant: "destructive" });
@@ -286,6 +336,10 @@ export default function AdminComptaInflow() {
             <Button size="sm" onClick={handleGenerateInvoices} disabled={generating}>
               <RefreshCcw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
               Generer les factures TOK
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportInflowCsv}>
+              <FileDown className="mr-2 h-4 w-4" />
+              Export CSV
             </Button>
           </>
         )}

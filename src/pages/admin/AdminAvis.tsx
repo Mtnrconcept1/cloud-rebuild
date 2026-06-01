@@ -43,7 +43,27 @@ const STATUS_OPTIONS = [
   { value: "published", label: "Publie" },
   { value: "hidden", label: "Masque" },
   { value: "flagged", label: "A revoir" },
+  { value: "archived", label: "Archive" },
 ];
+
+const REQUIRED_REASON_STATUSES = new Set(["hidden", "flagged", "archived"]);
+
+function moderationPriority(review: AdminReview) {
+  const rating = Number(review.rating || review.restaurant_rating || 0);
+  const comment = (review.comment || "").toLowerCase();
+  const status = review.status || "published";
+  const riskWords = ["danger", "intoxication", "fraude", "arnaque", "insulte", "menace", "hygiene"];
+  let score = 0;
+
+  if (status === "flagged") score += 80;
+  if (rating > 0 && rating <= 2) score += 35;
+  if (riskWords.some((word) => comment.includes(word))) score += 30;
+  if (!review.comment?.trim()) score += 5;
+
+  if (score >= 80) return { score, label: "Critique", variant: "destructive" as const };
+  if (score >= 35) return { score, label: "Haute", variant: "secondary" as const };
+  return { score, label: "Normale", variant: "outline" as const };
+}
 
 export default function AdminAvis() {
   const { user } = useAuth();
@@ -52,6 +72,7 @@ export default function AdminAvis() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [reasonDrafts, setReasonDrafts] = useState<Record<string, string>>({});
   const [savingReplyId, setSavingReplyId] = useState<string | null>(null);
 
   const { data: reviews = [], isLoading, error } = useQuery({
@@ -79,7 +100,7 @@ export default function AdminAvis() {
         review.user_id.toLowerCase().includes(term) ||
         review.id.toLowerCase().includes(term);
       return matchesStatus && matchesSearch;
-    });
+    }).sort((a, b) => moderationPriority(b).score - moderationPriority(a).score);
   }, [reviews, search, statusFilter]);
 
   const stats = useMemo(() => {
@@ -99,14 +120,37 @@ export default function AdminAvis() {
     }));
   };
 
+  const getReason = (reviewId: string, actionLabel: string) => {
+    const reason = (reasonDrafts[reviewId] || "").trim();
+    if (!reason) {
+      toast({
+        title: "Raison obligatoire",
+        description: `Saisissez une raison avant de ${actionLabel}.`,
+        variant: "destructive",
+      });
+      return null;
+    }
+    return reason;
+  };
+
   const updateReviewStatus = async (reviewId: string, status: string) => {
-    const { error } = await supabase.from("reviews").update({ status }).eq("id", reviewId);
+    const reason = REQUIRED_REASON_STATUSES.has(status)
+      ? getReason(reviewId, "modifier ce statut")
+      : (reasonDrafts[reviewId] || "").trim();
+    if (REQUIRED_REASON_STATUSES.has(status) && !reason) return;
+
+    const { error } = await (supabase.rpc as any)("admin_update_review_status", {
+      p_review_id: reviewId,
+      p_status: status,
+      p_reason: reason || null,
+    });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
 
     queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
+    setReasonDrafts((current) => ({ ...current, [reviewId]: "" }));
     toast({ title: "Statut de l'avis mis à jour" });
   };
 
@@ -123,15 +167,10 @@ export default function AdminAvis() {
 
     setSavingReplyId(review.id);
     const existingReply = review.review_replies?.[0];
-
-    const response = existingReply
-      ? await supabase.from("review_replies").update({ reply_text: replyText, author_type: "admin" }).eq("id", existingReply.id)
-      : await supabase.from("review_replies").insert({
-          review_id: review.id,
-          author_id: user.id,
-          author_type: "admin",
-          reply_text: replyText,
-        });
+    const response = await (supabase.rpc as any)("admin_reply_review", {
+      p_review_id: review.id,
+      p_reply_text: replyText,
+    });
 
     setSavingReplyId(null);
 
@@ -145,12 +184,20 @@ export default function AdminAvis() {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("reviews").delete().eq("id", id);
+    const reason = getReason(id, "archiver cet avis");
+    if (!reason) return;
+    if (!window.confirm("Archiver cet avis ? L'action sera auditee.")) return;
+
+    const { error } = await (supabase.rpc as any)("admin_delete_review", {
+      p_review_id: id,
+      p_reason: reason,
+    });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Avis supprime" });
+    toast({ title: "Avis archive" });
+    setReasonDrafts((current) => ({ ...current, [id]: "" }));
     queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
   };
 
@@ -265,6 +312,7 @@ export default function AdminAvis() {
             const effectiveStatus = review.status || "published";
             const existingReply = review.review_replies?.[0];
             const replyValue = replyDrafts[review.id] ?? existingReply?.reply_text ?? "";
+            const priority = moderationPriority(review);
             return (
               <Card key={review.id}>
                 <CardContent className="space-y-4 py-4">
@@ -276,6 +324,7 @@ export default function AdminAvis() {
                         </span>
                         <Badge variant="outline">{effectiveStatus}</Badge>
                         <Badge variant="secondary">{Number(review.rating || review.restaurant_rating || 0).toFixed(1)}/5</Badge>
+                        <Badge variant={priority.variant}>Priorite {priority.label}</Badge>
                       </div>
 
                       <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
@@ -305,20 +354,32 @@ export default function AdminAvis() {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      {STATUS_OPTIONS.map((option) => (
-                        <Button
-                          key={option.value}
-                          size="sm"
-                          variant={effectiveStatus === option.value ? "default" : "outline"}
-                          onClick={() => updateReviewStatus(review.id, option.value)}
-                        >
-                          {option.label}
+                    <div className="flex min-w-[260px] flex-col gap-2">
+                      <Input
+                        value={reasonDrafts[review.id] || ""}
+                        onChange={(event) =>
+                          setReasonDrafts((current) => ({
+                            ...current,
+                            [review.id]: event.target.value,
+                          }))
+                        }
+                        placeholder="Raison obligatoire"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        {STATUS_OPTIONS.map((option) => (
+                          <Button
+                            key={option.value}
+                            size="sm"
+                            variant={effectiveStatus === option.value ? "default" : "outline"}
+                            onClick={() => updateReviewStatus(review.id, option.value)}
+                          >
+                            {option.label}
+                          </Button>
+                        ))}
+                        <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDelete(review.id)}>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      ))}
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => handleDelete(review.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      </div>
                     </div>
                   </div>
 
