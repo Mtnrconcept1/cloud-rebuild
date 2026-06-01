@@ -25,6 +25,7 @@ const Panier = lazy(() => import("./pages/Panier"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SupportChat = lazy(() => import("./components/SupportChat"));
 const OrderConflictDialog = lazy(() => import("./components/OrderConflictDialog"));
+const AdminUrgentActions = lazy(() => import("./components/admin/AdminUrgentActions"));
 
 const Commandes = lazy(() => import("./pages/Commandes"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
@@ -119,9 +120,7 @@ function NativeIntegration() {
   useEffect(() => {
     if (!isNative()) return;
 
-    const cleanups: Array<() => void> = [
-      setupDeepLinks((path) => navigate(path)),
-    ];
+    const cleanups: Array<() => void> = [setupDeepLinks((path) => navigate(path))];
     let disposed = false;
 
     import("@/lib/push-native").then(({ setupNativePushListeners }) => {
@@ -140,21 +139,25 @@ function NativeIntegration() {
 
 function FeatureSwitch({ enabled, fallback = "/", children }: { enabled: boolean | null; fallback?: string; children: React.ReactNode }) {
   if (enabled === null) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
-
   return enabled ? <>{children}</> : <Navigate to={fallback} replace />;
+}
+
+function AdminDashboardRoute() {
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <div className="container pt-8">
+        <AdminUrgentActions compact />
+      </div>
+      <AdminHome />
+    </ProtectedRoute>
+  );
 }
 
 function AppShell() {
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
-  const hasFeature = (flagName: string) => (
-    featureFlagsLoading ? null : activeFeatures.has(flagName)
-  );
+  const hasFeature = (flagName: string) => (featureFlagsLoading ? null : activeFeatures.has(flagName));
   const commandesEnabled = hasFeature("commandes");
   const antiWasteEnabled = hasFeature("anti-gaspi");
   const flashSalesEnabled = hasFeature("ventes-flash");
@@ -268,7 +271,7 @@ function AppShell() {
           <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierJobsEnabled} fallback="/courier"><CourierJobs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEarningsEnabled} fallback="/courier"><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierProfileEnabled} fallback="/courier"><CourierProfile /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminHome /></ProtectedRoute>} />
+          <Route path="/admin" element={<AdminDashboardRoute />} />
           <Route path="/admin/platform" element={<ProtectedRoute requiredRole="admin"><AdminPlatformConfig /></ProtectedRoute>} />
           <Route path="/admin/restaurants" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/utilisateurs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminUtilisateursEnabled} fallback="/admin"><AdminUtilisateurs /></FeatureSwitch></ProtectedRoute>} />
