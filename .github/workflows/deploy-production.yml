@@ -20,8 +20,8 @@ env:
   SUPABASE_CLI_VERSION: 2.102.0
   SUPABASE_PROJECT_REF: wwcrtyoueexyxkkikaos
   PRODUCTION_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co
-  APP_BASE_URL: https://cloud-rebuild-recovered.vercel.app/
-  PUBLIC_APP_URL: https://cloud-rebuild-recovered.vercel.app/
+  APP_BASE_URL: https://www.thetok.ch
+  PUBLIC_APP_URL: https://www.thetok.ch
   SITE_URL: https://www.thetok.ch
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -165,27 +165,28 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
+      - name: Assert Vercel production secrets
+        run: |
+          test -n "$VERCEL_TOKEN" || (echo "Missing VERCEL_TOKEN" && exit 1)
+          test -n "$VERCEL_ORG_ID" || (echo "Missing VERCEL_ORG_ID" && exit 1)
+          test -n "$VERCEL_PROJECT_ID" || (echo "Missing VERCEL_PROJECT_ID" && exit 1)
+
       - name: Checkout
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         uses: actions/checkout@v6
 
       - name: Enable pnpm
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
 
       - name: Setup Node
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         run: pnpm install --frozen-lockfile
 
       - name: Write production frontend env
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
         run: node ./scripts/write-production-env.mjs --out=.env.production
         env:
           GITHUB_SHA: ${{ github.sha }}
@@ -201,14 +202,11 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
-      - name: Pull Vercel project settings
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
-        run: pnpm dlx vercel@latest pull --yes --environment=production
+      - name: Pull Vercel production project settings
+        run: pnpm dlx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
 
-      - name: Deploy Vercel production output
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
-        run: pnpm dlx vercel@latest --prod
+      - name: Build Vercel production output
+        run: pnpm dlx vercel@latest build --prod --token="$VERCEL_TOKEN"
 
-      - name: Skip frontend deploy when Vercel secrets are missing
-        if: ${{ env.VERCEL_TOKEN == '' || env.VERCEL_ORG_ID == '' || env.VERCEL_PROJECT_ID == '' }}
-        run: echo "Skipping frontend deploy because Vercel production secrets are not configured."
+      - name: Deploy Vercel prebuilt production output
+        run: pnpm dlx vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"
