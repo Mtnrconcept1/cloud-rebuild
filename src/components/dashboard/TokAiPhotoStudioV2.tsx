@@ -41,6 +41,24 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
   result: null,
 };
 
+function formatPhotoGenerationError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+
+  if (message.includes("rate_limited")) {
+    return "Trop de générations lancées. Patientez quelques minutes avant de relancer un essai.";
+  }
+
+  if (message.includes("Unauthorized") || message.includes("Session expir")) {
+    return "Session expirée. Reconnectez-vous puis relancez la génération.";
+  }
+
+  if (message.includes("source_image_edit_required") || message.includes("image_edit_failed")) {
+    return "Impossible de retoucher fidèlement cette photo. Essayez avec une image plus nette ou moins lourde.";
+  }
+
+  return message || "Génération impossible";
+}
+
 function WineGlassGenerationLoader() {
   const id = useId().replace(/:/g, "");
   const clipId = `tok-wine-glass-clip-${id}`;
@@ -167,7 +185,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       updateDraft({ result: data });
       toast({ title: "Visuel TOK prêt", description: "Contrôlez que le produit source est toujours reconnaissable avant publication." });
     } catch (error) {
-      toast({ title: "Erreur IA", description: error instanceof Error ? error.message : "Génération impossible", variant: "destructive" });
+      toast({ title: "Erreur IA", description: formatPhotoGenerationError(error), variant: "destructive" });
     } finally {
       setLoading(false);
     }

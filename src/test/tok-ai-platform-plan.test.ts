@@ -113,8 +113,10 @@ describe("TOK AI platform plan", () => {
       expect(client).toContain(fn);
     }
 
-    expect(client).toContain("supabase.auth.getSession");
-    expect(client).toContain("Authorization");
+    expect(client).toContain('import { invokeSupabaseFunction } from "@/lib/session";');
+    expect(client).toContain("invokeSupabaseFunction<T>");
+    expect(client).not.toContain("supabase.auth.getSession");
+    expect(client).not.toContain("supabase.functions.invoke(functionName");
     expect(client).not.toContain("OPENAI_API_KEY");
     expect(client).not.toContain("VITE_OPENAI");
   });

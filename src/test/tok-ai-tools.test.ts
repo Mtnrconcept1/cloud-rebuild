@@ -109,7 +109,7 @@ describe("TOK AI tools foundation", () => {
     expect(source).not.toContain('OPENAI_IMAGE_QUALITY")?.trim() || "high"');
     expect(source).toContain("OPENAI_IMAGE_TIMEOUT_MS");
     expect(source).toContain("AbortController");
-    expect(source).toContain("TOK_IMAGE_USE_AI_BRIEF");
+    expect(source).not.toContain("TOK_IMAGE_USE_AI_BRIEF");
     expect(source).toContain("TOK_IMAGE_FAST_INTERACTIVE");
     expect(source).toContain("TOK_IMAGE_USE_SOURCE_EDIT");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
@@ -119,13 +119,27 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain('"1024x1024"');
     expect(source).toContain("interactive_fast");
     expect(source).toContain("sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)");
-    expect(source).toContain("buildFallbackImageResult");
+    expect(source).toContain("buildImageOnlyResult");
     expect(source).toContain("brief_source");
+    expect(source).toContain('maxRequests: 40, windowSeconds: 3600');
+    expect(source).toContain('maxRequests: 80, windowSeconds: 3600');
+    expect(source).toContain("image_edit_fallback");
+    expect(source).not.toContain("source_image_edit_required");
+    expect(source).not.toContain("createOpenAIResponse");
+    expect(source).not.toContain("parseStructuredOutput");
+    expect(source).not.toContain("maxOutputTokens");
+    expect(source).not.toContain("OUTPUT_SCHEMA");
+    expect(source).not.toContain("image_brief");
+    expect(source).not.toContain("brief_only");
     expect(client).toContain("imageOnly?: boolean");
-    expect(source).toContain("const imageOnly = body.imageOnly === true");
-    expect(source).toContain("if (imageOnly && generateImage)");
+    expect(client).toContain('import { invokeSupabaseFunction } from "@/lib/session";');
+    expect(client).not.toContain("async function getAuthorizationHeader");
+    expect(client).not.toContain("supabase.functions.invoke(functionName");
+    expect(source).toContain("const imageOnly = true");
+    expect(source).toContain("image_generation_required");
     expect(source).toContain('briefSource = "image_only"');
-    expect(source).toContain("!imageOnly");
+    expect(source).toContain('publication_caption: ""');
+    expect(source).toContain("marketing_angles: []");
 
     for (const name of [
       "OPENAI_IMAGE_MODEL",
@@ -197,5 +211,9 @@ describe("TOK AI tools foundation", () => {
     expect(advisor).toContain("Optimiser un plat");
     expect(advisor).toContain("Créer une campagne");
     expect(advisor).toContain("Améliorer une photo");
+    expect(advisor).toContain("generated_image_url");
+    expect(advisor).toContain('imageOnly: tool.endpoint === "ai-image-enhance" ? true : undefined');
+    expect(advisor).not.toContain("**Prompt visuel**");
+    expect(advisor).not.toContain("data.publication_caption");
   });
 });

@@ -66,4 +66,11 @@ describe("TOK photo studio persistence", () => {
     expect(source).not.toContain("result.marketing_angles");
     expect(source).not.toContain("Texte propos");
   });
+
+  it("maps backend image generation failures to restaurateur-facing messages", () => {
+    expect(source).toContain("formatPhotoGenerationError(error)");
+    expect(source).toContain("Trop de générations lancées");
+    expect(source).toContain("Session expirée");
+    expect(source).toContain("Impossible de retoucher fidèlement cette photo");
+  });
 });
