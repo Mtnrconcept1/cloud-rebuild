@@ -100,6 +100,7 @@ export default function Navbar() {
   const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
@@ -186,7 +187,15 @@ export default function Navbar() {
 
   const handleNotificationsOpenChange = (open: boolean) => {
     setNotificationsOpen(open);
-    if (open) void markAllReadFromBell();
+    if (open) {
+      setAccountMenuOpen(false);
+      void markAllReadFromBell();
+    }
+  };
+
+  const handleAccountMenuOpenChange = (open: boolean) => {
+    setAccountMenuOpen(open);
+    if (open) setNotificationsOpen(false);
   };
 
   const isRecentNotification = (createdAt?: string) => {
@@ -366,7 +375,7 @@ export default function Navbar() {
             ) : null}
 
             {user ? (
-              <DropdownMenu open={notificationsOpen} onOpenChange={handleNotificationsOpenChange}>
+              <DropdownMenu modal={false} open={notificationsOpen} onOpenChange={handleNotificationsOpenChange}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
@@ -384,7 +393,7 @@ export default function Navbar() {
                     ) : null}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[min(320px,calc(100vw-2rem))]">
+                <DropdownMenuContent align="end" className="w-[min(320px,calc(100vw-2rem))] data-[state=closed]:hidden">
                   <div className="border-b px-3 py-2">
                     <p className="text-sm font-semibold">Notifications</p>
                     <p className="text-[11px] text-muted-foreground">Dernières alertes</p>
@@ -427,7 +436,7 @@ export default function Navbar() {
             ) : null}
 
             {user ? (
-              <DropdownMenu>
+              <DropdownMenu modal={false} open={accountMenuOpen} onOpenChange={handleAccountMenuOpenChange}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
@@ -440,7 +449,7 @@ export default function Navbar() {
                     <span className="sr-only">Compte</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 data-[state=closed]:hidden">
                   {canSwitchRole ? (
                     <div className="mb-1 border-b px-2 py-2">
                       <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Espace actif</p>
