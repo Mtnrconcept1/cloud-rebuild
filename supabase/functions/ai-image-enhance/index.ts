@@ -37,12 +37,28 @@ type GeneratedImage = {
   model: string;
 };
 
+type ImageQuality = "low" | "medium" | "high";
+
+type ImageRequestOptions = {
+  model: string;
+  quality: ImageQuality;
+  size: string;
+  timeoutMs: number;
+  mode: "interactive_fast" | "configured";
+};
+
 const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
 const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
 const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 50_000, 55_000);
+const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", true);
+const USE_SOURCE_IMAGE_EDIT = readEnvFlag("TOK_IMAGE_USE_SOURCE_EDIT", false);
+const INTERACTIVE_IMAGE_MODEL = Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")?.trim() || "gpt-image-1-mini";
+const INTERACTIVE_IMAGE_QUALITY = normalizeInteractiveImageQuality(Deno.env.get("TOK_INTERACTIVE_IMAGE_QUALITY")?.trim());
+const INTERACTIVE_IMAGE_SIZE = normalizeInteractiveImageSize(Deno.env.get("TOK_INTERACTIVE_IMAGE_SIZE")?.trim());
+const INTERACTIVE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_INTERACTIVE_IMAGE_TIMEOUT_MS", 42_000, 50_000);
 const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS", 12_000, 30_000);
 const USE_AI_IMAGE_BRIEF = readEnvFlag("TOK_IMAGE_USE_AI_BRIEF", false);
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
@@ -106,11 +122,42 @@ function readPositiveIntEnv(name: string, fallback: number, max: number) {
   return Math.min(Math.floor(value), max);
 }
 
-function normalizeImageQuality(raw: string | undefined) {
+function normalizeImageQuality(raw: string | undefined): ImageQuality {
   const value = raw?.toLowerCase();
   if (value === "high" && readEnvFlag("TOK_ALLOW_HIGH_IMAGE_QUALITY", false)) return "high";
   if (value === "low" || value === "medium") return value;
   return "medium";
+}
+
+function normalizeInteractiveImageQuality(raw: string | undefined): ImageQuality {
+  const value = raw?.toLowerCase();
+  if (value === "high" && readEnvFlag("TOK_ALLOW_HIGH_IMAGE_QUALITY", false)) return "high";
+  if (value === "medium") return "medium";
+  return "low";
+}
+
+function normalizeInteractiveImageSize(raw: string | undefined) {
+  return raw === "1024x1024" || raw === "1536x1024" || raw === "1024x1536" ? raw : "1024x1024";
+}
+
+function buildImageRequestOptions(formatSize: string): ImageRequestOptions {
+  if (!USE_FAST_INTERACTIVE_IMAGE) {
+    return {
+      model: IMAGE_MODEL,
+      quality: IMAGE_QUALITY,
+      size: formatSize,
+      timeoutMs: IMAGE_TIMEOUT_MS,
+      mode: "configured",
+    };
+  }
+
+  return {
+    model: INTERACTIVE_IMAGE_MODEL,
+    quality: INTERACTIVE_IMAGE_QUALITY,
+    size: INTERACTIVE_IMAGE_SIZE,
+    timeoutMs: INTERACTIVE_IMAGE_TIMEOUT_MS,
+    mode: "interactive_fast",
+  };
 }
 
 function sanitizeText(raw: unknown, max = 3000) {
@@ -235,7 +282,7 @@ async function fetchImageBlob(url: string) {
   return new Blob([bytes], { type: contentType });
 }
 
-async function callOpenAIImageGeneration(prompt: string, size: string, n: number) {
+async function callOpenAIImageGeneration(prompt: string, n: number, options: ImageRequestOptions) {
   const response = await fetchWithTimeout(IMAGE_GENERATIONS_URL, {
     method: "POST",
     headers: {
@@ -243,15 +290,15 @@ async function callOpenAIImageGeneration(prompt: string, size: string, n: number
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: IMAGE_MODEL,
+      model: options.model,
       prompt,
-      size,
+      size: options.size,
       n,
-      quality: IMAGE_QUALITY,
+      quality: options.quality,
       output_format: "png",
       moderation: "auto",
     }),
-  }, IMAGE_TIMEOUT_MS, "image_generation_timeout");
+  }, options.timeoutMs, "image_generation_timeout");
 
   if (!response.ok) {
     if (response.status === 429) throw new HttpError(429, "ai_rate_limited");
@@ -262,14 +309,14 @@ async function callOpenAIImageGeneration(prompt: string, size: string, n: number
   return await response.json();
 }
 
-async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, size: string, n: number) {
+async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: number, options: ImageRequestOptions) {
   const sourceBlob = await fetchImageBlob(sourceImageUrl);
   const form = new FormData();
-  form.append("model", IMAGE_MODEL);
+  form.append("model", options.model);
   form.append("prompt", prompt);
-  form.append("size", size);
+  form.append("size", options.size);
   form.append("n", String(n));
-  form.append("quality", IMAGE_QUALITY);
+  form.append("quality", options.quality);
   form.append("output_format", "png");
   form.append("moderation", "auto");
   form.append("image", sourceBlob, "source.png");
@@ -278,7 +325,7 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, size:
     method: "POST",
     headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
     body: form,
-  }, IMAGE_TIMEOUT_MS, "image_edit_timeout");
+  }, options.timeoutMs, "image_edit_timeout");
 
   if (!response.ok) {
     if (response.status === 429) throw new HttpError(429, "ai_rate_limited");
@@ -372,6 +419,7 @@ async function insertUsage(
     status: "success" | "failure";
     restaurantId?: string | null;
     assetId?: string | null;
+    model?: string;
     usage?: ReturnType<typeof extractUsage>;
     imageCount?: number;
     metadata?: Record<string, unknown>;
@@ -380,7 +428,7 @@ async function insertUsage(
   await actor.adminClient.from("ai_usage_logs").insert({
     function_name: FUNCTION_NAME,
     action: "image_enhance",
-    model: IMAGE_MODEL,
+    model: payload.model || IMAGE_MODEL,
     user_id: actor.userId,
     restaurant_id: payload.restaurantId || null,
     generated_asset_id: payload.assetId || null,
@@ -495,29 +543,35 @@ ${TOK_PHOTO_DNA}`;
     }
 
     let generated: GeneratedImage | null = null;
+    const generatedImageOptions = generateImage ? buildImageRequestOptions(format.size) : null;
 
     if (generateImage) {
+      if (!generatedImageOptions) throw new HttpError(500, "image_options_missing");
+      const imageOptions = generatedImageOptions;
       const finalPrompt = [
         result.enhanced_prompt,
         "",
         "Contraintes finales:",
         TOK_PHOTO_DNA,
         "Image finale sans texte incruste, sans watermark, sans element de marque concurrente. Produit credible et appetissant.",
+        USE_FAST_INTERACTIVE_IMAGE && sourceImageUrl
+          ? "Mode rapide: generer un visuel TOK coherent avec le nom du plat et le brief, sans attendre une edition haute fidelite de la photo source."
+          : "",
       ].join("\n").slice(0, 7000);
 
       let imageResponse: unknown;
-      if (sourceImageUrl) {
+      if (sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)) {
         try {
-          imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, format.size, variantCount);
+          imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
         } catch (error) {
           if (error instanceof HttpError && error.message === "image_edit_failed") {
-            imageResponse = await callOpenAIImageGeneration(finalPrompt, format.size, variantCount);
+            imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
           } else {
             throw error;
           }
         }
       } else {
-        imageResponse = await callOpenAIImageGeneration(finalPrompt, format.size, variantCount);
+        imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
       }
 
       const imageBytes = await extractGeneratedImageBytes(imageResponse);
@@ -531,12 +585,17 @@ ${TOK_PHOTO_DNA}`;
         storage_bucket: IMAGE_BUCKET,
         storage_path: stored.path,
         asset_type: assetType,
-        model: IMAGE_MODEL,
+        model: imageOptions.model,
         prompt: result.enhanced_prompt,
         title: result.title,
         status: "stored",
         metadata: {
-          image_quality: IMAGE_QUALITY,
+          image_quality: imageOptions.quality,
+          request_image_model: imageOptions.model,
+          request_image_quality: imageOptions.quality,
+          request_image_size: imageOptions.size,
+          image_mode: imageOptions.mode,
+          source_edit_used: Boolean(sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)),
           output_format: "png",
           brief_source: briefSource,
           preview_image_url: stored.imageUrl,
@@ -565,7 +624,7 @@ ${TOK_PHOTO_DNA}`;
         gallery_image_url: stored.galleryImageUrl,
         storage_bucket: IMAGE_BUCKET,
         storage_path: stored.path,
-        model: IMAGE_MODEL,
+        model: imageOptions.model,
       };
     } else {
       const persistedAssetId = await insertGeneratedAsset(actor, {
@@ -599,6 +658,7 @@ ${TOK_PHOTO_DNA}`;
       status: "success",
       restaurantId,
       assetId,
+      model: generatedImageOptions?.model,
       usage,
       imageCount: generated ? variantCount : 0,
       metadata: {
@@ -606,9 +666,10 @@ ${TOK_PHOTO_DNA}`;
         has_source_image: Boolean(sourceImageUrl),
         generated_image: Boolean(generated),
         brief_source: briefSource,
-        image_timeout_ms: IMAGE_TIMEOUT_MS,
-        image_model: IMAGE_MODEL,
-        image_quality: IMAGE_QUALITY,
+        image_timeout_ms: generated ? generatedImageOptions?.timeoutMs : IMAGE_TIMEOUT_MS,
+        image_model: generated ? generatedImageOptions?.model : IMAGE_MODEL,
+        image_quality: generated ? generatedImageOptions?.quality : IMAGE_QUALITY,
+        image_mode: generated ? generatedImageOptions?.mode : "brief_only",
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
         format: format.label,
@@ -627,8 +688,9 @@ ${TOK_PHOTO_DNA}`;
       metadata: {
         rid: log.rid,
         restaurant_id: restaurantId,
-        image_model: IMAGE_MODEL,
-        image_quality: IMAGE_QUALITY,
+        image_model: generated ? generatedImageOptions?.model : IMAGE_MODEL,
+        image_quality: generated ? generatedImageOptions?.quality : IMAGE_QUALITY,
+        image_mode: generated ? generatedImageOptions?.mode : "brief_only",
         brief_source: briefSource,
         gallery_bucket: GALLERY_BUCKET,
       },
@@ -642,6 +704,7 @@ ${TOK_PHOTO_DNA}`;
       storage_bucket: generated?.storage_bucket || null,
       storage_path: generated?.storage_path || null,
       model: generated?.model || selectTokAiModel("image_premium"),
+      image_mode: generated ? generatedImageOptions?.mode : "brief_only",
       reference_folder: `public${TOK_REFERENCE_FOLDER}`,
       status: generated ? "stored" : "generated",
     }, 200, cors);

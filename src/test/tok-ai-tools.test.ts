@@ -109,6 +109,15 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("OPENAI_IMAGE_TIMEOUT_MS");
     expect(source).toContain("AbortController");
     expect(source).toContain("TOK_IMAGE_USE_AI_BRIEF");
+    expect(source).toContain("TOK_IMAGE_FAST_INTERACTIVE");
+    expect(source).toContain("TOK_IMAGE_USE_SOURCE_EDIT");
+    expect(source).toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
+    expect(source).toContain("TOK_INTERACTIVE_IMAGE_SIZE");
+    expect(source).toContain("gpt-image-1-mini");
+    expect(source).toContain('"low"');
+    expect(source).toContain('"1024x1024"');
+    expect(source).toContain("interactive_fast");
+    expect(source).toContain("sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)");
     expect(source).toContain("buildFallbackImageResult");
     expect(source).toContain("brief_source");
 
@@ -117,6 +126,12 @@ describe("TOK AI tools foundation", () => {
       "OPENAI_IMAGE_QUALITY",
       "OPENAI_IMAGE_TIMEOUT_MS",
       "TOK_IMAGE_USE_AI_BRIEF",
+      "TOK_IMAGE_FAST_INTERACTIVE",
+      "TOK_IMAGE_USE_SOURCE_EDIT",
+      "TOK_INTERACTIVE_IMAGE_MODEL",
+      "TOK_INTERACTIVE_IMAGE_QUALITY",
+      "TOK_INTERACTIVE_IMAGE_SIZE",
+      "TOK_INTERACTIVE_IMAGE_TIMEOUT_MS",
       "TOK_ALLOW_HIGH_IMAGE_QUALITY",
       "TOK_AI_IMAGE_BUCKET",
       "TOK_GALLERY_IMAGE_BUCKET",
