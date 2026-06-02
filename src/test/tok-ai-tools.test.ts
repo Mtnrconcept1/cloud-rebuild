@@ -125,6 +125,13 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("SOURCE_IMAGE_EDIT_PROMPT");
     expect(source).toContain("photographie professionnelle");
     expect(source).toContain("en gardant le produit identique");
+    expect(source).toContain("TOK_BRAND_LOGO_URL");
+    expect(source).toContain("TOK_BRAND_LOGO_PROMPT");
+    expect(source).toContain("logo TOK officiel");
+    expect(source).toContain('form.append("image[]", sourceBlob, "source.png")');
+    expect(source).toContain('form.append("image[]", logoBlob, "tok-logo.png")');
+    expect(source).toContain("tok_logo_reference_used");
+    expect(source).toContain("tok_logo_positioning");
     expect(source).toContain("strict_source_edit_no_generation_fallback");
     expect(source).toContain("generation_fallback_allowed: !sourceImageUrl");
     expect(source).not.toContain("image_edit_fallback");
