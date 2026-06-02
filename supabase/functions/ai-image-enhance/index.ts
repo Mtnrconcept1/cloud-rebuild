@@ -42,7 +42,7 @@ const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
 const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
 const IMAGE_QUALITY = Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim() || "high";
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
-const TOK_REFERENCE_FOLDER = "/Ligne graphique plats";
+const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
 
 const TOK_PHOTO_DNA = `
 Charte graphique TOK pour plats marketing:

@@ -392,6 +392,44 @@ export default function DashboardService() {
                     </label>
                   </div>
 
+                  <div className="space-y-3 rounded-xl border bg-background p-3">
+                    <div>
+                      <p className="text-sm font-semibold">Confirmation et acompte</p>
+                      <p className="text-xs text-muted-foreground">
+                        Ces reglages alimentent la reservation client et le suivi operationnel du dashboard.
+                      </p>
+                    </div>
+                    <label className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
+                      <span>Confirmation restaurant requise</span>
+                      <Switch
+                        checked={settings.restaurant_confirmation_required}
+                        onCheckedChange={(checked) => updateServiceField(period.key, "restaurant_confirmation_required", checked)}
+                      />
+                    </label>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Delai confirmation (minutes)</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={240}
+                          value={settings.confirmation_deadline_minutes}
+                          onChange={(event) => updateServiceField(period.key, "confirmation_deadline_minutes", Number(event.target.value))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Acompte optionnel (CHF)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.50"
+                          value={settings.deposit_amount_chf}
+                          onChange={(event) => updateServiceField(period.key, "deposit_amount_chf", Number(event.target.value))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label>Note de service</Label>
                     <Input

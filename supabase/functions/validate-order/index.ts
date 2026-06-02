@@ -58,6 +58,64 @@ function getOrderJourneyLabel(input: {
   return "commande";
 }
 
+function getRecordString(value: Record<string, unknown>, key: string) {
+  const raw = value[key];
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
+function getRecordNumber(value: Record<string, unknown>, key: string, fallback: number) {
+  const raw = Number(value[key]);
+  return Number.isFinite(raw) ? raw : fallback;
+}
+
+function resolveCapacityRequestedAt(
+  metadata: Record<string, unknown>,
+  scheduledDeliveryAt: string | null | undefined,
+) {
+  if (scheduledDeliveryAt) return scheduledDeliveryAt;
+
+  const scheduledAt = getRecordString(metadata, "scheduled_at")
+    || getRecordString(metadata, "scheduled_delivery_at")
+    || getRecordString(metadata, "pickup_at");
+
+  if (scheduledAt) return scheduledAt;
+
+  const pickupDate = getRecordString(metadata, "pickup_date");
+  const pickupTime = getRecordString(metadata, "pickup_time") || getRecordString(metadata, "arrival_time");
+  if (pickupDate && pickupTime && /^\d{4}-\d{2}-\d{2}$/.test(pickupDate) && /^\d{2}:\d{2}/.test(pickupTime)) {
+    return `${pickupDate}T${pickupTime.slice(0, 5)}:00+01:00`;
+  }
+
+  return new Date().toISOString();
+}
+
+async function ensureRestaurantCanAcceptOrder(input: {
+  adminClient: ReturnType<typeof createAdminClient>;
+  restaurantId: string;
+  requestedAt: string;
+}) {
+  const { data, error } = await input.adminClient.rpc("get_restaurant_order_capacity_state" as any, {
+    p_restaurant_id: input.restaurantId,
+    p_requested_at: input.requestedAt,
+    p_slot_minutes: 15,
+  });
+
+  if (error) {
+    throw new HttpError(500, error.message);
+  }
+
+  const state = data && typeof data === "object" && !Array.isArray(data)
+    ? data as Record<string, unknown>
+    : {};
+
+  if (state.can_accept_orders !== true) {
+    const message = getRecordString(state, "message") || "Ce restaurant ne peut pas accepter cette commande.";
+    throw new HttpError(409, message);
+  }
+
+  return state;
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -164,6 +222,23 @@ Deno.serve(async (req) => {
     const authoritativeMetadata = isDelivery
       ? enrichDeliveryMetadata(deliveryMetadataBase)
       : baseMetadata;
+    const capacityState = await ensureRestaurantCanAcceptOrder({
+      adminClient: actor.adminClient,
+      restaurantId: restaurant_id,
+      requestedAt: resolveCapacityRequestedAt(authoritativeMetadata as Record<string, unknown>, scheduledDelivery?.scheduledAt || null),
+    });
+    const acceptanceDeadlineAt = getRecordString(capacityState, "acceptance_deadline_at");
+    const capacityAwareMetadata = {
+      ...authoritativeMetadata,
+      acceptance_deadline_at: acceptanceDeadlineAt,
+      prep_time_minutes: getRecordNumber(capacityState, "prep_time_minutes", 20),
+      order_capacity: {
+        slot_order_count: getRecordNumber(capacityState, "slot_order_count", 0),
+        slot_capacity: getRecordNumber(capacityState, "slot_capacity", 0),
+        slot_start: getRecordString(capacityState, "slot_start"),
+        slot_end: getRecordString(capacityState, "slot_end"),
+      },
+    };
 
     if (preview_only) {
       await writeAuditLog({
@@ -188,7 +263,7 @@ Deno.serve(async (req) => {
           verified_total: pricing.total,
           original_total: pricing.originalTotal,
           discount_amount: pricing.discountAmount,
-          metadata: authoritativeMetadata,
+          metadata: capacityAwareMetadata,
         },
         200,
         corsHeaders,
@@ -214,7 +289,7 @@ Deno.serve(async (req) => {
         total_amount_param: pricing.total,
         notes_param: notes || null,
         metadata_param: {
-          ...authoritativeMetadata,
+          ...capacityAwareMetadata,
           _internal_user_id: actor.userId,
         },
         checkout_id_param: checkoutUuid,
@@ -226,8 +301,8 @@ Deno.serve(async (req) => {
       throw new HttpError(500, orderError.message);
     }
 
-    const orderReference = String(authoritativeMetadata.order_reference || "");
-    const metadataRecord = authoritativeMetadata as Record<string, unknown>;
+    const orderReference = String(capacityAwareMetadata.order_reference || "");
+    const metadataRecord = capacityAwareMetadata as Record<string, unknown>;
     const hasStripeSession = Boolean(metadataRecord.stripe_session_id);
     const checkoutSessionState = String(metadataRecord.checkout_session_state || "");
     const requiresStripeCheckout = metadataRecord.requires_stripe_checkout === true;
@@ -236,8 +311,8 @@ Deno.serve(async (req) => {
     const isSettledWithoutStripe = !isAwaitingOnlinePayment && paymentMethod !== "cash" && pricing.total <= 0.01;
 
     const finalMetadata = isDelivery
-      ? enrichDeliveryMetadata(authoritativeMetadata)
-      : authoritativeMetadata;
+      ? enrichDeliveryMetadata(capacityAwareMetadata)
+      : capacityAwareMetadata;
     const estimatedDeliveryAt = isDelivery
       ? getEstimatedArrivalTime(finalMetadata, scheduledDelivery?.scheduledAt || null)
       : null;
@@ -255,6 +330,8 @@ Deno.serve(async (req) => {
           ? "pending"
           : (paymentMethod === "cash" ? "pending" : (isSettledWithoutStripe ? "captured" : "authorized")),
         status: isAwaitingOnlinePayment ? "pending_payment" : "confirmed",
+        acceptance_deadline_at: isAwaitingOnlinePayment ? null : acceptanceDeadlineAt,
+        restaurant_response_status: isAwaitingOnlinePayment ? null : "pending",
         metadata: finalMetadata,
         updated_at: new Date().toISOString(),
       } as any)
@@ -355,6 +432,10 @@ Deno.serve(async (req) => {
         restaurant_id,
         checkout_id: checkoutUuid,
         verified_total: pricing.total,
+        slot_order_count: capacityAwareMetadata.order_capacity.slot_order_count,
+        slot_capacity: capacityAwareMetadata.order_capacity.slot_capacity,
+        prep_time_minutes: capacityAwareMetadata.prep_time_minutes,
+        acceptance_deadline_at: acceptanceDeadlineAt,
         scheduled_at: scheduledDelivery?.scheduledAt || null,
       },
     });

@@ -19,6 +19,10 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
     label: "Confirmée",
     className: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
   },
+  accepted: {
+    label: "Acceptee",
+    className: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700",
+  },
   preparing: {
     label: "En préparation",
     className: "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700",

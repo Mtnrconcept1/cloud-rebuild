@@ -11,6 +11,8 @@ export type ServiceSettings = {
   start_time: string;
   end_time: string;
   last_reservation_time: string;
+  confirmation_deadline_minutes: number;
+  deposit_amount_chf: number;
   max_covers: number;
   max_tables_per_slot: number;
   slot_interval_minutes: number;
@@ -18,6 +20,7 @@ export type ServiceSettings = {
   min_party_size: number;
   max_party_size: number;
   online_booking_enabled: boolean;
+  restaurant_confirmation_required: boolean;
   service_closed: boolean;
   service_note: string;
 };
@@ -35,6 +38,8 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     start_time: "12:00",
     end_time: "14:30",
     last_reservation_time: "14:00",
+    confirmation_deadline_minutes: 15,
+    deposit_amount_chf: 0,
     max_covers: 60,
     max_tables_per_slot: 8,
     slot_interval_minutes: 30,
@@ -44,6 +49,7 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     min_party_size: 1,
     max_party_size: 8,
     online_booking_enabled: true,
+    restaurant_confirmation_required: true,
     service_closed: false,
     service_note: "",
   },
@@ -51,6 +57,8 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     start_time: "19:00",
     end_time: "22:30",
     last_reservation_time: "22:00",
+    confirmation_deadline_minutes: 15,
+    deposit_amount_chf: 0,
     max_covers: 80,
     max_tables_per_slot: 10,
     slot_interval_minutes: 30,
@@ -60,6 +68,7 @@ export const DEFAULT_SERVICE_SETTINGS: ServiceSettingsMap = {
     min_party_size: 1,
     max_party_size: 10,
     online_booking_enabled: true,
+    restaurant_confirmation_required: true,
     service_closed: false,
     service_note: "",
   },
@@ -81,6 +90,12 @@ const toBoundedInt = (value: unknown, fallback: number, min: number, max: number
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(min, Math.round(parsed)));
+};
+
+const toNonNegativeMoney = (value: unknown, fallback: number): number => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(0, Math.round(parsed * 100) / 100);
 };
 
 const parseSlotCapacityWindows = (
@@ -113,6 +128,8 @@ const parseServiceSettings = (value: unknown, fallback: ServiceSettings): Servic
     end_time: typeof source.end_time === "string" ? source.end_time : fallback.end_time,
     last_reservation_time:
       typeof source.last_reservation_time === "string" ? source.last_reservation_time : fallback.last_reservation_time,
+    confirmation_deadline_minutes: toBoundedInt(source.confirmation_deadline_minutes, fallback.confirmation_deadline_minutes, 1, 240),
+    deposit_amount_chf: toNonNegativeMoney(source.deposit_amount_chf, fallback.deposit_amount_chf),
     max_covers: toPositiveInt(source.max_covers, fallback.max_covers),
     max_tables_per_slot: toPositiveInt(source.max_tables_per_slot, fallback.max_tables_per_slot),
     slot_interval_minutes: toBoundedInt(source.slot_interval_minutes, fallback.slot_interval_minutes, 5, 120),
@@ -123,6 +140,10 @@ const parseServiceSettings = (value: unknown, fallback: ServiceSettings): Servic
       typeof source.online_booking_enabled === "boolean"
         ? source.online_booking_enabled
         : fallback.online_booking_enabled,
+    restaurant_confirmation_required:
+      typeof source.restaurant_confirmation_required === "boolean"
+        ? source.restaurant_confirmation_required
+        : fallback.restaurant_confirmation_required,
     service_closed: typeof source.service_closed === "boolean" ? source.service_closed : fallback.service_closed,
     service_note: typeof source.service_note === "string" ? source.service_note : fallback.service_note,
   };
@@ -203,6 +224,14 @@ export const validateServiceSettings = (settings: ServiceSettings): string | nul
 
   if (settings.max_covers < 1 || settings.min_party_size < 1 || settings.max_party_size < 1) {
     return "Les limites doivent être des valeurs positives.";
+  }
+
+  if (settings.confirmation_deadline_minutes < 1 || settings.confirmation_deadline_minutes > 240) {
+    return "Le delai de confirmation doit etre compris entre 1 et 240 minutes.";
+  }
+
+  if (settings.deposit_amount_chf < 0) {
+    return "L'acompte optionnel ne peut pas etre negatif.";
   }
 
   if (settings.max_tables_per_slot < 1 || settings.slot_interval_minutes < 5) {

@@ -50,6 +50,49 @@ function parseFirebaseServiceAccount(raw: string): FirebaseServiceAccount {
   throw new HttpError(500, "firebase_service_account_invalid_json");
 }
 
+function normalizePrivateKey(raw: string) {
+  return raw.replace(/\\n/g, "\n").trim();
+}
+
+function buildFirebaseServiceAccountFromSeparateEnv(): FirebaseServiceAccount | null {
+  const projectId = getEnv("FIREBASE_PROJECT_ID");
+  const clientEmail = getEnv("FIREBASE_CLIENT_EMAIL");
+  const privateKey = getEnv("FIREBASE_PRIVATE_KEY");
+  const tokenUri = getEnv("FIREBASE_TOKEN_URI") || "https://oauth2.googleapis.com/token";
+
+  if (!projectId && !clientEmail && !privateKey) return null;
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new HttpError(500, "firebase_service_account_missing");
+  }
+
+  return {
+    project_id: projectId,
+    client_email: clientEmail,
+    private_key: normalizePrivateKey(privateKey),
+    token_uri: tokenUri,
+  };
+}
+
+function readFirebaseServiceAccountFromEnv(): FirebaseServiceAccount {
+  const serviceAccountJson = getEnv("FIREBASE_SERVICE_ACCOUNT");
+
+  if (serviceAccountJson) {
+    try {
+      return parseFirebaseServiceAccount(serviceAccountJson);
+    } catch (error) {
+      const fallback = buildFirebaseServiceAccountFromSeparateEnv();
+      if (fallback) return fallback;
+      if (error instanceof HttpError) throw error;
+      throw new HttpError(500, "firebase_service_account_invalid_json");
+    }
+  }
+
+  const fallback = buildFirebaseServiceAccountFromSeparateEnv();
+  if (fallback) return fallback;
+
+  throw new HttpError(500, "firebase_service_account_missing");
+}
+
 /**
  * Generates an OAuth2 access token from a Firebase service account JSON.
  * Uses the JWT grant type to get a short-lived token for FCM v1 API.
@@ -124,12 +167,7 @@ Deno.serve(async (req) => {
       ? body.user_id.trim()
       : null;
 
-    const serviceAccountJson = getEnv("FIREBASE_SERVICE_ACCOUNT");
-    if (!serviceAccountJson) {
-      return jsonResponse({ error: "FIREBASE_SERVICE_ACCOUNT not configured" }, 500, corsHeaders);
-    }
-
-    const serviceAccount = parseFirebaseServiceAccount(serviceAccountJson);
+    const serviceAccount = readFirebaseServiceAccountFromEnv();
     const projectId = serviceAccount.project_id;
 
     const supabaseAdmin = createClient(

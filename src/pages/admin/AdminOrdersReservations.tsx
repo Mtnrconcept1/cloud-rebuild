@@ -60,6 +60,9 @@ const supabase = getSupabase();
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type AdminDashboardTab = AdminHistoryTab | "refunds";
 
+const ADMIN_HISTORY_PAGE_SIZE = 250;
+const RESERVATION_INVENTORY_HEALTH_LIMIT = 500;
+
 function formatAmount(value: number) {
   return `${value.toFixed(2)} CHF`;
 }
@@ -204,7 +207,7 @@ async function fetchOrderHistory(
       )
     `)
     .order("created_at", { ascending: false })
-    .range(0, 999);
+    .range(0, ADMIN_HISTORY_PAGE_SIZE - 1);
 
   if (restaurantId !== "all") {
     query = query.eq("restaurant_id", restaurantId);
@@ -257,7 +260,7 @@ async function fetchReservationHistory(
     `)
     .order("date", { ascending: false })
     .order("time", { ascending: false })
-    .range(0, 999);
+    .range(0, ADMIN_HISTORY_PAGE_SIZE - 1);
 
   if (restaurantId !== "all") {
     query = query.eq("restaurant_id", restaurantId);
@@ -323,7 +326,7 @@ async function fetchReservationInventoryRows() {
         status
       )
     `)
-    .limit(1000);
+    .limit(RESERVATION_INVENTORY_HEALTH_LIMIT);
 
   if (error) throw error;
 

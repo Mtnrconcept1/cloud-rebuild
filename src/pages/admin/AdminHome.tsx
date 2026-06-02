@@ -34,6 +34,7 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import { scoreMarketplaceLiquidity } from "@/lib/marketplaceLiquidity";
 
 const supabase = getSupabase();
+const ADMIN_HOME_AGGREGATE_LIMIT = 250;
 
 const ADMIN_TOOLS = [
   {
@@ -347,12 +348,12 @@ export default function AdminHome() {
           .from("orders")
           .select("id, status, restaurant_id, restaurants ( city )")
           .gte("created_at", since)
-          .limit(1000),
+          .limit(ADMIN_HOME_AGGREGATE_LIMIT),
         (supabase as any)
           .from("dispatch_jobs")
           .select("id, status, courier_id")
           .gte("created_at", since)
-          .limit(1000),
+          .limit(ADMIN_HOME_AGGREGATE_LIMIT),
       ]);
 
       if (restaurantsResponse.error) throw restaurantsResponse.error;

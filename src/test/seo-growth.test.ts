@@ -30,6 +30,7 @@ describe("SEO growth readiness", () => {
   it("wires indexable city and cuisine pages with Restaurant structured data", () => {
     const app = read("src/App.tsx");
     const page = read("src/pages/LocalRestaurants.tsx");
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
     const seo = read("src/hooks/useSeoMeta.ts");
 
     expect(app).toContain('/restaurants/:city');
@@ -37,6 +38,10 @@ describe("SEO growth readiness", () => {
     expect(page).toContain('"@type": "Restaurant"');
     expect(page).toContain('"@type": "ItemList"');
     expect(page).toContain("search_restaurants_catalog");
+    expect(restaurantDetail).toContain("useSeoMeta");
+    expect(restaurantDetail).toContain("buildRestaurantDetailJsonLd");
+    expect(restaurantDetail).toContain('"@type": "Restaurant"');
+    expect(restaurantDetail).toContain("buildCanonicalUrl(`/restaurant/${restaurantId}`)");
     expect(seo).toContain("link[rel='canonical']");
     expect(seo).toContain("property='og:url'");
     expect(seo).toContain("https://www.thetok.ch");

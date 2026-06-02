@@ -85,6 +85,16 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain('storage.from(IMAGE_BUCKET).createSignedUrl');
   });
 
+  it("uses optimized WebP food references for the TOK photo studio style memory", () => {
+    const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    const referencesDir = resolve(root, "public/tok-reference-food-webp");
+    const references = readdirSync(referencesDir).filter((name) => name.endsWith(".webp"));
+
+    expect(source).toContain('TOK_REFERENCE_FOLDER = "/tok-reference-food-webp"');
+    expect(references).toHaveLength(13);
+    expect(references.every((name) => name.endsWith(".webp"))).toBe(true);
+  });
+
   it("adds an idempotent recovery migration for applied-but-missing AI schema", () => {
     const sql = readMigrationContaining("restore_tok_ai_schema");
 

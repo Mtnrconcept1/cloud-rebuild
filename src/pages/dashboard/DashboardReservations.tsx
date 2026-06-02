@@ -40,7 +40,15 @@ const supabase = getSupabase();
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-type ReservationWithProfile = ReservationRow & { customer: Pick<ProfileRow, "full_name" | "phone"> | null };
+type ReservationOperationalFields = {
+  deposit_amount_chf?: number | null;
+  deposit_status?: string | null;
+  no_show_review_at?: string | null;
+  reservation_confirmation_deadline_at?: string | null;
+  restaurant_confirmation_required?: boolean | null;
+  restaurant_confirmed_at?: string | null;
+};
+type ReservationWithProfile = ReservationRow & ReservationOperationalFields & { customer: Pick<ProfileRow, "full_name" | "phone"> | null };
 type ReservationMetadata = {
   service?: string;
   promo?: string;
@@ -63,6 +71,18 @@ const isJsonRecord = (value: Json): value is Record<string, Json> =>
 
 const getSafeTime = (value: string | null | undefined) => (value && value.slice(0, 5)) || "00:00";
 
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const toNumber = (value: Json | undefined): number | undefined => {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
@@ -82,6 +102,37 @@ const getReservationRefundSnapshot = (reservation: ReservationRow | ReservationW
     refundedAmount,
     remainingAmount,
     eligible: remainingAmount > 0.009 && refundStatus !== "refunded",
+  };
+};
+
+const getReservationOpsSnapshot = (reservation: ReservationRow | ReservationWithProfile) => {
+  const row = reservation as ReservationWithProfile;
+  const depositAmount = Math.max(0, Number(row.deposit_amount_chf || 0));
+  const depositStatus = String(row.deposit_status || "not_required").toLowerCase();
+  const deadlineLabel = formatDateTime(row.reservation_confirmation_deadline_at);
+  const confirmedLabel = formatDateTime(row.restaurant_confirmed_at);
+  const noShowReviewLabel = formatDateTime(row.no_show_review_at);
+  const deadlineMs = row.reservation_confirmation_deadline_at
+    ? new Date(row.reservation_confirmation_deadline_at).getTime()
+    : Number.NaN;
+
+  return {
+    depositAmount,
+    depositStatus,
+    depositStatusLabel: depositStatus === "paid"
+      ? "payé"
+      : depositStatus === "pending"
+        ? "en attente"
+        : depositStatus === "forfeited"
+          ? "conservé"
+          : depositStatus === "refunded"
+            ? "remboursé"
+            : "non requis",
+    deadlineLabel,
+    confirmedLabel,
+    noShowReviewLabel,
+    requiresConfirmation: Boolean(row.restaurant_confirmation_required),
+    confirmationOverdue: Number.isFinite(deadlineMs) && deadlineMs < Date.now() && String(reservation.status).toLowerCase() === "pending",
   };
 };
 
@@ -572,6 +623,7 @@ export default function DashboardReservations() {
                                 const compactBase = isCompactMode ? "p-3" : "p-4";
                                 const statusLockMessage = getReservationStatusLockMessage(reservation);
                                 const refundSnapshot = getReservationRefundSnapshot(reservation);
+                                const opsSnapshot = getReservationOpsSnapshot(reservation);
                                 const isArrived = reservation.status === "arrived";
                                 const isReservationLocked = Boolean(statusLockMessage);
                                 const isCardLocked = isReservationLocked || isArrived;
@@ -635,6 +687,30 @@ export default function DashboardReservations() {
                                               {note}
                                             </Badge>
                                           ))}
+                                          {opsSnapshot.requiresConfirmation ? (
+                                            <Badge
+                                              variant={opsSnapshot.confirmationOverdue ? "destructive" : "outline"}
+                                              className="text-[11px]"
+                                            >
+                                              Confirmation restaurant
+                                              {opsSnapshot.deadlineLabel ? ` avant ${opsSnapshot.deadlineLabel}` : ""}
+                                            </Badge>
+                                          ) : null}
+                                          {opsSnapshot.confirmedLabel ? (
+                                            <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-[11px] text-emerald-700">
+                                              Confirmée restaurant le {opsSnapshot.confirmedLabel}
+                                            </Badge>
+                                          ) : null}
+                                          {opsSnapshot.depositAmount > 0 ? (
+                                            <Badge variant="outline" className="text-[11px]">
+                                              Acompte {opsSnapshot.depositAmount.toFixed(2)} CHF - {opsSnapshot.depositStatusLabel}
+                                            </Badge>
+                                          ) : null}
+                                          {opsSnapshot.noShowReviewLabel ? (
+                                            <Badge variant="destructive" className="text-[11px]">
+                                              No-show a revoir le {opsSnapshot.noShowReviewLabel}
+                                            </Badge>
+                                          ) : null}
                                           {reservation.notes && !isCompactMode ? (
                                             <Badge variant="outline" className="text-[11px]">
                                               <AlertTriangle className="mr-1 h-3 w-3" />
@@ -677,6 +753,11 @@ export default function DashboardReservations() {
                                               {reservation.total_amount > 0 ? (
                                                 <div className="text-sm font-bold text-primary">
                                                   Total : {Number(reservation.total_amount).toFixed(2)} CHF
+                                                </div>
+                                              ) : null}
+                                              {opsSnapshot.depositAmount > 0 ? (
+                                                <div className="text-sm font-semibold text-foreground">
+                                                  Acompte : {opsSnapshot.depositAmount.toFixed(2)} CHF ({opsSnapshot.depositStatusLabel})
                                                 </div>
                                               ) : null}
                                             </div>

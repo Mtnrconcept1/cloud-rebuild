@@ -3,6 +3,7 @@ export const CANONICAL_ORDER_STATUSES = [
   "pending_payment",
   "paid",
   "confirmed",
+  "accepted",
   "preparing",
   "ready",
   "picked_up",

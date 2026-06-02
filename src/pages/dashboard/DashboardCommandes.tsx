@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard, Search, Ban } from "lucide-react";
+import { Bike, MapPin, User, Phone, Package2, ClipboardList, CreditCard, Search, Ban, CheckCircle, Eye, Timer } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { buildDeliveryRouteSteps } from "@/lib/deliveryRoute";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
@@ -81,6 +81,10 @@ type DashboardOrder = {
   created_at: string;
   status: string;
   payment_status?: string | null;
+  restaurant_viewed_at?: string | null;
+  restaurant_accepted_at?: string | null;
+  acceptance_deadline_at?: string | null;
+  restaurant_response_status?: string | null;
   cancelled_by?: string | null;
   cancelled_at?: string | null;
   refund_status?: string | null;
@@ -99,8 +103,8 @@ type DashboardOrder = {
   dispatch_job: DashboardDispatchJob | null;
 };
 
-const TAKEAWAY_STATUS_SEQUENCE = ["confirmed", "preparing", "ready", "delivered", "cancelled"] as const;
-const DELIVERY_STATUS_SEQUENCE = ["confirmed", "preparing", "delivering", "delivered", "cancelled"] as const;
+const TAKEAWAY_STATUS_SEQUENCE = ["confirmed", "accepted", "preparing", "ready", "delivered", "cancelled"] as const;
+const DELIVERY_STATUS_SEQUENCE = ["confirmed", "accepted", "preparing", "delivering", "delivered", "cancelled"] as const;
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
@@ -108,6 +112,7 @@ const STATUS_LABELS: Record<string, string> = {
   payment_failed: "Paiement échoué",
   confirmed: "Confirmée",
   preparing: "En préparation",
+  accepted: "Acceptee",
   ready: "Prete a retirer",
   delivering: "En livraison",
   delivered: "Livree",
@@ -157,7 +162,18 @@ function getOrderRefundSnapshot(order: DashboardOrder) {
 
 function canCancelOrder(order: DashboardOrder) {
   const status = String(normalizeOrderStatus(order.status));
-  return ["confirmed", "preparing", "ready", "delivering"].includes(status);
+  return ["confirmed", "accepted", "preparing", "ready", "delivering"].includes(status);
+}
+
+function formatAcceptanceDeadline(value: string | null | undefined) {
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return null;
+
+  return new Date(timestamp).toLocaleTimeString("fr-CH", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function DashboardCommandes() {
@@ -394,6 +410,19 @@ export default function DashboardCommandes() {
     toast({ title: "Statut mis à jour", description });
   };
 
+  const markOrderSeen = async (orderId: string) => {
+    const { error } = await supabase.rpc("mark_order_seen_by_restaurant" as any, {
+      p_order_id: orderId,
+    });
+
+    if (error) {
+      toast({ title: "Marquage impossible", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["dashboard-all-orders", selectedId] });
+  };
+
   const handleStatusSelection = (order: DashboardOrder, status: string) => {
     const normalizedStatus = normalizeOrderStatus(status);
     if (normalizedStatus === "cancelled") {
@@ -557,6 +586,14 @@ export default function DashboardCommandes() {
                         const isRouteExpanded = expandedRouteOrderId === order.id;
                         const orderType = classifyDashboardOrderType(order);
                         const orderTypeMeta = getDashboardOrderTypeMeta(orderType);
+                        const restaurantViewedAt = typeof order.restaurant_viewed_at === "string" ? order.restaurant_viewed_at : null;
+                        const restaurantAcceptedAt = typeof order.restaurant_accepted_at === "string" ? order.restaurant_accepted_at : null;
+                        const acceptanceDeadlineAt = typeof order.acceptance_deadline_at === "string" ? order.acceptance_deadline_at : null;
+                        const acceptanceDeadlineLabel = formatAcceptanceDeadline(acceptanceDeadlineAt);
+                        const acceptanceDeadlineExceeded = Boolean(
+                          acceptanceDeadlineAt && !restaurantAcceptedAt && Date.parse(acceptanceDeadlineAt) < Date.now(),
+                        );
+                        const isAwaitingRestaurantAcceptance = normalizeOrderStatus(order.status) === "confirmed";
 
                         return (
                           <div
@@ -571,6 +608,22 @@ export default function DashboardCommandes() {
                                   {orderTypeMeta.badgeLabel ? (
                                     <Badge variant="outline" className={orderTypeMeta.badgeClassName}>
                                       {orderTypeMeta.badgeLabel}
+                                    </Badge>
+                                  ) : null}
+                                  <Badge
+                                    variant="outline"
+                                    className={restaurantViewedAt ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}
+                                  >
+                                    <Eye className="mr-1 h-3 w-3" />
+                                    {restaurantViewedAt ? "Vue" : "A voir"}
+                                  </Badge>
+                                  {acceptanceDeadlineLabel ? (
+                                    <Badge
+                                      variant="outline"
+                                      className={acceptanceDeadlineExceeded ? "border-red-200 bg-red-50 text-red-700" : "border-slate-200 bg-slate-50 text-slate-700"}
+                                    >
+                                      <Timer className="mr-1 h-3 w-3" />
+                                      {acceptanceDeadlineExceeded ? "Delai depasse" : `Avant ${acceptanceDeadlineLabel}`}
                                     </Badge>
                                   ) : null}
                                 </div>
@@ -606,6 +659,29 @@ export default function DashboardCommandes() {
                                     ) : null}
                                   </div>
                                 </div>
+                                {!restaurantViewedAt ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-10"
+                                    onClick={() => void markOrderSeen(order.id)}
+                                    disabled={cancelMutation.isPending}
+                                  >
+                                    <Eye className="mr-1 h-4 w-4" />
+                                    Vue
+                                  </Button>
+                                ) : null}
+                                {isAwaitingRestaurantAcceptance ? (
+                                  <Button
+                                    size="sm"
+                                    className="h-10"
+                                    onClick={() => handleStatusSelection(order, "accepted")}
+                                    disabled={isOrderStatusLocked || cancelMutation.isPending}
+                                  >
+                                    <CheckCircle className="mr-1 h-4 w-4" />
+                                    Accepter
+                                  </Button>
+                                ) : null}
                                 <div className="space-y-1">
                                   <Select
                                     value={normalizeOrderStatus(order.status)}
