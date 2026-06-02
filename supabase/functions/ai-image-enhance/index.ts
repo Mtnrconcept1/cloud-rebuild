@@ -53,7 +53,8 @@ const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
 const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
 const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 50_000, 55_000);
-const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", true);
+const FORCE_STRICT_SOURCE_EDIT = readEnvFlag("TOK_IMAGE_FORCE_STRICT_SOURCE_EDIT", true);
+const USE_FAST_INTERACTIVE_IMAGE = FORCE_STRICT_SOURCE_EDIT ? false : readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false);
 const USE_SOURCE_IMAGE_EDIT = readEnvFlag("TOK_IMAGE_USE_SOURCE_EDIT", true);
 const INTERACTIVE_IMAGE_MODEL = Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")?.trim() || "gpt-image-1-mini";
 const INTERACTIVE_IMAGE_QUALITY = normalizeInteractiveImageQuality(Deno.env.get("TOK_INTERACTIVE_IMAGE_QUALITY")?.trim());
@@ -66,21 +67,20 @@ const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "imag
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
 
 const TOK_PHOTO_DNA = `
-Charte graphique TOK pour retouche de produits et plats marketing:
-- rendu photo studio premium, realiste, ultra appetissant, sans deformation du produit original;
+Charte graphique TOK pour retouche premium fidele:
+- modele image cible: gpt-image-2 via OPENAI_IMAGE_MODEL, avec edition de l'image source quand elle existe;
 - REGLE BLOQUANTE: si une image source est fournie, l'image finale doit rester une retouche fidele du meme sujet, pas une reinterpretation;
 - conserver la nature exacte du sujet source: meme produit ou plat, meme contenant, meme packaging, meme forme generale et meme identite visuelle reconnaissable;
-- si le sujet source est un produit emballe, une boite, un sachet, une bouteille ou une conserve, conserver l'emballage comme sujet principal et produire un packshot premium mis en scene;
+- conserver les textes, inscriptions, logos, marques, etiquettes, symboles, typographies visibles et elements de branding visibles aussi fidelement que possible;
+- ne jamais inventer, remplacer, deformer ou approximativement recreer une etiquette, un logo ou un texte visible;
+- si le sujet source est un produit emballe, une boite, un sachet, une bouteille, une conserve ou un verre imprime, conserver cet objet comme sujet principal;
 - ne jamais transformer un produit emballe en plat servi, toast, assiette gastronomique ou scene culinaire differente;
-- preserver les marques, textes, etiquettes, couleurs dominantes et elements distinctifs du produit lorsque la qualite de l'image le permet;
-- composition hero food: sujet plus proche, cadrage dynamique, profondeur de champ douce, texture visible, sans masquer les informations importantes;
-- lumiere chaude directionnelle, contraste maitrise, blancs propres, aliments brillants mais naturels;
-- fonds TOK: noir charbon, bois sombre, beige creme, touches orange TOK, herbes fraiches, sauces, vapeur discrete uniquement comme decor secondaire;
-- style avant/apres: transformer une photo telephone plate en visuel de marque restaurant premium tout en gardant le sujet reconnaissable;
-- conserver l'identite du plat, la structure, les ingredients principaux et les portions plausibles lorsqu'il s'agit d'un plat prepare;
+- ne jamais remplacer une salade, un dessert, une bouteille, une assiette ou un plat source par un autre type de nourriture;
+- composition: conserver une composition proche de la scene source; ameliorer seulement le cadrage lorsque cela ne change pas l'identite;
+- lumiere chaude directionnelle, contraste maitrise, blancs propres, textures visibles, reflets propres et naturels;
+- style avant/apres: meme photo, meme sujet, mais plus premium, plus nette, mieux eclairee et plus vendable;
 - ne pas ajouter de texte, prix, faux logo tiers, fausse certification, visage, main, emballage concurrent ou claim medical;
-- si le logo TOK est visible dans le produit source, le garder subtil, propre et non deforme;
-- controle qualite final: l'utilisateur doit reconnaitre immediatement le produit source dans l'image finale.
+- controle qualite final: au premier regard, l'utilisateur doit reconnaitre le sujet source exact.
 Dossier de references visuelles du projet: public${TOK_REFERENCE_FOLDER}.
 `;
 
@@ -243,37 +243,36 @@ function buildFallbackImageResult(input: {
   const dishLabel = input.dishName || "produit ou plat du restaurant";
   const title = input.dishName ? `Visuel TOK - ${input.dishName}` : "Visuel TOK pret";
   const enhancedPrompt = [
-    `Retouche publicitaire TOK premium pour ${dishLabel}.`,
+    `Retouche photo TOK premium fidele pour ${dishLabel}.`,
     input.userPrompt,
     `Restaurant: ${input.restaurantName}. Format demande: ${input.format}.`,
     input.sourceImagePresent
-      ? "Retoucher fidelement le sujet source: conserver le produit ou plat, son contenant, son packaging, sa marque visible, ses couleurs et sa structure. Ne pas le transformer en un autre plat ou une autre mise en scene."
+      ? "Retoucher strictement le meme sujet source. Conserver textes, logos, etiquettes, produit, plat, contenant, packaging, forme, couleurs et composition generale. Ne pas transformer le sujet en un autre aliment ou objet."
       : "Creer un visuel food plausible et appetissant a partir du brief restaurateur.",
-    "Ameliorer le cadrage, la lumiere chaude, les textures, la profondeur et l'identite TOK discrete.",
-    "Ne pas ajouter de texte incruste, de prix, de logo concurrent, de visage ou de claim medical.",
+    "Ameliorer uniquement lumiere, cadrage, nettete, contraste, reflets et rendu premium.",
   ].filter(Boolean).join("\n").slice(0, 3000);
 
   return {
     title,
     enhanced_prompt: enhancedPrompt,
-    edit_instructions: "Version TOK premium fidele: meme produit conserve, cadrage plus fort, lumiere chaude, textures renforcees et ambiance food plus appetissante.",
+    edit_instructions: "Version TOK premium fidele: meme sujet, memes textes/logos si presents, lumiere et nettete ameliorees sans changement de produit.",
     alt_text: `Visuel TOK premium pour ${dishLabel}`,
     publication_caption: input.dishName
-      ? `${input.dishName} en version TOK: plus net, plus premium, pret pour votre galerie.`
+      ? `${input.dishName} en version TOK: plus net, plus premium, fidele a l'original.`
       : "Nouveau visuel TOK pret pour votre galerie restaurant.",
     checklist: [
-      "Produit ou plat source conserve",
-      "Packaging et contenant preserves si presents",
-      "Lumiere plus chaude",
-      "Textures plus gourmandes",
-      "Identite TOK discrete",
+      "Meme sujet que la source",
+      "Textes et logos preserves si presents",
+      "Packaging ou contenant preserve",
+      "Lumiere plus propre",
+      "Aucun changement de plat",
     ],
-    style_tags: ["tok", "food-premium", "studio-photo", input.format],
-    safety_notes: ["Pas de texte incruste", "Pas de promesse nutritionnelle", "Pas de marque concurrente"],
+    style_tags: ["tok", "retouche-fidele", "food-premium", "studio-photo", input.format],
+    safety_notes: ["Pas de texte invente", "Pas de logo modifie", "Pas de marque concurrente"],
     marketing_angles: [
-      "Apercu plus appetissant pour la galerie",
-      "Image utilisable en campagne TOK",
-      "Rendu coherent avec une page restaurant premium",
+      "Photo plus premium sans denaturer le produit",
+      "Visuel plus vendeur tout en restant fidele",
+      "Rendu coherent avec une galerie restaurant haut de gamme",
     ],
   };
 }
@@ -406,7 +405,6 @@ async function storeGeneratedImage(
   if (galleryUploadError) throw new HttpError(500, galleryUploadError.message);
 
   const { data: galleryPublicData } = actor.adminClient.storage.from(GALLERY_BUCKET).getPublicUrl(galleryPath);
-
   return { id, path, imageUrl, galleryPath, galleryImageUrl: galleryPublicData.publicUrl };
 }
 
@@ -494,7 +492,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     restaurantId = maybeUuid(body.restaurantId);
-    const prompt = sanitizeText(body.prompt || body.objective || "Rendre ce produit ou plat irrésistible dans la charte graphique TOK.");
+    const prompt = sanitizeText(body.prompt || body.objective || "Retoucher fidelement ce produit ou plat dans la charte graphique TOK.");
     const dishName = sanitizeText(body.dishName, 120);
     const sourceImageUrl = sanitizeUrl(body.sourceImageUrl);
     const assetType = normalizeAssetType(body.assetType);
@@ -533,7 +531,8 @@ Deno.serve(async (req) => {
       source_image_present: Boolean(sourceImageUrl),
       source_preservation_policy: {
         mandatory: Boolean(sourceImageUrl),
-        rule: "Retoucher le meme sujet. Ne pas remplacer un produit emballe par un plat servi. Preserver packaging, marque, forme, couleurs et elements distinctifs.",
+        model: IMAGE_MODEL,
+        rule: "Edition stricte de l'image source. Conserver sujet, textes, logos, packaging, contenant, forme, couleurs et type exact de nourriture.",
       },
       tok_style_dna: TOK_PHOTO_DNA,
     };
@@ -561,11 +560,11 @@ Deno.serve(async (req) => {
       });
     } else {
       const systemPrompt = `Tu es le directeur artistique food premium de TOK.
-Tu transformes des photos de restaurateurs en briefs et prompts exploitables pour generer des visuels marketing coherents.
-Tu utilises la charte graphique TOK et le dossier de references ${TOK_REFERENCE_FOLDER} comme memoire de style.
-Regle prioritaire: quand une image source existe, tu dois produire une retouche fidele du meme produit ou plat. Ne remplace jamais le sujet par une scene culinaire differente.
-Pour un produit emballe, conserve packaging, marque visible, etiquettes, forme, couleurs et cree un packshot premium au lieu d'une assiette servie.
-Tu ne dois jamais deformer le sujet, inventer une portion mensongere, ajouter un logo concurrent, ajouter du texte illisible ou promettre un effet nutritionnel.
+Tu ne dois pas reinventer l'image. Tu dois produire un brief de retouche fidele.
+Quand une image source existe, le sujet source doit rester identique.
+Les textes, logos, etiquettes, inscriptions et marques visibles doivent rester intacts et lisibles.
+Une salade doit rester une salade, une bouteille doit rester la meme bouteille, un dessert doit rester le meme dessert.
+Interdiction de proposer une lasagne, une barquette, un burger, une pizza ou un autre plat si ce n'est pas le sujet source.
 ${TOK_PHOTO_DNA}`;
 
       const userContent = sourceImageUrl
@@ -584,7 +583,7 @@ ${TOK_PHOTO_DNA}`;
         maxOutputTokens: 1400,
         jsonSchema: {
           name: "tok_image_enhancement_brief",
-          description: "TOK branded restaurant image generation brief with strict source preservation.",
+          description: "TOK branded restaurant image retouch brief with strict source fidelity.",
           schema: OUTPUT_SCHEMA,
         },
       });
@@ -603,14 +602,11 @@ ${TOK_PHOTO_DNA}`;
       const finalPrompt = [
         result.enhanced_prompt,
         "",
-        "Contraintes finales:",
+        "Contraintes finales non negociables:",
         TOK_PHOTO_DNA,
         sourceImageUrl
-          ? "REGLE BLOQUANTE: l'image finale doit etre une retouche du meme sujet source. Preserver produit, plat, contenant, packaging, marque visible, texte lisible, forme et couleurs dominantes. Ne pas transformer le sujet en un autre plat ou une scene inventee."
+          ? "Tu edites l'image source fournie. Le resultat doit rester la meme photo amelioree. Conserver strictement le sujet source. Ne jamais changer le type de nourriture ou de produit. Preserver les textes, logos, inscriptions, etiquettes, branding, packaging, contenant, formes et couleurs dominantes. Si tu ne peux pas garantir la fidelite, fais une retouche minimale plutot qu'une recreation."
           : "Image finale sans texte incruste, sans watermark, sans element de marque concurrente. Produit credible et appetissant.",
-        USE_FAST_INTERACTIVE_IMAGE && sourceImageUrl
-          ? "Mode rapide avec image source: prioriser la fidelite du sujet sur l'effet publicitaire. Ameliorer lumiere, cadrage, fond et textures sans remplacer le produit."
-          : "",
       ].join("\n").slice(0, 7000);
 
       let imageResponse: unknown;
@@ -619,13 +615,9 @@ ${TOK_PHOTO_DNA}`;
           imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
         } catch (error) {
           if (error instanceof HttpError && error.message === "image_edit_failed") {
-            imageResponse = await callOpenAIImageGeneration([
-              finalPrompt,
-              "Fallback generation: utiliser le brief visuel issu de l'image source et ne pas inventer un autre type de plat ou de packaging.",
-            ].join("\n"), variantCount, imageOptions);
-          } else {
-            throw error;
+            throw new HttpError(502, "source_image_edit_required");
           }
+          throw error;
         }
       } else {
         imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
@@ -652,7 +644,8 @@ ${TOK_PHOTO_DNA}`;
           request_image_quality: imageOptions.quality,
           request_image_size: imageOptions.size,
           image_mode: imageOptions.mode,
-          source_edit_used: Boolean(sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)),
+          source_edit_used: Boolean(sourceImageUrl),
+          generation_fallback_allowed: !sourceImageUrl,
           output_format: "png",
           brief_source: briefSource,
           preview_image_url: stored.imageUrl,
@@ -663,7 +656,7 @@ ${TOK_PHOTO_DNA}`;
           original_prompt: prompt,
           dish_name: dishName,
           format: format.label,
-          source_preservation_policy: "same_subject_required",
+          source_preservation_policy: sourceImageUrl ? "strict_edit_no_generation_fallback" : "generation_without_source",
           reference_folder: `public${TOK_REFERENCE_FOLDER}`,
         },
       });
@@ -693,7 +686,7 @@ ${TOK_PHOTO_DNA}`;
           original_prompt: prompt,
           dish_name: dishName,
           format: format.label,
-          source_preservation_policy: "same_subject_required",
+          source_preservation_policy: sourceImageUrl ? "strict_edit_no_generation_fallback" : "generation_without_source",
           reference_folder: `public${TOK_REFERENCE_FOLDER}`,
         },
       });
@@ -718,6 +711,7 @@ ${TOK_PHOTO_DNA}`;
         image_model: generated ? generatedImageOptions?.model : IMAGE_MODEL,
         image_quality: generated ? generatedImageOptions?.quality : IMAGE_QUALITY,
         image_mode: generated ? generatedImageOptions?.mode : "brief_only",
+        generation_fallback_allowed: !sourceImageUrl,
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
         format: format.label,
