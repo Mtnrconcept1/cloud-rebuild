@@ -22,6 +22,7 @@ import {
   respondToDispatchAttempt,
   updateCourierJobStatus,
   verifyCourierDelivery,
+  type DeliveryVerificationPayload,
 } from "@/lib/courier";
 import {
   buildCourierMissionFromJob,
@@ -124,8 +125,8 @@ export default function CourierJobs() {
   });
 
   const verifyMutation = useMutation({
-    mutationFn: async ({ dispatchJobId, proofCode, vérificationMethod }: { dispatchJobId: string; proofCode: string; vérificationMethod: "qr" | "manual_code" }) =>
-      verifyCourierDelivery(dispatchJobId, proofCode, vérificationMethod),
+    mutationFn: async ({ dispatchJobId, proof }: { dispatchJobId: string; proof: DeliveryVerificationPayload }) =>
+      verifyCourierDelivery(dispatchJobId, proof),
     onSuccess: () => {
       toast.success("Livraison validée");
       refreshCourierQueries();
@@ -349,11 +350,14 @@ export default function CourierJobs() {
                       {requiresProof ? (
                         <DeliveryProofPanel
                           isLoading={verifyMutation.isPending}
-                          onVerify={({ code, vérificationMethod }) =>
+                          onVerify={({ code, signatureDataUrl, verificationMethod }) =>
                             verifyMutation.mutate({
                               dispatchJobId: job.id,
-                              proofCode: code,
-                              vérificationMethod,
+                              proof: {
+                                proofCode: code,
+                                signatureDataUrl,
+                                verificationMethod,
+                              },
                             })}
                         />
                       ) : null}

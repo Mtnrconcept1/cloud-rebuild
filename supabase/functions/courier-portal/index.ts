@@ -30,6 +30,20 @@ function courierDisplayName(courier: Record<string, unknown> | null) {
   return [first, last].filter(Boolean).join(" ").trim() || "Livreur Tok";
 }
 
+function normalizeDeliveryVerificationMethod(value: unknown) {
+  const method = String(value || "").trim();
+  if (method === "manual_signature") return "manual_signature";
+  if (method === "manual_code") return "manual_code";
+  return "qr";
+}
+
+function isValidSignatureDataUrl(value: unknown) {
+  const signature = String(value || "").trim();
+  return signature.startsWith("data:image/png;base64,")
+    && signature.length >= 256
+    && signature.length <= 250_000;
+}
+
 async function getCourierForActor(adminClient: ReturnType<typeof createAdminClient>, userId: string) {
   const { data: courier, error } = await adminClient
     .from("couriers")
@@ -761,10 +775,19 @@ Deno.serve(async (req) => {
     if (action === "verify_delivery_proof") {
       const dispatchJobId = String(payload?.dispatch_job_id || "").trim();
       const proofCode = normalizeDeliveryProofCode(payload?.proof_code);
-      const verificationMethod = payload?.verification_method === "manual_code" ? "manual_code" : "qr";
+      const verificationMethod = normalizeDeliveryVerificationMethod(payload?.verification_method);
+      const signatureDataUrl = String(payload?.signature_data_url || "").trim();
+      const usesManualSignature = verificationMethod === "manual_signature";
 
-      if (!dispatchJobId || proofCode.length !== 6) {
-        throw new HttpError(400, "Mission ou code de verification invalide");
+      if (!dispatchJobId) {
+        throw new HttpError(400, "Mission invalide");
+      }
+      if (usesManualSignature) {
+        if (!isValidSignatureDataUrl(signatureDataUrl)) {
+          throw new HttpError(400, "Signature client invalide");
+        }
+      } else if (proofCode.length !== 6) {
+        throw new HttpError(400, "Code de verification invalide");
       }
 
       const { data: job, error: jobError } = await adminClient
@@ -784,10 +807,10 @@ Deno.serve(async (req) => {
       const orderMetadata = typeof order.metadata === "object" && !Array.isArray(order.metadata) ? order.metadata : {};
       const expectedCode = normalizeDeliveryProofCode(orderMetadata.delivery_proof_code);
 
-      if (!expectedCode) {
+      if (!usesManualSignature && !expectedCode) {
         throw new HttpError(409, "Aucun code de remise n'est configure pour cette commande");
       }
-      if (proofCode !== expectedCode) {
+      if (!usesManualSignature && proofCode !== expectedCode) {
         throw new HttpError(409, "Code client invalide");
       }
 
@@ -813,12 +836,17 @@ Deno.serve(async (req) => {
           courier_id: courier.id,
           verification_method: verificationMethod,
           verification_payload: {
-            code: proofCode,
+            code: usesManualSignature ? null : proofCode,
+            signature_data_url: usesManualSignature ? signatureDataUrl : null,
             verification_method: verificationMethod,
           },
           verified_at: verifiedAt,
           recorded_at: verifiedAt,
-          notes: verificationMethod === "manual_code" ? "Validation code client" : "Validation QR client",
+          notes: usesManualSignature
+            ? "Validation signature manuelle client"
+            : verificationMethod === "manual_code"
+              ? "Validation code client"
+              : "Validation QR client",
         }, { onConflict: "dispatch_job_id" })
         .select("*")
         .single();

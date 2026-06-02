@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
@@ -45,6 +46,50 @@ const emptyItem = {
   is_available: true,
 } satisfies MenuItemForm;
 
+const CUSTOM_CATEGORY_VALUE = "__custom__";
+
+const MENU_CATEGORY_PRESETS = [
+  "Entrées",
+  "Plats",
+  "Plats végétariens",
+  "Plats vegan",
+  "Pâtes",
+  "Pizzas",
+  "Burgers",
+  "Sandwichs",
+  "Salades",
+  "Soupes",
+  "Accompagnements",
+  "Menus enfants",
+  "Formules midi",
+  "Menus dégustation",
+  "Desserts",
+  "Glaces et sorbets",
+  "Pâtisseries",
+  "Boissons soft",
+  "Eaux",
+  "Jus et smoothies",
+  "Cafés et thés",
+  "Apéritifs",
+  "Cocktails",
+  "Mocktails",
+  "Bières",
+  "Vins rouges",
+  "Vins blancs",
+  "Vins rosés",
+  "Champagnes et mousseux",
+  "Spiritueux",
+  "Digestifs",
+  "Anti-gaspi",
+  "Ventes flash",
+  "Table du chef",
+  "Autres",
+];
+
+function isPresetCategory(category: string) {
+  return MENU_CATEGORY_PRESETS.includes(category);
+}
+
 export default function DashboardMenu() {
   const { selectedId } = useDashboardRestaurant();
   const { toast } = useToast();
@@ -52,6 +97,7 @@ export default function DashboardMenu() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MenuItemForm>(emptyItem);
+  const [categoryMode, setCategoryMode] = useState<"preset" | "custom">("preset");
 
   const restaurant = selectedId ? { id: selectedId } : null;
 
@@ -74,19 +120,22 @@ export default function DashboardMenu() {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyItem);
+    setCategoryMode("preset");
     setDialogOpen(true);
   };
 
   const openEdit = (item: MenuItemRecord) => {
     setEditingId(item.id);
+    const category = item.category || "";
     setForm({
       name: item.name,
       description: item.description || "",
       price: Number(item.price),
-      category: item.category || "",
+      category,
       image_url: item.image_url || "",
       is_available: item.is_available,
     });
+    setCategoryMode(category && !isPresetCategory(category) ? "custom" : "preset");
     setDialogOpen(true);
   };
 
@@ -247,11 +296,37 @@ export default function DashboardMenu() {
               </div>
               <div className="space-y-2">
                 <Label>Categorie</Label>
-                <Input
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  placeholder="Entrees, Plats, Desserts..."
-                />
+                <Select
+                  value={categoryMode === "custom" ? CUSTOM_CATEGORY_VALUE : form.category}
+                  onValueChange={(value) => {
+                    if (value === CUSTOM_CATEGORY_VALUE) {
+                      setCategoryMode("custom");
+                      if (isPresetCategory(form.category)) setForm({ ...form, category: "" });
+                      return;
+                    }
+                    setCategoryMode("preset");
+                    setForm({ ...form, category: value });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir une categorie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MENU_CATEGORY_PRESETS.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={CUSTOM_CATEGORY_VALUE}>Categorie personnalisee</SelectItem>
+                  </SelectContent>
+                </Select>
+                {categoryMode === "custom" ? (
+                  <Input
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    placeholder="Ex: brunch, tapas, spécialités maison..."
+                  />
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label>Description</Label>

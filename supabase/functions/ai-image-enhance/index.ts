@@ -51,10 +51,10 @@ type OpenAIImageErrorDetails = {
 const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
-const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
+const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-1.5";
 const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
-const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 50_000, 55_000);
-const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", true);
+const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 95_000, 115_000);
+const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false);
 const INTERACTIVE_IMAGE_MODEL = Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")?.trim() || "gpt-image-1-mini";
 const INTERACTIVE_IMAGE_QUALITY = normalizeInteractiveImageQuality(Deno.env.get("TOK_INTERACTIVE_IMAGE_QUALITY")?.trim());
 const INTERACTIVE_IMAGE_SIZE = normalizeInteractiveImageSize(Deno.env.get("TOK_INTERACTIVE_IMAGE_SIZE")?.trim());
@@ -69,9 +69,12 @@ const SOURCE_IMAGE_EDIT_PROMPT =
 const TOK_BRAND_LOGO_PROMPT =
   "Ajoute le logo TOK officiel fourni en image de référence comme un petit marquage discret, idéalement en haut à gauche. Si cette zone masque le produit ou déséquilibre la composition, place-le dans le coin libre le plus naturel. Le logo doit être entièrement visible, avec une marge intérieure nette autour de lui; ne jamais le coller au bord ni le couper. Le logo doit rester lisible, propre, sans être recréé approximativement et sans couvrir les aliments.";
 
+const PREMIUM_SOURCE_IMAGE_EDIT_PROMPT =
+  "Retouche l'image source en photographie culinaire professionnelle premium, sans changer le sujet principal. Conserve le meme plat ou produit, les memes aliments, le meme contenant, les memes proportions, les textes et logos visibles. Ameliore uniquement la lumiere, la nettete, le contraste, les couleurs, le cadrage leger, les reflets et la proprete visuelle. Supprime seulement les elements parasites evidents. Ne transforme jamais le produit en un autre plat, ne remplace jamais l'emballage, ne modifie pas les inscriptions, ne cree pas de scene differente.";
+
 const TOK_PHOTO_DNA = `
 Charte graphique TOK pour retouche premium fidele:
-- modele image cible: gpt-image-2 via OPENAI_IMAGE_MODEL, avec edition de l'image source quand elle existe;
+- modele image cible: gpt-image-1.5 via OPENAI_IMAGE_MODEL, avec edition de l'image source quand elle existe;
 - REGLE BLOQUANTE: si une image source est fournie, l'image finale doit rester une retouche fidele du meme sujet, pas une reinterpretation;
 - conserver la nature exacte du sujet source: meme produit ou plat, meme contenant, meme packaging, meme forme generale et meme identite visuelle reconnaissable;
 - conserver les textes, inscriptions, logos, marques, etiquettes, symboles, typographies visibles et elements de branding visibles aussi fidelement que possible;
@@ -106,9 +109,8 @@ function readPositiveIntEnv(name: string, fallback: number, max: number) {
 
 function normalizeImageQuality(raw: string | undefined): ImageQuality {
   const value = raw?.toLowerCase();
-  if (value === "high" && readEnvFlag("TOK_ALLOW_HIGH_IMAGE_QUALITY", false)) return "high";
-  if (value === "low" || value === "medium") return value;
-  return "medium";
+  if (value === "low" || value === "medium" || value === "high") return value;
+  return "high";
 }
 
 function normalizeInteractiveImageQuality(raw: string | undefined): ImageQuality {
@@ -519,7 +521,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     restaurantId = maybeUuid(body.restaurantId);
-    const prompt = sanitizeText(body.prompt || body.objective || SOURCE_IMAGE_EDIT_PROMPT);
+    const prompt = sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
     const dishName = sanitizeText(body.dishName, 120);
     const sourceImageUrl = sanitizeUrl(body.sourceImageUrl);
     const assetType = normalizeAssetType(body.assetType);
@@ -556,7 +558,14 @@ Deno.serve(async (req) => {
 
     const imageOptions = generatedImageOptions;
     const finalPrompt = sourceImageUrl
-      ? [SOURCE_IMAGE_EDIT_PROMPT, TOK_BRAND_LOGO_PROMPT].join(" ")
+      ? [
+        PREMIUM_SOURCE_IMAGE_EDIT_PROMPT,
+        "",
+        "Contraintes finales non negociables:",
+        TOK_PHOTO_DNA,
+        TOK_BRAND_LOGO_PROMPT,
+        "Rendu attendu: avant/apres fidele. Meme sujet reconnaissable immediatement, mais plus net, plus propre, plus lumineux, plus premium et utilisable dans une galerie restaurant.",
+      ].join("\n").slice(0, 7000)
       : [
         result.enhanced_prompt,
         "",
