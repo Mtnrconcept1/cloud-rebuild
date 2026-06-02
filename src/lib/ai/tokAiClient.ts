@@ -34,6 +34,38 @@ export type RestaurantAgentRequest = {
   context?: JsonRecord;
 };
 
+export type TokImageFormat = "landscape" | "square" | "portrait";
+
+export type TokImageGenerationRequest = {
+  restaurantId: string;
+  sourceImageUrl?: string | null;
+  dishName?: string | null;
+  prompt: string;
+  assetType?: "menu_visual" | "campaign_visual" | "banner" | "image";
+  format?: TokImageFormat;
+  variantCount?: number;
+  generateImage?: boolean;
+};
+
+export type TokImageGenerationResult = {
+  title: string;
+  enhanced_prompt: string;
+  edit_instructions: string;
+  alt_text: string;
+  publication_caption: string;
+  checklist: string[];
+  style_tags: string[];
+  safety_notes: string[];
+  marketing_angles: string[];
+  assetId: string;
+  generated_image_url: string | null;
+  storage_bucket: string | null;
+  storage_path: string | null;
+  model: string;
+  reference_folder: string;
+  status: "generated" | "stored";
+};
+
 export type AccountingAgentRequest = {
   action: "monthly_summary" | "invoice_anomalies" | "revenue_forecast" | "margin_review";
   month: string;
@@ -94,6 +126,16 @@ export function runRestaurantAgent(request: RestaurantAgentRequest) {
     status: "draft";
     quota?: JsonRecord;
   }>("ai-restaurant-agent", { ...request });
+}
+
+export function generateTokDishImage(request: TokImageGenerationRequest) {
+  return invokeTokAiFunction<TokImageGenerationResult>("ai-image-enhance", {
+    ...request,
+    assetType: request.assetType || "menu_visual",
+    format: request.format || "landscape",
+    variantCount: request.variantCount || 1,
+    generateImage: request.generateImage !== false,
+  });
 }
 
 export function runAccountingAgent(request: AccountingAgentRequest) {
