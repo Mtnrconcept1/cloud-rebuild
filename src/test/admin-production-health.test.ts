@@ -102,5 +102,9 @@ describe("admin production health", () => {
     expect(page).toContain("Variables critiques");
     expect(page).toContain("À surveiller");
     expect(page).toContain("Intégrité paiements");
+    expect(page).toContain("admin_get_security_abuse_summary");
+    expect(page).toContain("Surveillance sécurité");
+    expect(page).toContain("Tests de cartes");
+    expect(page).not.toContain("refetchInterval");
   });
 });

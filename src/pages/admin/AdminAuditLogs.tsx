@@ -106,6 +106,32 @@ type PaymentIntegrityReport = {
   }>;
 };
 
+type SecurityAbuseSection = {
+  status?: HealthStatus;
+  message?: string;
+  newAccounts?: number;
+  totalFailures?: number;
+  failedPaymentTransactions?: number;
+  totalUploads?: number;
+  auditedActions?: number;
+  failedActions?: number;
+};
+
+type SecurityAbuseReport = {
+  checkedAt?: string;
+  windowHours?: number;
+  status?: HealthStatus;
+  counts?: {
+    critical?: number;
+    watch?: number;
+  };
+  massAccountCreation?: SecurityAbuseSection;
+  sensitiveEndpointFailures?: SecurityAbuseSection;
+  cardTesting?: SecurityAbuseSection;
+  massUploads?: SecurityAbuseSection;
+  sensitiveActions?: SecurityAbuseSection;
+};
+
 const HEALTH_LABELS: Record<HealthStatus, string> = {
   ok: "OK",
   watch: "À surveiller",
@@ -265,7 +291,6 @@ export default function AdminAuditLogs() {
       if (error) throw error;
       return data as ProductionHealthReport;
     },
-    refetchInterval: 60_000,
   });
 
   const { data: paymentIntegrity, isLoading: paymentIntegrityLoading, error: paymentIntegrityError, refetch: refetchPaymentIntegrity } = useQuery({
@@ -274,6 +299,15 @@ export default function AdminAuditLogs() {
       const { data, error } = await (supabase.rpc as any)("get_payment_integrity_anomalies", { p_hours: 48 });
       if (error) throw error;
       return data as PaymentIntegrityReport;
+    },
+  });
+
+  const { data: securityAbuse, isLoading: securityAbuseLoading, error: securityAbuseError, refetch: refetchSecurityAbuse } = useQuery({
+    queryKey: ["admin-security-abuse-summary", 24],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("admin_get_security_abuse_summary", { p_hours: 24 });
+      if (error) throw error;
+      return data as SecurityAbuseReport;
     },
   });
 
@@ -356,7 +390,6 @@ export default function AdminAuditLogs() {
 
       return [...normalizedEdgeLogs, ...normalizedDataLogs];
     },
-    refetchInterval: 30_000,
   });
 
   const functionOptions = useMemo(() => {
@@ -399,11 +432,45 @@ export default function AdminAuditLogs() {
       schedulers24h: logs.filter((log) => log.actorType === "scheduler" && Date.parse(log.createdAt) >= last24hThreshold).length,
       paymentAnomalies: paymentIntegrity?.total || 0,
       paymentCritical: paymentIntegrity?.critical || 0,
+      securityCritical: securityAbuse?.counts?.critical || 0,
     };
-  }, [logs, filteredLogs.length, paymentIntegrity]);
+  }, [logs, filteredLogs.length, paymentIntegrity, securityAbuse]);
 
   const healthStatus = normalizeHealthStatus(productionHealth?.status);
+  const securityAbuseStatus = normalizeHealthStatus(securityAbuse?.status);
   const paymentAnomalies = paymentIntegrity?.items || [];
+  const securityAbuseSections = [
+    {
+      title: "Créations de comptes",
+      value: formatNumber(securityAbuse?.massAccountCreation?.newAccounts),
+      message: securityAbuse?.massAccountCreation?.message,
+      status: securityAbuse?.massAccountCreation?.status,
+    },
+    {
+      title: "Échecs sensibles",
+      value: formatNumber(securityAbuse?.sensitiveEndpointFailures?.totalFailures),
+      message: securityAbuse?.sensitiveEndpointFailures?.message,
+      status: securityAbuse?.sensitiveEndpointFailures?.status,
+    },
+    {
+      title: "Tests de cartes",
+      value: formatNumber(securityAbuse?.cardTesting?.failedPaymentTransactions),
+      message: securityAbuse?.cardTesting?.message,
+      status: securityAbuse?.cardTesting?.status,
+    },
+    {
+      title: "Uploads massifs",
+      value: formatNumber(securityAbuse?.massUploads?.totalUploads),
+      message: securityAbuse?.massUploads?.message,
+      status: securityAbuse?.massUploads?.status,
+    },
+    {
+      title: "Actions auditées",
+      value: formatNumber(securityAbuse?.sensitiveActions?.auditedActions),
+      message: securityAbuse?.sensitiveActions?.message,
+      status: securityAbuse?.sensitiveActions?.status,
+    },
+  ];
   const hasActiveFilters = search || sourceFilter !== "all" || statusFilter !== "all" || timeRange !== "24h" || categoryFilter !== "all" || actorFilter !== "all" || functionFilter !== "all" || targetTypeFilter !== "all" || sortOrder !== "newest" || customStart || customEnd;
 
   const resetFilters = () => {
@@ -432,7 +499,7 @@ export default function AdminAuditLogs() {
         stats={[
           { label: "Santé", value: HEALTH_LABELS[healthStatus], icon: Activity },
           { label: "Logs filtrés", value: stats.filtered, icon: Search },
-          { label: "Erreurs 24h", value: stats.failures24h, icon: AlertTriangle },
+          { label: "Sécurité", value: stats.securityCritical, icon: AlertTriangle },
         ]}
       />
 
@@ -480,6 +547,56 @@ export default function AdminAuditLogs() {
                 <div className="rounded-lg border p-4"><h3 className="flex items-center gap-2 font-semibold"><KeyRound className="h-4 w-4" />Variables critiques</h3><p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.configuration?.checks?.length)} contrôles configurés.</p><HealthBadge status={productionHealth?.configuration?.status} /></div>
                 <div className="rounded-lg border p-4"><h3 className="flex items-center gap-2 font-semibold"><CheckCircle2 className="h-4 w-4" />Alertes prioritaires</h3><p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.alerts?.length)} signalements actifs.</p></div>
               </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className={securityAbuseStatus === "critical" ? "border-destructive/40" : securityAbuseStatus === "watch" ? "border-amber-500/35" : undefined}>
+        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Shield className="h-4 w-4" />
+                Surveillance sécurité
+              </CardTitle>
+              <HealthBadge status={securityAbuse?.status} />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Création massive de comptes, échecs sur endpoints sensibles, signaux de tests de cartes, uploads massifs et actions sensibles auditées.
+            </p>
+            {securityAbuse?.checkedAt ? <p className="text-xs text-muted-foreground">Dernière vérification : {formatDateTime(securityAbuse.checkedAt)}</p> : null}
+          </div>
+          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => void refetchSecurityAbuse()} disabled={securityAbuseLoading}>
+            <RefreshCw className="h-4 w-4" />
+            Vérifier
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {securityAbuseError ? (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              Impossible de charger la surveillance sécurité. Vérifiez que `admin_get_security_abuse_summary` est déployée.
+            </div>
+          ) : securityAbuseLoading ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              <div className="h-24 rounded-lg bg-muted animate-pulse" />
+              <div className="h-24 rounded-lg bg-muted animate-pulse" />
+              <div className="h-24 rounded-lg bg-muted animate-pulse" />
+              <div className="h-24 rounded-lg bg-muted animate-pulse" />
+              <div className="h-24 rounded-lg bg-muted animate-pulse" />
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              {securityAbuseSections.map((section) => (
+                <div key={section.title} className="rounded-lg border bg-muted/20 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-medium text-muted-foreground">{section.title}</p>
+                    <HealthBadge status={section.status} />
+                  </div>
+                  <p className="mt-2 text-2xl font-bold">{section.value}</p>
+                  <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{section.message || "Aucun signal disponible."}</p>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
@@ -585,8 +702,8 @@ export default function AdminAuditLogs() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredLogs.slice(0, 300).map((log) => (
-                    <TableRow key={`${log.source}-${log.id}`}>
+                  {filteredLogs.slice(0, 300).map((log, index) => (
+                    <TableRow key={`${log.source}-${log.id}-${index}`}>
                       <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{formatDateTime(log.createdAt)}</TableCell>
                       <TableCell><Badge variant={log.source === "edge" ? "default" : "outline"}>{log.source === "edge" ? "Edge" : "Data"}</Badge></TableCell>
                       <TableCell><Badge variant="outline">{CATEGORY_LABELS[log.category]}</Badge></TableCell>

@@ -354,10 +354,8 @@ export default function MatchGroupes() {
     const dueGroups = groups.filter((group) => new Date(group.lock_at || group.expires_at).getTime() <= nowMs);
     if (dueGroups.length === 0) return;
 
-    void (supabase.rpc as any)("close_due_match_groups").then(() => {
-      queryClient.invalidateQueries({ queryKey: ["match-group-public-feed"] });
-      queryClient.invalidateQueries({ queryKey: ["my-match-group-orders", user.id] });
-    });
+    queryClient.invalidateQueries({ queryKey: ["match-group-public-feed"] });
+    queryClient.invalidateQueries({ queryKey: ["my-match-group-orders", user.id] });
   }, [groups, nowMs, queryClient, user?.id]);
 
   const createGroup = useMutation({
