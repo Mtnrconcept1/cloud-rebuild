@@ -17,6 +17,7 @@ import {
   type LaunchPack,
   type PackService,
 } from "@/lib/launchPacks";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { invokeSupabaseFunction } from "@/lib/session";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import type { PaymentMethodId } from "@/lib/paymentMethods";
@@ -291,7 +292,7 @@ export default function DashboardPack() {
             },
           ],
           payment_method: paymentMethod,
-          return_url: `${window.location.origin}/dashboard/pack`,
+          return_url: buildCheckoutReturnUrl("/dashboard/pack"),
           order_metadata: {
             checkout_kind: "launch-pack",
             pack_id: selectedPack.id,

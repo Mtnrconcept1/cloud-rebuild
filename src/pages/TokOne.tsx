@@ -33,6 +33,7 @@ import {
   useTokOneSubscription,
 } from "@/hooks/useTokOne";
 import { getSupabase } from "@/integrations/supabase/client";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { useAuth } from "@/lib/auth-context";
 import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 import { cn } from "@/lib/utils";
@@ -209,7 +210,7 @@ export default function TokOne() {
         body: {
           items: [],
           payment_method: "card",
-          return_url: `${window.location.origin}/tok-one`,
+          return_url: buildCheckoutReturnUrl("/tok-one"),
           checkout_kind: "tok-one",
           order_metadata: {
             plan_id: plan.id,

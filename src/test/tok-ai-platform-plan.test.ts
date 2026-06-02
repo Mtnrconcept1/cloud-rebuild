@@ -254,5 +254,8 @@ describe("TOK AI platform plan", () => {
     expect(accountingAgent).toContain("requireUserRole(actor, [\"admin\"]");
     expect(accountingAgent).not.toContain("requireUserRole(actor, [\"admin\"]);\n    if (!OPENAI_API_KEY)");
     expect(adminMonitor).toContain("aucune action destructive");
+    expect(adminMonitor).toContain("ai_failure_ratio_7d");
+    expect(adminMonitor).toContain("failure_ratio_not_absolute_spend");
+    expect(adminMonitor).toContain("aucune sanction utilisateur");
   });
 });

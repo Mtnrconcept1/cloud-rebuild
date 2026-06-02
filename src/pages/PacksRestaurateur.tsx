@@ -12,6 +12,7 @@ import {
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getSupabase } from "@/integrations/supabase/client";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { toast } from "sonner";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
@@ -419,7 +420,7 @@ export default function PacksRestaurateur() {
             },
           ],
           payment_method: paymentMethod,
-          return_url: `${window.location.origin}/packs-restaurateur`,
+          return_url: buildCheckoutReturnUrl("/packs-restaurateur"),
           order_metadata: {
             checkout_kind: "launch-pack",
             pack_id: selectedPack.id,

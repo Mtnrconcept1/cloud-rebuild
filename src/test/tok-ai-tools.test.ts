@@ -125,8 +125,9 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("if (sourceImageUrl) {");
     expect(source).toContain("buildImageOnlyResult");
     expect(source).toContain("brief_source");
-    expect(source).toContain('maxRequests: 40, windowSeconds: 3600');
-    expect(source).toContain('maxRequests: 80, windowSeconds: 3600');
+    expect(source).toContain('maxRequests: 20, windowSeconds: 600');
+    expect(source).toContain('maxRequests: 60, windowSeconds: 600');
+    expect(source).toContain('maxRequests: 180, windowSeconds: 60');
     expect(source).toContain("SOURCE_IMAGE_EDIT_PROMPT");
     expect(source).toContain("photographie professionnelle");
     expect(source).toContain("en gardant le produit identique");
@@ -142,6 +143,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("tok_logo_positioning");
     expect(source).toContain("strict_source_edit_no_generation_fallback");
     expect(source).toContain("generation_fallback_allowed: !sourceImageUrl");
+    expect(source).toContain("const imageEditRetryUsed = false");
+    expect(source).not.toContain("image_edit_retry\", {");
     expect(source).not.toContain("image_edit_fallback");
     expect(source).not.toContain("image_edit_fallback: l'edition de l'image source a echoue");
     expect(source).not.toContain("source_image_edit_required");
@@ -212,6 +215,16 @@ describe("TOK AI tools foundation", () => {
     expect(sql).toContain("ai-generated-assets");
     expect(sql).toContain("public.check_restaurant_ai_quota");
     expect(sql).toContain("public.get_restaurant_ai_usage");
+    expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
+  });
+
+  it("keeps an explicit AI schema cache refresh contract for production deploys", () => {
+    const sql = readMigrationContaining("refresh_ai_schema_cache_contracts");
+
+    expect(sql).toContain("to_regclass('public.ai_generated_assets')");
+    expect(sql).toContain("to_regprocedure('public.check_restaurant_ai_quota(uuid,text,integer)')");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS provider text");
+    expect(sql).toContain("ALTER COLUMN provider SET DEFAULT 'stripe'");
     expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
   });
 

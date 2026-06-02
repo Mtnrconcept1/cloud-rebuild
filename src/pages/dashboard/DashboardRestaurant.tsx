@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { buildCurrentCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useAuth } from "@/lib/auth-context";
 import { SUPABASE_URL } from "@/lib/env";
@@ -238,7 +239,7 @@ export default function DashboardRestaurant() {
         },
         body: JSON.stringify({
           restaurant_id: restaurant.id,
-          return_url: window.location.href,
+          return_url: buildCurrentCheckoutReturnUrl(),
         }),
       });
       const data = await response.json();

@@ -40,6 +40,7 @@ import {
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
 import { writePendingOrderCheckoutSessionId } from "@/lib/orderConfirmation";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import {
   TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
   resolveTokOneDiscountPercentageForContext,
@@ -517,7 +518,7 @@ export default function Panier() {
                 metadata: item.metadata || {},
               })),
               payment_method: paymentMethod,
-              return_url: `${window.location.origin}/chefs-table`,
+              return_url: buildCheckoutReturnUrl("/chefs-table"),
               order_metadata: {
                 checkout_kind: "chefs-table",
                 restaurant_id: restaurantId,
@@ -766,7 +767,7 @@ export default function Panier() {
                 metadata: i.metadata || {},
               })),
               payment_method: paymentMethod,
-              return_url: `${window.location.origin}/commande/confirmation`,
+              return_url: buildCheckoutReturnUrl("/commande/confirmation"),
               order_metadata: {
                 order_reference: orderReference,
                 restaurant_id: restaurantId,

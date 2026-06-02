@@ -8,7 +8,6 @@ const DEFAULT_ENV_FILES = [".env.production", ".env.production.local"];
 const REQUIRED_EDGE_SECRETS = [
   ["STRIPE_SECRET_KEY", /^sk_live_/, "Missing STRIPE_SECRET_KEY live secret for production payments."],
   ["STRIPE_WEBHOOK_SECRET", /^whsec_/, "Missing STRIPE_WEBHOOK_SECRET for production payment capture."],
-  ["FIREBASE_SERVICE_ACCOUNT", /service_account/, "Missing FIREBASE_SERVICE_ACCOUNT for production push delivery."],
   ["INTERNAL_CRON_SECRET", /^.{16,}$/, "Missing INTERNAL_CRON_SECRET with at least 16 characters."],
   ["RESEND_API_KEY", /^re_/, "Missing RESEND_API_KEY for production email delivery."],
   ["EMAIL_FROM", /@/, "Missing EMAIL_FROM for production transactional email."],
@@ -31,6 +30,7 @@ export function inspectReleaseReadiness(options = {}) {
   inspectMobileAssociations(root, env, errors, warnings);
   inspectAndroidSigning(root, env, errors);
   inspectEdgeSecrets(env, errors);
+  inspectFirebaseServiceAccount(env, errors);
 
   return {
     ok: errors.length === 0,
@@ -143,6 +143,67 @@ function inspectEdgeSecrets(env, errors) {
       errors.push(message);
     }
   }
+}
+
+function inspectFirebaseServiceAccount(env, errors) {
+  const serviceAccount = clean(env.FIREBASE_SERVICE_ACCOUNT);
+  const separateEnv = {
+    type: "service_account",
+    project_id: clean(env.FIREBASE_PROJECT_ID),
+    client_email: clean(env.FIREBASE_CLIENT_EMAIL),
+    private_key: clean(env.FIREBASE_PRIVATE_KEY).replace(/\\n/g, "\n"),
+    token_uri: clean(env.FIREBASE_TOKEN_URI) || "https://oauth2.googleapis.com/token",
+  };
+
+  if (serviceAccount) {
+    const parsed = parseFirebaseServiceAccount(serviceAccount);
+    if (parsed && isValidFirebaseServiceAccount(parsed)) return;
+    errors.push("FIREBASE_SERVICE_ACCOUNT must be valid service account JSON or base64 JSON with project_id, client_email, private_key and token_uri.");
+    return;
+  }
+
+  if (isValidFirebaseServiceAccount(separateEnv)) return;
+  errors.push("Missing valid Firebase service account config for production push delivery.");
+}
+
+function parseFirebaseServiceAccount(value) {
+  const candidates = [value, decodeBase64Json(value)].filter(Boolean);
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Try the next representation.
+    }
+  }
+
+  return null;
+}
+
+function decodeBase64Json(value) {
+  try {
+    const decoded = Buffer.from(value.replace(/\s/g, ""), "base64").toString("utf8").trim();
+    return decoded.startsWith("{") ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
+function isValidFirebaseServiceAccount(value) {
+  const projectId = clean(value?.project_id);
+  const clientEmail = clean(value?.client_email);
+  const privateKey = clean(value?.private_key).replace(/\\n/g, "\n");
+  const tokenUri = clean(value?.token_uri) || "https://oauth2.googleapis.com/token";
+
+  return (
+    projectId.length > 0
+    && clientEmail.endsWith(".gserviceaccount.com")
+    && privateKey.includes("-----BEGIN PRIVATE KEY-----")
+    && privateKey.includes("-----END PRIVATE KEY-----")
+    && /^https:\/\//.test(tokenUri)
+    && !isPlaceholder(projectId)
+    && !isPlaceholder(clientEmail)
+  );
 }
 
 function readJsonFile(filePath, errors, message) {

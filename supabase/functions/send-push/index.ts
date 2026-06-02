@@ -12,6 +12,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
 type FirebaseServiceAccount = {
+  type?: string;
   project_id: string;
   client_email: string;
   private_key: string;
@@ -30,28 +31,51 @@ function maybeDecodeBase64(raw: string) {
 function parseFirebaseServiceAccount(raw: string): FirebaseServiceAccount {
   const trimmed = raw.trim();
   const candidates = [trimmed, maybeDecodeBase64(trimmed)].filter((value): value is string => Boolean(value));
+  let formatError: HttpError | null = null;
 
   for (const candidate of candidates) {
     try {
       const parsed = JSON.parse(candidate) as Partial<FirebaseServiceAccount>;
-      if (
-        typeof parsed.project_id === "string" &&
-        typeof parsed.client_email === "string" &&
-        typeof parsed.private_key === "string" &&
-        typeof parsed.token_uri === "string"
-      ) {
-        return parsed as FirebaseServiceAccount;
-      }
-    } catch {
+      return validateFirebaseServiceAccount(parsed);
+    } catch (error) {
+      if (error instanceof HttpError) formatError = error;
       // Try the next supported representation.
     }
   }
 
+  if (formatError) throw formatError;
   throw new HttpError(500, "firebase_service_account_invalid_json");
 }
 
 function normalizePrivateKey(raw: string) {
   return raw.replace(/\\n/g, "\n").trim();
+}
+
+function validateFirebaseServiceAccount(raw: Partial<FirebaseServiceAccount>): FirebaseServiceAccount {
+  const projectId = typeof raw.project_id === "string" ? raw.project_id.trim() : "";
+  const clientEmail = typeof raw.client_email === "string" ? raw.client_email.trim() : "";
+  const privateKey = typeof raw.private_key === "string" ? normalizePrivateKey(raw.private_key) : "";
+  const tokenUri = typeof raw.token_uri === "string" && raw.token_uri.trim()
+    ? raw.token_uri.trim()
+    : "https://oauth2.googleapis.com/token";
+
+  if (
+    !projectId ||
+    !clientEmail.endsWith(".gserviceaccount.com") ||
+    !privateKey.includes("-----BEGIN PRIVATE KEY-----") ||
+    !privateKey.includes("-----END PRIVATE KEY-----") ||
+    !tokenUri.startsWith("https://")
+  ) {
+    throw new HttpError(500, "firebase_service_account_invalid_format");
+  }
+
+  return {
+    type: raw.type,
+    project_id: projectId,
+    client_email: clientEmail,
+    private_key: privateKey,
+    token_uri: tokenUri,
+  };
 }
 
 function buildFirebaseServiceAccountFromSeparateEnv(): FirebaseServiceAccount | null {
@@ -65,12 +89,13 @@ function buildFirebaseServiceAccountFromSeparateEnv(): FirebaseServiceAccount | 
     throw new HttpError(500, "firebase_service_account_missing");
   }
 
-  return {
+  return validateFirebaseServiceAccount({
+    type: "service_account",
     project_id: projectId,
     client_email: clientEmail,
-    private_key: normalizePrivateKey(privateKey),
+    private_key: privateKey,
     token_uri: tokenUri,
-  };
+  });
 }
 
 function readFirebaseServiceAccountFromEnv(): FirebaseServiceAccount {
@@ -99,8 +124,8 @@ function readFirebaseServiceAccountFromEnv(): FirebaseServiceAccount {
  */
 async function getFirebaseAccessToken(serviceAccount: FirebaseServiceAccount): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const payload = btoa(
+  const header = base64UrlEncode(new TextEncoder().encode(JSON.stringify({ alg: "RS256", typ: "JWT" })));
+  const payload = base64UrlEncode(new TextEncoder().encode(
     JSON.stringify({
       iss: serviceAccount.client_email,
       scope: "https://www.googleapis.com/auth/firebase.messaging",
@@ -108,7 +133,7 @@ async function getFirebaseAccessToken(serviceAccount: FirebaseServiceAccount): P
       iat: now,
       exp: now + 3600,
     })
-  );
+  ));
 
   // Import the private key for signing
   const pemContents = serviceAccount.private_key
@@ -128,7 +153,7 @@ async function getFirebaseAccessToken(serviceAccount: FirebaseServiceAccount): P
 
   const signatureInput = new TextEncoder().encode(`${header}.${payload}`);
   const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, signatureInput);
-  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
+  const signatureB64 = base64UrlEncode(new Uint8Array(signature));
 
   const jwt = `${header}.${payload}.${signatureB64}`;
 
@@ -145,6 +170,14 @@ async function getFirebaseAccessToken(serviceAccount: FirebaseServiceAccount): P
   }
 
   return tokenData.access_token;
+}
+
+function base64UrlEncode(bytes: Uint8Array) {
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
 }
 
 Deno.serve(async (req) => {

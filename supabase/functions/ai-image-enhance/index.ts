@@ -533,9 +533,9 @@ Deno.serve(async (req) => {
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
 
     const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
-    await rl.consume(`user:${actor.userId}`, { maxRequests: 40, windowSeconds: 3600 });
-    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 80, windowSeconds: 3600 });
-    await rl.consume("global", { maxRequests: 120, windowSeconds: 60 });
+    await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
+    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 60, windowSeconds: 600 });
+    await rl.consume("global", { maxRequests: 180, windowSeconds: 60 });
 
     const result = buildImageOnlyResult({
       restaurantName: restaurant.name || "Restaurant TOK",
@@ -549,12 +549,12 @@ Deno.serve(async (req) => {
     let generated: GeneratedImage | null = null;
     const generatedImageOptions = buildImageRequestOptions(format.size, Boolean(sourceImageUrl));
     let usedImageOptions: ImageRequestOptions | null = null;
-    let imageEditRetryUsed = false;
+    const imageEditRetryUsed = false;
     let sourceEditUsed = false;
     let tokLogoReferenceUsed = false;
     let tokLogoReferenceUrl: string | null = null;
 
-    let imageOptions = generatedImageOptions;
+    const imageOptions = generatedImageOptions;
     const finalPrompt = sourceImageUrl
       ? [SOURCE_IMAGE_EDIT_PROMPT, TOK_BRAND_LOGO_PROMPT].join(" ")
       : [
@@ -568,39 +568,11 @@ Deno.serve(async (req) => {
 
     let imageResponse: unknown;
     if (sourceImageUrl) {
-      try {
-        const editResult = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
-        imageResponse = editResult.response;
-        sourceEditUsed = true;
-        tokLogoReferenceUsed = editResult.tokLogoReferenceUsed;
-        tokLogoReferenceUrl = editResult.tokLogoReferenceUrl;
-      } catch (error) {
-        const isImageEditFailure = error instanceof HttpError && error.message.startsWith("image_edit_failed");
-        if (isImageEditFailure) {
-          const configuredEditOptions = buildConfiguredImageRequestOptions(format.size);
-          const shouldRetryConfiguredEdit =
-            configuredEditOptions.model !== imageOptions.model ||
-            configuredEditOptions.quality !== imageOptions.quality ||
-            configuredEditOptions.size !== imageOptions.size;
-
-          if (!shouldRetryConfiguredEdit) throw error;
-
-          log.warn("image_edit_retry", {
-            restaurant_id: restaurantId,
-            primary_model: imageOptions.model,
-            retry_model: configuredEditOptions.model,
-          });
-          const editResult = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, configuredEditOptions);
-          imageResponse = editResult.response;
-          imageOptions = configuredEditOptions;
-          imageEditRetryUsed = true;
-          sourceEditUsed = true;
-          tokLogoReferenceUsed = editResult.tokLogoReferenceUsed;
-          tokLogoReferenceUrl = editResult.tokLogoReferenceUrl;
-        } else {
-          throw error;
-        }
-      }
+      const editResult = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
+      imageResponse = editResult.response;
+      sourceEditUsed = true;
+      tokLogoReferenceUsed = editResult.tokLogoReferenceUsed;
+      tokLogoReferenceUrl = editResult.tokLogoReferenceUrl;
     } else {
       imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
     }

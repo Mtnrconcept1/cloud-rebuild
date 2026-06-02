@@ -246,6 +246,13 @@ Deno.serve(async (req) => {
     const incidents = incidentsResult.data || [];
     const aiTickets = aiTicketsResult.data || [];
     const securityEvents = securityResult.data || [];
+    const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const usageRows7d = usageRows.filter((row: Record<string, unknown>) => {
+      const createdAt = typeof row.created_at === "string" ? Date.parse(row.created_at) : Number.NaN;
+      return Number.isFinite(createdAt) && createdAt >= sevenDaysAgoMs;
+    });
+    const aiFailures7d = usageRows7d.filter((row: Record<string, unknown>) => row.status === "failure").length;
+    const aiFailureRatio7d = usageRows7d.length > 0 ? Number((aiFailures7d / usageRows7d.length).toFixed(4)) : 0;
     const failedAudit = auditRows.filter((row: Record<string, unknown>) => row.status === "failure");
     const escalatedTickets = aiTickets.filter((row: Record<string, unknown>) => row.status === "escalated");
     const aiCost = usageRows.reduce((sum: number, row: Record<string, unknown>) => sum + Number(row.estimated_cost_chf || 0), 0);
@@ -257,6 +264,11 @@ Deno.serve(async (req) => {
       metrics: {
         ai_calls_30d: usageRows.length,
         ai_failures_30d: usageRows.filter((row: Record<string, unknown>) => row.status === "failure").length,
+        ai_calls_7d: usageRows7d.length,
+        ai_failures_7d: aiFailures7d,
+        ai_failure_ratio_7d: aiFailureRatio7d,
+        ai_failure_ratio_alert: aiFailureRatio7d >= 0.25 && usageRows7d.length >= 10,
+        ai_cost_alert_basis: "failure_ratio_not_absolute_spend",
         estimated_ai_cost_chf: Number(aiCost.toFixed(4)),
         edge_errors_24h: failedAudit.length,
         open_support_incidents: incidents.length,
@@ -273,7 +285,8 @@ Deno.serve(async (req) => {
 
     const systemPrompt = `Tu es l'agent IA admin monitoring de TOK.
 Tu detectes les anomalies de securite, couts OpenAI, erreurs Supabase Functions, tickets critiques, abus, incidents repetes et degradation de performance.
-Tes recommandations sont en lecture seule: aucune action destructive, aucune suspension automatique, aucune fermeture de ticket et aucune modification de donnees sans validation humaine.
+Pour les couts OpenAI, privilegie le ratio echec/succes sur 7 jours plutot que la depense absolue.
+Tes recommandations sont en lecture seule: aucune action destructive, aucune suspension automatique, aucune fermeture de ticket, aucune sanction utilisateur et aucune modification de donnees sans validation humaine.
 Reponds en francais operationnel avec priorites.`;
 
     const openAIResponse = await createOpenAIResponse({
