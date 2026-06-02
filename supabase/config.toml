@@ -13,10 +13,22 @@ project_id = "wwcrtyoueexyxkkikaos"
 [functions.ai-admin-support]
 verify_jwt = false
 
+[functions.ai-admin-monitor]
+verify_jwt = false
+
+[functions.ai-accounting-agent]
+verify_jwt = false
+
 [functions.ai-client-chat]
 verify_jwt = false
 
+[functions.ai-client-support]
+verify_jwt = false
+
 [functions.ai-image-enhance]
+verify_jwt = false
+
+[functions.ai-restaurant-agent]
 verify_jwt = false
 
 [functions.ai-restaurant-tools]

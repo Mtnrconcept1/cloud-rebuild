@@ -79,6 +79,7 @@ const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport")
 const DashboardService = lazy(() => import("./pages/dashboard/DashboardService"));
 const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
+const DashboardAiAgent = lazy(() => import("./pages/dashboard/DashboardAiAgent"));
 const DashboardPack = lazy(() => import("./pages/dashboard/DashboardPack"));
 
 const CourierHome = lazy(() => import("./pages/courier/CourierHome"));
@@ -100,8 +101,10 @@ const AdminLaunchPacks = lazy(() => import("./pages/admin/AdminLaunchPacks"));
 const AdminCompta = lazy(() => import("./pages/admin/AdminCompta"));
 const AdminComptaInflow = lazy(() => import("./pages/admin/AdminComptaInflow"));
 const AdminComptaOutflow = lazy(() => import("./pages/admin/AdminComptaOutflow"));
+const AdminComptaAi = lazy(() => import("./pages/admin/AdminComptaAi"));
 const AdminOrdersReservations = lazy(() => import("./pages/admin/AdminOrdersReservations"));
 const AdminOperationsCenter = lazy(() => import("./pages/admin/AdminOperationsCenter"));
+const AdminAiOperations = lazy(() => import("./pages/admin/AdminAiOperations"));
 const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));
 
 const queryClient = new QueryClient({
@@ -168,6 +171,7 @@ function AppShell() {
   const giftPointsEnabled = hasFeature("points-cadeau");
   const dashboardOverviewEnabled = hasFeature("dashboard-overview");
   const dashboardAdvisorEnabled = hasFeature("dashboard-advisor");
+  const dashboardAiEnabled = hasFeature("ai_sales_insights");
   const dashboardRestaurantEnabled = hasFeature("dashboard-restaurant");
   const dashboardMenuEnabled = hasFeature("dashboard-menu");
   const dashboardReservationsEnabled = hasFeature("dashboard-reservations");
@@ -205,6 +209,8 @@ function AppShell() {
   const adminAuditEnabled = hasFeature("admin-audit");
   const adminPacksEnabled = hasFeature("admin-packs");
   const adminComptaEnabled = hasFeature("admin-compta");
+  const adminComptaAiEnabled = hasFeature("ai_accounting_insights");
+  const adminAiOperationsEnabled = hasFeature("ai_admin_monitoring");
   const adminActualitesEnabled = hasFeature("admin-actualites");
 
   return (
@@ -242,6 +248,7 @@ function AppShell() {
           <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><DashboardAdvisor /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/ai" element={<DashboardRoute><FeatureSwitch enabled={dashboardAiEnabled} fallback="/dashboard"><DashboardAiAgent /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/menu" element={<DashboardRoute><FeatureSwitch enabled={dashboardMenuEnabled} fallback="/dashboard"><DashboardMenu /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/reservations" element={<DashboardRoute><FeatureSwitch enabled={dashboardReservationsEnabled} fallback="/dashboard"><DashboardReservations /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCommandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
@@ -286,7 +293,9 @@ function AppShell() {
           <Route path="/admin/compta" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta/entrees" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaInflow /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta/sorties" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/compta/ia" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaAiEnabled} fallback="/admin/compta"><AdminComptaAi /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/commandes-reservations" element={<ProtectedRoute requiredRole="admin"><AdminOperationsCenter /></ProtectedRoute>} />
+          <Route path="/admin/ai-operations" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
