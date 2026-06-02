@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
-import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudio";
+import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudioV2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
