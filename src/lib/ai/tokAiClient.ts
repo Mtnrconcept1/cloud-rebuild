@@ -79,6 +79,21 @@ export type AdminMonitorRequest = {
   restaurantId?: string | null;
 };
 
+export type RestaurantAiSubscription = {
+  id: string;
+  restaurant_id: string;
+  plan: "starter" | "pro" | "premium" | "elite" | "custom";
+  status: "trialing" | "active" | "past_due" | "paused" | "cancelled";
+  monthly_conversation_limit: number;
+  monthly_text_tool_limit: number;
+  monthly_image_limit: number;
+  monthly_premium_image_limit: number;
+  monthly_voice_minutes_limit: number;
+  current_period_start: string;
+  current_period_end: string;
+  metadata?: JsonRecord | null;
+};
+
 async function getAuthorizationHeader() {
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
@@ -193,4 +208,27 @@ export async function getAiUsageForRestaurant(restaurantId: string, since?: stri
     total_tokens: number;
     estimated_cost_chf: number;
   }>;
+}
+
+export async function getAiSubscriptionForRestaurant(restaurantId: string) {
+  const { data, error } = await (supabase.from as any)("restaurant_ai_subscriptions")
+    .select(`
+      id,
+      restaurant_id,
+      plan,
+      status,
+      monthly_conversation_limit,
+      monthly_text_tool_limit,
+      monthly_image_limit,
+      monthly_premium_image_limit,
+      monthly_voice_minutes_limit,
+      current_period_start,
+      current_period_end,
+      metadata
+    `)
+    .eq("restaurant_id", restaurantId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as RestaurantAiSubscription | null;
 }

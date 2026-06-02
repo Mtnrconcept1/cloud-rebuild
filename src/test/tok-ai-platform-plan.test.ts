@@ -98,6 +98,7 @@ describe("TOK AI platform plan", () => {
       "runAdminMonitor",
       "estimateAiCost",
       "getAiUsageForRestaurant",
+      "getAiSubscriptionForRestaurant",
     ]) {
       expect(client).toContain(exportName);
     }
@@ -133,6 +134,9 @@ describe("TOK AI platform plan", () => {
       "Réponses aux avis",
       "Historique des actions IA",
       "Limites de l'abonnement IA",
+      "Plan IA",
+      "Passer au plan IA supérieur",
+      "restaurant_ai_subscriptions",
     ]) {
       expect(dashboardAi).toContain(text);
     }
@@ -152,6 +156,9 @@ describe("TOK AI platform plan", () => {
       "Coût IA par restaurant",
       "Commission TOK estimée",
       "Export synthèse",
+      "Export PDF",
+      "exportAiAccountingPdf",
+      "window.print",
     ]) {
       expect(adminComptaAi).toContain(text);
     }
