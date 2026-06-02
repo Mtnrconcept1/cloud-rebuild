@@ -39,8 +39,57 @@ const DANGEROUS_EXTENSIONS = new Set([
   "vbs",
 ]);
 
+const MIME_EXTENSION_ALIASES: Record<string, string[]> = {
+  "image/gif": ["gif"],
+  "image/jpeg": ["jpg", "jpeg", "jfif", "pjpeg", "pjp"],
+  "image/png": ["png"],
+  "image/webp": ["webp"],
+  "application/pdf": ["pdf"],
+  "video/mp4": ["mp4", "m4v"],
+  "video/quicktime": ["mov", "qt"],
+  "video/webm": ["webm"],
+};
+
+const MAX_SAFE_FILENAME_LENGTH = 180;
+
 function extensionFromName(fileName: string) {
   return fileName.includes(".") ? fileName.split(".").pop()?.trim().toLowerCase() || "" : "";
+}
+
+function extensionsFromName(fileName: string) {
+  return fileName
+    .split(".")
+    .slice(1)
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function assertFileName(file: File, label: string) {
+  if (!file.name || file.name.length > MAX_SAFE_FILENAME_LENGTH) {
+    throw new Error(`${label} refuse: nom de fichier invalide.`);
+  }
+}
+
+function assertExtensionMatchesMime(
+  file: File,
+  options: {
+    allowedMimeTypes: Record<string, string>;
+    label: string;
+  },
+) {
+  const extension = extensionFromName(file.name);
+  const extensions = extensionsFromName(file.name);
+
+  if (extensions.some((item) => DANGEROUS_EXTENSIONS.has(item))) {
+    throw new Error(`${options.label} refuse: extension dangereuse.`);
+  }
+
+  if (!extension) return;
+
+  const expectedExtensions = MIME_EXTENSION_ALIASES[file.type] || [options.allowedMimeTypes[file.type]].filter(Boolean);
+  if (expectedExtensions.length > 0 && !expectedExtensions.includes(extension)) {
+    throw new Error(`${options.label} refuse: extension incompatible avec le format annonce.`);
+  }
 }
 
 export function assertSafeFileUpload(
@@ -63,10 +112,8 @@ export function assertSafeFileUpload(
     throw new Error(`${options.label} refuse: format non autorise.`);
   }
 
-  const extension = extensionFromName(file.name);
-  if (extension && DANGEROUS_EXTENSIONS.has(extension)) {
-    throw new Error(`${options.label} refuse: extension dangereuse.`);
-  }
+  assertFileName(file, options.label);
+  assertExtensionMatchesMime(file, options);
 }
 
 export function getSafeUploadExtension(file: File, allowedMimeTypes: Record<string, string>) {

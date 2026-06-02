@@ -8,9 +8,12 @@ on:
       - master
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 24
   PNPM_VERSION: 10.28.1
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VITE_SUPABASE_URL: https://example.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+  VITE_SUPABASE_ANON_KEY: ci-public-placeholder
 
 jobs:
   validate:
@@ -33,14 +36,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Audit production dependencies
-        continue-on-error: true
-        run: pnpm audit --prod
+        run: pnpm audit --prod --audit-level high
 
-      - name: Lint release-critical paths
-        run: pnpm run lint:release
+      - name: Lint all sources
+        run: pnpm run lint
 
-      - name: Run tests
-        run: pnpm run test
+      - name: Run production-mode tests
+        run: pnpm run test:prod
 
-      - name: Build application
-        run: pnpm run build:dev
+      - name: Build production application
+        run: pnpm run build:prod
