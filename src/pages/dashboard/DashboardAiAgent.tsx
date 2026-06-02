@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Bot, Camera, FileText, LineChart, Megaphone, MessageSquareText, Sparkles } from "lucide-react";
+import { Bot, Camera, Crown, FileText, LineChart, Megaphone, MessageSquareText, Sparkles } from "lucide-react";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
-import { getAiUsageForRestaurant, runRestaurantAgent, type RestaurantAgentAction } from "@/lib/ai/tokAiClient";
+import {
+  getAiSubscriptionForRestaurant,
+  getAiUsageForRestaurant,
+  runRestaurantAgent,
+  type RestaurantAgentAction,
+  type RestaurantAiSubscription,
+} from "@/lib/ai/tokAiClient";
 
 const ACTIONS: Array<{
   value: RestaurantAgentAction;
@@ -39,6 +45,40 @@ const DEFAULT_DRAFT: DashboardAiDraft = {
   result: null,
 };
 
+const FALLBACK_AI_SUBSCRIPTION: Pick<
+  RestaurantAiSubscription,
+  "plan" | "status" | "monthly_conversation_limit" | "monthly_text_tool_limit" | "monthly_image_limit" | "monthly_premium_image_limit" | "monthly_voice_minutes_limit"
+> = {
+  plan: "starter",
+  status: "trialing",
+  monthly_conversation_limit: 50,
+  monthly_text_tool_limit: 20,
+  monthly_image_limit: 0,
+  monthly_premium_image_limit: 0,
+  monthly_voice_minutes_limit: 0,
+};
+
+const AI_PLAN_LABELS: Record<RestaurantAiSubscription["plan"], string> = {
+  starter: "Starter",
+  pro: "Pro",
+  premium: "Premium",
+  elite: "Elite",
+  custom: "Sur mesure",
+};
+
+function buildAiUpgradeMailto(restaurantName: string, plan: string) {
+  const subject = encodeURIComponent(`Upgrade plan IA TOK - ${restaurantName}`);
+  const body = encodeURIComponent([
+    `Bonjour TOK,`,
+    "",
+    `Je souhaite passer au plan IA supérieur pour ${restaurantName}.`,
+    `Plan actuel: ${plan}.`,
+    "",
+    "Merci de me proposer l'upgrade adapté.",
+  ].join("\n"));
+  return `mailto:hello@thetok.ch?subject=${subject}&body=${body}`;
+}
+
 export default function DashboardAiAgent() {
   const { selectedId, restaurants } = useDashboardRestaurant();
   const [draft, setDraft, clearDraft] = useSessionStorageState<DashboardAiDraft>(
@@ -56,6 +96,12 @@ export default function DashboardAiAgent() {
     enabled: !!selectedId,
   });
 
+  const { data: aiSubscription } = useQuery({
+    queryKey: ["restaurant_ai_subscriptions", selectedId],
+    queryFn: () => getAiSubscriptionForRestaurant(selectedId!),
+    enabled: !!selectedId,
+  });
+
   const agentMutation = useMutation({
     mutationFn: () => runRestaurantAgent({
       restaurantId: selectedId!,
@@ -68,6 +114,11 @@ export default function DashboardAiAgent() {
 
   const result = draft.result;
   const totalCost = usage.reduce((sum, row) => sum + Number(row.estimated_cost_chf || 0), 0);
+  const usageCalls = usage.reduce((sum, row) => sum + Number(row.calls || 0), 0);
+  const subscription = aiSubscription || FALLBACK_AI_SUBSCRIPTION;
+  const planLabel = AI_PLAN_LABELS[subscription.plan];
+  const conversationLimit = Number(subscription.monthly_conversation_limit || 0);
+  const usagePercent = conversationLimit > 0 ? Math.min(100, Math.round((usageCalls / conversationLimit) * 100)) : 0;
 
   return (
     <div className="space-y-6">
@@ -125,6 +176,44 @@ export default function DashboardAiAgent() {
               </Button>
             ) : null}
             {agentMutation.error ? <p className="text-sm text-destructive">{agentMutation.error.message}</p> : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Crown className="h-5 w-5 text-amber-600" />Plan IA</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="rounded-xl border bg-muted/30 p-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-semibold">{planLabel}</span>
+                <Badge variant={subscription.status === "active" ? "default" : "secondary"}>{subscription.status}</Badge>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {usageCalls} appels ce mois-ci sur {conversationLimit || "illimité"} conversations incluses.
+              </p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-background">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${usagePercent}%` }} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+              <div className="rounded-lg border p-2">Textes: {subscription.monthly_text_tool_limit}</div>
+              <div className="rounded-lg border p-2">Images: {subscription.monthly_image_limit}</div>
+              <div className="rounded-lg border p-2">Images premium: {subscription.monthly_premium_image_limit}</div>
+              <div className="rounded-lg border p-2">Voix: {subscription.monthly_voice_minutes_limit} min</div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => { window.location.href = buildAiUpgradeMailto(restaurantName, planLabel); }}
+            >
+              <Sparkles className="h-4 w-4" />
+              Passer au plan IA supérieur
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Upgrade compatible avec la facturation Stripe existante, après validation TOK.
+            </p>
           </CardContent>
         </Card>
 
