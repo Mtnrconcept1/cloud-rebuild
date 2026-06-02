@@ -85,6 +85,19 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain('storage.from(IMAGE_BUCKET).createSignedUrl');
   });
 
+  it("returns a stable public gallery URL for restaurateur photo gallery inserts", () => {
+    const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    const client = readProjectFile("src/lib/ai/tokAiClient.ts");
+    const studio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
+
+    expect(source).toContain('TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images"');
+    expect(source).toContain("storage.from(GALLERY_BUCKET).upload");
+    expect(source).toContain("gallery_image_url");
+    expect(client).toContain("gallery_image_url: string | null");
+    expect(studio).toContain("media_url: result.gallery_image_url");
+    expect(studio).not.toContain("media_url: result.generated_image_url");
+  });
+
   it("uses optimized WebP food references for the TOK photo studio style memory", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     const referencesDir = resolve(root, "public/tok-reference-food-webp");

@@ -59,6 +59,7 @@ export type TokImageGenerationResult = {
   marketing_angles: string[];
   assetId: string;
   generated_image_url: string | null;
+  gallery_image_url: string | null;
   storage_bucket: string | null;
   storage_path: string | null;
   model: string;

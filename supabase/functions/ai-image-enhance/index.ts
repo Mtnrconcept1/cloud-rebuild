@@ -31,6 +31,7 @@ type ImageEnhanceResult = {
 type GeneratedImage = {
   asset_id: string;
   generated_image_url: string;
+  gallery_image_url: string;
   storage_bucket: string;
   storage_path: string;
   model: string;
@@ -42,6 +43,7 @@ const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
 const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
 const IMAGE_QUALITY = Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim() || "high";
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
+const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
 
 const TOK_PHOTO_DNA = `
@@ -244,7 +246,17 @@ async function storeGeneratedImage(
     if (signed?.signedUrl) imageUrl = signed.signedUrl;
   }
 
-  return { id, path, imageUrl };
+  const galleryPath = `ai-gallery/${restaurantId}/${id}.png`;
+  const { error: galleryUploadError } = await actor.adminClient.storage.from(GALLERY_BUCKET).upload(galleryPath, bytes, {
+    contentType: "image/png",
+    upsert: false,
+  });
+
+  if (galleryUploadError) throw new HttpError(500, galleryUploadError.message);
+
+  const { data: galleryPublicData } = actor.adminClient.storage.from(GALLERY_BUCKET).getPublicUrl(galleryPath);
+
+  return { id, path, imageUrl, galleryPath, galleryImageUrl: galleryPublicData.publicUrl };
 }
 
 function isMissingGeneratedAssetsTable(error: { message?: string } | null | undefined) {
@@ -417,7 +429,7 @@ ${TOK_PHOTO_DNA}`;
         restaurant_id: restaurantId,
         user_id: actor.userId,
         source_image_url: sourceImageUrl || null,
-        asset_url: stored.imageUrl,
+        asset_url: stored.galleryImageUrl,
         storage_bucket: IMAGE_BUCKET,
         storage_path: stored.path,
         asset_type: assetType,
@@ -428,6 +440,10 @@ ${TOK_PHOTO_DNA}`;
         metadata: {
           image_quality: IMAGE_QUALITY,
           output_format: "png",
+          preview_image_url: stored.imageUrl,
+          gallery_image_url: stored.galleryImageUrl,
+          gallery_storage_bucket: GALLERY_BUCKET,
+          gallery_storage_path: stored.galleryPath,
           edit_instructions: result.edit_instructions,
           alt_text: result.alt_text,
           publication_caption: result.publication_caption,
@@ -446,6 +462,7 @@ ${TOK_PHOTO_DNA}`;
       generated = {
         asset_id: assetId,
         generated_image_url: stored.imageUrl,
+        gallery_image_url: stored.galleryImageUrl,
         storage_bucket: IMAGE_BUCKET,
         storage_path: stored.path,
         model: IMAGE_MODEL,
@@ -490,6 +507,7 @@ ${TOK_PHOTO_DNA}`;
         generated_image: Boolean(generated),
         image_model: IMAGE_MODEL,
         image_quality: IMAGE_QUALITY,
+        gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
         format: format.label,
       },
@@ -504,13 +522,20 @@ ${TOK_PHOTO_DNA}`;
       request: req,
       targetEntityType: "ai_generated_assets",
       targetEntityId: assetId,
-      metadata: { rid: log.rid, restaurant_id: restaurantId, image_model: IMAGE_MODEL, image_quality: IMAGE_QUALITY },
+      metadata: {
+        rid: log.rid,
+        restaurant_id: restaurantId,
+        image_model: IMAGE_MODEL,
+        image_quality: IMAGE_QUALITY,
+        gallery_bucket: GALLERY_BUCKET,
+      },
     });
 
     return jsonResponse({
       ...result,
       assetId,
       generated_image_url: generated?.generated_image_url || null,
+      gallery_image_url: generated?.gallery_image_url || null,
       storage_bucket: generated?.storage_bucket || null,
       storage_path: generated?.storage_path || null,
       model: generated?.model || selectTokAiModel("image_premium"),

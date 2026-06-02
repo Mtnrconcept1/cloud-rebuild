@@ -54,7 +54,7 @@ export default function ImageUpload({
     try {
       setUploading(true);
       if (!event.target.files || event.target.files.length === 0) {
-        throw new Error("Vous devez sélectionnér une image.");
+        throw new Error("Vous devez sélectionner une image.");
       }
 
       const { data: userData, error: userError } = await supabase.auth.getUser();
