@@ -39,7 +39,8 @@ type GeneratedImage = {
 const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
-const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-1";
+const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
+const IMAGE_QUALITY = Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim() || "high";
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const TOK_REFERENCE_FOLDER = "/Ligne graphique plats";
 
@@ -161,6 +162,9 @@ async function callOpenAIImageGeneration(prompt: string, size: string, n: number
       prompt,
       size,
       n,
+      quality: IMAGE_QUALITY,
+      output_format: "png",
+      moderation: "auto",
     }),
   });
 
@@ -180,6 +184,9 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, size:
   form.append("prompt", prompt);
   form.append("size", size);
   form.append("n", String(n));
+  form.append("quality", IMAGE_QUALITY);
+  form.append("output_format", "png");
+  form.append("moderation", "auto");
   form.append("image", sourceBlob, "source.png");
 
   const response = await fetch(IMAGE_EDITS_URL, {
@@ -397,6 +404,8 @@ ${TOK_PHOTO_DNA}`;
           title: result.title,
           status: "stored",
           metadata: {
+            image_quality: IMAGE_QUALITY,
+            output_format: "png",
             edit_instructions: result.edit_instructions,
             alt_text: result.alt_text,
             publication_caption: result.publication_caption,
@@ -466,6 +475,8 @@ ${TOK_PHOTO_DNA}`;
         has_source_image: Boolean(sourceImageUrl),
         generated_image: Boolean(generated),
         image_model: IMAGE_MODEL,
+        image_quality: IMAGE_QUALITY,
+        output_format: "png",
         format: format.label,
       },
     });
@@ -479,7 +490,7 @@ ${TOK_PHOTO_DNA}`;
       request: req,
       targetEntityType: "ai_generated_assets",
       targetEntityId: assetId,
-      metadata: { rid: log.rid, restaurant_id: restaurantId, image_model: IMAGE_MODEL },
+      metadata: { rid: log.rid, restaurant_id: restaurantId, image_model: IMAGE_MODEL, image_quality: IMAGE_QUALITY },
     });
 
     return jsonResponse({
