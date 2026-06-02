@@ -2,6 +2,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 
 const supabase = getSupabase();
 
+// Centralized TOK AI frontend client. OpenAI secrets stay server-side in Supabase Edge Functions.
 type JsonRecord = Record<string, unknown>;
 
 export type TokAiMessage = {
