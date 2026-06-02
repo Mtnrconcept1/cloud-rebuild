@@ -19,6 +19,7 @@ import { triggerNotificationDispatch } from "../_shared/notifications.ts";
 const ALLOWED_STATUSES = new Set([
   "pending",
   "confirmed",
+  "accepted",
   "preparing",
   "ready",
   "delivering",
@@ -124,7 +125,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error: orderError } = await actor.adminClient
       .from("orders")
-      .select("id, user_id, restaurant_id, status, payment_status, order_number, delivery_address, scheduled_at, estimated_delivery_at, metadata")
+      .select("id, user_id, restaurant_id, status, payment_status, order_number, delivery_address, scheduled_at, estimated_delivery_at, restaurant_viewed_at, restaurant_accepted_at, acceptance_deadline_at, restaurant_response_status, metadata")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -154,11 +155,24 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "Cette commande speciale payee ne peut plus changer de statut.");
     }
 
+    const nowIso = new Date().toISOString();
+    const acceptanceDeadlineAt = typeof order.acceptance_deadline_at === "string" ? order.acceptance_deadline_at : null;
+    const acceptance_deadline_exceeded = Boolean(
+      acceptanceDeadlineAt && Date.parse(acceptanceDeadlineAt) < Date.now() && !order.restaurant_accepted_at,
+    );
+    const shouldMarkAccepted = ["accepted", "preparing", "ready", "delivering", "delivered"].includes(nextStatus);
+    const responseStatus = shouldMarkAccepted
+      ? "accepted"
+      : (order.restaurant_response_status === "accepted" ? "accepted" : "viewed");
+
     const { error: updateError } = await actor.adminClient
       .from("orders")
       .update({
         status: nextStatus,
-        updated_at: new Date().toISOString(),
+        restaurant_viewed_at: order.restaurant_viewed_at || nowIso,
+        restaurant_accepted_at: shouldMarkAccepted ? (order.restaurant_accepted_at || nowIso) : order.restaurant_accepted_at,
+        restaurant_response_status: responseStatus,
+        updated_at: nowIso,
       } as any)
       .eq("id", order.id);
 
@@ -235,6 +249,11 @@ Deno.serve(async (req) => {
       metadata: {
         previous_status: previousStatus,
         status: nextStatus,
+        restaurant_response_status: responseStatus,
+        restaurant_viewed_at: order.restaurant_viewed_at || nowIso,
+        restaurant_accepted_at: shouldMarkAccepted ? (order.restaurant_accepted_at || nowIso) : order.restaurant_accepted_at,
+        acceptance_deadline_at: acceptanceDeadlineAt,
+        acceptance_deadline_exceeded,
         dispatch,
       },
     });
@@ -243,6 +262,11 @@ Deno.serve(async (req) => {
       order_id: order.id,
       previous_status: previousStatus,
       status: nextStatus,
+      restaurant_response_status: responseStatus,
+      restaurant_viewed_at: order.restaurant_viewed_at || nowIso,
+      restaurant_accepted_at: shouldMarkAccepted ? (order.restaurant_accepted_at || nowIso) : order.restaurant_accepted_at,
+      acceptance_deadline_at: acceptanceDeadlineAt,
+      acceptance_deadline_exceeded,
       dispatch,
     }, 200, corsHeaders);
   } catch (error) {
