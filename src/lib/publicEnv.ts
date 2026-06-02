@@ -30,7 +30,7 @@ function resolveSupabasePublishableKey(env: SupabasePublicEnv) {
 export function getMissingSupabasePublicEnvKeys(env: SupabasePublicEnv) {
   const missing: string[] = [];
   if (!sanitizeEnvValue(env.VITE_SUPABASE_URL)) missing.push("VITE_SUPABASE_URL");
-  if (!resolveSupabasePublishableKey(env)) missing.push("VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY");
+  if (!resolveSupabasePublishableKey(env)) missing.push("VITE_SUPABASE_PUBLISHABLE_KEY");
   return missing;
 }
 
