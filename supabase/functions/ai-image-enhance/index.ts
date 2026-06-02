@@ -54,8 +54,7 @@ const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
 const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
 const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 50_000, 55_000);
-const FORCE_STRICT_SOURCE_EDIT = readEnvFlag("TOK_IMAGE_FORCE_STRICT_SOURCE_EDIT", true);
-const USE_FAST_INTERACTIVE_IMAGE = FORCE_STRICT_SOURCE_EDIT ? false : readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false);
+const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", true);
 const INTERACTIVE_IMAGE_MODEL = Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")?.trim() || "gpt-image-1-mini";
 const INTERACTIVE_IMAGE_QUALITY = normalizeInteractiveImageQuality(Deno.env.get("TOK_INTERACTIVE_IMAGE_QUALITY")?.trim());
 const INTERACTIVE_IMAGE_SIZE = normalizeInteractiveImageSize(Deno.env.get("TOK_INTERACTIVE_IMAGE_SIZE")?.trim());
@@ -133,8 +132,9 @@ function buildConfiguredImageRequestOptions(formatSize: string): ImageRequestOpt
   };
 }
 
-function buildImageRequestOptions(formatSize: string): ImageRequestOptions {
-  if (!USE_FAST_INTERACTIVE_IMAGE) return buildConfiguredImageRequestOptions(formatSize);
+function buildImageRequestOptions(formatSize: string, sourceImagePresent: boolean): ImageRequestOptions {
+  const shouldUseFastInteractiveEdit = sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE;
+  if (!shouldUseFastInteractiveEdit) return buildConfiguredImageRequestOptions(formatSize);
 
   return {
     model: INTERACTIVE_IMAGE_MODEL,
@@ -547,7 +547,7 @@ Deno.serve(async (req) => {
     const briefSource = "image_only";
 
     let generated: GeneratedImage | null = null;
-    const generatedImageOptions = buildImageRequestOptions(format.size);
+    const generatedImageOptions = buildImageRequestOptions(format.size, Boolean(sourceImageUrl));
     let usedImageOptions: ImageRequestOptions | null = null;
     let imageEditRetryUsed = false;
     let sourceEditUsed = false;

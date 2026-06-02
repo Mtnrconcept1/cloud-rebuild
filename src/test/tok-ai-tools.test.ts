@@ -101,6 +101,7 @@ describe("TOK AI tools foundation", () => {
   it("keeps interactive photo generation inside Supabase Edge timeout budgets", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     const client = readProjectFile("src/lib/ai/tokAiClient.ts");
+    const studio = readProjectFile("src/components/dashboard/TokAiPhotoStudioV2.tsx");
     const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
     const workflow = readProjectFile(".github/workflows/deploy-production.yml");
 
@@ -111,6 +112,10 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("AbortController");
     expect(source).not.toContain("TOK_IMAGE_USE_AI_BRIEF");
     expect(source).toContain("TOK_IMAGE_FAST_INTERACTIVE");
+    expect(source).toContain('const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", true)');
+    expect(source).not.toContain("FORCE_STRICT_SOURCE_EDIT ? false");
+    expect(source).toContain("sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE");
+    expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl))");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_SIZE");
     expect(source).toContain("gpt-image-1-mini");
@@ -150,6 +155,8 @@ describe("TOK AI tools foundation", () => {
     expect(client).toContain('import { invokeSupabaseFunction } from "@/lib/session";');
     expect(client).not.toContain("async function getAuthorizationHeader");
     expect(client).not.toContain("supabase.functions.invoke(functionName");
+    expect(studio).toContain("image_edit_timeout");
+    expect(studio).toContain("image_generation_timeout");
     expect(source).toContain("const imageOnly = true");
     expect(source).toContain("image_generation_required");
     expect(source).toContain('briefSource = "image_only"');
