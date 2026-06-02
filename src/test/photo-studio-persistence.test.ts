@@ -58,4 +58,12 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("<WineGlassGenerationLoader />");
     expect(source).toContain("loading ? (");
   });
+
+  it("requests image-only generation and does not render generated marketing copy", () => {
+    expect(source).toContain("imageOnly: true");
+    expect(source).not.toContain("result.edit_instructions");
+    expect(source).not.toContain("result.publication_caption");
+    expect(source).not.toContain("result.marketing_angles");
+    expect(source).not.toContain("Texte propos");
+  });
 });

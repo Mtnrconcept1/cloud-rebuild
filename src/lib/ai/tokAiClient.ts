@@ -45,6 +45,7 @@ export type TokImageGenerationRequest = {
   format?: TokImageFormat;
   variantCount?: number;
   generateImage?: boolean;
+  imageOnly?: boolean;
 };
 
 export type TokImageGenerationResult = {

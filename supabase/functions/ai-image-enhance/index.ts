@@ -278,6 +278,21 @@ function buildFallbackImageResult(input: {
   };
 }
 
+function buildImageOnlyResult(input: Parameters<typeof buildFallbackImageResult>[0]): ImageEnhanceResult {
+  const fallback = buildFallbackImageResult(input);
+  return {
+    title: fallback.title,
+    enhanced_prompt: fallback.enhanced_prompt,
+    edit_instructions: "",
+    alt_text: fallback.alt_text,
+    publication_caption: "",
+    checklist: [],
+    style_tags: ["tok", "image-only", input.format],
+    safety_notes: [],
+    marketing_angles: [],
+  };
+}
+
 async function fetchImageBlob(url: string) {
   const response = await fetchWithTimeout(url, {}, SOURCE_IMAGE_TIMEOUT_MS, "source_image_timeout");
   if (!response.ok) throw new HttpError(400, "source_image_unreachable");
@@ -447,6 +462,21 @@ async function insertUsage(
   });
 }
 
+function buildGeneratedTextMetadata(result: ImageEnhanceResult, imageOnly: boolean) {
+  if (!imageOnly) {
+    return {
+      edit_instructions: result.edit_instructions,
+      alt_text: result.alt_text,
+      publication_caption: result.publication_caption,
+      checklist: result.checklist,
+      style_tags: result.style_tags,
+      safety_notes: result.safety_notes,
+      marketing_angles: result.marketing_angles,
+    };
+  }
+  return {};
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
@@ -471,6 +501,7 @@ Deno.serve(async (req) => {
     const format = normalizeFormat(body.format);
     const variantCount = clampVariantCount(body.variantCount);
     const generateImage = body.generateImage !== false;
+    const imageOnly = body.imageOnly === true;
 
     if (!restaurantId) throw new HttpError(400, "restaurant_required");
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
@@ -511,7 +542,16 @@ Deno.serve(async (req) => {
     let usage: ReturnType<typeof extractUsage> | undefined;
     let briefSource = "local";
 
-    if (generateImage && !USE_AI_IMAGE_BRIEF) {
+    if (imageOnly && generateImage) {
+      result = buildImageOnlyResult({
+        restaurantName: restaurant.name || "Restaurant TOK",
+        dishName,
+        userPrompt: prompt,
+        format: format.label,
+        sourceImagePresent: Boolean(sourceImageUrl),
+      });
+      briefSource = "image_only";
+    } else if (generateImage && !USE_AI_IMAGE_BRIEF) {
       result = buildFallbackImageResult({
         restaurantName: restaurant.name || "Restaurant TOK",
         dishName,
@@ -619,13 +659,7 @@ ${TOK_PHOTO_DNA}`;
           gallery_image_url: stored.galleryImageUrl,
           gallery_storage_bucket: GALLERY_BUCKET,
           gallery_storage_path: stored.galleryPath,
-          edit_instructions: result.edit_instructions,
-          alt_text: result.alt_text,
-          publication_caption: result.publication_caption,
-          checklist: result.checklist,
-          style_tags: result.style_tags,
-          safety_notes: result.safety_notes,
-          marketing_angles: result.marketing_angles,
+          ...buildGeneratedTextMetadata(result, imageOnly),
           original_prompt: prompt,
           dish_name: dishName,
           format: format.label,
@@ -655,13 +689,7 @@ ${TOK_PHOTO_DNA}`;
         title: result.title,
         status: "generated",
         metadata: {
-          edit_instructions: result.edit_instructions,
-          alt_text: result.alt_text,
-          publication_caption: result.publication_caption,
-          checklist: result.checklist,
-          style_tags: result.style_tags,
-          safety_notes: result.safety_notes,
-          marketing_angles: result.marketing_angles,
+          ...buildGeneratedTextMetadata(result, imageOnly),
           original_prompt: prompt,
           dish_name: dishName,
           format: format.label,
@@ -684,6 +712,7 @@ ${TOK_PHOTO_DNA}`;
         asset_type: assetType,
         has_source_image: Boolean(sourceImageUrl),
         generated_image: Boolean(generated),
+        image_only: imageOnly,
         brief_source: briefSource,
         image_timeout_ms: generated ? generatedImageOptions?.timeoutMs : IMAGE_TIMEOUT_MS,
         image_model: generated ? generatedImageOptions?.model : IMAGE_MODEL,
@@ -711,6 +740,7 @@ ${TOK_PHOTO_DNA}`;
         image_quality: generated ? generatedImageOptions?.quality : IMAGE_QUALITY,
         image_mode: generated ? generatedImageOptions?.mode : "brief_only",
         brief_source: briefSource,
+        image_only: imageOnly,
         gallery_bucket: GALLERY_BUCKET,
       },
     });
