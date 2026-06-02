@@ -46,4 +46,14 @@ describe("TOK photo studio persistence", () => {
   it("keeps dashboard photo uploads focused on files instead of manual image URLs", () => {
     expect(dashboardPhotos).toContain("showUrlInput={false}");
   });
+
+  it("shows a wine glass filling animation while a TOK photo is being generated", () => {
+    expect(source).toContain("WineGlassGenerationLoader");
+    expect(source).toContain("tokWineFill");
+    expect(source).toContain("tokWineWave");
+    expect(source).toContain("prefers-reduced-motion");
+    expect(source).toContain("Verre de vin en cours de remplissage");
+    expect(source).toContain("<WineGlassGenerationLoader />");
+    expect(source).toContain("loading ? (");
+  });
 });

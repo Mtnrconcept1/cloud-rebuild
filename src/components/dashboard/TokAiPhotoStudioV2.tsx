@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,97 @@ const DEFAULT_DRAFT: PhotoStudioDraft = {
   format: "landscape",
   result: null,
 };
+
+function WineGlassGenerationLoader() {
+  const id = useId().replace(/:/g, "");
+  const clipId = `tok-wine-glass-clip-${id}`;
+  const gradientId = `tok-wine-gradient-${id}`;
+
+  return (
+    <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 text-center">
+      <style>{`
+        @keyframes tokWineFill {
+          0%, 100% { transform: scaleY(0.12); }
+          68% { transform: scaleY(1); }
+        }
+        @keyframes tokWineWave {
+          0% { transform: translateX(-28px); }
+          100% { transform: translateX(28px); }
+        }
+        @keyframes tokWineGlow {
+          0%, 100% { opacity: 0.34; transform: scale(0.96); }
+          50% { opacity: 0.7; transform: scale(1.04); }
+        }
+        .tok-wine-fill-layer {
+          animation: tokWineFill 3.4s ease-in-out infinite;
+          transform-box: fill-box;
+          transform-origin: center bottom;
+        }
+        .tok-wine-wave {
+          animation: tokWineWave 2.2s ease-in-out infinite alternate;
+        }
+        .tok-wine-glow {
+          animation: tokWineGlow 2.6s ease-in-out infinite;
+          transform-box: fill-box;
+          transform-origin: center;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .tok-wine-fill-layer,
+          .tok-wine-wave,
+          .tok-wine-glow {
+            animation: none;
+          }
+          .tok-wine-fill-layer {
+            transform: scaleY(0.72);
+          }
+        }
+      `}</style>
+      <div className="relative">
+        <div className="tok-wine-glow absolute inset-x-4 bottom-2 h-8 rounded-full bg-red-500/20 blur-xl" />
+        <svg
+          className="relative h-36 w-32 drop-shadow-sm"
+          viewBox="0 0 160 210"
+          role="img"
+          aria-label="Verre de vin en cours de remplissage"
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#f97316" />
+              <stop offset="45%" stopColor="#dc2626" />
+              <stop offset="100%" stopColor="#7f1d1d" />
+            </linearGradient>
+            <clipPath id={clipId}>
+              <path d="M42 18h76c-3 45-9 78-22 96-8 11-18 17-28 17s-20-6-28-17C27 96 45 63 42 18Z" />
+            </clipPath>
+          </defs>
+          <g clipPath={`url(#${clipId})`}>
+            <g className="tok-wine-fill-layer">
+              <rect x="33" y="37" width="94" height="92" rx="6" fill={`url(#${gradientId})`} />
+              <path
+                className="tok-wine-wave"
+                d="M30 45c11-7 22-7 33 0s22 7 33 0 22-7 33 0v14H30Z"
+                fill="rgba(255,255,255,0.28)"
+              />
+            </g>
+          </g>
+          <path
+            d="M42 18h76c-3 45-9 78-22 96-8 11-18 17-28 17s-20-6-28-17C27 96 45 63 42 18Z"
+            fill="rgba(255,255,255,0.28)"
+            stroke="rgba(15,23,42,0.42)"
+            strokeWidth="4"
+          />
+          <path d="M80 130v45" stroke="rgba(15,23,42,0.42)" strokeWidth="6" strokeLinecap="round" />
+          <path d="M55 190h50" stroke="rgba(15,23,42,0.42)" strokeWidth="7" strokeLinecap="round" />
+          <path d="M57 28c3 41 8 66 20 83" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="5" strokeLinecap="round" />
+        </svg>
+      </div>
+      <div className="space-y-1">
+        <p className="font-semibold text-foreground">Génération en cours</p>
+        <p className="text-xs text-muted-foreground">Le visuel TOK se prépare.</p>
+      </div>
+    </div>
+  );
+}
 
 export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoCount, onGalleryUpdated }: Props) {
   const { toast } = useToast();
@@ -151,8 +242,14 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
             </div>
           </div>
           <div className="rounded-2xl border bg-background p-4 text-sm text-muted-foreground shadow-sm">
-            <p className="mb-2 font-semibold text-foreground">Rendu attendu</p>
-            <p>Fond plus chaleureux, produit mieux éclairé, textures renforcées, sauces et éléments de décor cohérents, logo TOK discret lorsque la composition le permet.</p>
+            {loading ? (
+              <WineGlassGenerationLoader />
+            ) : (
+              <>
+                <p className="mb-2 font-semibold text-foreground">Rendu attendu</p>
+                <p>Fond plus chaleureux, produit mieux éclairé, textures renforcées, sauces et éléments de décor cohérents, logo TOK discret lorsque la composition le permet.</p>
+              </>
+            )}
           </div>
         </div>
 

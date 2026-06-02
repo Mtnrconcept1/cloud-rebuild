@@ -63,6 +63,7 @@ export type TokImageGenerationResult = {
   storage_bucket: string | null;
   storage_path: string | null;
   model: string;
+  image_mode?: "interactive_fast" | "configured" | "brief_only";
   reference_folder: string;
   status: "generated" | "stored";
 };
