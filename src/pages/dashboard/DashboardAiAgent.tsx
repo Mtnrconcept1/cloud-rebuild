@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Bot, Camera, FileText, LineChart, Megaphone, MessageSquareText, Sparkles } from "lucide-react";
 
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
 import { getAiUsageForRestaurant, runRestaurantAgent, type RestaurantAgentAction } from "@/lib/ai/tokAiClient";
 
@@ -26,11 +26,27 @@ const ACTIONS: Array<{
   { value: "review_reply", label: "Réponses aux avis", icon: MessageSquareText, prompt: "Prépare des réponses aux avis difficiles en ton restaurateur." },
 ];
 
+type RestaurantAgentResult = Awaited<ReturnType<typeof runRestaurantAgent>>;
+type DashboardAiDraft = {
+  action: RestaurantAgentAction;
+  prompt: string;
+  result: RestaurantAgentResult | null;
+};
+
+const DEFAULT_DRAFT: DashboardAiDraft = {
+  action: "general",
+  prompt: ACTIONS[0].prompt,
+  result: null,
+};
+
 export default function DashboardAiAgent() {
   const { selectedId, restaurants } = useDashboardRestaurant();
-  const [action, setAction] = useState<RestaurantAgentAction>("general");
-  const selectedAction = useMemo(() => ACTIONS.find((item) => item.value === action) || ACTIONS[0], [action]);
-  const [prompt, setPrompt] = useState(selectedAction.prompt);
+  const [draft, setDraft, clearDraft] = useSessionStorageState<DashboardAiDraft>(
+    `tok-dashboard-ai-agent:${selectedId || "pending"}`,
+    DEFAULT_DRAFT,
+  );
+  const action = draft.action;
+  const prompt = draft.prompt;
 
   const restaurantName = restaurants.find((restaurant) => restaurant.id === selectedId)?.name || "Restaurant";
 
@@ -47,8 +63,10 @@ export default function DashboardAiAgent() {
       prompt,
       context: { surface: "dashboard-ai-agent" },
     }),
+    onSuccess: (data) => setDraft((previous) => ({ ...previous, result: data })),
   });
 
+  const result = draft.result;
   const totalCost = usage.reduce((sum, row) => sum + Number(row.estimated_cost_chf || 0), 0);
 
   return (
@@ -78,8 +96,11 @@ export default function DashboardAiAgent() {
                 value={action}
                 onValueChange={(value) => {
                   const nextAction = value as RestaurantAgentAction;
-                  setAction(nextAction);
-                  setPrompt(ACTIONS.find((item) => item.value === nextAction)?.prompt || "");
+                  setDraft((previous) => ({
+                    ...previous,
+                    action: nextAction,
+                    prompt: ACTIONS.find((item) => item.value === nextAction)?.prompt || "",
+                  }));
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -89,11 +110,20 @@ export default function DashboardAiAgent() {
                   ))}
                 </SelectContent>
               </Select>
-              <Textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} className="min-h-28" />
+              <Textarea
+                value={prompt}
+                onChange={(event) => setDraft((previous) => ({ ...previous, prompt: event.target.value }))}
+                className="min-h-28"
+              />
             </div>
             <Button type="button" disabled={!selectedId || !prompt.trim() || agentMutation.isPending} onClick={() => agentMutation.mutate()}>
               Générer une recommandation IA
             </Button>
+            {result ? (
+              <Button type="button" variant="ghost" onClick={clearDraft}>
+                Effacer la recommandation
+              </Button>
+            ) : null}
             {agentMutation.error ? <p className="text-sm text-destructive">{agentMutation.error.message}</p> : null}
           </CardContent>
         </Card>
@@ -116,29 +146,29 @@ export default function DashboardAiAgent() {
         </Card>
       </div>
 
-      {agentMutation.data ? (
+      {result ? (
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center gap-2">
-              <CardTitle>{agentMutation.data.title}</CardTitle>
+              <CardTitle>{result.title}</CardTitle>
               <Badge variant="secondary">Historique des actions IA</Badge>
-              <Badge variant="outline">{agentMutation.data.status}</Badge>
+              <Badge variant="outline">{result.status}</Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">{agentMutation.data.summary}</p>
-            <div className="whitespace-pre-wrap rounded-xl border bg-muted/30 p-4 text-sm leading-6">{agentMutation.data.markdown}</div>
+            <p className="text-sm text-muted-foreground">{result.summary}</p>
+            <div className="whitespace-pre-wrap rounded-xl border bg-muted/30 p-4 text-sm leading-6">{result.markdown}</div>
             <div className="grid gap-3 md:grid-cols-2">
               <div>
                 <p className="mb-2 text-sm font-semibold">Actions recommandées</p>
                 <ul className="space-y-1 text-sm text-muted-foreground">
-                  {agentMutation.data.recommended_actions.map((item) => <li key={item}>- {item}</li>)}
+                  {result.recommended_actions.map((item) => <li key={item}>- {item}</li>)}
                 </ul>
               </div>
               <div>
                 <p className="mb-2 text-sm font-semibold">Garde-fous</p>
                 <ul className="space-y-1 text-sm text-muted-foreground">
-                  {agentMutation.data.warnings.map((item) => <li key={item}>- {item}</li>)}
+                  {result.warnings.map((item) => <li key={item}>- {item}</li>)}
                 </ul>
               </div>
             </div>

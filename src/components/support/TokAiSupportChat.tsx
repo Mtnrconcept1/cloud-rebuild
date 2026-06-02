@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { askClientSupport, type TokAiMessage } from "@/lib/ai/tokAiClient";
 
 type TokAiSupportChatProps = {
@@ -15,6 +16,12 @@ type TokAiSupportChatProps = {
   compact?: boolean;
 };
 
+type SupportDraft = {
+  messages: TokAiMessage[];
+  input: string;
+  status: "open" | "waiting_restaurant" | "waiting_tok" | "resolved" | "escalated";
+};
+
 export default function TokAiSupportChat({
   orderId,
   reservationId,
@@ -22,9 +29,12 @@ export default function TokAiSupportChat({
   context,
   compact = false,
 }: TokAiSupportChatProps) {
-  const [messages, setMessages] = useState<TokAiMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [status, setStatus] = useState<"open" | "waiting_restaurant" | "waiting_tok" | "resolved" | "escalated">("open");
+  const storageScope = orderId || reservationId || restaurantId || "general";
+  const [draft, setDraft] = useSessionStorageState<SupportDraft>(
+    `tok-ai-support-chat:${storageScope}`,
+    { messages: [], input: "", status: "open" },
+  );
+  const { messages, input, status } = draft;
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,8 +49,7 @@ export default function TokAiSupportChat({
     if (!content || isSending) return;
 
     const nextMessages = [...messages, { role: "user" as const, content }];
-    setMessages(nextMessages);
-    setInput("");
+    setDraft((previous) => ({ ...previous, messages: nextMessages, input: "" }));
     setError(null);
     setIsSending(true);
 
@@ -56,8 +65,11 @@ export default function TokAiSupportChat({
         },
       });
 
-      setStatus(result.status);
-      setMessages([...nextMessages, { role: "assistant", content: result.reply }]);
+      setDraft((previous) => ({
+        ...previous,
+        status: result.status,
+        messages: [...nextMessages, { role: "assistant", content: result.reply }],
+      }));
     } catch (chatError) {
       setError(chatError instanceof Error ? chatError.message : "Agent IA indisponible.");
     } finally {
@@ -98,7 +110,7 @@ export default function TokAiSupportChat({
         <form onSubmit={submit} className="space-y-2">
           <Textarea
             value={input}
-            onChange={(event) => setInput(event.target.value)}
+            onChange={(event) => setDraft((previous) => ({ ...previous, input: event.target.value }))}
             placeholder="Décrivez le problème ou la question client..."
             className="min-h-24"
           />

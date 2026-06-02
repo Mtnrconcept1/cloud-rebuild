@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, Brain, FileDown, LineChart, Receipt, Store } from "lucide-react";
 
@@ -8,17 +7,35 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { runAccountingAgent } from "@/lib/ai/tokAiClient";
 
+type AccountingResult = Awaited<ReturnType<typeof runAccountingAgent>>;
+type AccountingDraft = {
+  month: string;
+  action: "monthly_summary" | "invoice_anomalies" | "revenue_forecast" | "margin_review";
+  result: AccountingResult | null;
+};
+
+const DEFAULT_DRAFT: AccountingDraft = {
+  month: new Date().toISOString().slice(0, 7),
+  action: "monthly_summary",
+  result: null,
+};
+
 export default function AdminComptaAi() {
-  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
-  const [action, setAction] = useState<"monthly_summary" | "invoice_anomalies" | "revenue_forecast" | "margin_review">("monthly_summary");
+  const [draft, setDraft, clearDraft] = useSessionStorageState<AccountingDraft>(
+    "tok-admin-compta-ai",
+    DEFAULT_DRAFT,
+  );
+  const { month, action } = draft;
 
   const accountingMutation = useMutation({
     mutationFn: () => runAccountingAgent({ action, month }),
+    onSuccess: (data) => setDraft((previous) => ({ ...previous, result: data })),
   });
 
-  const result = accountingMutation.data;
+  const result = draft.result;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
@@ -36,8 +53,18 @@ export default function AdminComptaAi() {
 
       <Card>
         <CardContent className="grid gap-3 p-5 md:grid-cols-[220px_280px_1fr]">
-          <Input value={month} onChange={(event) => setMonth(event.target.value)} placeholder="2026-06" />
-          <Select value={action} onValueChange={(value) => setAction(value as typeof action)}>
+          <Input
+            value={month}
+            onChange={(event) => setDraft((previous) => ({ ...previous, month: event.target.value }))}
+            placeholder="2026-06"
+          />
+          <Select
+            value={action}
+            onValueChange={(value) => setDraft((previous) => ({
+              ...previous,
+              action: value as typeof action,
+            }))}
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="monthly_summary">Résumé mensuel</SelectItem>
@@ -51,6 +78,11 @@ export default function AdminComptaAi() {
             <Badge variant="secondary">Restaurants à risque</Badge>
             <Badge variant="outline">Commission TOK estimée</Badge>
             <Badge variant="outline">Export synthèse</Badge>
+            {result ? (
+              <Button type="button" variant="ghost" size="sm" onClick={clearDraft}>
+                Effacer l'analyse
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>

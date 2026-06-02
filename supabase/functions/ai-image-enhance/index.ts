@@ -247,6 +247,30 @@ async function storeGeneratedImage(
   return { id, path, imageUrl };
 }
 
+function isMissingGeneratedAssetsTable(error: { message?: string } | null | undefined) {
+  const message = error?.message || "";
+  return message.includes("ai_generated_assets") && (
+    message.includes("schema cache") ||
+    message.includes("does not exist") ||
+    message.includes("Could not find the table")
+  );
+}
+
+async function insertGeneratedAsset(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  payload: Record<string, unknown>,
+) {
+  const { data, error } = await actor.adminClient
+    .from("ai_generated_assets")
+    .insert(payload)
+    .select("id")
+    .single();
+
+  if (!error) return typeof data?.id === "string" ? data.id : null;
+  if (isMissingGeneratedAssetsTable(error)) return null;
+  throw new HttpError(500, error.message);
+}
+
 async function insertUsage(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   payload: {
@@ -389,41 +413,36 @@ ${TOK_PHOTO_DNA}`;
       const imageBytes = await extractGeneratedImageBytes(imageResponse);
       const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
 
-      const { data: asset, error: assetError } = await actor.adminClient
-        .from("ai_generated_assets")
-        .insert({
-          restaurant_id: restaurantId,
-          user_id: actor.userId,
-          source_image_url: sourceImageUrl || null,
-          asset_url: stored.imageUrl,
-          storage_bucket: IMAGE_BUCKET,
-          storage_path: stored.path,
-          asset_type: assetType,
-          model: IMAGE_MODEL,
-          prompt: result.enhanced_prompt,
-          title: result.title,
-          status: "stored",
-          metadata: {
-            image_quality: IMAGE_QUALITY,
-            output_format: "png",
-            edit_instructions: result.edit_instructions,
-            alt_text: result.alt_text,
-            publication_caption: result.publication_caption,
-            checklist: result.checklist,
-            style_tags: result.style_tags,
-            safety_notes: result.safety_notes,
-            marketing_angles: result.marketing_angles,
-            original_prompt: prompt,
-            dish_name: dishName,
-            format: format.label,
-            reference_folder: `public${TOK_REFERENCE_FOLDER}`,
-          },
-        })
-        .select("id")
-        .single();
+      const persistedAssetId = await insertGeneratedAsset(actor, {
+        restaurant_id: restaurantId,
+        user_id: actor.userId,
+        source_image_url: sourceImageUrl || null,
+        asset_url: stored.imageUrl,
+        storage_bucket: IMAGE_BUCKET,
+        storage_path: stored.path,
+        asset_type: assetType,
+        model: IMAGE_MODEL,
+        prompt: result.enhanced_prompt,
+        title: result.title,
+        status: "stored",
+        metadata: {
+          image_quality: IMAGE_QUALITY,
+          output_format: "png",
+          edit_instructions: result.edit_instructions,
+          alt_text: result.alt_text,
+          publication_caption: result.publication_caption,
+          checklist: result.checklist,
+          style_tags: result.style_tags,
+          safety_notes: result.safety_notes,
+          marketing_angles: result.marketing_angles,
+          original_prompt: prompt,
+          dish_name: dishName,
+          format: format.label,
+          reference_folder: `public${TOK_REFERENCE_FOLDER}`,
+        },
+      });
 
-      if (assetError) throw new HttpError(500, assetError.message);
-      assetId = asset.id;
+      assetId = persistedAssetId || stored.id;
       generated = {
         asset_id: assetId,
         generated_image_url: stored.imageUrl,
@@ -432,36 +451,31 @@ ${TOK_PHOTO_DNA}`;
         model: IMAGE_MODEL,
       };
     } else {
-      const { data: asset, error: assetError } = await actor.adminClient
-        .from("ai_generated_assets")
-        .insert({
-          restaurant_id: restaurantId,
-          user_id: actor.userId,
-          source_image_url: sourceImageUrl || null,
-          asset_type: "image_brief",
-          model: selectTokAiModel("image_premium"),
-          prompt: result.enhanced_prompt,
-          title: result.title,
-          status: "generated",
-          metadata: {
-            edit_instructions: result.edit_instructions,
-            alt_text: result.alt_text,
-            publication_caption: result.publication_caption,
-            checklist: result.checklist,
-            style_tags: result.style_tags,
-            safety_notes: result.safety_notes,
-            marketing_angles: result.marketing_angles,
-            original_prompt: prompt,
-            dish_name: dishName,
-            format: format.label,
-            reference_folder: `public${TOK_REFERENCE_FOLDER}`,
-          },
-        })
-        .select("id")
-        .single();
+      const persistedAssetId = await insertGeneratedAsset(actor, {
+        restaurant_id: restaurantId,
+        user_id: actor.userId,
+        source_image_url: sourceImageUrl || null,
+        asset_type: "image_brief",
+        model: selectTokAiModel("image_premium"),
+        prompt: result.enhanced_prompt,
+        title: result.title,
+        status: "generated",
+        metadata: {
+          edit_instructions: result.edit_instructions,
+          alt_text: result.alt_text,
+          publication_caption: result.publication_caption,
+          checklist: result.checklist,
+          style_tags: result.style_tags,
+          safety_notes: result.safety_notes,
+          marketing_angles: result.marketing_angles,
+          original_prompt: prompt,
+          dish_name: dishName,
+          format: format.label,
+          reference_folder: `public${TOK_REFERENCE_FOLDER}`,
+        },
+      });
 
-      if (assetError) throw new HttpError(500, assetError.message);
-      assetId = asset.id;
+      assetId = persistedAssetId || crypto.randomUUID();
     }
 
     await insertUsage(actor, {

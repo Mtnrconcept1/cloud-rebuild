@@ -94,8 +94,48 @@ function isQuotaAllowed(value: unknown) {
   return (value as Record<string, unknown>).allowed !== false;
 }
 
+function isMissingQuotaRpc(error: { message?: string } | null | undefined) {
+  const message = error?.message || "";
+  return message.includes("check_restaurant_ai_quota") || message.includes("schema cache");
+}
+
+async function checkRestaurantQuota(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  restaurantId: string,
+) {
+  const { data, error } = await actor.adminClient.rpc("check_restaurant_ai_quota", {
+    p_restaurant_id: restaurantId,
+    p_feature: FEATURE_NAME,
+    p_units: 1,
+  });
+
+  if (!error) return data;
+  if (!isMissingQuotaRpc(error)) throw new HttpError(503, error.message);
+
+  return {
+    allowed: true,
+    feature: FEATURE_NAME,
+    degraded: true,
+    reason: "quota_rpc_unavailable",
+  };
+}
+
 function estimateCostChf(inputTokens = 0, outputTokens = 0) {
   return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
+}
+
+function getPaymentProvider(row: Record<string, unknown>) {
+  const metadata = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+    ? row.metadata as Record<string, unknown>
+    : {};
+
+  return String(
+    metadata.provider ||
+    metadata.payment_provider ||
+    metadata.payment_method ||
+    metadata.payment_method_label ||
+    "stripe",
+  );
 }
 
 async function insertUsage(
@@ -159,13 +199,7 @@ Deno.serve(async (req) => {
 
     let quota: unknown = null;
     if (restaurantId) {
-      const { data, error } = await actor.adminClient.rpc("check_restaurant_ai_quota", {
-        p_restaurant_id: restaurantId,
-        p_feature: FEATURE_NAME,
-        p_units: 1,
-      });
-      if (error) throw new HttpError(503, error.message);
-      quota = data;
+      quota = await checkRestaurantQuota(actor, restaurantId);
       if (!isQuotaAllowed(quota)) throw new HttpError(402, "ai_quota_exceeded");
     }
 
@@ -189,7 +223,7 @@ Deno.serve(async (req) => {
 
     const paymentsQuery = actor.adminClient
       .from("payment_transactions")
-      .select("id, order_id, amount, status, provider, created_at, stripe_payment_intent_id, stripe_checkout_session_id")
+      .select("id, order_id, amount, status, type, metadata, created_at, stripe_payment_intent_id, stripe_checkout_session_id")
       .gte("created_at", `${period.start}T00:00:00Z`)
       .lte("created_at", `${period.end}T23:59:59Z`)
       .order("created_at", { ascending: false })
@@ -219,6 +253,10 @@ Deno.serve(async (req) => {
     const orders = ordersResult.data || [];
     const invoices = invoicesResult.data || [];
     const aiUsage = usageResult.data || [];
+    const payments = ((paymentsResult.data || []) as Array<Record<string, unknown>>).map((payment) => ({
+      ...payment,
+      provider: getPaymentProvider(payment),
+    }));
     const grossRevenue = orders.reduce((sum: number, order: Record<string, unknown>) => sum + Number(order.total_amount || 0), 0);
     const invoiceTotal = invoices.reduce((sum: number, invoice: Record<string, unknown>) => sum + Number(invoice.amount_ttc || 0), 0);
     const aiCost = aiUsage.reduce((sum: number, row: Record<string, unknown>) => sum + Number(row.estimated_cost_chf || 0), 0);
@@ -238,7 +276,7 @@ Deno.serve(async (req) => {
       },
       invoices,
       orders_sample: orders.slice(0, 80),
-      payments_sample: paymentsResult.data || [],
+      payments_sample: payments,
       ai_usage_sample: aiUsage,
     };
 

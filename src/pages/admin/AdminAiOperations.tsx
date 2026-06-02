@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Activity, AlertTriangle, Brain, Clock, ShieldAlert, Ticket, Zap } from "lucide-react";
 
@@ -7,16 +6,33 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { runAdminMonitor } from "@/lib/ai/tokAiClient";
 
+type AdminMonitorResult = Awaited<ReturnType<typeof runAdminMonitor>>;
+type AdminAiOperationsDraft = {
+  action: "health" | "security" | "costs" | "incidents" | "full_report";
+  result: AdminMonitorResult | null;
+};
+
+const DEFAULT_DRAFT: AdminAiOperationsDraft = {
+  action: "health",
+  result: null,
+};
+
 export default function AdminAiOperations() {
-  const [action, setAction] = useState<"health" | "security" | "costs" | "incidents" | "full_report">("health");
+  const [draft, setDraft, clearDraft] = useSessionStorageState<AdminAiOperationsDraft>(
+    "tok-admin-ai-operations",
+    DEFAULT_DRAFT,
+  );
+  const action = draft.action;
 
   const monitorMutation = useMutation({
     mutationFn: () => runAdminMonitor({ action }),
+    onSuccess: (data) => setDraft((previous) => ({ ...previous, result: data })),
   });
 
-  const result = monitorMutation.data;
+  const result = draft.result;
 
   return (
     <div className="container space-y-6 py-8">
@@ -36,7 +52,13 @@ export default function AdminAiOperations() {
 
       <Card>
         <CardContent className="grid gap-3 p-5 md:grid-cols-[260px_auto_1fr]">
-          <Select value={action} onValueChange={(value) => setAction(value as typeof action)}>
+          <Select
+            value={action}
+            onValueChange={(value) => setDraft((previous) => ({
+              ...previous,
+              action: value as typeof action,
+            }))}
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="health">Santé plateforme</SelectItem>
@@ -54,6 +76,11 @@ export default function AdminAiOperations() {
             <Badge variant="secondary">Utilisateurs abusifs</Badge>
             <Badge variant="secondary">Restaurants avec incidents répétés</Badge>
             <Badge variant="outline">Actions recommandées</Badge>
+            {result ? (
+              <Button type="button" variant="ghost" size="sm" onClick={clearDraft}>
+                Effacer le rapport
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>

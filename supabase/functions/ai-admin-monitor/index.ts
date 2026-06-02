@@ -95,6 +95,32 @@ function isQuotaAllowed(value: unknown) {
   return (value as Record<string, unknown>).allowed !== false;
 }
 
+function isMissingQuotaRpc(error: { message?: string } | null | undefined) {
+  const message = error?.message || "";
+  return message.includes("check_restaurant_ai_quota") || message.includes("schema cache");
+}
+
+async function checkRestaurantQuota(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  restaurantId: string,
+) {
+  const { data, error } = await actor.adminClient.rpc("check_restaurant_ai_quota", {
+    p_restaurant_id: restaurantId,
+    p_feature: FEATURE_NAME,
+    p_units: 1,
+  });
+
+  if (!error) return data;
+  if (!isMissingQuotaRpc(error)) throw new HttpError(503, error.message);
+
+  return {
+    allowed: true,
+    feature: FEATURE_NAME,
+    degraded: true,
+    reason: "quota_rpc_unavailable",
+  };
+}
+
 function estimateCostChf(inputTokens = 0, outputTokens = 0) {
   return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
 }
@@ -166,13 +192,7 @@ Deno.serve(async (req) => {
 
     let quota: unknown = null;
     if (restaurantId) {
-      const { data, error } = await actor.adminClient.rpc("check_restaurant_ai_quota", {
-        p_restaurant_id: restaurantId,
-        p_feature: FEATURE_NAME,
-        p_units: 1,
-      });
-      if (error) throw new HttpError(503, error.message);
-      quota = data;
+      quota = await checkRestaurantQuota(actor, restaurantId);
       if (!isQuotaAllowed(quota)) throw new HttpError(402, "ai_quota_exceeded");
     }
 

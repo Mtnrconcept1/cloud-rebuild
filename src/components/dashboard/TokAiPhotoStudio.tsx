@@ -4,20 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "@/components/ImageUpload";
 import { useToast } from "@/hooks/use-toast";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
 import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
-import { Loader2, Megaphone, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
+import { CheckCircle2, Loader2, Megaphone, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 
 const supabase = getSupabase();
 
-const DEFAULT_AI_PROMPT = [
-  "Transforme cette photo en visuel marketing premium TOK.",
-  "Le plat doit rester reconnaissable et crédible, avec une présentation plus appétissante.",
-  "Style attendu : photo studio food, lumière chaude, fond propre, touches orange TOK, ingrédients frais, contraste premium, aucun texte incrusté.",
-].join(" ");
+const TOK_RETOUCH_BRIEF =
+  "Retouche TOK premium: garder le plat, améliorer la composition, la lumière, la texture et ajouter une identité TOK discrète.";
 
 type TokAiPhotoStudioProps = {
   restaurantId: string | null | undefined;
@@ -26,6 +23,26 @@ type TokAiPhotoStudioProps = {
   onGalleryUpdated: () => void;
 };
 
+type PhotoStudioDraft = {
+  sourceImageUrl: string;
+  dishName: string;
+  format: TokImageFormat;
+  result: TokImageGenerationResult | null;
+};
+
+const DEFAULT_DRAFT: PhotoStudioDraft = {
+  sourceImageUrl: "",
+  dishName: "",
+  format: "landscape",
+  result: null,
+};
+
+function formatLabel(format: TokImageFormat) {
+  if (format === "square") return "Carré / fiche plat";
+  if (format === "portrait") return "Portrait / story";
+  return "16:9 / campagne";
+}
+
 export default function TokAiPhotoStudio({
   restaurantId,
   userId,
@@ -33,42 +50,42 @@ export default function TokAiPhotoStudio({
   onGalleryUpdated,
 }: TokAiPhotoStudioProps) {
   const { toast } = useToast();
-  const [sourceImageUrl, setSourceImageUrl] = useState("");
-  const [dishName, setDishName] = useState("");
-  const [prompt, setPrompt] = useState(DEFAULT_AI_PROMPT);
-  const [format, setFormat] = useState<TokImageFormat>("landscape");
-  const [assetType, setAssetType] = useState<"menu_visual" | "campaign_visual" | "banner" | "image">("menu_visual");
+  const storageKey = `tok-ai-photo-studio:${restaurantId || "pending"}`;
+  const [draft, setDraft, clearDraft] = useSessionStorageState<PhotoStudioDraft>(storageKey, DEFAULT_DRAFT);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<TokImageGenerationResult | null>(null);
+  const result = draft.result;
+
+  const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
+    setDraft((previous) => ({ ...previous, ...nextDraft }));
+  };
 
   const generate = async () => {
     if (!restaurantId) return;
-    if (!sourceImageUrl.trim() && !prompt.trim()) {
+    if (!draft.sourceImageUrl.trim()) {
       return toast({
-        title: "Brief requis",
-        description: "Ajoutez une photo source ou un brief de génération.",
+        title: "Photo requise",
+        description: "Ajoutez une photo brute du plat avant de générer la version TOK.",
         variant: "destructive",
       });
     }
 
     setLoading(true);
-    setResult(null);
 
     try {
       const data = await generateTokDishImage({
         restaurantId,
-        sourceImageUrl: sourceImageUrl || null,
-        dishName: dishName || null,
-        prompt,
-        assetType,
-        format,
+        sourceImageUrl: draft.sourceImageUrl,
+        dishName: draft.dishName || null,
+        prompt: TOK_RETOUCH_BRIEF,
+        assetType: "menu_visual",
+        format: draft.format,
         variantCount: 1,
         generateImage: true,
       });
-      setResult(data);
+      updateDraft({ result: data });
       toast({
-        title: "Visuel TOK généré",
-        description: "Vérifiez le résultat, puis ajoutez-le à la galerie.",
+        title: "Version TOK générée",
+        description: "Le visuel reste disponible dans cet onglet, même après un rafraîchissement.",
       });
     } catch (error) {
       toast({
@@ -87,7 +104,7 @@ export default function TokAiPhotoStudio({
     const { error } = await supabase.from("restaurant_media").insert({
       restaurant_id: restaurantId,
       media_url: result.generated_image_url,
-      alt_text: result.alt_text || result.title || dishName || "Visuel plat TOK généré par IA",
+      alt_text: result.alt_text || result.title || draft.dishName || "Visuel plat TOK généré par IA",
       media_type: "photo_ai_tok",
       uploaded_by: userId || null,
       position: currentPhotoCount,
@@ -105,130 +122,119 @@ export default function TokAiPhotoStudio({
     <Card className="overflow-hidden border-orange-200/70 bg-gradient-to-br from-orange-50 via-background to-background dark:border-orange-900/50 dark:from-orange-950/20">
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge className="bg-orange-600 text-white hover:bg-orange-600">Nouveau</Badge>
+          <Badge className="bg-orange-600 text-white hover:bg-orange-600">Studio TOK</Badge>
           <CardTitle className="flex items-center gap-2">
-            <Wand2 className="h-5 w-5 text-orange-600" /> Studio IA Photo TOK
+            <Wand2 className="h-5 w-5 text-orange-600" /> Studio IA Photo
           </CardTitle>
         </div>
         <CardDescription>
-          Transformez une photo restaurateur en visuel marketing cohérent avec la charte TOK. L'outil utilise OpenAI côté serveur, garde le plat crédible, prépare une légende et stocke le visuel généré.
+          Transformez une photo brute en visuel restaurant premium, prêt pour la galerie et les campagnes TOK.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="space-y-4">
-            <ImageUpload label="Photo source du restaurateur" value={sourceImageUrl} onChange={setSourceImageUrl} />
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2 md:col-span-2">
+            <ImageUpload
+              label="Photo brute du plat"
+              value={draft.sourceImageUrl}
+              onChange={(sourceImageUrl) => updateDraft({ sourceImageUrl, result: null })}
+              showUrlInput={false}
+            />
+
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+              <div className="space-y-2">
                 <Label>Nom du plat</Label>
-                <Input value={dishName} onChange={(event) => setDishName(event.target.value)} placeholder="Ex. tacos poulet, salade chèvre miel, tempura..." />
+                <Input
+                  value={draft.dishName}
+                  onChange={(event) => updateDraft({ dishName: event.target.value })}
+                  placeholder="Ex. tacos poulet, salade chèvre miel, tempura..."
+                />
               </div>
               <div className="space-y-2">
                 <Label>Format</Label>
-                <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={format} onChange={(event) => setFormat(event.target.value as TokImageFormat)}>
+                <select
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                  value={draft.format}
+                  onChange={(event) => updateDraft({ format: event.target.value as TokImageFormat, result: null })}
+                >
                   <option value="landscape">16:9 / campagne</option>
                   <option value="square">Carré / fiche plat</option>
                   <option value="portrait">Portrait / story</option>
                 </select>
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
-              <div className="space-y-2">
-                <Label>Usage</Label>
-                <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={assetType} onChange={(event) => setAssetType(event.target.value as typeof assetType)}>
-                  <option value="menu_visual">Fiche plat</option>
-                  <option value="campaign_visual">Campagne</option>
-                  <option value="banner">Bannière</option>
-                  <option value="image">Image libre</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Objectif marketing</Label>
-                <Textarea className="min-h-28" value={prompt} onChange={(event) => setPrompt(event.target.value)} />
-              </div>
-            </div>
+
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={generate} disabled={!restaurantId || loading} className="gap-2">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Générer le visuel TOK
+                Générer la version TOK
               </Button>
               {result?.generated_image_url ? (
-                <Button type="button" variant="outline" onClick={addToGallery}>Ajouter à la galerie</Button>
+                <Button type="button" variant="outline" onClick={addToGallery}>
+                  Ajouter à la galerie
+                </Button>
+              ) : null}
+              {draft.sourceImageUrl || result ? (
+                <Button type="button" variant="ghost" onClick={clearDraft} className="gap-2">
+                  <RotateCcw className="h-4 w-4" />
+                  Nouveau
+                </Button>
               ) : null}
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="rounded-2xl border bg-background p-3 shadow-sm">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Références de style</p>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Source interne : <span className="font-medium text-foreground">public/Ligne graphique plats</span></p>
-                <p>Rendu attendu : avant/après premium, plat proche, fond sombre ou crème, orange TOK, lumière chaude, aucun texte incrusté.</p>
-              </div>
-            </div>
-            <div className="rounded-2xl border bg-background p-3 shadow-sm">
-              <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" /> Garde-fous</p>
-              <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>Ne dénature pas le produit.</li>
-                <li>N'ajoute pas de faux ingrédients essentiels.</li>
-                <li>N'ajoute pas de texte, prix ou promesse médicale.</li>
-                <li>Génération en brouillon avant publication.</li>
-              </ul>
-            </div>
+          <div className="rounded-xl border bg-background/80 p-4 text-sm text-muted-foreground">
+            <p className="font-semibold text-foreground">Rendu attendu</p>
+            <ul className="mt-3 space-y-2">
+              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Plat conservé et reconnaissable.</li>
+              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Lumière chaude, textures renforcées, contraste premium.</li>
+              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Identité TOK discrète, sans texte ni détail technique visible.</li>
+              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Format sélectionné : {formatLabel(draft.format)}.</li>
+            </ul>
           </div>
         </div>
 
         {result ? (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-wrap items-center gap-2">
-                  <CardTitle>{result.title}</CardTitle>
-                  <Badge variant="secondary">{result.status}</Badge>
-                  <Badge variant="outline">{result.model}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-3 md:grid-cols-2">
-                  {sourceImageUrl ? (
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold">Avant</p>
-                      <img src={sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" />
-                    </div>
-                  ) : null}
-                  {result.generated_image_url ? (
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold">Après TOK</p>
-                      <img src={result.generated_image_url} alt={result.alt_text || "Visuel TOK généré"} className="aspect-video w-full rounded-xl border object-cover" />
-                    </div>
-                  ) : null}
-                </div>
-                <div className="rounded-xl border bg-muted/30 p-4 text-sm leading-6">
-                  <p className="font-semibold">Brief créatif</p>
-                  <p className="mt-1 text-muted-foreground">{result.edit_instructions}</p>
-                </div>
-                <div className="rounded-xl border bg-muted/30 p-4 text-sm leading-6">
-                  <p className="font-semibold">Prompt génératif TOK</p>
-                  <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{result.enhanced_prompt}</p>
-                </div>
-              </CardContent>
-            </Card>
-            <div className="space-y-4">
-              <Card>
-                <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Megaphone className="h-4 w-4" /> Légende marketing</CardTitle></CardHeader>
-                <CardContent className="space-y-3 text-sm text-muted-foreground">
-                  <p>{result.publication_caption}</p>
-                  <p className="text-xs">Alt text : {result.alt_text}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle className="text-base">Angles de vente</CardTitle></CardHeader>
-                <CardContent><ul className="space-y-1 text-sm text-muted-foreground">{result.marketing_angles.map((item) => <li key={item}>- {item}</li>)}</ul></CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle className="text-base">Checklist qualité</CardTitle></CardHeader>
-                <CardContent><ul className="space-y-1 text-sm text-muted-foreground">{result.checklist.map((item) => <li key={item}>- {item}</li>)}</ul></CardContent>
-              </Card>
+          <div className="space-y-5 rounded-xl border bg-background p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-lg font-semibold">{result.title || "Version TOK"}</p>
+                <p className="text-sm text-muted-foreground">Aperçu avant / après et texte marketing proposé.</p>
+              </div>
+              <Badge variant="secondary">{result.status === "stored" ? "Image prête" : "Brouillon"}</Badge>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold">Avant</p>
+                <img src={draft.sourceImageUrl} alt="Photo brute du plat" className="aspect-video w-full rounded-lg border object-cover" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold">Après TOK</p>
+                {result.generated_image_url ? (
+                  <img src={result.generated_image_url} alt={result.alt_text || "Visuel TOK généré"} className="aspect-video w-full rounded-lg border object-cover" />
+                ) : (
+                  <div className="flex aspect-video items-center justify-center rounded-lg border bg-muted text-sm text-muted-foreground">
+                    Image en cours de préparation
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <Megaphone className="h-4 w-4 text-orange-600" />
+                  Texte marketing proposé
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{result.publication_caption}</p>
+              </div>
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <p className="text-sm font-semibold">Points de contrôle</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  {result.checklist.slice(0, 4).map((item) => <li key={item}>- {item}</li>)}
+                </ul>
+              </div>
             </div>
           </div>
         ) : null}

@@ -11,15 +11,50 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
+type FirebaseServiceAccount = {
+  project_id: string;
+  client_email: string;
+  private_key: string;
+  token_uri: string;
+};
+
+function maybeDecodeBase64(raw: string) {
+  try {
+    const decoded = atob(raw.replace(/\s/g, ""));
+    return decoded.trim().startsWith("{") ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
+function parseFirebaseServiceAccount(raw: string): FirebaseServiceAccount {
+  const trimmed = raw.trim();
+  const candidates = [trimmed, maybeDecodeBase64(trimmed)].filter((value): value is string => Boolean(value));
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as Partial<FirebaseServiceAccount>;
+      if (
+        typeof parsed.project_id === "string" &&
+        typeof parsed.client_email === "string" &&
+        typeof parsed.private_key === "string" &&
+        typeof parsed.token_uri === "string"
+      ) {
+        return parsed as FirebaseServiceAccount;
+      }
+    } catch {
+      // Try the next supported representation.
+    }
+  }
+
+  throw new HttpError(500, "firebase_service_account_invalid_json");
+}
+
 /**
  * Generates an OAuth2 access token from a Firebase service account JSON.
  * Uses the JWT grant type to get a short-lived token for FCM v1 API.
  */
-async function getFirebaseAccessToken(serviceAccount: {
-  client_email: string;
-  private_key: string;
-  token_uri: string;
-}): Promise<string> {
+async function getFirebaseAccessToken(serviceAccount: FirebaseServiceAccount): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const payload = btoa(
@@ -94,7 +129,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "FIREBASE_SERVICE_ACCOUNT not configured" }, 500, corsHeaders);
     }
 
-    const serviceAccount = JSON.parse(serviceAccountJson);
+    const serviceAccount = parseFirebaseServiceAccount(serviceAccountJson);
     const projectId = serviceAccount.project_id;
 
     const supabaseAdmin = createClient(

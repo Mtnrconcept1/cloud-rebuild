@@ -98,7 +98,6 @@ export default function AdminUrgentActions({
   const { data: alerts = [], isLoading, error } = useQuery({
     queryKey: ["admin-marketplace-alerts", includeResolved],
     queryFn: () => fetchAlerts(includeResolved),
-    refetchInterval: 20_000,
   });
 
   const updateAlertMutation = useMutation({

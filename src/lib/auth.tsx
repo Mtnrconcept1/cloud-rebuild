@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, ReactNode } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import { setMonitoringUser } from "@/lib/monitoring";
 import {
   canSwitchRoles,
@@ -19,6 +19,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [initialSessionReceived, setInitialSessionReceived] = useState(false);
+  const userId = user?.id ?? null;
+  const userEmail = user?.email ?? null;
 
   const resolveRolesWithFallback = useCallback(async (userId: string) => {
     const supabase = getSupabase();
@@ -75,17 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return resolveRolesWithFallback(userId);
   }, [resolveRolesWithFallback]);
 
-  const applyRoles = useCallback((fetchedRoles: UserRole[], currentUser: User) => {
-    const effectiveRoles = getEffectiveRoles(fetchedRoles, currentUser.email);
+  const applyRoles = useCallback((fetchedRoles: UserRole[], currentUserEmail?: string | null) => {
+    const effectiveRoles = getEffectiveRoles(fetchedRoles, currentUserEmail);
     setRoles(effectiveRoles);
 
     const saved = localStorage.getItem(ACTIVE_ROLE_KEY) as UserRole | null;
-    if (canSwitchRoles(effectiveRoles, currentUser.email) && saved && effectiveRoles.includes(saved)) {
+    if (canSwitchRoles(effectiveRoles, currentUserEmail) && saved && effectiveRoles.includes(saved)) {
       setActiveRole(saved);
       return;
     }
 
-    const best = getDefaultActiveRole(effectiveRoles, currentUser.email);
+    const best = getDefaultActiveRole(effectiveRoles, currentUserEmail);
     setActiveRole(best);
     localStorage.setItem(ACTIVE_ROLE_KEY, best);
   }, []);
@@ -152,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!initialSessionReceived) return;
 
-    if (!user?.id) {
+    if (!userId) {
       setRoles([]);
       setActiveRole(null);
       setLoading(false);
@@ -162,10 +164,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setLoading(true);
-    void fetchRoles(user.id)
+    void fetchRoles(userId)
       .then((fetchedRoles) => {
         if (cancelled) return;
-        applyRoles(fetchedRoles, user);
+        applyRoles(fetchedRoles, userEmail);
       })
       .finally(() => {
         if (!cancelled) {
@@ -176,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [applyRoles, fetchRoles, user, initialSessionReceived]);
+  }, [applyRoles, fetchRoles, userId, userEmail, initialSessionReceived]);
 
   const signOut = async () => {
     await getSupabase().auth.signOut();
