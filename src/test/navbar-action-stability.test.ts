@@ -16,4 +16,12 @@ describe("navbar action stability", () => {
     expect(source).toContain('aria-label="Notifications"');
     expect(source).toContain('aria-label="Compte"');
   });
+
+  it("keeps desktop dropdown actions non-modal so scroll locking does not move the sticky header", () => {
+    expect(source).toContain("<DropdownMenu modal={false} open={notificationsOpen}");
+    expect(source).toContain("<DropdownMenu modal={false} open={accountMenuOpen}");
+    expect(source).toContain("setAccountMenuOpen(false)");
+    expect(source).toContain("setNotificationsOpen(false)");
+    expect(source).toContain("data-[state=closed]:hidden");
+  });
 });
