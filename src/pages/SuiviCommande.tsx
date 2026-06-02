@@ -22,6 +22,7 @@ import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import { getOrderPaymentBreakdown } from "@/components/orders/order-payment-breakdown-utils";
 import DeliveryProofCard from "@/components/orders/DeliveryProofCard";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
+import TokAiSupportChat from "@/components/support/TokAiSupportChat";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -625,6 +626,12 @@ export default function SuiviCommande() {
             </Button>
           </div>
         </div>
+        <TokAiSupportChat
+          orderId={liveOrder.id}
+          restaurantId={liveOrder.restaurant_id}
+          context={{ page: "suivi-commande", status: liveOrder.status }}
+          compact
+        />
       </div>
     </main>
   );

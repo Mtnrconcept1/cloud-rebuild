@@ -20,6 +20,7 @@ import {
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
+import TokAiSupportChat from "@/components/support/TokAiSupportChat";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -450,6 +451,7 @@ export default function Commandes() {
             <p className="text-muted-foreground">Aucune commande pour le moment</p>
           </div>
         )}
+        <TokAiSupportChat context={{ page: "commandes" }} compact />
       </div>
     </CustomerDashboardLayout>
   );

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import TokAiSupportChat from "@/components/support/TokAiSupportChat";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import {
   Accordion,
@@ -752,6 +753,8 @@ export default function Aide() {
             </div>
           </div>
         </div>
+
+        <TokAiSupportChat context={{ page: "aide" }} compact />
       </div>
     </div>
   );

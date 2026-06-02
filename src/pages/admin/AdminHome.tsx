@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
   Bike,
+  Brain,
   ClipboardList,
   Crown,
   DollarSign,
@@ -50,6 +51,14 @@ const ADMIN_TOOLS = [
     href: "/admin/compta",
     feature: "admin-compta",
     color: "text-emerald-500",
+  },
+  {
+    title: "IA comptable",
+    description: "Synthèses, anomalies, prévisions et coût IA.",
+    icon: Brain,
+    href: "/admin/compta/ia",
+    feature: "ai_accounting_insights",
+    color: "text-violet-500",
   },
   {
     title: "Commandes et réservations",
@@ -137,6 +146,14 @@ const ADMIN_TOOLS = [
     href: "/admin/audit",
     feature: "admin-audit",
     color: "text-amber-500",
+  },
+  {
+    title: "Operations IA",
+    description: "Surveiller sécurité, coûts, performance et incidents IA.",
+    icon: Brain,
+    href: "/admin/ai-operations",
+    feature: "ai_admin_monitoring",
+    color: "text-violet-500",
   },
   {
     title: "Packs de lancement",
