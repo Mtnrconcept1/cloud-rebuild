@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import ImageUpload from "@/components/ImageUpload";
-import { Star, Trash2, Pencil, Image as ImageIcon } from "lucide-react";
+import { Star, Trash2, Pencil, Image as ImageIcon, Sparkles } from "lucide-react";
 
 const supabase = getSupabase();
 
@@ -116,15 +117,22 @@ export default function DashboardPhotos() {
         <DashboardPageHero
           badge="Media restaurant"
           title="Galerie photos"
-          description="Preparez la couverture et les visuels du restaurant pour que la page client reste claire, actuelle et convaincante."
+          description="Préparez la couverture, les photos de plats et les visuels marketing TOK du restaurant. Le Studio IA transforme une photo simple en image premium cohérente avec la ligne graphique TOK."
           icon={ImageIcon}
           tone="sky"
           visualLabel="Galerie"
           stats={[
             { label: "Photos", value: items.length, icon: ImageIcon },
             { label: "Couverture", value: items.some((item) => item.is_cover) ? "Définie" : "À choisir", icon: Star },
-            { label: "Mode", value: editingId ? "Édition" : "Ajout", icon: Pencil },
+            { label: "Studio IA", value: "TOK", icon: Sparkles },
           ]}
+        />
+
+        <TokAiPhotoStudio
+          restaurantId={selectedId}
+          userId={user?.id || null}
+          currentPhotoCount={items.length}
+          onGalleryUpdated={load}
         />
 
         <Card>
@@ -179,6 +187,11 @@ export default function DashboardPhotos() {
                     <Star className="h-3 w-3" /> Couverture
                   </div>
                 )}
+                {item.media_type === "photo_ai_tok" ? (
+                  <div className="absolute top-2 right-2 bg-orange-600 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> IA TOK
+                  </div>
+                ) : null}
               </div>
               <CardContent className="pt-3 space-y-2">
                 {item.alt_text && <p className="text-sm text-muted-foreground">{item.alt_text}</p>}
