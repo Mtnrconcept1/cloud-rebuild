@@ -19,6 +19,7 @@
     "preview": "vite preview",
     "preview:prod": "npm run build:prod && vite preview --mode production",
     "test": "vitest run",
+    "test:launch:10k": "node ./scripts/launch-10k-load-check.mjs",
     "test:prod": "vitest run --mode production",
     "test:watch": "vitest",
     "release:readiness": "node ./scripts/release-readiness.mjs",

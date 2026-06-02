@@ -274,6 +274,9 @@ export default function ReservationDialog({
       formula_applied: selectedPromo?.formulaName ?? null,
       formula_discount_percent: selectedPromo?.discountPercent ?? null,
       service: servicePeriod,
+      restaurant_confirmation_required: serviceSettings.restaurant_confirmation_required,
+      confirmation_deadline_minutes: serviceSettings.confirmation_deadline_minutes,
+      deposit_amount_chf: serviceSettings.deposit_amount_chf,
     };
 
     const offerPrefix = selectedPromo
