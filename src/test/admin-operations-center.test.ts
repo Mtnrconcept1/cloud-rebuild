@@ -29,7 +29,7 @@ describe("admin operations center", () => {
     expect(component).toContain("admin_update_marketplace_alert");
     expect(component).toContain("sourceWhitelist");
     expect(component).toContain("statusFilter");
-    expect(component).toContain("refetchInterval: 20_000");
+    expect(component).not.toContain("refetchInterval");
     expect(component).toContain("refetchOnWindowFocus: false");
     expect(component).toContain("Rechercher restaurant, client, ville, statut ou identifiant");
     expect(component).toContain("window.confirm");

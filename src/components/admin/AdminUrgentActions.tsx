@@ -98,7 +98,6 @@ export default function AdminUrgentActions({
   const { data: alerts = [], isLoading, error } = useQuery({
     queryKey: ["admin-marketplace-alerts", includeResolved],
     queryFn: () => fetchAlerts(includeResolved),
-    refetchInterval: 20_000,
     refetchOnWindowFocus: false,
   });
 
@@ -257,10 +256,10 @@ export default function AdminUrgentActions({
           </div>
         ) : (
           <div className={compact ? "grid gap-3" : "grid gap-3 xl:grid-cols-2"}>
-            {visibleAlerts.map((alert) => {
+            {visibleAlerts.map((alert, index) => {
               const note = noteByAlert[alert.alert_key] || "";
               return (
-                <div key={alert.alert_key} className={`rounded-xl border p-4 ${severityClass(alert.severity)}`}>
+                <div key={`${alert.alert_key}-${index}`} className={`rounded-xl border p-4 ${severityClass(alert.severity)}`}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
