@@ -47,6 +47,13 @@ type ImageRequestOptions = {
   mode: "interactive_fast" | "configured";
 };
 
+type OpenAIImageErrorDetails = {
+  status: number;
+  type: string;
+  code: string;
+  message: string;
+};
+
 const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
@@ -169,6 +176,14 @@ function sanitizeText(raw: unknown, max = 3000) {
   return typeof raw === "string" ? raw.trim().slice(0, max) : "";
 }
 
+function sanitizeDiagnostic(raw: unknown, max = 220) {
+  return sanitizeText(raw, max)
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
+    .trim();
+}
+
 function sanitizeUrl(raw: unknown) {
   if (typeof raw !== "string") return "";
   try {
@@ -231,6 +246,53 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function readOpenAIImageError(response: Response): Promise<OpenAIImageErrorDetails> {
+  const bodyText = await response.text().catch(() => "");
+  let parsed: Record<string, unknown> = {};
+
+  try {
+    parsed = bodyText ? JSON.parse(bodyText) as Record<string, unknown> : {};
+  } catch {
+    parsed = {};
+  }
+
+  const rawError = typeof parsed.error === "object" && parsed.error !== null
+    ? parsed.error as Record<string, unknown>
+    : parsed;
+
+  return {
+    status: response.status,
+    type: sanitizeDiagnostic(rawError.type, 120),
+    code: sanitizeDiagnostic(rawError.code, 120),
+    message: sanitizeDiagnostic(rawError.message || bodyText, 260),
+  };
+}
+
+function publicOpenAIImageError(operation: "image_generation" | "image_edit", details: OpenAIImageErrorDetails) {
+  if (details.status === 429) return new HttpError(429, "ai_rate_limited");
+  if (details.status === 402) return new HttpError(402, "ai_credits_exhausted");
+
+  const reason = details.code || details.type || details.message || "unknown";
+  const publicMessage = `${operation}_failed:${details.status}:${reason}`.slice(0, 420);
+
+  if (details.status === 400) return new HttpError(400, publicMessage);
+  if (details.status === 401 || details.status === 403) return new HttpError(502, publicMessage);
+  return new HttpError(502, publicMessage);
+}
+
+function logOpenAIImageError(operation: "image_generation" | "image_edit", details: OpenAIImageErrorDetails, options: ImageRequestOptions) {
+  console.error(`[${FUNCTION_NAME}] ${operation}_provider_error`, {
+    provider_status: details.status,
+    provider_type: details.type || null,
+    provider_code: details.code || null,
+    provider_message: details.message || null,
+    model: options.model,
+    quality: options.quality,
+    size: options.size,
+    mode: options.mode,
+  });
 }
 
 function buildFallbackImageResult(input: {
@@ -321,9 +383,9 @@ async function callOpenAIImageGeneration(prompt: string, n: number, options: Ima
   }, options.timeoutMs, "image_generation_timeout");
 
   if (!response.ok) {
-    if (response.status === 429) throw new HttpError(429, "ai_rate_limited");
-    if (response.status === 402) throw new HttpError(402, "ai_credits_exhausted");
-    throw new HttpError(502, "image_generation_failed");
+    const details = await readOpenAIImageError(response);
+    logOpenAIImageError("image_generation", details, options);
+    throw publicOpenAIImageError("image_generation", details);
   }
 
   return await response.json();
@@ -348,9 +410,9 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
   }, options.timeoutMs, "image_edit_timeout");
 
   if (!response.ok) {
-    if (response.status === 429) throw new HttpError(429, "ai_rate_limited");
-    if (response.status === 402) throw new HttpError(402, "ai_credits_exhausted");
-    throw new HttpError(502, "image_edit_failed");
+    const details = await readOpenAIImageError(response);
+    logOpenAIImageError("image_edit", details, options);
+    throw publicOpenAIImageError("image_edit", details);
   }
 
   return await response.json();
@@ -361,9 +423,7 @@ async function extractGeneratedImageBytes(imageResponse: unknown) {
   const first = Array.isArray(data) ? data[0] as Record<string, unknown> | undefined : undefined;
   if (!first) throw new HttpError(502, "image_empty_response");
 
-  if (typeof first.b64_json === "string") {
-    return bytesFromBase64(first.b64_json);
-  }
+  if (typeof first.b64_json === "string") return bytesFromBase64(first.b64_json);
 
   if (typeof first.url === "string") {
     const response = await fetchWithTimeout(first.url, {}, SOURCE_IMAGE_TIMEOUT_MS, "image_url_timeout");
@@ -609,19 +669,9 @@ ${TOK_PHOTO_DNA}`;
           : "Image finale sans texte incruste, sans watermark, sans element de marque concurrente. Produit credible et appetissant.",
       ].join("\n").slice(0, 7000);
 
-      let imageResponse: unknown;
-      if (sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)) {
-        try {
-          imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
-        } catch (error) {
-          if (error instanceof HttpError && error.message === "image_edit_failed") {
-            throw new HttpError(502, "source_image_edit_required");
-          }
-          throw error;
-        }
-      } else {
-        imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
-      }
+      const imageResponse = sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)
+        ? await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions)
+        : await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
 
       const imageBytes = await extractGeneratedImageBytes(imageResponse);
       const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
