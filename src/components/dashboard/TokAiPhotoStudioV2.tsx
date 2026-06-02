@@ -76,10 +76,18 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   };
 
   const addToGallery = async () => {
-    if (!restaurantId || !result?.generated_image_url) return;
+    if (!restaurantId) return;
+    if (!result?.gallery_image_url) {
+      toast({
+        title: "Galerie indisponible",
+        description: "Le visuel TOK n'a pas encore d'URL publique stable. Relancez la génération avant l'ajout.",
+        variant: "destructive",
+      });
+      return;
+    }
     const { error } = await supabase.from("restaurant_media").insert({
       restaurant_id: restaurantId,
-      media_url: result.generated_image_url,
+      media_url: result.gallery_image_url,
       alt_text: result.alt_text || result.title || draft.dishName || "Visuel TOK",
       media_type: "photo_ai_tok",
       uploaded_by: userId || null,
@@ -133,7 +141,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 Générer la version TOK
               </Button>
-              {result?.generated_image_url ? <Button type="button" variant="outline" onClick={addToGallery}>Ajouter à la galerie</Button> : null}
+              {result?.gallery_image_url ? <Button type="button" variant="outline" onClick={addToGallery}>Ajouter à la galerie</Button> : null}
               {draft.sourceImageUrl || result ? (
                 <Button type="button" variant="ghost" onClick={clearDraft} className="gap-2">
                   <RotateCcw className="h-4 w-4" />

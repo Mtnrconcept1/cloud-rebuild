@@ -154,6 +154,7 @@ export default function DashboardPhotos() {
                   label="Image"
                   value={form.media_url}
                   onChange={(url) => setForm((v) => ({ ...v, media_url: url }))}
+                  showUrlInput={false}
                 />
               </div>
               <div className="flex gap-2">
