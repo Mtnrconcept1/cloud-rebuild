@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type MouseEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -61,6 +61,24 @@ import {
 } from "@/components/ui/sheet";
 
 const supabase = getSupabase();
+
+function preserveNavbarActionScrollPosition(event: MouseEvent<HTMLElement>) {
+  if (event.detail === 0) return;
+
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+  const restoreScroll = () => {
+    if (Math.abs(window.scrollX - scrollX) > 1 || Math.abs(window.scrollY - scrollY) > 1) {
+      window.scrollTo(scrollX, scrollY);
+    }
+  };
+
+  window.setTimeout(restoreScroll, 0);
+  window.requestAnimationFrame(() => {
+    restoreScroll();
+    window.requestAnimationFrame(restoreScroll);
+  });
+}
 
 const FEATURES = [
   { icon: Shield, label: "Créneaux garantis", desc: "Livraison ponctuelle ou remboursée", to: "/creneaux-garantis", feature: "creneaux-garantis", color: "text-blue-500", bg: "bg-blue-500/10", hoverBg: "group-hover:bg-blue-500/20" },
@@ -320,14 +338,21 @@ export default function Navbar() {
               </Button>
             ) : null}
 
-            <Button variant="ghost" size="icon" onClick={handleThemeToggle} className="text-muted-foreground hover:text-foreground">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Mode sombre"
+              onMouseDown={preserveNavbarActionScrollPosition}
+              onClick={handleThemeToggle}
+              className="text-muted-foreground hover:text-foreground"
+            >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Mode sombre</span>
             </Button>
 
             {showCartShortcut ? (
-              <Button variant="ghost" size="icon" asChild className="relative">
+              <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className="relative">
                 <Link to="/panier">
                   <ShoppingCart className="h-5 w-5" />
                   <span className="sr-only">Panier</span>
@@ -343,7 +368,13 @@ export default function Navbar() {
             {user ? (
               <DropdownMenu open={notificationsOpen} onOpenChange={handleNotificationsOpenChange}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Notifications"
+                    onMouseDown={preserveNavbarActionScrollPosition}
+                    className="relative"
+                  >
                     <Bell className="h-5 w-5" />
                     <span className="sr-only">Notifications</span>
                     {unreadCount > 0 && !notificationsOpen ? (
@@ -398,7 +429,13 @@ export default function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Compte"
+                    onMouseDown={preserveNavbarActionScrollPosition}
+                    className="rounded-full"
+                  >
                     <User className="h-5 w-5" />
                     <span className="sr-only">Compte</span>
                   </Button>
