@@ -64,8 +64,11 @@ const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS"
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
+const TOK_BRAND_LOGO_URL = sanitizeConfiguredUrl(Deno.env.get("TOK_BRAND_LOGO_URL")?.trim(), "https://www.thetok.ch/logo.png");
 const SOURCE_IMAGE_EDIT_PROMPT =
   "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image.";
+const TOK_BRAND_LOGO_PROMPT =
+  "Ajoute le logo TOK officiel fourni en image de référence comme un petit marquage discret, idéalement en haut à gauche. Si cette zone masque le produit ou déséquilibre la composition, place-le dans le coin libre le plus naturel. Le logo doit rester lisible, propre, sans être recréé approximativement et sans couvrir les aliments.";
 
 const TOK_PHOTO_DNA = `
 Charte graphique TOK pour retouche premium fidele:
@@ -80,6 +83,7 @@ Charte graphique TOK pour retouche premium fidele:
 - composition: conserver une composition proche de la scene source; ameliorer seulement le cadrage lorsque cela ne change pas l'identite;
 - lumiere chaude directionnelle, contraste maitrise, blancs propres, textures visibles, reflets propres et naturels;
 - style avant/apres: meme photo, meme sujet, mais plus premium, plus nette, mieux eclairee et plus vendable;
+- ajouter uniquement le logo TOK officiel quand il est fourni en reference, en haut a gauche ou dans un coin libre selon la disposition du produit;
 - ne pas ajouter de texte, prix, faux logo tiers, fausse certification, visage, main, emballage concurrent ou claim medical;
 - controle qualite final: au premier regard, l'utilisateur doit reconnaitre le sujet source exact.
 Dossier de references visuelles du projet: public${TOK_REFERENCE_FOLDER}.
@@ -161,6 +165,17 @@ function sanitizeUrl(raw: unknown) {
     return parsed.toString().slice(0, 1500);
   } catch {
     return "";
+  }
+}
+
+function sanitizeConfiguredUrl(raw: unknown, fallback = "") {
+  if (typeof raw !== "string" || !raw.trim()) return fallback;
+  try {
+    const parsed = new URL(raw.trim());
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return fallback;
+    return parsed.toString();
+  } catch {
+    return fallback;
   }
 }
 
@@ -305,6 +320,26 @@ async function fetchImageBlob(url: string) {
   return new Blob([bytes], { type: contentType });
 }
 
+async function fetchOptionalTokLogoBlob() {
+  if (!TOK_BRAND_LOGO_URL) return null;
+
+  try {
+    const response = await fetchWithTimeout(TOK_BRAND_LOGO_URL, {}, SOURCE_IMAGE_TIMEOUT_MS, "tok_logo_timeout");
+    if (!response.ok) throw new Error(`tok_logo_unreachable:${response.status}`);
+    const contentType = response.headers.get("content-type") || guessMimeFromUrl(TOK_BRAND_LOGO_URL);
+    if (!contentType.startsWith("image/")) throw new Error("tok_logo_invalid_type");
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.byteLength > 6 * 1024 * 1024) throw new Error("tok_logo_too_large");
+    return new Blob([bytes], { type: contentType });
+  } catch (error) {
+    console.warn(`[${FUNCTION_NAME}] tok_logo_reference_unavailable`, {
+      url: TOK_BRAND_LOGO_URL,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
 async function callOpenAIImageGeneration(prompt: string, n: number, options: ImageRequestOptions) {
   const response = await fetchWithTimeout(IMAGE_GENERATIONS_URL, {
     method: "POST",
@@ -334,6 +369,7 @@ async function callOpenAIImageGeneration(prompt: string, n: number, options: Ima
 
 async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: number, options: ImageRequestOptions) {
   const sourceBlob = await fetchImageBlob(sourceImageUrl);
+  const logoBlob = await fetchOptionalTokLogoBlob();
   const form = new FormData();
   form.append("model", options.model);
   form.append("prompt", prompt);
@@ -342,7 +378,8 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
   form.append("quality", options.quality);
   form.append("output_format", "png");
   form.append("moderation", "auto");
-  form.append("image", sourceBlob, "source.png");
+  form.append("image[]", sourceBlob, "source.png");
+  if (logoBlob) form.append("image[]", logoBlob, "tok-logo.png");
 
   const response = await fetchWithTimeout(IMAGE_EDITS_URL, {
     method: "POST",
@@ -356,7 +393,11 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
     throw publicOpenAIImageError("image_edit", details);
   }
 
-  return await response.json();
+  return {
+    response: await response.json(),
+    tokLogoReferenceUsed: Boolean(logoBlob),
+    tokLogoReferenceUrl: logoBlob ? TOK_BRAND_LOGO_URL : null,
+  };
 }
 
 async function extractGeneratedImageBytes(imageResponse: unknown) {
@@ -510,23 +551,29 @@ Deno.serve(async (req) => {
     let usedImageOptions: ImageRequestOptions | null = null;
     let imageEditRetryUsed = false;
     let sourceEditUsed = false;
+    let tokLogoReferenceUsed = false;
+    let tokLogoReferenceUrl: string | null = null;
 
     let imageOptions = generatedImageOptions;
     const finalPrompt = sourceImageUrl
-      ? SOURCE_IMAGE_EDIT_PROMPT
+      ? [SOURCE_IMAGE_EDIT_PROMPT, TOK_BRAND_LOGO_PROMPT].join(" ")
       : [
         result.enhanced_prompt,
         "",
         "Contraintes finales non négociables:",
         TOK_PHOTO_DNA,
-        "Image finale sans texte incrusté, sans watermark, sans élément de marque concurrente. Produit crédible et appétissant.",
+        TOK_BRAND_LOGO_PROMPT,
+        "Image finale sans texte incrusté hors logo TOK officiel, sans watermark tiers, sans élément de marque concurrente. Produit crédible et appétissant.",
       ].join("\n").slice(0, 7000);
 
     let imageResponse: unknown;
     if (sourceImageUrl) {
       try {
-        imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
+        const editResult = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
+        imageResponse = editResult.response;
         sourceEditUsed = true;
+        tokLogoReferenceUsed = editResult.tokLogoReferenceUsed;
+        tokLogoReferenceUrl = editResult.tokLogoReferenceUrl;
       } catch (error) {
         const isImageEditFailure = error instanceof HttpError && error.message.startsWith("image_edit_failed");
         if (isImageEditFailure) {
@@ -543,10 +590,13 @@ Deno.serve(async (req) => {
             primary_model: imageOptions.model,
             retry_model: configuredEditOptions.model,
           });
-          imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, configuredEditOptions);
+          const editResult = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, configuredEditOptions);
+          imageResponse = editResult.response;
           imageOptions = configuredEditOptions;
           imageEditRetryUsed = true;
           sourceEditUsed = true;
+          tokLogoReferenceUsed = editResult.tokLogoReferenceUsed;
+          tokLogoReferenceUrl = editResult.tokLogoReferenceUrl;
         } else {
           throw error;
         }
@@ -579,6 +629,9 @@ Deno.serve(async (req) => {
         image_mode: imageOptions.mode,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
+        tok_logo_reference_used: tokLogoReferenceUsed,
+        tok_logo_reference_url: tokLogoReferenceUrl,
+        tok_logo_positioning: "top_left_or_free_corner",
         generation_fallback_allowed: !sourceImageUrl,
         output_format: "png",
         brief_source: briefSource,
@@ -623,6 +676,9 @@ Deno.serve(async (req) => {
         image_mode: usedImageOptions?.mode,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
+        tok_logo_reference_used: tokLogoReferenceUsed,
+        tok_logo_reference_url: tokLogoReferenceUrl,
+        tok_logo_positioning: "top_left_or_free_corner",
         generation_fallback_allowed: !sourceImageUrl,
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
@@ -649,6 +705,8 @@ Deno.serve(async (req) => {
         image_only: imageOnly,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
+        tok_logo_reference_used: tokLogoReferenceUsed,
+        tok_logo_reference_url: tokLogoReferenceUrl,
         gallery_bucket: GALLERY_BUCKET,
       },
     });
@@ -662,6 +720,7 @@ Deno.serve(async (req) => {
       storage_path: generated?.storage_path || null,
       model: generated?.model || IMAGE_MODEL,
       image_mode: usedImageOptions?.mode,
+      tok_logo_reference_used: tokLogoReferenceUsed,
       reference_folder: `public${TOK_REFERENCE_FOLDER}`,
       status: "stored",
     }, 200, cors);
