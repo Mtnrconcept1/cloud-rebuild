@@ -20,6 +20,8 @@
  *   - capacitor://localhost, ionic://localhost         (iOS WKWebView)
  *   - http://localhost, https://localhost              (Android WebView + web dev)
  *   - http://localhost:<port>                          (Vite dev server)
+ *   - https://cloud-rebuild-recovered.vercel.app       (current production frontend target)
+ *   - owned Vercel preview deployments for cloud-rebuild-recovered
  */
 
 const DEFAULT_ALLOWED_ORIGINS = [
@@ -29,6 +31,7 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://tok.ch",
   "https://www.tok.ch",
   "https://app.tok.ch",
+  "https://cloud-rebuild-recovered.vercel.app",
   "capacitor://localhost",
   "ionic://localhost",
   "http://localhost",
@@ -36,6 +39,8 @@ const DEFAULT_ALLOWED_ORIGINS = [
 ];
 
 const LOCALHOST_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+const TOK_VERCEL_PREVIEW_REGEX =
+  /^https:\/\/cloud-rebuild-recovered-[a-z0-9-]+-mtnrconcepts-projects\.vercel\.app$/;
 
 const ALLOWED_HEADERS = [
   "authorization",
@@ -86,6 +91,7 @@ function isOriginAllowed(origin: string | null, allowed: string[]): boolean {
   if (allowed.includes(origin)) return true;
   // Allow any localhost port for dev (Vite picks random ports).
   if (LOCALHOST_REGEX.test(origin)) return true;
+  if (TOK_VERCEL_PREVIEW_REGEX.test(origin)) return true;
   return false;
 }
 

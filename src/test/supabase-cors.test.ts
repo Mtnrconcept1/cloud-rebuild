@@ -67,4 +67,35 @@ describe("supabase edge function cors", () => {
     expect(preflight?.status).toBe(204);
     expect(preflight?.headers.get("Access-Control-Allow-Origin")).toBe("https://www.thetok.ch");
   });
+
+  it("allows owned Vercel preview deployments for the current project", async () => {
+    const { buildCorsHeaders, handleCorsPreflight } = await loadCorsModule({});
+
+    const req = new Request("https://example.supabase.co/functions/v1/test", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://cloud-rebuild-recovered-qvfp8r7yn-mtnrconcepts-projects.vercel.app",
+      },
+    });
+
+    const corsHeaders = buildCorsHeaders(req);
+    const preflight = handleCorsPreflight(req, corsHeaders);
+
+    expect(corsHeaders["Access-Control-Allow-Origin"])
+      .toBe("https://cloud-rebuild-recovered-qvfp8r7yn-mtnrconcepts-projects.vercel.app");
+    expect(preflight?.status).toBe(204);
+  });
+
+  it("does not allow unrelated Vercel apps", async () => {
+    const { buildCorsHeaders } = await loadCorsModule({});
+
+    const req = new Request("https://example.supabase.co/functions/v1/test", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://unrelated-app-qvfp8r7yn-mtnrconcepts-projects.vercel.app",
+      },
+    });
+
+    expect(buildCorsHeaders(req)["Access-Control-Allow-Origin"]).toBeUndefined();
+  });
 });
