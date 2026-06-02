@@ -98,6 +98,34 @@ describe("TOK AI tools foundation", () => {
     expect(studio).not.toContain("media_url: result.generated_image_url");
   });
 
+  it("keeps interactive photo generation inside Supabase Edge timeout budgets", () => {
+    const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
+    const workflow = readProjectFile(".github/workflows/deploy-production.yml");
+
+    expect(source).toContain("normalizeImageQuality");
+    expect(source).toContain("TOK_ALLOW_HIGH_IMAGE_QUALITY");
+    expect(source).not.toContain('OPENAI_IMAGE_QUALITY")?.trim() || "high"');
+    expect(source).toContain("OPENAI_IMAGE_TIMEOUT_MS");
+    expect(source).toContain("AbortController");
+    expect(source).toContain("TOK_IMAGE_USE_AI_BRIEF");
+    expect(source).toContain("buildFallbackImageResult");
+    expect(source).toContain("brief_source");
+
+    for (const name of [
+      "OPENAI_IMAGE_MODEL",
+      "OPENAI_IMAGE_QUALITY",
+      "OPENAI_IMAGE_TIMEOUT_MS",
+      "TOK_IMAGE_USE_AI_BRIEF",
+      "TOK_ALLOW_HIGH_IMAGE_QUALITY",
+      "TOK_AI_IMAGE_BUCKET",
+      "TOK_GALLERY_IMAGE_BUCKET",
+    ]) {
+      expect(secrets).toContain(`"${name}"`);
+      expect(workflow).toContain(`${name}: \${{ secrets.${name} }}`);
+    }
+  });
+
   it("uses optimized WebP food references for the TOK photo studio style memory", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
     const referencesDir = resolve(root, "public/tok-reference-food-webp");
