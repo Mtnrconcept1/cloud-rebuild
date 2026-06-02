@@ -78,6 +78,35 @@ describe("TOK AI tools foundation", () => {
     }
   });
 
+  it("keeps generated image storage on the governed private bucket by default", () => {
+    const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+
+    expect(source).toContain('TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets"');
+    expect(source).toContain('storage.from(IMAGE_BUCKET).createSignedUrl');
+  });
+
+  it("adds an idempotent recovery migration for applied-but-missing AI schema", () => {
+    const sql = readMigrationContaining("restore_tok_ai_schema");
+
+    for (const table of [
+      "ai_conversations",
+      "ai_usage_logs",
+      "ai_generated_assets",
+      "restaurant_ai_profiles",
+      "ai_support_tickets",
+      "ai_restaurant_tasks",
+      "ai_admin_events",
+      "ai_accounting_insights",
+    ]) {
+      expect(sql).toMatch(new RegExp(`CREATE\\s+TABLE\\s+IF\\s+NOT\\s+EXISTS\\s+public\\.${table}`, "i"));
+    }
+
+    expect(sql).toContain("ai-generated-assets");
+    expect(sql).toContain("public.check_restaurant_ai_quota");
+    expect(sql).toContain("public.get_restaurant_ai_usage");
+    expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
+  });
+
   it("routes the public support chat through the Supabase client AI function with user auth", () => {
     const supportChat = readProjectFile("src/components/SupportChat.tsx");
 

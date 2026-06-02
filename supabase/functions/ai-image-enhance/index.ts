@@ -40,7 +40,7 @@ const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
 const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-1";
-const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "images";
+const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const TOK_REFERENCE_FOLDER = "/Ligne graphique plats";
 
 const TOK_PHOTO_DNA = `
