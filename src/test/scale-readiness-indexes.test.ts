@@ -21,7 +21,13 @@ describe("scale readiness database indexes", () => {
     expect(migration).toContain("idx_payment_transactions_order_status_type");
     expect(migration).toContain("idx_payment_transactions_stripe_session_status_type");
     expect(migration).toContain("idx_payment_transactions_stripe_payment_intent");
-    expect(migration).toContain("ux_payment_transactions_succeeded_charge_session_kind");
+    expect(migration).toContain("idx_payment_transactions_succeeded_charge_session_kind");
+    expect(migration).not.toContain("ux_payment_transactions_succeeded_charge_session_kind");
+    expect(migration).toContain("ux_payment_transactions_succeeded_order_charge_session");
+    expect(migration).toContain("ON public.payment_transactions (order_id, stripe_checkout_session_id)");
+    expect(migration).toContain("ux_payment_transactions_succeeded_reservation_charge_session");
+    expect(migration).toContain("(metadata->>'reservation_id')");
+    expect(migration).toContain("order_id IS NULL");
     expect(migration).toContain("status = 'succeeded'");
     expect(migration).toContain("type = 'charge'");
   });

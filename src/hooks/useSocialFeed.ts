@@ -25,6 +25,12 @@ import {
   type SocialReactionCounts,
   type SocialReactionType,
 } from "@/lib/socialFeed";
+import {
+  MAX_SOCIAL_MEDIA_UPLOAD_BYTES,
+  SOCIAL_MEDIA_MIME_EXTENSIONS,
+  assertSafeFileUpload,
+  getSafeUploadExtension,
+} from "@/lib/uploadSecurity";
 
 const supabase = getSupabase();
 const SOCIAL_FEED_BUCKET = "social-post-media";
@@ -352,7 +358,12 @@ async function assertRestaurantAccess(restaurantId: string, userId: string) {
 async function uploadPostMedia(restaurantId: string, postId: string, files: File[]) {
   for (let index = 0; index < files.length; index += 1) {
     const file = files[index];
-    const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
+    assertSafeFileUpload(file, {
+      allowedMimeTypes: SOCIAL_MEDIA_MIME_EXTENSIONS,
+      maxBytes: MAX_SOCIAL_MEDIA_UPLOAD_BYTES,
+      label: "Media social",
+    });
+    const extension = getSafeUploadExtension(file, SOCIAL_MEDIA_MIME_EXTENSIONS);
     const path = `${restaurantId}/${postId}/${index}-${crypto.randomUUID()}.${extension}`;
     const { error: uploadError } = await supabase.storage.from(SOCIAL_FEED_BUCKET).upload(path, file, {
       cacheControl: "31536000",

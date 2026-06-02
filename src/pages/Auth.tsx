@@ -27,6 +27,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { LOGO_URL } from "@/lib/constants";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
+import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
+import { isCaptchaEnabled } from "@/lib/captcha";
 
 const supabase = getSupabase();
 
@@ -164,6 +166,7 @@ export default function Auth() {
   const [forgotPassword, setForgotPassword] = useState(false);
   const [showRolePicker, setShowRolePicker] = useState(false);
   const [documents, setDocuments] = useState<Partial<Record<SignupDocumentType, File | null>>>({});
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
@@ -208,10 +211,15 @@ export default function Auth() {
       toast({ title: "Entrez votre email", variant: "destructive" });
       return;
     }
+    if (isCaptchaEnabled() && !captchaToken) {
+      toast({ title: "Validation requise", description: "Validez le contrÃ´le anti-abus avant de continuer.", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(signupForm.email, {
       redirectTo: `${window.location.origin}/auth`,
+      captchaToken: captchaToken || undefined,
     });
 
     if (error) {
@@ -243,9 +251,16 @@ export default function Auth() {
 
     try {
       if (isLogin) {
+        if (isCaptchaEnabled() && !captchaToken) {
+          throw new Error("Validation anti-abus requise.");
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
           email: signupForm.email,
           password: signupForm.password,
+          options: {
+            captchaToken: captchaToken || undefined,
+          },
         });
 
         if (error) {
@@ -258,6 +273,9 @@ export default function Auth() {
       const validationError = getSignupValidationError(roleMode, signupForm);
       if (validationError) {
         throw new Error(validationError);
+      }
+      if (isCaptchaEnabled() && !captchaToken) {
+        throw new Error("Validation anti-abus requise.");
       }
 
       const missingDocuments = getMissingSignupDocuments(requiredDocuments, documents);
@@ -274,6 +292,7 @@ export default function Auth() {
             role: roleMode,
           },
           emailRedirectTo: window.location.origin,
+          captchaToken: captchaToken || undefined,
         },
       });
 
@@ -288,6 +307,9 @@ export default function Auth() {
         const signInAttempt = await supabase.auth.signInWithPassword({
           email: signupForm.email,
           password: signupForm.password,
+          options: {
+            captchaToken: captchaToken || undefined,
+          },
         });
 
         if (!signInAttempt.error) {
@@ -471,6 +493,7 @@ export default function Auth() {
                   required
                 />
               </div>
+              <TurnstileCaptcha action="auth_reset_password" onTokenChange={setCaptchaToken} />
               <Button className="w-full" onClick={handleResetPassword} disabled={loading}>
                 {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
               </Button>
@@ -752,6 +775,7 @@ export default function Auth() {
                 </div>
               ) : null}
 
+              <TurnstileCaptcha action={isLogin ? "auth_login" : `auth_signup_${roleMode}`} onTokenChange={setCaptchaToken} />
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>

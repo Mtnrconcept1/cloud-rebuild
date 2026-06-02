@@ -6,15 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { normalizePublicImageUrl } from "@/lib/securityUrls";
+import {
+  IMAGE_MIME_EXTENSIONS,
+  MAX_IMAGE_UPLOAD_BYTES,
+  assertSafeFileUpload,
+  getSafeUploadExtension,
+} from "@/lib/uploadSecurity";
 
 const supabase = getSupabase();
-
-const IMAGE_EXTENSIONS: Record<string, string> = {
-  "image/gif": "gif",
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
 
 interface ImageUploadProps {
   value: string;
@@ -26,10 +25,12 @@ interface ImageUploadProps {
 }
 
 function createImagePath(userId: string, file: File) {
-  const ext = IMAGE_EXTENSIONS[file.type];
-  if (!ext) {
-    throw new Error("Format image non autorise. Utilisez PNG, JPG, WebP ou GIF.");
-  }
+  assertSafeFileUpload(file, {
+    allowedMimeTypes: IMAGE_MIME_EXTENSIONS,
+    maxBytes: MAX_IMAGE_UPLOAD_BYTES,
+    label: "Image",
+  });
+  const ext = getSafeUploadExtension(file, IMAGE_MIME_EXTENSIONS);
 
   const id = typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
