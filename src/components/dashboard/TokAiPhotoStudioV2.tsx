@@ -53,6 +53,10 @@ function formatPhotoGenerationError(error: unknown) {
     return "Impossible de retoucher fidèlement cette photo. Essayez avec une image plus nette ou moins lourde.";
   }
 
+  if (message.includes("image_edit_timeout") || message.includes("image_generation_timeout")) {
+    return "La retouche a pris trop de temps. Essayez avec une photo plus légère ou relancez la génération.";
+  }
+
   return message || "Génération impossible";
 }
 
