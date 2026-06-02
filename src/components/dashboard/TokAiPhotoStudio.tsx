@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
 import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
-import { CheckCircle2, Loader2, Megaphone, RotateCcw, Sparkles, Wand2 } from "lucide-react";
+import { CheckCircle2, Loader2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 
 const supabase = getSupabase();
 
@@ -86,6 +86,7 @@ export default function TokAiPhotoStudio({
         format: draft.format,
         variantCount: 1,
         generateImage: true,
+        imageOnly: true,
       });
       updateDraft({ result: data });
       toast({
@@ -205,7 +206,7 @@ export default function TokAiPhotoStudio({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-lg font-semibold">{result.title || "Version TOK"}</p>
-                <p className="text-sm text-muted-foreground">Aperçu avant / après et texte marketing proposé.</p>
+                <p className="text-sm text-muted-foreground">Aperçu avant / après.</p>
               </div>
               <Badge variant="secondary">{result.status === "stored" ? "Image prête" : "Brouillon"}</Badge>
             </div>
@@ -224,22 +225,6 @@ export default function TokAiPhotoStudio({
                     Image en cours de préparation
                   </div>
                 )}
-              </div>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <p className="flex items-center gap-2 text-sm font-semibold">
-                  <Megaphone className="h-4 w-4 text-orange-600" />
-                  Texte marketing proposé
-                </p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{result.publication_caption}</p>
-              </div>
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <p className="text-sm font-semibold">Points de contrôle</p>
-                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  {["Même sujet que la source", "Packaging/contenant préservé", ...result.checklist].slice(0, 5).map((item) => <li key={item}>- {item}</li>)}
-                </ul>
               </div>
             </div>
           </div>

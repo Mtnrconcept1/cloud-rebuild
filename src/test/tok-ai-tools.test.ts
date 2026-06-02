@@ -100,6 +100,7 @@ describe("TOK AI tools foundation", () => {
 
   it("keeps interactive photo generation inside Supabase Edge timeout budgets", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    const client = readProjectFile("src/lib/ai/tokAiClient.ts");
     const secrets = readProjectFile("scripts/write-supabase-secrets-env.mjs");
     const workflow = readProjectFile(".github/workflows/deploy-production.yml");
 
@@ -120,6 +121,11 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)");
     expect(source).toContain("buildFallbackImageResult");
     expect(source).toContain("brief_source");
+    expect(client).toContain("imageOnly?: boolean");
+    expect(source).toContain("const imageOnly = body.imageOnly === true");
+    expect(source).toContain("if (imageOnly && generateImage)");
+    expect(source).toContain('briefSource = "image_only"');
+    expect(source).toContain("!imageOnly");
 
     for (const name of [
       "OPENAI_IMAGE_MODEL",

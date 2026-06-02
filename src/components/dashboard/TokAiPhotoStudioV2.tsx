@@ -162,6 +162,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         format: draft.format,
         variantCount: 1,
         generateImage: true,
+        imageOnly: true,
       });
       updateDraft({ result: data });
       toast({ title: "Visuel TOK prêt", description: "Contrôlez que le produit source est toujours reconnaissable avant publication." });
@@ -265,25 +266,15 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         </div>
 
         {result ? (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <Card>
-              <CardHeader><CardTitle>{result.title || "Version TOK prête"}</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={draft.sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
-                  {result.generated_image_url ? <div><p className="mb-2 text-sm font-semibold">Après TOK</p><img src={result.generated_image_url} alt={result.alt_text || "Visuel TOK"} className="aspect-video w-full rounded-xl border object-cover" /></div> : null}
-                </div>
-                <p className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">{result.edit_instructions}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader><CardTitle className="text-base">Texte proposé</CardTitle></CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <p>{result.publication_caption}</p>
-                {result.marketing_angles.length ? <ul className="space-y-1">{["Même sujet que la source", "Packaging/contenant préservé", ...result.marketing_angles].map((item) => <li key={item}>- {item}</li>)}</ul> : null}
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardHeader><CardTitle>Version TOK prête</CardTitle></CardHeader>
+            <CardContent>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={draft.sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
+                {result.generated_image_url ? <div><p className="mb-2 text-sm font-semibold">Après TOK</p><img src={result.generated_image_url} alt={result.alt_text || "Visuel TOK"} className="aspect-video w-full rounded-xl border object-cover" /></div> : null}
+              </div>
+            </CardContent>
+          </Card>
         ) : null}
       </CardContent>
     </Card>
