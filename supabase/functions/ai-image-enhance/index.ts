@@ -41,7 +41,10 @@ const FUNCTION_NAME = "ai-image-enhance";
 const IMAGE_GENERATIONS_URL = "https://api.openai.com/v1/images/generations";
 const IMAGE_EDITS_URL = "https://api.openai.com/v1/images/edits";
 const IMAGE_MODEL = Deno.env.get("OPENAI_IMAGE_MODEL")?.trim() || "gpt-image-2";
-const IMAGE_QUALITY = Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim() || "high";
+const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")?.trim());
+const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 50_000, 55_000);
+const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS", 12_000, 30_000);
+const USE_AI_IMAGE_BRIEF = readEnvFlag("TOK_IMAGE_USE_AI_BRIEF", false);
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
@@ -89,6 +92,25 @@ const OUTPUT_SCHEMA = {
 
 function maybeUuid(raw: unknown) {
   return typeof raw === "string" && /^[0-9a-f-]{36}$/i.test(raw) ? raw : null;
+}
+
+function readEnvFlag(name: string, fallback: boolean) {
+  const value = Deno.env.get(name)?.trim().toLowerCase();
+  if (!value) return fallback;
+  return ["1", "true", "yes", "on"].includes(value);
+}
+
+function readPositiveIntEnv(name: string, fallback: number, max: number) {
+  const value = Number(Deno.env.get(name)?.trim());
+  if (!Number.isFinite(value) || value <= 0) return fallback;
+  return Math.min(Math.floor(value), max);
+}
+
+function normalizeImageQuality(raw: string | undefined) {
+  const value = raw?.toLowerCase();
+  if (value === "high" && readEnvFlag("TOK_ALLOW_HIGH_IMAGE_QUALITY", false)) return "high";
+  if (value === "low" || value === "medium") return value;
+  return "medium";
 }
 
 function sanitizeText(raw: unknown, max = 3000) {
@@ -142,8 +164,69 @@ function bytesFromBase64(base64: string) {
   return bytes;
 }
 
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number, timeoutMessage: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (isAbortError(error)) throw new HttpError(503, timeoutMessage);
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function buildFallbackImageResult(input: {
+  restaurantName: string;
+  dishName: string;
+  userPrompt: string;
+  format: string;
+  sourceImagePresent: boolean;
+}): ImageEnhanceResult {
+  const dishLabel = input.dishName || "plat du restaurant";
+  const title = input.dishName ? `Visuel TOK - ${input.dishName}` : "Visuel TOK pret";
+  const enhancedPrompt = [
+    `Retouche publicitaire TOK premium pour ${dishLabel}.`,
+    input.userPrompt,
+    `Restaurant: ${input.restaurantName}. Format demande: ${input.format}.`,
+    input.sourceImagePresent
+      ? "Conserver le plat source, sa structure, ses ingredients principaux et une portion plausible."
+      : "Creer un visuel food plausible et appetissant a partir du brief restaurateur.",
+    "Ameliorer le cadrage, la lumiere chaude, les textures, la profondeur et l'identite TOK discrete.",
+    "Ne pas ajouter de texte incruste, de prix, de logo concurrent, de visage ou de claim medical.",
+  ].filter(Boolean).join("\n").slice(0, 3000);
+
+  return {
+    title,
+    enhanced_prompt: enhancedPrompt,
+    edit_instructions: "Version TOK premium: cadrage plus fort, lumiere chaude, textures renforcees et ambiance food plus appetissante.",
+    alt_text: `Visuel TOK premium pour ${dishLabel}`,
+    publication_caption: input.dishName
+      ? `${input.dishName} en version TOK: plus gourmand, plus net, pret pour votre galerie.`
+      : "Nouveau visuel TOK pret pour votre galerie restaurant.",
+    checklist: [
+      "Plat principal conserve",
+      "Lumiere plus chaude",
+      "Textures plus gourmandes",
+      "Identite TOK discrete",
+    ],
+    style_tags: ["tok", "food-premium", "studio-photo", input.format],
+    safety_notes: ["Pas de texte incruste", "Pas de promesse nutritionnelle", "Pas de marque concurrente"],
+    marketing_angles: [
+      "Apercu plus appetissant pour la galerie",
+      "Image utilisable en campagne TOK",
+      "Rendu coherent avec une page restaurant premium",
+    ],
+  };
+}
+
 async function fetchImageBlob(url: string) {
-  const response = await fetch(url);
+  const response = await fetchWithTimeout(url, {}, SOURCE_IMAGE_TIMEOUT_MS, "source_image_timeout");
   if (!response.ok) throw new HttpError(400, "source_image_unreachable");
   const contentType = response.headers.get("content-type") || guessMimeFromUrl(url);
   if (!contentType.startsWith("image/")) throw new HttpError(400, "source_image_invalid_type");
@@ -153,7 +236,7 @@ async function fetchImageBlob(url: string) {
 }
 
 async function callOpenAIImageGeneration(prompt: string, size: string, n: number) {
-  const response = await fetch(IMAGE_GENERATIONS_URL, {
+  const response = await fetchWithTimeout(IMAGE_GENERATIONS_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${OPENAI_API_KEY}`,
@@ -168,7 +251,7 @@ async function callOpenAIImageGeneration(prompt: string, size: string, n: number
       output_format: "png",
       moderation: "auto",
     }),
-  });
+  }, IMAGE_TIMEOUT_MS, "image_generation_timeout");
 
   if (!response.ok) {
     if (response.status === 429) throw new HttpError(429, "ai_rate_limited");
@@ -191,11 +274,11 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, size:
   form.append("moderation", "auto");
   form.append("image", sourceBlob, "source.png");
 
-  const response = await fetch(IMAGE_EDITS_URL, {
+  const response = await fetchWithTimeout(IMAGE_EDITS_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
     body: form,
-  });
+  }, IMAGE_TIMEOUT_MS, "image_edit_timeout");
 
   if (!response.ok) {
     if (response.status === 429) throw new HttpError(429, "ai_rate_limited");
@@ -216,7 +299,7 @@ async function extractGeneratedImageBytes(imageResponse: unknown) {
   }
 
   if (typeof first.url === "string") {
-    const response = await fetch(first.url);
+    const response = await fetchWithTimeout(first.url, {}, SOURCE_IMAGE_TIMEOUT_MS, "image_url_timeout");
     if (!response.ok) throw new HttpError(502, "image_url_unreachable");
     return new Uint8Array(await response.arrayBuffer());
   }
@@ -349,12 +432,6 @@ Deno.serve(async (req) => {
       .eq("restaurant_id", restaurantId)
       .maybeSingle();
 
-    const systemPrompt = `Tu es le directeur artistique food premium de TOK.
-Tu transformes des photos de restaurateurs en briefs et prompts exploitables pour generer des visuels marketing coherents.
-Tu utilises la charte graphique TOK et le dossier de references ${TOK_REFERENCE_FOLDER} comme memoire de style.
-Tu ne dois jamais deformer le plat, inventer une portion mensongere, ajouter un logo concurrent, ajouter du texte illisible ou promettre un effet nutritionnel.
-${TOK_PHOTO_DNA}`;
-
     const creativeContext = {
       restaurant: {
         id: restaurant.id,
@@ -372,29 +449,50 @@ ${TOK_PHOTO_DNA}`;
       tok_style_dna: TOK_PHOTO_DNA,
     };
 
-    const userContent = sourceImageUrl
-      ? [
-        { type: "input_text", text: JSON.stringify(creativeContext) },
-        { type: "input_image", image_url: sourceImageUrl },
-      ]
-      : JSON.stringify(creativeContext);
+    let result: ImageEnhanceResult;
+    let usage: ReturnType<typeof extractUsage> | undefined;
+    let briefSource = "local";
 
-    const openAIResponse = await createOpenAIResponse({
-      model: selectTokAiModel("image_premium"),
-      input: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContent },
-      ],
-      maxOutputTokens: 1400,
-      jsonSchema: {
-        name: "tok_image_enhancement_brief",
-        description: "TOK branded restaurant image generation brief.",
-        schema: OUTPUT_SCHEMA,
-      },
-    });
+    if (generateImage && !USE_AI_IMAGE_BRIEF) {
+      result = buildFallbackImageResult({
+        restaurantName: restaurant.name || "Restaurant TOK",
+        dishName,
+        userPrompt: prompt,
+        format: format.label,
+        sourceImagePresent: Boolean(sourceImageUrl),
+      });
+    } else {
+      const systemPrompt = `Tu es le directeur artistique food premium de TOK.
+Tu transformes des photos de restaurateurs en briefs et prompts exploitables pour generer des visuels marketing coherents.
+Tu utilises la charte graphique TOK et le dossier de references ${TOK_REFERENCE_FOLDER} comme memoire de style.
+Tu ne dois jamais deformer le plat, inventer une portion mensongere, ajouter un logo concurrent, ajouter du texte illisible ou promettre un effet nutritionnel.
+${TOK_PHOTO_DNA}`;
 
-    const result = parseStructuredOutput<ImageEnhanceResult>(openAIResponse);
-    const usage = extractUsage(openAIResponse);
+      const userContent = sourceImageUrl
+        ? [
+          { type: "input_text", text: JSON.stringify(creativeContext) },
+          { type: "input_image", image_url: sourceImageUrl },
+        ]
+        : JSON.stringify(creativeContext);
+
+      const openAIResponse = await createOpenAIResponse({
+        model: selectTokAiModel("image_premium"),
+        input: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userContent },
+        ],
+        maxOutputTokens: 1400,
+        jsonSchema: {
+          name: "tok_image_enhancement_brief",
+          description: "TOK branded restaurant image generation brief.",
+          schema: OUTPUT_SCHEMA,
+        },
+      });
+
+      result = parseStructuredOutput<ImageEnhanceResult>(openAIResponse);
+      usage = extractUsage(openAIResponse);
+      briefSource = "openai";
+    }
 
     let generated: GeneratedImage | null = null;
 
@@ -440,6 +538,7 @@ ${TOK_PHOTO_DNA}`;
         metadata: {
           image_quality: IMAGE_QUALITY,
           output_format: "png",
+          brief_source: briefSource,
           preview_image_url: stored.imageUrl,
           gallery_image_url: stored.galleryImageUrl,
           gallery_storage_bucket: GALLERY_BUCKET,
@@ -458,9 +557,10 @@ ${TOK_PHOTO_DNA}`;
         },
       });
 
-      assetId = persistedAssetId || stored.id;
+      const generatedAssetId = persistedAssetId || stored.id;
+      assetId = generatedAssetId;
       generated = {
-        asset_id: assetId,
+        asset_id: generatedAssetId,
         generated_image_url: stored.imageUrl,
         gallery_image_url: stored.galleryImageUrl,
         storage_bucket: IMAGE_BUCKET,
@@ -505,6 +605,8 @@ ${TOK_PHOTO_DNA}`;
         asset_type: assetType,
         has_source_image: Boolean(sourceImageUrl),
         generated_image: Boolean(generated),
+        brief_source: briefSource,
+        image_timeout_ms: IMAGE_TIMEOUT_MS,
         image_model: IMAGE_MODEL,
         image_quality: IMAGE_QUALITY,
         gallery_bucket: GALLERY_BUCKET,
@@ -527,6 +629,7 @@ ${TOK_PHOTO_DNA}`;
         restaurant_id: restaurantId,
         image_model: IMAGE_MODEL,
         image_quality: IMAGE_QUALITY,
+        brief_source: briefSource,
         gallery_bucket: GALLERY_BUCKET,
       },
     });
