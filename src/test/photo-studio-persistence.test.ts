@@ -61,13 +61,14 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("showUrlInput={false}");
   });
 
-  it("shows a wine glass filling animation while a TOK photo is being generated", () => {
-    expect(source).toContain("WineGlassGenerationLoader");
-    expect(source).toContain("tokWineFill");
-    expect(source).toContain("tokWineWave");
+  it("shows a TOK logo loading animation while a TOK photo is being generated", () => {
+    expect(source).toContain("TokLogoGenerationLoader");
+    expect(source).toContain("tokLogoPulse");
+    expect(source).toContain("tokLogoGlow");
+    expect(source).toContain("tokOrbit");
     expect(source).toContain("prefers-reduced-motion");
-    expect(source).toContain("Verre de vin en cours de remplissage");
-    expect(source).toContain("<WineGlassGenerationLoader />");
+    expect(source).toContain("Logo TOK");
+    expect(source).toContain("<TokLogoGenerationLoader />");
     expect(source).toContain("loading ? (");
   });
 
