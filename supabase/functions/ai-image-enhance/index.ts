@@ -56,7 +56,6 @@ const IMAGE_QUALITY = normalizeImageQuality(Deno.env.get("OPENAI_IMAGE_QUALITY")
 const IMAGE_TIMEOUT_MS = readPositiveIntEnv("OPENAI_IMAGE_TIMEOUT_MS", 50_000, 55_000);
 const FORCE_STRICT_SOURCE_EDIT = readEnvFlag("TOK_IMAGE_FORCE_STRICT_SOURCE_EDIT", true);
 const USE_FAST_INTERACTIVE_IMAGE = FORCE_STRICT_SOURCE_EDIT ? false : readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false);
-const USE_SOURCE_IMAGE_EDIT = readEnvFlag("TOK_IMAGE_USE_SOURCE_EDIT", true);
 const INTERACTIVE_IMAGE_MODEL = Deno.env.get("TOK_INTERACTIVE_IMAGE_MODEL")?.trim() || "gpt-image-1-mini";
 const INTERACTIVE_IMAGE_QUALITY = normalizeInteractiveImageQuality(Deno.env.get("TOK_INTERACTIVE_IMAGE_QUALITY")?.trim());
 const INTERACTIVE_IMAGE_SIZE = normalizeInteractiveImageSize(Deno.env.get("TOK_INTERACTIVE_IMAGE_SIZE")?.trim());
@@ -65,6 +64,8 @@ const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS"
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
+const SOURCE_IMAGE_EDIT_PROMPT =
+  "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image.";
 
 const TOK_PHOTO_DNA = `
 Charte graphique TOK pour retouche premium fidele:
@@ -272,15 +273,14 @@ function buildImageOnlyResult(input: {
 }): ImageEnhanceResult {
   const dishLabel = input.dishName || "produit ou plat du restaurant";
   const title = input.dishName ? `Visuel TOK - ${input.dishName}` : "Visuel TOK";
-  const enhancedPrompt = [
-    `Retouche photo TOK premium fidele pour ${dishLabel}.`,
-    input.userPrompt,
-    `Restaurant: ${input.restaurantName}. Format demande: ${input.format}.`,
-    input.sourceImagePresent
-      ? "Retoucher strictement le meme sujet source. Conserver textes, logos, etiquettes, produit, plat, contenant, packaging, forme, couleurs et composition generale. Ne pas transformer le sujet en un autre aliment ou objet."
-      : "Creer un visuel food plausible et appetissant a partir du brief restaurateur.",
-    "Ameliorer uniquement lumiere, cadrage, nettete, contraste, reflets et rendu premium.",
-  ].filter(Boolean).join("\n").slice(0, 3000);
+  const enhancedPrompt = input.sourceImagePresent
+    ? SOURCE_IMAGE_EDIT_PROMPT
+    : [
+      `Créer une photographie professionnelle appétissante pour ${dishLabel}.`,
+      input.userPrompt,
+      `Restaurant: ${input.restaurantName}. Format demandé: ${input.format}.`,
+      "Image finale sans texte incrusté, sans watermark, sans élément de marque concurrente.",
+    ].filter(Boolean).join("\n").slice(0, 3000);
 
   return {
     title,
@@ -478,7 +478,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     restaurantId = maybeUuid(body.restaurantId);
-    const prompt = sanitizeText(body.prompt || body.objective || "Retoucher fidelement ce produit ou plat dans la charte graphique TOK.");
+    const prompt = sanitizeText(body.prompt || body.objective || SOURCE_IMAGE_EDIT_PROMPT);
     const dishName = sanitizeText(body.dishName, 120);
     const sourceImageUrl = sanitizeUrl(body.sourceImageUrl);
     const assetType = normalizeAssetType(body.assetType);
@@ -508,61 +508,45 @@ Deno.serve(async (req) => {
     let generated: GeneratedImage | null = null;
     const generatedImageOptions = buildImageRequestOptions(format.size);
     let usedImageOptions: ImageRequestOptions | null = null;
-    let imageEditFallbackUsed = false;
+    let imageEditRetryUsed = false;
     let sourceEditUsed = false;
 
     let imageOptions = generatedImageOptions;
-    const finalPrompt = [
-      result.enhanced_prompt,
-      "",
-      "Contraintes finales non negociables:",
-      TOK_PHOTO_DNA,
-      sourceImageUrl
-        ? "Tu edites l'image source fournie. Le resultat doit rester la meme photo amelioree. Conserver strictement le sujet source. Ne jamais changer le type de nourriture ou de produit. Preserver les textes, logos, inscriptions, etiquettes, branding, packaging, contenant, formes et couleurs dominantes. Si tu ne peux pas garantir la fidelite, fais une retouche minimale plutot qu'une recreation."
-        : "Image finale sans texte incruste, sans watermark, sans element de marque concurrente. Produit credible et appetissant.",
-    ].join("\n").slice(0, 7000);
+    const finalPrompt = sourceImageUrl
+      ? SOURCE_IMAGE_EDIT_PROMPT
+      : [
+        result.enhanced_prompt,
+        "",
+        "Contraintes finales non négociables:",
+        TOK_PHOTO_DNA,
+        "Image finale sans texte incrusté, sans watermark, sans élément de marque concurrente. Produit crédible et appétissant.",
+      ].join("\n").slice(0, 7000);
 
     let imageResponse: unknown;
-    if (sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)) {
+    if (sourceImageUrl) {
       try {
         imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
         sourceEditUsed = true;
       } catch (error) {
         const isImageEditFailure = error instanceof HttpError && error.message.startsWith("image_edit_failed");
         if (isImageEditFailure) {
-          imageEditFallbackUsed = true;
           const configuredEditOptions = buildConfiguredImageRequestOptions(format.size);
-
-          if (
+          const shouldRetryConfiguredEdit =
             configuredEditOptions.model !== imageOptions.model ||
             configuredEditOptions.quality !== imageOptions.quality ||
-            configuredEditOptions.size !== imageOptions.size
-          ) {
-            try {
-              imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, configuredEditOptions);
-              imageOptions = configuredEditOptions;
-              sourceEditUsed = true;
-            } catch (retryError) {
-              const isRetryImageEditFailure =
-                retryError instanceof HttpError && retryError.message.startsWith("image_edit_failed");
-              if (!isRetryImageEditFailure) {
-                throw retryError;
-              }
-            }
-          }
+            configuredEditOptions.size !== imageOptions.size;
 
-          if (!imageResponse) {
-            log.warn("image_edit_fallback", {
-              restaurant_id: restaurantId,
-              primary_model: imageOptions.model,
-              fallback_model: configuredEditOptions.model,
-            });
-            imageResponse = await callOpenAIImageGeneration([
-              finalPrompt,
-              "image_edit_fallback: l'edition de l'image source a echoue. Generer un visuel TOK prudent, sans texte incruste, sans inventer de marque concurrente, et rester le plus proche possible du brief de retouche source.",
-            ].join("\n"), variantCount, configuredEditOptions);
-            imageOptions = configuredEditOptions;
-          }
+          if (!shouldRetryConfiguredEdit) throw error;
+
+          log.warn("image_edit_retry", {
+            restaurant_id: restaurantId,
+            primary_model: imageOptions.model,
+            retry_model: configuredEditOptions.model,
+          });
+          imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, configuredEditOptions);
+          imageOptions = configuredEditOptions;
+          imageEditRetryUsed = true;
+          sourceEditUsed = true;
         } else {
           throw error;
         }
@@ -594,8 +578,8 @@ Deno.serve(async (req) => {
         request_image_size: imageOptions.size,
         image_mode: imageOptions.mode,
         source_edit_used: sourceEditUsed,
-        image_edit_fallback: imageEditFallbackUsed,
-        generation_fallback_allowed: true,
+        image_edit_retry: imageEditRetryUsed,
+        generation_fallback_allowed: !sourceImageUrl,
         output_format: "png",
         brief_source: briefSource,
         preview_image_url: stored.imageUrl,
@@ -605,7 +589,7 @@ Deno.serve(async (req) => {
         original_prompt: prompt,
         dish_name: dishName,
         format: format.label,
-        source_preservation_policy: sourceImageUrl ? "source_edit_with_controlled_fallback" : "generation_without_source",
+        source_preservation_policy: sourceImageUrl ? "strict_source_edit_no_generation_fallback" : "generation_without_source",
         reference_folder: `public${TOK_REFERENCE_FOLDER}`,
       },
     });
@@ -638,8 +622,8 @@ Deno.serve(async (req) => {
         image_quality: usedImageOptions?.quality,
         image_mode: usedImageOptions?.mode,
         source_edit_used: sourceEditUsed,
-        image_edit_fallback: imageEditFallbackUsed,
-        generation_fallback_allowed: true,
+        image_edit_retry: imageEditRetryUsed,
+        generation_fallback_allowed: !sourceImageUrl,
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
         format: format.label,
@@ -664,7 +648,7 @@ Deno.serve(async (req) => {
         brief_source: briefSource,
         image_only: imageOnly,
         source_edit_used: sourceEditUsed,
-        image_edit_fallback: imageEditFallbackUsed,
+        image_edit_retry: imageEditRetryUsed,
         gallery_bucket: GALLERY_BUCKET,
       },
     });

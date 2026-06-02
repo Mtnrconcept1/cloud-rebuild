@@ -12,13 +12,8 @@ import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResul
 import { CheckCircle2, Loader2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 
 const supabase = getSupabase();
-const STUDIO_BRIEF = [
-  "Retouche TOK premium fidèle: améliorer l'image source sans remplacer le sujet.",
-  "Conserver strictement le même produit ou plat: même packaging, même contenant, même forme générale, mêmes couleurs dominantes, même marque ou étiquette visible lorsque c'est possible.",
-  "Si la photo montre un produit emballé, une boîte, une bouteille, un sachet ou une conserve, créer un packshot premium du même emballage. Ne jamais le transformer en assiette servie ou plat inventé.",
-  "Améliorer seulement la composition, le cadrage, la lumière chaude, les textures, les reflets et le décor secondaire TOK.",
-  "Le résultat doit rester immédiatement reconnaissable comme la photo source retouchée.",
-].join("\n");
+const STUDIO_BRIEF =
+  "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image.";
 
 type Props = {
   restaurantId: string | null | undefined;
