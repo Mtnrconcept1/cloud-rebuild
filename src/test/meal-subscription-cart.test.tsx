@@ -4,6 +4,28 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Abonnement from "@/pages/Abonnement";
+import { getMealSubscriptionOccurrenceDates } from "@/lib/mealSubscription";
+
+const TEST_SUBSCRIPTION_END_DATE = "2026-06-15";
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function expectedOccurrences(day: string, deliveryTime = "12:00") {
+  return getMealSubscriptionOccurrenceDates(day, {
+    endDate: TEST_SUBSCRIPTION_END_DATE,
+    deliveryTime,
+  }).length;
+}
+
+function expectedTotal(slots: Array<{ day: string; price: number; time?: string }>) {
+  return slots.reduce((sum, slot) => sum + (slot.price * expectedOccurrences(slot.day, slot.time || "12:00")), 0);
+}
+
+function summaryRegex(label: string, total: number) {
+  return new RegExp(`${escapeRegExp(label)} - ${escapeRegExp(total.toFixed(2))} CHF`, "i");
+}
 
 const cartMocks = vi.hoisted(() => ({
   addItem: vi.fn(),
@@ -158,9 +180,12 @@ describe("Abonnement cart sync", () => {
   });
 
   it("rebuilds the cart from an existing active subscription before opening the cart", async () => {
+    const lundiOccurrences = expectedOccurrences("Lundi", "12:00");
+    const lundiTotal = expectedTotal([{ day: "Lundi", price: 16, time: "12:00" }]);
+
     renderAbonnement();
 
-    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: "2026-06-15" } });
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: TEST_SUBSCRIPTION_END_DATE } });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
     fireEvent.click(cartButton);
 
@@ -184,16 +209,16 @@ describe("Abonnement cart sync", () => {
         }),
       ]),
     );
-    expect(cartItems).toHaveLength(3);
+    expect(cartItems).toHaveLength(lundiOccurrences);
     expect(cartMetadata).toEqual(
       expect.objectContaining({
         feature: "abonnement",
         multi_restaurant: false,
         restaurant_count: 1,
         weeklyTotal: 16,
-        subscription_total: 48,
-        subscription_occurrences: 3,
-        subscription_end_date: "2026-06-15",
+        subscription_total: lundiTotal,
+        subscription_occurrences: lundiOccurrences,
+        subscription_end_date: TEST_SUBSCRIPTION_END_DATE,
         planDays: ["Lundi"],
         subscription_status: "active",
       }),
@@ -212,6 +237,11 @@ describe("Abonnement cart sync", () => {
   });
 
   it("syncs several subscription meals from different restaurants into one multi-restaurant cart", async () => {
+    const expectedSubscriptionTotal = expectedTotal([
+      { day: "Lundi", price: 16, time: "12:00" },
+      { day: "Mardi", price: 18, time: "12:30" },
+    ]);
+
     subscriptionRows.rows = [
       {
         id: "slot-1",
@@ -235,9 +265,9 @@ describe("Abonnement cart sync", () => {
 
     renderAbonnement();
 
-    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: "2026-06-15" } });
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: TEST_SUBSCRIPTION_END_DATE } });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
-    expect(screen.getByText(/2 repas\/semaine - 2 restaurants - 84\.00 CHF/i)).toBeInTheDocument();
+    expect(screen.getByText(summaryRegex("2 repas/semaine - 2 restaurants", expectedSubscriptionTotal))).toBeInTheDocument();
     fireEvent.click(cartButton);
 
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
@@ -260,6 +290,7 @@ describe("Abonnement cart sync", () => {
         multi_restaurant: true,
         restaurant_count: 2,
         weeklyTotal: 34,
+        subscription_total: expectedSubscriptionTotal,
         planDays: ["Lundi", "Mardi"],
       }),
       "delivery",
@@ -267,6 +298,11 @@ describe("Abonnement cart sync", () => {
   });
 
   it("syncs several meals from the same restaurant on the same day", async () => {
+    const expectedSubscriptionTotal = expectedTotal([
+      { day: "Lundi", price: 16, time: "12:00" },
+      { day: "Lundi", price: 8, time: "12:00" },
+    ]);
+
     subscriptionRows.rows = [
       {
         id: "slot-1",
@@ -290,9 +326,9 @@ describe("Abonnement cart sync", () => {
 
     renderAbonnement();
 
-    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: "2026-06-15" } });
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: TEST_SUBSCRIPTION_END_DATE } });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
-    expect(screen.getByText(/2 repas\/semaine - 1 restaurant - 72\.00 CHF/i)).toBeInTheDocument();
+    expect(screen.getByText(summaryRegex("2 repas/semaine - 1 restaurant", expectedSubscriptionTotal))).toBeInTheDocument();
     fireEvent.click(cartButton);
 
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
@@ -315,6 +351,7 @@ describe("Abonnement cart sync", () => {
         multi_restaurant: false,
         restaurant_count: 1,
         weeklyTotal: 24,
+        subscription_total: expectedSubscriptionTotal,
         planDays: ["Lundi"],
       }),
       "delivery",
