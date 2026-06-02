@@ -21,6 +21,16 @@ describe("public env", () => {
     ).toEqual(["VITE_SUPABASE_PUBLISHABLE_KEY"]);
   });
 
+  it("accepts the legacy anon key as the Supabase publishable key fallback", () => {
+    expect(
+      getMissingSupabasePublicEnvKeys({
+        VITE_SUPABASE_URL: "https://example.supabase.co",
+        VITE_SUPABASE_PUBLISHABLE_KEY: "",
+        VITE_SUPABASE_ANON_KEY: "anon-fallback",
+      }),
+    ).toEqual([]);
+  });
+
   it("throws a helpful error when required supabase env values are missing", () => {
     expect(() =>
       readSupabasePublicEnv(
