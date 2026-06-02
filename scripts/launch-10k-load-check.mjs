@@ -29,6 +29,7 @@ const scenarios = [
     name: "20 paiements Stripe test en parallele",
     method: "POST",
     pathEnv: "TOK_LOAD_TEST_CHECKOUT_ENDPOINT",
+    bodyEnv: "TOK_LOAD_TEST_CHECKOUT_PAYLOAD",
     concurrency: 20,
     requiresFixture: true,
   },
@@ -36,6 +37,7 @@ const scenarios = [
     name: "Webhook Stripe recu plusieurs fois",
     method: "POST",
     pathEnv: "TOK_LOAD_TEST_STRIPE_WEBHOOK_REPLAY_ENDPOINT",
+    bodyEnv: "TOK_LOAD_TEST_STRIPE_WEBHOOK_REPLAY_PAYLOAD",
     concurrency: 5,
     requiresFixture: true,
   },
@@ -43,6 +45,7 @@ const scenarios = [
     name: "Commande payee mais restaurant muet",
     method: "POST",
     pathEnv: "TOK_LOAD_TEST_RECONCILE_ENDPOINT",
+    bodyEnv: "TOK_LOAD_TEST_RECONCILE_PAYLOAD",
     concurrency: 5,
     requiresFixture: true,
   },
@@ -50,6 +53,7 @@ const scenarios = [
     name: "Restaurant qui refuse une commande payee",
     method: "POST",
     pathEnv: "TOK_LOAD_TEST_RESTAURANT_REFUSAL_ENDPOINT",
+    bodyEnv: "TOK_LOAD_TEST_RESTAURANT_REFUSAL_PAYLOAD",
     concurrency: 5,
     requiresFixture: true,
   },
@@ -57,6 +61,7 @@ const scenarios = [
     name: "Produit supprime pendant paiement",
     method: "POST",
     pathEnv: "TOK_LOAD_TEST_DELETED_PRODUCT_CHECKOUT_ENDPOINT",
+    bodyEnv: "TOK_LOAD_TEST_DELETED_PRODUCT_CHECKOUT_PAYLOAD",
     concurrency: 5,
     requiresFixture: true,
   },
@@ -64,6 +69,7 @@ const scenarios = [
     name: "Double reservation",
     method: "POST",
     pathEnv: "TOK_LOAD_TEST_DOUBLE_RESERVATION_ENDPOINT",
+    bodyEnv: "TOK_LOAD_TEST_DOUBLE_RESERVATION_PAYLOAD",
     concurrency: 2,
     requiresFixture: true,
   },
@@ -71,6 +77,7 @@ const scenarios = [
     name: "Upload massif d'images",
     method: "POST",
     pathEnv: "TOK_LOAD_TEST_IMAGE_UPLOAD_ENDPOINT",
+    bodyEnv: "TOK_LOAD_TEST_IMAGE_UPLOAD_PAYLOAD",
     concurrency: 20,
     requiresFixture: true,
   },
@@ -78,6 +85,7 @@ const scenarios = [
     name: "Connexion simultanee client, restaurateur et admin",
     method: "POST",
     pathEnv: "TOK_LOAD_TEST_AUTH_ENDPOINT",
+    bodyEnv: "TOK_LOAD_TEST_AUTH_PAYLOADS",
     concurrency: 3,
     requiresFixture: true,
   },
@@ -94,6 +102,31 @@ function resolveScenarioPath(scenario) {
   return configured ? configured.trim() : "";
 }
 
+function parseJsonPayloadEnv(envName) {
+  if (!envName || !process.env[envName]) return null;
+
+  try {
+    return JSON.parse(process.env[envName]);
+  } catch (error) {
+    throw new Error(`${envName} must contain valid JSON: ${error instanceof Error ? error.message : "parse error"}`);
+  }
+}
+
+function resolveScenarioPayloads(scenario) {
+  const configuredPayload = parseJsonPayloadEnv(scenario.bodyEnv);
+  if (!configuredPayload) return [{}];
+
+  if (Array.isArray(configuredPayload)) {
+    return configuredPayload.length > 0 ? configuredPayload : [{}];
+  }
+
+  if (typeof configuredPayload === "object") {
+    return [configuredPayload];
+  }
+
+  throw new Error(`${scenario.bodyEnv} must be a JSON object or array of objects`);
+}
+
 function printPlan() {
   console.log(JSON.stringify({
     dryRun,
@@ -105,12 +138,14 @@ function printPlan() {
       concurrency: Math.max(1, Math.round(scenario.concurrency * concurrencyScale)),
       method: scenario.method,
       path: resolveScenarioPath(scenario) || null,
+      bodyEnv: scenario.bodyEnv || null,
+      payloadConfigured: Boolean(scenario.bodyEnv && process.env[scenario.bodyEnv]),
       requiresFixture: Boolean(scenario.requiresFixture),
     })),
   }, null, 2));
 }
 
-async function requestOnce(url, scenario) {
+async function requestOnce(url, scenario, payload) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15_000);
   const started = performance.now();
@@ -123,7 +158,7 @@ async function requestOnce(url, scenario) {
           ? { authorization: `Bearer ${process.env.TOK_LOAD_TEST_AUTH_TOKEN}` }
           : {}),
       },
-      body: scenario.method === "GET" ? undefined : "{}",
+      body: scenario.method === "GET" ? undefined : JSON.stringify(payload || {}),
       signal: controller.signal,
     });
     return {
@@ -148,8 +183,9 @@ async function runScenario(scenario) {
 
   const concurrency = Math.max(1, Math.round(scenario.concurrency * concurrencyScale));
   const url = path.startsWith("http") ? path : `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const payloads = resolveScenarioPayloads(scenario);
   const results = await Promise.allSettled(
-    Array.from({ length: concurrency }, () => requestOnce(url, scenario)),
+    Array.from({ length: concurrency }, (_, index) => requestOnce(url, scenario, payloads[index % payloads.length])),
   );
   const fulfilled = results
     .filter((result) => result.status === "fulfilled")

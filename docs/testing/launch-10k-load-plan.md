@@ -37,3 +37,10 @@ Ne pas lancer ces scenarios contre la production depuis Codex.
 - Les rate limits bloquent les pics anormaux sans couper le trafic normal.
 - Les notifications transactionnelles restent en file ou sont relancees par worker.
 - Le panneau admin production health expose crons, Edge Functions, notifications et anomalies paiement.
+
+## Execution locale
+
+- Dry-run: `pnpm test:launch:10k`.
+- Execution autorisee: `TOK_LOAD_TEST_BASE_URL=http://localhost:4173 pnpm test:launch:10k -- --execute`.
+- Les scenarios POST acceptent des fixtures JSON via variables d'environnement, par exemple `TOK_LOAD_TEST_CHECKOUT_PAYLOAD`, `TOK_LOAD_TEST_STRIPE_WEBHOOK_REPLAY_PAYLOAD`, `TOK_LOAD_TEST_DOUBLE_RESERVATION_PAYLOAD`, `TOK_LOAD_TEST_IMAGE_UPLOAD_PAYLOAD` et `TOK_LOAD_TEST_AUTH_PAYLOADS`.
+- `TOK_LOAD_TEST_AUTH_PAYLOADS` peut contenir un tableau JSON avec les payloads client, restaurateur et admin pour tester les connexions simultanees par role.

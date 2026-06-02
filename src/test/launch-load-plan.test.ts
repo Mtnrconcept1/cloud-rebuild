@@ -27,6 +27,10 @@ describe("launch 10k load plan", () => {
 
     expect(pkg).toContain("\"test:launch:10k\"");
     expect(runner).toContain("TOK_LOAD_TEST_BASE_URL");
+    expect(runner).toContain("TOK_LOAD_TEST_CHECKOUT_PAYLOAD");
+    expect(runner).toContain("TOK_LOAD_TEST_AUTH_PAYLOADS");
+    expect(runner).toContain("resolveScenarioPayloads");
+    expect(plan).toContain("fixtures JSON");
     expect(runner).toContain("dryRun");
     expect(runner).toContain("refuseProduction");
   });

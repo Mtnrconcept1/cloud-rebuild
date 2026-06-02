@@ -17,7 +17,7 @@ function readAllMigrations() {
 
 describe("reservation confirmation and deposit operations", () => {
   const migrations = readAllMigrations();
-  const opsMigration = read("supabase/migrations/20260602105912_reservation_confirmation_deposit_ops.sql");
+  const opsMigration = read("supabase/migrations/20260602122000_reservation_confirmation_deposit_ops.sql");
 
   it("persists restaurant confirmation deadlines and optional deposits outside metadata", () => {
     expect(migrations).toContain("reservation_confirmation_deadline_at");

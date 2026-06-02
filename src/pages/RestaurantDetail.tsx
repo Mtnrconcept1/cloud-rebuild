@@ -19,12 +19,60 @@ import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useRef } from "react";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
+import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import {
   isAntiWasteOfferPubliclyVisible,
   isFlashSalePubliclyVisible,
 } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
+
+function buildRestaurantDetailJsonLd({
+  restaurant,
+  restaurantId,
+  heroImage,
+  averageRating,
+  reviewCount,
+}: {
+  restaurant: any | null | undefined;
+  restaurantId: string | undefined;
+  heroImage: string;
+  averageRating: string;
+  reviewCount: number;
+}) {
+  if (!restaurant || !restaurantId) return null;
+
+  const imageUrl = heroImage.startsWith("http") ? heroImage : buildCanonicalUrl(heroImage);
+  const priceRange = "$".repeat(Math.max(1, Math.min(Number(restaurant.price_range || 2), 4)));
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "@id": buildCanonicalUrl(`/restaurant/${restaurantId}`),
+    name: restaurant.name,
+    description: restaurant.description || `Restaurant ${restaurant.name} sur TOK`,
+    image: imageUrl,
+    servesCuisine: restaurant.cuisine_type || undefined,
+    priceRange,
+    telephone: restaurant.phone || undefined,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: restaurant.address || undefined,
+      addressLocality: restaurant.city || undefined,
+      addressCountry: "CH",
+    },
+    aggregateRating: reviewCount > 0
+      ? {
+        "@type": "AggregateRating",
+        ratingValue: Number(averageRating),
+        reviewCount,
+        bestRating: 10,
+        worstRating: 1,
+      }
+      : undefined,
+    url: buildCanonicalUrl(`/restaurant/${restaurantId}`),
+  };
+}
 
 export default function RestaurantDetail() {
   const { id } = useParams<{ id: string }>();
@@ -186,6 +234,34 @@ export default function RestaurantDetail() {
     () => cartItemsForCurrentRestaurant.reduce((acc, item) => acc + item.quantity, 0),
     [cartItemsForCurrentRestaurant],
   );
+  const coverPhoto = mediaPhotos?.find((p) => p.is_cover) || mediaPhotos?.[0];
+  const heroImage = coverPhoto?.media_url || restaurant?.image_url || "/images/kebab-box-spread.jpeg";
+  const avgRating = avgRating10.toFixed(1);
+  const reviewCount = restaurant?.review_count || reviews?.length || 0;
+  const seoTitle = restaurant
+    ? `${restaurant.name} | Restaurant TOK ${restaurant.city || "Suisse romande"}`
+    : "Restaurant TOK | TheTok";
+  const seoDescription = restaurant
+    ? `${restaurant.name} sur TOK: ${restaurant.cuisine_type || "restaurant"} a ${restaurant.city || "Geneve"}, commande, reservation et offres locales.`
+    : "Fiche restaurant TOK avec commande, reservation et offres locales.";
+  const restaurantJsonLd = useMemo(
+    () => buildRestaurantDetailJsonLd({
+      restaurant,
+      restaurantId: id,
+      heroImage,
+      averageRating: avgRating,
+      reviewCount,
+    }),
+    [avgRating, heroImage, id, restaurant, reviewCount],
+  );
+
+  useSeoMeta({
+    title: seoTitle,
+    description: seoDescription,
+    path: `/restaurant/${id || ""}`,
+    image: heroImage,
+    jsonLd: restaurantJsonLd,
+  });
 
   useEffect(() => {
     if (!reservationAvailable && reservationOpen) {
@@ -209,13 +285,9 @@ export default function RestaurantDetail() {
 
   if (!restaurant) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
-  const coverPhoto = mediaPhotos?.find((p) => p.is_cover) || mediaPhotos?.[0];
-  const heroImage = coverPhoto?.media_url || restaurant.image_url || "/images/kebab-box-spread.jpeg";
   const galleryPhotos = mediaPhotos && mediaPhotos.length > 0 ? mediaPhotos : [];
 
   const categories = [...new Set(menuItems?.map((i) => i.category || "Autres"))] as string[];
-  const avgRating = avgRating10.toFixed(1);
-  const reviewCount = restaurant.review_count || reviews?.length || 0;
 
   const handleWidgetReserve = (date: Date, time: string, partySize: number) => {
     setReservationDefaults({ date, time, partySize });
