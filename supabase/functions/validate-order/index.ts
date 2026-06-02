@@ -1,6 +1,7 @@
 import {
   HttpError,
   authenticateRequest,
+  buildRequestMetadata,
   createAdminClient,
   jsonResponse,
   writeAuditLog,
@@ -18,6 +19,7 @@ import {
 } from "../_shared/notifications.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
 
 interface OrderItem {
   menu_item_id: string;
@@ -68,6 +70,18 @@ Deno.serve(async (req) => {
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    if (!actor.userId) {
+      throw new HttpError(401, "Unauthorized");
+    }
+
+    const requestMetadata = buildRequestMetadata(req);
+    const rateLimiter = createRateLimiter(actor.adminClient, "validate-order");
+    await rateLimiter.consume(`user:${actor.userId}`, { maxRequests: 60, windowSeconds: 60 });
+    if (requestMetadata.ip) {
+      await rateLimiter.consume(`ip:${requestMetadata.ip}`, { maxRequests: 180, windowSeconds: 60 });
+    }
+    await rateLimiter.consume("global", { maxRequests: 1500, windowSeconds: 60 });
+
     const payload: ValidateOrderPayload = await req.json();
     const {
       restaurant_id,
@@ -87,7 +101,7 @@ Deno.serve(async (req) => {
 
     const pricing = await buildVerifiedOrderPricing({
       adminClient: actor.adminClient,
-      userId: actor.userId!,
+      userId: actor.userId,
       restaurantId: restaurant_id,
       items,
       deliveryFee: delivery_fee || 0,
@@ -250,14 +264,14 @@ Deno.serve(async (req) => {
       throw new HttpError(500, updateError.message);
     }
 
-    const { data: profile } = await actor.adminClient
-      .from("profiles")
-      .select("full_name")
-      .eq("user_id", actor.userId!)
+      const { data: profile } = await actor.adminClient
+        .from("profiles")
+        .select("full_name")
+      .eq("user_id", actor.userId)
       .maybeSingle();
 
     if (!isAwaitingOnlinePayment) {
-      const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId!);
+      const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId);
       const userEmail = authUser?.user?.email || "client@tok.ch";
 
       await actor.adminClient.from("email_queue").insert({

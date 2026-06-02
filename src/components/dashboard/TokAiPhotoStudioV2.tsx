@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ImageUpload from "@/components/ImageUpload";
 import { useToast } from "@/hooks/use-toast";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
 import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
-import { Loader2, Sparkles, Wand2 } from "lucide-react";
+import { Loader2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 
 const supabase = getSupabase();
 const STUDIO_BRIEF = "Retouche TOK premium: garder le plat, améliorer la composition, la lumière, la texture et ajouter une identité TOK discrète.";
@@ -20,35 +21,52 @@ type Props = {
   onGalleryUpdated: () => void;
 };
 
+type PhotoStudioDraft = {
+  sourceImageUrl: string;
+  dishName: string;
+  format: TokImageFormat;
+  result: TokImageGenerationResult | null;
+};
+
+const DEFAULT_DRAFT: PhotoStudioDraft = {
+  sourceImageUrl: "",
+  dishName: "",
+  format: "landscape",
+  result: null,
+};
+
 export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoCount, onGalleryUpdated }: Props) {
   const { toast } = useToast();
-  const [sourceImageUrl, setSourceImageUrl] = useState("");
-  const [dishName, setDishName] = useState("");
-  const [format, setFormat] = useState<TokImageFormat>("landscape");
+  const storageKey = `tok-ai-photo-studio-v2:${restaurantId || "pending"}`;
+  const [draft, setDraft, clearDraft] = useSessionStorageState<PhotoStudioDraft>(storageKey, DEFAULT_DRAFT);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<TokImageGenerationResult | null>(null);
+  const result = draft.result;
+
+  const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
+    setDraft((previous) => ({ ...previous, ...nextDraft }));
+  };
 
   const generate = async () => {
     if (!restaurantId) return;
-    if (!sourceImageUrl) {
+    if (!draft.sourceImageUrl.trim()) {
       toast({ title: "Photo requise", description: "Ajoutez la photo brute du plat.", variant: "destructive" });
       return;
     }
 
     setLoading(true);
-    setResult(null);
+    updateDraft({ result: null });
     try {
       const data = await generateTokDishImage({
         restaurantId,
-        sourceImageUrl,
-        dishName: dishName || null,
+        sourceImageUrl: draft.sourceImageUrl,
+        dishName: draft.dishName || null,
         prompt: STUDIO_BRIEF,
         assetType: "campaign_visual",
-        format,
+        format: draft.format,
         variantCount: 1,
         generateImage: true,
       });
-      setResult(data);
+      updateDraft({ result: data });
       toast({ title: "Visuel TOK prêt", description: "Contrôlez le rendu puis ajoutez-le à la galerie." });
     } catch (error) {
       toast({ title: "Erreur IA", description: error instanceof Error ? error.message : "Génération impossible", variant: "destructive" });
@@ -62,7 +80,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     const { error } = await supabase.from("restaurant_media").insert({
       restaurant_id: restaurantId,
       media_url: result.generated_image_url,
-      alt_text: result.alt_text || result.title || dishName || "Visuel TOK",
+      alt_text: result.alt_text || result.title || draft.dishName || "Visuel TOK",
       media_type: "photo_ai_tok",
       uploaded_by: userId || null,
       position: currentPhotoCount,
@@ -86,15 +104,24 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       <CardContent className="space-y-5">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-4">
-            <ImageUpload label="Photo brute" value={sourceImageUrl} onChange={setSourceImageUrl} showUrlInput={false} />
+            <ImageUpload
+              label="Photo brute"
+              value={draft.sourceImageUrl}
+              onChange={(sourceImageUrl) => updateDraft({ sourceImageUrl, result: null })}
+              showUrlInput={false}
+            />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Nom du plat</Label>
-                <Input value={dishName} onChange={(event) => setDishName(event.target.value)} placeholder="Ex. assiette kebab" />
+                <Input value={draft.dishName} onChange={(event) => updateDraft({ dishName: event.target.value })} placeholder="Ex. assiette kebab" />
               </div>
               <div className="space-y-2">
                 <Label>Format</Label>
-                <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={format} onChange={(event) => setFormat(event.target.value as TokImageFormat)}>
+                <select
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                  value={draft.format}
+                  onChange={(event) => updateDraft({ format: event.target.value as TokImageFormat, result: null })}
+                >
                   <option value="landscape">16:9 campagne</option>
                   <option value="square">Carré fiche plat</option>
                   <option value="portrait">Portrait story</option>
@@ -107,6 +134,12 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                 Générer la version TOK
               </Button>
               {result?.generated_image_url ? <Button type="button" variant="outline" onClick={addToGallery}>Ajouter à la galerie</Button> : null}
+              {draft.sourceImageUrl || result ? (
+                <Button type="button" variant="ghost" onClick={clearDraft} className="gap-2">
+                  <RotateCcw className="h-4 w-4" />
+                  Nouveau
+                </Button>
+              ) : null}
             </div>
           </div>
           <div className="rounded-2xl border bg-background p-4 text-sm text-muted-foreground shadow-sm">
@@ -121,7 +154,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               <CardHeader><CardTitle>{result.title || "Version TOK prête"}</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                  <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
+                  <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={draft.sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
                   {result.generated_image_url ? <div><p className="mb-2 text-sm font-semibold">Après TOK</p><img src={result.generated_image_url} alt={result.alt_text || "Visuel TOK"} className="aspect-video w-full rounded-xl border object-cover" /></div> : null}
                 </div>
                 <p className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">{result.edit_instructions}</p>

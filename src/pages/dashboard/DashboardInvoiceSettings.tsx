@@ -22,6 +22,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  IMAGE_MIME_EXTENSIONS,
+  assertSafeFileUpload,
+  getSafeUploadExtension,
+} from "@/lib/uploadSecurity";
 
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
 
@@ -109,7 +114,20 @@ export default function DashboardInvoiceSettings() {
 
     setUploading(true);
     const file = event.target.files[0];
-    const extension = file.name.split(".").pop();
+    try {
+      assertSafeFileUpload(file, {
+        allowedMimeTypes: IMAGE_MIME_EXTENSIONS,
+        maxBytes: 5 * 1024 * 1024,
+        label: "Logo",
+      });
+    } catch (error) {
+      toast({ title: "Upload refuse", description: error instanceof Error ? error.message : "Fichier non autorise.", variant: "destructive" });
+      setUploading(false);
+      event.target.value = "";
+      return;
+    }
+
+    const extension = getSafeUploadExtension(file, IMAGE_MIME_EXTENSIONS);
     const path = `${selectedRestaurant}/${Date.now()}.${extension}`;
     const { error } = await supabase.storage.from("invoice-logos").upload(path, file);
 

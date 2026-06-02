@@ -3,6 +3,7 @@ import Stripe from "npm:stripe@18.5.0";
 import {
   HttpError,
   authenticateRequest,
+  buildRequestMetadata,
   createAdminClient,
   getEnv,
   jsonResponse,
@@ -10,6 +11,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   finalizePaidOrderCheckout,
   getStripePaymentMethodDetails,
@@ -29,6 +31,14 @@ Deno.serve(async (req) => {
     if (!actor.userId) {
       throw new HttpError(401, "Unauthorized");
     }
+
+    const requestMetadata = buildRequestMetadata(req);
+    const rateLimiter = createRateLimiter(actor.adminClient, "complete-order-checkout");
+    await rateLimiter.consume(`user:${actor.userId}`, { maxRequests: 30, windowSeconds: 300 });
+    if (requestMetadata.ip) {
+      await rateLimiter.consume(`ip:${requestMetadata.ip}`, { maxRequests: 120, windowSeconds: 300 });
+    }
+    await rateLimiter.consume("global", { maxRequests: 800, windowSeconds: 60 });
 
     const body = await req.json().catch(() => ({}));
     sessionId = typeof body?.session_id === "string" ? body.session_id.trim() : "";

@@ -3,7 +3,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
@@ -19,6 +19,7 @@ import { isNative } from "@/lib/platform";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 const Recherche = lazy(() => import("./pages/Recherche"));
+const LocalRestaurants = lazy(() => import("./pages/LocalRestaurants"));
 const RestaurantDetail = lazy(() => import("./pages/RestaurantDetail"));
 const AntiGaspi = lazy(() => import("./pages/AntiGaspi"));
 const Panier = lazy(() => import("./pages/Panier"));
@@ -106,6 +107,8 @@ const AdminOrdersReservations = lazy(() => import("./pages/admin/AdminOrdersRese
 const AdminOperationsCenter = lazy(() => import("./pages/admin/AdminOperationsCenter"));
 const AdminAiOperations = lazy(() => import("./pages/admin/AdminAiOperations"));
 const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));
+
+focusManager.setEventListener(() => () => undefined);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -223,6 +226,8 @@ function AppShell() {
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/recherche" element={<Recherche />} />
+          <Route path="/restaurants/:city" element={<LocalRestaurants />} />
+          <Route path="/restaurants/:city/:category" element={<LocalRestaurants />} />
           <Route path="/restaurant/:id" element={<RestaurantDetail />} />
           <Route path="/anti-gaspi" element={<FeatureSwitch enabled={antiWasteEnabled}><AntiGaspi /></FeatureSwitch>} />
           <Route path="/panier" element={<Panier />} />

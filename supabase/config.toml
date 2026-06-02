@@ -97,6 +97,9 @@ verify_jwt = false
 [functions.reconcile-match-group-authorizations]
 verify_jwt = false
 
+[functions.reconcile-paid-order-checkouts]
+verify_jwt = false
+
 [functions.restaurant-advisor]
 verify_jwt = false
 

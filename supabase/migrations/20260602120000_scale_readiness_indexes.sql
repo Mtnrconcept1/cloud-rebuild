@@ -35,12 +35,33 @@ CREATE INDEX IF NOT EXISTS idx_payment_transactions_stripe_payment_intent
   ON public.payment_transactions (stripe_payment_intent_id)
   WHERE stripe_payment_intent_id IS NOT NULL;
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_payment_transactions_succeeded_charge_session_kind
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_succeeded_charge_session_kind
   ON public.payment_transactions (
     stripe_checkout_session_id,
-    COALESCE(metadata->>'checkout_kind', 'order')
+    COALESCE(metadata->>'checkout_kind', 'order'),
+    created_at DESC
   )
   WHERE stripe_checkout_session_id IS NOT NULL
+    AND type = 'charge'
+    AND status = 'succeeded';
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_payment_transactions_succeeded_order_charge_session
+  ON public.payment_transactions (order_id, stripe_checkout_session_id)
+  WHERE order_id IS NOT NULL
+    AND stripe_checkout_session_id IS NOT NULL
+    AND type = 'charge'
+    AND status = 'succeeded';
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_payment_transactions_succeeded_reservation_charge_session
+  ON public.payment_transactions (
+    stripe_checkout_session_id,
+    (metadata->>'reservation_id'),
+    COALESCE(metadata->>'feature', 'reservation')
+  )
+  WHERE order_id IS NULL
+    AND stripe_checkout_session_id IS NOT NULL
+    AND metadata ? 'reservation_id'
+    AND NULLIF(metadata->>'reservation_id', '') IS NOT NULL
     AND type = 'charge'
     AND status = 'succeeded';
 

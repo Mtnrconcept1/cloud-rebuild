@@ -1,6 +1,12 @@
 import { getSupabase } from "@/integrations/supabase/client";
 
 import type { UserRole } from "@/lib/auth-context";
+import {
+  DOCUMENT_MIME_EXTENSIONS,
+  MAX_DOCUMENT_UPLOAD_BYTES,
+  assertSafeFileUpload,
+  getSafeUploadExtension,
+} from "@/lib/uploadSecurity";
 
 export type SignupRole = Extract<UserRole, "client" | "restaurateur" | "courier">;
 export type SignupApplicationStatus = "pending_review" | "approved" | "needs_changes" | "rejected";
@@ -240,9 +246,12 @@ export async function uploadVerificationDocument(input: {
   documentType: SignupDocumentType;
   file: File;
 }) {
-  const extension = input.file.name.includes(".")
-    ? input.file.name.split(".").pop() || "bin"
-    : "bin";
+  assertSafeFileUpload(input.file, {
+    allowedMimeTypes: DOCUMENT_MIME_EXTENSIONS,
+    maxBytes: MAX_DOCUMENT_UPLOAD_BYTES,
+    label: "Document",
+  });
+  const extension = getSafeUploadExtension(input.file, DOCUMENT_MIME_EXTENSIONS);
   const safeExtension = sanitizeFileSegment(extension) || "bin";
   const safeDocumentType = sanitizeFileSegment(input.documentType) || "document";
   const safeRole = sanitizeFileSegment(input.role) || "signup";

@@ -3,6 +3,7 @@ import Stripe from "npm:stripe@18.5.0";
 import {
   HttpError,
   authenticateRequest,
+  buildRequestMetadata,
   createAdminClient,
   getEnv,
   jsonResponse,
@@ -13,6 +14,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { isTokOneEntitledStatus } from "../_shared/tok-one.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   assertPaymentMethodAllowed,
   getEffectiveFeatureFlagSet,
@@ -55,6 +57,18 @@ Deno.serve(async (req) => {
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    if (!actor.userId) {
+      throw new HttpError(401, "Unauthorized");
+    }
+
+    const requestMetadata = buildRequestMetadata(req);
+    const rateLimiter = createRateLimiter(actor.adminClient, "create-checkout");
+    await rateLimiter.consume(`user:${actor.userId}`, { maxRequests: 12, windowSeconds: 300 });
+    if (requestMetadata.ip) {
+      await rateLimiter.consume(`ip:${requestMetadata.ip}`, { maxRequests: 60, windowSeconds: 300 });
+    }
+    await rateLimiter.consume("global", { maxRequests: 500, windowSeconds: 60 });
+
     const {
       items,
       payment_method,
@@ -242,7 +256,7 @@ Deno.serve(async (req) => {
       const { data: existingSub, error: existingSubError } = await actor.adminClient
         .from("tok_one_subscriptions")
         .select("id, status, current_period_end")
-        .eq("user_id", actor.userId!)
+        .eq("user_id", actor.userId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -492,7 +506,7 @@ Deno.serve(async (req) => {
 
         const pricing = await buildVerifiedOrderPricing({
           adminClient: actor.adminClient,
-          userId: actor.userId!,
+          userId: actor.userId,
           restaurantId: groupRestaurantId,
           items: restaurantItems,
           deliveryFee: deliveryFeeShare,

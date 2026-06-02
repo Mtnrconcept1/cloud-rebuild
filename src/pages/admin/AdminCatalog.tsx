@@ -9,6 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowDown, ArrowUp, ImagePlus, Layers, Pencil, Plus, Tag, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  IMAGE_MIME_EXTENSIONS,
+  MAX_IMAGE_UPLOAD_BYTES,
+  assertSafeFileUpload,
+  getSafeUploadExtension,
+} from "@/lib/uploadSecurity";
 
 const supabase = getSupabase();
 
@@ -85,7 +91,19 @@ export default function AdminCatalog() {
   }, [collectionsRaw]);
 
   const uploadCatalogMedia = async (file: File) => {
-    const path = `catalog/${crypto.randomUUID()}-${file.name}`;
+    try {
+      assertSafeFileUpload(file, {
+        allowedMimeTypes: IMAGE_MIME_EXTENSIONS,
+        maxBytes: MAX_IMAGE_UPLOAD_BYTES,
+        label: "Image catalogue",
+      });
+    } catch (error) {
+      toast({ title: "Upload refuse", description: error instanceof Error ? error.message : "Fichier non autorise.", variant: "destructive" });
+      return;
+    }
+
+    const extension = getSafeUploadExtension(file, IMAGE_MIME_EXTENSIONS);
+    const path = `catalog/${crypto.randomUUID()}.${extension}`;
     const { error } = await supabase.storage.from("catalog-media").upload(path, file, { upsert: false });
     if (error) {
       toast({ title: "Erreur upload", description: error.message, variant: "destructive" });

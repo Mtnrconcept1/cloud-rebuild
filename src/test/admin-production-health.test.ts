@@ -46,13 +46,20 @@ describe("admin production health", () => {
     expect(fn).toContain("send-email-worker");
     expect(fn).toContain("tok-close-due-match-groups");
     expect(fn).toContain("tok-sync-social-post-promotions");
+    expect(fn).toContain("tok-reconcile-paid-order-checkouts");
     expect(fn).toContain("stripe-webhook");
     expect(fn).toContain("create-checkout");
+    expect(fn).toContain("complete-order-checkout");
+    expect(fn).toContain("reconcile-paid-order-checkouts");
     expect(fn).toContain("capture-due-match-groups");
     expect(fn).toContain("reconcile-match-group-authorizations");
     expect(fn).toContain("internal_cron_secret");
     expect(fn).toContain("get_payment_integrity_anomalies");
     expect(fn).toContain("admin_supabase_advisor_snapshots");
+    expect(fn).toContain("paidOrdersNotFinalized");
+    expect(fn).toContain("notificationQueue");
+    expect(fn).toContain("notification_deliveries");
+    expect(fn).toContain("email_queue");
   });
 
   it("stores compact Supabase advisor snapshots for the admin health panel", () => {
