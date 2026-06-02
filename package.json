@@ -22,6 +22,7 @@
     "test:prod": "vitest run --mode production",
     "test:watch": "vitest",
     "release:readiness": "node ./scripts/release-readiness.mjs",
+    "scale:readiness": "node ./scripts/scale-readiness-check.mjs",
     "supabase:doctor": "node ./scripts/supabase-doctor.mjs",
     "supabase:doctor:prod": "node ./scripts/supabase-doctor.mjs --mode=production",
     "supabase:doctor:all": "node ./scripts/supabase-doctor.mjs --mode=all",
