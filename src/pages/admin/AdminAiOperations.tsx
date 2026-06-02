@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Activity, AlertTriangle, Brain, Clock, ShieldAlert, Ticket, Zap } from "lucide-react";
+import { Activity, AlertTriangle, Brain, Clock, FileDown, ShieldAlert, Ticket, Zap } from "lucide-react";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,21 @@ const DEFAULT_DRAFT: AdminAiOperationsDraft = {
   action: "health",
   result: null,
 };
+
+function exportAdminAiOperationsReport(result: AdminMonitorResult, action: AdminAiOperationsDraft["action"]) {
+  const payload = {
+    exported_at: new Date().toISOString(),
+    action,
+    result,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `tok-ai-operations-${action}-${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AdminAiOperations() {
   const [draft, setDraft, clearDraft] = useSessionStorageState<AdminAiOperationsDraft>(
@@ -77,9 +92,15 @@ export default function AdminAiOperations() {
             <Badge variant="secondary">Restaurants avec incidents répétés</Badge>
             <Badge variant="outline">Actions recommandées</Badge>
             {result ? (
-              <Button type="button" variant="ghost" size="sm" onClick={clearDraft}>
-                Effacer le rapport
-              </Button>
+              <>
+                <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => exportAdminAiOperationsReport(result, action)}>
+                  <FileDown className="h-4 w-4" />
+                  Export rapport IA
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={clearDraft}>
+                  Effacer le rapport
+                </Button>
+              </>
             ) : null}
           </div>
         </CardContent>

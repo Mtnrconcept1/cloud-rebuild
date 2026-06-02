@@ -187,6 +187,9 @@ describe("TOK AI platform plan", () => {
       "Temps de réponse moyen",
       "Taux d'escalade humaine",
       "Actions recommandées",
+      "Export rapport IA",
+      "exportAdminAiOperationsReport",
+      "application/json",
     ]) {
       expect(adminAiOperations).toContain(text);
     }
