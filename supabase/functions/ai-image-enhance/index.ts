@@ -68,7 +68,7 @@ const TOK_BRAND_LOGO_URL = sanitizeConfiguredUrl(Deno.env.get("TOK_BRAND_LOGO_UR
 const SOURCE_IMAGE_EDIT_PROMPT =
   "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image.";
 const TOK_BRAND_LOGO_PROMPT =
-  "Ajoute le logo TOK officiel fourni en image de référence comme un petit marquage discret, idéalement en haut à gauche. Si cette zone masque le produit ou déséquilibre la composition, place-le dans le coin libre le plus naturel. Le logo doit rester lisible, propre, sans être recréé approximativement et sans couvrir les aliments.";
+  "Ajoute le logo TOK officiel fourni en image de référence comme un petit marquage discret, idéalement en haut à gauche. Si cette zone masque le produit ou déséquilibre la composition, place-le dans le coin libre le plus naturel. Le logo doit être entièrement visible, avec une marge intérieure nette autour de lui; ne jamais le coller au bord ni le couper. Le logo doit rester lisible, propre, sans être recréé approximativement et sans couvrir les aliments.";
 
 const TOK_PHOTO_DNA = `
 Charte graphique TOK pour retouche premium fidele:
@@ -83,7 +83,7 @@ Charte graphique TOK pour retouche premium fidele:
 - composition: conserver une composition proche de la scene source; ameliorer seulement le cadrage lorsque cela ne change pas l'identite;
 - lumiere chaude directionnelle, contraste maitrise, blancs propres, textures visibles, reflets propres et naturels;
 - style avant/apres: meme photo, meme sujet, mais plus premium, plus nette, mieux eclairee et plus vendable;
-- ajouter uniquement le logo TOK officiel quand il est fourni en reference, en haut a gauche ou dans un coin libre selon la disposition du produit;
+- ajouter uniquement le logo TOK officiel quand il est fourni en reference, en haut a gauche ou dans un coin libre selon la disposition du produit, avec une marge interieure et sans jamais couper le logo;
 - ne pas ajouter de texte, prix, faux logo tiers, fausse certification, visage, main, emballage concurrent ou claim medical;
 - controle qualite final: au premier regard, l'utilisateur doit reconnaitre le sujet source exact.
 Dossier de references visuelles du projet: public${TOK_REFERENCE_FOLDER}.

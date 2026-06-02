@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ImageUpload from "@/components/ImageUpload";
@@ -9,11 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
 import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
-import { CheckCircle2, Loader2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 
 const supabase = getSupabase();
 const STUDIO_BRIEF =
-  "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image. Ajoute le logo TOK en haut à gauche ou dans le coin libre le plus naturel selon la disposition du produit.";
+  "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image. Ajoute le logo TOK en haut à gauche ou dans le coin libre le plus naturel selon la disposition du produit, entièrement visible et avec une marge intérieure.";
 
 type Props = {
   restaurantId: string | null | undefined;
@@ -52,6 +53,18 @@ function formatPhotoGenerationError(error: unknown) {
   }
 
   return message || "Génération impossible";
+}
+
+function buildTokPhotoDownloadFileName(dishName: string) {
+  const normalized = dishName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
+  return `${normalized || "visuel-tok"}-tok.png`;
 }
 
 function WineGlassGenerationLoader() {
@@ -150,7 +163,10 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const storageKey = `tok-ai-photo-studio-v2:${restaurantId || "pending"}`;
   const [draft, setDraft, clearDraft] = useSessionStorageState<PhotoStudioDraft>(storageKey, DEFAULT_DRAFT);
   const [loading, setLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const result = draft.result;
+  const generatedImageUrl = result?.gallery_image_url || result?.generated_image_url || "";
+  const downloadFileName = buildTokPhotoDownloadFileName(draft.dishName || result?.title || "visuel-tok");
 
   const updateDraft = (nextDraft: Partial<PhotoStudioDraft>) => {
     setDraft((previous) => ({ ...previous, ...nextDraft }));
@@ -164,6 +180,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     }
 
     setLoading(true);
+    setPreviewOpen(false);
     updateDraft({ result: null });
     try {
       const data = await generateTokDishImage({
@@ -207,6 +224,34 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     toast({ title: "Ajouté à la galerie" });
     onGalleryUpdated();
+  };
+
+  const downloadGeneratedPhoto = async () => {
+    if (!generatedImageUrl) return;
+
+    try {
+      const response = await fetch(generatedImageUrl);
+      if (!response.ok) throw new Error("download_failed");
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = downloadFileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    } catch {
+      const link = document.createElement("a");
+      link.href = generatedImageUrl;
+      link.download = downloadFileName;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
   };
 
   return (
@@ -284,11 +329,63 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
             <CardContent>
               <div className="grid gap-3 md:grid-cols-2">
                 <div><p className="mb-2 text-sm font-semibold">Avant</p><img src={draft.sourceImageUrl} alt="Photo source" className="aspect-video w-full rounded-xl border object-cover" /></div>
-                {result.generated_image_url ? <div><p className="mb-2 text-sm font-semibold">Après TOK</p><img src={result.generated_image_url} alt={result.alt_text || "Visuel TOK"} className="aspect-video w-full rounded-xl border object-cover" /></div> : null}
+                {generatedImageUrl ? (
+                  <div>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold">Après TOK</p>
+                      <Button type="button" variant="outline" size="sm" onClick={downloadGeneratedPhoto} className="gap-2">
+                        <Download className="h-4 w-4" />
+                        Télécharger
+                      </Button>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Agrandir le visuel TOK généré"
+                      onClick={() => setPreviewOpen(true)}
+                      className="group relative block aspect-video w-full overflow-hidden rounded-xl border bg-muted text-left"
+                    >
+                      <img
+                        src={generatedImageUrl}
+                        alt={result.alt_text || "Visuel TOK"}
+                        className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.01]"
+                      />
+                      <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white opacity-0 shadow-sm transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                        <Maximize2 className="h-3.5 w-3.5" />
+                        Agrandir
+                      </span>
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </CardContent>
           </Card>
         ) : null}
+
+        <Dialog open={previewOpen && Boolean(generatedImageUrl)} onOpenChange={setPreviewOpen}>
+          <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
+            <DialogHeader className="shrink-0 border-b px-4 py-4 pr-12 text-left sm:px-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <DialogTitle>Visuel TOK généré</DialogTitle>
+                  <DialogDescription>Prévisualisation grand format du visuel avant publication.</DialogDescription>
+                </div>
+                <Button type="button" variant="outline" onClick={downloadGeneratedPhoto} className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Télécharger
+                </Button>
+              </div>
+            </DialogHeader>
+            <div className="min-h-0 flex-1 bg-black p-3 sm:p-5">
+              {generatedImageUrl ? (
+                <img
+                  src={generatedImageUrl}
+                  alt={result?.alt_text || "Visuel TOK"}
+                  className="h-full w-full rounded-lg object-contain"
+                />
+              ) : null}
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
