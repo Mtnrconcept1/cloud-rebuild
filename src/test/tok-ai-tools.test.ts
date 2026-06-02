@@ -128,6 +128,9 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("TOK_BRAND_LOGO_URL");
     expect(source).toContain("TOK_BRAND_LOGO_PROMPT");
     expect(source).toContain("logo TOK officiel");
+    expect(source).toContain("entièrement visible");
+    expect(source).toContain("marge intérieure");
+    expect(source).toContain("ne jamais le coller au bord");
     expect(source).toContain('form.append("image[]", sourceBlob, "source.png")');
     expect(source).toContain('form.append("image[]", logoBlob, "tok-logo.png")');
     expect(source).toContain("tok_logo_reference_used");

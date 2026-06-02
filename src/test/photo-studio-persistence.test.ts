@@ -46,6 +46,17 @@ describe("TOK photo studio persistence", () => {
     expect(source).not.toContain("media_url: result.generated_image_url");
   });
 
+  it("lets generated TOK photos open in a large preview and download without losing the draft", () => {
+    expect(source).toContain("DialogContent");
+    expect(source).toContain("previewOpen");
+    expect(source).toContain("generatedImageUrl");
+    expect(source).toContain('aria-label="Agrandir le visuel TOK généré"');
+    expect(source).toContain("downloadGeneratedPhoto");
+    expect(source).toContain("URL.createObjectURL");
+    expect(source).toContain("Télécharger");
+    expect(source).toContain("object-contain");
+  });
+
   it("keeps dashboard photo uploads focused on files instead of manual image URLs", () => {
     expect(dashboardPhotos).toContain("showUrlInput={false}");
   });
