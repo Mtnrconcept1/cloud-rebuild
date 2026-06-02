@@ -99,6 +99,7 @@ describe("TOK AI platform plan", () => {
       "estimateAiCost",
       "getAiUsageForRestaurant",
       "getAiSubscriptionForRestaurant",
+      "getAccountingInsightsForRestaurant",
     ]) {
       expect(client).toContain(exportName);
     }
@@ -144,6 +145,18 @@ describe("TOK AI platform plan", () => {
     expect(supportChat).toContain("askClientSupport");
     expect(supportChat).toContain("escalated");
     expect(supportChat).toContain("waiting_tok");
+
+    const dashboardFactures = readProjectFile("src/pages/dashboard/DashboardFactures.tsx");
+    for (const text of [
+      "Comptabilité IA",
+      "Générer une synthèse IA",
+      "Historique des rapports IA",
+      "getAccountingInsightsForRestaurant",
+      "runAccountingAgent",
+    ]) {
+      expect(dashboardFactures).toContain(text);
+    }
+
     expect(supportChat).toContain("Ne jamais promettre remboursement");
 
     for (const text of [
@@ -232,6 +245,9 @@ describe("TOK AI platform plan", () => {
     expect(clientSupport).toContain("escalade humaine");
     expect(restaurantAgent).toContain("mode brouillon");
     expect(accountingAgent).toContain("aucune ecriture comptable");
+    expect(accountingAgent).toContain("requireRestaurantAccess(actor, restaurantId)");
+    expect(accountingAgent).toContain("requireUserRole(actor, [\"admin\"]");
+    expect(accountingAgent).not.toContain("requireUserRole(actor, [\"admin\"]);\n    if (!OPENAI_API_KEY)");
     expect(adminMonitor).toContain("aucune action destructive");
   });
 });

@@ -2,6 +2,7 @@ import {
   HttpError,
   authenticateRequest,
   jsonResponse,
+  requireRestaurantAccess,
   requireUserRole,
   writeAuditLog,
 } from "../_shared/auth.ts";
@@ -185,11 +186,17 @@ Deno.serve(async (req) => {
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
-    requireUserRole(actor, ["admin"]);
-    if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
-
     const body = await req.json().catch(() => ({}));
     restaurantId = maybeUuid(body.restaurantId);
+
+    if (restaurantId) {
+      await requireRestaurantAccess(actor, restaurantId);
+    } else {
+      requireUserRole(actor, ["admin"]);
+    }
+
+    if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
+
     action = sanitizeAction(body.action);
     const period = parsePeriod(body.month);
 
@@ -221,14 +228,6 @@ Deno.serve(async (req) => {
       .limit(400);
     if (restaurantId) ordersQuery.eq("restaurant_id", restaurantId);
 
-    const paymentsQuery = actor.adminClient
-      .from("payment_transactions")
-      .select("id, order_id, amount, status, type, metadata, created_at, stripe_payment_intent_id, stripe_checkout_session_id")
-      .gte("created_at", `${period.start}T00:00:00Z`)
-      .lte("created_at", `${period.end}T23:59:59Z`)
-      .order("created_at", { ascending: false })
-      .limit(300);
-
     const usageQuery = actor.adminClient
       .from("ai_usage_logs")
       .select("function_name, action, feature_name, restaurant_id, status, total_tokens, estimated_cost_chf, created_at")
@@ -238,22 +237,40 @@ Deno.serve(async (req) => {
       .limit(300);
     if (restaurantId) usageQuery.eq("restaurant_id", restaurantId);
 
-    const [invoicesResult, ordersResult, paymentsResult, usageResult] = await Promise.all([
+    const [invoicesResult, ordersResult, usageResult] = await Promise.all([
       invoicesQuery,
       ordersQuery,
-      paymentsQuery,
       usageQuery,
     ]);
 
     if (invoicesResult.error) throw new HttpError(500, invoicesResult.error.message);
     if (ordersResult.error) throw new HttpError(500, ordersResult.error.message);
-    if (paymentsResult.error) throw new HttpError(500, paymentsResult.error.message);
     if (usageResult.error) throw new HttpError(500, usageResult.error.message);
 
     const orders = ordersResult.data || [];
     const invoices = invoicesResult.data || [];
     const aiUsage = usageResult.data || [];
-    const payments = ((paymentsResult.data || []) as Array<Record<string, unknown>>).map((payment) => ({
+    let paymentRows: Array<Record<string, unknown>> = [];
+
+    if (!restaurantId || orders.length > 0) {
+      const paymentsQuery = actor.adminClient
+        .from("payment_transactions")
+        .select("id, order_id, amount, status, type, metadata, created_at, stripe_payment_intent_id, stripe_checkout_session_id")
+        .gte("created_at", `${period.start}T00:00:00Z`)
+        .lte("created_at", `${period.end}T23:59:59Z`)
+        .order("created_at", { ascending: false })
+        .limit(300);
+
+      if (restaurantId) {
+        paymentsQuery.in("order_id", orders.map((order: Record<string, unknown>) => String(order.id)).filter(Boolean));
+      }
+
+      const paymentsResult = await paymentsQuery;
+      if (paymentsResult.error) throw new HttpError(500, paymentsResult.error.message);
+      paymentRows = (paymentsResult.data || []) as Array<Record<string, unknown>>;
+    }
+
+    const payments = paymentRows.map((payment) => ({
       ...payment,
       provider: getPaymentProvider(payment),
     }));

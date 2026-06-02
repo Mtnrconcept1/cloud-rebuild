@@ -1,19 +1,193 @@
 import { Link } from "react-router-dom";
-import { ArrowDownRight, ArrowUpRight, Coins, HandCoins, Megaphone, ReceiptText, Settings, Wallet } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowDownRight, ArrowUpRight, Bot, Coins, FileDown, HandCoins, History, Loader2, Megaphone, ReceiptText, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import { Badge } from "@/components/ui/badge";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
+import { getAccountingInsightsForRestaurant, runAccountingAgent, type AccountingAgentResult } from "@/lib/ai/tokAiClient";
 import {
   formatAmount,
   useDashboardFacturesData,
 } from "./dashboardFacturesShared";
 
+type DashboardAccountingAiDraft = {
+  month: string;
+  result: AccountingAgentResult | null;
+};
+
+function getCurrentMonth() {
+  return new Date().toISOString().slice(0, 7);
+}
+
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   return error ? String(error) : "";
+}
+
+function downloadMarkdown(filename: string, markdown: string) {
+  const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatInsightPeriod(start: string, end: string) {
+  return `${start.slice(0, 7)} (${start} - ${end})`;
+}
+
+function getInsightExportMarkdown(metadata: Record<string, unknown> | null | undefined, summary: string) {
+  const exportMarkdown = metadata?.export_markdown;
+  return typeof exportMarkdown === "string" && exportMarkdown.trim() ? exportMarkdown : summary;
+}
+
+function DashboardAccountingAiPanel({
+  restaurantId,
+  restaurantName,
+}: {
+  restaurantId: string;
+  restaurantName: string;
+}) {
+  const [draft, setDraft] = useSessionStorageState<DashboardAccountingAiDraft>(
+    `tok-dashboard-compta-ai-${restaurantId}`,
+    { month: getCurrentMonth(), result: null },
+  );
+
+  const historyQuery = useQuery({
+    queryKey: ["dashboard-ai-accounting-insights", restaurantId],
+    queryFn: () => getAccountingInsightsForRestaurant(restaurantId),
+    enabled: !!restaurantId,
+  });
+
+  const accountingMutation = useMutation({
+    mutationFn: () => runAccountingAgent({
+      restaurantId,
+      month: draft.month,
+      action: "monthly_summary",
+    }),
+    onSuccess: (result) => {
+      setDraft((current) => ({ ...current, result }));
+      void historyQuery.refetch();
+    },
+  });
+
+  const result = draft.result;
+  const history = historyQuery.data || [];
+
+  return (
+    <AccountingPanel
+      tone="sky"
+      icon={Bot}
+      eyebrow="IA"
+      title="Comptabilité IA"
+      description={`Synthèse mensuelle, anomalies, impayés, prévision et recommandations pour ${restaurantName}.`}
+      value={history.length ? `${history.length}` : undefined}
+      valueLabel={history.length ? "rapports" : undefined}
+    >
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,12rem)_auto_auto]">
+        <Input
+          aria-label="Mois du rapport IA comptable"
+          type="month"
+          value={draft.month}
+          onChange={(event) => setDraft((current) => ({ ...current, month: event.target.value || getCurrentMonth() }))}
+        />
+        <Button
+          type="button"
+          className="gap-2"
+          onClick={() => accountingMutation.mutate()}
+          disabled={accountingMutation.isPending}
+        >
+          {accountingMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
+          Générer une synthèse IA
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="gap-2"
+          disabled={!result}
+          onClick={() => {
+            if (!result) return;
+            downloadMarkdown(`tok-compta-ia-${restaurantId}-${draft.month}.md`, result.export_markdown || result.summary);
+          }}
+        >
+          <FileDown className="h-4 w-4" />
+          Exporter
+        </Button>
+      </div>
+
+      {accountingMutation.error ? (
+        <p className="text-sm text-destructive">{getErrorMessage(accountingMutation.error)}</p>
+      ) : null}
+
+      {result ? (
+        <div className="space-y-3 rounded-2xl border bg-background/70 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">Brouillon</Badge>
+            <Badge variant="outline">{draft.month}</Badge>
+          </div>
+          <p className="text-sm leading-6 text-muted-foreground">{result.summary}</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-xl border p-3">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Prévision CA</p>
+              <p className="mt-1 text-sm">{result.revenue_forecast}</p>
+            </div>
+            <div className="rounded-xl border p-3">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Actions recommandées</p>
+              <ul className="mt-1 space-y-1 text-sm">
+                {result.recommended_actions.slice(0, 3).map((action) => (
+                  <li key={action}>{action}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <History className="h-4 w-4" />
+          Historique des rapports IA
+        </div>
+        {historyQuery.isLoading ? (
+          <p className="text-sm text-muted-foreground">Chargement de l'historique IA...</p>
+        ) : null}
+        {!historyQuery.isLoading && history.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun rapport IA enregistré pour ce restaurant.</p>
+        ) : null}
+        {history.map((insight) => (
+          <div key={insight.id} className="rounded-2xl border bg-background/70 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold">{formatInsightPeriod(insight.period_start, insight.period_end)}</p>
+                <p className="line-clamp-2 text-sm text-muted-foreground">{insight.summary}</p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() => downloadMarkdown(
+                  `tok-compta-ia-${restaurantId}-${insight.period_start.slice(0, 7)}.md`,
+                  getInsightExportMarkdown(insight.metadata, insight.summary),
+                )}
+              >
+                <FileDown className="h-4 w-4" />
+                Export
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </AccountingPanel>
+  );
 }
 
 export default function DashboardFactures() {
@@ -124,6 +298,11 @@ export default function DashboardFactures() {
                   helper: "A recevoir moins a payer.",
                 },
               ]}
+            />
+
+            <DashboardAccountingAiPanel
+              restaurantId={selectedRestaurant.id}
+              restaurantName={selectedRestaurant.name}
             />
 
             <div className="grid gap-4 xl:grid-cols-2">
