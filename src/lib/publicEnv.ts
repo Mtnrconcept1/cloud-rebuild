@@ -5,6 +5,8 @@ export const REQUIRED_SUPABASE_PUBLIC_ENV_KEYS = [
 
 export type RequiredSupabasePublicEnvKey = (typeof REQUIRED_SUPABASE_PUBLIC_ENV_KEYS)[number];
 
+type SupabasePublicEnv = Partial<Record<RequiredSupabasePublicEnvKey | "VITE_SUPABASE_ANON_KEY", unknown>>;
+
 function stripWrappingQuotes(value: string) {
   if (
     (value.startsWith('"') && value.endsWith('"')) ||
@@ -21,18 +23,23 @@ export function sanitizeEnvValue(value: unknown) {
   return stripWrappingQuotes(value.trim()).replace(/[\r\n]+/g, "").trim();
 }
 
-export function getMissingSupabasePublicEnvKeys(
-  env: Partial<Record<RequiredSupabasePublicEnvKey, unknown>>,
-) {
-  return REQUIRED_SUPABASE_PUBLIC_ENV_KEYS.filter((key) => !sanitizeEnvValue(env[key]));
+function resolveSupabasePublishableKey(env: SupabasePublicEnv) {
+  return sanitizeEnvValue(env.VITE_SUPABASE_PUBLISHABLE_KEY) || sanitizeEnvValue(env.VITE_SUPABASE_ANON_KEY);
+}
+
+export function getMissingSupabasePublicEnvKeys(env: SupabasePublicEnv) {
+  const missing: string[] = [];
+  if (!sanitizeEnvValue(env.VITE_SUPABASE_URL)) missing.push("VITE_SUPABASE_URL");
+  if (!resolveSupabasePublishableKey(env)) missing.push("VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY");
+  return missing;
 }
 
 export function readSupabasePublicEnv(
-  env: Partial<Record<RequiredSupabasePublicEnvKey, unknown>>,
+  env: SupabasePublicEnv,
   context: string,
 ) {
   const url = sanitizeEnvValue(env.VITE_SUPABASE_URL);
-  const publishableKey = sanitizeEnvValue(env.VITE_SUPABASE_PUBLISHABLE_KEY);
+  const publishableKey = resolveSupabasePublishableKey(env);
   const missing = getMissingSupabasePublicEnvKeys(env);
 
   if (missing.length) {
