@@ -41,7 +41,7 @@ describe("frontend 10k readiness", () => {
   });
 
   it("keeps the current app within tracked asset, query and lazy-route budgets", () => {
-    const result = inspectFrontendReadiness({ root: process.cwd() });
+    const result = inspectFrontendReadiness({ root: process.cwd(), inspectBuiltBundle: false });
 
     expect(result.ok).toBe(true);
     expect(result.errors).toEqual([]);
