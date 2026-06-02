@@ -28,7 +28,9 @@ export function inspectFrontendReadiness(options = {}) {
   inspectPublicAssets(root, files, errors, summary);
   inspectSupabaseRowCaps(root, files, errors, summary);
   inspectRouteLazyLoading(root, files, errors, warnings, summary);
-  inspectBuiltBundle(root, errors, warnings);
+  if (options.inspectBuiltBundle !== false) {
+    inspectBuiltBundle(root, errors, warnings);
+  }
 
   return {
     ok: errors.length === 0,

@@ -198,16 +198,12 @@ export default function DashboardAdvisor() {
       return data.markdown;
     }
 
-    if (typeof data.enhanced_prompt === "string") {
-      return [
-        `### ${data.title || toolLabel}`,
-        data.edit_instructions ? `**Instructions**\n${data.edit_instructions}` : "",
-        data.enhanced_prompt ? `**Prompt visuel**\n${data.enhanced_prompt}` : "",
-        data.publication_caption ? `**Legende**\n${data.publication_caption}` : "",
-        Array.isArray(data.checklist) && data.checklist.length > 0
-          ? `**Checklist**\n${data.checklist.map((item: string) => `- ${item}`).join("\n")}`
-          : "",
-      ].filter(Boolean).join("\n\n");
+    const imageUrl =
+      (typeof data.gallery_image_url === "string" && data.gallery_image_url.trim()) ||
+      (typeof data.generated_image_url === "string" && data.generated_image_url.trim());
+
+    if (imageUrl) {
+      return `![${data.alt_text || data.title || toolLabel}](${imageUrl})`;
     }
 
     return [
@@ -249,6 +245,8 @@ export default function DashboardAdvisor() {
           action: tool.action,
           prompt: tool.prompt,
           assetType: tool.endpoint === "ai-image-enhance" ? "menu_visual" : undefined,
+          generateImage: tool.endpoint === "ai-image-enhance" ? true : undefined,
+          imageOnly: tool.endpoint === "ai-image-enhance" ? true : undefined,
         }),
       });
 

@@ -1,4 +1,5 @@
 import { getSupabase } from "@/integrations/supabase/client";
+import { invokeSupabaseFunction } from "@/lib/session";
 
 const supabase = getSupabase();
 
@@ -64,7 +65,7 @@ export type TokImageGenerationResult = {
   storage_bucket: string | null;
   storage_path: string | null;
   model: string;
-  image_mode?: "interactive_fast" | "configured" | "brief_only";
+  image_mode?: "interactive_fast" | "configured";
   reference_folder: string;
   status: "generated" | "stored";
 };
@@ -124,21 +125,8 @@ export type RestaurantAiSubscription = {
   metadata?: JsonRecord | null;
 };
 
-async function getAuthorizationHeader() {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) throw error;
-
-  const token = data.session?.access_token;
-  if (!token) {
-    throw new Error("Session utilisateur requise pour utiliser l'IA TOK.");
-  }
-
-  return { Authorization: `Bearer ${token}` };
-}
-
 async function invokeTokAiFunction<T>(functionName: string, body: JsonRecord): Promise<T> {
-  const headers = await getAuthorizationHeader();
-  const { data, error } = await supabase.functions.invoke(functionName, { body, headers });
+  const { data, error } = await invokeSupabaseFunction<T>(functionName, { body });
 
   if (error) throw error;
   return data as T;

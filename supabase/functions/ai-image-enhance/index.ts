@@ -8,13 +8,7 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
-import {
-  OPENAI_API_KEY,
-  createOpenAIResponse,
-  extractUsage,
-  parseStructuredOutput,
-  selectTokAiModel,
-} from "../_shared/openai.ts";
+import { OPENAI_API_KEY } from "../_shared/openai.ts";
 
 type ImageEnhanceResult = {
   title: string;
@@ -68,7 +62,6 @@ const INTERACTIVE_IMAGE_QUALITY = normalizeInteractiveImageQuality(Deno.env.get(
 const INTERACTIVE_IMAGE_SIZE = normalizeInteractiveImageSize(Deno.env.get("TOK_INTERACTIVE_IMAGE_SIZE")?.trim());
 const INTERACTIVE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_INTERACTIVE_IMAGE_TIMEOUT_MS", 42_000, 50_000);
 const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS", 12_000, 30_000);
-const USE_AI_IMAGE_BRIEF = readEnvFlag("TOK_IMAGE_USE_AI_BRIEF", true);
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
@@ -90,33 +83,6 @@ Charte graphique TOK pour retouche premium fidele:
 - controle qualite final: au premier regard, l'utilisateur doit reconnaitre le sujet source exact.
 Dossier de references visuelles du projet: public${TOK_REFERENCE_FOLDER}.
 `;
-
-const OUTPUT_SCHEMA = {
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "title",
-    "enhanced_prompt",
-    "edit_instructions",
-    "alt_text",
-    "publication_caption",
-    "checklist",
-    "style_tags",
-    "safety_notes",
-    "marketing_angles",
-  ],
-  properties: {
-    title: { type: "string" },
-    enhanced_prompt: { type: "string" },
-    edit_instructions: { type: "string" },
-    alt_text: { type: "string" },
-    publication_caption: { type: "string" },
-    checklist: { type: "array", items: { type: "string" } },
-    style_tags: { type: "array", items: { type: "string" } },
-    safety_notes: { type: "array", items: { type: "string" } },
-    marketing_angles: { type: "array", items: { type: "string" } },
-  },
-};
 
 function maybeUuid(raw: unknown) {
   return typeof raw === "string" && /^[0-9a-f-]{36}$/i.test(raw) ? raw : null;
@@ -152,16 +118,18 @@ function normalizeInteractiveImageSize(raw: string | undefined) {
   return raw === "1024x1024" || raw === "1536x1024" || raw === "1024x1536" ? raw : "1024x1024";
 }
 
+function buildConfiguredImageRequestOptions(formatSize: string): ImageRequestOptions {
+  return {
+    model: IMAGE_MODEL,
+    quality: IMAGE_QUALITY,
+    size: formatSize,
+    timeoutMs: IMAGE_TIMEOUT_MS,
+    mode: "configured",
+  };
+}
+
 function buildImageRequestOptions(formatSize: string): ImageRequestOptions {
-  if (!USE_FAST_INTERACTIVE_IMAGE) {
-    return {
-      model: IMAGE_MODEL,
-      quality: IMAGE_QUALITY,
-      size: formatSize,
-      timeoutMs: IMAGE_TIMEOUT_MS,
-      mode: "configured",
-    };
-  }
+  if (!USE_FAST_INTERACTIVE_IMAGE) return buildConfiguredImageRequestOptions(formatSize);
 
   return {
     model: INTERACTIVE_IMAGE_MODEL,
@@ -295,7 +263,7 @@ function logOpenAIImageError(operation: "image_generation" | "image_edit", detai
   });
 }
 
-function buildFallbackImageResult(input: {
+function buildImageOnlyResult(input: {
   restaurantName: string;
   dishName: string;
   userPrompt: string;
@@ -303,7 +271,7 @@ function buildFallbackImageResult(input: {
   sourceImagePresent: boolean;
 }): ImageEnhanceResult {
   const dishLabel = input.dishName || "produit ou plat du restaurant";
-  const title = input.dishName ? `Visuel TOK - ${input.dishName}` : "Visuel TOK pret";
+  const title = input.dishName ? `Visuel TOK - ${input.dishName}` : "Visuel TOK";
   const enhancedPrompt = [
     `Retouche photo TOK premium fidele pour ${dishLabel}.`,
     input.userPrompt,
@@ -317,35 +285,8 @@ function buildFallbackImageResult(input: {
   return {
     title,
     enhanced_prompt: enhancedPrompt,
-    edit_instructions: "Version TOK premium fidele: meme sujet, memes textes/logos si presents, lumiere et nettete ameliorees sans changement de produit.",
-    alt_text: `Visuel TOK premium pour ${dishLabel}`,
-    publication_caption: input.dishName
-      ? `${input.dishName} en version TOK: plus net, plus premium, fidele a l'original.`
-      : "Nouveau visuel TOK pret pour votre galerie restaurant.",
-    checklist: [
-      "Meme sujet que la source",
-      "Textes et logos preserves si presents",
-      "Packaging ou contenant preserve",
-      "Lumiere plus propre",
-      "Aucun changement de plat",
-    ],
-    style_tags: ["tok", "retouche-fidele", "food-premium", "studio-photo", input.format],
-    safety_notes: ["Pas de texte invente", "Pas de logo modifie", "Pas de marque concurrente"],
-    marketing_angles: [
-      "Photo plus premium sans denaturer le produit",
-      "Visuel plus vendeur tout en restant fidele",
-      "Rendu coherent avec une galerie restaurant haut de gamme",
-    ],
-  };
-}
-
-function buildImageOnlyResult(input: Parameters<typeof buildFallbackImageResult>[0]): ImageEnhanceResult {
-  const fallback = buildFallbackImageResult(input);
-  return {
-    title: fallback.title,
-    enhanced_prompt: fallback.enhanced_prompt,
     edit_instructions: "",
-    alt_text: fallback.alt_text,
+    alt_text: `Visuel TOK premium pour ${dishLabel}`,
     publication_caption: "",
     checklist: [],
     style_tags: ["tok", "image-only", input.format],
@@ -499,7 +440,7 @@ async function insertUsage(
     restaurantId?: string | null;
     assetId?: string | null;
     model?: string;
-    usage?: ReturnType<typeof extractUsage>;
+    usage?: { input_tokens?: number; output_tokens?: number; total_tokens?: number };
     imageCount?: number;
     metadata?: Record<string, unknown>;
   },
@@ -518,21 +459,6 @@ async function insertUsage(
     estimated_cost_chf: estimateCostChf(payload.usage?.input_tokens, payload.usage?.output_tokens, payload.imageCount || 0),
     metadata: payload.metadata || {},
   });
-}
-
-function buildGeneratedTextMetadata(result: ImageEnhanceResult, imageOnly: boolean) {
-  if (!imageOnly) {
-    return {
-      edit_instructions: result.edit_instructions,
-      alt_text: result.alt_text,
-      publication_caption: result.publication_caption,
-      checklist: result.checklist,
-      style_tags: result.style_tags,
-      safety_notes: result.safety_notes,
-      marketing_angles: result.marketing_angles,
-    };
-  }
-  return {};
 }
 
 Deno.serve(async (req) => {
@@ -559,197 +485,147 @@ Deno.serve(async (req) => {
     const format = normalizeFormat(body.format);
     const variantCount = clampVariantCount(body.variantCount);
     const generateImage = body.generateImage !== false;
-    const imageOnly = body.imageOnly === true;
+    const imageOnly = true;
 
     if (!restaurantId) throw new HttpError(400, "restaurant_required");
+    if (!generateImage) throw new HttpError(400, "image_generation_required");
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
 
     const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
-    await rl.consume(`user:${actor.userId}`, { maxRequests: 10, windowSeconds: 3600 });
-    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 25, windowSeconds: 3600 });
-    await rl.consume("global", { maxRequests: 100, windowSeconds: 60 });
+    await rl.consume(`user:${actor.userId}`, { maxRequests: 40, windowSeconds: 3600 });
+    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 80, windowSeconds: 3600 });
+    await rl.consume("global", { maxRequests: 120, windowSeconds: 60 });
 
-    const { data: profile } = await actor.adminClient
-      .from("restaurant_ai_profiles")
-      .select("brand_tone, specialties, visual_style, default_language, guardrails")
-      .eq("restaurant_id", restaurantId)
-      .maybeSingle();
-
-    const creativeContext = {
-      restaurant: {
-        id: restaurant.id,
-        name: restaurant.name,
-        city: restaurant.city,
-        cuisine_type: restaurant.cuisine_type,
-      },
-      ai_profile: profile || null,
-      dish_name: dishName || null,
-      user_objective: prompt,
-      asset_type: assetType,
-      requested_format: format.label,
-      reference_folder: `public${TOK_REFERENCE_FOLDER}`,
-      source_image_present: Boolean(sourceImageUrl),
-      source_preservation_policy: {
-        mandatory: Boolean(sourceImageUrl),
-        model: IMAGE_MODEL,
-        rule: "Edition stricte de l'image source. Conserver sujet, textes, logos, packaging, contenant, forme, couleurs et type exact de nourriture.",
-      },
-      tok_style_dna: TOK_PHOTO_DNA,
-    };
-
-    let result: ImageEnhanceResult;
-    let usage: ReturnType<typeof extractUsage> | undefined;
-    let briefSource = "local";
-
-    if (imageOnly && generateImage) {
-      result = buildImageOnlyResult({
-        restaurantName: restaurant.name || "Restaurant TOK",
-        dishName,
-        userPrompt: prompt,
-        format: format.label,
-        sourceImagePresent: Boolean(sourceImageUrl),
-      });
-      briefSource = "image_only";
-    } else if (generateImage && !USE_AI_IMAGE_BRIEF) {
-      result = buildFallbackImageResult({
-        restaurantName: restaurant.name || "Restaurant TOK",
-        dishName,
-        userPrompt: prompt,
-        format: format.label,
-        sourceImagePresent: Boolean(sourceImageUrl),
-      });
-    } else {
-      const systemPrompt = `Tu es le directeur artistique food premium de TOK.
-Tu ne dois pas reinventer l'image. Tu dois produire un brief de retouche fidele.
-Quand une image source existe, le sujet source doit rester identique.
-Les textes, logos, etiquettes, inscriptions et marques visibles doivent rester intacts et lisibles.
-Une salade doit rester une salade, une bouteille doit rester la meme bouteille, un dessert doit rester le meme dessert.
-Interdiction de proposer une lasagne, une barquette, un burger, une pizza ou un autre plat si ce n'est pas le sujet source.
-${TOK_PHOTO_DNA}`;
-
-      const userContent = sourceImageUrl
-        ? [
-          { type: "input_text", text: JSON.stringify(creativeContext) },
-          { type: "input_image", image_url: sourceImageUrl },
-        ]
-        : JSON.stringify(creativeContext);
-
-      const openAIResponse = await createOpenAIResponse({
-        model: selectTokAiModel("image_premium"),
-        input: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
-        ],
-        maxOutputTokens: 1400,
-        jsonSchema: {
-          name: "tok_image_enhancement_brief",
-          description: "TOK branded restaurant image retouch brief with strict source fidelity.",
-          schema: OUTPUT_SCHEMA,
-        },
-      });
-
-      result = parseStructuredOutput<ImageEnhanceResult>(openAIResponse);
-      usage = extractUsage(openAIResponse);
-      briefSource = "openai";
-    }
+    const result = buildImageOnlyResult({
+      restaurantName: restaurant.name || "Restaurant TOK",
+      dishName,
+      userPrompt: prompt,
+      format: format.label,
+      sourceImagePresent: Boolean(sourceImageUrl),
+    });
+    const briefSource = "image_only";
 
     let generated: GeneratedImage | null = null;
-    const generatedImageOptions = generateImage ? buildImageRequestOptions(format.size) : null;
+    const generatedImageOptions = buildImageRequestOptions(format.size);
+    let usedImageOptions: ImageRequestOptions | null = null;
+    let imageEditFallbackUsed = false;
+    let sourceEditUsed = false;
 
-    if (generateImage) {
-      if (!generatedImageOptions) throw new HttpError(500, "image_options_missing");
-      const imageOptions = generatedImageOptions;
-      const finalPrompt = [
-        result.enhanced_prompt,
-        "",
-        "Contraintes finales non negociables:",
-        TOK_PHOTO_DNA,
-        sourceImageUrl
-          ? "Tu edites l'image source fournie. Le resultat doit rester la meme photo amelioree. Conserver strictement le sujet source. Ne jamais changer le type de nourriture ou de produit. Preserver les textes, logos, inscriptions, etiquettes, branding, packaging, contenant, formes et couleurs dominantes. Si tu ne peux pas garantir la fidelite, fais une retouche minimale plutot qu'une recreation."
-          : "Image finale sans texte incruste, sans watermark, sans element de marque concurrente. Produit credible et appetissant.",
-      ].join("\n").slice(0, 7000);
+    let imageOptions = generatedImageOptions;
+    const finalPrompt = [
+      result.enhanced_prompt,
+      "",
+      "Contraintes finales non negociables:",
+      TOK_PHOTO_DNA,
+      sourceImageUrl
+        ? "Tu edites l'image source fournie. Le resultat doit rester la meme photo amelioree. Conserver strictement le sujet source. Ne jamais changer le type de nourriture ou de produit. Preserver les textes, logos, inscriptions, etiquettes, branding, packaging, contenant, formes et couleurs dominantes. Si tu ne peux pas garantir la fidelite, fais une retouche minimale plutot qu'une recreation."
+        : "Image finale sans texte incruste, sans watermark, sans element de marque concurrente. Produit credible et appetissant.",
+    ].join("\n").slice(0, 7000);
 
-      const imageResponse = sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)
-        ? await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions)
-        : await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
+    let imageResponse: unknown;
+    if (sourceImageUrl && (!USE_FAST_INTERACTIVE_IMAGE || USE_SOURCE_IMAGE_EDIT)) {
+      try {
+        imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
+        sourceEditUsed = true;
+      } catch (error) {
+        const isImageEditFailure = error instanceof HttpError && error.message.startsWith("image_edit_failed");
+        if (isImageEditFailure) {
+          imageEditFallbackUsed = true;
+          const configuredEditOptions = buildConfiguredImageRequestOptions(format.size);
 
-      const imageBytes = await extractGeneratedImageBytes(imageResponse);
-      const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
+          if (
+            configuredEditOptions.model !== imageOptions.model ||
+            configuredEditOptions.quality !== imageOptions.quality ||
+            configuredEditOptions.size !== imageOptions.size
+          ) {
+            try {
+              imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, configuredEditOptions);
+              imageOptions = configuredEditOptions;
+              sourceEditUsed = true;
+            } catch (retryError) {
+              const isRetryImageEditFailure =
+                retryError instanceof HttpError && retryError.message.startsWith("image_edit_failed");
+              if (!isRetryImageEditFailure) {
+                throw retryError;
+              }
+            }
+          }
 
-      const persistedAssetId = await insertGeneratedAsset(actor, {
-        restaurant_id: restaurantId,
-        user_id: actor.userId,
-        source_image_url: sourceImageUrl || null,
-        asset_url: stored.galleryImageUrl,
-        storage_bucket: IMAGE_BUCKET,
-        storage_path: stored.path,
-        asset_type: assetType,
-        model: imageOptions.model,
-        prompt: result.enhanced_prompt,
-        title: result.title,
-        status: "stored",
-        metadata: {
-          image_quality: imageOptions.quality,
-          request_image_model: imageOptions.model,
-          request_image_quality: imageOptions.quality,
-          request_image_size: imageOptions.size,
-          image_mode: imageOptions.mode,
-          source_edit_used: Boolean(sourceImageUrl),
-          generation_fallback_allowed: !sourceImageUrl,
-          output_format: "png",
-          brief_source: briefSource,
-          preview_image_url: stored.imageUrl,
-          gallery_image_url: stored.galleryImageUrl,
-          gallery_storage_bucket: GALLERY_BUCKET,
-          gallery_storage_path: stored.galleryPath,
-          ...buildGeneratedTextMetadata(result, imageOnly),
-          original_prompt: prompt,
-          dish_name: dishName,
-          format: format.label,
-          source_preservation_policy: sourceImageUrl ? "strict_edit_no_generation_fallback" : "generation_without_source",
-          reference_folder: `public${TOK_REFERENCE_FOLDER}`,
-        },
-      });
-
-      const generatedAssetId = persistedAssetId || stored.id;
-      assetId = generatedAssetId;
-      generated = {
-        asset_id: generatedAssetId,
-        generated_image_url: stored.imageUrl,
-        gallery_image_url: stored.galleryImageUrl,
-        storage_bucket: IMAGE_BUCKET,
-        storage_path: stored.path,
-        model: imageOptions.model,
-      };
+          if (!imageResponse) {
+            log.warn("image_edit_fallback", {
+              restaurant_id: restaurantId,
+              primary_model: imageOptions.model,
+              fallback_model: configuredEditOptions.model,
+            });
+            imageResponse = await callOpenAIImageGeneration([
+              finalPrompt,
+              "image_edit_fallback: l'edition de l'image source a echoue. Generer un visuel TOK prudent, sans texte incruste, sans inventer de marque concurrente, et rester le plus proche possible du brief de retouche source.",
+            ].join("\n"), variantCount, configuredEditOptions);
+            imageOptions = configuredEditOptions;
+          }
+        } else {
+          throw error;
+        }
+      }
     } else {
-      const persistedAssetId = await insertGeneratedAsset(actor, {
-        restaurant_id: restaurantId,
-        user_id: actor.userId,
-        source_image_url: sourceImageUrl || null,
-        asset_type: "image_brief",
-        model: selectTokAiModel("image_premium"),
-        prompt: result.enhanced_prompt,
-        title: result.title,
-        status: "generated",
-        metadata: {
-          ...buildGeneratedTextMetadata(result, imageOnly),
-          original_prompt: prompt,
-          dish_name: dishName,
-          format: format.label,
-          source_preservation_policy: sourceImageUrl ? "strict_edit_no_generation_fallback" : "generation_without_source",
-          reference_folder: `public${TOK_REFERENCE_FOLDER}`,
-        },
-      });
-
-      assetId = persistedAssetId || crypto.randomUUID();
+      imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
     }
+
+    const imageBytes = await extractGeneratedImageBytes(imageResponse);
+    const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
+    usedImageOptions = imageOptions;
+
+    const persistedAssetId = await insertGeneratedAsset(actor, {
+      restaurant_id: restaurantId,
+      user_id: actor.userId,
+      source_image_url: sourceImageUrl || null,
+      asset_url: stored.galleryImageUrl,
+      storage_bucket: IMAGE_BUCKET,
+      storage_path: stored.path,
+      asset_type: assetType,
+      model: imageOptions.model,
+      prompt: result.enhanced_prompt,
+      title: result.title,
+      status: "stored",
+      metadata: {
+        image_quality: imageOptions.quality,
+        request_image_model: imageOptions.model,
+        request_image_quality: imageOptions.quality,
+        request_image_size: imageOptions.size,
+        image_mode: imageOptions.mode,
+        source_edit_used: sourceEditUsed,
+        image_edit_fallback: imageEditFallbackUsed,
+        generation_fallback_allowed: true,
+        output_format: "png",
+        brief_source: briefSource,
+        preview_image_url: stored.imageUrl,
+        gallery_image_url: stored.galleryImageUrl,
+        gallery_storage_bucket: GALLERY_BUCKET,
+        gallery_storage_path: stored.galleryPath,
+        original_prompt: prompt,
+        dish_name: dishName,
+        format: format.label,
+        source_preservation_policy: sourceImageUrl ? "source_edit_with_controlled_fallback" : "generation_without_source",
+        reference_folder: `public${TOK_REFERENCE_FOLDER}`,
+      },
+    });
+
+    const generatedAssetId = persistedAssetId || stored.id;
+    assetId = generatedAssetId;
+    generated = {
+      asset_id: generatedAssetId,
+      generated_image_url: stored.imageUrl,
+      gallery_image_url: stored.galleryImageUrl,
+      storage_bucket: IMAGE_BUCKET,
+      storage_path: stored.path,
+      model: imageOptions.model,
+    };
 
     await insertUsage(actor, {
       status: "success",
       restaurantId,
       assetId,
-      model: generatedImageOptions?.model,
-      usage,
+      model: usedImageOptions?.model,
       imageCount: generated ? variantCount : 0,
       metadata: {
         asset_type: assetType,
@@ -757,11 +633,13 @@ ${TOK_PHOTO_DNA}`;
         generated_image: Boolean(generated),
         image_only: imageOnly,
         brief_source: briefSource,
-        image_timeout_ms: generated ? generatedImageOptions?.timeoutMs : IMAGE_TIMEOUT_MS,
-        image_model: generated ? generatedImageOptions?.model : IMAGE_MODEL,
-        image_quality: generated ? generatedImageOptions?.quality : IMAGE_QUALITY,
-        image_mode: generated ? generatedImageOptions?.mode : "brief_only",
-        generation_fallback_allowed: !sourceImageUrl,
+        image_timeout_ms: usedImageOptions?.timeoutMs,
+        image_model: usedImageOptions?.model,
+        image_quality: usedImageOptions?.quality,
+        image_mode: usedImageOptions?.mode,
+        source_edit_used: sourceEditUsed,
+        image_edit_fallback: imageEditFallbackUsed,
+        generation_fallback_allowed: true,
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
         format: format.label,
@@ -772,7 +650,7 @@ ${TOK_PHOTO_DNA}`;
       adminClient: actor.adminClient,
       functionName: FUNCTION_NAME,
       status: "success",
-      action: generated ? "image_generate" : "image_brief",
+      action: "image_generate",
       actor,
       request: req,
       targetEntityType: "ai_generated_assets",
@@ -780,11 +658,13 @@ ${TOK_PHOTO_DNA}`;
       metadata: {
         rid: log.rid,
         restaurant_id: restaurantId,
-        image_model: generated ? generatedImageOptions?.model : IMAGE_MODEL,
-        image_quality: generated ? generatedImageOptions?.quality : IMAGE_QUALITY,
-        image_mode: generated ? generatedImageOptions?.mode : "brief_only",
+        image_model: usedImageOptions?.model,
+        image_quality: usedImageOptions?.quality,
+        image_mode: usedImageOptions?.mode,
         brief_source: briefSource,
         image_only: imageOnly,
+        source_edit_used: sourceEditUsed,
+        image_edit_fallback: imageEditFallbackUsed,
         gallery_bucket: GALLERY_BUCKET,
       },
     });
@@ -796,10 +676,10 @@ ${TOK_PHOTO_DNA}`;
       gallery_image_url: generated?.gallery_image_url || null,
       storage_bucket: generated?.storage_bucket || null,
       storage_path: generated?.storage_path || null,
-      model: generated?.model || selectTokAiModel("image_premium"),
-      image_mode: generated ? generatedImageOptions?.mode : "brief_only",
+      model: generated?.model || IMAGE_MODEL,
+      image_mode: usedImageOptions?.mode,
       reference_folder: `public${TOK_REFERENCE_FOLDER}`,
-      status: generated ? "stored" : "generated",
+      status: "stored",
     }, 200, cors);
   } catch (err) {
     const status = err instanceof HttpError ? err.status : 500;

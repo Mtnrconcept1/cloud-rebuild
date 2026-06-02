@@ -140,6 +140,8 @@ const TIME_RANGE_LABELS: Record<AuditTimeRange, string> = {
   all: "Tout l’historique chargé",
 };
 
+const AUDIT_LOG_FETCH_LIMIT = 500;
+
 function normalizeHealthStatus(value?: string | null): HealthStatus {
   if (value === "ok" || value === "watch" || value === "critical") return value;
   return "watch";
@@ -281,12 +283,12 @@ export default function AdminAuditLogs() {
       let edgeQuery = (supabase.from("edge_function_audit_logs" as any))
         .select("id, function_name, action, actor_user_id, actor_roles, is_service_role, status, target_entity_type, target_entity_id, error_message, request_metadata, created_at")
         .order("created_at", { ascending: false })
-        .limit(800);
+        .limit(AUDIT_LOG_FETCH_LIMIT);
 
       let dataQuery = (supabase.from("audit_log" as any))
         .select("id, user_id, action, entity_type, entity_id, created_at")
         .order("created_at", { ascending: false })
-        .limit(800);
+        .limit(AUDIT_LOG_FETCH_LIMIT);
 
       if (startIso) {
         edgeQuery = edgeQuery.gte("created_at", startIso);
