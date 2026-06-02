@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 
 const supabase = getSupabase();
 const STUDIO_BRIEF =
   "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image. Ajoute le logo TOK en haut à gauche ou dans le coin libre le plus naturel selon la disposition du produit, entièrement visible et avec une marge intérieure.";
+const STUDIO_LOGO_SRC = "/logo.png";
 
 type Props = {
   restaurantId: string | null | undefined;
@@ -67,92 +68,168 @@ function buildTokPhotoDownloadFileName(dishName: string) {
   return `${normalized || "visuel-tok"}-tok.png`;
 }
 
-function WineGlassGenerationLoader() {
-  const id = useId().replace(/:/g, "");
-  const clipId = `tok-wine-glass-clip-${id}`;
-  const gradientId = `tok-wine-gradient-${id}`;
-
+function TokLogoGenerationLoader() {
   return (
-    <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 text-center">
-      <style>{`
-        @keyframes tokWineFill {
-          0%, 100% { transform: scaleY(0.12); }
-          68% { transform: scaleY(1); }
-        }
-        @keyframes tokWineWave {
-          0% { transform: translateX(-28px); }
-          100% { transform: translateX(28px); }
-        }
-        @keyframes tokWineGlow {
-          0%, 100% { opacity: 0.34; transform: scale(0.96); }
-          50% { opacity: 0.7; transform: scale(1.04); }
-        }
-        .tok-wine-fill-layer {
-          animation: tokWineFill 3.4s ease-in-out infinite;
-          transform-box: fill-box;
-          transform-origin: center bottom;
-        }
-        .tok-wine-wave {
-          animation: tokWineWave 2.2s ease-in-out infinite alternate;
-        }
-        .tok-wine-glow {
-          animation: tokWineGlow 2.6s ease-in-out infinite;
-          transform-box: fill-box;
-          transform-origin: center;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .tok-wine-fill-layer,
-          .tok-wine-wave,
-          .tok-wine-glow {
-            animation: none;
+    <div className="overflow-hidden rounded-2xl bg-black">
+      <div className="relative isolate flex min-h-[220px] w-full items-center justify-center overflow-hidden px-6 py-8 text-white">
+        <style>{`
+          @keyframes tokLogoPulse {
+            0%, 100% { transform: scale(0.985); }
+            50% { transform: scale(1.035); }
           }
-          .tok-wine-fill-layer {
-            transform: scaleY(0.72);
+          @keyframes tokLogoGlow {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
           }
-        }
-      `}</style>
-      <div className="relative">
-        <div className="tok-wine-glow absolute inset-x-4 bottom-2 h-8 rounded-full bg-red-500/20 blur-xl" />
-        <svg
-          className="relative h-36 w-32 drop-shadow-sm"
-          viewBox="0 0 160 210"
-          role="img"
-          aria-label="Verre de vin en cours de remplissage"
-        >
-          <defs>
-            <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#f97316" />
-              <stop offset="45%" stopColor="#dc2626" />
-              <stop offset="100%" stopColor="#7f1d1d" />
-            </linearGradient>
-            <clipPath id={clipId}>
-              <path d="M42 18h76c-3 45-9 78-22 96-8 11-18 17-28 17s-20-6-28-17C27 96 45 63 42 18Z" />
-            </clipPath>
-          </defs>
-          <g clipPath={`url(#${clipId})`}>
-            <g className="tok-wine-fill-layer">
-              <rect x="33" y="37" width="94" height="92" rx="6" fill={`url(#${gradientId})`} />
-              <path
-                className="tok-wine-wave"
-                d="M30 45c11-7 22-7 33 0s22 7 33 0 22-7 33 0v14H30Z"
-                fill="rgba(255,255,255,0.28)"
-              />
-            </g>
-          </g>
-          <path
-            d="M42 18h76c-3 45-9 78-22 96-8 11-18 17-28 17s-20-6-28-17C27 96 45 63 42 18Z"
-            fill="rgba(255,255,255,0.28)"
-            stroke="rgba(15,23,42,0.42)"
-            strokeWidth="4"
+          @keyframes tokHaloSoft {
+            0%, 100% { transform: scale(0.94); opacity: 0.3; }
+            50% { transform: scale(1.08); opacity: 0.56; }
+          }
+          @keyframes tokHaloStrong {
+            0%, 100% { transform: scale(0.98); opacity: 0.12; }
+            50% { transform: scale(1.14); opacity: 0.24; }
+          }
+          @keyframes tokOrbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @keyframes tokOrbitReverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+          }
+          @keyframes tokStatusPulse {
+            0%, 100% { transform: scale(1); opacity: 0.74; }
+            50% { transform: scale(1.08); opacity: 1; }
+          }
+          @keyframes tokLogoShine {
+            0%, 100% { opacity: 0.12; transform: translateX(-56px) rotate(-18deg); }
+            50% { opacity: 0.36; transform: translateX(56px) rotate(-18deg); }
+          }
+          .tok-logo-pulse {
+            animation: tokLogoPulse 3s ease-in-out infinite;
+            transform-origin: center;
+          }
+          .tok-logo-glow {
+            animation: tokLogoGlow 3s ease-in-out infinite;
+            filter:
+              drop-shadow(0 0 10px rgba(255,255,255,0.12))
+              drop-shadow(0 0 18px rgba(255,147,41,0.22))
+              drop-shadow(0 0 36px rgba(255,98,0,0.18));
+          }
+          .tok-halo-soft {
+            animation: tokHaloSoft 3s ease-in-out infinite;
+          }
+          .tok-halo-strong {
+            animation: tokHaloStrong 3s ease-in-out infinite;
+          }
+          .tok-orbit {
+            animation: tokOrbit 5.2s linear infinite;
+            transform-origin: center;
+          }
+          .tok-orbit-slow {
+            animation: tokOrbitReverse 8.2s linear infinite;
+            transform-origin: center;
+          }
+          .tok-dot {
+            animation: tokOrbit 2.8s linear infinite;
+            transform-origin: center;
+          }
+          .tok-dot-2 {
+            animation: tokOrbitReverse 4.4s linear infinite;
+            transform-origin: center;
+          }
+          .tok-status {
+            animation: tokStatusPulse 2.4s ease-in-out infinite;
+          }
+          .tok-shine {
+            animation: tokLogoShine 4.8s ease-in-out infinite;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .tok-logo-pulse,
+            .tok-logo-glow,
+            .tok-halo-soft,
+            .tok-halo-strong,
+            .tok-orbit,
+            .tok-orbit-slow,
+            .tok-dot,
+            .tok-dot-2,
+            .tok-status,
+            .tok-shine {
+              animation: none;
+            }
+          }
+        `}</style>
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,120,0,0.08),transparent_14%),radial-gradient(circle_at_50%_50%,rgba(255,170,40,0.06),transparent_28%),radial-gradient(circle_at_50%_50%,rgba(255,90,0,0.05),transparent_42%),linear-gradient(180deg,#000000_0%,#020202_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.18)_56%,rgba(0,0,0,0.84)_100%)]" />
+
+        <div className="relative aspect-square w-[min(66vw,240px)]">
+          <div className="tok-halo-soft absolute inset-[16%] rounded-full bg-[#ff981f]/18 blur-[38px]" />
+          <div className="tok-halo-strong absolute inset-[4%] rounded-full bg-[#ff5b00]/12 blur-[74px]" />
+
+          <div
+            className="tok-orbit absolute inset-0 rounded-full"
+            style={{
+              background:
+                "conic-gradient(from 0deg, rgba(255,160,32,0) 0deg, rgba(255,160,32,0.04) 26deg, rgba(255,204,92,0.85) 74deg, rgba(255,138,20,1) 102deg, rgba(255,94,0,0.9) 122deg, rgba(255,160,32,0.06) 160deg, rgba(255,160,32,0) 220deg, rgba(255,160,32,0) 360deg)",
+              WebkitMask:
+                "radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 10px))",
+              mask:
+                "radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 10px))",
+              filter:
+                "drop-shadow(0 0 10px rgba(255,181,64,0.62)) drop-shadow(0 0 28px rgba(255,112,0,0.26))",
+            }}
           />
-          <path d="M80 130v45" stroke="rgba(15,23,42,0.42)" strokeWidth="6" strokeLinecap="round" />
-          <path d="M55 190h50" stroke="rgba(15,23,42,0.42)" strokeWidth="7" strokeLinecap="round" />
-          <path d="M57 28c3 41 8 66 20 83" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="5" strokeLinecap="round" />
-        </svg>
-      </div>
-      <div className="space-y-1">
-        <p className="font-semibold text-foreground">Génération en cours</p>
-        <p className="text-xs text-muted-foreground">Le visuel TOK se prépare.</p>
+
+          <div
+            className="tok-orbit-slow absolute inset-[10px] rounded-full opacity-80"
+            style={{
+              background:
+                "conic-gradient(from 180deg, rgba(255,190,70,0) 0deg, rgba(255,174,0,0.07) 92deg, rgba(255,214,124,0.9) 132deg, rgba(255,140,0,0.24) 150deg, rgba(255,174,0,0) 220deg, rgba(255,174,0,0) 360deg)",
+              WebkitMask:
+                "radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 3px))",
+              mask:
+                "radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 3px))",
+              filter: "blur(1px)",
+            }}
+          />
+
+          <div className="absolute inset-[20px] rounded-full border border-[#ffb24a]/60 shadow-[0_0_24px_rgba(255,145,28,0.18)]" />
+
+          <div className="tok-dot absolute inset-0">
+            <div className="absolute left-1/2 top-[2px] h-4 w-4 -translate-x-1/2 rounded-full bg-[#ffd58a] blur-[0.5px] shadow-[0_0_14px_rgba(255,201,116,0.95),0_0_34px_rgba(255,134,24,0.55)]" />
+          </div>
+
+          <div className="tok-dot-2 absolute inset-[12px] opacity-75">
+            <div className="absolute bottom-[1px] left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-[#ff971f] blur-[0.3px] shadow-[0_0_10px_rgba(255,151,31,0.85),0_0_24px_rgba(255,92,0,0.4)]" />
+          </div>
+
+          <div className="absolute inset-[44px] flex items-center justify-center">
+            <div className="tok-logo-pulse relative flex h-full w-full items-center justify-center rounded-full">
+              <div className="absolute inset-0 rounded-full bg-white/[0.03] ring-1 ring-white/10 backdrop-blur-[2px]" />
+              <div className="absolute inset-[8%] overflow-hidden rounded-full">
+                <div className="tok-shine absolute left-0 top-[-10%] h-[130%] w-[18%] bg-white/20 blur-[10px]" />
+              </div>
+              <img
+                src={STUDIO_LOGO_SRC}
+                alt="Logo TOK"
+                className="tok-logo-glow relative z-10 h-[58%] w-[58%] object-contain"
+                draggable={false}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-5 flex flex-col items-center justify-center px-6 text-center">
+          <div className="mb-3 h-px w-36 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-white/78">
+            Création de l’image
+          </p>
+          <div className="mt-2 flex items-center gap-2 text-white/54">
+            <span className="tok-status inline-block h-2.5 w-2.5 rounded-full bg-[#ff9a1f] shadow-[0_0_12px_rgba(255,154,31,0.75)]" />
+            <span className="text-[11px] uppercase tracking-[0.24em]">Le Studio Photo prépare ton visuel</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -308,7 +385,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
           </div>
           <div className="rounded-2xl border bg-background p-4 text-sm text-muted-foreground shadow-sm">
             {loading ? (
-              <WineGlassGenerationLoader />
+              <TokLogoGenerationLoader />
             ) : (
               <>
                 <p className="mb-2 font-semibold text-foreground">Rendu attendu</p>
