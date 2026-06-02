@@ -30,8 +30,9 @@ describe("TOK photo studio persistence", () => {
       expect(file).not.toMatch(/Ã|Â|â€™|â€œ|â€|�/);
     }
 
-    expect(source).toContain("Retouche TOK premium fidèle: améliorer l'image source sans remplacer le sujet.");
-    expect(source).toContain("Conserver strictement le même produit ou plat");
+    expect(source).toContain("photographie professionnelle");
+    expect(source).toContain("en gardant le produit identique");
+    expect(source).toContain("Supprime les objets et éléments parasites");
     expect(source).toContain("Un emballage ne doit jamais devenir une assiette servie.");
     expect(source).toContain("Visuel TOK prêt");
     expect(source).toContain("Après TOK");
@@ -61,6 +62,9 @@ describe("TOK photo studio persistence", () => {
 
   it("requests image-only generation and does not render generated marketing copy", () => {
     expect(source).toContain("imageOnly: true");
+    expect(source).toContain("photographie professionnelle");
+    expect(source).toContain("en gardant le produit identique");
+    expect(source).toContain("Supprime les objets et éléments parasites");
     expect(source).not.toContain("result.edit_instructions");
     expect(source).not.toContain("result.publication_caption");
     expect(source).not.toContain("result.marketing_angles");
