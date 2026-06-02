@@ -30,7 +30,9 @@ describe("TOK photo studio persistence", () => {
       expect(file).not.toMatch(/Ã|Â|â€™|â€œ|â€|�/);
     }
 
-    expect(source).toContain("Retouche TOK premium: garder le plat, améliorer la composition");
+    expect(source).toContain("Retouche TOK premium fidèle: améliorer l'image source sans remplacer le sujet.");
+    expect(source).toContain("Conserver strictement le même produit ou plat");
+    expect(source).toContain("Un emballage ne doit jamais devenir une assiette servie.");
     expect(source).toContain("Visuel TOK prêt");
     expect(source).toContain("Après TOK");
     expect(dashboardPhotos).toContain("Préparez la couverture");
