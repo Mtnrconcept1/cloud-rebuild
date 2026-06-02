@@ -22,6 +22,7 @@ interface ImageUploadProps {
   label?: string;
   bucket?: string;
   className?: string;
+  showUrlInput?: boolean;
 }
 
 function createImagePath(userId: string, file: File) {
@@ -43,6 +44,7 @@ export default function ImageUpload({
   label = "Image",
   bucket = "images",
   className = "",
+  showUrlInput = true,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
@@ -135,13 +137,15 @@ export default function ImageUpload({
             </label>
           </div>
         )}
-        <Input
-          placeholder="Ou collez l'URL HTTPS d'une image ici..."
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onBlur={handleManualUrlBlur}
-          disabled={uploading}
-        />
+        {showUrlInput ? (
+          <Input
+            placeholder="Ou collez l'URL HTTPS d'une image ici..."
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            onBlur={handleManualUrlBlur}
+            disabled={uploading}
+          />
+        ) : null}
       </div>
     </div>
   );
