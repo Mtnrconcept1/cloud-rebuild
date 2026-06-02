@@ -9,10 +9,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
 import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
-import { Loader2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
+import { CheckCircle2, Loader2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 
 const supabase = getSupabase();
-const STUDIO_BRIEF = "Retouche TOK premium: garder le plat, améliorer la composition, la lumière, la texture et ajouter une identité TOK discrète.";
+const STUDIO_BRIEF = [
+  "Retouche TOK premium fidèle: améliorer l'image source sans remplacer le sujet.",
+  "Conserver strictement le même produit ou plat: même packaging, même contenant, même forme générale, mêmes couleurs dominantes, même marque ou étiquette visible lorsque c'est possible.",
+  "Si la photo montre un produit emballé, une boîte, une bouteille, un sachet ou une conserve, créer un packshot premium du même emballage. Ne jamais le transformer en assiette servie, toast, blini ou plat inventé.",
+  "Améliorer seulement la composition, le cadrage, la lumière chaude, les textures, les reflets et le décor secondaire TOK.",
+  "Le résultat doit rester immédiatement reconnaissable comme la photo source retouchée.",
+].join("\n");
 
 type Props = {
   restaurantId: string | null | undefined;
@@ -49,7 +55,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
   const generate = async () => {
     if (!restaurantId) return;
     if (!draft.sourceImageUrl.trim()) {
-      toast({ title: "Photo requise", description: "Ajoutez la photo brute du plat.", variant: "destructive" });
+      toast({ title: "Photo requise", description: "Ajoutez la photo brute du produit ou du plat.", variant: "destructive" });
       return;
     }
 
@@ -67,7 +73,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         generateImage: true,
       });
       updateDraft({ result: data });
-      toast({ title: "Visuel TOK prêt", description: "Contrôlez le rendu puis ajoutez-le à la galerie." });
+      toast({ title: "Visuel TOK prêt", description: "Contrôlez que le produit source est toujours reconnaissable avant publication." });
     } catch (error) {
       toast({ title: "Erreur IA", description: error instanceof Error ? error.message : "Génération impossible", variant: "destructive" });
     } finally {
@@ -106,22 +112,22 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
           <CardTitle className="flex items-center gap-2"><Wand2 className="h-5 w-5 text-orange-600" /> Retouche photo TOK</CardTitle>
         </div>
         <CardDescription>
-          Créez une version premium de vos photos de plats : composition plus forte, lumière chaude, rendu appétissant et signature TOK discrète.
+          Créez une version premium sans changer le sujet source : même produit, même plat, même packaging et même identité visuelle.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-4">
             <ImageUpload
-              label="Photo brute"
+              label="Photo brute du produit ou plat"
               value={draft.sourceImageUrl}
               onChange={(sourceImageUrl) => updateDraft({ sourceImageUrl, result: null })}
               showUrlInput={false}
             />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label>Nom du plat</Label>
-                <Input value={draft.dishName} onChange={(event) => updateDraft({ dishName: event.target.value })} placeholder="Ex. assiette kebab" />
+                <Label>Nom du produit ou plat</Label>
+                <Input value={draft.dishName} onChange={(event) => updateDraft({ dishName: event.target.value })} placeholder="Ex. boîte de caviar, assiette kebab" />
               </div>
               <div className="space-y-2">
                 <Label>Format</Label>
@@ -131,7 +137,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                   onChange={(event) => updateDraft({ format: event.target.value as TokImageFormat, result: null })}
                 >
                   <option value="landscape">16:9 campagne</option>
-                  <option value="square">Carré fiche plat</option>
+                  <option value="square">Carré fiche produit</option>
                   <option value="portrait">Portrait story</option>
                 </select>
               </div>
@@ -152,7 +158,12 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
           </div>
           <div className="rounded-2xl border bg-background p-4 text-sm text-muted-foreground shadow-sm">
             <p className="mb-2 font-semibold text-foreground">Rendu attendu</p>
-            <p>Fond plus chaleureux, produit mieux éclairé, textures renforcées, sauces et éléments de décor cohérents, logo TOK discret lorsque la composition le permet.</p>
+            <ul className="space-y-2">
+              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Même produit ou plat que la source, immédiatement reconnaissable.</li>
+              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Packaging, contenant, marque, textes et couleurs préservés si présents.</li>
+              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Lumière chaude, cadrage plus propre, textures renforcées et décor TOK discret.</li>
+              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Une boîte ou un emballage ne doit jamais devenir une assiette servie.</li>
+            </ul>
           </div>
         </div>
 
@@ -172,7 +183,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               <CardHeader><CardTitle className="text-base">Texte proposé</CardTitle></CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <p>{result.publication_caption}</p>
-                {result.marketing_angles.length ? <ul className="space-y-1">{result.marketing_angles.map((item) => <li key={item}>- {item}</li>)}</ul> : null}
+                {result.marketing_angles.length ? <ul className="space-y-1">{["Même sujet que la source", "Packaging/contenant préservé", ...result.marketing_angles].map((item) => <li key={item}>- {item}</li>)}</ul> : null}
               </CardContent>
             </Card>
           </div>
