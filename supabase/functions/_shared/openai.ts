@@ -2,6 +2,8 @@ import { HttpError } from "./auth.ts";
 
 export const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY")?.trim() || "";
 export const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL")?.trim() || "gpt-5.5";
+const TOK_AI_MINI_MODEL = Deno.env.get("OPENAI_MODEL_TOK_MINI")?.trim() || "gpt-5.4-mini";
+const TOK_AI_STRATEGIC_MODEL = Deno.env.get("OPENAI_MODEL_TOK_STRATEGIC")?.trim() || "gpt-5.5";
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
 
@@ -30,6 +32,47 @@ type OpenAIRequestOptions = {
   temperature?: number;
   jsonSchema?: OpenAIJsonSchema;
 };
+
+export type TokAiModelTask =
+  | "support"
+  | "support_complex"
+  | "restaurant"
+  | "strategy"
+  | "accounting"
+  | "admin_monitor"
+  | "admin_report"
+  | "image_economy"
+  | "image_premium";
+
+export function selectTokAiModel(
+  task: TokAiModelTask,
+  complexity: "standard" | "complex" = "standard",
+) {
+  if (complexity === "complex") return TOK_AI_STRATEGIC_MODEL;
+
+  switch (task) {
+    case "support":
+      return TOK_AI_MINI_MODEL;
+    case "support_complex":
+      return TOK_AI_STRATEGIC_MODEL;
+    case "restaurant":
+      return TOK_AI_MINI_MODEL;
+    case "strategy":
+      return TOK_AI_STRATEGIC_MODEL;
+    case "accounting":
+      return TOK_AI_MINI_MODEL;
+    case "admin_monitor":
+      return TOK_AI_MINI_MODEL;
+    case "admin_report":
+      return TOK_AI_STRATEGIC_MODEL;
+    case "image_economy":
+      return Deno.env.get("OPENAI_MODEL_IMAGE_ECONOMY")?.trim() || TOK_AI_MINI_MODEL;
+    case "image_premium":
+      return Deno.env.get("OPENAI_MODEL_IMAGE_PREMIUM")?.trim() || TOK_AI_STRATEGIC_MODEL;
+    default:
+      return OPENAI_MODEL;
+  }
+}
 
 function buildTextFormat(schema?: OpenAIJsonSchema) {
   if (!schema) return { format: { type: "text" } };
