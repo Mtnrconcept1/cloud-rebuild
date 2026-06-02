@@ -15,7 +15,7 @@ const values = {
     fallback: baseEnv.VITE_SUPABASE_URL,
   }),
   VITE_SUPABASE_PUBLISHABLE_KEY: resolveRequired("VITE_SUPABASE_PUBLISHABLE_KEY", {
-    fallback: baseEnv.VITE_SUPABASE_PUBLISHABLE_KEY,
+    fallback: process.env.VITE_SUPABASE_ANON_KEY ?? baseEnv.VITE_SUPABASE_ANON_KEY ?? baseEnv.VITE_SUPABASE_PUBLISHABLE_KEY,
   }),
   VITE_STRIPE_PUBLISHABLE_KEY: resolveRequired("VITE_STRIPE_PUBLISHABLE_KEY", {
     fallback: process.env.VITE_STRIPE_PUBLISHABLE_KEY_FALLBACK ?? baseEnv.VITE_STRIPE_PUBLISHABLE_KEY,
@@ -101,7 +101,7 @@ function cleanValue(value) {
     return null;
   }
 
-  const trimmed = value.trim().replace(/^['"]|['"]$/g, "");
+  const trimmed = value.trim().replace(/^[']|[']$/g, "").replace(/^[\"]|[\"]$/g, "");
   if (!trimmed) {
     return null;
   }
