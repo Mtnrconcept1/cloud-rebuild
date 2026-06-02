@@ -74,6 +74,35 @@ export type AccountingAgentRequest = {
   restaurantId?: string | null;
 };
 
+export type AccountingAgentResult = {
+  summary: string;
+  anomalies: Array<{ label: string; severity: "low" | "medium" | "high"; evidence: string }>;
+  unpaid_invoices: string[];
+  risky_restaurants: string[];
+  revenue_forecast: string;
+  margin_notes: string[];
+  recommended_actions: string[];
+  export_markdown: string;
+  insightId: string;
+  metrics?: JsonRecord;
+};
+
+export type AccountingInsightRow = {
+  id: string;
+  restaurant_id: string | null;
+  user_id: string | null;
+  period_start: string;
+  period_end: string;
+  summary: string;
+  anomalies: Array<{ label: string; severity?: string; evidence?: string }>;
+  forecast: JsonRecord;
+  margin_snapshot: JsonRecord;
+  model: string | null;
+  source: string;
+  metadata: JsonRecord;
+  created_at: string;
+};
+
 export type AdminMonitorRequest = {
   action: "health" | "security" | "costs" | "incidents" | "full_report";
   restaurantId?: string | null;
@@ -156,18 +185,7 @@ export function generateTokDishImage(request: TokImageGenerationRequest) {
 }
 
 export function runAccountingAgent(request: AccountingAgentRequest) {
-  return invokeTokAiFunction<{
-    summary: string;
-    anomalies: Array<{ label: string; severity: "low" | "medium" | "high"; evidence: string }>;
-    unpaid_invoices: string[];
-    risky_restaurants: string[];
-    revenue_forecast: string;
-    margin_notes: string[];
-    recommended_actions: string[];
-    export_markdown: string;
-    insightId: string;
-    metrics?: JsonRecord;
-  }>("ai-accounting-agent", { ...request });
+  return invokeTokAiFunction<AccountingAgentResult>("ai-accounting-agent", { ...request });
 }
 
 export function runAdminMonitor(request: AdminMonitorRequest) {
@@ -231,4 +249,29 @@ export async function getAiSubscriptionForRestaurant(restaurantId: string) {
 
   if (error) throw error;
   return data as RestaurantAiSubscription | null;
+}
+
+export async function getAccountingInsightsForRestaurant(restaurantId: string, limit = 6) {
+  const { data, error } = await (supabase.from as any)("ai_accounting_insights")
+    .select(`
+      id,
+      restaurant_id,
+      user_id,
+      period_start,
+      period_end,
+      summary,
+      anomalies,
+      forecast,
+      margin_snapshot,
+      model,
+      source,
+      metadata,
+      created_at
+    `)
+    .eq("restaurant_id", restaurantId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data || []) as AccountingInsightRow[];
 }
