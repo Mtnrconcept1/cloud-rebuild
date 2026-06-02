@@ -5,8 +5,8 @@ import {
   Bookmark,
   CalendarCheck,
   EyeOff,
-  Flag,
   MessageCircle,
+  MoreHorizontal,
   Repeat2,
   Send,
   Share2,
@@ -130,7 +130,11 @@ function ReactionPicker({
         type="button"
         variant={currentReaction ? "secondary" : "outline"}
         size="sm"
-        className={cn("gap-1.5", compact && "h-8 px-2 text-xs")}
+        className={cn(
+          "gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm hover:bg-orange-50",
+          currentReaction && "bg-orange-50 text-primary",
+          compact && "h-8 px-2 text-xs",
+        )}
         disabled={disabled}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -238,7 +242,7 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
             onSelect={(reaction) => setReaction.mutate({ comment, reaction })}
           />
           <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setReplying((open) => !open)}>
-            Repondre
+            Répondre
           </Button>
           {canDelete ? (
             <Button
@@ -260,7 +264,7 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
           <CommentForm
             postId={comment.postId}
             parentCommentId={comment.id}
-            placeholder={`Repondre a ${comment.authorName || "ce commentaire"}`}
+            placeholder={`Répondre à ${comment.authorName || "ce commentaire"}`}
             onDone={() => setReplying(false)}
           />
         </div>
@@ -357,6 +361,9 @@ export default function SocialPostCard({
   const canDeletePost = post.authorId === user?.id || isSuperAdmin;
   const cta = getCta(post);
   const CtaIcon = cta?.icon;
+  const hasMedia = post.media.length > 0;
+  const campaignGoalLabel = getCampaignGoalLabel(post);
+  const audienceLabel = getAudienceLabel(post);
 
   const sharePost = async () => {
     const url = getSocialPostShareUrl(post.id);
@@ -371,7 +378,7 @@ export default function SocialPostCard({
 
       await navigator.clipboard.writeText(url);
       await recordShare.mutateAsync({ postId: post.id, channel: "link" });
-      toast.success("Lien copie.");
+      toast.success("Lien copié.");
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         toast.error("Partage impossible.");
@@ -385,30 +392,43 @@ export default function SocialPostCard({
   };
 
   return (
-    <Card className={cn("overflow-hidden rounded-lg border shadow-sm", highlighted && "border-primary/60 ring-2 ring-primary/20")}>
-      <CardContent className={cn("p-4", compact && "p-3")}>
+    <Card className={cn(
+      "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70",
+      highlighted && "border-primary/60 ring-2 ring-primary/20",
+    )}>
+      <CardContent className={cn("p-5", compact && "p-4")}>
         {post.repost ? (
           <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
             <Repeat2 className="h-3.5 w-3.5" />
-            <span>{post.repost.authorName || "Un client"} a repartage</span>
+            <span>{post.repost.authorName || "Un client"} a repartagé</span>
           </div>
         ) : null}
 
         <div className="flex items-start justify-between gap-3">
           <Link to={`/restaurant/${post.restaurantId}`} className="flex min-w-0 items-center gap-3">
-            <Avatar className="h-11 w-11 rounded-lg">
+            <Avatar className="h-14 w-14 rounded-2xl border-2 border-orange-100 shadow-sm">
               <AvatarImage src={post.restaurant.imageUrl || undefined} alt={post.restaurant.name} />
-              <AvatarFallback className="rounded-lg">{getInitials(post.restaurant.name)}</AvatarFallback>
+              <AvatarFallback className="rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 font-bold text-white">
+                {getInitials(post.restaurant.name)}
+              </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <h3 className="truncate font-semibold leading-tight">{post.restaurant.name}</h3>
-                <Badge variant={post.postType === "promo" ? "default" : "secondary"} className="rounded-full text-[11px]">
-                  {getPostTypeLabel(post)}
-                </Badge>
+                <h3 className="truncate text-base font-bold leading-tight text-slate-950">{post.restaurant.name}</h3>
+                {post.campaignName ? (
+                  <Badge className="rounded-full bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50">
+                    Sponsorisé
+                  </Badge>
+                ) : null}
               </div>
-              <p className="truncate text-xs text-muted-foreground">
-                {[post.restaurant.cuisineType, post.restaurant.city, formatPostDate(post.createdAt)].filter(Boolean).join(" - ")}
+              <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                {[post.restaurant.cuisineType, post.restaurant.city, formatPostDate(post.createdAt)].filter(Boolean).join(" · ")}
+                {post.followedByMe ? (
+                  <span className="ml-1 inline-flex items-center gap-1 text-emerald-600">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    En ligne
+                  </span>
+                ) : null}
               </p>
             </div>
           </Link>
@@ -416,7 +436,7 @@ export default function SocialPostCard({
             <Button
               variant={post.followedByMe ? "secondary" : "outline"}
               size="sm"
-              className="gap-1.5"
+              className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm"
               onClick={() => toggleFollow.mutate(post)}
               disabled={toggleFollow.isPending}
             >
@@ -427,7 +447,7 @@ export default function SocialPostCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-destructive"
+                className="h-9 w-9 rounded-xl text-destructive"
                 onClick={confirmDeletePost}
                 disabled={deletePost.isPending}
                 aria-label="Supprimer le post"
@@ -438,55 +458,57 @@ export default function SocialPostCard({
           </div>
         </div>
 
-        {post.recommendationReasons?.length ? (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {post.recommendationReasons.slice(0, 3).map((reason) => (
-              <Badge key={reason} variant="outline" className="rounded-full text-[11px] text-muted-foreground">
-                {reason}
-              </Badge>
-            ))}
+        <div className={cn("mt-4 grid gap-4", hasMedia && "lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center")}>
+          <div className="min-w-0">
+            <p className="whitespace-pre-wrap text-[15px] font-medium leading-7 text-slate-950">{post.body}</p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {post.postType ? (
+                <Badge variant="secondary" className="rounded-full bg-orange-50 text-orange-700 hover:bg-orange-50">
+                  {getPostTypeLabel(post)}
+                </Badge>
+              ) : null}
+              {post.recommendationReasons?.slice(0, 3).map((reason) => (
+                <Badge key={reason} variant="outline" className="rounded-full border-emerald-100 bg-emerald-50 text-emerald-700">
+                  {reason}
+                </Badge>
+              ))}
+              {campaignGoalLabel ? (
+                <Badge variant="outline" className="gap-1 rounded-full border-amber-100 bg-amber-50 text-amber-700">
+                  <Target className="h-3 w-3" />
+                  {campaignGoalLabel}
+                </Badge>
+              ) : null}
+              {audienceLabel ? (
+                <Badge variant="outline" className="rounded-full border-blue-100 bg-blue-50 text-blue-700">
+                  {audienceLabel}
+                </Badge>
+              ) : null}
+              {post.offerCode ? (
+                <Badge variant="outline" className="rounded-full border-pink-100 bg-pink-50 text-pink-700">
+                  Code {post.offerCode}
+                </Badge>
+              ) : null}
+            </div>
+
+            {cta ? (
+              <Button
+                asChild
+                className="mt-4 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700"
+                onClick={() => recordEvent.mutate({ postId: post.id, eventType: "cta_click", metadata: { ctaType: post.ctaType } })}
+              >
+                <Link to={cta.to}>
+                  {CtaIcon ? <CtaIcon className="h-4 w-4" /> : null}
+                  {cta.label}
+                </Link>
+              </Button>
+            ) : null}
           </div>
-        ) : null}
 
-        {compact && (getCampaignGoalLabel(post) || getAudienceLabel(post) || post.offerCode) ? (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {getCampaignGoalLabel(post) ? (
-              <Badge variant="secondary" className="gap-1 rounded-full text-[11px]">
-                <Target className="h-3 w-3" />
-                {getCampaignGoalLabel(post)}
-              </Badge>
-            ) : null}
-            {getAudienceLabel(post) ? (
-              <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">
-                {getAudienceLabel(post)}
-              </Badge>
-            ) : null}
-            {post.offerCode ? (
-              <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">
-                Code {post.offerCode}
-              </Badge>
-            ) : null}
-          </div>
-        ) : null}
+          {hasMedia ? <SocialMediaCarousel media={post.media} variant="side" /> : null}
+        </div>
 
-        <p className="mt-4 whitespace-pre-wrap text-sm leading-6">{post.body}</p>
-        <SocialMediaCarousel media={post.media} />
-
-        {cta ? (
-          <Button
-            asChild
-            variant="secondary"
-            className="mt-4 w-full justify-center gap-2 sm:w-auto"
-            onClick={() => recordEvent.mutate({ postId: post.id, eventType: "cta_click", metadata: { ctaType: post.ctaType } })}
-          >
-            <Link to={cta.to}>
-              {CtaIcon ? <CtaIcon className="h-4 w-4" /> : null}
-              {cta.label}
-            </Link>
-          </Button>
-        ) : null}
-
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border bg-white/85 p-2 shadow-sm">
           <ReactionPicker
             currentReaction={post.myReaction}
             counts={post.reactionCounts}
@@ -494,50 +516,50 @@ export default function SocialPostCard({
             disabled={setPostReaction.isPending}
             onSelect={(reaction) => setPostReaction.mutate({ post, reaction })}
           />
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setCommentsOpen((open) => !open)}>
+          <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm" onClick={() => setCommentsOpen((open) => !open)}>
             <MessageCircle className="h-4 w-4" />
             {post.commentsCount}
           </Button>
           <Button
             variant={post.repostedByMe ? "secondary" : "outline"}
             size="sm"
-            className="gap-1.5"
+            className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm"
             onClick={() => toggleRepost.mutate(post)}
             disabled={toggleRepost.isPending}
           >
             <Repeat2 className="h-4 w-4" />
             {post.repostsCount}
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={sharePost} disabled={recordShare.isPending}>
+          <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm" onClick={sharePost} disabled={recordShare.isPending}>
             <Share2 className="h-4 w-4" />
             {post.sharesCount}
           </Button>
           <Button
             variant={post.savedByMe ? "secondary" : "outline"}
             size="sm"
-            className="gap-1.5"
+            className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm"
             onClick={() => toggleSave.mutate(post)}
             disabled={toggleSave.isPending}
           >
             <Bookmark className={cn("h-4 w-4", post.savedByMe && "fill-current")} />
-            {post.savedByMe ? "Sauve" : "Sauver"}
+            {post.savedByMe ? "Sauvé" : "Sauver"}
           </Button>
           {!compact ? (
             <>
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 text-muted-foreground"
+                className="gap-1.5 rounded-xl text-muted-foreground"
                 onClick={() => feedback.mutate({ post, feedbackType: "show_more" })}
                 disabled={feedback.isPending}
               >
                 <Sparkles className="h-4 w-4" />
-                Plus comme ca
+                Plus comme ça
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 text-muted-foreground"
+                className="gap-1.5 rounded-xl text-muted-foreground"
                 onClick={() => feedback.mutate({ post, feedbackType: "not_interested", reason: "Client feedback" })}
                 disabled={feedback.isPending}
               >
@@ -549,11 +571,11 @@ export default function SocialPostCard({
           <Button
             variant="ghost"
             size="icon"
-            className="ml-auto h-9 w-9 text-muted-foreground"
+            className="ml-auto h-9 w-9 rounded-xl text-muted-foreground"
             onClick={() => reportItem.mutate({ targetType: "post", targetId: post.id, reason: "Contenu inapproprie" })}
-            aria-label="Signaler"
+            aria-label="Plus d'options"
           >
-            <Flag className="h-4 w-4" />
+            <MoreHorizontal className="h-4 w-4" />
           </Button>
         </div>
 
