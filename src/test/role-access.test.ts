@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,33 +11,32 @@ import {
   getDefaultActiveRole,
   getEffectiveRoles,
   getRoleHomePath,
-  isSuperAdminEmail,
 } from "@/lib/roleAccess";
 import type { UserRole } from "@/lib/auth-context";
 
 describe("role access policy", () => {
-  it("recognizes only rbarman@hotmail.ch as the cross-role super admin", () => {
-    expect(isSuperAdminEmail("rbarman@hotmail.ch")).toBe(true);
-    expect(isSuperAdminEmail(" RBARMAN@hotmail.ch ")).toBe(true);
-    expect(isSuperAdminEmail("admin@example.com")).toBe(false);
-    expect(isSuperAdminEmail(null)).toBe(false);
+  it("does not grant frontend roles from a hardcoded privileged email", () => {
+    const roleAccessSource = readFileSync(resolve(process.cwd(), "src/lib/roleAccess.ts"), "utf8");
+
+    expect(roleAccessSource).not.toContain("SUPER_ADMIN_EMAIL");
+    expect(roleAccessSource).not.toContain("rbarman@hotmail.ch");
+    expect(getEffectiveRoles(["admin"])).toEqual(["admin"]);
+    expect(getEffectiveRoles([])).toEqual(["client"]);
   });
 
-  it("allows cross-role dashboard access only for the super admin account", () => {
+  it("allows cross-role dashboard access only for roles assigned by Supabase", () => {
     const assignedRoles: UserRole[] = ["client", "admin", "restaurateur", "courier"];
 
     expect(canAccessRole({
       requiredRole: "courier",
       activeRole: "admin",
       roles: assignedRoles,
-      userEmail: "rbarman@hotmail.ch",
     })).toBe(true);
 
     expect(canAccessRole({
       requiredRole: "courier",
       activeRole: "admin",
-      roles: assignedRoles,
-      userEmail: "admin@example.com",
+      roles: ["client", "admin"],
     })).toBe(false);
   });
 
@@ -44,52 +45,56 @@ describe("role access policy", () => {
       requiredRoles: ["client", "restaurateur"],
       activeRole: "restaurateur",
       roles: ["client", "restaurateur"],
-      userEmail: "owner@example.com",
     })).toBe(true);
 
     expect(canAccessAnyRole({
       requiredRoles: ["client", "restaurateur"],
       activeRole: "courier",
       roles: ["client", "courier"],
-      userEmail: "driver@example.com",
+    })).toBe(false);
+
+    expect(canAccessAnyRole({
+      requiredRoles: ["client", "restaurateur"],
+      activeRole: "courier",
+      roles: ["courier"],
     })).toBe(false);
   });
 
-  it("keeps non-super users limited to their active role even if multiple roles are assigned", () => {
+  it("lets backend admins switch only between their assigned roles", () => {
     expect(canAccessRole({
       requiredRole: "restaurateur",
       activeRole: "restaurateur",
       roles: ["client", "restaurateur", "courier"],
-      userEmail: "owner@example.com",
     })).toBe(true);
 
     expect(canAccessRole({
       requiredRole: "client",
       activeRole: "restaurateur",
       roles: ["client", "restaurateur", "courier"],
-      userEmail: "owner@example.com",
     })).toBe(false);
 
-    expect(canSwitchRoles(["client", "restaurateur"], "owner@example.com")).toBe(false);
-    expect(canSwitchRoles(["client", "restaurateur"], "rbarman@hotmail.ch")).toBe(true);
+    expect(canAccessRole({
+      requiredRole: "admin",
+      activeRole: "restaurateur",
+      roles: ["client", "restaurateur", "courier"],
+    })).toBe(false);
+
+    expect(canAccessRole({
+      requiredRole: "client",
+      activeRole: "admin",
+      roles: ["client", "admin", "restaurateur"],
+    })).toBe(true);
+
+    expect(canSwitchRoles(["client"])).toBe(false);
+    expect(canSwitchRoles(["client", "restaurateur"])).toBe(false);
+    expect(canSwitchRoles(["client", "admin"])).toBe(true);
   });
 
-  it("grants all role surfaces only to the super admin effective role set", () => {
-    expect(getEffectiveRoles(["admin"], "rbarman@hotmail.ch")).toEqual([
-      "client",
-      "admin",
-      "restaurateur",
-      "courier",
-    ]);
-
-    expect(getEffectiveRoles(["admin"], "admin@example.com")).toEqual(["admin"]);
-  });
-
-  it("selects a role-specific landing page for non-super accounts", () => {
-    expect(getDefaultActiveRole(["client", "restaurateur"], "owner@example.com")).toBe("restaurateur");
-    expect(getDefaultActiveRole(["client", "courier"], "driver@example.com")).toBe("courier");
-    expect(getDefaultActiveRole(["client", "admin"], "admin@example.com")).toBe("admin");
-    expect(getDefaultActiveRole(["client", "admin", "courier"], "rbarman@hotmail.ch")).toBe("admin");
+  it("selects a role-specific landing page from assigned roles", () => {
+    expect(getDefaultActiveRole(["client", "restaurateur"])).toBe("restaurateur");
+    expect(getDefaultActiveRole(["client", "courier"])).toBe("courier");
+    expect(getDefaultActiveRole(["client", "admin"])).toBe("admin");
+    expect(getDefaultActiveRole(["client", "admin", "courier"])).toBe("admin");
 
     expect(getRoleHomePath("client")).toBe("/");
     expect(getRoleHomePath("restaurateur")).toBe("/dashboard");
@@ -97,20 +102,19 @@ describe("role access policy", () => {
     expect(getRoleHomePath("admin")).toBe("/admin");
   });
 
-  it("shows shopping and customer navigation only to guests, clients, and the super admin", () => {
-    expect(canShowClientSurface({ userEmail: null, activeRole: null })).toBe(true);
-    expect(canShowClientSurface({ userEmail: "client@example.com", activeRole: "client" })).toBe(true);
-    expect(canShowClientSurface({ userEmail: "owner@example.com", activeRole: "restaurateur" })).toBe(false);
-    expect(canShowClientSurface({ userEmail: "driver@example.com", activeRole: "courier" })).toBe(false);
-    expect(canShowClientSurface({ userEmail: "rbarman@hotmail.ch", activeRole: "admin" })).toBe(true);
+  it("shows shopping and customer navigation only to guests and the active client role", () => {
+    expect(canShowClientSurface({ activeRole: null })).toBe(true);
+    expect(canShowClientSurface({ activeRole: "client" })).toBe(true);
+    expect(canShowClientSurface({ activeRole: "restaurateur" })).toBe(false);
+    expect(canShowClientSurface({ activeRole: "courier" })).toBe(false);
+    expect(canShowClientSurface({ activeRole: "admin" })).toBe(false);
   });
 
-  it("shows the social feed to clients, restaurateurs and the super admin only", () => {
-    expect(canShowSocialFeedSurface({ userEmail: null, activeRole: null })).toBe(true);
-    expect(canShowSocialFeedSurface({ userEmail: "client@example.com", activeRole: "client" })).toBe(true);
-    expect(canShowSocialFeedSurface({ userEmail: "owner@example.com", activeRole: "restaurateur" })).toBe(true);
-    expect(canShowSocialFeedSurface({ userEmail: "driver@example.com", activeRole: "courier" })).toBe(false);
-    expect(canShowSocialFeedSurface({ userEmail: "admin@example.com", activeRole: "admin" })).toBe(false);
-    expect(canShowSocialFeedSurface({ userEmail: "rbarman@hotmail.ch", activeRole: "admin" })).toBe(true);
+  it("shows the social feed to guests, clients and the active restaurateur role only", () => {
+    expect(canShowSocialFeedSurface({ activeRole: null })).toBe(true);
+    expect(canShowSocialFeedSurface({ activeRole: "client" })).toBe(true);
+    expect(canShowSocialFeedSurface({ activeRole: "restaurateur" })).toBe(true);
+    expect(canShowSocialFeedSurface({ activeRole: "courier" })).toBe(false);
+    expect(canShowSocialFeedSurface({ activeRole: "admin" })).toBe(false);
   });
 });

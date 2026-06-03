@@ -197,7 +197,7 @@ export default function Auth() {
       return;
     }
 
-    const targetRole = role || getDefaultActiveRole(roles, user.email);
+    const targetRole = role || getDefaultActiveRole(roles);
     navigate(getPostAuthTarget(targetRole), { replace: true });
   }, [canSwitchRole, getPostAuthTarget, navigate, role, roles, showRolePicker, user]);
 

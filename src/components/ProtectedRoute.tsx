@@ -31,7 +31,7 @@ export default function ProtectedRoute({ children, requiredRole, requiredRoles }
   }
 
   const allowedRoles = requiredRoles || (requiredRole ? [requiredRole] : undefined);
-  if (!canAccessAnyRole({ requiredRoles: allowedRoles, activeRole: role, roles, userEmail: user.email })) {
+  if (!canAccessAnyRole({ requiredRoles: allowedRoles, activeRole: role, roles })) {
     return <Navigate to={getRoleHomePath(role)} replace />;
   }
 

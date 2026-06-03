@@ -101,19 +101,21 @@ describe("admin compta governance", () => {
     expect(inflow).toContain("admin_generate_tok_payable_invoice");
     expect(inflow).toContain("admin_generate_tok_payable_invoices_all");
     expect(inflow).toContain("admin_mark_restaurant_invoice_paid");
+    expect(inflow).toContain("p_reference");
     expect(inflow).toContain("downloadInvoicePdf");
     expect(inflow).not.toContain('.from("restaurant_invoices").update');
 
     expect(outflow).toContain("exportOutflowCsv");
     expect(outflow).toContain("admin_mark_restaurant_invoice_paid");
+    expect(outflow).toContain("p_reference");
     expect(outflow).toContain("downloadInvoicePdf");
     expect(outflow).not.toContain('.from("restaurant_invoices").update');
 
     expect(dashboardInflow).toContain("admin_mark_restaurant_invoice_paid");
-    expect(dashboardInflow).toContain("p_reason");
+    expect(dashboardInflow).toContain("p_reference");
     expect(dashboardInflow).not.toContain('.from("restaurant_invoices").update');
     expect(dashboardOutflow).toContain("admin_mark_restaurant_invoice_paid");
-    expect(dashboardOutflow).toContain("p_reason");
+    expect(dashboardOutflow).toContain("p_reference");
     expect(dashboardOutflow).not.toContain('.from("restaurant_invoices").update');
   });
 });

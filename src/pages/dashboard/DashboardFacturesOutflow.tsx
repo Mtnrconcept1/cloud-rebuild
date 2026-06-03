@@ -190,7 +190,7 @@ export default function DashboardFacturesOutflow() {
     const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
       p_invoice_id: invoiceId,
       p_paid_at: new Date().toISOString(),
-      p_reason: "Marquage paye depuis le dashboard restaurateur - sorties",
+      p_reference: "Marquage paye depuis le dashboard restaurateur - sorties",
     });
 
     if (updateError) {

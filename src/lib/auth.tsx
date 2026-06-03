@@ -6,7 +6,6 @@ import {
   canSwitchRoles,
   getDefaultActiveRole,
   getEffectiveRoles,
-  isSuperAdminEmail,
 } from "@/lib/roleAccess";
 import { AuthContext, type UserRole } from "@/lib/auth-context";
 
@@ -20,7 +19,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [initialSessionReceived, setInitialSessionReceived] = useState(false);
   const userId = user?.id ?? null;
-  const userEmail = user?.email ?? null;
 
   const resolveRolesWithFallback = useCallback(async (userId: string) => {
     const supabase = getSupabase();
@@ -77,23 +75,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return resolveRolesWithFallback(userId);
   }, [resolveRolesWithFallback]);
 
-  const applyRoles = useCallback((fetchedRoles: UserRole[], currentUserEmail?: string | null) => {
-    const effectiveRoles = getEffectiveRoles(fetchedRoles, currentUserEmail);
+  const applyRoles = useCallback((fetchedRoles: UserRole[]) => {
+    const effectiveRoles = getEffectiveRoles(fetchedRoles);
     setRoles(effectiveRoles);
 
     const saved = localStorage.getItem(ACTIVE_ROLE_KEY) as UserRole | null;
-    if (canSwitchRoles(effectiveRoles, currentUserEmail) && saved && effectiveRoles.includes(saved)) {
+    if (canSwitchRoles(effectiveRoles) && saved && effectiveRoles.includes(saved)) {
       setActiveRole(saved);
       return;
     }
 
-    const best = getDefaultActiveRole(effectiveRoles, currentUserEmail);
+    const best = getDefaultActiveRole(effectiveRoles);
     setActiveRole(best);
     localStorage.setItem(ACTIVE_ROLE_KEY, best);
   }, []);
 
   const switchRole = useCallback((role: UserRole) => {
-    if (!user || !canSwitchRoles(roles, user.email) || !roles.includes(role)) return;
+    if (!user || !canSwitchRoles(roles) || !roles.includes(role)) return;
 
     setActiveRole(role);
     localStorage.setItem(ACTIVE_ROLE_KEY, role);
@@ -167,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void fetchRoles(userId)
       .then((fetchedRoles) => {
         if (cancelled) return;
-        applyRoles(fetchedRoles, userEmail);
+        applyRoles(fetchedRoles);
       })
       .finally(() => {
         if (!cancelled) {
@@ -178,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [applyRoles, fetchRoles, userId, userEmail, initialSessionReceived]);
+  }, [applyRoles, fetchRoles, userId, initialSessionReceived]);
 
   const signOut = async () => {
     await getSupabase().auth.signOut();
@@ -190,8 +188,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(ACTIVE_ROLE_KEY);
   };
 
-  const isSuperAdmin = isSuperAdminEmail(user?.email);
-  const canSwitchRole = canSwitchRoles(roles, user?.email);
+  const isSuperAdmin = roles.includes("admin");
+  const canSwitchRole = canSwitchRoles(roles);
 
   return (
     <AuthContext.Provider value={{ user, session, loading, role: activeRole, roles, isSuperAdmin, canSwitchRole, switchRole, signOut }}>

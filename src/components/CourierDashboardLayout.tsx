@@ -24,7 +24,7 @@ const NAV_ITEMS = [
 
 export default function CourierDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { signOut, roles, isSuperAdmin } = useAuth();
+  const { signOut, roles } = useAuth();
   const activeFeatures = useActiveFeatures();
   const queryClient = useQueryClient();
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
@@ -120,7 +120,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               </Link>
             ))}
 
-            {isSuperAdmin ? (
+            {roles.length > 1 ? (
               <div className="mt-3 space-y-1 border-t pt-3">
                 {roles.includes("restaurateur") && activeFeatures.has("dashboard-restaurateur") ? (
                   <Link
