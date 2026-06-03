@@ -7,8 +7,8 @@ describe("SolidaritySection", () => {
   it("shows the Miamz image, impact counters, progress and next goal", () => {
     const { container } = render(<SolidaritySection donatedMeals={68} donatedPoints={6939} />);
 
-    expect(screen.getByRole("img", { name: /miamz solidaire tok/i })).toHaveAttribute("src", "/Miamz2.png");
-    expect(container.querySelector('source[media="(max-width: 767px)"]')).toHaveAttribute("srcSet", "/Miamz3.png");
+    expect(screen.getByRole("img", { name: /miamz solidaire tok/i })).toHaveAttribute("src", "/Miamz2.webp");
+    expect(container.querySelector('source[media="(max-width: 767px)"]')).toHaveAttribute("srcSet", "/Miamz3.webp");
     expect(screen.getByText(/68 repas/i)).toBeInTheDocument();
     expect(screen.getByText("6 939")).toBeInTheDocument();
     expect(screen.getByText("5 000")).toBeInTheDocument();

@@ -70,9 +70,10 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           variants={stagger}
           initial="hidden"
           animate={contentVisible ? "visible" : "hidden"}
-          className="relative h-[calc(100svh-176px)] min-h-[650px] max-h-[760px] overflow-hidden bg-[#201409]"
+          data-testid="mobile-hero-panel"
+          className="relative h-[calc(100svh-216px)] min-h-[600px] max-h-[700px] overflow-hidden bg-[#201409]"
         >
-          <div className="absolute -inset-y-[60px] inset-x-0 translate-y-[60px] bg-[url('/chefbg2.png')] bg-cover bg-[position:50%_36%]" aria-hidden="true" />
+          <div className="absolute -inset-y-[60px] inset-x-0 translate-y-[60px] bg-[url('/chefbg2.webp')] bg-cover bg-[position:50%_36%]" aria-hidden="true" />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,transparent_64%,rgba(58,28,8,0.22)_100%)]" aria-hidden="true" />
 
           <div className="relative z-10 flex h-full flex-col pt-[34px]">
@@ -158,18 +159,20 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             initial={{ y: 44, opacity: 0 }}
             animate={contentVisible ? { y: 0, opacity: 1 } : { y: 44, opacity: 0 }}
             transition={{ delay: 0.35, type: "spring", stiffness: 120, damping: 16 }}
-            className="relative h-[112px] bg-white px-6 pb-1.5 pt-[14px] text-center shadow-[0_-14px_30px_rgba(25,12,5,0.10)] min-[390px]:h-[116px] min-[390px]:pt-4"
+            data-testid="mobile-newsletter"
+            className="relative min-h-[148px] space-y-2 bg-white px-6 pb-4 pt-4 text-center shadow-[0_-14px_30px_rgba(25,12,5,0.10)] min-[390px]:min-h-[152px]"
           >
             <p className="mx-auto max-w-[300px] text-[0.86rem] font-extrabold leading-[1.16] text-slate-950 min-[390px]:text-[0.9rem]">
               {"Abonnez-vous à notre newsletter et recevez "}
               <span className="text-[#ff6418]">500 Miamz.</span>
             </p>
-            <button className="mt-0.5 text-[0.72rem] font-semibold leading-tight text-[#5d6979] underline underline-offset-4 min-[390px]:text-[0.76rem]">
+            <button className="mx-auto block text-[0.72rem] font-semibold leading-tight text-[#5d6979] underline underline-offset-4 min-[390px]:text-[0.76rem]">
               Conditions applicables.
             </button>
+            {" "}
             <button
               onClick={() => navigate("/auth")}
-              className="relative -top-[3px] mt-1 h-[34px] w-full max-w-[280px] rounded-full bg-[#ff6418] px-8 text-[0.78rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,100,24,0.26)] transition hover:bg-[#ff711f] min-[390px]:h-[35px] min-[390px]:text-[0.82rem]"
+              className="h-[38px] w-full max-w-[280px] rounded-full bg-[#ff6418] px-8 text-[0.78rem] font-extrabold text-white shadow-[0_12px_22px_rgba(255,100,24,0.26)] transition hover:bg-[#ff711f] min-[390px]:h-[40px] min-[390px]:text-[0.82rem]"
             >
               Inscrivez-vous
             </button>
@@ -179,7 +182,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
       <section ref={heroRef} className="relative hidden min-h-[calc(100dvh-116px)] flex-col overflow-hidden md:flex">
         <motion.div
-          className="absolute inset-0 bg-[url('/chefbg.png')] bg-cover bg-no-repeat bg-center will-change-transform"
+          className="absolute inset-0 bg-[url('/chefbg.webp')] bg-cover bg-no-repeat bg-center will-change-transform"
           style={{ transform: "translateY(calc(var(--scroll-y, 0px) * 0.3)) scale(1.05)" }}
           initial={{ opacity: 0, scale: 1.12 }}
           animate={{ opacity: 1, scale: 1.05 }}
@@ -279,7 +282,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           >
             <div className="container flex flex-col items-center justify-between gap-3 sm:flex-row">
               <p className="text-center text-sm font-semibold text-foreground sm:text-left">
-                Abonnez-vous a notre newsletter et recevez{" "}
+                Abonnez-vous à notre newsletter et recevez{" "}
                 <span className="font-extrabold text-primary">500 Miamz</span>.{" "}
                 <button className="text-xs underline text-muted-foreground hover:text-foreground">
                   Conditions applicables.

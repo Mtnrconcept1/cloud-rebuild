@@ -29,9 +29,9 @@ export default function SolidaritySection({ donatedMeals, donatedPoints }: Solid
           </p>
 
           <picture>
-            <source media="(max-width: 767px)" srcSet="/Miamz3.png" />
+            <source media="(max-width: 767px)" srcSet="/Miamz3.webp" type="image/webp" />
             <img
-              src="/Miamz2.png"
+              src="/Miamz2.webp"
               alt="Miamz solidaire Tok"
               className="block w-full"
               loading="lazy"

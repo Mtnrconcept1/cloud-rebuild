@@ -94,6 +94,7 @@ function CuisinePhoto({
       </div>
 
       <div
+        aria-hidden="true"
         className={[
           "pointer-events-none absolute left-1/2 top-[-18px] z-10 ml-4 -translate-x-1/2 md:top-[-22px] md:ml-5",
           "origin-bottom-left transition-transform duration-300 ease-out",
@@ -180,6 +181,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
                 transition={{ delay: index * 0.03, type: "spring", stiffness: 260, damping: 20 }}
                 className="group flex shrink-0 snap-start flex-col items-center gap-2.5"
                 style={{ minWidth: 112 }}
+                aria-label={cat.label}
               >
                 <CuisinePhoto src={cat.imageSrc} label={cat.label} isActive={isActive} />
                 <span
