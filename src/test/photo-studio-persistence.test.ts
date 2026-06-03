@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 describe("TOK photo studio persistence", () => {
   const source = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiPhotoStudioV2.tsx"), "utf8");
+  const legacyStudio = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiPhotoStudio.tsx"), "utf8");
   const dashboardPhotos = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardPhotos.tsx"), "utf8");
   const watermarkDownloader = readFileSync(resolve(process.cwd(), "src/lib/media/downloadImageWithWatermark.ts"), "utf8");
   const imageUpload = readFileSync(resolve(process.cwd(), "src/components/ImageUpload.tsx"), "utf8");
@@ -17,6 +18,12 @@ describe("TOK photo studio persistence", () => {
     expect(app).toContain("refetchOnWindowFocus: false");
     expect(app).toContain("refetchOnReconnect: false");
     expect(app).toContain("focusManager.setEventListener");
+  });
+
+  it("keeps the legacy studio entry point aligned with the V2 implementation", () => {
+    expect(legacyStudio.trim()).toBe('export { default } from "./TokAiPhotoStudioV2";');
+    expect(dashboardPhotos).toContain('from "@/components/dashboard/TokAiPhotoStudio"');
+    expect(dashboardPhotos).not.toContain('from "@/components/dashboard/TokAiPhotoStudioV2"');
   });
 
   it("keeps technical source URLs hidden in the simplified studio", () => {
