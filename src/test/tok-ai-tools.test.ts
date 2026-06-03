@@ -133,6 +133,11 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain('maxRequests: 180, windowSeconds: 60');
     expect(source).toContain("SOURCE_IMAGE_EDIT_PROMPT");
     expect(source).toContain("PREMIUM_SOURCE_IMAGE_EDIT_PROMPT");
+    expect(source).toContain("buildPhotoStudioRetouchPrompt");
+    expect(source).toContain("buildCompactPhotoStudioRetouchPrompt");
+    expect(source).toContain("DEFAULT_PHOTO_STUDIO_STYLE");
+    expect(source).toContain(".replace(/\\[TYPE_DE_PLAT\\]/g, dishLabel)");
+    expect(source).toContain(".replace(/\\[STYLE_[^\\]]+\\]/g, DEFAULT_PHOTO_STUDIO_STYLE)");
     expect(source).toContain("avant/apres fidele");
     expect(source).toContain("PHOTO_STUDIO_RETOUCH_PROMPT");
     expect(source).toContain("photographie culinaire publicitaire haut de gamme");
@@ -145,7 +150,9 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("ne jamais ajouter de logo");
     expect(source).toContain("sans logo");
     expect(source).toContain("sans texte de marque");
-    expect(source).toContain('form.append("image[]", sourceBlob, "source.png")');
+    expect(source).toContain("SUPPORTED_SOURCE_IMAGE_MIME_TYPES");
+    expect(source).toContain("getSourceImageFileName");
+    expect(source).toContain('form.append("image[]", sourceBlob, getSourceImageFileName(sourceBlob.type))');
     expect(source).not.toContain("TOK_BRAND_LOGO_URL");
     expect(source).not.toContain("TOK_BRAND_LOGO_PROMPT");
     expect(source).not.toContain('form.append("image[]", logoBlob, "tok-logo.png")');
@@ -154,8 +161,10 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain('brand_overlay_size: "180x180"');
     expect(source).toContain("strict_source_edit_no_generation_fallback");
     expect(source).toContain("generation_fallback_allowed: !sourceImageUrl");
-    expect(source).toContain("const imageEditRetryUsed = false");
-    expect(source).not.toContain("image_edit_retry\", {");
+    expect(source).toContain("let imageEditRetryUsed = false");
+    expect(source).toContain("callOpenAIImageEditWithRetry");
+    expect(source).toContain("shouldRetryImageEdit");
+    expect(source).toContain("image_edit_retry");
     expect(source).not.toContain("image_edit_fallback");
     expect(source).not.toContain("image_edit_fallback: l'edition de l'image source a echoue");
     expect(source).not.toContain("source_image_edit_required");
