@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
+import { deleteRestaurantMedia, setRestaurantCoverMedia } from "@/lib/restaurantMediaGovernance";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import ImageUpload from "@/components/ImageUpload";
 import { Star, Trash2, Pencil, Image as ImageIcon, Sparkles, Download, Maximize2 } from "lucide-react";
@@ -26,7 +27,25 @@ type MediaItem = {
   media_type: string;
   is_cover: boolean;
   position: number;
+  storage_bucket: string | null;
+  storage_path: string | null;
   created_at: string;
+};
+
+type MediaFormState = {
+  media_url: string;
+  alt_text: string;
+  media_type: string;
+  storage_bucket: string | null;
+  storage_path: string | null;
+};
+
+const EMPTY_MEDIA_FORM: MediaFormState = {
+  media_url: "",
+  alt_text: "",
+  media_type: "photo",
+  storage_bucket: null,
+  storage_path: null,
 };
 
 function buildGalleryPhotoDownloadFileName(item: MediaItem) {
@@ -54,6 +73,22 @@ function TokGalleryWatermark({ className = "", sizeClassName = "h-[180px] w-[180
   );
 }
 
+function TokGalleryImageFrame({ item }: { item: MediaItem }) {
+  return (
+    <div
+      className="relative inline-flex max-h-full max-w-full items-center justify-center"
+      data-testid="tok-gallery-image-frame"
+    >
+      <TokGalleryWatermark className="left-4 top-4" />
+      <img
+        src={item.media_url}
+        alt={item.alt_text || "Photo restaurant"}
+        className="block max-h-full max-w-full rounded-lg object-contain"
+      />
+    </div>
+  );
+}
+
 export default function DashboardPhotos() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -63,14 +98,14 @@ export default function DashboardPhotos() {
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
-  const [form, setForm] = useState({ media_url: "", alt_text: "", media_type: "photo" });
+  const [form, setForm] = useState<MediaFormState>(EMPTY_MEDIA_FORM);
 
   const load = async () => {
     if (!selectedId) { setItems([]); setLoading(false); return; }
     setLoading(true);
     const { data, error } = await supabase
       .from("restaurant_media")
-      .select("id, restaurant_id, media_url, alt_text, media_type, is_cover, position, created_at")
+      .select("id, restaurant_id, media_url, alt_text, media_type, is_cover, position, storage_bucket, storage_path, created_at")
       .eq("restaurant_id", selectedId)
       .order("position", { ascending: true });
     setError(error?.message || null);
@@ -81,7 +116,7 @@ export default function DashboardPhotos() {
   useEffect(() => {
     if (!loadingRestaurant && selectedId) {
       setEditingId(null);
-      setForm({ media_url: "", alt_text: "", media_type: "photo" });
+      setForm(EMPTY_MEDIA_FORM);
       load();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,6 +134,8 @@ export default function DashboardPhotos() {
       media_type: form.media_type,
       uploaded_by: user?.id || null,
       position: items.length,
+      storage_bucket: form.storage_bucket,
+      storage_path: form.storage_path,
     };
     const { error } = editingId
       ? await supabase.from("restaurant_media").update(payload).eq("id", editingId)
@@ -106,38 +143,31 @@ export default function DashboardPhotos() {
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     toast({ title: editingId ? "Photo mise à jour" : "Photo ajoutée" });
     setEditingId(null);
-    setForm({ media_url: "", alt_text: "", media_type: "photo" });
+    setForm(EMPTY_MEDIA_FORM);
     load();
   };
 
   const setCover = async (id: string) => {
-    if (!selectedId) return;
-    // Remove cover from all other media of this restaurant
-    await supabase.from("restaurant_media").update({ is_cover: false }).eq("restaurant_id", selectedId);
-    await supabase.from("restaurant_media").update({ is_cover: true }).eq("id", id);
-
-    // Sync cover photo to restaurants.image_url so it appears on search & profile
-    const coverItem = items.find((item) => item.id === id);
-    if (coverItem) {
-      await supabase.from("restaurants").update({ image_url: coverItem.media_url }).eq("id", selectedId);
+    try {
+      await setRestaurantCoverMedia(id);
+      toast({ title: "Photo de couverture définie" });
+      load();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Impossible de définir la couverture.";
+      toast({ title: "Erreur", description: message, variant: "destructive" });
     }
-
-    toast({ title: "Photo de couverture définie" });
-    load();
   };
 
   const remove = async (id: string) => {
-    const itemToRemove = items.find((item) => item.id === id);
-    const { error } = await supabase.from("restaurant_media").delete().eq("id", id);
-    if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
-
-    // If the deleted photo was the cover, clear restaurants.image_url
-    if (itemToRemove?.is_cover && selectedId) {
-      await supabase.from("restaurants").update({ image_url: null }).eq("id", selectedId);
+    try {
+      await deleteRestaurantMedia(id);
+      if (previewItem?.id === id) setPreviewItem(null);
+      toast({ title: "Photo supprimée" });
+      load();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Impossible de supprimer la photo.";
+      toast({ title: "Erreur", description: message, variant: "destructive" });
     }
-
-    toast({ title: "Photo supprimée" });
-    load();
   };
 
   const downloadPhoto = async (item: MediaItem) => {
@@ -149,15 +179,13 @@ export default function DashboardPhotos() {
         watermarkSize: 180,
         watermarkMargin: 24,
       });
-    } catch {
-      const link = document.createElement("a");
-      link.href = item.media_url;
-      link.download = buildGalleryPhotoDownloadFileName(item);
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Le logo TOK n'a pas pu être appliqué au téléchargement.";
+      toast({
+        title: "Téléchargement impossible",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -203,14 +231,19 @@ export default function DashboardPhotos() {
                 <ImageUpload
                   label="Image"
                   value={form.media_url}
-                  onChange={(url) => setForm((v) => ({ ...v, media_url: url }))}
+                  onChange={(url, metadata) => setForm((v) => ({
+                    ...v,
+                    media_url: url,
+                    storage_bucket: metadata?.storageBucket ?? null,
+                    storage_path: metadata?.storagePath ?? null,
+                  }))}
                   showUrlInput={false}
                 />
               </div>
               <div className="flex gap-2">
                 <Button type="submit">Enregistrer</Button>
                 {editingId && (
-                  <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm({ media_url: "", alt_text: "", media_type: "photo" }); }}>
+                  <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm(EMPTY_MEDIA_FORM); }}>
                     Annuler
                   </Button>
                 )}
@@ -266,7 +299,13 @@ export default function DashboardPhotos() {
                   )}
                   <Button size="sm" variant="outline" onClick={() => {
                     setEditingId(item.id);
-                    setForm({ media_url: item.media_url, alt_text: item.alt_text || "", media_type: item.media_type });
+                    setForm({
+                      media_url: item.media_url,
+                      alt_text: item.alt_text || "",
+                      media_type: item.media_type,
+                      storage_bucket: item.storage_bucket,
+                      storage_path: item.storage_path,
+                    });
                   }}>
                     <Pencil className="h-3 w-3 mr-1" /> Éditer
                   </Button>
@@ -300,13 +339,8 @@ export default function DashboardPhotos() {
             </DialogHeader>
             <div className="min-h-0 flex-1 bg-black p-3 sm:p-5">
               {previewItem ? (
-                <div className="relative h-full w-full">
-                  <TokGalleryWatermark className="left-5 top-5" />
-                  <img
-                    src={previewItem.media_url}
-                    alt={previewItem.alt_text || "Photo restaurant"}
-                    className="h-full w-full rounded-lg object-contain"
-                  />
+                <div className="flex h-full w-full items-center justify-center">
+                  <TokGalleryImageFrame item={previewItem} />
                 </div>
               ) : null}
             </div>

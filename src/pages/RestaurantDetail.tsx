@@ -49,6 +49,22 @@ function RestaurantGalleryWatermark({ className = "", sizeClassName = "h-12 w-12
   );
 }
 
+function RestaurantGalleryImageFrame({ photo, alt }: { photo: RestaurantGalleryPhoto; alt: string }) {
+  return (
+    <div
+      className="relative inline-flex max-h-full max-w-full items-center justify-center"
+      data-testid="restaurant-gallery-image-frame"
+    >
+      <RestaurantGalleryWatermark className="left-4 top-4" sizeClassName="h-16 w-16" />
+      <img
+        src={photo.media_url}
+        alt={photo.alt_text || alt}
+        className="block max-h-full max-w-full rounded-lg object-contain"
+      />
+    </div>
+  );
+}
+
 function buildRestaurantDetailJsonLd({
   restaurant,
   restaurantId,
@@ -812,9 +828,10 @@ export default function RestaurantDetail() {
               <Button variant="ghost" size="icon" className="absolute right-4 text-white hover:bg-white/20 z-50" onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev + 1) % galleryPhotos.length); }}><ChevronRight className="h-8 w-8" /></Button>
             </>
           )}
-          <div className="relative max-w-4xl max-h-[80vh] px-12" onClick={(e) => e.stopPropagation()}>
-            <RestaurantGalleryWatermark className="left-16 top-4" sizeClassName="h-16 w-16" />
-            <img src={galleryPhotos[galleryIndex].media_url} alt={galleryPhotos[galleryIndex].alt_text || restaurant.name} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+          <div className="flex max-h-[80vh] max-w-4xl flex-col items-center px-12" onClick={(e) => e.stopPropagation()}>
+            <div className="flex min-h-0 max-h-[80vh] max-w-full items-center justify-center">
+              <RestaurantGalleryImageFrame photo={galleryPhotos[galleryIndex]} alt={restaurant.name} />
+            </div>
             <p className="text-center text-white/70 text-sm mt-3">{galleryIndex + 1} / {galleryPhotos.length}{galleryPhotos[galleryIndex].alt_text ? ` — ${galleryPhotos[galleryIndex].alt_text}` : ""}</p>
           </div>
         </div>

@@ -87,11 +87,12 @@ async function composeWatermarkedPng(options: DownloadImageOptions) {
 }
 
 export async function downloadImageWithWatermark(options: DownloadImageOptions) {
-  try {
-    const blob = await composeWatermarkedPng(options);
-    downloadBlob(blob, options.fileName);
-  } catch {
+  if (!options.watermarkUrl) {
     const blob = await fetchBlob(options.imageUrl);
     downloadBlob(blob, options.fileName);
+    return;
   }
+
+  const blob = await composeWatermarkedPng(options);
+  downloadBlob(blob, options.fileName);
 }

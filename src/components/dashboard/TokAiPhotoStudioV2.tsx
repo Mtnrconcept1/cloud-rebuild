@@ -326,6 +326,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       media_type: "photo_ai_tok",
       uploaded_by: userId || null,
       position: currentPhotoCount,
+      storage_bucket: result.gallery_storage_bucket,
+      storage_path: result.gallery_storage_path,
     });
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     toast({ title: "Ajouté à la galerie" });
@@ -343,15 +345,13 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         watermarkSize: 180,
         watermarkMargin: 24,
       });
-    } catch {
-      const link = document.createElement("a");
-      link.href = generatedImageUrl;
-      link.download = downloadFileName;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Le logo TOK n'a pas pu être appliqué au téléchargement.";
+      toast({
+        title: "Téléchargement impossible",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 

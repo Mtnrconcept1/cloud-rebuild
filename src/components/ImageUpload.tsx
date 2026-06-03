@@ -15,9 +15,14 @@ import {
 
 const supabase = getSupabase();
 
+export type ImageUploadMetadata = {
+  storageBucket: string;
+  storagePath: string;
+};
+
 interface ImageUploadProps {
   value: string;
-  onChange: (url: string) => void;
+  onChange: (url: string, metadata?: ImageUploadMetadata) => void;
   label?: string;
   bucket?: string;
   className?: string;
@@ -71,7 +76,7 @@ export default function ImageUpload({
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-      onChange(data.publicUrl);
+      onChange(data.publicUrl, { storageBucket: bucket, storagePath: filePath });
       toast({ title: "Succès", description: "Image uploadée avec succès !" });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Erreur d'upload";

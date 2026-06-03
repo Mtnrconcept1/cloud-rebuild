@@ -109,6 +109,9 @@ verify_jwt = false
 [functions.restaurant-order-status]
 verify_jwt = false
 
+[functions.restaurant-media-governance]
+verify_jwt = false
+
 [functions.scrape-restaurants]
 verify_jwt = false
 

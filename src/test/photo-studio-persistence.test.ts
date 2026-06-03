@@ -29,7 +29,6 @@ describe("TOK photo studio persistence", () => {
 
   it("keeps technical source URLs hidden in the simplified studio", () => {
     expect(source).toContain("showUrlInput={false}");
-    expect(source).not.toContain("storage_path");
     expect(source).not.toContain("reference_folder");
     expect(source).not.toContain("assetId");
   });
@@ -55,6 +54,8 @@ describe("TOK photo studio persistence", () => {
   it("adds generated images to the gallery through a stable public gallery URL", () => {
     expect(source).toContain("result.gallery_image_url");
     expect(source).toContain("media_url: result.gallery_image_url");
+    expect(source).toContain("storage_bucket: result.gallery_storage_bucket");
+    expect(source).toContain("storage_path: result.gallery_storage_path");
     expect(source).not.toContain("media_url: result.generated_image_url");
   });
 
@@ -83,6 +84,23 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("watermarkUrl: TOK_LOGO_SRC");
     expect(dashboardPhotos).not.toContain('item.media_type === "photo_ai_tok" ? <TokGalleryWatermark');
     expect(dashboardPhotos).toContain("Prévisualisation grand format de l'image ajoutée à la galerie.");
+  });
+
+  it("keeps gallery watermarks inside the rendered image frame and never downloads raw gallery images", () => {
+    expect(dashboardPhotos).toContain("TokGalleryImageFrame");
+    expect(dashboardPhotos).toContain('data-testid="tok-gallery-image-frame"');
+    expect(dashboardPhotos).toContain("inline-flex max-h-full max-w-full");
+    expect(dashboardPhotos).not.toContain('className="relative h-full w-full"');
+
+    expect(restaurantDetail).toContain("RestaurantGalleryImageFrame");
+    expect(restaurantDetail).toContain('data-testid="restaurant-gallery-image-frame"');
+    expect(restaurantDetail).toContain("inline-flex max-h-full max-w-full");
+    expect(restaurantDetail).not.toContain('className="relative max-w-4xl max-h-[80vh] px-12"');
+
+    expect(watermarkDownloader).toContain("if (!options.watermarkUrl)");
+    expect(watermarkDownloader).not.toContain("} catch {\n    const blob = await fetchBlob(options.imageUrl);");
+    expect(dashboardPhotos).not.toContain("link.href = item.media_url");
+    expect(source).not.toContain("link.href = generatedImageUrl");
   });
 
   it("keeps dashboard photo uploads focused on files instead of manual image URLs", () => {
