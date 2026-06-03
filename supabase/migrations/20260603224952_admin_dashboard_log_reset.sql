@@ -24,7 +24,7 @@ RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $$
+AS $admin_reset_dashboard_logs$
 DECLARE
   v_actor_id uuid := auth.uid();
   v_edge_count integer := 0;
@@ -72,7 +72,7 @@ BEGIN
     'deleted_ai_usage_logs', v_ai_count
   );
 END;
-$$;
+$admin_reset_dashboard_logs$;
 
 REVOKE EXECUTE ON FUNCTION public.admin_reset_dashboard_logs(text) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.admin_reset_dashboard_logs(text) FROM anon;
