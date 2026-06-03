@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
-    actor = await authenticateRequest(req, { allowSchedulerSecret: true });
+    actor = await authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true });
     requireRole(actor, ["admin"]);
 
     const supabaseAdmin = createClient(

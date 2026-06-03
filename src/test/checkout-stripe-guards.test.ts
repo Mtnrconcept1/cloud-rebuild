@@ -8,6 +8,10 @@ const orderCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functi
 const chefsTableSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/chefs-table.ts"), "utf8");
 const validateOrderSource = readFileSync(resolve(process.cwd(), "supabase/functions/validate-order/index.ts"), "utf8");
 const cartSource = readFileSync(resolve(process.cwd(), "src/pages/Panier.tsx"), "utf8");
+const restoreStockMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260603114000_restore_special_offer_stock.sql"),
+  "utf8",
+);
 
 describe("checkout and Stripe webhook safety guards", () => {
   it("creates Stripe sessions with required metadata for reconciliation", () => {
@@ -65,6 +69,19 @@ describe("checkout and Stripe webhook safety guards", () => {
       .toBeGreaterThan(onlineCheckoutBlock.indexOf('invokeSupabaseFunction("create-checkout"'));
   });
 
+  it("preserves fixed pickup slots from Anti-Gaspi and flash sale tools in order metadata", () => {
+    expect(cartSource).toContain("const antiGaspiPickupDate = antiGaspiItem?.metadata?.available_date || null");
+    expect(cartSource).toContain("const antiGaspiPickupStart = antiGaspiItem?.metadata?.pickup_start || null");
+    expect(cartSource).toContain("const antiGaspiPickupEnd = antiGaspiItem?.metadata?.pickup_end || null");
+    expect(cartSource).toContain("? antiGaspiPickupDate");
+    expect(cartSource).toContain("? antiGaspiPickupStart");
+    expect(cartSource).toContain("? antiGaspiPickupEnd");
+    expect(cartSource).toContain("? flashPickupDate");
+    expect(cartSource).toContain("? flashPickupStart");
+    expect(cartSource).toContain("? flashPickupEnd");
+    expect(cartSource).toContain("} else if (!hasAntiGaspi && !hasTakeawayFlash) {");
+  });
+
   it("keeps pre-Stripe online orders pending until webhook or completion finalizes them", () => {
     expect(validateOrderSource).toContain("isAwaitingOnlinePayment");
     expect(validateOrderSource).toContain('checkout_session_state');
@@ -78,6 +95,19 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(stripeWebhookSource).toContain("markOrderCheckoutSessionState");
     expect(orderCheckoutSource).toContain('if (order.status !== "pending_payment" && order.payment_status === "captured")');
     expect(orderCheckoutSource).toContain('checkoutState: "expired"');
+  });
+
+  it("restores reserved Anti-Gaspi and flash sale stock when an online checkout expires", () => {
+    expect(orderCheckoutSource).toContain("restoreReservedSpecialOfferStock");
+    expect(orderCheckoutSource).toContain('from("order_items")');
+    expect(orderCheckoutSource).toContain("itemMetadata.anti_waste_offer_id || itemMetadata.offer_id");
+    expect(orderCheckoutSource).toContain("itemMetadata.flash_sale_id");
+    expect(orderCheckoutSource).toContain('input.adminClient.rpc("restore_special_offer_stock"');
+    expect(orderCheckoutSource).toContain("special_offer_stock_restored_at");
+    expect(restoreStockMigration).toContain("CREATE OR REPLACE FUNCTION public.restore_special_offer_stock");
+    expect(restoreStockMigration).toContain("SET quantity_available = quantity_available + p_qty");
+    expect(restoreStockMigration).toContain("REVOKE EXECUTE ON FUNCTION public.restore_special_offer_stock(text, uuid, integer) FROM PUBLIC, anon, authenticated");
+    expect(restoreStockMigration).toContain("GRANT EXECUTE ON FUNCTION public.restore_special_offer_stock(text, uuid, integer) TO service_role");
   });
 
   it("creates or updates Zero Attente reservations idempotently after payment", () => {
