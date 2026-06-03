@@ -281,6 +281,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .sort((a, b) => b.to.length - a.to.length)[0],
     [pathname, sections]
   );
+  const backFallback = pathname === "/dashboard" ? "/" : "/dashboard";
 
   // ✅ realtime notifications
   const handleNotification = useCallback(
@@ -389,9 +390,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-[#8b55ff]/10 blur-3xl" />
         </div>
         <div className="relative z-10 mx-auto w-full max-w-7xl">
-          {pathname !== "/dashboard" ? (
-            <BackNavigationButton fallback="/dashboard" className="mb-4" />
-          ) : null}
+          <BackNavigationButton fallback={backFallback} className="mb-4" />
           {children}
         </div>
       </main>

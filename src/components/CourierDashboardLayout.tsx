@@ -31,6 +31,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
   const [missionPreview, setMissionPreview] = useState<CourierMissionPreview | null>(null);
   const visibleNavItems = NAV_ITEMS.filter((item) => activeFeatures.has(item.feature));
+  const backFallback = pathname === "/courier" ? "/" : "/courier";
 
   const refreshCourierQueries = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["courier-offers"] });
@@ -157,9 +158,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
         </aside>
 
         <main className="min-h-[500px] flex-1 overflow-x-hidden rounded-2xl border bg-card p-4 sm:p-6 md:p-8">
-          {pathname !== "/courier" ? (
-            <BackNavigationButton fallback="/courier" className="mb-4" />
-          ) : null}
+          <BackNavigationButton fallback={backFallback} className="mb-4" />
           {children}
         </main>
       </div>

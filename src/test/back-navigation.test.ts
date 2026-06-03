@@ -25,13 +25,19 @@ describe("route back navigation", () => {
     const dashboard = read("src/components/DashboardLayout.tsx");
     const customer = read("src/components/CustomerDashboardLayout.tsx");
     const courier = read("src/components/CourierDashboardLayout.tsx");
+    const backNavigation = read("src/components/navigation/BackNavigationButton.tsx");
 
     expect(app).toContain("<FloatingRouteBackButton />");
+    expect(app).toContain("function AdminDashboardRoute");
+    expect(app).toContain('<BackNavigationButton fallback="/" />');
     expect(app).toContain("function AdminProtectedRoute");
     expect(app).toContain("<BackNavigationButton fallback={fallback} />");
-    expect(dashboard).toContain('<BackNavigationButton fallback="/dashboard"');
+    expect(dashboard).toContain('const backFallback = pathname === "/dashboard" ? "/" : "/dashboard";');
+    expect(dashboard).toContain("<BackNavigationButton fallback={backFallback}");
     expect(customer).toContain('<BackNavigationButton fallback="/"');
-    expect(courier).toContain('<BackNavigationButton fallback="/courier"');
+    expect(courier).toContain('const backFallback = pathname === "/courier" ? "/" : "/courier";');
+    expect(courier).toContain("<BackNavigationButton fallback={backFallback}");
+    expect(backNavigation).not.toContain('pathname.startsWith("/restaurant/")');
   });
 
   it("wraps every admin sub-route with the back-aware admin route", () => {

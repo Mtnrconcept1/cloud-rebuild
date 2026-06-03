@@ -164,6 +164,9 @@ function shouldShowPublicNavbar(pathname: string) {
 function AdminDashboardRoute() {
   return (
     <ProtectedRoute requiredRole="admin">
+      <div className="container px-4 pt-4">
+        <BackNavigationButton fallback="/" />
+      </div>
       <div className="container pt-8">
         <AdminUrgentActions compact />
       </div>

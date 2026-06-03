@@ -40,7 +40,6 @@ function shouldShowFloatingBackButton(pathname: string) {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return false;
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) return false;
   if (pathname === "/courier" || pathname.startsWith("/courier/")) return false;
-  if (pathname.startsWith("/restaurant/")) return false;
   if (CUSTOMER_SHELL_PATHS.has(pathname)) return false;
   return true;
 }

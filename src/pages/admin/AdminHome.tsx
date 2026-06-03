@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useActiveFeatures } from "@/lib/featureFlags";
@@ -638,9 +639,12 @@ export default function AdminHome() {
                 <Shield className="h-5 w-5 text-amber-500" />
                 <CardTitle>Journal d'audit</CardTitle>
               </div>
-              <Button variant="ghost" size="sm" className="self-stretch sm:self-auto" onClick={() => navigate("/admin/audit")}>
-                Voir tout
-              </Button>
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <AdminLogResetButton className="justify-center gap-2" />
+                <Button variant="ghost" size="sm" className="self-stretch sm:self-auto" onClick={() => navigate("/admin/audit")}>
+                  Voir tout
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>

@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import { getSupabase } from "@/integrations/supabase/client";
 
 const supabase = getSupabase();
@@ -656,9 +657,10 @@ export default function AdminAuditLogs() {
               <CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" />Filtres des logs</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">Filtrez par horaires, source, type, fonction, statut, acteur, cible et mot-clé.</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => void refetchLogs()} disabled={isLoading}><RefreshCw className="h-4 w-4" />Rafraîchir</Button>
               <Button type="button" variant="ghost" size="sm" onClick={resetFilters} disabled={!hasActiveFilters}>Réinitialiser les filtres</Button>
+              <AdminLogResetButton className="gap-2" />
             </div>
           </div>
         </CardHeader>
