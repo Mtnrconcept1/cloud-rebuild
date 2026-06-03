@@ -1,5 +1,5 @@
 import { type MouseEvent, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
@@ -95,6 +95,7 @@ const FEATURES = [
 
 export default function Navbar() {
   const { user, role, roles, isSuperAdmin, canSwitchRole, switchRole, signOut } = useAuth();
+  const location = useLocation();
   const { itemCount } = useCart();
   const activeFeatures = useActiveFeatures();
   const queryClient = useQueryClient();
@@ -119,6 +120,7 @@ export default function Navbar() {
   const showRestaurantDashboardLink = dashboardEnabled && (role === "restaurateur" || isSuperAdmin);
   const showAdminDashboardLink = role === "admin" || isSuperAdmin;
   const showCourierDashboardLink = courierEnabled && (role === "courier" || isSuperAdmin);
+  const isMobileHomeHeader = showClientSurface && location.pathname === "/";
 
   const { data: notifications } = useQuery({
     queryKey: ["navbar-notifications", user?.id],
@@ -251,10 +253,10 @@ export default function Navbar() {
       ) : null}
 
       {/* ─── Main header ─── */}
-      <header className="fixed top-0 z-[70] w-full border-b border-border/80 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)] md:sticky md:z-50">
-        <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8">
+      <header className={`fixed top-0 z-[70] w-full border-b shadow-sm safe-top md:sticky md:z-50 ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}>
+        <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 ${isMobileHomeHeader ? "h-[66px] bg-white dark:bg-white" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
-            <img src={LOGO_URL} alt="Tok" className="h-11 w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] min-[380px]:h-12 md:h-16" />
+            <img src={LOGO_URL} alt="Tok" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
           </Link>
 
           {showClientSurface ? (
@@ -353,7 +355,7 @@ export default function Navbar() {
               aria-label="Mode sombre"
               onMouseDown={preserveNavbarActionScrollPosition}
               onClick={handleThemeToggle}
-              className="text-muted-foreground hover:text-foreground"
+              className={`${isMobileHomeHeader ? "hidden md:inline-flex" : ""} text-muted-foreground hover:text-foreground`}
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -361,7 +363,7 @@ export default function Navbar() {
             </Button>
 
             {showCartShortcut ? (
-              <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className="relative">
+              <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className={`${isMobileHomeHeader ? "hidden md:inline-flex" : ""} relative`}>
                 <Link to="/panier">
                   <ShoppingCart className="h-5 w-5" />
                   <span className="sr-only">Panier</span>
@@ -382,7 +384,7 @@ export default function Navbar() {
                     size="icon"
                     aria-label="Notifications"
                     onMouseDown={preserveNavbarActionScrollPosition}
-                    className="relative"
+                    className={`${isMobileHomeHeader ? "hidden md:inline-flex" : ""} relative`}
                   >
                     <Bell className="h-5 w-5" />
                     <span className="sr-only">Notifications</span>
@@ -440,13 +442,17 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size={isMobileHomeHeader ? "sm" : "icon"}
                     aria-label="Compte"
                     onMouseDown={preserveNavbarActionScrollPosition}
-                    className="rounded-full"
+                    className={
+                      isMobileHomeHeader
+                        ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90"
+                        : "rounded-full"
+                    }
                   >
                     <User className="h-5 w-5" />
-                    <span className="sr-only">Compte</span>
+                    <span className={isMobileHomeHeader ? "ml-2 inline" : "sr-only"}>COMPTE</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 data-[state=closed]:hidden">
@@ -516,18 +522,18 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild size="sm" className="min-h-[44px] rounded-full bg-primary px-3 font-bold text-white shadow-md hover:bg-primary/90 min-[380px]:px-5">
+              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-white shadow-md hover:bg-primary/90`}>
                 <Link to="/auth" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden min-[380px]:inline">CONNEXION</span>
+                  <User className={`${isMobileHomeHeader ? "h-5 w-5" : "h-4 w-4"}`} />
+                  <span className={isMobileHomeHeader ? "inline" : "hidden min-[380px]:inline"}>CONNEXION</span>
                 </Link>
               </Button>
             )}
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} md:hidden`}>
+                  <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
                 </Button>
               </SheetTrigger>
