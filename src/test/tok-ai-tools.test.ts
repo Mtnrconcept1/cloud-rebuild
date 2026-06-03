@@ -108,26 +108,32 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("normalizeImageQuality");
     expect(source).toContain("TOK_ALLOW_HIGH_IMAGE_QUALITY");
     expect(source).not.toContain('OPENAI_IMAGE_QUALITY")?.trim() || "high"');
+    expect(source).toContain('return "high"');
     expect(source).toContain("OPENAI_IMAGE_TIMEOUT_MS");
     expect(source).toContain("AbortController");
     expect(source).not.toContain("TOK_IMAGE_USE_AI_BRIEF");
     expect(source).toContain("TOK_IMAGE_FAST_INTERACTIVE");
-    expect(source).toContain('const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", true)');
+    expect(source).toContain('const USE_FAST_INTERACTIVE_IMAGE = readEnvFlag("TOK_IMAGE_FAST_INTERACTIVE", false)');
     expect(source).not.toContain("FORCE_STRICT_SOURCE_EDIT ? false");
     expect(source).toContain("sourceImagePresent && USE_FAST_INTERACTIVE_IMAGE");
     expect(source).toContain("buildImageRequestOptions(format.size, Boolean(sourceImageUrl))");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_QUALITY");
     expect(source).toContain("TOK_INTERACTIVE_IMAGE_SIZE");
+    expect(source).toContain("gpt-image-1.5");
     expect(source).toContain("gpt-image-1-mini");
+    expect(source).not.toContain("gpt-image-2");
     expect(source).toContain('"low"');
     expect(source).toContain('"1024x1024"');
     expect(source).toContain("interactive_fast");
     expect(source).toContain("if (sourceImageUrl) {");
     expect(source).toContain("buildImageOnlyResult");
     expect(source).toContain("brief_source");
-    expect(source).toContain('maxRequests: 40, windowSeconds: 3600');
-    expect(source).toContain('maxRequests: 80, windowSeconds: 3600');
+    expect(source).toContain('maxRequests: 20, windowSeconds: 600');
+    expect(source).toContain('maxRequests: 60, windowSeconds: 600');
+    expect(source).toContain('maxRequests: 180, windowSeconds: 60');
     expect(source).toContain("SOURCE_IMAGE_EDIT_PROMPT");
+    expect(source).toContain("PREMIUM_SOURCE_IMAGE_EDIT_PROMPT");
+    expect(source).toContain("avant/apres fidele");
     expect(source).toContain("photographie professionnelle");
     expect(source).toContain("en gardant le produit identique");
     expect(source).toContain("TOK_BRAND_LOGO_URL");
@@ -142,6 +148,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("tok_logo_positioning");
     expect(source).toContain("strict_source_edit_no_generation_fallback");
     expect(source).toContain("generation_fallback_allowed: !sourceImageUrl");
+    expect(source).toContain("const imageEditRetryUsed = false");
+    expect(source).not.toContain("image_edit_retry\", {");
     expect(source).not.toContain("image_edit_fallback");
     expect(source).not.toContain("image_edit_fallback: l'edition de l'image source a echoue");
     expect(source).not.toContain("source_image_edit_required");
@@ -212,6 +220,16 @@ describe("TOK AI tools foundation", () => {
     expect(sql).toContain("ai-generated-assets");
     expect(sql).toContain("public.check_restaurant_ai_quota");
     expect(sql).toContain("public.get_restaurant_ai_usage");
+    expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
+  });
+
+  it("keeps an explicit AI schema cache refresh contract for production deploys", () => {
+    const sql = readMigrationContaining("refresh_ai_schema_cache_contracts");
+
+    expect(sql).toContain("to_regclass('public.ai_generated_assets')");
+    expect(sql).toContain("to_regprocedure('public.check_restaurant_ai_quota(uuid,text,integer)')");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS provider text");
+    expect(sql).toContain("ALTER COLUMN provider SET DEFAULT 'stripe'");
     expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
   });
 

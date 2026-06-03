@@ -59,7 +59,6 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard, feature: "dashboard-overview" },
       { to: "/dashboard/advisor", label: "Assistant IA", icon: Bot, feature: "dashboard-advisor" },
-      { to: "/dashboard/ai", label: "Agent IA", icon: Sparkles, feature: "ai_sales_insights" },
       { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingCart, feature: "dashboard-commandes" },
       { to: "/dashboard/reservations", label: "Reservations", icon: CalendarDays, feature: "dashboard-reservations" },
       { to: "/dashboard/recommandations", label: "Recommandations", icon: Sparkles, feature: "dashboard-recommandations" },

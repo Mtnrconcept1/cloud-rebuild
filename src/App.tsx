@@ -80,7 +80,6 @@ const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport")
 const DashboardService = lazy(() => import("./pages/dashboard/DashboardService"));
 const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
 const DashboardAdvisor = lazy(() => import("./pages/dashboard/DashboardAdvisor"));
-const DashboardAiAgent = lazy(() => import("./pages/dashboard/DashboardAiAgent"));
 const DashboardPack = lazy(() => import("./pages/dashboard/DashboardPack"));
 
 const CourierHome = lazy(() => import("./pages/courier/CourierHome"));
@@ -175,7 +174,6 @@ function AppShell() {
   const giftPointsEnabled = hasFeature("points-cadeau");
   const dashboardOverviewEnabled = hasFeature("dashboard-overview");
   const dashboardAdvisorEnabled = hasFeature("dashboard-advisor");
-  const dashboardAiEnabled = hasFeature("ai_sales_insights");
   const dashboardRestaurantEnabled = hasFeature("dashboard-restaurant");
   const dashboardMenuEnabled = hasFeature("dashboard-menu");
   const dashboardReservationsEnabled = hasFeature("dashboard-reservations");
@@ -254,7 +252,6 @@ function AppShell() {
           <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/advisor" element={<DashboardRoute><FeatureSwitch enabled={dashboardAdvisorEnabled} fallback="/dashboard"><DashboardAdvisor /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/ai" element={<DashboardRoute><FeatureSwitch enabled={dashboardAiEnabled} fallback="/dashboard"><DashboardAiAgent /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/menu" element={<DashboardRoute><FeatureSwitch enabled={dashboardMenuEnabled} fallback="/dashboard"><DashboardMenu /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/reservations" element={<DashboardRoute><FeatureSwitch enabled={dashboardReservationsEnabled} fallback="/dashboard"><DashboardReservations /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCommandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />

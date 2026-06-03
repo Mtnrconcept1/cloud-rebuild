@@ -332,7 +332,6 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
-    routeTargets: ["/dashboard/ai"],
   },
   {
     name: "ai_marketing_campaigns",
@@ -341,7 +340,6 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
-    routeTargets: ["/dashboard/ai"],
   },
   {
     name: "ai_photo_enhancer",
@@ -350,7 +348,6 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
-    routeTargets: ["/dashboard/ai"],
   },
   {
     name: "ai_sales_insights",
@@ -359,7 +356,6 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
-    routeTargets: ["/dashboard/ai"],
   },
   {
     name: "ai_accounting_insights",
@@ -385,7 +381,6 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: false,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "ai_photo_enhancer"],
-    routeTargets: ["/dashboard/ai"],
   },
   {
     name: "dashboard-restaurant",

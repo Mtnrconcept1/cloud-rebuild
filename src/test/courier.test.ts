@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { getNextCourierJobAction, getOfferExpiresAt, mapCourierEarningTypeLabel } from "@/lib/courier";
+import {
+  buildCourierDeliveryVerificationPayload,
+  getNextCourierJobAction,
+  getOfferExpiresAt,
+  mapCourierEarningTypeLabel,
+} from "@/lib/courier";
 
 describe("courier helpers", () => {
   it("returns the next courier action for a live job status", () => {
@@ -22,5 +27,27 @@ describe("courier helpers", () => {
   it("maps earning types to readable labels", () => {
     expect(mapCourierEarningTypeLabel("delivery")).toBe("Course");
     expect(mapCourierEarningTypeLabel("tip")).toBe("Pourboire");
+  });
+
+  it("builds the delivery proof payload expected by the courier portal", () => {
+    expect(buildCourierDeliveryVerificationPayload("job-1", {
+      proofCode: "123456",
+      verificationMethod: "qr",
+    })).toEqual({
+      dispatch_job_id: "job-1",
+      proof_code: "123456",
+      signature_data_url: "",
+      verification_method: "qr",
+    });
+
+    expect(buildCourierDeliveryVerificationPayload("job-2", {
+      signatureDataUrl: "data:image/png;base64,signature",
+      verificationMethod: "manual_signature",
+    })).toEqual({
+      dispatch_job_id: "job-2",
+      proof_code: "",
+      signature_data_url: "data:image/png;base64,signature",
+      verification_method: "manual_signature",
+    });
   });
 });

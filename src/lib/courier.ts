@@ -36,6 +36,14 @@ export const COURIER_VEHICLE_OPTIONS = [
   { value: "walk", label: "A pied" },
 ] as const;
 
+export type DeliveryVerificationMethod = "qr" | "manual_code" | "manual_signature";
+
+export type DeliveryVerificationPayload = {
+  proofCode?: string;
+  signatureDataUrl?: string;
+  verificationMethod: DeliveryVerificationMethod;
+};
+
 export const COURIER_WEEK_DAYS = [
   { value: 1, label: "Lun" },
   { value: 2, label: "Mar" },
@@ -129,13 +137,13 @@ async function getFreshAccessToken() {
   if (!session || expiresSoon) {
     const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
     if (refreshError) {
-      throw new Error("Session expirée. Reconnectez-vous.");
+      throw new Error("Session expirÃ©e. Reconnectez-vous.");
     }
     session = refreshedData.session;
   }
 
   if (!session?.access_token) {
-    throw new Error("Session expirée. Reconnectez-vous.");
+    throw new Error("Session expirÃ©e. Reconnectez-vous.");
   }
 
   return session.access_token;
@@ -207,7 +215,7 @@ export async function invokeCourierPortal<T>(
     accessToken = refreshedData.session?.access_token || "";
 
     if (refreshError || !accessToken) {
-      throw new Error("Session expirée. Reconnectez-vous.");
+      throw new Error("Session expirÃ©e. Reconnectez-vous.");
     }
 
     data = await callCourierPortal<T>(accessToken, requestPayload);
@@ -280,17 +288,28 @@ export async function updateCourierJobStatus(dispatchJobId: string, status: stri
   });
 }
 
+export function buildCourierDeliveryVerificationPayload(
+  dispatchJobId: string,
+  payload: DeliveryVerificationPayload,
+) {
+  return {
+    dispatch_job_id: dispatchJobId,
+    proof_code: payload.proofCode || "",
+    signature_data_url: payload.signatureDataUrl || "",
+    verification_method: payload.verificationMethod,
+  };
+}
+
 export async function verifyCourierDelivery(
   dispatchJobId: string,
-  proofCode: string,
-  vérificationMethod: "qr" | "manual_code",
+  payload: DeliveryVerificationPayload,
 ) {
-  return invokeCourierPortal<{ dispatch_job: any; proof: any }>("verify_delivery_proof", {
-    dispatch_job_id: dispatchJobId,
-    proof_code: proofCode,
-    vérification_method: vérificationMethod,
-  });
+  return invokeCourierPortal<{ dispatch_job: any; proof: any }>(
+    "verify_delivery_proof",
+    buildCourierDeliveryVerificationPayload(dispatchJobId, payload),
+  );
 }
+
 
 export async function fetchCourierProfile(userId: string) {
   const supabase = getSupabase();

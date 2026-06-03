@@ -82,7 +82,17 @@ Deno.serve(async (req) => {
 
   const paymentIntentId = getIntentId(session);
   if (session.payment_status !== "paid" || !paymentIntentId) {
-    return json({ error: "Prépaiement non confirmé", payment_status: session.payment_status || "unknown" }, 409);
+    if (session.status === "expired") {
+      return json({ error: "Session de prépaiement expirée", payment_status: session.payment_status || "unknown" }, 409);
+    }
+
+    return json({
+      ok: false,
+      pending_confirmation: true,
+      payment_status: session.payment_status || "unknown",
+      session_status: session.status || "unknown",
+      retry_after_seconds: 15,
+    }, 202);
   }
 
   const { data: marked, error: markError } = await admin.rpc("mark_match_group_member_authorized", {

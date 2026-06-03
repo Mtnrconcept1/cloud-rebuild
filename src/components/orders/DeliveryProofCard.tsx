@@ -28,7 +28,7 @@ export default function DeliveryProofCard({ code, verifiedAt }: DeliveryProofCar
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          Présentez ce QR au livreur à l'arrivée. En secours, vous pouvez aussi lui donner le code a 6 chiffres.
+          Presentez ce QR au livreur a l'arrivee. Si votre telephone est indisponible, le livreur peut utiliser Signature manuelle depuis son dashboard.
         </p>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-[220px_1fr] md:items-center">
@@ -55,10 +55,10 @@ export default function DeliveryProofCard({ code, verifiedAt }: DeliveryProofCar
           <div className="rounded-2xl border border-dashed bg-background/60 p-4 text-sm text-muted-foreground">
             <p className="flex items-center gap-2 font-medium text-foreground">
               <ScanLine className="h-4 w-4 text-primary" />
-              Comment ça marche
+              Comment ca marche
             </p>
             <p className="mt-2">
-              Le livreur scanne le QR ou saisit le code. La commande n'est marquée livrée qu'apres vérification.
+              Le livreur scanne le QR, saisit le code ou lance une signature manuelle. La commande passe en livree uniquement apres validation.
             </p>
           </div>
         </div>

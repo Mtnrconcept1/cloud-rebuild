@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { invokeSupabaseFunction } from "@/lib/session";
 
 const supabase = getSupabase();
 
@@ -31,6 +33,16 @@ const DISCOUNT_STEP = 5;
 const MAX_DISCOUNT = 50;
 
 type Step = "browse" | "menu" | "status";
+
+type ConfirmMatchGroupAuthorizationResult = {
+  ok?: boolean;
+  already_confirmed?: boolean;
+  confirmed?: boolean;
+  pending_confirmation?: boolean;
+  retry_after_seconds?: number;
+  group_id?: string;
+  member_order_id?: string;
+};
 
 type RestaurantSummary = {
   id: string;
@@ -213,6 +225,7 @@ export default function MatchGroupes() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [nowMs, setNowMs] = useState(Date.now());
+  const processedReturnKeys = useRef(new Set<string>());
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
@@ -308,13 +321,25 @@ export default function MatchGroupes() {
 
   const confirmReturn = useMutation({
     mutationFn: async (memberOrderId: string) => {
-      const { data, error } = await (supabase.functions as any).invoke("confirm-match-group-authorization", {
+      const { data, error } = await invokeSupabaseFunction<ConfirmMatchGroupAuthorizationResult>("confirm-match-group-authorization", {
         body: { member_order_id: memberOrderId },
       });
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    retry: false,
+    onSuccess: (data) => {
+      if (data?.pending_confirmation) {
+        toast({
+          title: "Prépaiement en cours de confirmation",
+          description: "La commande sera synchronisée automatiquement dès que Stripe confirme le paiement.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["match-group-public-feed"] });
+        queryClient.invalidateQueries({ queryKey: ["my-match-group-orders", user?.id] });
+        setStep("status");
+        return;
+      }
+
       toast({
         title: "Prépaiement confirmé",
         description: "Votre commande a été envoyée au restaurateur. La réduction finale sera déduite automatiquement.",
@@ -338,6 +363,9 @@ export default function MatchGroupes() {
     if (!status) return;
 
     if (status === "1" && memberOrderId) {
+      const returnKey = `${status}:${memberOrderId}`;
+      if (processedReturnKeys.current.has(returnKey)) return;
+      processedReturnKeys.current.add(returnKey);
       confirmReturn.mutate(memberOrderId);
     } else {
       toast({ title: "Prépaiement annulé", variant: "destructive" });
@@ -442,7 +470,7 @@ export default function MatchGroupes() {
       const { data: checkout, error: checkoutError } = await (supabase.functions as any).invoke("authorize-match-group-order", {
         body: {
           group_member_order_id: memberOrderId,
-          return_url: `${window.location.origin}/match-groupes`,
+          return_url: buildCheckoutReturnUrl("/match-groupes"),
         },
       });
       if (checkoutError) throw checkoutError;

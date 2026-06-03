@@ -122,26 +122,13 @@ describe("TOK AI platform plan", () => {
   });
 
   it("adds dedicated restaurant, support, accounting and admin AI UI surfaces", () => {
-    const dashboardAi = readProjectFile("src/pages/dashboard/DashboardAiAgent.tsx");
+    const dashboardAdvisor = readProjectFile("src/pages/dashboard/DashboardAdvisor.tsx");
     const supportChat = readProjectFile("src/components/support/TokAiSupportChat.tsx");
     const adminComptaAi = readProjectFile("src/pages/admin/AdminComptaAi.tsx");
     const adminAiOperations = readProjectFile("src/pages/admin/AdminAiOperations.tsx");
 
-    for (const text of [
-      "Assistant IA général",
-      "Optimisation du menu",
-      "Photos & visuels",
-      "Campagnes marketing",
-      "Analyse des ventes",
-      "Promotions recommandées",
-      "Réponses aux avis",
-      "Historique des actions IA",
-      "Limites de l'abonnement IA",
-      "Plan IA",
-      "Passer au plan IA supérieur",
-      "restaurant_ai_subscriptions",
-    ]) {
-      expect(dashboardAi).toContain(text);
+    for (const text of ["Assistant IA", "ai-restaurant-tools", "SUGGESTED_PROMPTS", "QUICK_TOOLS"]) {
+      expect(dashboardAdvisor).toContain(text);
     }
 
     expect(supportChat).toContain("askClientSupport");
@@ -206,7 +193,6 @@ describe("TOK AI platform plan", () => {
     const commandes = readProjectFile("src/pages/Commandes.tsx");
 
     for (const route of [
-      "/dashboard/ai",
       "/admin/compta/ia",
       "/admin/ai-operations",
     ]) {
@@ -214,8 +200,12 @@ describe("TOK AI platform plan", () => {
       expect(featureCatalog).toContain(route);
     }
 
-    expect(dashboardLayout).toContain("/dashboard/ai");
-    expect(dashboardLayout).toContain("Agent IA");
+    expect(app).not.toContain("/dashboard/ai");
+    expect(featureCatalog).not.toContain("/dashboard/ai");
+    expect(dashboardLayout).toContain("/dashboard/advisor");
+    expect(dashboardLayout).toContain("Assistant IA");
+    expect(dashboardLayout).not.toContain("/dashboard/ai");
+    expect(dashboardLayout).not.toContain("Agent IA");
 
     for (const feature of [
       "ai_support_chat",
@@ -254,5 +244,8 @@ describe("TOK AI platform plan", () => {
     expect(accountingAgent).toContain("requireUserRole(actor, [\"admin\"]");
     expect(accountingAgent).not.toContain("requireUserRole(actor, [\"admin\"]);\n    if (!OPENAI_API_KEY)");
     expect(adminMonitor).toContain("aucune action destructive");
+    expect(adminMonitor).toContain("ai_failure_ratio_7d");
+    expect(adminMonitor).toContain("failure_ratio_not_absolute_spend");
+    expect(adminMonitor).toContain("aucune sanction utilisateur");
   });
 });

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_AUDIENCE_CRITERIA, normalizeAudienceCriteria } from "@/lib/campaignTargeting";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { estimateCampaignPlan, getCampaignPricing, recommendCampaignStrategy } from "@/lib/campaignPricing";
 import { invokeSupabaseFunction } from "@/lib/session";
 import type { SocialFeedPost } from "@/lib/socialFeed";
@@ -123,7 +124,7 @@ export default function SocialPostBoostDialog({
             },
           ],
           payment_method: "card",
-          return_url: `${globalThis.location.origin}/dashboard/actualites?campaign_checkout=1&campaign_id=${campaignId}&post_id=${post.id}`,
+          return_url: buildCheckoutReturnUrl(`/dashboard/actualites?campaign_checkout=1&campaign_id=${campaignId}&post_id=${post.id}`),
           order_metadata: {
             checkout_kind: "campaign",
             order_reference: `social-post-campaign-${campaignId}`,

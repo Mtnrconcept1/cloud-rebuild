@@ -34,6 +34,7 @@ describe("admin security and business audit hardening", () => {
   it("prevents clients from directly mutating Stripe-backed match group member orders", () => {
     const migration = read("supabase/migrations/20260602133000_admin_security_scheduler_rpc_lockdown.sql");
     const matchGroupPage = read("src/pages/MatchGroupes.tsx");
+    const confirmFunction = read("supabase/functions/confirm-match-group-authorization/index.ts");
 
     expect(migration).toContain('DROP POLICY IF EXISTS "group_member_orders_update_own_draft"');
     expect(migration).toContain('CREATE POLICY "group_member_orders_update_admin_only"');
@@ -43,6 +44,13 @@ describe("admin security and business audit hardening", () => {
 
     expect(matchGroupPage).not.toContain('"close_due_match_groups"');
     expect(matchGroupPage).not.toContain("'close_due_match_groups'");
+    expect(matchGroupPage).toContain("processedReturnKeys");
+    expect(matchGroupPage).toContain('retry: false');
+    expect(matchGroupPage).toContain('invokeSupabaseFunction<ConfirmMatchGroupAuthorizationResult>("confirm-match-group-authorization"');
+    expect(matchGroupPage).toContain("pending_confirmation");
+    expect(confirmFunction).toContain("pending_confirmation: true");
+    expect(confirmFunction).toContain("retry_after_seconds: 15");
+    expect(confirmFunction).toContain("}, 202)");
   });
 
   it("keeps raw invoice generators behind service-role or audited admin wrappers", () => {

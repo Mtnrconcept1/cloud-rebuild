@@ -38,6 +38,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -808,7 +809,7 @@ function CampaignForm({
               },
             ],
             payment_method: paymentMethod,
-            return_url: `${window.location.origin}/dashboard/campagnes?campaign_checkout=1&campaign_id=${campaignRecord.id}`,
+            return_url: buildCheckoutReturnUrl(`/dashboard/campagnes?campaign_checkout=1&campaign_id=${campaignRecord.id}`),
             order_metadata: {
               checkout_kind: "campaign",
               order_reference: `campaign-${campaignRecord.id}`,

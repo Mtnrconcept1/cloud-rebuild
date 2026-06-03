@@ -16,6 +16,7 @@ import ReservationDetailModal, { type ReservationDetail } from "@/components/Res
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
 import { formatMissingCoursesText, roundCurrency } from "@/lib/meal-formulas";
 import { trackSponsoredConversion } from "@/lib/analytics";
@@ -357,7 +358,7 @@ export default function ZeroAttente() {
           checkout_kind: "zero-attente",
           items: stripeItems,
           payment_method: paymentMethod,
-          return_url: `${window.location.origin}/zero-attente`,
+          return_url: buildCheckoutReturnUrl("/zero-attente"),
           order_metadata: {
             checkout_kind: "zero-attente",
             restaurant_id: selectedRestaurant.id,
