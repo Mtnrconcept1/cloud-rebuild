@@ -208,27 +208,29 @@ export default function AdminNotifications() {
   };
 
   const cancelCampaign = async (id: string) => {
-    const { error: deleteError } = await supabase.from("notification_campaigns").update({ status: "cancelled" }).eq("id", id);
-    if (deleteError) {
-      toast({ title: "Erreur", description: deleteError.message, variant: "destructive" });
+    const reason = window.prompt("Raison d'annulation obligatoire");
+    if (!reason?.trim()) {
+      toast({ title: "Annulation bloquée", description: "Indiquez une raison d'annulation.", variant: "destructive" });
       return;
     }
+
+    const { error: rpcError } = await (supabase.rpc as any)("admin_cancel_notification_campaign", {
+      p_campaign_id: id,
+      p_reason: reason.trim(),
+    });
+    if (rpcError) {
+      toast({ title: "Erreur", description: rpcError.message, variant: "destructive" });
+      return;
+    }
+
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaigns"] });
     queryClient.invalidateQueries({ queryKey: ["admin-notification-campaign-stats"] });
     toast({ title: "Campagne annulée" });
   };
 
   const duplicateCampaign = async (campaign: CampaignRow) => {
-    const { error } = await supabase.from("notification_campaigns").insert({
-      title: `${campaign.title} - copie`,
-      body: campaign.body,
-      category: campaign.category,
-      status: "draft",
-      scheduled_at: null,
-      created_by: user?.id || null,
-      target_roles: campaign.target_roles || [],
-      target_cities: campaign.target_cities || [],
-      channels: campaign.channels || { in_app: true, email: true, push: false },
+    const { error } = await (supabase.rpc as any)("admin_duplicate_notification_campaign", {
+      p_campaign_id: campaign.id,
     });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -243,13 +245,8 @@ export default function AdminNotifications() {
       toast({ title: "Session invalide", description: "Impossible d'envoyer le test sans admin connecte.", variant: "destructive" });
       return;
     }
-    const { error } = await supabase.from("notifications").insert({
-      user_id: user.id,
-      title: `[TEST] ${campaign.title}`,
-      body: campaign.body,
-      type: "campaign_test",
-      category: campaign.category,
-      data: { campaign_id: campaign.id, test: true },
+    const { error } = await (supabase.rpc as any)("admin_send_test_notification_campaign", {
+      p_campaign_id: campaign.id,
     });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -481,14 +478,13 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
       })
       : null;
 
-    const { error } = await supabase.from("notification_campaigns").insert({
+    const campaignPayload = {
       ...(templatePayload || {}),
       title,
       body,
       category,
       status: scheduledIso ? "scheduled" : "draft",
       scheduled_at: scheduledIso,
-      created_by: userId || null,
       target_roles: targetRoles,
       target_cities: targetCities,
       channels: {
@@ -496,6 +492,18 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
         email: emailEnabled,
         in_app: inAppEnabled,
       },
+    };
+
+    const { error } = await (supabase.rpc as any)("admin_save_notification_campaign", {
+      p_title: campaignPayload.title,
+      p_body: campaignPayload.body,
+      p_category: campaignPayload.category,
+      p_status: campaignPayload.status,
+      p_scheduled_at: campaignPayload.scheduled_at,
+      p_target_roles: campaignPayload.target_roles,
+      p_target_cities: campaignPayload.target_cities,
+      p_channels: campaignPayload.channels,
+      p_campaign_id: null,
     });
 
     setLoading(false);

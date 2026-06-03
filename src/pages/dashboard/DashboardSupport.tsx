@@ -21,18 +21,10 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, CircleHelp, Mail, MessageSquare, Search, ShieldQuestion } from "lucide-react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { SUPPORT_EMAIL } from "@/lib/contact";
+import { submitContactSupport } from "@/lib/support/contactSupport";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
-
-const HTML_ENTITIES: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
 
 const FAQ = [
   { q: "Comment modifier mes horaires d'ouverture ?", a: "Rendez-vous dans « Pilotage de service » pour configurer vos horaires par jour de la semaine." },
@@ -103,10 +95,6 @@ function getCategoryLabel(category: string) {
   return labels[category] || category.replace(/_/g, " ");
 }
 
-function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/g, (char) => HTML_ENTITIES[char] || char);
-}
-
 export default function DashboardSupport() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -149,30 +137,27 @@ export default function DashboardSupport() {
     }
     setSending(true);
 
-    const restaurantLabel = selectedRestaurant?.name || selectedId || "N/A";
-    const userEmail = user?.email || "inconnu";
-    const safeUserEmail = escapeHtml(userEmail);
-    const safeRestaurantLabel = escapeHtml(restaurantLabel);
-    const safeMessageHtml = escapeHtml(message).replace(/\n/g, "<br/>");
-
-    const { error } = await supabase.from("email_queue" as any).insert({
-      to_email: SUPPORT_EMAIL,
-      subject: `[Support] ${subject}`,
-      body_text: `De: ${userEmail}\nRestaurant: ${restaurantLabel}\n\n${message}`,
-      body_html: `<p><strong>De:</strong> ${safeUserEmail}</p><p><strong>Restaurant:</strong> ${safeRestaurantLabel}</p><hr/><p>${safeMessageHtml}</p>`,
-      status: "queued",
-    });
-
-    setSending(false);
-
-    if (error) {
-      toast({ title: "Erreur", description: "Impossible d'envoyer le message. Réessayez plus tard.", variant: "destructive" });
-      return;
+    try {
+      await submitContactSupport({
+        source: "restaurant_dashboard",
+        email: user?.email || null,
+        subject,
+        message,
+        restaurantId: selectedId,
+        restaurantName: selectedRestaurant?.name || null,
+      });
+      toast({ title: "Message envoyé", description: "Notre équipe vous répondra sous 24h." });
+      setSubject("");
+      setMessage("");
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible d'envoyer le message. Réessayez plus tard.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
     }
-
-    toast({ title: "Message envoyé", description: "Notre équipe vous répondra sous 24h." });
-    setSubject("");
-    setMessage("");
   };
 
   return (

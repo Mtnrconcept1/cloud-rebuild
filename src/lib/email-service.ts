@@ -1,5 +1,3 @@
-import { getSupabase } from "@/integrations/supabase/client";
-
 export interface OrderDetails {
     orderReference: string;
     restaurantName: string;
@@ -28,31 +26,11 @@ export function generateOrderReference(): string {
 }
 
 export async function sendOrderConfirmationEmail(details: OrderDetails) {
-    // Queue email via edge function instead of simulating
-    try {
-        const { error } = await getSupabase().from("email_queue" as any).insert({
-            to_email: details.customerEmail,
-            subject: `Confirmation de commande ${details.orderReference} - Tok`,
-            body_text: buildEmailText(details),
-            metadata: {
-                order_reference: details.orderReference,
-                restaurant_name: details.restaurantName,
-                total: details.finalTotal,
-                feature: details.metadata.feature || "standard",
-            },
-        });
-
-        if (error) {
-            console.warn("[Email Queue] Failed to queue email, falling back to log:", error.message);
-            logEmailFallback(details);
-        } else {
-            console.log(`[Email Queued] Confirmation for ${details.orderReference} to ${details.customerEmail}`);
-        }
-    } catch (e) {
-        console.warn("[Email Queue] Exception, falling back to log:", e);
-        logEmailFallback(details);
-    }
-
+    console.info("[Email] Order confirmations are queued by checkout Edge Functions.", {
+        orderReference: details.orderReference,
+        customerEmail: details.customerEmail,
+    });
+    logEmailFallback(details);
     return true;
 }
 
