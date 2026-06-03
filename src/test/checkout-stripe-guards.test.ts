@@ -82,6 +82,19 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(cartSource).toContain("} else if (!hasAntiGaspi && !hasTakeawayFlash) {");
   });
 
+  it("preserves guaranteed delivery slots from the dedicated journey through cart checkout", () => {
+    expect(cartSource).toContain("getGuaranteedDeliveryCartContext(cartMetadata, items)");
+    expect(cartSource).toContain("buildGuaranteedDeliveryOrderMetadata(guaranteedDeliveryContext)");
+    expect(cartSource).toContain("isGuaranteedDeliveryCheckout || (isSingleRestaurant && deliveryFeatureEnabled)");
+    expect(cartSource).toContain("setDeliveryScheduleMode(guaranteedDeliveryContext.deliveryScheduleMode)");
+    expect(cartSource).toContain("setDeliveryDate(guaranteedDeliveryContext.deliveryDate)");
+    expect(cartSource).toContain("setDeliveryTime(guaranteedDeliveryContext.deliveryTime)");
+    expect(cartSource).toContain("!deliveryDate || (!selectedDeliverySlot && !isGuaranteedDeliveryCheckout)");
+    expect(cartSource).toContain('isGuaranteedDeliveryCheckout ? "creneaux-garantis" : cartMetadata?.feature');
+    expect(cartSource).toContain("Créneau garanti verrouillé");
+    expect(cartSource).toContain("...guaranteedDeliveryOrderMetadata");
+  });
+
   it("keeps pre-Stripe online orders pending until webhook or completion finalizes them", () => {
     expect(validateOrderSource).toContain("isAwaitingOnlinePayment");
     expect(validateOrderSource).toContain('checkout_session_state');

@@ -52,6 +52,10 @@ import { getFreshAccessToken, invokeSupabaseFunction, invokeSupabaseRpc } from "
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { getCartItemOrderGroupKey, getMealSubscriptionOrderMetadata } from "@/lib/subscriptionCheckout";
 import { getCartRestaurantSummaryLabel } from "@/lib/cartRestaurantSummary";
+import {
+  buildGuaranteedDeliveryOrderMetadata,
+  getGuaranteedDeliveryCartContext,
+} from "@/lib/guaranteedDeliveryCart";
 
 const supabase = getSupabase();
 
@@ -79,6 +83,15 @@ export default function Panier() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const activeFeatures = useActiveFeatures();
+  const guaranteedDeliveryContext = useMemo(
+    () => getGuaranteedDeliveryCartContext(cartMetadata, items),
+    [cartMetadata, items],
+  );
+  const guaranteedDeliveryOrderMetadata = useMemo(
+    () => buildGuaranteedDeliveryOrderMetadata(guaranteedDeliveryContext),
+    [guaranteedDeliveryContext],
+  );
+  const isGuaranteedDeliveryCheckout = Boolean(guaranteedDeliveryContext);
   const authRedirectTarget = buildAuthRedirectTarget(location.pathname, location.search);
   const continueShoppingHref = restaurantId ? `/restaurant/${restaurantId}` : "/recherche";
   const deliveryFeatureEnabled = activeFeatures.has("livraison");
@@ -102,10 +115,14 @@ export default function Panier() {
   const [flexOption, setFlexOption] = useState<"express" | "standard" | "flex">("standard");
   const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [pickupTime, setPickupTime] = useState("");
-  const [deliveryScheduleMode, setDeliveryScheduleMode] = useState<DeliveryScheduleMode>("asap");
-  const [deliveryDate, setDeliveryDate] = useState(() => getTodayDateValue());
-  const [deliveryTime, setDeliveryTime] = useState("");
-  const [deliveryService, setDeliveryService] = useState<ServicePeriod | null>(null);
+  const [deliveryScheduleMode, setDeliveryScheduleMode] = useState<DeliveryScheduleMode>(
+    () => guaranteedDeliveryContext?.deliveryScheduleMode ?? "asap",
+  );
+  const [deliveryDate, setDeliveryDate] = useState(() => guaranteedDeliveryContext?.deliveryDate ?? getTodayDateValue());
+  const [deliveryTime, setDeliveryTime] = useState(() => guaranteedDeliveryContext?.deliveryTime ?? "");
+  const [deliveryService, setDeliveryService] = useState<ServicePeriod | null>(
+    () => guaranteedDeliveryContext?.deliveryService ?? null,
+  );
   const [upsellModalOpen, setUpsellModalOpen] = useState(false);
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
 
@@ -181,7 +198,9 @@ export default function Panier() {
     [cartMetadata, items],
   );
   const isSingleRestaurant = uniqueRestaurantIds.length === 1 && !cartMetadata.multi_restaurant;
-  const canScheduleDelivery = !isChefsTableCheckout && orderMode === "delivery" && isSingleRestaurant && deliveryFeatureEnabled;
+  const canScheduleDelivery = !isChefsTableCheckout
+    && orderMode === "delivery"
+    && (isGuaranteedDeliveryCheckout || (isSingleRestaurant && deliveryFeatureEnabled));
   const needsTakeawaySlots = !isChefsTableCheckout && orderMode === "takeaway" && isSingleRestaurant && takeawayFeatureEnabled && !hasAntiGaspi && !hasTakeawayFlash;
 
   const { data: profile } = useQuery({
@@ -233,6 +252,7 @@ export default function Panier() {
 
   useEffect(() => {
     if (isChefsTableCheckout) return;
+    if (isGuaranteedDeliveryCheckout) return;
     if (orderMode === "delivery" && !deliveryAvailable && takeawayAvailable) {
       setOrderMode("takeaway", { force: true });
       return;
@@ -241,7 +261,7 @@ export default function Panier() {
     if (orderMode === "takeaway" && !takeawayAvailable && deliveryAvailable) {
       setOrderMode("delivery", { force: true });
     }
-  }, [deliveryAvailable, isChefsTableCheckout, orderMode, setOrderMode, takeawayAvailable]);
+  }, [deliveryAvailable, isChefsTableCheckout, isGuaranteedDeliveryCheckout, orderMode, setOrderMode, takeawayAvailable]);
 
   useEffect(() => {
     if (allowedPaymentMethods.includes(paymentMethod)) return;
@@ -313,11 +333,24 @@ export default function Panier() {
   );
 
   const scheduledDeliveryLabel = useMemo(() => {
+    if (guaranteedDeliveryContext?.scheduledDeliveryLabel) {
+      return guaranteedDeliveryContext.scheduledDeliveryLabel;
+    }
     if (deliveryScheduleMode !== "scheduled" || !deliveryDate || !deliveryTime) return null;
     return formatScheduledDeliveryLabel(deliveryDate, deliveryTime);
-  }, [deliveryDate, deliveryScheduleMode, deliveryTime]);
+  }, [deliveryDate, deliveryScheduleMode, deliveryTime, guaranteedDeliveryContext?.scheduledDeliveryLabel]);
 
   useEffect(() => {
+    if (!guaranteedDeliveryContext) return;
+    if (orderMode !== "delivery") setOrderMode("delivery", { force: true });
+    setDeliveryScheduleMode(guaranteedDeliveryContext.deliveryScheduleMode);
+    setDeliveryDate(guaranteedDeliveryContext.deliveryDate);
+    setDeliveryTime(guaranteedDeliveryContext.deliveryTime);
+    setDeliveryService(guaranteedDeliveryContext.deliveryService);
+  }, [guaranteedDeliveryContext, orderMode, setOrderMode]);
+
+  useEffect(() => {
+    if (guaranteedDeliveryContext) return;
     if (!canScheduleDelivery) {
       setDeliveryScheduleMode("asap");
       setDeliveryDate(getTodayDateValue());
@@ -344,6 +377,7 @@ export default function Panier() {
     deliveryDate,
     deliveryScheduleMode,
     firstAvailableDeliveryDate,
+    guaranteedDeliveryContext,
     selectedDeliverySlot,
   ]);
 
@@ -617,7 +651,7 @@ export default function Panier() {
               variant: "destructive",
             });
           }
-          if (!deliveryDate || !selectedDeliverySlot) {
+          if (!deliveryDate || (!selectedDeliverySlot && !isGuaranteedDeliveryCheckout)) {
             return toast({
               title: "Horaire requis",
               description: "Choisissez une date et une heure de livraison valides.",
@@ -780,6 +814,7 @@ export default function Panier() {
                 checkout_session_state: "pending",
                 promo_code_id: promoCodeId,
                 points_to_redeem: pointsToRedeem,
+                ...guaranteedDeliveryOrderMetadata,
                 delivery_address: checkoutDeliveryAddress,
                 delivery_city: checkoutDeliveryCity,
                 delivery_lat: checkoutDeliveryLat,
@@ -923,9 +958,10 @@ export default function Panier() {
     const resTokOneDiscountPercent = resSubtotal > 0 && tokOneDiscountAmount > 0 ? (tokOneDiscountAmount / resSubtotal) * 100 : 0;
     return {
       ...cartMetadata,
+      ...guaranteedDeliveryOrderMetadata,
       order_reference: orderReference,
       checkout_group_id: checkoutGroupId,
-      feature: hasAntiGaspi ? "anti-gaspi" : cartMetadata?.feature,
+      feature: hasAntiGaspi ? "anti-gaspi" : (isGuaranteedDeliveryCheckout ? "creneaux-garantis" : cartMetadata?.feature),
       has_anti_gaspi: hasAntiGaspi, has_flash_sale: flashItems.length > 0,
       quality_guarantee: !!qualityFeeAmount, quality_fee_amount: qualityFeeAmount,
       formula_applied: resDiscount > 0 ? formulaName : null,
@@ -1252,6 +1288,27 @@ export default function Panier() {
                   </p>
                 </div>
 
+                {isGuaranteedDeliveryCheckout && guaranteedDeliveryContext ? (
+                  <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                    <div className="flex items-center gap-2 text-primary">
+                      <ShieldCheck className="h-4 w-4" />
+                      <p className="text-sm font-semibold">Créneau garanti verrouillé</p>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-muted-foreground">Livraison planifiée :</span> <strong>{scheduledDeliveryLabel}</strong></p>
+                      {guaranteedDeliveryContext.guaranteedDeliveryWindow ? (
+                        <p><span className="text-muted-foreground">Fenêtre garantie :</span> <strong>{guaranteedDeliveryContext.guaranteedDeliveryWindow}</strong></p>
+                      ) : null}
+                      {guaranteedDeliveryContext.guaranteedDeliveryLevelLabel ? (
+                        <p><span className="text-muted-foreground">Niveau :</span> <strong>{guaranteedDeliveryContext.guaranteedDeliveryLevelLabel}</strong></p>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ce créneau vient de l'outil Créneaux garantis. Pour le changer, retournez dans le parcours dédié.
+                    </p>
+                  </div>
+                ) : (
+                  <>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <button
                     type="button"
@@ -1338,6 +1395,8 @@ export default function Panier() {
                     ) : null}
                   </div>
                 ) : null}
+                  </>
+                )}
               </div>
             </div>
           ) : (
