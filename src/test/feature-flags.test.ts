@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildSafeFallbackFlags,
   FEATURE_ROUTE_DEFINITIONS,
   getFeatureNameForRoute,
   resolveFlags,
@@ -64,8 +65,18 @@ describe("feature flag catalog", () => {
     expect(getExactFeatureForRoute("/dashboard/factures/sorties")).toBe("dashboard-factures");
     expect(getExactFeatureForRoute("/admin/compta/entrees")).toBe("admin-compta");
     expect(getExactFeatureForRoute("/admin/compta/sorties")).toBe("admin-compta");
+    expect(getExactFeatureForRoute("/admin/platform")).toBe("admin-platform-config");
     expect(getExactFeatureForRoute("/admin/commandes-reservations")).toBe("admin-operations-center");
     expect(getExactFeatureForRoute("/points-cadeau")).toBe("points-cadeau");
+  });
+
+  it("fails closed for sensitive features when Supabase flags cannot be loaded", () => {
+    const fallbackFlags = buildSafeFallbackFlags();
+
+    expect(fallbackFlags.find((flag) => flag.name === "commandes")?.effectiveEnabled).toBe(false);
+    expect(fallbackFlags.find((flag) => flag.name === "admin-platform-config")?.effectiveEnabled).toBe(false);
+    expect(fallbackFlags.find((flag) => flag.name === "dashboard-commandes")?.effectiveEnabled).toBe(false);
+    expect(fallbackFlags.filter((flag) => flag.critical).every((flag) => !flag.effectiveEnabled)).toBe(true);
   });
 
   it("keeps the admin operations center enabled by default but controllable", () => {
@@ -74,6 +85,14 @@ describe("feature flag catalog", () => {
 
     expect(enabledFlags.find((flag) => flag.name === "admin-operations-center")?.effectiveEnabled).toBe(true);
     expect(disabledFlags.find((flag) => flag.name === "admin-operations-center")?.effectiveEnabled).toBe(false);
+  });
+
+  it("keeps the admin platform config enabled by default but controllable", () => {
+    const enabledFlags = resolveFlags(buildRows({ "admin-platform-config": true }));
+    const disabledFlags = resolveFlags(buildRows({ "admin-platform-config": false }));
+
+    expect(enabledFlags.find((flag) => flag.name === "admin-platform-config")?.effectiveEnabled).toBe(true);
+    expect(disabledFlags.find((flag) => flag.name === "admin-platform-config")?.effectiveEnabled).toBe(false);
   });
 });
 

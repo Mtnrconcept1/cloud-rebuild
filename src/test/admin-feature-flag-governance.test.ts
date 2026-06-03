@@ -45,7 +45,12 @@ describe("admin feature flag governance", () => {
   it("wires presets, route impact and required reasons into the admin platform screen", () => {
     const page = readFileSync(resolve(root, "src/pages/admin/AdminPlatformConfig.tsx"), "utf8");
     const flags = readFileSync(resolve(root, "src/lib/featureFlags.ts"), "utf8");
+    const app = readFileSync(resolve(root, "src/App.tsx"), "utf8");
+    const adminHome = readFileSync(resolve(root, "src/pages/admin/AdminHome.tsx"), "utf8");
 
+    expect(app).toContain('hasFeature("admin-platform-config")');
+    expect(app).toContain("<FeatureSwitch enabled={adminPlatformConfigEnabled} fallback=\"/admin\"><AdminPlatformConfig /></FeatureSwitch>");
+    expect(adminHome).toContain('feature: "admin-platform-config"');
     expect(flags).toContain("FEATURE_FLAG_PRESETS");
     expect(flags).toContain("validateFeatureFlagPreset");
     expect(flags).toContain("admin_get_feature_flag_audit_logs");

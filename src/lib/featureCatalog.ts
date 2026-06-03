@@ -690,6 +690,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/admin/notifications"],
   },
   {
+    name: "admin-platform-config",
+    label: "Admin: Configuration plateforme",
+    description: "Expose le panneau de configuration plateforme et la gouvernance des feature flags.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    routeTargets: ["/admin/platform"],
+    critical: true,
+  },
+  {
     name: "admin-operations-center",
     label: "Admin: Operations Center",
     description: "Expose la supervision admin des commandes, reservations, remboursements et dispatch.",

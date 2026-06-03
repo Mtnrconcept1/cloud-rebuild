@@ -40,7 +40,6 @@ const CORE_ROUTES = new Set([
   "/packs-restaurateur",
   "/aide",
   "/admin",
-  "/admin/platform",
 ]);
 
 function escapeRegex(value: string) {
