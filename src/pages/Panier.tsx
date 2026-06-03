@@ -116,6 +116,9 @@ export default function Panier() {
     || (items.length > 0 && items.every((item) => item.metadata?.is_chefs_table));
   const hasAntiGaspi = items.some(item => item.metadata?.is_anti_waste);
   const antiGaspiItem = items.find(item => item.metadata?.is_anti_waste);
+  const antiGaspiPickupDate = antiGaspiItem?.metadata?.available_date || null;
+  const antiGaspiPickupStart = antiGaspiItem?.metadata?.pickup_start || null;
+  const antiGaspiPickupEnd = antiGaspiItem?.metadata?.pickup_end || null;
   const flashItems = items.filter(item => item.metadata?.is_flash_sale);
   const chefsTableItems = items.filter(item => item.metadata?.is_chefs_table);
   const hasTakeawayFlash = orderMode === "takeaway" && flashItems.length > 0;
@@ -948,9 +951,27 @@ export default function Panier() {
       delivery_time: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? deliveryTime : null,
       delivery_service: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? deliveryService : null,
       scheduled_delivery_label: orderMode === "delivery" && deliveryScheduleMode === "scheduled" ? scheduledDeliveryLabel : null,
-      pickup_date: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupDate : pickupDate) : null,
-      pickup_time: orderMode === "takeaway" && !hasAntiGaspi ? (hasTakeawayFlash ? flashPickupStart : pickupTime) : null,
-      pickup_time_end: orderMode === "takeaway" && !hasAntiGaspi && hasTakeawayFlash ? flashPickupEnd : null,
+      pickup_date: orderMode === "takeaway"
+        ? hasAntiGaspi
+          ? antiGaspiPickupDate
+          : hasTakeawayFlash
+            ? flashPickupDate
+            : pickupDate
+        : null,
+      pickup_time: orderMode === "takeaway"
+        ? hasAntiGaspi
+          ? antiGaspiPickupStart
+          : hasTakeawayFlash
+            ? flashPickupStart
+            : pickupTime
+        : null,
+      pickup_time_end: orderMode === "takeaway"
+        ? hasAntiGaspi
+          ? antiGaspiPickupEnd
+          : hasTakeawayFlash
+            ? flashPickupEnd
+            : null
+        : null,
       flex_option: flexOption,
       flex_guarantee: flexOption === "express" ? "1% discount per minute delay" : flexOption === "standard" ? "1% discount per 2 minute delay" : "10% subtotal discount applied",
       tok_one_member: isTokOneMember,
