@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CalendarDays,
+  ChevronRight,
   RotateCcw,
   Search,
   ShoppingCart,
@@ -32,6 +33,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { summarizeDispatchHealth, type DispatchHealthRow } from "@/lib/dispatchHealth";
 import { summarizeReservationInventoryHealth, type ReservationInventoryRow } from "@/lib/reservationInventoryHealth";
+import { cn } from "@/lib/utils";
 import {
   fetchAdminRefundQueue,
   markRefundApplied,
@@ -111,6 +113,189 @@ function getStatusBadgeClass(status: string | null | undefined) {
   }
 
   return "bg-slate-100 text-slate-700";
+}
+
+type HistoryStatusTone = "paid" | "pending" | "cancelled" | "problem";
+
+type HistoryStatusPresentation = {
+  label: string;
+  mobileRowClassName: string;
+  desktopRowClassName: string;
+  badgeClassName: string;
+  stripeClassName: string;
+};
+
+const HISTORY_STATUS_STYLES: Record<HistoryStatusTone, HistoryStatusPresentation> = {
+  paid: {
+    label: "Payée",
+    mobileRowClassName: "border-emerald-200 bg-emerald-50/90 hover:bg-emerald-50",
+    desktopRowClassName: "bg-emerald-50/35 hover:bg-emerald-50/70",
+    badgeClassName: "border-emerald-200 bg-emerald-100 text-emerald-800",
+    stripeClassName: "bg-emerald-500",
+  },
+  pending: {
+    label: "En attente",
+    mobileRowClassName: "border-amber-200 bg-amber-50/90 hover:bg-amber-50",
+    desktopRowClassName: "bg-amber-50/35 hover:bg-amber-50/70",
+    badgeClassName: "border-amber-200 bg-amber-100 text-amber-800",
+    stripeClassName: "bg-amber-500",
+  },
+  cancelled: {
+    label: "Annulée",
+    mobileRowClassName: "border-red-200 bg-red-50/90 hover:bg-red-50",
+    desktopRowClassName: "bg-red-50/35 hover:bg-red-50/70",
+    badgeClassName: "border-red-200 bg-red-100 text-red-800",
+    stripeClassName: "bg-red-500",
+  },
+  problem: {
+    label: "À vérifier",
+    mobileRowClassName: "border-orange-200 bg-orange-50/90 hover:bg-orange-50",
+    desktopRowClassName: "bg-orange-50/35 hover:bg-orange-50/70",
+    badgeClassName: "border-orange-200 bg-orange-100 text-orange-800",
+    stripeClassName: "bg-orange-500",
+  },
+};
+
+const PAID_STATUSES = new Set([
+  "accepted",
+  "applied",
+  "complete",
+  "completed",
+  "confirmed",
+  "delivered",
+  "paid",
+  "refunded",
+  "succeeded",
+  "success",
+]);
+
+const PENDING_STATUSES = new Set([
+  "authorized",
+  "created",
+  "in_progress",
+  "pending",
+  "pending_payment",
+  "processing",
+  "requires_capture",
+  "scheduled",
+  "searching",
+  "awaiting_payment",
+]);
+
+const CANCELLED_STATUSES = new Set([
+  "cancelled",
+  "cancelled_by_customer",
+  "cancelled_by_restaurant",
+  "canceled",
+  "no_show",
+  "rejected",
+  "void",
+  "voided",
+]);
+
+const PROBLEM_STATUSES = new Set([
+  "blocked",
+  "chargeback",
+  "disputed",
+  "error",
+  "expired",
+  "failed",
+  "orphan",
+  "past_due",
+  "payment_failed",
+  "refund_failed",
+  "requires_action",
+  "requires_payment_method",
+  "unpaid",
+  "unknown",
+]);
+
+function normalizeStatusValue(value: string | null | undefined) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+function getHistoryStatusPresentation(
+  status: string | null | undefined,
+  paymentStatus?: string | null,
+) {
+  const statuses = [
+    normalizeStatusValue(paymentStatus),
+    normalizeStatusValue(status),
+  ].filter(Boolean);
+
+  if (statuses.some((candidate) => PROBLEM_STATUSES.has(candidate))) {
+    return HISTORY_STATUS_STYLES.problem;
+  }
+
+  if (statuses.some((candidate) => CANCELLED_STATUSES.has(candidate))) {
+    return HISTORY_STATUS_STYLES.cancelled;
+  }
+
+  if (statuses.some((candidate) => PENDING_STATUSES.has(candidate))) {
+    return HISTORY_STATUS_STYLES.pending;
+  }
+
+  if (statuses.some((candidate) => PAID_STATUSES.has(candidate))) {
+    return HISTORY_STATUS_STYLES.paid;
+  }
+
+  return HISTORY_STATUS_STYLES.problem;
+}
+
+function getOrderReference(order: Pick<AdminOrderHistoryItem, "id" | "orderNumber">) {
+  return order.orderNumber || `CMD-${order.id.slice(0, 8)}`;
+}
+
+function getRefundReference(refund: RefundQueueItem) {
+  return refund.reference || refund.target_id.slice(0, 8);
+}
+
+function EmptyMobileHistory({ children }: { children: string }) {
+  return (
+    <div className="rounded-xl border border-dashed bg-muted/20 px-4 py-6 text-center text-sm text-muted-foreground md:hidden">
+      {children}
+    </div>
+  );
+}
+
+function MobileHistoryRow({
+  reference,
+  date,
+  customer,
+  status,
+  onClick,
+}: {
+  reference: string;
+  date: string;
+  customer: string;
+  status: HistoryStatusPresentation;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "relative w-full overflow-hidden rounded-xl border px-4 py-3 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        status.mobileRowClassName,
+      )}
+      onClick={onClick}
+    >
+      <span className={cn("absolute inset-y-0 left-0 w-1.5", status.stripeClassName)} aria-hidden="true" />
+      <div className="flex min-w-0 items-start justify-between gap-3 pl-2">
+        <div className="min-w-0 space-y-1">
+          <p className="break-words text-sm font-semibold leading-snug text-foreground">{reference}</p>
+          <p className="break-words text-xs text-muted-foreground">{date}</p>
+          <p className="break-words text-sm leading-snug text-foreground">{customer}</p>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <Badge className={cn("border text-[11px] leading-none", status.badgeClassName)}>
+            {status.label}
+          </Badge>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        </div>
+      </div>
+    </button>
+  );
 }
 
 function toStartOfDayIso(dateValue: string) {
@@ -712,8 +897,11 @@ export default function AdminOrdersReservations() {
 
         <TabsContent value="orders" className="space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="gap-1">
               <CardTitle>Historique des commandes</CardTitle>
+              <p className="text-sm text-muted-foreground md:hidden">
+                Touchez une ligne pour ouvrir tous les détails de la commande.
+              </p>
             </CardHeader>
             <CardContent className="py-0">
               {activeLoading ? (
@@ -727,7 +915,31 @@ export default function AdminOrdersReservations() {
                   Impossible de charger l&apos;historique des commandes.
                 </div>
               ) : (
-                <Table>
+                <>
+                  <div className="space-y-2 py-4 md:hidden">
+                    {filteredOrders.map((order) => {
+                      const status = getHistoryStatusPresentation(order.status, order.paymentStatus);
+                      return (
+                        <MobileHistoryRow
+                          key={order.id}
+                          reference={getOrderReference(order)}
+                          date={formatDateTime(order.createdAt)}
+                          customer={order.customer.displayName}
+                          status={status}
+                          onClick={() => setSelectedOperation({ kind: "order", item: order })}
+                        />
+                      );
+                    })}
+
+                    {filteredOrders.length === 0 ? (
+                      <EmptyMobileHistory>
+                        Aucune commande ne correspond au filtre courant.
+                      </EmptyMobileHistory>
+                    ) : null}
+                  </div>
+
+                  <div className="hidden md:block">
+                    <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
@@ -743,10 +955,11 @@ export default function AdminOrdersReservations() {
                   <TableBody>
                     {filteredOrders.map((order) => {
                       const orderType = getOrderTypePresentation(order.orderType);
+                      const status = getHistoryStatusPresentation(order.status, order.paymentStatus);
                       return (
                         <TableRow
                           key={order.id}
-                          className="cursor-pointer hover:bg-muted/30"
+                          className={cn("cursor-pointer", status.desktopRowClassName)}
                           onClick={() => setSelectedOperation({ kind: "order", item: order })}
                         >
                           <TableCell data-label="Date" className="text-sm text-muted-foreground md:whitespace-nowrap">
@@ -754,7 +967,7 @@ export default function AdminOrdersReservations() {
                           </TableCell>
                           <TableCell data-label="Commande">
                             <div className="space-y-1">
-                              <p className="font-medium">{order.orderNumber || `CMD-${order.id.slice(0, 8)}`}</p>
+                              <p className="font-medium">{getOrderReference(order)}</p>
                               <p className="text-xs text-muted-foreground">{order.id}</p>
                             </div>
                           </TableCell>
@@ -810,7 +1023,9 @@ export default function AdminOrdersReservations() {
                       </TableRow>
                     ) : null}
                   </TableBody>
-                </Table>
+                    </Table>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -818,8 +1033,11 @@ export default function AdminOrdersReservations() {
 
         <TabsContent value="reservations" className="space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="gap-1">
               <CardTitle>Historique des réservations</CardTitle>
+              <p className="text-sm text-muted-foreground md:hidden">
+                Touchez une ligne pour ouvrir tous les détails de la réservation.
+              </p>
             </CardHeader>
             <CardContent className="py-0">
               {activeLoading ? (
@@ -833,7 +1051,31 @@ export default function AdminOrdersReservations() {
                   Impossible de charger l&apos;historique des réservations.
                 </div>
               ) : (
-                <Table>
+                <>
+                  <div className="space-y-2 py-4 md:hidden">
+                    {filteredReservations.map((reservation) => {
+                      const status = getHistoryStatusPresentation(reservation.status);
+                      return (
+                        <MobileHistoryRow
+                          key={reservation.id}
+                          reference={reservation.reference}
+                          date={formatReservationDate(reservation.reservationDate, reservation.displayTime)}
+                          customer={reservation.customer.displayName}
+                          status={status}
+                          onClick={() => setSelectedOperation({ kind: "reservation", item: reservation })}
+                        />
+                      );
+                    })}
+
+                    {filteredReservations.length === 0 ? (
+                      <EmptyMobileHistory>
+                        Aucune réservation ne correspond au filtre courant.
+                      </EmptyMobileHistory>
+                    ) : null}
+                  </div>
+
+                  <div className="hidden md:block">
+                    <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
@@ -849,10 +1091,11 @@ export default function AdminOrdersReservations() {
                   <TableBody>
                     {filteredReservations.map((reservation) => {
                       const feature = getReservationFeaturePresentation(reservation.feature);
+                      const status = getHistoryStatusPresentation(reservation.status);
                       return (
                         <TableRow
                           key={reservation.id}
-                          className="cursor-pointer hover:bg-muted/30"
+                          className={cn("cursor-pointer", status.desktopRowClassName)}
                           onClick={() => setSelectedOperation({ kind: "reservation", item: reservation })}
                         >
                           <TableCell data-label="Date" className="text-sm text-muted-foreground md:whitespace-nowrap">
@@ -909,7 +1152,9 @@ export default function AdminOrdersReservations() {
                       </TableRow>
                     ) : null}
                   </TableBody>
-                </Table>
+                    </Table>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -917,8 +1162,11 @@ export default function AdminOrdersReservations() {
 
         <TabsContent value="refunds" className="space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="gap-1">
               <CardTitle>File des remboursements</CardTitle>
+              <p className="text-sm text-muted-foreground md:hidden">
+                Touchez une ligne pour ouvrir le traitement du remboursement.
+              </p>
             </CardHeader>
             <CardContent className="py-0">
               {activeLoading ? (
@@ -932,7 +1180,31 @@ export default function AdminOrdersReservations() {
                   Impossible de charger la file des remboursements.
                 </div>
               ) : (
-                <Table>
+                <>
+                  <div className="space-y-2 py-4 md:hidden">
+                    {filteredRefunds.map((refund) => {
+                      const status = getHistoryStatusPresentation(refund.refund_status || "pending", refund.payment_status);
+                      return (
+                        <MobileHistoryRow
+                          key={`${refund.target_type}-${refund.target_id}`}
+                          reference={getRefundReference(refund)}
+                          date={formatDateTime(String(refund.cancelled_at || refund.created_at))}
+                          customer={refund.customer_name || "Client inconnu"}
+                          status={status}
+                          onClick={() => setSelectedRefund(refund)}
+                        />
+                      );
+                    })}
+
+                    {filteredRefunds.length === 0 ? (
+                      <EmptyMobileHistory>
+                        Aucun remboursement en attente pour le filtre courant.
+                      </EmptyMobileHistory>
+                    ) : null}
+                  </div>
+
+                  <div className="hidden md:block">
+                    <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
@@ -946,10 +1218,12 @@ export default function AdminOrdersReservations() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRefunds.map((refund) => (
+                    {filteredRefunds.map((refund) => {
+                      const status = getHistoryStatusPresentation(refund.refund_status || "pending", refund.payment_status);
+                      return (
                       <TableRow
                         key={`${refund.target_type}-${refund.target_id}`}
-                        className="cursor-pointer hover:bg-muted/30"
+                        className={cn("cursor-pointer", status.desktopRowClassName)}
                         onClick={() => setSelectedRefund(refund)}
                       >
                         <TableCell data-label="Date" className="text-sm text-muted-foreground md:whitespace-nowrap">
@@ -957,7 +1231,7 @@ export default function AdminOrdersReservations() {
                         </TableCell>
                         <TableCell data-label="Référence">
                           <div className="space-y-1">
-                            <p className="font-medium">{refund.reference || refund.target_id.slice(0, 8)}</p>
+                            <p className="font-medium">{getRefundReference(refund)}</p>
                             <p className="text-xs text-muted-foreground">{refund.target_id}</p>
                           </div>
                         </TableCell>
@@ -997,7 +1271,8 @@ export default function AdminOrdersReservations() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
 
                     {filteredRefunds.length === 0 ? (
                       <TableRow>
@@ -1007,7 +1282,9 @@ export default function AdminOrdersReservations() {
                       </TableRow>
                     ) : null}
                   </TableBody>
-                </Table>
+                    </Table>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>

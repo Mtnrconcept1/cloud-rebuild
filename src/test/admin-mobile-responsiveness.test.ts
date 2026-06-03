@@ -31,6 +31,27 @@ describe("admin mobile responsiveness guards", () => {
     expect(page).not.toContain('className="whitespace-nowrap text-sm text-muted-foreground"');
   });
 
+  it("uses compact clickable mobile histories on admin orders, reservations and refunds", () => {
+    const page = readProjectFile("src/pages/admin/AdminOrdersReservations.tsx");
+
+    expect(page).toContain("function MobileHistoryRow");
+    expect(page).toContain('className="space-y-2 py-4 md:hidden"');
+    expect(page).toContain('className="hidden md:block"');
+    expect(page).toContain("getHistoryStatusPresentation(order.status, order.paymentStatus)");
+    expect(page).toContain("getHistoryStatusPresentation(reservation.status)");
+    expect(page).toContain('getHistoryStatusPresentation(refund.refund_status || "pending", refund.payment_status)');
+    expect(page).toContain("reference={getOrderReference(order)}");
+    expect(page).toContain("reference={reservation.reference}");
+    expect(page).toContain("reference={getRefundReference(refund)}");
+    expect(page).toContain('setSelectedOperation({ kind: "order", item: order })');
+    expect(page).toContain('setSelectedOperation({ kind: "reservation", item: reservation })');
+    expect(page).toContain("setSelectedRefund(refund)");
+
+    for (const colorClass of ["bg-emerald-50", "bg-amber-50", "bg-orange-50", "bg-red-50"]) {
+      expect(page).toContain(colorClass);
+    }
+  });
+
   it("keeps audit log tables and admin cards from forcing mobile horizontal scroll", () => {
     const auditLogs = readProjectFile("src/pages/admin/AdminAuditLogs.tsx");
     const reviews = readProjectFile("src/pages/admin/AdminAvis.tsx");
