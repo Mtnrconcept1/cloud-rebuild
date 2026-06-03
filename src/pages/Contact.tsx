@@ -8,17 +8,50 @@ import { Textarea } from "@/components/ui/textarea";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
 import { isCaptchaEnabled } from "@/lib/captcha";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { submitContactSupport } from "@/lib/support/contactSupport";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Contact() {
+  const { toast } = useToast();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isCaptchaEnabled() && !captchaToken) {
-      alert("Validation anti-abus requise.");
+      toast({ title: "Validation requise", description: "Validez le contrôle anti-abus avant d'envoyer.", variant: "destructive" });
       return;
     }
-    alert("Votre message a été envoyé !");
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const name = String(formData.get("name") || "");
+    const email = String(formData.get("email") || "");
+    const subject = String(formData.get("subject") || "");
+    const message = String(formData.get("message") || "");
+
+    setSending(true);
+    try {
+      await submitContactSupport({
+        source: "public_contact",
+        name,
+        email,
+        subject,
+        message,
+        captchaToken,
+      });
+      form.reset();
+      setCaptchaToken(null);
+      toast({ title: "Message envoyé", description: "Notre équipe vous répondra rapidement." });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible d'envoyer le message.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -38,24 +71,24 @@ export default function Contact() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Nom</label>
-                  <Input placeholder="Votre nom" required />
+                  <Input name="name" placeholder="Votre nom" required />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Email</label>
-                  <Input type="email" placeholder="votre@email.com" required />
+                  <Input name="email" type="email" placeholder="votre@email.com" required />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Sujet</label>
-                <Input placeholder="De quoi souhaitez-vous parler ?" required />
+                <Input name="subject" placeholder="De quoi souhaitez-vous parler ?" required />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Message</label>
-                <Textarea placeholder="Votre message..." className="min-h-[150px]" required />
+                <Textarea name="message" placeholder="Votre message..." className="min-h-[150px]" required />
               </div>
               <TurnstileCaptcha action="public_contact" onTokenChange={setCaptchaToken} />
-              <Button type="submit" className="w-full gap-2">
-                <Send className="h-4 w-4" /> Envoyer
+              <Button type="submit" className="w-full gap-2" disabled={sending}>
+                <Send className="h-4 w-4" /> {sending ? "Envoi..." : "Envoyer"}
               </Button>
             </form>
           </CardContent>

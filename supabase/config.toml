@@ -46,6 +46,9 @@ verify_jwt = false
 [functions.close-due-match-groups]
 verify_jwt = false
 
+[functions.contact-support]
+verify_jwt = false
+
 [functions.complete-order-checkout]
 verify_jwt = false
 
