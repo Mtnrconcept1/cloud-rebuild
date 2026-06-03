@@ -63,32 +63,34 @@ const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS"
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
-const TOK_BRAND_LOGO_URL = sanitizeConfiguredUrl(Deno.env.get("TOK_BRAND_LOGO_URL")?.trim(), "https://www.thetok.ch/logo.png");
 const SOURCE_IMAGE_EDIT_PROMPT =
-  "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image.";
-const TOK_BRAND_LOGO_PROMPT =
-  "Ajoute le logo TOK officiel fourni en image de référence comme un petit marquage discret, idéalement en haut à gauche. Si cette zone masque le produit ou déséquilibre la composition, place-le dans le coin libre le plus naturel. Le logo doit être entièrement visible, avec une marge intérieure nette autour de lui; ne jamais le coller au bord ni le couper. Le logo doit rester lisible, propre, sans être recréé approximativement et sans couvrir les aliments.";
+  "Ameliore l'image en photographie culinaire de studio professionnelle non brandee: fond propre, eclairage softbox premium, contraste maitrise, textures appetissantes et profondeur de champ douce avec joli flou d'arriere-plan quand la scene le permet. Nettoie tous les elements parasites: objets hors sujet, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants, decor encombre et arriere-plan confus, tout en gardant le produit identique. Renforce les formes, volumes, contours, couleurs et textures uniquement par la lumiere, la nettete et une retouche naturelle; ne change pas les ingredients, le contenant, le packaging, les proportions ni les inscriptions physiques du sujet. Si l'image source contient deja un logo, une bulle de marque, un badge, un filigrane ou un watermark superpose dans un coin, retire-le proprement et reconstitue le fond naturel. Ne genere aucun logo, aucune marque de plateforme, aucun texte incruste, aucun watermark, aucun badge et aucun filigrane.";
 
 const PREMIUM_SOURCE_IMAGE_EDIT_PROMPT =
-  "Retouche l'image source en photographie culinaire professionnelle premium, sans changer le sujet principal. Conserve le meme plat ou produit, les memes aliments, le meme contenant, les memes proportions, les textes et logos visibles. Ameliore uniquement la lumiere, la nettete, le contraste, les couleurs, le cadrage leger, les reflets et la proprete visuelle. Supprime seulement les elements parasites evidents. Ne transforme jamais le produit en un autre plat, ne remplace jamais l'emballage, ne modifie pas les inscriptions, ne cree pas de scene differente.";
+  "Retouche l'image source en photographie culinaire de studio professionnelle premium, sans changer le sujet principal. Conserve le meme plat ou produit, les memes aliments, le meme contenant, les memes proportions et les textes visibles appartenant reellement au sujet source. Ameliore la scene comme un shooting studio: fond nettoye, eclairage softbox lateral, contraste doux, reflets propres, nettete du sujet, textures plus appetissantes, couleurs naturelles, profondeur de champ douce et joli flou d'arriere-plan. Supprime clairement tous les elements parasites et distrayants qui ne font pas partie du produit: objets hors sujet, mains, couverts inutiles, miettes, taches, reflets sales, decor encombre, logo de coin, bulle de marque, badge, watermark, filigrane ou marque superposee; reconstitue a la place le fond naturel de la photo. Ameliore les formes, volumes et contours uniquement par la lumiere, la perspective, la proprete visuelle et la retouche fine, sans remodeler le produit ni changer son identite. Ne transforme jamais le produit en un autre plat, ne remplace jamais l'emballage, ne modifie pas les inscriptions du sujet source, ne cree pas de scene differente.";
 
 const TOK_PHOTO_DNA = `
-Charte graphique TOK pour retouche premium fidele:
+Charte de retouche culinaire premium non brandee:
 - modele image cible: gpt-image-1.5 via OPENAI_IMAGE_MODEL, avec edition de l'image source quand elle existe;
 - REGLE BLOQUANTE: si une image source est fournie, l'image finale doit rester une retouche fidele du meme sujet, pas une reinterpretation;
 - conserver la nature exacte du sujet source: meme produit ou plat, meme contenant, meme packaging, meme forme generale et meme identite visuelle reconnaissable;
-- conserver les textes, inscriptions, logos, marques, etiquettes, symboles, typographies visibles et elements de branding visibles aussi fidelement que possible;
+- conserver les textes, inscriptions, marques, etiquettes, symboles et typographies visibles du sujet source seulement s'ils existent deja physiquement sur le plat, le contenant ou le packaging;
+- supprimer les logos de coin, les watermarks, les filigranes, les bulles de marque, les badges, les autocollants virtuels ou les marques superposees qui ne font pas partie de l'objet photographie;
 - ne jamais inventer, remplacer, deformer ou approximativement recreer une etiquette, un logo ou un texte visible;
 - si le sujet source est un produit emballe, une boite, un sachet, une bouteille, une conserve ou un verre imprime, conserver cet objet comme sujet principal;
 - ne jamais transformer un produit emballe en plat servi, toast, assiette gastronomique ou scene culinaire differente;
 - ne jamais remplacer une salade, un dessert, une bouteille, une assiette ou un plat source par un autre type de nourriture;
+- nettoyage studio: supprimer les objets hors sujet, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants, fonds encombrants et parasites visuels;
 - composition: conserver une composition proche de la scene source; ameliorer seulement le cadrage lorsque cela ne change pas l'identite;
-- lumiere chaude directionnelle, contraste maitrise, blancs propres, textures visibles, reflets propres et naturels;
+- rendu studio photo: eclairage softbox premium, contraste maitrise, blancs propres, sujet net, textures visibles, reflets propres et naturels;
+- profondeur de champ: garder le produit principal net et ajouter un flou d'arriere-plan doux seulement si cela ne masque aucun detail important du sujet;
+- formes et volumes: renforcer les contours, volumes et textures par la lumiere et la nettete, sans remodeler le produit, ses ingredients, son emballage ou ses proportions;
 - style avant/apres: meme photo, meme sujet, mais plus premium, plus nette, mieux eclairee et plus vendable;
-- ajouter uniquement le logo TOK officiel quand il est fourni en reference, en haut a gauche ou dans un coin libre selon la disposition du produit, avec une marge interieure et sans jamais couper le logo;
-- ne pas ajouter de texte, prix, faux logo tiers, fausse certification, visage, main, emballage concurrent ou claim medical;
+- ne jamais ajouter de logo, filigrane, watermark, marque ou texte incruste dans l'image generee;
+- ne jamais ajouter de logo de plateforme, bulle de marque, mascotte, macaron, badge ou pictogramme de marque dans l'image generee;
+- interdit absolu: ne pas dessiner, simuler, reproduire ou integrer un element de marque de plateforme, un macaron de marque ou un filigrane;
+- ne pas ajouter de prix, faux logo tiers, fausse certification, visage, main, emballage concurrent ou claim medical;
 - controle qualite final: au premier regard, l'utilisateur doit reconnaitre le sujet source exact.
-Dossier de references visuelles du projet: public${TOK_REFERENCE_FOLDER}.
 `;
 
 function maybeUuid(raw: unknown) {
@@ -168,6 +170,33 @@ function sanitizeUrl(raw: unknown) {
   } catch {
     return "";
   }
+}
+
+function stripBrandOverlayInstructions(raw: string) {
+  return raw
+    .split(/\r?\n|(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter((part) => {
+      if (!part) return false;
+      const lower = part
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      const mentionsOverlay = /\b(logo|filigrane|watermark|marque|badge|macaron|mascotte|calque)\b/.test(lower);
+      const asksAddition = /\b(ajout|ajoute|ajouter|appose|apposer|incruste|incruster|genere|generer|dessine|dessiner)\b/.test(lower);
+      return !(mentionsOverlay && asksAddition);
+    })
+    .join(" ")
+    .trim()
+    .slice(0, 1800);
+}
+
+function stripPlatformBrandTerms(raw: string) {
+  return raw
+    .replace(/\bTOK\b/gi, "plateforme")
+    .replace(/\bTheTok\b/gi, "plateforme")
+    .replace(/\bMiamz\b/gi, "marque")
+    .trim();
 }
 
 function sanitizeConfiguredUrl(raw: unknown, fallback = "") {
@@ -293,10 +322,10 @@ function buildImageOnlyResult(input: {
   const enhancedPrompt = input.sourceImagePresent
     ? SOURCE_IMAGE_EDIT_PROMPT
     : [
-      `Créer une photographie professionnelle appétissante pour ${dishLabel}.`,
+      `Creer une photographie culinaire de studio professionnelle et appetissante pour ${dishLabel}.`,
       input.userPrompt,
-      `Restaurant: ${input.restaurantName}. Format demandé: ${input.format}.`,
-      "Image finale sans texte incrusté, sans watermark, sans élément de marque concurrente.",
+      `Restaurant: ${input.restaurantName}. Format demande: ${input.format}.`,
+      "Rendu studio attendu: fond propre, eclairage softbox premium, sujet net, textures appetissantes, formes valorisees, profondeur de champ douce et joli flou d'arriere-plan. Image finale non brandee: sans logo, sans texte de marque, sans marque de plateforme, sans bulle, sans mascotte, sans macaron, sans texte incruste et sans watermark. Les elements de marque sont ajoutes apres generation par l'interface, comme calque transparent separe.",
     ].filter(Boolean).join("\n").slice(0, 3000);
 
   return {
@@ -320,26 +349,6 @@ async function fetchImageBlob(url: string) {
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (bytes.byteLength > 18 * 1024 * 1024) throw new HttpError(400, "source_image_too_large");
   return new Blob([bytes], { type: contentType });
-}
-
-async function fetchOptionalTokLogoBlob() {
-  if (!TOK_BRAND_LOGO_URL) return null;
-
-  try {
-    const response = await fetchWithTimeout(TOK_BRAND_LOGO_URL, {}, SOURCE_IMAGE_TIMEOUT_MS, "tok_logo_timeout");
-    if (!response.ok) throw new Error(`tok_logo_unreachable:${response.status}`);
-    const contentType = response.headers.get("content-type") || guessMimeFromUrl(TOK_BRAND_LOGO_URL);
-    if (!contentType.startsWith("image/")) throw new Error("tok_logo_invalid_type");
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength > 6 * 1024 * 1024) throw new Error("tok_logo_too_large");
-    return new Blob([bytes], { type: contentType });
-  } catch (error) {
-    console.warn(`[${FUNCTION_NAME}] tok_logo_reference_unavailable`, {
-      url: TOK_BRAND_LOGO_URL,
-      message: error instanceof Error ? error.message : String(error),
-    });
-    return null;
-  }
 }
 
 async function callOpenAIImageGeneration(prompt: string, n: number, options: ImageRequestOptions) {
@@ -371,7 +380,6 @@ async function callOpenAIImageGeneration(prompt: string, n: number, options: Ima
 
 async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: number, options: ImageRequestOptions) {
   const sourceBlob = await fetchImageBlob(sourceImageUrl);
-  const logoBlob = await fetchOptionalTokLogoBlob();
   const form = new FormData();
   form.append("model", options.model);
   form.append("prompt", prompt);
@@ -381,7 +389,6 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
   form.append("output_format", "png");
   form.append("moderation", "auto");
   form.append("image[]", sourceBlob, "source.png");
-  if (logoBlob) form.append("image[]", logoBlob, "tok-logo.png");
 
   const response = await fetchWithTimeout(IMAGE_EDITS_URL, {
     method: "POST",
@@ -395,11 +402,7 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
     throw publicOpenAIImageError("image_edit", details);
   }
 
-  return {
-    response: await response.json(),
-    tokLogoReferenceUsed: Boolean(logoBlob),
-    tokLogoReferenceUrl: logoBlob ? TOK_BRAND_LOGO_URL : null,
-  };
+  return await response.json();
 }
 
 async function extractGeneratedImageBytes(imageResponse: unknown) {
@@ -521,7 +524,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     restaurantId = maybeUuid(body.restaurantId);
-    const prompt = sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
+    const prompt = stripPlatformBrandTerms(stripBrandOverlayInstructions(sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT)));
     const dishName = sanitizeText(body.dishName, 120);
     const sourceImageUrl = sanitizeUrl(body.sourceImageUrl);
     const assetType = normalizeAssetType(body.assetType);
@@ -540,7 +543,7 @@ Deno.serve(async (req) => {
     await rl.consume("global", { maxRequests: 180, windowSeconds: 60 });
 
     const result = buildImageOnlyResult({
-      restaurantName: restaurant.name || "Restaurant TOK",
+      restaurantName: restaurant.name || "Restaurant",
       dishName,
       userPrompt: prompt,
       format: format.label,
@@ -553,9 +556,6 @@ Deno.serve(async (req) => {
     let usedImageOptions: ImageRequestOptions | null = null;
     const imageEditRetryUsed = false;
     let sourceEditUsed = false;
-    let tokLogoReferenceUsed = false;
-    let tokLogoReferenceUrl: string | null = null;
-
     const imageOptions = generatedImageOptions;
     const finalPrompt = sourceImageUrl
       ? [
@@ -563,25 +563,21 @@ Deno.serve(async (req) => {
         "",
         "Contraintes finales non negociables:",
         TOK_PHOTO_DNA,
-        TOK_BRAND_LOGO_PROMPT,
-        "Rendu attendu: avant/apres fidele. Meme sujet reconnaissable immediatement, mais plus net, plus propre, plus lumineux, plus premium et utilisable dans une galerie restaurant.",
+        "Rendu attendu: avant/apres fidele. Meme sujet reconnaissable immediatement, mais plus net, nettoye de tous les parasites, eclaire comme un studio photo, avec formes mieux valorisees, textures plus appetissantes, profondeur de champ douce et joli flou d'arriere-plan quand cela sert le produit.",
+        "Interdiction explicite: ne pas ajouter de logo, texte de marque, bulle de marque, badge, filigrane ou watermark. Si un logo, une bulle de marque ou un filigrane existe deja dans l'image source, il doit etre retire de l'image generee. Les elements de marque sont superposes par l'interface apres generation, jamais par le modele.",
       ].join("\n").slice(0, 7000)
       : [
         result.enhanced_prompt,
         "",
-        "Contraintes finales non négociables:",
+        "Contraintes finales non negociables:",
         TOK_PHOTO_DNA,
-        TOK_BRAND_LOGO_PROMPT,
-        "Image finale sans texte incrusté hors logo TOK officiel, sans watermark tiers, sans élément de marque concurrente. Produit crédible et appétissant.",
+        "Image finale de studio non brandee: sujet net, fond propre, eclairage softbox premium, formes valorisees, profondeur de champ douce, joli flou d'arriere-plan, sans texte incruste, sans logo, sans texte de marque, sans filigrane, sans watermark, sans badge, sans bulle de marque et sans mascotte. Les elements de marque seront ajoutes hors image par l'interface comme calque transparent separe, jamais par le modele image.",
       ].join("\n").slice(0, 7000);
 
     let imageResponse: unknown;
     if (sourceImageUrl) {
-      const editResult = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
-      imageResponse = editResult.response;
+      imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
       sourceEditUsed = true;
-      tokLogoReferenceUsed = editResult.tokLogoReferenceUsed;
-      tokLogoReferenceUrl = editResult.tokLogoReferenceUrl;
     } else {
       imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);
     }
@@ -610,9 +606,8 @@ Deno.serve(async (req) => {
         image_mode: imageOptions.mode,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
-        tok_logo_reference_used: tokLogoReferenceUsed,
-        tok_logo_reference_url: tokLogoReferenceUrl,
-        tok_logo_positioning: "top_left_or_free_corner",
+        brand_overlay_positioning: "frontend_transparent_layer",
+        brand_overlay_size: "180x180",
         generation_fallback_allowed: !sourceImageUrl,
         output_format: "png",
         brief_source: briefSource,
@@ -657,9 +652,8 @@ Deno.serve(async (req) => {
         image_mode: usedImageOptions?.mode,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
-        tok_logo_reference_used: tokLogoReferenceUsed,
-        tok_logo_reference_url: tokLogoReferenceUrl,
-        tok_logo_positioning: "top_left_or_free_corner",
+        brand_overlay_positioning: "frontend_transparent_layer",
+        brand_overlay_size: "180x180",
         generation_fallback_allowed: !sourceImageUrl,
         gallery_bucket: GALLERY_BUCKET,
         output_format: "png",
@@ -686,8 +680,8 @@ Deno.serve(async (req) => {
         image_only: imageOnly,
         source_edit_used: sourceEditUsed,
         image_edit_retry: imageEditRetryUsed,
-        tok_logo_reference_used: tokLogoReferenceUsed,
-        tok_logo_reference_url: tokLogoReferenceUrl,
+        brand_overlay_positioning: "frontend_transparent_layer",
+        brand_overlay_size: "180x180",
         gallery_bucket: GALLERY_BUCKET,
       },
     });
@@ -701,7 +695,8 @@ Deno.serve(async (req) => {
       storage_path: generated?.storage_path || null,
       model: generated?.model || IMAGE_MODEL,
       image_mode: usedImageOptions?.mode,
-      tok_logo_reference_used: tokLogoReferenceUsed,
+      brand_overlay_positioning: "frontend_transparent_layer",
+      brand_overlay_size: "180x180",
       reference_folder: `public${TOK_REFERENCE_FOLDER}`,
       status: "stored",
     }, 200, cors);

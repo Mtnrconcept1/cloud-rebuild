@@ -10,12 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { getSupabase } from "@/integrations/supabase/client";
 import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
+import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
 
 const supabase = getSupabase();
 const STUDIO_BRIEF =
-  "Améliore l’image en donnant un aspect de photographie professionnelle, éclairage incroyable, en gardant le produit identique. Supprime les objets et éléments parasites mais préserve la nature des aliments présents sur l’image. Ajoute le logo TOK en haut à gauche ou dans le coin libre le plus naturel selon la disposition du produit, entièrement visible et avec une marge intérieure.";
-const STUDIO_LOGO_SRC = "/logo.png";
+  "Améliore l'image en photographie culinaire de studio professionnel non brandée, avec un éclairage softbox premium, un fond propre et un joli flou de profondeur lorsque la scène le permet. Supprime tous les objets et éléments parasites: décor encombré, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants et arrière-plan confus. Améliore les formes et volumes par la lumière, la netteté, les textures et une retouche naturelle, en gardant le produit identique: mêmes aliments, même contenant, mêmes proportions, même packaging et mêmes inscriptions physiques. N'ajoute aucun logo, aucun macaron, aucune bulle de marque, aucun filigrane, aucun texte incrusté et aucune marque. Si un logo ou un filigrane existe déjà sur l'image source comme calque ou watermark, retire-le proprement de l'image générée.";
+const STUDIO_LOGO_SRC = "/logo-watermark.png";
 
 type Props = {
   restaurantId: string | null | undefined;
@@ -70,6 +71,18 @@ function buildTokPhotoDownloadFileName(dishName: string) {
     .slice(0, 60);
 
   return `${normalized || "visuel-tok"}-tok.png`;
+}
+
+function TokLogoWatermark({ className = "", sizeClassName = "h-[180px] w-[180px]" }: { className?: string; sizeClassName?: string }) {
+  return (
+    <div
+      className={`pointer-events-none absolute left-3 top-3 z-10 drop-shadow-[0_10px_24px_rgba(0,0,0,0.30)] ${className}`}
+      aria-hidden="true"
+      data-testid="tok-logo-watermark-layer"
+    >
+      <img src={STUDIO_LOGO_SRC} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
+    </div>
+  );
 }
 
 function TokLogoGenerationLoader() {
@@ -311,18 +324,13 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
     if (!generatedImageUrl) return;
 
     try {
-      const response = await fetch(generatedImageUrl);
-      if (!response.ok) throw new Error("download_failed");
-
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = objectUrl;
-      link.download = downloadFileName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+      await downloadImageWithWatermark({
+        imageUrl: generatedImageUrl,
+        fileName: downloadFileName,
+        watermarkUrl: STUDIO_LOGO_SRC,
+        watermarkSize: 180,
+        watermarkMargin: 24,
+      });
     } catch {
       const link = document.createElement("a");
       link.href = generatedImageUrl;
@@ -396,7 +404,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                 <ul className="space-y-2">
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Même produit ou plat que la source, immédiatement reconnaissable.</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Packaging, contenant, marque, textes et couleurs préservés si présents.</li>
-                  <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Lumière chaude, cadrage plus propre, textures renforcées et logo TOK discret.</li>
+                  <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Éclairage studio, fond nettoyé, profondeur de champ douce, textures renforcées et logo TOK ajouté en calque transparent séparé.</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> Un emballage ne doit jamais devenir une assiette servie.</li>
                 </ul>
               </>
@@ -425,6 +433,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                       onClick={() => setPreviewOpen(true)}
                       className="group relative block aspect-video w-full overflow-hidden rounded-xl border bg-muted text-left"
                     >
+                      <TokLogoWatermark sizeClassName="h-16 w-16" />
                       <img
                         src={generatedImageUrl}
                         alt={result.alt_text || "Visuel TOK"}
@@ -458,11 +467,14 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
             </DialogHeader>
             <div className="min-h-0 flex-1 bg-black p-3 sm:p-5">
               {generatedImageUrl ? (
-                <img
-                  src={generatedImageUrl}
-                  alt={result?.alt_text || "Visuel TOK"}
-                  className="h-full w-full rounded-lg object-contain"
-                />
+                <div className="relative h-full w-full">
+                  <TokLogoWatermark className="left-5 top-5" />
+                  <img
+                    src={generatedImageUrl}
+                    alt={result?.alt_text || "Visuel TOK"}
+                    className="h-full w-full rounded-lg object-contain"
+                  />
+                </div>
               ) : null}
             </div>
           </DialogContent>
