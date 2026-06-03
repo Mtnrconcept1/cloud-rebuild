@@ -14,6 +14,7 @@ import {
 } from "@/lib/courierMission";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
+import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 
 const NAV_ITEMS = [
   { to: "/courier", label: "Vue d'ensemble", icon: LayoutDashboard, feature: "courier-home" },
@@ -156,6 +157,9 @@ export default function CourierDashboardLayout({ children }: { children: React.R
         </aside>
 
         <main className="min-h-[500px] flex-1 overflow-x-hidden rounded-2xl border bg-card p-4 sm:p-6 md:p-8">
+          {pathname !== "/courier" ? (
+            <BackNavigationButton fallback="/courier" className="mb-4" />
+          ) : null}
           {children}
         </main>
       </div>

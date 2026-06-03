@@ -12,6 +12,7 @@ import MobileLogoIntro from "@/components/MobileLogoIntro";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
+import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navigation/BackNavigationButton";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
@@ -171,6 +172,23 @@ function AdminDashboardRoute() {
   );
 }
 
+function AdminProtectedRoute({
+  children,
+  fallback = "/admin",
+}: {
+  children: React.ReactNode;
+  fallback?: string;
+}) {
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <div className="container px-4 pt-4">
+        <BackNavigationButton fallback={fallback} />
+      </div>
+      {children}
+    </ProtectedRoute>
+  );
+}
+
 function AppShell() {
   const { pathname } = useLocation();
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
@@ -232,6 +250,7 @@ function AppShell() {
     <>
       <MobileLogoIntro />
       {shouldShowPublicNavbar(pathname) ? <Navbar /> : null}
+      <FloatingRouteBackButton />
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -295,23 +314,23 @@ function AppShell() {
           <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEarningsEnabled} fallback="/courier"><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierProfileEnabled} fallback="/courier"><CourierProfile /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin" element={<AdminDashboardRoute />} />
-          <Route path="/admin/platform" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminPlatformConfigEnabled} fallback="/admin"><AdminPlatformConfig /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/restaurants" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/utilisateurs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminUtilisateursEnabled} fallback="/admin"><AdminUtilisateurs /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/avis" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAvisEnabled} fallback="/admin"><AdminAvis /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/catalog" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminCatalogEnabled} fallback="/admin"><AdminCatalog /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/loyalty" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminLoyaltyEnabled} fallback="/admin"><AdminLoyalty /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/drops" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminDropsEnabled} fallback="/admin"><DropsManagement /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/notifications" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminNotificationsEnabled} fallback="/admin"><AdminNotifications /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/actualites" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminActualitesEnabled} fallback="/admin"><AdminActualites /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/audit" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/packs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminPacksEnabled} fallback="/admin"><AdminLaunchPacks /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/compta" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/compta/entrees" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaInflow /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/compta/sorties" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/compta/ia" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaAiEnabled} fallback="/admin/compta"><AdminComptaAi /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/commandes-reservations" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminOperationsCenter /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/ai-operations" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/admin/platform" element={<AdminProtectedRoute><FeatureSwitch enabled={adminPlatformConfigEnabled} fallback="/admin"><AdminPlatformConfig /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/restaurants" element={<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/utilisateurs" element={<AdminProtectedRoute><FeatureSwitch enabled={adminUtilisateursEnabled} fallback="/admin"><AdminUtilisateurs /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/avis" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAvisEnabled} fallback="/admin"><AdminAvis /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/catalog" element={<AdminProtectedRoute><FeatureSwitch enabled={adminCatalogEnabled} fallback="/admin"><AdminCatalog /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/loyalty" element={<AdminProtectedRoute><FeatureSwitch enabled={adminLoyaltyEnabled} fallback="/admin"><AdminLoyalty /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/drops" element={<AdminProtectedRoute><FeatureSwitch enabled={adminDropsEnabled} fallback="/admin"><DropsManagement /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/notifications" element={<AdminProtectedRoute><FeatureSwitch enabled={adminNotificationsEnabled} fallback="/admin"><AdminNotifications /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/actualites" element={<AdminProtectedRoute><FeatureSwitch enabled={adminActualitesEnabled} fallback="/admin"><AdminActualites /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/audit" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/packs" element={<AdminProtectedRoute><FeatureSwitch enabled={adminPacksEnabled} fallback="/admin"><AdminLaunchPacks /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/compta" element={<AdminProtectedRoute><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/compta/entrees" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaInflow /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/compta/sorties" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/compta/ia" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaAiEnabled} fallback="/admin/compta"><AdminComptaAi /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/commandes-reservations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminOperationsCenter /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/ai-operations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />

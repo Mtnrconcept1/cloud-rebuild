@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { User, ShoppingCart, CalendarDays, LogOut, LayoutDashboard, Settings, Bell, Crown } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 
 const NAV_ITEMS = [
   { to: "/profil", label: "Mon profil", icon: User },
@@ -41,7 +42,10 @@ export default function CustomerDashboardLayout({ children }: { children: React.
             </div>
           </div>
         </aside>
-        <main className="flex-1 bg-card border rounded-2xl p-4 sm:p-6 md:p-8 min-h-[500px] overflow-x-hidden">{children}</main>
+        <main className="flex-1 bg-card border rounded-2xl p-4 sm:p-6 md:p-8 min-h-[500px] overflow-x-hidden">
+          <BackNavigationButton fallback="/" className="mb-4" />
+          {children}
+        </main>
       </div>
     </div>
   );

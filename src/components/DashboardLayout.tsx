@@ -39,6 +39,7 @@ import { toast } from "sonner";
 
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
+import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 
 type NavItem = {
   to: string;
@@ -387,7 +388,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="absolute right-0 top-1/4 h-[28rem] w-[28rem] rounded-full bg-[#1e4aa0]/18 blur-3xl" />
           <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-[#8b55ff]/10 blur-3xl" />
         </div>
-        <div className="relative z-10 mx-auto w-full max-w-7xl">{children}</div>
+        <div className="relative z-10 mx-auto w-full max-w-7xl">
+          {pathname !== "/dashboard" ? (
+            <BackNavigationButton fallback="/dashboard" className="mb-4" />
+          ) : null}
+          {children}
+        </div>
       </main>
     </div>
   );
