@@ -647,13 +647,18 @@ export async function trackSponsoredClick(
 
 export async function trackCheckoutEvent(orderId: string, eventType: string, payload: any = {}) {
   try {
-    await getSupabase().from("order_events").insert({
-      order_id: orderId,
-      event_type: eventType,
-      payload: payload,
+    const { error } = await (getSupabase() as any).rpc("track_order_event", {
+      p_order_id: orderId,
+      p_event_type: eventType,
+      p_payload: payload,
     });
-  } catch (e) {
-    // Silent fail
+
+    if (error) {
+      console.warn("[analytics] checkout event tracking failed", error.message);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.warn("[analytics] checkout event tracking failed", message);
   }
 }
 

@@ -176,14 +176,11 @@ export default function DashboardRestaurant() {
   };
 
   const syncRestaurantCuisines = async (restaurantId: string) => {
-    const { error: deleteError } = await supabase.from("restaurant_cuisines").delete().eq("restaurant_id", restaurantId);
-    if (deleteError) throw deleteError;
-
-    if (selectedCuisineIds.length === 0) return;
-
-    const rows = selectedCuisineIds.map((cuisineId) => ({ restaurant_id: restaurantId, cuisine_id: cuisineId }));
-    const { error: insertError } = await supabase.from("restaurant_cuisines").insert(rows);
-    if (insertError) throw insertError;
+    const { error } = await (supabase as any).rpc("restaurant_set_cuisines", {
+      p_restaurant_id: restaurantId,
+      p_cuisine_ids: selectedCuisineIds,
+    });
+    if (error) throw error;
   };
 
   const handleSave = async () => {
