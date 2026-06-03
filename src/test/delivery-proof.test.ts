@@ -22,7 +22,14 @@ describe("delivery proof helpers", () => {
     expect(isValidDeliveryProofCode("1234")).toBe(false);
   });
 
-  it("builds a QR image URL from the proof code", () => {
-    expect(buildDeliveryProofQrImageUrl("123456")).toContain("data=123456");
+  it("builds a local SVG data URL for the proof QR", () => {
+    const qrUrl = buildDeliveryProofQrImageUrl("123456");
+    const decodedSvg = decodeURIComponent(qrUrl.replace("data:image/svg+xml;charset=UTF-8,", ""));
+
+    expect(qrUrl).toMatch(/^data:image\/svg\+xml;charset=UTF-8,/);
+    expect(qrUrl).not.toContain("api.qrserver.com");
+    expect(qrUrl).not.toContain("data=123456");
+    expect(decodedSvg).toContain("<svg");
+    expect(decodedSvg).toContain("<rect");
   });
 });

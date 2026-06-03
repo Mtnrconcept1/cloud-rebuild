@@ -66,6 +66,7 @@ const ADMIN_TOOLS = [
     description: "Retrouver une commande ou une réservation avec le détail complet.",
     icon: ClipboardList,
     href: "/admin/commandes-reservations",
+    feature: "admin-operations-center",
     color: "text-orange-500",
   },
   {
