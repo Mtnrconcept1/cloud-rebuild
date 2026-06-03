@@ -187,10 +187,11 @@ export default function DashboardFacturesOutflow() {
   } = useDashboardFacturesData();
 
   const handleMarkPaid = async (invoiceId: string) => {
-    const { error: updateError } = await supabase
-      .from("restaurant_invoices")
-      .update({ status: "paid", paid_at: new Date().toISOString() })
-      .eq("id", invoiceId);
+    const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
+      p_invoice_id: invoiceId,
+      p_paid_at: new Date().toISOString(),
+      p_reason: "Marquage paye depuis le dashboard restaurateur - sorties",
+    });
 
     if (updateError) {
       toast({ title: "Erreur", description: updateError.message, variant: "destructive" });

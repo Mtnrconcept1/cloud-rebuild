@@ -83,6 +83,8 @@ describe("admin compta governance", () => {
     const overview = readFileSync(resolve(root, "src/pages/admin/AdminCompta.tsx"), "utf8");
     const inflow = readFileSync(resolve(root, "src/pages/admin/AdminComptaInflow.tsx"), "utf8");
     const outflow = readFileSync(resolve(root, "src/pages/admin/AdminComptaOutflow.tsx"), "utf8");
+    const dashboardInflow = readFileSync(resolve(root, "src/pages/dashboard/DashboardFacturesInflow.tsx"), "utf8");
+    const dashboardOutflow = readFileSync(resolve(root, "src/pages/dashboard/DashboardFacturesOutflow.tsx"), "utf8");
 
     expect(shared).toContain("admin_get_accounting_period_control");
     expect(shared).toContain("admin_get_accounting_stripe_reconciliation");
@@ -106,5 +108,12 @@ describe("admin compta governance", () => {
     expect(outflow).toContain("admin_mark_restaurant_invoice_paid");
     expect(outflow).toContain("downloadInvoicePdf");
     expect(outflow).not.toContain('.from("restaurant_invoices").update');
+
+    expect(dashboardInflow).toContain("admin_mark_restaurant_invoice_paid");
+    expect(dashboardInflow).toContain("p_reason");
+    expect(dashboardInflow).not.toContain('.from("restaurant_invoices").update');
+    expect(dashboardOutflow).toContain("admin_mark_restaurant_invoice_paid");
+    expect(dashboardOutflow).toContain("p_reason");
+    expect(dashboardOutflow).not.toContain('.from("restaurant_invoices").update');
   });
 });

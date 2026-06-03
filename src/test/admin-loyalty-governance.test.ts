@@ -17,7 +17,7 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("admin loyalty governance", () => {
   it("adds audited RPCs and metrics for Tok One governance", () => {
-    const sql = latestMigrationContaining(/admin_loyalty_change_history/i);
+    const sql = latestMigrationContaining(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_loyalty_change_history/i);
 
     expect(sql).toMatch(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_loyalty_change_history/i);
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_get_tok_one_metrics/i);
@@ -46,5 +46,22 @@ describe("admin loyalty governance", () => {
     expect(page).not.toContain('.from("user_subscription_plans").delete');
     expect(page).not.toContain('.from("loyalty_tiers").delete');
     expect(page).not.toContain('.from("subscription_benefits").delete');
+  });
+
+  it("keeps Tok One pricing and metrics aligned on CHF for the Swiss market", () => {
+    const page = readFileSync(resolve(root, "src/pages/admin/AdminLoyalty.tsx"), "utf8");
+    const sql = latestMigrationContaining(/tok_one_currency_chf/i);
+
+    expect(page).toContain('currency: "CHF"');
+    expect(page).toContain('currency: "CHF",');
+    expect(page).toContain("formatTokOneAmount");
+    expect(page).toContain('currency: "CHF"');
+    expect(page).toContain('"fr-CH"');
+    expect(page).not.toContain("EUR");
+
+    expect(sql).toMatch(/ALTER\s+TABLE\s+public\.user_subscription_plans\s+ALTER\s+COLUMN\s+currency\s+SET\s+DEFAULT\s+'CHF'/i);
+    expect(sql).toMatch(/tok_one_currency_chf/i);
+    expect(sql).toMatch(/COALESCE\(NULLIF\(p_payload\s*->>\s*'currency',\s*''\),\s*'CHF'\)/i);
+    expect(sql).not.toMatch(/COALESCE\(NULLIF\(p_payload\s*->>\s*'currency',\s*''\),\s*'EUR'\)/i);
   });
 });

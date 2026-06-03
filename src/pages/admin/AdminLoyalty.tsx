@@ -20,13 +20,22 @@ import {
 } from "@/lib/subscriptionEntitlements";
 
 const supabase = getSupabase();
+const TOK_ONE_CURRENCY = "CHF";
+const tokOneAmountFormatter = new Intl.NumberFormat("fr-CH", {
+  style: "currency",
+  currency: TOK_ONE_CURRENCY,
+});
+
+function formatTokOneAmount(value: unknown) {
+  return tokOneAmountFormatter.format(Number(value || 0));
+}
 
 const EMPTY_PLAN = {
   name: "",
   description: "",
   price_monthly: "",
   price_yearly: "",
-  currency: "EUR",
+  currency: "CHF",
   free_delivery_min_order: "",
   status: "active",
 };
@@ -174,7 +183,7 @@ export default function AdminLoyalty() {
       description: plan.description || "",
       price_monthly: String(plan.price_monthly ?? ""),
       price_yearly: String(plan.price_yearly ?? ""),
-      currency: plan.currency || "EUR",
+      currency: plan.currency || TOK_ONE_CURRENCY,
       free_delivery_min_order: String(plan.free_delivery_min_order ?? ""),
       status: plan.status || "active",
     });
@@ -191,7 +200,7 @@ export default function AdminLoyalty() {
       description: planForm.description || null,
       price_monthly: Number(planForm.price_monthly || 0),
       price_yearly: Number(planForm.price_yearly || 0),
-      currency: planForm.currency || "EUR",
+      currency: planForm.currency || TOK_ONE_CURRENCY,
       free_delivery_min_order: planForm.free_delivery_min_order ? Number(planForm.free_delivery_min_order) : null,
       status: planForm.status,
     };
@@ -342,7 +351,7 @@ export default function AdminLoyalty() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader><CardTitle className="text-sm">Revenu mensuel Tok One</CardTitle></CardHeader>
-          <CardContent className="text-2xl font-bold">{Number(tokOneMetrics.monthlyRevenue || 0).toFixed(2)} EUR</CardContent>
+          <CardContent className="text-2xl font-bold">{formatTokOneAmount(tokOneMetrics.monthlyRevenue)}</CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm">Avantages consommes</CardTitle></CardHeader>
@@ -350,11 +359,11 @@ export default function AdminLoyalty() {
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm">Cout avantages</CardTitle></CardHeader>
-          <CardContent className="text-2xl font-bold">{Number(tokOneMetrics.estimatedBenefitCost || 0).toFixed(2)} EUR</CardContent>
+          <CardContent className="text-2xl font-bold">{formatTokOneAmount(tokOneMetrics.estimatedBenefitCost)}</CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-sm">Impact marge</CardTitle></CardHeader>
-          <CardContent className="text-2xl font-bold">{Number(tokOneMetrics.marginImpact || 0).toFixed(2)} EUR</CardContent>
+          <CardContent className="text-2xl font-bold">{formatTokOneAmount(tokOneMetrics.marginImpact)}</CardContent>
         </Card>
       </div>
 
@@ -367,15 +376,15 @@ export default function AdminLoyalty() {
           <CardContent className="grid gap-3 md:grid-cols-3">
             <div>
               <p className="text-xs text-muted-foreground">Revenu</p>
-              <p className="text-lg font-semibold">{simulationMarge.revenue.toFixed(2)} EUR</p>
+              <p className="text-lg font-semibold">{formatTokOneAmount(simulationMarge.revenue)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Cout simule</p>
-              <p className="text-lg font-semibold">{simulationMarge.estimatedCost.toFixed(2)} EUR</p>
+              <p className="text-lg font-semibold">{formatTokOneAmount(simulationMarge.estimatedCost)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Impact marge simule</p>
-              <p className="text-lg font-semibold">{simulatedMargin.toFixed(2)} EUR</p>
+              <p className="text-lg font-semibold">{formatTokOneAmount(simulatedMargin)}</p>
             </div>
           </CardContent>
         </Card>
@@ -489,10 +498,10 @@ export default function AdminLoyalty() {
                 <div key={plan.id} className="flex items-start justify-between gap-4 rounded-xl border p-4">
                   <div>
                     <p className="text-lg font-bold">{plan.name}</p>
-                    <p className="text-sm text-muted-foreground">{Number(plan.price_monthly || 0).toFixed(2)} {plan.currency || "EUR"} / mois · {plan.status || "active"}</p>
+                    <p className="text-sm text-muted-foreground">{formatTokOneAmount(plan.price_monthly)} / mois · {plan.status || "active"}</p>
                     <p className="text-xs text-muted-foreground">{plan.description || "Sans description"}</p>
                     <p className="mt-1 text-xs text-green-600">
-                      Livraison offerte {Number.isFinite(entitlements.freeDeliveryMinOrder) && entitlements.freeDeliveryMinOrder > 0 ? `(des ${entitlements.freeDeliveryMinOrder} ${plan.currency || "EUR"})` : "sans minimum"}
+                      Livraison offerte {Number.isFinite(entitlements.freeDeliveryMinOrder) && entitlements.freeDeliveryMinOrder > 0 ? `(des ${formatTokOneAmount(entitlements.freeDeliveryMinOrder)})` : "sans minimum"}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {enabledBenefits.map((benefit) => (
