@@ -63,11 +63,32 @@ const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS"
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
-const SOURCE_IMAGE_EDIT_PROMPT =
-  "Ameliore l'image en photographie culinaire de studio professionnelle non brandee: fond propre, eclairage softbox premium, contraste maitrise, textures appetissantes et profondeur de champ douce avec joli flou d'arriere-plan quand la scene le permet. Nettoie tous les elements parasites: objets hors sujet, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants, decor encombre et arriere-plan confus, tout en gardant le produit identique. Renforce les formes, volumes, contours, couleurs et textures uniquement par la lumiere, la nettete et une retouche naturelle; ne change pas les ingredients, le contenant, le packaging, les proportions ni les inscriptions physiques du sujet. Si l'image source contient deja un logo, une bulle de marque, un badge, un filigrane ou un watermark superpose dans un coin, retire-le proprement et reconstitue le fond naturel. Ne genere aucun logo, aucune marque de plateforme, aucun texte incruste, aucun watermark, aucun badge et aucun filigrane.";
+const PHOTO_STUDIO_RETOUCH_PROMPT = `
+Retouche cette photo de [TYPE_DE_PLAT] en conservant strictement le produit d'origine : mêmes ingrédients visibles, mêmes proportions, même structure, même angle de vue global, même composition générale, même position des éléments principaux et même identité visuelle. Ne pas remplacer ni redessiner le produit.
 
-const PREMIUM_SOURCE_IMAGE_EDIT_PROMPT =
-  "Retouche l'image source en photographie culinaire de studio professionnelle premium, sans changer le sujet principal. Conserve le meme plat ou produit, les memes aliments, le meme contenant, les memes proportions et les textes visibles appartenant reellement au sujet source. Ameliore la scene comme un shooting studio: fond nettoye, eclairage softbox lateral, contraste doux, reflets propres, nettete du sujet, textures plus appetissantes, couleurs naturelles, profondeur de champ douce et joli flou d'arriere-plan. Supprime clairement tous les elements parasites et distrayants qui ne font pas partie du produit: objets hors sujet, mains, couverts inutiles, miettes, taches, reflets sales, decor encombre, logo de coin, bulle de marque, badge, watermark, filigrane ou marque superposee; reconstitue a la place le fond naturel de la photo. Ameliore les formes, volumes et contours uniquement par la lumiere, la perspective, la proprete visuelle et la retouche fine, sans remodeler le produit ni changer son identite. Ne transforme jamais le produit en un autre plat, ne remplace jamais l'emballage, ne modifie pas les inscriptions du sujet source, ne cree pas de scene differente.";
+Objectif : transformer l'image en photographie culinaire publicitaire haut de gamme, style [STYLE_SOHAITÉ : studio premium / restaurant haut de gamme / fast-food premium / artisanal chic], avec une ambiance [AMBIANCE : chaude / élégante / gourmande / moderne / sombre premium / lumineuse naturelle].
+
+Instructions :
+- Supprimer les éléments parasites et nettoyer la scène.
+- Simplifier ou remplacer l'arrière-plan par un décor [TYPE_DE_FOND].
+- Améliorer le support sous le produit pour le rendre plus premium et discret.
+- Appliquer un éclairage [TYPE_DE_LUMIÈRE : doux, studio, chaud, contrasté, naturel].
+- Améliorer les textures gourmandes adaptées au produit : [TEXTURES À METTRE EN VALEUR].
+- Corriger la balance des blancs, la colorimétrie, le contraste et les volumes.
+- Accentuer la netteté sur le sujet principal uniquement.
+- Ajouter une profondeur de champ élégante si utile.
+- Donner un rendu final réaliste, premium, propre, appétissant et commercial.
+
+Contraintes :
+- Ne pas modifier la nature du produit.
+- Ne pas ajouter de texte, logo ou éléments graphiques.
+- Ne pas changer le nombre d'éléments principaux.
+- Ne pas déformer les ingrédients.
+- Rendu photographique réaliste uniquement.
+- Préserver le cadrage et le ratio d'origine sauf indication contraire.
+`.trim();
+const SOURCE_IMAGE_EDIT_PROMPT = PHOTO_STUDIO_RETOUCH_PROMPT;
+const PREMIUM_SOURCE_IMAGE_EDIT_PROMPT = PHOTO_STUDIO_RETOUCH_PROMPT;
 
 const TOK_PHOTO_DNA = `
 Charte de retouche culinaire premium non brandee:
