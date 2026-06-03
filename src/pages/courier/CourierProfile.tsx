@@ -216,7 +216,7 @@ export default function CourierProfile() {
           <Card>
             <CardHeader>
               <CardTitle>Informations générales</CardTitle>
-              <CardDescription>Coordonnées, vehicule et informations de paiement.</CardDescription>
+              <CardDescription>Coordonnées, véhicule et informations de paiement.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -245,7 +245,7 @@ export default function CourierProfile() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle_type">Vehicule</Label>
+                <Label htmlFor="vehicle_type">Véhicule</Label>
                 <Select
                   value={form.vehicle_type}
                   onValueChange={(value) => setForm((prev) => ({ ...prev, vehicle_type: value }))}

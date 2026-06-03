@@ -6,6 +6,48 @@ const SOURCE_DIRS = ["src/components", "src/lib", "src/pages"];
 
 const FORBIDDEN_COPY_SNIPPETS = [
   "Session expiree",
+  "Session expirÃ",
+  "contrÃ",
+  "Assignee",
+  "Acceptee",
+  "Commande recuperee",
+  "Livree",
+  "Annulee",
+  "Expiree",
+  'label: "Approuve"',
+  "Refusee",
+  'label: "Refuse"',
+  "Velo",
+  "A pied",
+  "Penalite",
+  "Apercu public",
+  "Restaurants associes",
+  "URL media controlee",
+  "Media requis recommande",
+  "Systeme",
+  "Planifiee",
+  "Planifiees",
+  "Envoyee",
+  "Envoyees",
+  "Echouee",
+  "Piece d'identite",
+  "sejour",
+  "vehicule",
+  "Corrections demandees",
+  "A revoir",
+  "refusee(s)",
+  "Valeur concrete",
+  "Avis publie !",
+  "contenus masques",
+  "Publies",
+  "Aucun post publie",
+  "offres epuisees",
+  "s'engage a publier",
+  "règles de moderation",
+  "Aucune cuisine definie",
+  "Collections a la une",
+  "associe(s)",
+  "Aucune collection definie",
   "Selectionnez",
   "Parametres",
   "Demandes speciales",
@@ -65,7 +107,6 @@ const FORBIDDEN_COPY_SNIPPETS = [
   "Periode",
   "Gerer mon restaurant",
   "Actualites sponsorisees",
-  "a contact@tok.ch",
   "mots-cles",
   "A proximite",
   "Cuisine preferee",
@@ -111,5 +152,16 @@ describe("French product copy", () => {
       });
 
     expect(offenders).toEqual([]);
+  });
+
+  it("normalizes visible AI support copy on Assistant IA", () => {
+    const visibleSources = [
+      readFileSync("src/components/SupportChat.tsx", "utf8"),
+      readFileSync("src/components/support/TokAiSupportChat.tsx", "utf8"),
+      readFileSync("src/lib/featureCatalog.ts", "utf8"),
+    ].join("\n");
+
+    expect(visibleSources).not.toMatch(/\bagent IA\b/i);
+    expect(visibleSources).toContain("Assistant IA");
   });
 });

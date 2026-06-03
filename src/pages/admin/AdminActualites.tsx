@@ -200,7 +200,7 @@ export default function AdminActualites() {
       <DashboardPageHero
         badge="Moderation"
         title="Actualités sociales"
-        description="Surveillez les posts, signalements et contenus masques du fil social."
+        description="Surveillez les posts, signalements et contenus masqués du fil social."
         icon={ShieldCheck}
         tone="amber"
         stats={[

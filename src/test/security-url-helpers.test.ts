@@ -15,10 +15,10 @@ describe("security URL helpers", () => {
   });
 
   it("normalizes external links to https and enforces host allowlists", () => {
-    expect(normalizeExternalHttpsUrl("tok.ch/contact")).toBe("https://tok.ch/contact");
-    expect(normalizeExternalHttpsUrl("http://tok.ch/contact")).toBeNull();
+    expect(normalizeExternalHttpsUrl("thetok.ch/contact")).toBe("https://thetok.ch/contact");
+    expect(normalizeExternalHttpsUrl("http://thetok.ch/contact")).toBeNull();
     expect(normalizeExternalHttpsUrl("javascript:alert(1)")).toBeNull();
-    expect(normalizeExternalHttpsUrl("https://evil.example/phish", ["tok.ch"])).toBeNull();
+    expect(normalizeExternalHttpsUrl("https://evil.example/phish", ["thetok.ch"])).toBeNull();
   });
 
   it("keeps social profile links on their expected hosts", () => {
@@ -27,4 +27,3 @@ describe("security URL helpers", () => {
     expect(normalizeSocialUrl("https://evil.example/tok", "tiktok")).toBeNull();
   });
 });
-

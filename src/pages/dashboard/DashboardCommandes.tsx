@@ -112,11 +112,11 @@ const STATUS_LABELS: Record<string, string> = {
   payment_failed: "Paiement échoué",
   confirmed: "Confirmée",
   preparing: "En préparation",
-  accepted: "Acceptee",
-  ready: "Prete a retirer",
+  accepted: "Acceptée",
+  ready: "Prête à retirer",
   delivering: "En livraison",
-  delivered: "Livree",
-  cancelled: "Annulee",
+  delivered: "Livrée",
+  cancelled: "Annulée",
 };
 
 function isDeliveryDashboardOrder(order: DashboardOrder) {

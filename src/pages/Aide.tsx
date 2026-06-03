@@ -453,7 +453,7 @@ const FAQS = [
     questions: [
       {
         q: "Comment inscrire mon restaurant sur Tok ?",
-        a: "Rendez-vous sur la page d'inscription restaurateur ou contactez-nous à contact@tok.ch. Notre équipe vous accompagnera dans le processus d'inscription : création de votre profil, digitalisation de votre menu, configuration de vos horaires et de vos modes de service (livraison, emporter, sur place). Le processus prend généralement 48 à 72h.",
+        a: `Rendez-vous sur la page d'inscription restaurateur ou contactez-nous à ${SUPPORT_EMAIL}. Notre équipe vous accompagnera dans le processus d'inscription : création de votre profil, digitalisation de votre menu, configuration de vos horaires et de vos modes de service (livraison, emporter, sur place). Le processus prend généralement 48 à 72h.`,
       },
       {
         q: "Qu'est-ce que les Packs de Lancement ?",

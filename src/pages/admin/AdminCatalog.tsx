@@ -98,7 +98,7 @@ export default function AdminCatalog() {
         label: "Image catalogue",
       });
     } catch (error) {
-      toast({ title: "Upload refuse", description: error instanceof Error ? error.message : "Fichier non autorise.", variant: "destructive" });
+      toast({ title: "Upload refusé", description: error instanceof Error ? error.message : "Fichier non autorisé.", variant: "destructive" });
       return;
     }
 
@@ -120,7 +120,7 @@ export default function AdminCatalog() {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Cuisine ajoutee" });
+    toast({ title: "Cuisine ajoutée" });
     setNewCuisine("");
     queryClient.invalidateQueries({ queryKey: ["admin-cuisines"] });
   };
@@ -131,7 +131,7 @@ export default function AdminCatalog() {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Cuisine supprimee" });
+    toast({ title: "Cuisine supprimée" });
     queryClient.invalidateQueries({ queryKey: ["admin-cuisines"] });
   };
 
@@ -180,7 +180,7 @@ export default function AdminCatalog() {
   const saveCollection = async (event: React.FormEvent) => {
     event.preventDefault();
     if (collectionForm.is_active && collectionForm.restaurant_ids.length === 0) {
-      toast({ title: "Publication bloquee", description: "Une collection publiee doit contenir au moins un restaurant.", variant: "destructive" });
+      toast({ title: "Publication bloquée", description: "Une collection publiée doit contenir au moins un restaurant.", variant: "destructive" });
       return;
     }
     setSavingCollection(true);
@@ -195,7 +195,7 @@ export default function AdminCatalog() {
         sort_order: collectionForm.sort_order,
       },
       p_restaurant_ids: collectionForm.restaurant_ids,
-      p_reason: editingCollection ? "Mise a jour collection catalogue" : "Creation collection catalogue",
+      p_reason: editingCollection ? "Mise à jour collection catalogue" : "Création collection catalogue",
     });
 
     setSavingCollection(false);
@@ -208,7 +208,7 @@ export default function AdminCatalog() {
     setEditingCollection(null);
     setCollectionForm(EMPTY_COLLECTION_FORM);
     queryClient.invalidateQueries({ queryKey: ["admin-collections-raw"] });
-    toast({ title: editingCollection ? "Collection mise a jour" : "Collection creee" });
+    toast({ title: editingCollection ? "Collection mise à jour" : "Collection créée" });
   };
 
   const deleteCollection = async (id: string) => {
@@ -222,7 +222,7 @@ export default function AdminCatalog() {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Collection archivee" });
+    toast({ title: "Collection archivée" });
     queryClient.invalidateQueries({ queryKey: ["admin-collections-raw"] });
   };
 
@@ -233,7 +233,7 @@ export default function AdminCatalog() {
       <DashboardPageHero
         badge="Catalogue"
         title="Catalogue Global"
-        description="Gerez cuisines, collections, medias, ordre et validation publication."
+        description="Gérez cuisines, collections, médias, ordre et validation publication."
         icon={Layers}
         tone="violet"
         visualLabel="Catalogue"
@@ -247,7 +247,7 @@ export default function AdminCatalog() {
             <DialogTrigger asChild>
               <Button onClick={openCreateCollection}>
                 <Plus className="w-4 h-4 mr-2" />
-                Creer une collection
+                Créer une collection
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl">
@@ -258,10 +258,10 @@ export default function AdminCatalog() {
                   <Textarea placeholder="Description" value={collectionForm.description} onChange={(event) => setCollectionForm((prev) => ({ ...prev, description: event.target.value }))} />
                   <label className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm">
                     <ImagePlus className="h-4 w-4" />
-                    <span>Uploader un media catalogue</span>
+                    <span>Uploader un média catalogue</span>
                     <input className="sr-only" type="file" accept="image/*" onChange={(event) => event.target.files?.[0] && uploadCatalogMedia(event.target.files[0])} />
                   </label>
-                  <Input placeholder="URL media controlee" value={collectionForm.image_url} onChange={(event) => setCollectionForm((prev) => ({ ...prev, image_url: event.target.value }))} />
+                  <Input placeholder="URL média contrôlée" value={collectionForm.image_url} onChange={(event) => setCollectionForm((prev) => ({ ...prev, image_url: event.target.value }))} />
                   <label className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
                     <input type="checkbox" checked={collectionForm.is_active} onChange={() => setCollectionForm((prev) => ({ ...prev, is_active: !prev.is_active }))} />
                     <span>Collection active</span>
@@ -270,7 +270,7 @@ export default function AdminCatalog() {
                     <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm text-destructive">Collection vide non publiable.</p>
                   ) : null}
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Restaurants associes</p>
+                    <p className="text-sm font-medium">Restaurants associés</p>
                     <div className="grid max-h-56 grid-cols-1 gap-2 overflow-y-auto rounded-lg border p-3 md:grid-cols-2">
                       {restaurants.map((restaurant: any) => (
                         <label key={restaurant.id} className="flex items-center gap-2 text-sm">
@@ -284,9 +284,9 @@ export default function AdminCatalog() {
                 </div>
                 <div className="space-y-3">
                   <Card>
-                    <CardHeader><CardTitle>Apercu public</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Aperçu public</CardTitle></CardHeader>
                     <CardContent className="space-y-3">
-                      {collectionForm.image_url ? <img src={collectionForm.image_url} alt="" className="h-32 w-full rounded-md object-cover" /> : <div className="flex h-32 items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">Media requis recommande</div>}
+                      {collectionForm.image_url ? <img src={collectionForm.image_url} alt="" className="h-32 w-full rounded-md object-cover" /> : <div className="flex h-32 items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">Média requis recommandé</div>}
                       <div>
                         <p className="font-semibold">{collectionForm.title || "Titre collection"}</p>
                         <p className="text-sm text-muted-foreground">{collectionForm.description || "Description collection"}</p>
@@ -299,7 +299,7 @@ export default function AdminCatalog() {
                     </CardContent>
                   </Card>
                   <Button type="submit" className="w-full" disabled={savingCollection || (collectionForm.is_active && collectionForm.restaurant_ids.length === 0)}>
-                    {savingCollection ? "Enregistrement..." : editingCollection ? "Mettre a jour" : "Creer"}
+                    {savingCollection ? "Enregistrement..." : editingCollection ? "Mettre à jour" : "Créer"}
                   </Button>
                 </div>
               </form>
@@ -319,7 +319,7 @@ export default function AdminCatalog() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
-              <Input placeholder="Nouvelle specialite..." value={newCuisine} onChange={(event) => setNewCuisine(event.target.value)} />
+              <Input placeholder="Nouvelle spécialité..." value={newCuisine} onChange={(event) => setNewCuisine(event.target.value)} />
               <Button onClick={handleAddCuisine}><Plus className="w-4 h-4" /></Button>
             </div>
             <div className="mt-4 space-y-2">
@@ -331,7 +331,7 @@ export default function AdminCatalog() {
                   </Button>
                 </div>
               ))}
-              {cuisines.length === 0 ? <p className="text-sm text-muted-foreground">Aucune cuisine definie.</p> : null}
+              {cuisines.length === 0 ? <p className="text-sm text-muted-foreground">Aucune cuisine définie.</p> : null}
             </div>
           </CardContent>
         </Card>
@@ -340,7 +340,7 @@ export default function AdminCatalog() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Layers className="w-5 h-5 text-amber-500" />
-              <CardTitle>Collections a la une</CardTitle>
+              <CardTitle>Collections à la une</CardTitle>
             </div>
             <CardDescription>Ordre, publication, preview et validation des carrousels.</CardDescription>
           </CardHeader>
@@ -351,7 +351,7 @@ export default function AdminCatalog() {
                   <div>
                     <p className="font-semibold">{collection.title}</p>
                     <p className="text-xs text-muted-foreground">{collection.description || "Sans description"}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{collection.restaurant_ids.length} restaurant(s) associe(s)</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{collection.restaurant_ids.length} restaurant(s) associé(s)</p>
                     {collection.is_active && collection.restaurant_ids.length === 0 ? <p className="text-xs text-destructive">Collection vide non publiable</p> : null}
                   </div>
                   <span className={`rounded-full px-2 py-1 text-xs ${collection.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
@@ -366,7 +366,7 @@ export default function AdminCatalog() {
                 </div>
               </div>
             ))}
-            {collections.length === 0 ? <p className="text-sm text-muted-foreground">Aucune collection definie.</p> : null}
+            {collections.length === 0 ? <p className="text-sm text-muted-foreground">Aucune collection définie.</p> : null}
           </CardContent>
         </Card>
       </div>

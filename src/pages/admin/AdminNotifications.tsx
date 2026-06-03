@@ -29,7 +29,7 @@ const CATEGORIES = [
   { value: "marketing", label: "Marketing" },
   { value: "transactional", label: "Transactionnel" },
   { value: "product", label: "Produit" },
-  { value: "system", label: "Systeme" },
+  { value: "system", label: "Système" },
 ];
 
 const ROLE_OPTIONS = [
@@ -41,12 +41,12 @@ const ROLE_OPTIONS = [
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   draft: { label: "Brouillon", variant: "outline" },
-  scheduled: { label: "Planifiee", variant: "secondary" },
+  scheduled: { label: "Planifiée", variant: "secondary" },
   queued: { label: "En file", variant: "secondary" },
   running: { label: "En cours", variant: "secondary" },
-  sent: { label: "Envoyee", variant: "default" },
-  failed: { label: "Echouee", variant: "outline" },
-  cancelled: { label: "Annulee", variant: "outline" },
+  sent: { label: "Envoyée", variant: "default" },
+  failed: { label: "Échouée", variant: "outline" },
+  cancelled: { label: "Annulée", variant: "outline" },
 };
 
 type CampaignStat = {
@@ -269,8 +269,8 @@ export default function AdminNotifications() {
         visualLabel="Notifications"
         stats={[
           { label: "Campagnes", value: campaigns.length, icon: Bell },
-          { label: "Planifiees", value: campaigns.filter((campaign) => campaign.status === "scheduled").length, icon: Mail },
-          { label: "Envoyees", value: campaigns.filter((campaign) => campaign.status === "sent").length, icon: Send },
+          { label: "Planifiées", value: campaigns.filter((campaign) => campaign.status === "scheduled").length, icon: Mail },
+          { label: "Envoyées", value: campaigns.filter((campaign) => campaign.status === "sent").length, icon: Send },
         ]}
         actions={(
         <div className="flex flex-wrap gap-2">
@@ -346,7 +346,7 @@ export default function AdminNotifications() {
                       </p>
                       {campaign.scheduled_at ? (
                         <p className="text-[10px] text-muted-foreground mt-1">
-                          Planifiee le {new Date(campaign.scheduled_at).toLocaleString()}
+                          Planifiée le {new Date(campaign.scheduled_at).toLocaleString()}
                         </p>
                       ) : null}
                       <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">

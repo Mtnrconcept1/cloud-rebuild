@@ -137,7 +137,7 @@ function getSignupValidationError(role: SignupRole, form: SignupFormState) {
     if (!form.address.trim()) return "L'adresse est requise.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
     if (["scooter", "car"].includes(form.vehicleType) && !form.licensePlate.trim()) {
-      return "La plaque d'immatriculation est requise pour ce vehicule.";
+      return "La plaque d'immatriculation est requise pour ce véhicule.";
     }
   }
 
@@ -212,7 +212,7 @@ export default function Auth() {
       return;
     }
     if (isCaptchaEnabled() && !captchaToken) {
-      toast({ title: "Validation requise", description: "Validez le contrÃ´le anti-abus avant de continuer.", variant: "destructive" });
+      toast({ title: "Validation requise", description: "Validez le contrôle anti-abus avant de continuer.", variant: "destructive" });
       return;
     }
 
@@ -606,7 +606,7 @@ export default function Auth() {
                 <div className="rounded-2xl border bg-card/50 p-4 text-sm">
                   <p className="font-medium">Inscription simplifiee</p>
                   <p className="pt-1 text-muted-foreground">
-                    Aucun document d&apos;identite n&apos;est demande pour un compte client. Vos coordonnees de livraison seront renseignees plus tard, uniquement si nécessaire.
+                    Aucun document d&apos;identité n&apos;est demandé pour un compte client. Vos coordonnées de livraison seront renseignées plus tard, uniquement si nécessaire.
                   </p>
                 </div>
               ) : null}
@@ -686,7 +686,7 @@ export default function Auth() {
               {!isLogin && roleMode === "courier" ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="vehicleType">Vehicule</Label>
+                    <Label htmlFor="vehicleType">Véhicule</Label>
                     <Select
                       value={signupForm.vehicleType}
                       onValueChange={(value) => updateSignupField("vehicleType", value)}

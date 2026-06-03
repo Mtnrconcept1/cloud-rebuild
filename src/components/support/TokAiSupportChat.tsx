@@ -71,7 +71,7 @@ export default function TokAiSupportChat({
         messages: [...nextMessages, { role: "assistant", content: result.reply }],
       }));
     } catch (chatError) {
-      setError(chatError instanceof Error ? chatError.message : "Agent IA indisponible.");
+      setError(chatError instanceof Error ? chatError.message : "Assistant IA indisponible.");
     } finally {
       setIsSending(false);
     }

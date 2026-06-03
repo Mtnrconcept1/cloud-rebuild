@@ -16,6 +16,16 @@ describe("SEO growth readiness", () => {
     expect(html).toContain('property="og:image" content="https://www.thetok.ch/fond3.png"');
   });
 
+  it("keeps static SEO copy free of mojibake", () => {
+    const html = read("index.html");
+
+    expect(html).not.toMatch(/Ã|Â|â€™|â€œ|â€|�/);
+    expect(html).toContain("Tok — Commandez malin, mangez bien");
+    expect(html).toContain("fidélité");
+    expect(html).toContain("zéro déchet");
+    expect(html).toContain("jusqu&#39;à -70%");
+  });
+
   it("publishes sitemap and robots entries for local restaurant pages", () => {
     const robots = read("public/robots.txt");
     const sitemap = read("public/sitemap.xml");

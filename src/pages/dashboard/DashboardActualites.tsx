@@ -115,7 +115,7 @@ export default function DashboardActualites() {
           tone="sky"
           visualLabel="Actualités"
           stats={[
-            { label: "Publies", value: insights?.publishedCount ?? publishedCount, icon: Newspaper },
+            { label: "Publiés", value: insights?.publishedCount ?? publishedCount, icon: Newspaper },
             { label: "Interactions", value: insights?.interactions ?? interactions, icon: ThumbsUp },
             { label: "Conversions", value: sponsoredConversions, icon: ShoppingCart },
           ]}
@@ -261,7 +261,7 @@ export default function DashboardActualites() {
                   ))}
                 </div>
               ) : (
-                <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Aucun post publie.</CardContent></Card>
+                <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Aucun post publié.</CardContent></Card>
               )}
             </section>
           </div>

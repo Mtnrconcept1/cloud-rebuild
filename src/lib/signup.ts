@@ -91,7 +91,7 @@ export const SIGNUP_ROLE_META: Record<
   },
   restaurateur: {
     label: "Restaurateur",
-    description: "Declarer votre enseigne, vos coordonnees et vos justificatifs d'exploitation.",
+    description: "Déclarer votre enseigne, vos coordonnées et vos justificatifs d'exploitation.",
   },
   courier: {
     label: "Livreur",
@@ -102,8 +102,8 @@ export const SIGNUP_ROLE_META: Record<
 const BASE_REQUIREMENTS: SignupDocumentRequirement[] = [
   {
     type: "identity_document",
-    label: "Piece d'identite",
-    description: "Carte d'identite, passeport ou permis de sejour en cours de validité.",
+    label: "Pièce d'identité",
+    description: "Carte d'identité, passeport ou permis de séjour en cours de validité.",
     accept: ".pdf,.png,.jpg,.jpeg,.webp",
   },
 ];
@@ -113,7 +113,7 @@ const RESTAURATEUR_REQUIREMENTS: SignupDocumentRequirement[] = [
   {
     type: "business_registration",
     label: "Extrait d'immatriculation",
-    description: "Document officiel prouvant l'existence de l'entreprise ou de l'etablissement.",
+    description: "Document officiel prouvant l'existence de l'entreprise ou de l'établissement.",
     accept: ".pdf,.png,.jpg,.jpeg",
   },
   {
@@ -131,7 +131,7 @@ function getCourierRequirements(vehicleType: string | null | undefined): SignupD
     ...BASE_REQUIREMENTS,
     {
       type: "work_permit",
-      label: "Permis de travail / sejour",
+      label: "Permis de travail / séjour",
       description: "Autorisation de travail ou document de residence si nécessaire.",
       accept: ".pdf,.png,.jpg,.jpeg",
     },
@@ -146,8 +146,8 @@ function getCourierRequirements(vehicleType: string | null | undefined): SignupD
   if (["scooter", "car"].includes(String(vehicleType || "").toLowerCase())) {
     requirements.push({
       type: "vehicle_registration",
-      label: "Immatriculation du vehicule",
-      description: "Carte grise ou document d'assurance pour le vehicule declare.",
+      label: "Immatriculation du véhicule",
+      description: "Carte grise ou document d'assurance pour le véhicule déclaré.",
       accept: ".pdf,.png,.jpg,.jpeg",
     });
   }
@@ -184,21 +184,21 @@ export function getSignupStatusMeta(status: string | null | undefined) {
   switch (String(status || "").toLowerCase()) {
     case "approved":
       return {
-        label: "Approuve",
+        label: "Approuvé",
         tone: "bg-emerald-100 text-emerald-700",
         description: "Votre dossier est valide. Les contrôles documentaires sont terminés.",
       };
     case "needs_changes":
       return {
-        label: "Corrections demandees",
+        label: "Corrections demandées",
         tone: "bg-amber-100 text-amber-700",
         description: "Des ajustements ou des documents complémentaires sont nécessaires.",
       };
     case "rejected":
       return {
-        label: "Refuse",
+        label: "Refusé",
         tone: "bg-red-100 text-red-700",
-        description: "Le dossier a été refuse. Consultez la note de revue pour corriger la demande.",
+        description: "Le dossier a été refusé. Consultez la note de revue pour corriger la demande.",
       };
     default:
       return {
@@ -218,7 +218,7 @@ export function getSignupDocumentStatusMeta(status: string | null | undefined) {
       };
     case "rejected":
       return {
-        label: "A revoir",
+        label: "À revoir",
         tone: "bg-red-100 text-red-700",
       };
     default:

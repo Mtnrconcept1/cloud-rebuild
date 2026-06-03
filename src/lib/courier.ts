@@ -11,29 +11,29 @@ export const COURIER_ACTIVE_JOB_STATUSES = [
 export const COURIER_JOB_STATUS_META: Record<string, { label: string; tone: string }> = {
   pending: { label: "En recherche", tone: "bg-muted text-muted-foreground" },
   searching: { label: "Recherche coursier", tone: "bg-muted text-muted-foreground" },
-  assigned: { label: "Assignee", tone: "bg-sky-100 text-sky-700" },
-  accepted: { label: "Acceptee", tone: "bg-blue-100 text-blue-700" },
+  assigned: { label: "Assignée", tone: "bg-sky-100 text-sky-700" },
+  accepted: { label: "Acceptée", tone: "bg-blue-100 text-blue-700" },
   arriving_pickup: { label: "Vers le restaurant", tone: "bg-amber-100 text-amber-700" },
-  picked_up: { label: "Commande recuperee", tone: "bg-indigo-100 text-indigo-700" },
+  picked_up: { label: "Commande récupérée", tone: "bg-indigo-100 text-indigo-700" },
   arriving_dropoff: { label: "Vers le client", tone: "bg-violet-100 text-violet-700" },
-  delivered: { label: "Livree", tone: "bg-emerald-100 text-emerald-700" },
-  cancelled: { label: "Annulee", tone: "bg-red-100 text-red-700" },
-  expired: { label: "Expiree", tone: "bg-red-100 text-red-700" },
+  delivered: { label: "Livrée", tone: "bg-emerald-100 text-emerald-700" },
+  cancelled: { label: "Annulée", tone: "bg-red-100 text-red-700" },
+  expired: { label: "Expirée", tone: "bg-red-100 text-red-700" },
   no_courier: { label: "Aucun coursier", tone: "bg-red-100 text-red-700" },
 };
 
 export const COURIER_APPROVAL_STATUS_META: Record<string, { label: string; tone: string }> = {
   pending_approval: { label: "En attente d'approbation", tone: "bg-amber-100 text-amber-700" },
-  approved: { label: "Approuve", tone: "bg-emerald-100 text-emerald-700" },
+  approved: { label: "Approuvé", tone: "bg-emerald-100 text-emerald-700" },
   suspended: { label: "Suspendu", tone: "bg-red-100 text-red-700" },
-  rejected: { label: "Refuse", tone: "bg-red-100 text-red-700" },
+  rejected: { label: "Refusé", tone: "bg-red-100 text-red-700" },
 };
 
 export const COURIER_VEHICLE_OPTIONS = [
-  { value: "bicycle", label: "Velo" },
+  { value: "bicycle", label: "Vélo" },
   { value: "scooter", label: "Scooter" },
   { value: "car", label: "Voiture" },
-  { value: "walk", label: "A pied" },
+  { value: "walk", label: "À pied" },
 ] as const;
 
 export type DeliveryVerificationMethod = "qr" | "manual_code" | "manual_signature";
@@ -96,7 +96,7 @@ export function getNextCourierJobAction(status: string) {
     case "accepted":
       return { nextStatus: "arriving_pickup", label: "Je pars au restaurant" };
     case "arriving_pickup":
-      return { nextStatus: "picked_up", label: "Commande recuperee" };
+      return { nextStatus: "picked_up", label: "Commande récupérée" };
     case "picked_up":
       return { nextStatus: "arriving_dropoff", label: "Je pars chez le client" };
     case "arriving_dropoff":
@@ -119,7 +119,7 @@ export function mapCourierEarningTypeLabel(type: string) {
     case "adjustment":
       return "Ajustement";
     case "penalty":
-      return "Penalite";
+      return "Pénalité";
     default:
       return type;
   }
@@ -137,13 +137,13 @@ async function getFreshAccessToken() {
   if (!session || expiresSoon) {
     const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
     if (refreshError) {
-      throw new Error("Session expirÃ©e. Reconnectez-vous.");
+      throw new Error("Session expirée. Reconnectez-vous.");
     }
     session = refreshedData.session;
   }
 
   if (!session?.access_token) {
-    throw new Error("Session expirÃ©e. Reconnectez-vous.");
+    throw new Error("Session expirée. Reconnectez-vous.");
   }
 
   return session.access_token;
@@ -215,7 +215,7 @@ export async function invokeCourierPortal<T>(
     accessToken = refreshedData.session?.access_token || "";
 
     if (refreshError || !accessToken) {
-      throw new Error("Session expirÃ©e. Reconnectez-vous.");
+      throw new Error("Session expirée. Reconnectez-vous.");
     }
 
     data = await callCourierPortal<T>(accessToken, requestPayload);

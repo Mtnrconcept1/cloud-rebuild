@@ -1,7 +1,4 @@
 const DEFAULT_ALLOWED_RETURN_HOSTS = [
-  "tok.ch",
-  "www.tok.ch",
-  "app.tok.ch",
   "thetok.ch",
   "www.thetok.ch",
   "app.thetok.ch",

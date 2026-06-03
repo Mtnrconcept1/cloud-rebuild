@@ -27,7 +27,7 @@ async function sendEmailMessage(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: Deno.env.get("EMAIL_FROM") || "Tok <noreply@tok.ch>",
+        from: Deno.env.get("EMAIL_FROM") || "Tok <noreply@thetok.ch>",
         to: payload.to,
         subject: payload.subject,
         html: payload.html || undefined,
