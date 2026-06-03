@@ -143,7 +143,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
             variants={scaleIn}
             className="neon-panel relative rounded-[30px] border border-white/80 shadow-[0_20px_44px_rgba(109,71,30,0.14)] dark:border-white/20"
           >
-            <div className="absolute inset-0 rounded-[30px] bg-[url('/fond3.png')] bg-cover bg-center" aria-hidden="true" />
+            <div className="absolute inset-0 rounded-[30px] bg-[url('/chefbg.png')] bg-cover bg-center" aria-hidden="true" />
             <div className="absolute inset-0 rounded-[30px] bg-[linear-gradient(180deg,rgba(255,248,241,0.72)_0%,rgba(255,245,234,0.86)_35%,rgba(255,244,234,0.94)_100%)] dark:bg-[linear-gradient(180deg,rgba(8,13,24,0.50)_0%,rgba(7,11,20,0.76)_42%,rgba(5,8,14,0.94)_100%)]" />
             <div className="absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_50%_24%,rgba(255,255,255,0.82),transparent_38%)] dark:bg-[radial-gradient(circle_at_18%_10%,rgba(255,122,24,0.30),transparent_38%),radial-gradient(circle_at_88%_24%,rgba(34,211,238,0.18),transparent_34%)]" />
 
@@ -235,7 +235,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
 
       <section ref={heroRef} className="relative hidden min-h-[calc(100dvh-116px)] flex-col overflow-hidden md:flex">
         <motion.div
-          className="absolute inset-0 bg-[url('/fond3.png')] bg-cover bg-no-repeat bg-center will-change-transform"
+          className="absolute inset-0 bg-[url('/chefbg.png')] bg-cover bg-no-repeat bg-center will-change-transform"
           style={{ transform: "translateY(calc(var(--scroll-y, 0px) * 0.3)) scale(1.05)" }}
           initial={{ opacity: 0, scale: 1.12 }}
           animate={{ opacity: 1, scale: 1.05 }}
