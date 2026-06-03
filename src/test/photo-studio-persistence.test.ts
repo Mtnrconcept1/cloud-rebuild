@@ -142,6 +142,8 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("TokLogoWatermark");
     expect(source).toContain('STUDIO_LOGO_SRC = "/logo-watermark.png"');
     expect(source).toContain('data-testid="tok-logo-watermark-layer"');
+    expect(source).toContain('className="left-[10px] top-[10px]" sizeClassName="h-[90px] w-[90px]"');
+    expect(source).toContain('className="relative inline-flex max-h-full max-w-full items-center justify-center"');
     expect(source).not.toContain("result.edit_instructions");
     expect(source).not.toContain("result.publication_caption");
     expect(source).not.toContain("result.marketing_angles");

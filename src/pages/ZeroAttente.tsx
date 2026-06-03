@@ -30,6 +30,7 @@ import {
   getFirstAvailablePaymentMethod,
   type PaymentMethodId,
 } from "@/lib/paymentMethods";
+import { readZeroAttenteReservationContext } from "@/lib/zeroAttenteReservationContext";
 
 const supabase = getSupabase();
 
@@ -99,10 +100,14 @@ export default function ZeroAttente() {
   const activeFeatures = useActiveFeatures();
   const [searchParams] = useSearchParams();
   const preSelectedRestaurantId = searchParams.get("restaurant");
+  const initialReservationContext = useMemo(
+    () => readZeroAttenteReservationContext(searchParams),
+    [searchParams],
+  );
   const [step, setStep] = useState<Step>("info");
-  const [arrivalDate, setArrivalDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [arrivalTime, setArrivalTime] = useState("19:30");
-  const [partySize, setPartySize] = useState(2);
+  const [arrivalDate, setArrivalDate] = useState(() => initialReservationContext.arrivalDate);
+  const [arrivalTime, setArrivalTime] = useState(() => initialReservationContext.arrivalTime);
+  const [partySize, setPartySize] = useState(() => initialReservationContext.partySize);
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);

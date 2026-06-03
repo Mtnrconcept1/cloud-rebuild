@@ -28,6 +28,7 @@ import {
 } from "@/lib/reservationAvailability";
 import { createReservationWithValidation } from "@/lib/reservationMutations";
 import { detectServiceFromTime, getServiceSettings, isTimeWithinService } from "@/lib/serviceSettings";
+import { buildZeroAttenteReservationUrl } from "@/lib/zeroAttenteReservationContext";
 
 const supabase = getSupabase();
 
@@ -549,9 +550,15 @@ export default function ReservationDialog({
                   <Button
                     onClick={() => {
                       if (reservationMode === "zero-attente") {
+                        const zeroAttenteUrl = buildZeroAttenteReservationUrl({
+                          restaurantId,
+                          date: date ? format(date, "yyyy-MM-dd") : null,
+                          time,
+                          partySize,
+                        });
                         onOpenChange(false);
                         resetForm();
-                        navigate(`/zero-attente?restaurant=${restaurantId}`);
+                        navigate(zeroAttenteUrl);
                         return;
                       }
                       setStep("promo");
