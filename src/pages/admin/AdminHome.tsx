@@ -35,6 +35,10 @@ import { scoreMarketplaceLiquidity } from "@/lib/marketplaceLiquidity";
 
 const supabase = getSupabase();
 const ADMIN_HOME_AGGREGATE_LIMIT = 250;
+const ADMIN_PLATFORM_CONFIG_LINK = {
+  href: "/admin/platform",
+  feature: "admin-platform-config",
+} as const;
 
 const ADMIN_TOOLS = [
   {
@@ -201,6 +205,7 @@ function getOrderCity(row: any) {
 export default function AdminHome() {
   const navigate = useNavigate();
   const activeFeatures = useActiveFeatures();
+  const adminPlatformConfigEnabled = activeFeatures.has(ADMIN_PLATFORM_CONFIG_LINK.feature);
   const visibleTools = ADMIN_TOOLS.filter((tool) => !tool.feature || activeFeatures.has(tool.feature));
 
   const { data: stats } = useQuery({
@@ -437,10 +442,12 @@ export default function AdminHome() {
           { label: "Reservations", value: stats?.reservations || 0, icon: CalendarDays },
         ]}
         actions={(
-        <Button onClick={() => navigate("/admin/platform")} className="gap-2">
-          <Settings2 className="h-4 w-4" />
-          Configuration plateforme
-        </Button>
+        adminPlatformConfigEnabled ? (
+          <Button onClick={() => navigate(ADMIN_PLATFORM_CONFIG_LINK.href)} className="gap-2">
+            <Settings2 className="h-4 w-4" />
+            Configuration plateforme
+          </Button>
+        ) : null
         )}
       />
 
@@ -517,9 +524,11 @@ export default function AdminHome() {
               Activez ou coupez les paiements, parcours client, onglets restaurateur, modules coursier et outils admin.
             </p>
           </div>
-          <Button variant="secondary" onClick={() => navigate("/admin/platform")}>
-            Ouvrir la configuration
-          </Button>
+          {adminPlatformConfigEnabled ? (
+            <Button variant="secondary" onClick={() => navigate(ADMIN_PLATFORM_CONFIG_LINK.href)}>
+              Ouvrir la configuration
+            </Button>
+          ) : null}
         </CardContent>
       </Card>
 

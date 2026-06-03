@@ -225,6 +225,7 @@ function AppShell() {
   const adminComptaAiEnabled = hasFeature("ai_accounting_insights");
   const adminAiOperationsEnabled = hasFeature("ai_admin_monitoring");
   const adminActualitesEnabled = hasFeature("admin-actualites");
+  const adminPlatformConfigEnabled = hasFeature("admin-platform-config");
   const adminOperationsCenterEnabled = hasFeature("admin-operations-center");
 
   return (
@@ -294,7 +295,7 @@ function AppShell() {
           <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEarningsEnabled} fallback="/courier"><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierProfileEnabled} fallback="/courier"><CourierProfile /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin" element={<AdminDashboardRoute />} />
-          <Route path="/admin/platform" element={<ProtectedRoute requiredRole="admin"><AdminPlatformConfig /></ProtectedRoute>} />
+          <Route path="/admin/platform" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminPlatformConfigEnabled} fallback="/admin"><AdminPlatformConfig /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/restaurants" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/utilisateurs" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminUtilisateursEnabled} fallback="/admin"><AdminUtilisateurs /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/avis" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAvisEnabled} fallback="/admin"><AdminAvis /></FeatureSwitch></ProtectedRoute>} />
