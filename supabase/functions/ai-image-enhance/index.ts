@@ -63,6 +63,7 @@ const SOURCE_IMAGE_TIMEOUT_MS = readPositiveIntEnv("TOK_SOURCE_IMAGE_TIMEOUT_MS"
 const IMAGE_BUCKET = Deno.env.get("TOK_AI_IMAGE_BUCKET")?.trim() || "ai-generated-assets";
 const GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim() || "images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
+const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const PHOTO_STUDIO_RETOUCH_PROMPT = `
 Retouche cette photo de [TYPE_DE_PLAT] en conservant strictement le produit d'origine : mêmes ingrédients visibles, mêmes proportions, même structure, même angle de vue global, même composition générale, même position des éléments principaux et même identité visuelle. Ne pas remplacer ni redessiner le produit.
 
@@ -89,6 +90,12 @@ Contraintes :
 `.trim();
 const SOURCE_IMAGE_EDIT_PROMPT = PHOTO_STUDIO_RETOUCH_PROMPT;
 const PREMIUM_SOURCE_IMAGE_EDIT_PROMPT = PHOTO_STUDIO_RETOUCH_PROMPT;
+const DEFAULT_PHOTO_STUDIO_STYLE = "studio premium / restaurant haut de gamme";
+const DEFAULT_PHOTO_STUDIO_AMBIANCE = "elegante, gourmande, moderne et lumineuse naturelle";
+const DEFAULT_PHOTO_STUDIO_BACKGROUND = "studio culinaire propre, premium et discret";
+const DEFAULT_PHOTO_STUDIO_LIGHTING = "doux, studio et naturel";
+const DEFAULT_PHOTO_STUDIO_TEXTURES =
+  "fraicheur, croustillant, brillance naturelle, relief des ingredients, moelleux, dorure et sauces selon le produit source";
 
 const TOK_PHOTO_DNA = `
 Charte de retouche culinaire premium non brandee:
@@ -220,6 +227,38 @@ function stripPlatformBrandTerms(raw: string) {
     .trim();
 }
 
+function buildPhotoStudioRetouchPrompt(input: { dishName: string; userPrompt: string }) {
+  const dishLabel = input.dishName || "produit ou plat du restaurant";
+  const extraInstruction = input.userPrompt
+    ? `Consigne restaurateur additionnelle: ${input.userPrompt}`
+    : "";
+
+  return [
+    PHOTO_STUDIO_RETOUCH_PROMPT
+      .replace(/\[TYPE_DE_PLAT\]/g, dishLabel)
+      .replace(/\[STYLE_[^\]]+\]/g, DEFAULT_PHOTO_STUDIO_STYLE)
+      .replace(/\[AMBIANCE[^\]]+\]/g, DEFAULT_PHOTO_STUDIO_AMBIANCE)
+      .replace(/\[TYPE_DE_FOND\]/g, DEFAULT_PHOTO_STUDIO_BACKGROUND)
+      .replace(/\[TYPE_DE_LUMI[^\]]+\]/g, DEFAULT_PHOTO_STUDIO_LIGHTING)
+      .replace(/\[TEXTURES[^\]]+\]/g, DEFAULT_PHOTO_STUDIO_TEXTURES),
+    extraInstruction,
+    "Retouche uniquement la photo source; ne cree pas une nouvelle scene libre.",
+  ].filter(Boolean).join("\n\n").slice(0, 3600);
+}
+
+function buildCompactPhotoStudioRetouchPrompt(input: { dishName: string }) {
+  const dishLabel = input.dishName || "produit ou plat du restaurant";
+
+  return [
+    `Retouche cette photo de ${dishLabel} comme une photographie culinaire publicitaire haut de gamme.`,
+    "Conserve strictement le produit d'origine: memes ingredients visibles, memes proportions, meme structure, meme angle global, meme cadrage et meme position des elements principaux.",
+    "Nettoie la scene, supprime les elements parasites, simplifie l'arriere-plan, ameliore le support, applique un bel eclairage studio doux, corrige colorimetrie, contraste, volumes et nettete du sujet principal.",
+    "Ajoute une profondeur de champ elegante seulement si elle garde tous les details importants du produit principal lisibles.",
+    "Contraintes: ne change pas la nature du produit, ne change pas le nombre d'elements principaux, ne deforme pas les ingredients, n'ajoute aucun texte, logo, badge, watermark ou element graphique.",
+    "Rendu final realiste, premium, propre, appetissant et commercial.",
+  ].join("\n");
+}
+
 function sanitizeConfiguredUrl(raw: unknown, fallback = "") {
   if (typeof raw !== "string" || !raw.trim()) return fallback;
   try {
@@ -258,6 +297,19 @@ function guessMimeFromUrl(url: string) {
   if (clean.endsWith(".png")) return "image/png";
   if (clean.endsWith(".webp")) return "image/webp";
   return "image/jpeg";
+}
+
+function normalizeImageMimeType(raw: string | null, url: string) {
+  const contentType = raw?.split(";")[0]?.trim().toLowerCase() || "";
+  if (contentType === "image/jpg") return "image/jpeg";
+  if (contentType.startsWith("image/")) return contentType;
+  return guessMimeFromUrl(url);
+}
+
+function getSourceImageFileName(mimeType: string) {
+  if (mimeType === "image/png") return "source.png";
+  if (mimeType === "image/webp") return "source.webp";
+  return "source.jpg";
 }
 
 function bytesFromBase64(base64: string) {
@@ -337,11 +389,12 @@ function buildImageOnlyResult(input: {
   userPrompt: string;
   format: string;
   sourceImagePresent: boolean;
+  sourceEditPrompt?: string;
 }): ImageEnhanceResult {
   const dishLabel = input.dishName || "produit ou plat du restaurant";
   const title = input.dishName ? `Visuel TOK - ${input.dishName}` : "Visuel TOK";
   const enhancedPrompt = input.sourceImagePresent
-    ? SOURCE_IMAGE_EDIT_PROMPT
+    ? input.sourceEditPrompt || SOURCE_IMAGE_EDIT_PROMPT
     : [
       `Creer une photographie culinaire de studio professionnelle et appetissante pour ${dishLabel}.`,
       input.userPrompt,
@@ -365,8 +418,9 @@ function buildImageOnlyResult(input: {
 async function fetchImageBlob(url: string) {
   const response = await fetchWithTimeout(url, {}, SOURCE_IMAGE_TIMEOUT_MS, "source_image_timeout");
   if (!response.ok) throw new HttpError(400, "source_image_unreachable");
-  const contentType = response.headers.get("content-type") || guessMimeFromUrl(url);
+  const contentType = normalizeImageMimeType(response.headers.get("content-type"), url);
   if (!contentType.startsWith("image/")) throw new HttpError(400, "source_image_invalid_type");
+  if (!SUPPORTED_SOURCE_IMAGE_MIME_TYPES.has(contentType)) throw new HttpError(400, "source_image_unsupported_type");
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (bytes.byteLength > 18 * 1024 * 1024) throw new HttpError(400, "source_image_too_large");
   return new Blob([bytes], { type: contentType });
@@ -409,7 +463,7 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
   form.append("quality", options.quality);
   form.append("output_format", "png");
   form.append("moderation", "auto");
-  form.append("image[]", sourceBlob, "source.png");
+  form.append("image[]", sourceBlob, getSourceImageFileName(sourceBlob.type));
 
   const response = await fetchWithTimeout(IMAGE_EDITS_URL, {
     method: "POST",
@@ -424,6 +478,61 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
   }
 
   return await response.json();
+}
+
+function shouldRetryImageEdit(error: unknown) {
+  if (!(error instanceof HttpError)) return false;
+  if (!error.message.startsWith("image_edit_failed:")) return false;
+
+  const message = error.message.toLowerCase();
+  return ![
+    "content_policy",
+    "safety",
+    "rate",
+    "credits",
+    "invalid_image",
+    "image_parse",
+    "unsupported",
+    "too_large",
+    "file",
+    "format",
+    ":401:",
+    ":403:",
+    "api key",
+    "invalid_value",
+    "unsupported_parameter",
+    "model",
+  ].some((blockedReason) => message.includes(blockedReason));
+}
+
+async function callOpenAIImageEditWithRetry(input: {
+  primaryPrompt: string;
+  retryPrompt: string;
+  sourceImageUrl: string;
+  n: number;
+  options: ImageRequestOptions;
+}) {
+  try {
+    return {
+      response: await callOpenAIImageEdit(input.primaryPrompt, input.sourceImageUrl, input.n, input.options),
+      retryUsed: false,
+    };
+  } catch (error) {
+    if (!shouldRetryImageEdit(error)) throw error;
+
+    console.warn(`[${FUNCTION_NAME}] image_edit_retry`, {
+      reason: error instanceof Error ? error.message : "unknown",
+      model: input.options.model,
+      quality: input.options.quality,
+      size: input.options.size,
+      mode: input.options.mode,
+    });
+
+    return {
+      response: await callOpenAIImageEdit(input.retryPrompt, input.sourceImageUrl, input.n, input.options),
+      retryUsed: true,
+    };
+  }
 }
 
 async function extractGeneratedImageBytes(imageResponse: unknown) {
@@ -563,24 +672,32 @@ Deno.serve(async (req) => {
     await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 60, windowSeconds: 600 });
     await rl.consume("global", { maxRequests: 180, windowSeconds: 60 });
 
+    const sourceEditPrompt = sourceImageUrl
+      ? buildPhotoStudioRetouchPrompt({ dishName, userPrompt: prompt })
+      : "";
+    const compactSourceEditPrompt = sourceImageUrl
+      ? buildCompactPhotoStudioRetouchPrompt({ dishName })
+      : "";
+
     const result = buildImageOnlyResult({
       restaurantName: restaurant.name || "Restaurant",
       dishName,
       userPrompt: prompt,
       format: format.label,
       sourceImagePresent: Boolean(sourceImageUrl),
+      sourceEditPrompt,
     });
     const briefSource = "image_only";
 
     let generated: GeneratedImage | null = null;
     const generatedImageOptions = buildImageRequestOptions(format.size, Boolean(sourceImageUrl));
     let usedImageOptions: ImageRequestOptions | null = null;
-    const imageEditRetryUsed = false;
+    let imageEditRetryUsed = false;
     let sourceEditUsed = false;
     const imageOptions = generatedImageOptions;
     const finalPrompt = sourceImageUrl
       ? [
-        PREMIUM_SOURCE_IMAGE_EDIT_PROMPT,
+        sourceEditPrompt || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT,
         "",
         "Contraintes finales non negociables:",
         TOK_PHOTO_DNA,
@@ -597,7 +714,19 @@ Deno.serve(async (req) => {
 
     let imageResponse: unknown;
     if (sourceImageUrl) {
-      imageResponse = await callOpenAIImageEdit(finalPrompt, sourceImageUrl, variantCount, imageOptions);
+      const editResult = await callOpenAIImageEditWithRetry({
+        primaryPrompt: finalPrompt,
+        retryPrompt: [
+          compactSourceEditPrompt,
+          "",
+          "Garde la retouche fidele a la photo source. Ne remplace pas le plat ou produit.",
+        ].join("\n").slice(0, 2200),
+        sourceImageUrl,
+        n: variantCount,
+        options: imageOptions,
+      });
+      imageResponse = editResult.response;
+      imageEditRetryUsed = editResult.retryUsed;
       sourceEditUsed = true;
     } else {
       imageResponse = await callOpenAIImageGeneration(finalPrompt, variantCount, imageOptions);

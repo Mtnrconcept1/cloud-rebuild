@@ -51,11 +51,23 @@ function formatPhotoGenerationError(error: unknown) {
   }
 
   if (message.includes("source_image_edit_required") || message.includes("image_edit_failed")) {
-    return "Impossible de retoucher fidèlement cette photo. Essayez avec une image plus nette ou moins lourde.";
+    return "La retouche IA n'a pas pu finaliser cette photo. Recadrez le produit principal ou relancez avec une photo JPG, PNG ou WebP bien éclairée.";
   }
 
   if (message.includes("image_edit_timeout") || message.includes("image_generation_timeout")) {
     return "La retouche a pris trop de temps. Essayez avec une photo plus légère ou relancez la génération.";
+  }
+
+  if (message.includes("source_image_unsupported_type")) {
+    return "Format non pris en charge par le studio IA. Utilisez une photo JPG, PNG ou WebP.";
+  }
+
+  if (message.includes("source_image_too_large")) {
+    return "Photo trop lourde pour la retouche IA. Compressez-la sous 10 Mo puis relancez.";
+  }
+
+  if (message.includes("ai_credits_exhausted")) {
+    return "Crédit IA indisponible pour le moment. Vérifiez la configuration OpenAI avant de relancer.";
   }
 
   return message || "Génération impossible";

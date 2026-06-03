@@ -120,6 +120,8 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("formatPhotoGenerationError(error)");
     expect(source).toContain("Trop de générations lancées");
     expect(source).toContain("Session expirée");
-    expect(source).toContain("Impossible de retoucher fidèlement cette photo");
+    expect(source).toContain("photo JPG, PNG ou WebP bien éclairée");
+    expect(source).toContain("Format non pris en charge par le studio IA");
+    expect(source).toContain("Photo trop lourde pour la retouche IA");
   });
 });
