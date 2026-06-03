@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 const MAX_PUBLIC_RASTER_BYTES = 2_500_000;
 const MAX_SUPABASE_FETCHED_ROWS = 500;
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
-const PUBLIC_RASTER_RE = /\.(png|jpe?g)$/i;
+const PUBLIC_RASTER_RE = /\.(png|jpe?g|webp|avif)$/i;
 
 export function inspectFrontendReadiness(options = {}) {
   const root = options.root || process.cwd();

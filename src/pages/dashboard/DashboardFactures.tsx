@@ -228,7 +228,7 @@ export default function DashboardFactures() {
           badge="Comptabilite restaurateur"
           title="Vue comptable"
           description={selectedRestaurant
-            ? "Les chiffres essentiels: ce que Tok vous doit, ce que vous devez a Tok, les Miamz pris en charge et le net ouvert."
+            ? "Les chiffres essentiels: ce que Tok vous doit, ce que vous devez à Tok, les ajustements fidélité couverts et le net ouvert."
             : "Sélectionnez un restaurant depuis la barre latérale pour ouvrir la comptabilité."}
           actions={(
             <>
@@ -267,7 +267,7 @@ export default function DashboardFactures() {
           <>
             <AccountingDigestCard
               title="A lire en premier"
-              description="Une lecture courte pour savoir quoi encaisser, quoi payer et ce que Tok finance en Miamz."
+              description="Une lecture courte pour savoir quoi encaisser, quoi payer et quels avantages fidélité Tok couvre."
               items={[
                 {
                   tone: "primary",
@@ -286,9 +286,9 @@ export default function DashboardFactures() {
                 {
                   tone: "violet",
                   icon: HandCoins,
-                  label: "Miamz pris en charge",
+                  label: "Avantages fidélité couverts",
                   value: formatAmount(tokCoveredMiamzAmount),
-                  helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec réduction Miamz remboursée par Tok.`,
+                  helper: `${tokCoveredMiamzCount} commande${tokCoveredMiamzCount > 1 ? "s" : ""} avec avantage fidélité remboursé par Tok.`,
                 },
                 {
                   tone: netOpen >= 0 ? "emerald" : "rose",
@@ -376,7 +376,7 @@ export default function DashboardFactures() {
                 tone="emerald"
                 icon={Coins}
                 title="Ce qui explique vos entrées"
-                description="La base client, la part restaurant et le montant Miamz finance par Tok."
+                description="La base client, la part restaurant et les avantages fidélité pris en charge par Tok."
                 value={formatAmount(totalRestaurantShare)}
                 valueLabel="Part restaurant"
               >
@@ -393,9 +393,9 @@ export default function DashboardFactures() {
                       value: formatAmount(totalRestaurantShare),
                     },
                     {
-                      label: "Miamz pris en charge par Tok",
+                      label: "Avantages fidélité pris en charge",
                       value: formatAmount(tokCoveredMiamzAmount),
-                      helper: "Réduction client ajoutee à votre base de reversement.",
+                      helper: "Ajustement client ajouté à votre base de reversement.",
                     },
                     ...COMMISSION_SOURCE_ORDER.map((source) => ({
                       label: COMMISSION_SOURCE_LABELS[source],
