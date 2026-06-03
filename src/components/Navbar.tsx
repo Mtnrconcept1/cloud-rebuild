@@ -94,7 +94,7 @@ const FEATURES = [
 ];
 
 export default function Navbar() {
-  const { user, role, roles, isSuperAdmin, canSwitchRole, switchRole, signOut } = useAuth();
+  const { user, role, roles, canSwitchRole, switchRole, signOut } = useAuth();
   const location = useLocation();
   const { itemCount } = useCart();
   const activeFeatures = useActiveFeatures();
@@ -112,14 +112,14 @@ export default function Navbar() {
   const tokOneEnabled = activeFeatures.has("tok-one");
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
-  const showClientSurface = canShowClientSurface({ userEmail: user?.email, activeRole: role });
-  const showSocialFeedSurface = canShowSocialFeedSurface({ userEmail: user?.email, activeRole: role });
+  const showClientSurface = canShowClientSurface({ activeRole: role });
+  const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role });
   const homeTarget = showClientSurface ? "/" : getRoleHomePath(role);
   const notificationsTarget = showClientSurface ? "/notifications" : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
-  const showRestaurantDashboardLink = dashboardEnabled && (role === "restaurateur" || isSuperAdmin);
-  const showAdminDashboardLink = role === "admin" || isSuperAdmin;
-  const showCourierDashboardLink = courierEnabled && (role === "courier" || isSuperAdmin);
+  const showRestaurantDashboardLink = dashboardEnabled && roles.includes("restaurateur");
+  const showAdminDashboardLink = roles.includes("admin");
+  const showCourierDashboardLink = courierEnabled && roles.includes("courier");
   const isMobileHomeHeader = showClientSurface && location.pathname === "/";
 
   const { data: notifications } = useQuery({

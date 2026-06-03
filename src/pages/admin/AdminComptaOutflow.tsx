@@ -201,6 +201,8 @@ export default function AdminComptaOutflow() {
 
     const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
       p_invoice_id: invoice.id,
+      p_paid_at: new Date().toISOString(),
+      p_reference: "Marquage paye depuis l'admin compta - sorties",
     });
 
     if (updateError) {

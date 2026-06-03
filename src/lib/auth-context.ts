@@ -11,7 +11,7 @@ export interface AuthContextType {
   role: UserRole | null;
   /** All roles assigned to this user */
   roles: UserRole[];
-  /** True only for the configured cross-role super admin account */
+  /** True when Supabase assigns the backend admin role */
   isSuperAdmin: boolean;
   /** Whether the current user is allowed to switch active spaces */
   canSwitchRole: boolean;
