@@ -106,27 +106,27 @@ const AGENTS: Record<AgentId, AgentConfig> = {
   },
   support_ai: {
     id: "support_ai",
-    label: "IA Support",
+    label: "Assistant IA Support",
     kind: "ai",
     badge: "OpenAI API",
     intro:
-      "Bonjour, je suis l’agent conversationnel IA Tok. Je peux vous aider pour une commande, un paiement, un abonnement ou une question générale.",
+      "Bonjour, je suis l’Assistant IA Tok. Je peux vous aider pour une commande, un paiement, un abonnement ou une question générale.",
   },
   orders_ai: {
     id: "orders_ai",
-    label: "IA Commandes",
+    label: "Assistant IA Commandes",
     kind: "ai",
     badge: "OpenAI API",
     intro:
-      "Bonjour, je suis l’agent IA spécialisé commandes et livraisons. Décrivez votre problème et je vous aide.",
+      "Bonjour, je suis l’Assistant IA spécialisé commandes et livraisons. Décrivez votre problème et je vous aide.",
   },
   payments_ai: {
     id: "payments_ai",
-    label: "IA Paiement",
+    label: "Assistant IA Paiement",
     kind: "ai",
     badge: "OpenAI API",
     intro:
-      "Bonjour, je suis l’agent IA spécialisé paiements et facturation. Expliquez le blocage rencontré.",
+      "Bonjour, je suis l’Assistant IA spécialisé paiements et facturation. Expliquez le blocage rencontré.",
   },
 };
 
@@ -284,7 +284,7 @@ export default function SupportChat() {
         ...prev,
         {
           type: "bot",
-          text: "Je n’arrive pas à joindre l’agent IA pour le moment. Vous pouvez réessayer ou contacter le support.",
+          text: "Je n’arrive pas à joindre l’Assistant IA pour le moment. Vous pouvez réessayer ou contacter le support.",
           showContacts: true,
         },
       ]);
@@ -340,7 +340,7 @@ export default function SupportChat() {
 
               <div className="mt-3">
                 <label className="block text-[10px] opacity-80 uppercase tracking-widest font-bold mb-1">
-                  Choisir un agent
+                  Choisir un assistant
                 </label>
                 <select
                   value={selectedAgent}
@@ -450,7 +450,7 @@ export default function SupportChat() {
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder={
                     activeAgent.kind === "ai"
-                      ? "Écrivez votre message à l’agent IA..."
+                      ? "Écrivez votre message à l’Assistant IA..."
                       : "Écrivez votre message..."
                   }
                   className="rounded-full bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary/30 h-10 text-xs"

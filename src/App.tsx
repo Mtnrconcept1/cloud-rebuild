@@ -102,7 +102,6 @@ const AdminCompta = lazy(() => import("./pages/admin/AdminCompta"));
 const AdminComptaInflow = lazy(() => import("./pages/admin/AdminComptaInflow"));
 const AdminComptaOutflow = lazy(() => import("./pages/admin/AdminComptaOutflow"));
 const AdminComptaAi = lazy(() => import("./pages/admin/AdminComptaAi"));
-const AdminOrdersReservations = lazy(() => import("./pages/admin/AdminOrdersReservations"));
 const AdminOperationsCenter = lazy(() => import("./pages/admin/AdminOperationsCenter"));
 const AdminAiOperations = lazy(() => import("./pages/admin/AdminAiOperations"));
 const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));

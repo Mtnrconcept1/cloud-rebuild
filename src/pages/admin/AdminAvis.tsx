@@ -40,10 +40,10 @@ type AdminReview = {
 };
 
 const STATUS_OPTIONS = [
-  { value: "published", label: "Publie" },
-  { value: "hidden", label: "Masque" },
-  { value: "flagged", label: "A revoir" },
-  { value: "archived", label: "Archive" },
+  { value: "published", label: "Publié" },
+  { value: "hidden", label: "Masqué" },
+  { value: "flagged", label: "À revoir" },
+  { value: "archived", label: "Archivé" },
 ];
 
 const REQUIRED_REASON_STATUSES = new Set(["hidden", "flagged", "archived"]);
@@ -224,8 +224,8 @@ export default function AdminAvis() {
         visualLabel="Avis"
         stats={[
           { label: "Avis", value: stats.total, icon: MessageSquareText },
-          { label: "Masques", value: stats.hidden, icon: EyeOff },
-          { label: "A revoir", value: stats.flagged, icon: ShieldAlert },
+          { label: "Masqués", value: stats.hidden, icon: EyeOff },
+          { label: "À revoir", value: stats.flagged, icon: ShieldAlert },
         ]}
       />
 
@@ -241,7 +241,7 @@ export default function AdminAvis() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Publies</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Publiés</CardTitle>
             <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">OK</Badge>
           </CardHeader>
           <CardContent>
@@ -250,7 +250,7 @@ export default function AdminAvis() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Masques</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Masqués</CardTitle>
             <EyeOff className="h-4 w-4 text-slate-500" />
           </CardHeader>
           <CardContent>
@@ -259,7 +259,7 @@ export default function AdminAvis() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">A revoir</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">À revoir</CardTitle>
             <ShieldAlert className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>

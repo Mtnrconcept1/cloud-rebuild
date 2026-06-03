@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
     }
 
     // Validate return_url against allowlist to prevent open redirect.
-    const siteUrl = Deno.env.get("SITE_URL") || "https://tok.ch";
+    const siteUrl = Deno.env.get("SITE_URL") || "https://www.thetok.ch";
     const fallbackReturn = `${siteUrl}/dashboard/restaurant`;
     const safeReturnUrl = normalizeCheckoutReturnUrl(return_url) || fallbackReturn;
 

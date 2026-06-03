@@ -16,7 +16,6 @@
  * A small set of platform defaults is always honored so the Capacitor webview
  * and localhost dev keep working:
  *   - https://thetok.ch, https://www.thetok.ch, https://app.thetok.ch
- *   - https://tok.ch, https://www.tok.ch, https://app.tok.ch
  *   - capacitor://localhost, ionic://localhost         (iOS WKWebView)
  *   - http://localhost, https://localhost              (Android WebView + web dev)
  *   - http://localhost:<port>                          (Vite dev server)
@@ -28,9 +27,6 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://thetok.ch",
   "https://www.thetok.ch",
   "https://app.thetok.ch",
-  "https://tok.ch",
-  "https://www.tok.ch",
-  "https://app.tok.ch",
   "https://cloud-rebuild-recovered.vercel.app",
   "capacitor://localhost",
   "ionic://localhost",

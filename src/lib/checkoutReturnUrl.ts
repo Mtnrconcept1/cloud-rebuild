@@ -1,7 +1,4 @@
 const ALLOWED_CHECKOUT_RETURN_HOSTS = new Set([
-  "tok.ch",
-  "www.tok.ch",
-  "app.tok.ch",
   "thetok.ch",
   "www.thetok.ch",
   "app.thetok.ch",

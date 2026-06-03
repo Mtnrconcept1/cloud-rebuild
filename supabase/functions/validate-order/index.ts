@@ -349,7 +349,7 @@ Deno.serve(async (req) => {
 
     if (!isAwaitingOnlinePayment) {
       const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId);
-      const userEmail = authUser?.user?.email || "client@tok.ch";
+      const userEmail = authUser?.user?.email || "client@thetok.ch";
 
       await actor.adminClient.from("email_queue").insert({
         to_email: userEmail,

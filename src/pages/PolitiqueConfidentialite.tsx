@@ -15,7 +15,7 @@ export default function PolitiqueConfidentialite() {
             Tok SA, société de droit suisse (ci-après « Tok », « nous »), est responsable du traitement des données personnelles collectées vià la plateforme Tok (site web et application mobile).
           </p>
           <ul className="list-none space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Email :</span> privacy@tok.ch</li>
+            <li><span className="font-medium text-foreground">Email :</span> privacy@thetok.ch</li>
             <li><span className="font-medium text-foreground">Siège :</span> Suisse</li>
           </ul>
         </section>
@@ -97,14 +97,14 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Droit de retirer votre consentement :</span> à tout moment, sans affecter la licéité du traitement antérieur.</li>
           </ul>
           <p className="text-foreground/80 leading-relaxed">
-            Pour exercer ces droits, contactez-nous à <span className="font-medium text-foreground">privacy@tok.ch</span>. Nous répondrons dans un délai de 30 jours.
+            Pour exercer ces droits, contactez-nous à <span className="font-medium text-foreground">privacy@thetok.ch</span>. Nous répondrons dans un délai de 30 jours.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">8. Suppression du compte</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Vous pouvez demander la suppression de votre compte et de toutes vos données personnelles à tout moment en nous contactant à <span className="font-medium text-foreground">privacy@tok.ch</span> ou depuis les paramètrès de votre profil dans l'application.
+            Vous pouvez demander la suppression de votre compte et de toutes vos données personnelles à tout moment en nous contactant à <span className="font-medium text-foreground">privacy@thetok.ch</span> ou depuis les paramètres de votre profil dans l'application.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             La suppression sera effective dans un délai de 30 jours. Certaines données pourront être conservées au-delà si la loi l'exige (données de facturation, obligations fiscales).
@@ -138,7 +138,7 @@ export default function PolitiqueConfidentialite() {
             Pour toute question relative à cette politique de confidentialité ou à vos données personnelles :
           </p>
           <ul className="list-none space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Email :</span> privacy@tok.ch</li>
+            <li><span className="font-medium text-foreground">Email :</span> privacy@thetok.ch</li>
             <li><span className="font-medium text-foreground">Formulaire :</span> via notre <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>
             <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide Tok</Link></li>
           </ul>

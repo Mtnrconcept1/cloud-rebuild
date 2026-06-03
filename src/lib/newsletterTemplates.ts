@@ -200,7 +200,7 @@ export const NEWSLETTER_TEMPLATES: NewsletterTemplate[] = [
     targetRoles: ["client"],
     channels: { in_app: true, email: true, push: false },
     recommendedSendHour: 8,
-    antiSpamNotes: ["Envoyee avant le besoin", "Valeur concrete", "Texte sobre"],
+    antiSpamNotes: ["Envoyée avant le besoin", "Valeur concrète", "Texte sobre"],
   },
   {
     id: "loyalty_progress",

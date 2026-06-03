@@ -126,7 +126,7 @@ export default function DashboardOffres() {
         <DashboardPageHero
           badge="Offres restaurant"
           title="Offres Anti-gaspi"
-          description="Publiez les stocks courts, surveillez les offres epuisees et gardez la disponibilité client sous contrôle."
+          description="Publiez les stocks courts, surveillez les offres épuisées et gardez la disponibilité client sous contrôle."
           icon={Leaf}
           tone="emerald"
           visualLabel="Anti-gaspi"

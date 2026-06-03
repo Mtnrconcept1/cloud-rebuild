@@ -148,13 +148,13 @@ export default function CGU() {
             Les Restaurants peuvent publier des actualités, photos, vidéos, offres, événements et appels à l'action dans le fil social Tok. Ces publications sont des contenus professionnels sous la responsabilité du Restaurant qui les crée ou les valide.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Le Restaurant s'engage a publier des informations exactes, loyales et vérifiables, notamment concernant les prix, disponibilités, durées d'offres, conditions de réservation, allergènes, droits sur les visuels et autorisations des personnes identifiables.
+            Le Restaurant s'engage à publier des informations exactes, loyales et vérifiables, notamment concernant les prix, disponibilités, durées d'offres, conditions de réservation, allergènes, droits sur les visuels et autorisations des personnes identifiables.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             Tok peut mesurer les impressions, clics, réactions, commentaires, sauvegardes, partages et conversions associés aux actualités afin de fournir des statistiques marketing au Restaurant. Ces indicateurs sont informatifs et ne garantissent aucun volume de commandes, réservations ou chiffre d'affaires.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Tok se réserve le droit de masquer, modérer, supprimer ou déclasser toute actualité ou campagne contraire à la loi, aux droits de tiers, aux présentes CGU, aux règles de moderation ou susceptible d'induire les Utilisateurs en erreur.
+            Tok se réserve le droit de masquer, modérer, supprimer ou déclasser toute actualité ou campagne contraire à la loi, aux droits de tiers, aux présentes CGU, aux règles de modération ou susceptible d'induire les Utilisateurs en erreur.
           </p>
         </section>
 
@@ -179,7 +179,7 @@ export default function CGU() {
             Les données collectées (nom, prénom, email, adresse, historique de commandes, données de paiement, géolocalisation) sont nécessaires à la fourniture des services et ne sont transmises à des tiers que dans la mesure strictement nécessaire à l'exécution des commandes (Restaurants partenaires, prestataires de livraison, prestataires de paiement).
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            L'Utilisateur dispose d'un droit d'accès, de rectification, de suppression et de portabilité de ses données. Il peut exercer ces droits en contactant Tok à l'adresse : <span className="font-medium text-foreground">privacy@tok.ch</span>.
+            L'Utilisateur dispose d'un droit d'accès, de rectification, de suppression et de portabilité de ses données. Il peut exercer ces droits en contactant Tok à l'adresse : <span className="font-medium text-foreground">privacy@thetok.ch</span>.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             Pour plus de détails, veuillez consulter notre Politique de Confidentialité disponible sur la Plateforme.

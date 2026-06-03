@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,14 +18,14 @@ export default function Contact() {
       alert("Validation anti-abus requise.");
       return;
     }
-    alert("Votre message a ete envoye !");
+    alert("Votre message a été envoyé !");
   };
 
   return (
     <div className="container space-y-12 py-12 md:py-20">
       <div className="space-y-4 text-center">
         <h1 className="font-display text-4xl font-bold md:text-5xl">Contactez-nous</h1>
-        <p className="mx-auto max-w-2xl text-lg text-muted-foreground">Une question ? Notre equipe est la pour vous.</p>
+        <p className="mx-auto max-w-2xl text-lg text-muted-foreground">Une question ? Notre équipe est là pour vous.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
@@ -62,12 +62,11 @@ export default function Contact() {
         </Card>
 
         <div className="space-y-8">
-          <h2 className="text-2xl font-semibold">Nos coordonnees</h2>
+          <h2 className="text-2xl font-semibold">Nos coordonnées</h2>
           <div className="space-y-4">
             {[
               { icon: Mail, label: "Email", value: SUPPORT_EMAIL },
-              { icon: Phone, label: "Telephone", value: "+33 (0)1 23 45 67 89" },
-              { icon: MapPin, label: "Adresse", value: "123 Rue de la Gastronomie, 75001 Paris" },
+              { icon: MapPin, label: "Adresse", value: "Genève, Suisse" },
             ].map((item) => (
               <div key={item.label} className="flex items-start gap-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">

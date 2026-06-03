@@ -89,7 +89,7 @@ export default function ReviewForm({ restaurantId, onSuccess }: ReviewFormProps)
     }
 
     setLoading(false);
-    toast({ title: "Avis publie !" });
+    toast({ title: "Avis publié !" });
     setServiceRating(8);
     setQualityRating(8);
     setSpeedRating(8);

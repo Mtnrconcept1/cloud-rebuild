@@ -47,7 +47,7 @@ type PricingSummary = {
   total: number;
 };
 
-const ZERO_ATTENTE_PENDING_SESSION_KEY = "zero-attente-pending-session-id";
+const ZERO_ATTENTE_PENDING_SESSION_KEY = "tok-zero-attente-checkout-session-id";
 
 function readPendingZeroAttenteSessionId() {
   if (typeof window === "undefined") return null;
@@ -532,52 +532,6 @@ export default function ZeroAttente() {
       setLoading(false);
     }
 
-    /*
-    const { data, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
-      p_restaurant_id: selectedRestaurant.id,
-      p_date: arrivalDate,
-      p_time: arrivalTime,
-      p_party_size: partySize,
-      p_feature: "zero-attente",
-      p_metadata: {
-        feature: "zero-attente",
-        preorder_items: preorderItems,
-        pre_discount_subtotal: pricing.subtotal,
-        formula_applied: pricing.formulaName,
-        formula_discount_amount: pricing.formulaDiscount,
-        formula_discount_percent: pricing.formulaDiscountPercent,
-        total_amount: pricing.total,
-        arrival_date: arrivalDate,
-        arrival_time: arrivalTime,
-        payment_method: paymentMethod,
-        checkout_session_id: checkoutSessionId || null,
-        paid,
-        card_brand: cardMeta?.card_brand || null,
-        card_last4: cardMeta?.card_last4 || null,
-      },
-      p_notes: `[Zéro Attente] ${pricing.count} plat(s) précommandé(s) - Sous-total: ${pricing.subtotal.toFixed(2)} CHF - Réduction: ${pricing.formulaDiscount.toFixed(2)} CHF - Total: ${pricing.total.toFixed(2)} CHF - Paiement: ${paymentMethod}${paid ? " (payé)" : ""}`,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
-    } else {
-      await trackSponsoredConversion(selectedRestaurant.id, {
-        conversionType: "zero-attente",
-        entityId: data || null,
-        paymentMethod,
-      });
-      try {
-        await dispatchQueuedNotifications("zero-attente-reservation");
-      } catch (dispatchError) {
-        console.error("Zero-attente notification dispatch failed:", dispatchError);
-      }
-      setConfirmedPricing(pricing);
-      setReservationId(data);
-      setStep("confirm");
-    }
-    */
   }, [arrivalDate, arrivalTime, partySize, paymentMethod, selectedRestaurant?.id, syncPendingCheckoutSessionId, toast, user?.id]);
 
   // Handle return from Stripe
@@ -594,101 +548,6 @@ export default function ZeroAttente() {
       toast({ title: "Paiement annulé", description: "Vous pouvez réessayer.", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
     }
-
-    /*
-    if (status === "success" && sessionId) {
-      const pending = sessionStorage.getItem("zero-attente-pending");
-      if (pending) {
-        const data = JSON.parse(pending);
-        sessionStorage.removeItem("zero-attente-pending");
-        const restoredPricing: PricingSummary = data.pricing || {
-          count: Number(data.count || 0),
-          subtotal: roundCurrency(Number(data.subtotal || 0)),
-          formulaDiscount: roundCurrency(Number(data.formulaDiscount || 0)),
-          formulaDiscountPercent: roundCurrency(Number(data.formulaDiscountPercent || 0)),
-          formulaName: data.formulaName || null,
-          total: roundCurrency(Number(data.total || data.subtotal || 0)),
-        };
-
-        // Restore state
-        setSelectedRestaurant({ id: data.restaurantId, name: data.restaurantName });
-        setArrivalDate(data.arrivalDate);
-        setArrivalTime(data.arrivalTime);
-        setPartySize(data.partySize);
-        setPaymentMethod(data.paymentMethod);
-        const restoredQuantities = (data.preorderItems || []).reduce((acc: Record<string, number>, item: any) => {
-          if (item?.menu_item_id) acc[item.menu_item_id] = Number(item.quantity || 0);
-          return acc;
-        }, {});
-        setQuantities(restoredQuantities);
-
-        // Create reservation after successful payment
-        const doCreate = async () => {
-          setLoading(true);
-
-          // Try to fetch card info from payment_transactions (in case webhook already ran)
-          const { data: txn } = await supabase
-            .from("payment_transactions")
-            .select("metadata")
-            .eq("stripe_checkout_session_id", sessionId)
-            .maybeSingle();
-
-          const txnMeta = (txn?.metadata as any) || {};
-
-          const { data: resData, error } = await (supabase.rpc as any)("validate_and_create_reservation", {
-            p_restaurant_id: data.restaurantId,
-            p_date: data.arrivalDate,
-            p_time: data.arrivalTime,
-            p_party_size: data.partySize,
-            p_feature: "zero-attente",
-            p_metadata: {
-              feature: "zero-attente",
-              preorder_items: data.preorderItems,
-              pre_discount_subtotal: restoredPricing.subtotal,
-              formula_applied: restoredPricing.formulaName,
-              formula_discount_amount: restoredPricing.formulaDiscount,
-              formula_discount_percent: restoredPricing.formulaDiscountPercent,
-              total_amount: restoredPricing.total,
-              arrival_date: data.arrivalDate,
-              arrival_time: data.arrivalTime,
-              payment_method: data.paymentMethod,
-              checkout_session_id: sessionId,
-              paid: true,
-              card_brand: txnMeta.card_brand || null,
-              card_last4: txnMeta.card_last4 || null,
-            },
-            p_notes: `[Zéro Attente] ${restoredPricing.count} plat(s) précommandé(s) - Sous-total: ${restoredPricing.subtotal.toFixed(2)} CHF - Réduction: ${restoredPricing.formulaDiscount.toFixed(2)} CHF - Total: ${restoredPricing.total.toFixed(2)} CHF - Paiement: ${data.paymentMethod} (payé)`,
-          });
-          setLoading(false);
-          if (error) {
-            toast({ title: "Erreur", description: error.message, variant: "destructive" });
-          } else {
-            await trackSponsoredConversion(data.restaurantId, {
-              conversionType: "zero-attente",
-              entityId: resData || null,
-              paymentMethod: data.paymentMethod,
-            });
-            try {
-              await dispatchQueuedNotifications("zero-attente-reservation");
-            } catch (dispatchError) {
-              console.error("Zero-attente notification dispatch failed:", dispatchError);
-            }
-            setConfirmedPricing(restoredPricing);
-            setReservationId(resData);
-            setStep("confirm");
-          }
-        };
-        doCreate();
-      }
-
-      // Clean URL params
-      window.history.replaceState({}, "", window.location.pathname);
-    } else if (status === "cancelled") {
-      sessionStorage.removeItem("zero-attente-pending");
-      toast({ title: "Paiement annulé", description: "Vous pouvez réessayer.", variant: "destructive" });
-      window.history.replaceState({}, "", window.location.pathname);
-    }
-    */
   }, [syncPendingCheckoutSessionId, toast]);
 
   useEffect(() => {

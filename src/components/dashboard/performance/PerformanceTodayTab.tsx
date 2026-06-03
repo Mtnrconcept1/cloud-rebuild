@@ -33,11 +33,11 @@ function translateStatus(status: string) {
     case "pending":
       return "En attente";
     case "cancelled":
-      return "Annulee";
+      return "Annulée";
     case "refused":
-      return "Refusee";
+      return "Refusée";
     case "paid":
-      return "Payee";
+      return "Payée";
     default:
       return status || "Inconnu";
   }
@@ -126,7 +126,7 @@ export default function PerformanceTodayTab({
             key: "today-orders",
             label: "Commandes",
             value: String(snapshot.totalOrders),
-            helper: `${snapshot.invalidOrdersCount} annulée(s) ou refusee(s)`,
+            helper: `${snapshot.invalidOrdersCount} annulée(s) ou refusée(s)`,
             icon: ShoppingCart,
           },
           {

@@ -34,7 +34,7 @@ describe("admin catalog governance", () => {
     expect(page).toContain("admin_archive_catalog_collection");
     expect(page).toContain("admin_reorder_catalog_collections");
     expect(page).toContain("uploadCatalogMedia");
-    expect(page).toContain("Apercu public");
+    expect(page).toContain("Aperçu public");
     expect(page).toContain("Monter");
     expect(page).toContain("Descendre");
     expect(page).toContain("collectionForm.restaurant_ids.length === 0");

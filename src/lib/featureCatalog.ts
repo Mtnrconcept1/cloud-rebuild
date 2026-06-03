@@ -352,7 +352,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   {
     name: "ai_sales_insights",
     label: "IA analyse des ventes",
-    description: "Expose l'agent IA restaurateur, les analyses de ventes et les recommandations marge.",
+    description: "Expose l'Assistant IA restaurateur, les analyses de ventes et les recommandations marge.",
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
