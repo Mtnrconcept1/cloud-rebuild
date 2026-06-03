@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 describe("TOK photo studio persistence", () => {
   const source = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiPhotoStudioV2.tsx"), "utf8");
   const dashboardPhotos = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardPhotos.tsx"), "utf8");
+  const watermarkDownloader = readFileSync(resolve(process.cwd(), "src/lib/media/downloadImageWithWatermark.ts"), "utf8");
   const imageUpload = readFileSync(resolve(process.cwd(), "src/components/ImageUpload.tsx"), "utf8");
   const app = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");
 
@@ -30,9 +31,12 @@ describe("TOK photo studio persistence", () => {
       expect(file).not.toMatch(/Ã|Â|â€™|â€œ|â€|�/);
     }
 
-    expect(source).toContain("photographie professionnelle");
+    expect(source).toContain("photographie culinaire de studio professionnel");
+    expect(source).toContain("studio professionnel");
+    expect(source).toContain("flou de profondeur");
+    expect(source).toContain("Améliore les formes et volumes");
     expect(source).toContain("en gardant le produit identique");
-    expect(source).toContain("Supprime les objets et éléments parasites");
+    expect(source).toContain("Supprime tous les objets et éléments parasites");
     expect(source).toContain("Un emballage ne doit jamais devenir une assiette servie.");
     expect(source).toContain("Visuel TOK prêt");
     expect(source).toContain("Après TOK");
@@ -52,9 +56,23 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("generatedImageUrl");
     expect(source).toContain('aria-label="Agrandir le visuel TOK généré"');
     expect(source).toContain("downloadGeneratedPhoto");
-    expect(source).toContain("URL.createObjectURL");
+    expect(source).toContain("downloadImageWithWatermark");
+    expect(source).toContain("watermarkUrl: STUDIO_LOGO_SRC");
+    expect(watermarkDownloader).toContain("canvas.toBlob");
+    expect(watermarkDownloader).toContain("context.drawImage(watermark.image");
     expect(source).toContain("Télécharger");
     expect(source).toContain("object-contain");
+  });
+
+  it("lets gallery photos open in a large preview and download", () => {
+    expect(dashboardPhotos).toContain("previewItem");
+    expect(dashboardPhotos).toContain('aria-label="Agrandir la photo de galerie"');
+    expect(dashboardPhotos).toContain("downloadPhoto");
+    expect(dashboardPhotos).toContain("buildGalleryPhotoDownloadFileName");
+    expect(dashboardPhotos).toContain('TOK_LOGO_SRC = "/logo-watermark.png"');
+    expect(dashboardPhotos).toContain("downloadImageWithWatermark");
+    expect(dashboardPhotos).toContain('watermarkUrl: item.media_type === "photo_ai_tok" ? TOK_LOGO_SRC : null');
+    expect(dashboardPhotos).toContain("Prévisualisation grand format de l'image ajoutée à la galerie.");
   });
 
   it("keeps dashboard photo uploads focused on files instead of manual image URLs", () => {
@@ -74,9 +92,17 @@ describe("TOK photo studio persistence", () => {
 
   it("requests image-only generation and does not render generated marketing copy", () => {
     expect(source).toContain("imageOnly: true");
-    expect(source).toContain("photographie professionnelle");
+    expect(source).toContain("photographie culinaire de studio professionnel");
+    expect(source).toContain("éclairage softbox premium");
+    expect(source).toContain("Éclairage studio");
+    expect(source).toContain("profondeur de champ douce");
     expect(source).toContain("en gardant le produit identique");
-    expect(source).toContain("Supprime les objets et éléments parasites");
+    expect(source).toContain("Supprime tous les objets et éléments parasites");
+    expect(source).toContain("N'ajoute aucun logo");
+    expect(source).toContain("calque transparent séparé");
+    expect(source).toContain("TokLogoWatermark");
+    expect(source).toContain('STUDIO_LOGO_SRC = "/logo-watermark.png"');
+    expect(source).toContain('data-testid="tok-logo-watermark-layer"');
     expect(source).not.toContain("result.edit_instructions");
     expect(source).not.toContain("result.publication_caption");
     expect(source).not.toContain("result.marketing_angles");

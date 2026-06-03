@@ -4,16 +4,19 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import TokAiPhotoStudio from "@/components/dashboard/TokAiPhotoStudioV2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import ImageUpload from "@/components/ImageUpload";
-import { Star, Trash2, Pencil, Image as ImageIcon, Sparkles } from "lucide-react";
+import { Star, Trash2, Pencil, Image as ImageIcon, Sparkles, Download, Maximize2 } from "lucide-react";
 
 const supabase = getSupabase();
+const TOK_LOGO_SRC = "/logo-watermark.png";
 
 type MediaItem = {
   id: string;
@@ -26,6 +29,31 @@ type MediaItem = {
   created_at: string;
 };
 
+function buildGalleryPhotoDownloadFileName(item: MediaItem) {
+  const label = item.alt_text || item.media_type || "photo-restaurant";
+  const normalized = label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
+  return `${normalized || "photo-restaurant"}-${item.id.slice(0, 8)}.png`;
+}
+
+function TokGalleryWatermark({ className = "", sizeClassName = "h-[180px] w-[180px]" }: { className?: string; sizeClassName?: string }) {
+  return (
+    <div
+      className={`pointer-events-none absolute left-3 top-3 z-10 drop-shadow-[0_10px_24px_rgba(0,0,0,0.30)] ${className}`}
+      aria-hidden="true"
+      data-testid="tok-gallery-watermark-layer"
+    >
+      <img src={TOK_LOGO_SRC} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
+    </div>
+  );
+}
+
 export default function DashboardPhotos() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -34,6 +62,7 @@ export default function DashboardPhotos() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [previewItem, setPreviewItem] = useState<MediaItem | null>(null);
   const [form, setForm] = useState({ media_url: "", alt_text: "", media_type: "photo" });
 
   const load = async () => {
@@ -111,6 +140,27 @@ export default function DashboardPhotos() {
     load();
   };
 
+  const downloadPhoto = async (item: MediaItem) => {
+    try {
+      await downloadImageWithWatermark({
+        imageUrl: item.media_url,
+        fileName: buildGalleryPhotoDownloadFileName(item),
+        watermarkUrl: item.media_type === "photo_ai_tok" ? TOK_LOGO_SRC : null,
+        watermarkSize: 180,
+        watermarkMargin: 24,
+      });
+    } catch {
+      const link = document.createElement("a");
+      link.href = item.media_url;
+      link.download = buildGalleryPhotoDownloadFileName(item);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -182,9 +232,21 @@ export default function DashboardPhotos() {
           {items.map((item) => (
             <Card key={item.id} className="overflow-hidden">
               <div className="relative">
-                <img src={item.media_url} alt={item.alt_text || "Photo restaurant"} className="h-48 w-full object-cover" />
+                {item.media_type === "photo_ai_tok" ? <TokGalleryWatermark sizeClassName="h-14 w-14" /> : null}
+                <button
+                  type="button"
+                  onClick={() => setPreviewItem(item)}
+                  aria-label="Agrandir la photo de galerie"
+                  className="group block h-48 w-full overflow-hidden bg-muted text-left"
+                >
+                  <img src={item.media_url} alt={item.alt_text || "Photo restaurant"} className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.02]" />
+                  <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white opacity-0 shadow-sm transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                    <Maximize2 className="h-3.5 w-3.5" />
+                    Agrandir
+                  </span>
+                </button>
                 {item.is_cover && (
-                  <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                  <div className={`absolute ${item.media_type === "photo_ai_tok" ? "left-14" : "left-2"} top-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1`}>
                     <Star className="h-3 w-3" /> Couverture
                   </div>
                 )}
@@ -208,6 +270,9 @@ export default function DashboardPhotos() {
                   }}>
                     <Pencil className="h-3 w-3 mr-1" /> Éditer
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => downloadPhoto(item)}>
+                    <Download className="h-3 w-3 mr-1" /> Télécharger
+                  </Button>
                   <Button size="sm" variant="destructive" onClick={() => remove(item.id)}>
                     <Trash2 className="h-3 w-3 mr-1" /> Supprimer
                   </Button>
@@ -216,6 +281,37 @@ export default function DashboardPhotos() {
             </Card>
           ))}
         </div>
+
+        <Dialog open={Boolean(previewItem)} onOpenChange={(open) => { if (!open) setPreviewItem(null); }}>
+          <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:h-[92vh] sm:max-h-[92vh]">
+            <DialogHeader className="shrink-0 border-b px-4 py-4 pr-12 text-left sm:px-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <DialogTitle>{previewItem?.alt_text || "Photo de galerie"}</DialogTitle>
+                  <DialogDescription>Prévisualisation grand format de l'image ajoutée à la galerie.</DialogDescription>
+                </div>
+                {previewItem ? (
+                  <Button type="button" variant="outline" onClick={() => downloadPhoto(previewItem)} className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Télécharger
+                  </Button>
+                ) : null}
+              </div>
+            </DialogHeader>
+            <div className="min-h-0 flex-1 bg-black p-3 sm:p-5">
+              {previewItem ? (
+                <div className="relative h-full w-full">
+                  {previewItem.media_type === "photo_ai_tok" ? <TokGalleryWatermark className="left-5 top-5" /> : null}
+                  <img
+                    src={previewItem.media_url}
+                    alt={previewItem.alt_text || "Photo restaurant"}
+                    className="h-full w-full rounded-lg object-contain"
+                  />
+                </div>
+              ) : null}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
