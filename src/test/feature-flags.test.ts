@@ -64,7 +64,16 @@ describe("feature flag catalog", () => {
     expect(getExactFeatureForRoute("/dashboard/factures/sorties")).toBe("dashboard-factures");
     expect(getExactFeatureForRoute("/admin/compta/entrees")).toBe("admin-compta");
     expect(getExactFeatureForRoute("/admin/compta/sorties")).toBe("admin-compta");
+    expect(getExactFeatureForRoute("/admin/commandes-reservations")).toBe("admin-operations-center");
     expect(getExactFeatureForRoute("/points-cadeau")).toBe("points-cadeau");
+  });
+
+  it("keeps the admin operations center enabled by default but controllable", () => {
+    const enabledFlags = resolveFlags(buildRows({ "admin-operations-center": true }));
+    const disabledFlags = resolveFlags(buildRows({ "admin-operations-center": false }));
+
+    expect(enabledFlags.find((flag) => flag.name === "admin-operations-center")?.effectiveEnabled).toBe(true);
+    expect(disabledFlags.find((flag) => flag.name === "admin-operations-center")?.effectiveEnabled).toBe(false);
   });
 });
 

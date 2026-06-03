@@ -41,7 +41,6 @@ const CORE_ROUTES = new Set([
   "/aide",
   "/admin",
   "/admin/platform",
-  "/admin/commandes-reservations",
 ]);
 
 function escapeRegex(value: string) {

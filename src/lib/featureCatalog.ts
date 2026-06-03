@@ -690,6 +690,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/admin/notifications"],
   },
   {
+    name: "admin-operations-center",
+    label: "Admin: Operations Center",
+    description: "Expose la supervision admin des commandes, reservations, remboursements et dispatch.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    routeTargets: ["/admin/commandes-reservations"],
+    critical: true,
+  },
+  {
     name: "admin-actualites",
     label: "Admin: Actualités sociales",
     description: "Expose la moderation du fil social.",

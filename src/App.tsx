@@ -225,6 +225,7 @@ function AppShell() {
   const adminComptaAiEnabled = hasFeature("ai_accounting_insights");
   const adminAiOperationsEnabled = hasFeature("ai_admin_monitoring");
   const adminActualitesEnabled = hasFeature("admin-actualites");
+  const adminOperationsCenterEnabled = hasFeature("admin-operations-center");
 
   return (
     <>
@@ -308,7 +309,7 @@ function AppShell() {
           <Route path="/admin/compta/entrees" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaInflow /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta/sorties" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/compta/ia" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminComptaAiEnabled} fallback="/admin/compta"><AdminComptaAi /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/admin/commandes-reservations" element={<ProtectedRoute requiredRole="admin"><AdminOperationsCenter /></ProtectedRoute>} />
+          <Route path="/admin/commandes-reservations" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminOperationsCenter /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin/ai-operations" element={<ProtectedRoute requiredRole="admin"><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />

@@ -6,6 +6,15 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 
 describe("admin operations center", () => {
+  it("is routed and listed behind the admin operations feature flag", () => {
+    const app = readFileSync(resolve(root, "src/App.tsx"), "utf8");
+    const adminHome = readFileSync(resolve(root, "src/pages/admin/AdminHome.tsx"), "utf8");
+
+    expect(app).toContain('hasFeature("admin-operations-center")');
+    expect(app).toContain("<FeatureSwitch enabled={adminOperationsCenterEnabled} fallback=\"/admin\"><AdminOperationsCenter /></FeatureSwitch>");
+    expect(adminHome).toContain('feature: "admin-operations-center"');
+  });
+
   it("exposes live operational tabs backed by the marketplace alert queue", () => {
     const page = readFileSync(resolve(root, "src/pages/admin/AdminOperationsCenter.tsx"), "utf8");
 
