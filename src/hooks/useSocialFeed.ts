@@ -686,6 +686,10 @@ export function useCreateSocialPost() {
         post = fallback.data;
         error = fallback.error;
       } else if (error && /post_type|cta_type|scheduled_at|visibility|schema cache|column/i.test(error.message || "")) {
+        if (scheduledIso) {
+          throw new Error("La programmation des actualites n'est pas encore disponible cote serveur.");
+        }
+
         const fallback = await (supabase.from("social_posts" as any) as any)
           .insert({
             restaurant_id: restaurantId,

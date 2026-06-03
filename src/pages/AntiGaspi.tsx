@@ -7,20 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { isAntiWasteOfferPubliclyVisible } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
+const PUBLIC_ANTI_WASTE_OFFERS_LIMIT = 48;
+const PUBLIC_SPECIAL_OFFERS_STALE_MS = 60_000;
 
 export default function AntiGaspi() {
   const { data: rawOffers, isLoading } = useQuery({
     queryKey: ["anti-waste-offers"],
     queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
       const { data } = await supabase
         .from("anti_waste_offers" as any)
         .select("*, restaurants(id, name, city, image_url, rating)")
         .eq("is_active", true)
+        .gt("quantity_available", 0)
+        .gte("available_date", today)
         .in("offer_type", ["regular", "surprise_bag", "solidarity"] as any)
-        .order("available_date");
+        .order("available_date")
+        .limit(PUBLIC_ANTI_WASTE_OFFERS_LIMIT);
       return data || [];
     },
-    refetchInterval: 60000,
+    staleTime: PUBLIC_SPECIAL_OFFERS_STALE_MS,
   });
 
   const offers = (rawOffers || []).filter((offer: any) =>

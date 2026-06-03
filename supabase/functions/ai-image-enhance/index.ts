@@ -141,8 +141,9 @@ function readPositiveIntEnv(name: string, fallback: number, max: number) {
 
 function normalizeImageQuality(raw: string | undefined): ImageQuality {
   const value = raw?.toLowerCase();
-  if (value === "low" || value === "medium" || value === "high") return value;
-  return "high";
+  if (value === "low" || value === "medium") return value;
+  if (value === "high" && readEnvFlag("TOK_ALLOW_HIGH_IMAGE_QUALITY", false)) return "high";
+  return "medium";
 }
 
 function normalizeInteractiveImageQuality(raw: string | undefined): ImageQuality {

@@ -108,6 +108,7 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("normalizeImageQuality");
     expect(source).toContain("TOK_ALLOW_HIGH_IMAGE_QUALITY");
     expect(source).not.toContain('OPENAI_IMAGE_QUALITY")?.trim() || "high"');
+    expect(source).toContain('return "medium"');
     expect(source).toContain('return "high"');
     expect(source).toContain("OPENAI_IMAGE_TIMEOUT_MS");
     expect(source).toContain("AbortController");

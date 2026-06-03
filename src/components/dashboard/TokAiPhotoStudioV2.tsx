@@ -100,8 +100,12 @@ function TokLogoWatermark({ className = "", sizeClassName = "h-[180px] w-[180px]
 function TokLogoGenerationLoader() {
   return (
     <div className="overflow-hidden rounded-2xl bg-black">
-      <div className="relative isolate flex min-h-[220px] w-full items-center justify-center overflow-hidden px-6 py-8 text-white">
+      <div className="relative isolate flex min-h-[260px] w-full items-center justify-center overflow-hidden px-6 py-8 text-white">
         <style>{`
+          @keyframes tokStudioBackdrop {
+            0%, 100% { opacity: 0.72; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.04); }
+          }
           @keyframes tokLogoPulse {
             0%, 100% { transform: scale(0.985); }
             50% { transform: scale(1.035); }
@@ -133,6 +137,30 @@ function TokLogoGenerationLoader() {
           @keyframes tokLogoShine {
             0%, 100% { opacity: 0.12; transform: translateX(-56px) rotate(-18deg); }
             50% { opacity: 0.36; transform: translateX(56px) rotate(-18deg); }
+          }
+          @keyframes tokStudioScan {
+            0% { transform: translateY(-118%); opacity: 0; }
+            18% { opacity: 0.78; }
+            58% { opacity: 0.42; }
+            100% { transform: translateY(118%); opacity: 0; }
+          }
+          @keyframes tokStudioGrain {
+            0%, 100% { opacity: 0.18; transform: translate3d(0, 0, 0); }
+            50% { opacity: 0.28; transform: translate3d(-1.5%, 1%, 0); }
+          }
+          @keyframes tokStageFill {
+            0% { transform: scaleX(0.14); }
+            38% { transform: scaleX(0.56); }
+            72% { transform: scaleX(0.84); }
+            100% { transform: scaleX(0.98); }
+          }
+          @keyframes tokStageDot {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-2px); }
+          }
+          .tok-studio-backdrop {
+            animation: tokStudioBackdrop 5.8s ease-in-out infinite;
+            transform-origin: center;
           }
           .tok-logo-pulse {
             animation: tokLogoPulse 3s ease-in-out infinite;
@@ -173,7 +201,27 @@ function TokLogoGenerationLoader() {
           .tok-shine {
             animation: tokLogoShine 4.8s ease-in-out infinite;
           }
+          .tok-studio-scan {
+            animation: tokStudioScan 3.4s ease-in-out infinite;
+          }
+          .tok-studio-grain {
+            animation: tokStudioGrain 4.2s ease-in-out infinite;
+          }
+          .tok-stage-fill {
+            animation: tokStageFill 3.8s ease-in-out infinite alternate;
+            transform-origin: left;
+          }
+          .tok-stage-dot {
+            animation: tokStageDot 1.8s ease-in-out infinite;
+          }
+          .tok-stage-dot:nth-child(2) {
+            animation-delay: 0.18s;
+          }
+          .tok-stage-dot:nth-child(3) {
+            animation-delay: 0.36s;
+          }
           @media (prefers-reduced-motion: reduce) {
+            .tok-studio-backdrop,
             .tok-logo-pulse,
             .tok-logo-glow,
             .tok-halo-soft,
@@ -183,14 +231,20 @@ function TokLogoGenerationLoader() {
             .tok-dot,
             .tok-dot-2,
             .tok-status,
-            .tok-shine {
+            .tok-shine,
+            .tok-studio-scan,
+            .tok-studio-grain,
+            .tok-stage-fill,
+            .tok-stage-dot {
               animation: none;
             }
           }
         `}</style>
 
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,120,0,0.08),transparent_14%),radial-gradient(circle_at_50%_50%,rgba(255,170,40,0.06),transparent_28%),radial-gradient(circle_at_50%_50%,rgba(255,90,0,0.05),transparent_42%),linear-gradient(180deg,#000000_0%,#020202_100%)]" />
+        <div className="tok-studio-backdrop absolute inset-0 bg-[radial-gradient(circle_at_28%_20%,rgba(70,165,255,0.12),transparent_22%),radial-gradient(circle_at_68%_26%,rgba(255,176,58,0.12),transparent_24%),radial-gradient(circle_at_50%_50%,rgba(255,120,0,0.09),transparent_16%),radial-gradient(circle_at_50%_50%,rgba(255,170,40,0.07),transparent_31%),linear-gradient(180deg,#000000_0%,#020202_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.18)_56%,rgba(0,0,0,0.84)_100%)]" />
+        <div className="tok-studio-grain absolute inset-0 opacity-20 mix-blend-screen [background-image:linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:28px_28px]" />
+        <div className="tok-studio-scan absolute left-0 right-0 top-0 h-24 bg-gradient-to-b from-transparent via-white/10 to-transparent blur-[1px]" />
 
         <div className="relative aspect-square w-[min(66vw,240px)]">
           <div className="tok-halo-soft absolute inset-[16%] rounded-full bg-[#ff981f]/18 blur-[38px]" />
@@ -256,7 +310,17 @@ function TokLogoGenerationLoader() {
           </p>
           <div className="mt-2 flex items-center gap-2 text-white/54">
             <span className="tok-status inline-block h-2.5 w-2.5 rounded-full bg-[#ff9a1f] shadow-[0_0_12px_rgba(255,154,31,0.75)]" />
-            <span className="text-[11px] uppercase tracking-[0.24em]">Le Studio Photo prépare ton visuel</span>
+            <span className="text-[11px] uppercase tracking-[0.24em]">Retouche, lumière, export galerie</span>
+          </div>
+          <div className="mt-4 w-full max-w-[240px]">
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="tok-stage-fill h-full w-full rounded-full bg-gradient-to-r from-[#47a5ff] via-[#ffd37a] to-[#ff8a1f] shadow-[0_0_18px_rgba(255,151,31,0.55)]" />
+            </div>
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <span className="tok-stage-dot h-1.5 w-1.5 rounded-full bg-white/50" />
+              <span className="tok-stage-dot h-1.5 w-1.5 rounded-full bg-white/50" />
+              <span className="tok-stage-dot h-1.5 w-1.5 rounded-full bg-white/50" />
+            </div>
           </div>
         </div>
       </div>
@@ -488,7 +552,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               {generatedImageUrl ? (
                 <div className="flex h-full w-full items-center justify-center">
                   <div className="relative inline-flex max-h-full max-w-full items-center justify-center">
-                    <TokLogoWatermark className="left-[10px] top-[10px]" sizeClassName="h-[90px] w-[90px]" />
+                    <TokLogoWatermark className="left-4 top-4" sizeClassName="h-16 w-16" />
                     <img
                       src={generatedImageUrl}
                       alt={result?.alt_text || "Visuel TOK"}

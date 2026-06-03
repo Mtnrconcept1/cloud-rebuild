@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ImagePlus, Lightbulb, Plus, Send, X } from "lucide-react";
+import { CalendarClock, ImagePlus, Lightbulb, Plus, Send, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateSocialPost } from "@/hooks/useSocialFeed";
 import {
@@ -14,6 +16,12 @@ import {
   type SocialPostCtaType,
   type SocialPostType,
 } from "@/lib/socialFeed";
+
+function getMinimumScheduledAtInputValue() {
+  const minimum = new Date(Date.now() + 5 * 60_000);
+  const local = new Date(minimum.getTime() - minimum.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
 
 export default function SocialComposer({
   restaurantId,
@@ -29,9 +37,11 @@ export default function SocialComposer({
   const [campaignGoal, setCampaignGoal] = useState<SocialMarketingGoal>("awareness");
   const [audienceSegment, setAudienceSegment] = useState<SocialAudienceSegment>("local");
   const [campaignName, setCampaignName] = useState("");
+  const [scheduledAt, setScheduledAt] = useState("");
   const [previews, setPreviews] = useState<Array<{ file: File; url: string }>>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const createPost = useCreateSocialPost();
+  const minimumScheduledAt = useMemo(() => getMinimumScheduledAtInputValue(), []);
 
   useEffect(() => {
     const nextPreviews = files.slice(0, 10).map((file) => ({ file, url: URL.createObjectURL(file) }));
@@ -48,9 +58,9 @@ export default function SocialComposer({
         filesCount: files.length,
         postType,
         ctaType,
-        scheduledAt: null,
+        scheduledAt: scheduledAt || null,
       }),
-    [body, ctaType, files.length, postType],
+    [body, ctaType, files.length, postType, scheduledAt],
   );
   const canSubmit = Boolean(restaurantId && body.trim() && validationErrors.length === 0 && !createPost.isPending);
   const mediaLabel = files.length === 0 ? "Média" : `${files.length}/10`;
@@ -67,13 +77,15 @@ export default function SocialComposer({
 
   const submit = async () => {
     if (!restaurantId || !canSubmit) return;
+    const scheduledIso = scheduledAt ? new Date(scheduledAt).toISOString() : null;
+
     await createPost.mutateAsync({
       restaurantId,
       body,
       files,
       postType,
       ctaType,
-      scheduledAt: null,
+      scheduledAt: scheduledIso,
       visibility: getVisibilityForAudienceSegment(audienceSegment),
       campaignGoal,
       campaignName: campaignName || null,
@@ -88,6 +100,7 @@ export default function SocialComposer({
     setCampaignGoal("awareness");
     setAudienceSegment("local");
     setCampaignName("");
+    setScheduledAt("");
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -154,7 +167,22 @@ export default function SocialComposer({
               ))}
             </div>
 
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <div className="flex min-w-[230px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
+                <div className="min-w-0 flex-1">
+                  <Label htmlFor="social-post-scheduled-at" className="sr-only">Programmer la publication</Label>
+                  <Input
+                    id="social-post-scheduled-at"
+                    type="datetime-local"
+                    min={minimumScheduledAt}
+                    value={scheduledAt}
+                    onChange={(event) => setScheduledAt(event.target.value)}
+                    aria-label="Programmer la publication"
+                    className="h-7 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                </div>
+              </div>
               <input
                 ref={inputRef}
                 type="file"
@@ -184,7 +212,7 @@ export default function SocialComposer({
                 onClick={submit}
               >
                 <Send className="h-4 w-4" />
-                Publier
+                {scheduledAt ? "Programmer" : "Publier"}
               </Button>
             </div>
           </div>

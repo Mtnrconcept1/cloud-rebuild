@@ -19,6 +19,8 @@ import { getTargetFromMinutes } from "@/components/countdown-timer-utils";
 import { isFlashSalePubliclyVisible } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
+const PUBLIC_FLASH_SALES_LIMIT = 48;
+const PUBLIC_SPECIAL_OFFERS_STALE_MS = 30_000;
 
 type Step = "browse" | "confirm";
 
@@ -39,14 +41,18 @@ export default function VentesFlash() {
   const { data: allOffers, isLoading } = useQuery({
     queryKey: ["flash-sales-page"],
     queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
       const { data } = await supabase
         .from("flash_sales" as any)
         .select("*, restaurants(id, name, city, image_url, rating, cuisine_type)")
         .eq("is_active", true)
-        .order("sale_date");
+        .eq("sale_date", today)
+        .gt("quantity_available", 0)
+        .order("sale_start")
+        .limit(PUBLIC_FLASH_SALES_LIMIT);
       return (data || []) as any[];
     },
-    refetchInterval: 30000,
+    staleTime: PUBLIC_SPECIAL_OFFERS_STALE_MS,
   });
 
   const { data: flashSubscription } = useQuery({

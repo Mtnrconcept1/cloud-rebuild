@@ -27,6 +27,12 @@ import {
 
 const supabase = getSupabase();
 const TOK_GALLERY_LOGO_SRC = "/logo-watermark.png";
+const RESTAURANT_DETAIL_STALE_MS = 60_000;
+const RESTAURANT_MEDIA_LIMIT = 24;
+const RESTAURANT_MENU_ITEMS_LIMIT = 120;
+const RESTAURANT_REVIEWS_LIMIT = 50;
+const RESTAURANT_FORMULAS_LIMIT = 24;
+const RESTAURANT_SPECIAL_OFFERS_LIMIT = 12;
 
 type RestaurantGalleryPhoto = {
   id: string;
@@ -150,6 +156,7 @@ export default function RestaurantDetail() {
     queryKey: ["restaurant", id],
     queryFn: async () => { const { data } = await supabase.from("restaurants").select("*").eq("id", id!).single(); return data; },
     enabled: !!id,
+    staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: mediaPhotos } = useQuery({
@@ -160,10 +167,12 @@ export default function RestaurantDetail() {
         .select("id, media_url, alt_text, is_cover, position, media_type")
         .eq("restaurant_id", id!)
         .in("media_type", ["photo", "photo_ai_tok"])
-        .order("position", { ascending: true });
+        .order("position", { ascending: true })
+        .limit(RESTAURANT_MEDIA_LIMIT);
       return (data || []) as RestaurantGalleryPhoto[];
     },
     enabled: !!id,
+    staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   useEffect(() => {
@@ -180,38 +189,43 @@ export default function RestaurantDetail() {
 
   const { data: menuItems } = useQuery({
     queryKey: ["menu-items", id],
-    queryFn: async () => { const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", id!).eq("is_available", true).order("category"); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", id!).eq("is_available", true).order("category").limit(RESTAURANT_MENU_ITEMS_LIMIT); return data || []; },
     enabled: !!id,
+    staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: reviews } = useQuery({
     queryKey: ["reviews", id],
-    queryFn: async () => { const { data } = await supabase.from("reviews").select("*").eq("restaurant_id", id!).order("created_at", { ascending: false }); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from("reviews").select("*").eq("restaurant_id", id!).order("created_at", { ascending: false }).limit(RESTAURANT_REVIEWS_LIMIT); return data || []; },
     enabled: !!id,
+    staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: formulas } = useQuery({
     queryKey: ["restaurant-formulas", id],
-    queryFn: async () => { const { data } = await supabase.from("meal_formulas").select("*, meal_formula_categories(*)").eq("restaurant_id", id!).eq("is_active", true); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from("meal_formulas").select("*, meal_formula_categories(*)").eq("restaurant_id", id!).eq("is_active", true).limit(RESTAURANT_FORMULAS_LIMIT); return data || []; },
     enabled: !!id,
+    staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: flashSales } = useQuery({
     queryKey: ["restaurant-flash-sales", id],
     queryFn: async () => {
-      const { data } = await supabase.from("flash_sales").select("*").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
+      const { data } = await supabase.from("flash_sales").select("*").eq("restaurant_id", id!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
       return data || [];
     },
     enabled: !!id,
+    staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: antiWasteOffers } = useQuery({
     queryKey: ["restaurant-anti-waste", id],
     queryFn: async () => {
-      const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", id!).eq("is_active", true).order("created_at", { ascending: false });
+      const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", id!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
       return data || [];
     },
     enabled: !!id,
+    staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: isFavorite } = useQuery({
