@@ -86,6 +86,23 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("Prévisualisation grand format de l'image ajoutée à la galerie.");
   });
 
+  it("keeps gallery watermarks inside the rendered image frame and never downloads raw gallery images", () => {
+    expect(dashboardPhotos).toContain("TokGalleryImageFrame");
+    expect(dashboardPhotos).toContain('data-testid="tok-gallery-image-frame"');
+    expect(dashboardPhotos).toContain("inline-flex max-h-full max-w-full");
+    expect(dashboardPhotos).not.toContain('className="relative h-full w-full"');
+
+    expect(restaurantDetail).toContain("RestaurantGalleryImageFrame");
+    expect(restaurantDetail).toContain('data-testid="restaurant-gallery-image-frame"');
+    expect(restaurantDetail).toContain("inline-flex max-h-full max-w-full");
+    expect(restaurantDetail).not.toContain('className="relative max-w-4xl max-h-[80vh] px-12"');
+
+    expect(watermarkDownloader).toContain("if (!options.watermarkUrl)");
+    expect(watermarkDownloader).not.toContain("} catch {\n    const blob = await fetchBlob(options.imageUrl);");
+    expect(dashboardPhotos).not.toContain("link.href = item.media_url");
+    expect(source).not.toContain("link.href = generatedImageUrl");
+  });
+
   it("keeps dashboard photo uploads focused on files instead of manual image URLs", () => {
     expect(dashboardPhotos).toContain("showUrlInput={false}");
   });
