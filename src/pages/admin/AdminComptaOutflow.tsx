@@ -47,7 +47,7 @@ function InvoiceMeta({
   return (
     <div className="min-w-0">
       <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className={`mt-1 text-sm ${emphasized ? "whitespace-nowrap font-semibold text-foreground" : "break-words text-foreground"}`}>
+      <p className={`mt-1 text-sm ${emphasized ? "break-words font-semibold text-foreground sm:whitespace-nowrap" : "break-words text-foreground"}`}>
         {value}
       </p>
     </div>
@@ -81,12 +81,12 @@ function InvoiceListItem({
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
-            <Button size="sm" variant="ghost" className="whitespace-nowrap" onClick={() => onToggleDetail(invoice.id)}>
+          <div className="flex min-w-0 flex-wrap gap-2 sm:shrink-0 sm:justify-end">
+            <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" onClick={() => onToggleDetail(invoice.id)}>
               {detailButtonLabel}
             </Button>
             {invoice.pdf_url ? (
-              <Button size="sm" variant="ghost" className="whitespace-nowrap" onClick={() => downloadInvoicePdf(invoice)}>
+              <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal sm:h-9 sm:whitespace-nowrap" onClick={() => downloadInvoicePdf(invoice)}>
                 PDF
               </Button>
             ) : null}
@@ -95,7 +95,7 @@ function InvoiceListItem({
                 Reglee
               </span>
             ) : (
-              <Button size="sm" variant="outline" className="whitespace-nowrap" onClick={() => void onMarkPaid(invoice)}>
+              <Button size="sm" variant="outline" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" onClick={() => void onMarkPaid(invoice)}>
                 Marquer payée
               </Button>
             )}

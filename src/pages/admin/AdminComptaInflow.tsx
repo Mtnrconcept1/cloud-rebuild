@@ -158,7 +158,7 @@ function MobileInvoiceCard({
             <div className="text-xs text-muted-foreground">{formatDate(invoice.created_at)}</div>
             <div className="text-xs text-muted-foreground">Restaurant : {invoice.restaurants?.name || "-"}</div>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid min-w-0 gap-2 text-xs sm:grid-cols-2">
             <div>
               <p className="text-muted-foreground">Période</p>
               <p>{formatPeriod(invoice.period_start, invoice.period_end)}</p>
@@ -178,17 +178,17 @@ function MobileInvoiceCard({
               </span>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setPreviewOpen(true)}>
+          <div className="flex min-w-0 flex-wrap gap-2">
+            <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" onClick={() => setPreviewOpen(true)}>
               Voir la facture
             </Button>
             {invoice.pdf_url ? (
-              <Button size="sm" variant="ghost" onClick={() => downloadInvoicePdf(invoice)}>
+              <Button size="sm" variant="ghost" className="h-auto min-h-[44px] max-w-full whitespace-normal sm:h-9 sm:whitespace-nowrap" onClick={() => downloadInvoicePdf(invoice)}>
                 PDF
               </Button>
             ) : null}
             {!isPaid ? (
-              <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
+              <Button size="sm" variant="outline" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" onClick={() => void onMarkPaid(invoice)}>
                 Marquer payée
               </Button>
             ) : (

@@ -629,17 +629,17 @@ export default function AdminAuditLogs() {
           ) : paymentAnomalies.length === 0 ? (
             <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">Aucune anomalie critique détectée.</div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-hidden md:overflow-x-auto">
               <Table>
                 <TableHeader><TableRow><TableHead>Sévérité</TableHead><TableHead>Type</TableHead><TableHead>Cible</TableHead><TableHead>Restaurant</TableHead><TableHead>Résumé</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {paymentAnomalies.slice(0, 12).map((item, index) => (
                     <TableRow key={`${item.kind}-${getPaymentTarget(item)}-${index}`}>
-                      <TableCell><Badge variant={item.severity === "critical" ? "destructive" : "secondary"}>{item.severity || "medium"}</Badge></TableCell>
-                      <TableCell className="font-medium">{item.kind || "anomalie"}</TableCell>
-                      <TableCell className="max-w-[14rem] truncate text-xs text-muted-foreground">{getPaymentTarget(item)}</TableCell>
-                      <TableCell className="max-w-[12rem] truncate text-xs text-muted-foreground">{item.restaurant_id || "-"}</TableCell>
-                      <TableCell className="max-w-[28rem] text-xs text-muted-foreground">{item.title || item.status || item.payment_status || "Anomalie à vérifier"}</TableCell>
+                      <TableCell data-label="Sévérité"><Badge variant={item.severity === "critical" ? "destructive" : "secondary"}>{item.severity || "medium"}</Badge></TableCell>
+                      <TableCell data-label="Type" className="font-medium">{item.kind || "anomalie"}</TableCell>
+                      <TableCell data-label="Cible" className="text-xs text-muted-foreground md:max-w-[14rem] md:truncate">{getPaymentTarget(item)}</TableCell>
+                      <TableCell data-label="Restaurant" className="text-xs text-muted-foreground md:max-w-[12rem] md:truncate">{item.restaurant_id || "-"}</TableCell>
+                      <TableCell data-label="Résumé" className="text-xs text-muted-foreground md:max-w-[28rem]">{item.title || item.status || item.payment_status || "Anomalie à vérifier"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -694,7 +694,7 @@ export default function AdminAuditLogs() {
       ) : (
         <Card>
           <CardContent className="py-0">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-hidden md:overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -704,14 +704,14 @@ export default function AdminAuditLogs() {
                 <TableBody>
                   {filteredLogs.slice(0, 300).map((log, index) => (
                     <TableRow key={`${log.source}-${log.id}-${index}`}>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{formatDateTime(log.createdAt)}</TableCell>
-                      <TableCell><Badge variant={log.source === "edge" ? "default" : "outline"}>{log.source === "edge" ? "Edge" : "Data"}</Badge></TableCell>
-                      <TableCell><Badge variant="outline">{CATEGORY_LABELS[log.category]}</Badge></TableCell>
-                      <TableCell className="min-w-52 font-medium"><div>{log.action}</div><div className="text-xs text-muted-foreground">{log.functionName}</div></TableCell>
-                      <TableCell className="text-xs text-muted-foreground"><div>{log.actorLabel}</div><div>{log.actorType}</div></TableCell>
-                      <TableCell><Badge variant={log.status === "failure" ? "destructive" : log.status === "success" ? "secondary" : "outline"}>{log.status}</Badge></TableCell>
-                      <TableCell className="text-xs"><div>{log.targetType}</div>{log.targetId ? <div className="max-w-[14rem] truncate text-muted-foreground">{log.targetId}</div> : null}</TableCell>
-                      <TableCell className="max-w-[32rem] text-xs text-muted-foreground">{log.summary}</TableCell>
+                      <TableCell data-label="Quand" className="text-xs text-muted-foreground md:whitespace-nowrap">{formatDateTime(log.createdAt)}</TableCell>
+                      <TableCell data-label="Source"><Badge variant={log.source === "edge" ? "default" : "outline"}>{log.source === "edge" ? "Edge" : "Data"}</Badge></TableCell>
+                      <TableCell data-label="Type"><Badge variant="outline">{CATEGORY_LABELS[log.category]}</Badge></TableCell>
+                      <TableCell data-label="Action" className="font-medium md:min-w-52"><div>{log.action}</div><div className="text-xs text-muted-foreground">{log.functionName}</div></TableCell>
+                      <TableCell data-label="Acteur" className="text-xs text-muted-foreground"><div>{log.actorLabel}</div><div>{log.actorType}</div></TableCell>
+                      <TableCell data-label="Statut"><Badge variant={log.status === "failure" ? "destructive" : log.status === "success" ? "secondary" : "outline"}>{log.status}</Badge></TableCell>
+                      <TableCell data-label="Cible" className="text-xs"><div>{log.targetType}</div>{log.targetId ? <div className="break-all text-muted-foreground md:max-w-[14rem] md:truncate md:break-normal">{log.targetId}</div> : null}</TableCell>
+                      <TableCell data-label="Résumé" className="text-xs text-muted-foreground md:max-w-[32rem]">{log.summary}</TableCell>
                     </TableRow>
                   ))}
                   {filteredLogs.length === 0 ? (

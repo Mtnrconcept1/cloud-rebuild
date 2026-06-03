@@ -337,12 +337,12 @@ export function AccountingFactList({
   return (
     <div className={cn("space-y-2.5", className)}>
       {items.map((item) => (
-        <div key={`${item.label}-${item.value}`} className={cn("flex items-start justify-between gap-4 rounded-2xl px-4 py-3.5", toneClasses.soft)}>
+        <div key={`${item.label}-${item.value}`} className={cn("flex min-w-0 flex-col gap-2 rounded-2xl px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4", toneClasses.soft)}>
           <div className="min-w-0 space-y-1">
             <p className={cn("text-sm font-semibold leading-5", toneClasses.value)}>{item.label}</p>
             {item.helper ? <p className="text-xs leading-5 text-muted-foreground dark:text-slate-200/75">{item.helper}</p> : null}
           </div>
-          <div className={cn("whitespace-nowrap text-sm font-bold", toneClasses.value)}>{item.value}</div>
+          <div className={cn("break-words text-sm font-bold sm:whitespace-nowrap", toneClasses.value)}>{item.value}</div>
         </div>
       ))}
     </div>

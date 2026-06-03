@@ -145,12 +145,12 @@ function FulfillmentEditor({
 
   return (
     <div className="border rounded-lg p-4 space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Icon className="h-4 w-4 text-primary" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="font-medium text-sm">{fulfillment.service_label}</p>
             {detail && (
               <p className="text-xs text-muted-foreground">{detail}</p>
@@ -163,10 +163,10 @@ function FulfillmentEditor({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
           {isSaving && <Loader2 className="h-3 w-3 animate-spin" />}
           <Select value={fulfillment.status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectTrigger className="h-8 w-full text-xs sm:w-[140px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -409,9 +409,9 @@ function PackDetailView({
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex w-full min-w-0 items-center gap-3 sm:w-auto">
               <Select value={pack.status} onValueChange={handlePackStatusChange}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

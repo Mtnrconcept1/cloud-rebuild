@@ -354,7 +354,7 @@ export default function AdminAvis() {
                       </p>
                     </div>
 
-                    <div className="flex min-w-[260px] flex-col gap-2">
+                    <div className="flex w-full min-w-0 flex-col gap-2 md:w-auto md:min-w-[260px]">
                       <Input
                         value={reasonDrafts[review.id] || ""}
                         onChange={(event) =>

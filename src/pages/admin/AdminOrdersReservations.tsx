@@ -704,10 +704,10 @@ export default function AdminOrdersReservations() {
         onValueChange={(value) => setActiveTab(value as AdminDashboardTab)}
         className="space-y-6"
       >
-        <TabsList className="grid w-full max-w-xl grid-cols-3">
-          <TabsTrigger value="orders">Commandes ({filteredOrders.length})</TabsTrigger>
-          <TabsTrigger value="reservations">Reservations ({filteredReservations.length})</TabsTrigger>
-          <TabsTrigger value="refunds">Remboursements ({filteredRefunds.length})</TabsTrigger>
+        <TabsList className="grid h-auto w-full max-w-xl grid-cols-3">
+          <TabsTrigger value="orders" className="whitespace-normal px-2 text-xs leading-tight sm:text-sm">Commandes ({filteredOrders.length})</TabsTrigger>
+          <TabsTrigger value="reservations" className="whitespace-normal px-2 text-xs leading-tight sm:text-sm">Reservations ({filteredReservations.length})</TabsTrigger>
+          <TabsTrigger value="refunds" className="whitespace-normal px-2 text-xs leading-tight sm:text-sm">Remboursements ({filteredRefunds.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="space-y-6">
@@ -749,16 +749,16 @@ export default function AdminOrdersReservations() {
                           className="cursor-pointer hover:bg-muted/30"
                           onClick={() => setSelectedOperation({ kind: "order", item: order })}
                         >
-                          <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                          <TableCell data-label="Date" className="text-sm text-muted-foreground md:whitespace-nowrap">
                             {formatDateTime(order.createdAt)}
                           </TableCell>
-                          <TableCell>
+                          <TableCell data-label="Commande">
                             <div className="space-y-1">
                               <p className="font-medium">{order.orderNumber || `CMD-${order.id.slice(0, 8)}`}</p>
                               <p className="text-xs text-muted-foreground">{order.id}</p>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell data-label="Client">
                             <div className="space-y-1">
                               <p className="font-medium">{order.customer.displayName}</p>
                               {order.customer.phone ? (
@@ -766,8 +766,8 @@ export default function AdminOrdersReservations() {
                               ) : null}
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm">{order.restaurant.name}</TableCell>
-                          <TableCell>
+                          <TableCell data-label="Restaurant" className="text-sm">{order.restaurant.name}</TableCell>
+                          <TableCell data-label="Détails">
                             <div className="space-y-1">
                               <Badge className={orderType.className}>{orderType.label}</Badge>
                               <p className="text-xs text-muted-foreground">
@@ -775,7 +775,7 @@ export default function AdminOrdersReservations() {
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell data-label="Statut">
                             <div className="flex flex-wrap gap-2">
                               <Badge className={getStatusBadgeClass(order.status)}>{order.status}</Badge>
                               {order.paymentStatus ? (
@@ -785,8 +785,8 @@ export default function AdminOrdersReservations() {
                               ) : null}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right font-semibold">{formatAmount(order.totalAmount)}</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell data-label="Montant" className="font-semibold md:text-right">{formatAmount(order.totalAmount)}</TableCell>
+                          <TableCell data-label="Action" className="md:text-right">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -855,16 +855,16 @@ export default function AdminOrdersReservations() {
                           className="cursor-pointer hover:bg-muted/30"
                           onClick={() => setSelectedOperation({ kind: "reservation", item: reservation })}
                         >
-                          <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                          <TableCell data-label="Date" className="text-sm text-muted-foreground md:whitespace-nowrap">
                             {formatReservationDate(reservation.reservationDate, reservation.displayTime)}
                           </TableCell>
-                          <TableCell>
+                          <TableCell data-label="Réservation">
                             <div className="space-y-1">
                               <p className="font-medium">{reservation.reference}</p>
                               <p className="text-xs text-muted-foreground">{reservation.id}</p>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell data-label="Client">
                             <div className="space-y-1">
                               <p className="font-medium">{reservation.customer.displayName}</p>
                               {reservation.customer.phone ? (
@@ -872,8 +872,8 @@ export default function AdminOrdersReservations() {
                               ) : null}
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm">{reservation.restaurant.name}</TableCell>
-                          <TableCell>
+                          <TableCell data-label="Restaurant" className="text-sm">{reservation.restaurant.name}</TableCell>
+                          <TableCell data-label="Détails">
                             <div className="space-y-1">
                               {feature ? <Badge className={feature.className}>{feature.label}</Badge> : null}
                               <p className="text-xs text-muted-foreground">
@@ -881,11 +881,11 @@ export default function AdminOrdersReservations() {
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell data-label="Statut">
                             <Badge className={getStatusBadgeClass(reservation.status)}>{reservation.status}</Badge>
                           </TableCell>
-                          <TableCell className="text-right font-semibold">{formatAmount(reservation.totalAmount)}</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell data-label="Montant" className="font-semibold md:text-right">{formatAmount(reservation.totalAmount)}</TableCell>
+                          <TableCell data-label="Action" className="md:text-right">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -952,16 +952,16 @@ export default function AdminOrdersReservations() {
                         className="cursor-pointer hover:bg-muted/30"
                         onClick={() => setSelectedRefund(refund)}
                       >
-                        <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                        <TableCell data-label="Date" className="text-sm text-muted-foreground md:whitespace-nowrap">
                           {formatDateTime(String(refund.cancelled_at || refund.created_at))}
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Référence">
                           <div className="space-y-1">
                             <p className="font-medium">{refund.reference || refund.target_id.slice(0, 8)}</p>
                             <p className="text-xs text-muted-foreground">{refund.target_id}</p>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Client">
                           <div className="space-y-1">
                             <p className="font-medium">{refund.customer_name || "Client inconnu"}</p>
                             {refund.customer_phone ? (
@@ -969,8 +969,8 @@ export default function AdminOrdersReservations() {
                             ) : null}
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm">{refund.restaurant_name || "-"}</TableCell>
-                        <TableCell>
+                        <TableCell data-label="Restaurant" className="text-sm">{refund.restaurant_name || "-"}</TableCell>
+                        <TableCell data-label="Détails">
                           <div className="space-y-1">
                             <Badge variant="outline">{refund.target_type === "order" ? "Commande" : "Reservation"}</Badge>
                             <p className="text-xs text-muted-foreground">
@@ -978,13 +978,13 @@ export default function AdminOrdersReservations() {
                             </p>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Statut">
                           <Badge className={getStatusBadgeClass(refund.refund_status)}>{refund.refund_status || "pending"}</Badge>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">
+                        <TableCell data-label="Montant" className="font-semibold md:text-right">
                           {formatAmount(toAmount(refund.remaining_amount_chf))}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell data-label="Action" className="md:text-right">
                           <Button
                             variant="ghost"
                             size="sm"
