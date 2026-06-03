@@ -145,7 +145,7 @@ export default function DashboardPhotos() {
       await downloadImageWithWatermark({
         imageUrl: item.media_url,
         fileName: buildGalleryPhotoDownloadFileName(item),
-        watermarkUrl: item.media_type === "photo_ai_tok" ? TOK_LOGO_SRC : null,
+        watermarkUrl: TOK_LOGO_SRC,
         watermarkSize: 180,
         watermarkMargin: 24,
       });
@@ -232,7 +232,7 @@ export default function DashboardPhotos() {
           {items.map((item) => (
             <Card key={item.id} className="overflow-hidden">
               <div className="relative">
-                {item.media_type === "photo_ai_tok" ? <TokGalleryWatermark sizeClassName="h-14 w-14" /> : null}
+                <TokGalleryWatermark sizeClassName="h-14 w-14" />
                 <button
                   type="button"
                   onClick={() => setPreviewItem(item)}
@@ -246,7 +246,7 @@ export default function DashboardPhotos() {
                   </span>
                 </button>
                 {item.is_cover && (
-                  <div className={`absolute ${item.media_type === "photo_ai_tok" ? "left-14" : "left-2"} top-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1`}>
+                  <div className="absolute left-14 top-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
                     <Star className="h-3 w-3" /> Couverture
                   </div>
                 )}
@@ -301,7 +301,7 @@ export default function DashboardPhotos() {
             <div className="min-h-0 flex-1 bg-black p-3 sm:p-5">
               {previewItem ? (
                 <div className="relative h-full w-full">
-                  {previewItem.media_type === "photo_ai_tok" ? <TokGalleryWatermark className="left-5 top-5" /> : null}
+                  <TokGalleryWatermark className="left-5 top-5" />
                   <img
                     src={previewItem.media_url}
                     alt={previewItem.alt_text || "Photo restaurant"}

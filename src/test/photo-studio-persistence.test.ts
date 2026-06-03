@@ -6,6 +6,7 @@ describe("TOK photo studio persistence", () => {
   const source = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiPhotoStudioV2.tsx"), "utf8");
   const legacyStudio = readFileSync(resolve(process.cwd(), "src/components/dashboard/TokAiPhotoStudio.tsx"), "utf8");
   const dashboardPhotos = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardPhotos.tsx"), "utf8");
+  const restaurantDetail = readFileSync(resolve(process.cwd(), "src/pages/RestaurantDetail.tsx"), "utf8");
   const watermarkDownloader = readFileSync(resolve(process.cwd(), "src/lib/media/downloadImageWithWatermark.ts"), "utf8");
   const imageUpload = readFileSync(resolve(process.cwd(), "src/components/ImageUpload.tsx"), "utf8");
   const app = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");
@@ -65,6 +66,7 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("downloadGeneratedPhoto");
     expect(source).toContain("downloadImageWithWatermark");
     expect(source).toContain("watermarkUrl: STUDIO_LOGO_SRC");
+    expect((source.match(/Ajouter à la galerie/g) || []).length).toBeGreaterThanOrEqual(2);
     expect(watermarkDownloader).toContain("canvas.toBlob");
     expect(watermarkDownloader).toContain("context.drawImage(watermark.image");
     expect(source).toContain("Télécharger");
@@ -78,12 +80,24 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain("buildGalleryPhotoDownloadFileName");
     expect(dashboardPhotos).toContain('TOK_LOGO_SRC = "/logo-watermark.png"');
     expect(dashboardPhotos).toContain("downloadImageWithWatermark");
-    expect(dashboardPhotos).toContain('watermarkUrl: item.media_type === "photo_ai_tok" ? TOK_LOGO_SRC : null');
+    expect(dashboardPhotos).toContain("watermarkUrl: TOK_LOGO_SRC");
+    expect(dashboardPhotos).not.toContain('item.media_type === "photo_ai_tok" ? <TokGalleryWatermark');
     expect(dashboardPhotos).toContain("Prévisualisation grand format de l'image ajoutée à la galerie.");
   });
 
   it("keeps dashboard photo uploads focused on files instead of manual image URLs", () => {
     expect(dashboardPhotos).toContain("showUrlInput={false}");
+  });
+
+  it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {
+    expect(restaurantDetail).toContain('TOK_GALLERY_LOGO_SRC = "/logo-watermark.png"');
+    expect(restaurantDetail).toContain("RestaurantGalleryWatermark");
+    expect(restaurantDetail).toContain("media_type");
+    expect(restaurantDetail).toContain('.in("media_type", ["photo", "photo_ai_tok"])');
+    expect(restaurantDetail).toContain("openGalleryAtIndex");
+    expect(restaurantDetail).toContain('aria-label="Ouvrir la galerie photo du restaurant"');
+    expect(restaurantDetail).toContain("<RestaurantGalleryWatermark");
+    expect(restaurantDetail).toContain('data-testid="restaurant-gallery-watermark-layer"');
   });
 
   it("shows a TOK logo loading animation while a TOK photo is being generated", () => {

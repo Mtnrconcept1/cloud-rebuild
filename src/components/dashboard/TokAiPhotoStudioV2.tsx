@@ -471,10 +471,17 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                   <DialogTitle>Visuel TOK généré</DialogTitle>
                   <DialogDescription>Prévisualisation grand format du visuel avant publication.</DialogDescription>
                 </div>
-                <Button type="button" variant="outline" onClick={downloadGeneratedPhoto} className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Télécharger
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  {result?.gallery_image_url ? (
+                    <Button type="button" variant="outline" onClick={addToGallery}>
+                      Ajouter à la galerie
+                    </Button>
+                  ) : null}
+                  <Button type="button" variant="outline" onClick={downloadGeneratedPhoto} className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Télécharger
+                  </Button>
+                </div>
               </div>
             </DialogHeader>
             <div className="min-h-0 flex-1 bg-black p-3 sm:p-5">

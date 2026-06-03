@@ -26,6 +26,28 @@ import {
 } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
+const TOK_GALLERY_LOGO_SRC = "/logo-watermark.png";
+
+type RestaurantGalleryPhoto = {
+  id: string;
+  media_url: string;
+  alt_text: string | null;
+  is_cover: boolean;
+  position: number;
+  media_type: string;
+};
+
+function RestaurantGalleryWatermark({ className = "", sizeClassName = "h-12 w-12" }: { className?: string; sizeClassName?: string }) {
+  return (
+    <div
+      className={`pointer-events-none absolute left-3 top-3 z-20 drop-shadow-[0_10px_24px_rgba(0,0,0,0.35)] ${className}`}
+      aria-hidden="true"
+      data-testid="restaurant-gallery-watermark-layer"
+    >
+      <img src={TOK_GALLERY_LOGO_SRC} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
+    </div>
+  );
+}
 
 function buildRestaurantDetailJsonLd({
   restaurant,
@@ -119,11 +141,11 @@ export default function RestaurantDetail() {
     queryFn: async () => {
       const { data } = await supabase
         .from("restaurant_media")
-        .select("id, media_url, alt_text, is_cover, position")
+        .select("id, media_url, alt_text, is_cover, position, media_type")
         .eq("restaurant_id", id!)
-        .eq("media_type", "photo")
+        .in("media_type", ["photo", "photo_ai_tok"])
         .order("position", { ascending: true });
-      return (data || []) as { id: string; media_url: string; alt_text: string | null; is_cover: boolean; position: number }[];
+      return (data || []) as RestaurantGalleryPhoto[];
     },
     enabled: !!id,
   });
@@ -308,18 +330,41 @@ export default function RestaurantDetail() {
     setReservationOpen(true);
   };
 
+  const openGalleryAtIndex = (index: number) => {
+    if (!galleryPhotos.length) return;
+    const nextIndex = Math.min(Math.max(index, 0), galleryPhotos.length - 1);
+    setGalleryIndex(nextIndex);
+    setGalleryOpen(true);
+  };
+
+  const openCoverGallery = () => {
+    const coverIndex = coverPhoto ? galleryPhotos.findIndex((photo) => photo.id === coverPhoto.id) : 0;
+    openGalleryAtIndex(coverIndex >= 0 ? coverIndex : 0);
+  };
+
   return (
     <main className="min-h-screen bg-background">
       <div className="relative h-72 md:h-96">
         <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white border-white/10" onClick={() => navigate('/')}><ArrowLeft className="h-5 w-5" /></Button>
         <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white border-white/10" onClick={toggleFavorite}><Heart className={isFavorite ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5"} /></Button>
-        <img src={heroImage} alt={restaurant.name} className="w-full h-full object-cover" />
+        {galleryPhotos.length > 0 ? (
+          <button
+            type="button"
+            aria-label="Ouvrir la galerie photo du restaurant"
+            className="block h-full w-full cursor-zoom-in text-left"
+            onClick={openCoverGallery}
+          >
+            <img src={heroImage} alt={restaurant.name} className="w-full h-full object-cover" />
+          </button>
+        ) : (
+          <img src={heroImage} alt={restaurant.name} className="w-full h-full object-cover" />
+        )}
         {galleryPhotos.length > 1 && (
-          <Button variant="secondary" size="sm" className="absolute bottom-20 right-4 z-20 gap-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md text-white border-white/10" onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}>
+          <Button variant="secondary" size="sm" className="absolute bottom-20 right-4 z-20 gap-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md text-white border-white/10" onClick={() => openGalleryAtIndex(0)}>
             <Camera className="h-4 w-4" /> {galleryPhotos.length} photos
           </Button>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="container">
             <div className="flex items-center gap-2 mb-2">
@@ -714,12 +759,13 @@ export default function RestaurantDetail() {
                     {galleryPhotos.map((photo, index) => (
                       <button
                         key={photo.id}
-                        onClick={() => { setGalleryIndex(index); setGalleryOpen(true); }}
+                        onClick={() => openGalleryAtIndex(index)}
                         className="group relative aspect-square rounded-xl overflow-hidden border bg-muted"
                       >
+                        <RestaurantGalleryWatermark sizeClassName="h-10 w-10" />
                         <img src={photo.media_url} alt={photo.alt_text || restaurant.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
                         {photo.is_cover && (
-                          <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <div className="absolute top-2 left-14 z-20 bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                             <Star className="h-3 w-3" /> Couverture
                           </div>
                         )}
@@ -766,7 +812,8 @@ export default function RestaurantDetail() {
               <Button variant="ghost" size="icon" className="absolute right-4 text-white hover:bg-white/20 z-50" onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev + 1) % galleryPhotos.length); }}><ChevronRight className="h-8 w-8" /></Button>
             </>
           )}
-          <div className="max-w-4xl max-h-[80vh] px-12" onClick={(e) => e.stopPropagation()}>
+          <div className="relative max-w-4xl max-h-[80vh] px-12" onClick={(e) => e.stopPropagation()}>
+            <RestaurantGalleryWatermark className="left-16 top-4" sizeClassName="h-16 w-16" />
             <img src={galleryPhotos[galleryIndex].media_url} alt={galleryPhotos[galleryIndex].alt_text || restaurant.name} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
             <p className="text-center text-white/70 text-sm mt-3">{galleryIndex + 1} / {galleryPhotos.length}{galleryPhotos[galleryIndex].alt_text ? ` — ${galleryPhotos[galleryIndex].alt_text}` : ""}</p>
           </div>
