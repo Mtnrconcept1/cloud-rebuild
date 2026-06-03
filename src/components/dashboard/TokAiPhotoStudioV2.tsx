@@ -326,6 +326,8 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       media_type: "photo_ai_tok",
       uploaded_by: userId || null,
       position: currentPhotoCount,
+      storage_bucket: result.gallery_storage_bucket,
+      storage_path: result.gallery_storage_path,
     });
     if (error) return toast({ title: "Erreur", description: error.message, variant: "destructive" });
     toast({ title: "Ajouté à la galerie" });

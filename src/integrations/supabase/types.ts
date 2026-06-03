@@ -4786,6 +4786,8 @@ export type Database = {
           media_url: string
           position: number
           restaurant_id: string
+          storage_bucket: string | null
+          storage_path: string | null
           updated_at: string
           uploaded_by: string | null
         }
@@ -4798,6 +4800,8 @@ export type Database = {
           media_url: string
           position?: number
           restaurant_id: string
+          storage_bucket?: string | null
+          storage_path?: string | null
           updated_at?: string
           uploaded_by?: string | null
         }
@@ -4810,6 +4814,8 @@ export type Database = {
           media_url?: string
           position?: number
           restaurant_id?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
           updated_at?: string
           uploaded_by?: string | null
         }

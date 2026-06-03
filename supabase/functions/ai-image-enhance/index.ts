@@ -28,6 +28,8 @@ type GeneratedImage = {
   gallery_image_url: string;
   storage_bucket: string;
   storage_path: string;
+  gallery_storage_bucket: string;
+  gallery_storage_path: string;
   model: string;
 };
 
@@ -781,6 +783,8 @@ Deno.serve(async (req) => {
       gallery_image_url: stored.galleryImageUrl,
       storage_bucket: IMAGE_BUCKET,
       storage_path: stored.path,
+      gallery_storage_bucket: GALLERY_BUCKET,
+      gallery_storage_path: stored.galleryPath,
       model: imageOptions.model,
     };
 
@@ -843,6 +847,8 @@ Deno.serve(async (req) => {
       gallery_image_url: generated?.gallery_image_url || null,
       storage_bucket: generated?.storage_bucket || null,
       storage_path: generated?.storage_path || null,
+      gallery_storage_bucket: generated?.gallery_storage_bucket || null,
+      gallery_storage_path: generated?.gallery_storage_path || null,
       model: generated?.model || IMAGE_MODEL,
       image_mode: usedImageOptions?.mode,
       brand_overlay_positioning: "frontend_transparent_layer",

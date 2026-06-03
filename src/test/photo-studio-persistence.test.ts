@@ -29,7 +29,6 @@ describe("TOK photo studio persistence", () => {
 
   it("keeps technical source URLs hidden in the simplified studio", () => {
     expect(source).toContain("showUrlInput={false}");
-    expect(source).not.toContain("storage_path");
     expect(source).not.toContain("reference_folder");
     expect(source).not.toContain("assetId");
   });
@@ -55,6 +54,8 @@ describe("TOK photo studio persistence", () => {
   it("adds generated images to the gallery through a stable public gallery URL", () => {
     expect(source).toContain("result.gallery_image_url");
     expect(source).toContain("media_url: result.gallery_image_url");
+    expect(source).toContain("storage_bucket: result.gallery_storage_bucket");
+    expect(source).toContain("storage_path: result.gallery_storage_path");
     expect(source).not.toContain("media_url: result.generated_image_url");
   });
 
