@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
@@ -149,6 +149,17 @@ function FeatureSwitch({ enabled, fallback = "/", children }: { enabled: boolean
   return enabled ? <>{children}</> : <Navigate to={fallback} replace />;
 }
 
+function shouldShowPublicNavbar(pathname: string) {
+  return !(
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
+    pathname === "/courier" ||
+    pathname.startsWith("/courier/")
+  );
+}
+
 function AdminDashboardRoute() {
   return (
     <ProtectedRoute requiredRole="admin">
@@ -161,6 +172,7 @@ function AdminDashboardRoute() {
 }
 
 function AppShell() {
+  const { pathname } = useLocation();
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const hasFeature = (flagName: string) => (featureFlagsLoading ? null : activeFeatures.has(flagName));
   const commandesEnabled = hasFeature("commandes");
@@ -217,7 +229,7 @@ function AppShell() {
   return (
     <>
       <MobileLogoIntro />
-      <Navbar />
+      {shouldShowPublicNavbar(pathname) ? <Navbar /> : null}
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
         <Routes>
           <Route path="/" element={<Index />} />

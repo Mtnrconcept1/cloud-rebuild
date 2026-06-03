@@ -71,6 +71,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Marketing",
     items: [
       { to: "/dashboard/campagne-overview", label: "Campagnes", icon: Megaphone, feature: "dashboard-campagne-overview" },
+      { to: "/dashboard/promotions", label: "Promotions", icon: Megaphone, feature: "dashboard-promotions" },
       { to: "/dashboard/reseaux-sociaux", label: "Reseaux sociaux", icon: Share2, feature: "dashboard-reseaux-sociaux" },
       { to: "/dashboard/actualites", label: "Actualités", icon: Newspaper, feature: "dashboard-actualites" },
       { to: "/dashboard/campagnes", label: "Campagnes avancees", icon: Megaphone, feature: "dashboard-campagnes" },
@@ -108,6 +109,11 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
 ];
+
+function isDashboardNavItemActive(pathname: string, itemTo: string) {
+  if (itemTo === "/dashboard") return pathname === itemTo;
+  return pathname === itemTo || pathname.startsWith(`${itemTo}/`);
+}
 
 function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
   const { restaurants, selectedId, setSelectedId } = useDashboardRestaurant();
@@ -208,7 +214,7 @@ function NavItems({
                 to={item.to}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
-                  pathname.startsWith(item.to)
+                  isDashboardNavItemActive(pathname, item.to)
                     ? "bg-primary/10 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] dark:shadow-[0_0_28px_rgba(255,106,26,0.22)]"
                     : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72"
                 )}
@@ -270,7 +276,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     () =>
       sections
         .flatMap((section) => section.items)
-        .find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`)),
+        .filter((item) => isDashboardNavItemActive(pathname, item.to))
+        .sort((a, b) => b.to.length - a.to.length)[0],
     [pathname, sections]
   );
 
