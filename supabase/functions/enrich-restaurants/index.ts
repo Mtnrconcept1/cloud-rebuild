@@ -3,9 +3,23 @@ import {
   authenticateRequest,
   jsonResponse,
   requireRole,
+  writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+
+const FIRECRAWL_ADMIN_TOOLS_ENV = "ENABLE_FIRECRAWL_ADMIN_TOOLS";
+const ENRICH_RESTAURANTS_LIMIT = 25;
+
+function firecrawlAdminToolsEnabled() {
+  return String(Deno.env.get(FIRECRAWL_ADMIN_TOOLS_ENV) || "").trim().toLowerCase() === "true";
+}
+
+function boundedLimit(value: unknown) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return ENRICH_RESTAURANTS_LIMIT;
+  return Math.min(Math.floor(parsed), ENRICH_RESTAURANTS_LIMIT);
+}
 
 const REVIEW_COMMENTS_FR = [
   "Excellent restaurant, cuisine raffinée et service impeccable !",
@@ -57,13 +71,51 @@ Deno.serve(async (req) => {
   if (preflight) return preflight;
 
   const log = makeLogger("enrich-restaurants");
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
-    const actor = await authenticateRequest(req, { allowServiceRole: false });
+    actor = await authenticateRequest(req, { allowServiceRole: false });
     requireRole(actor, ["admin"]);
     const supabase = actor.adminClient;
     const body = await req.json().catch(() => ({}));
     const mode = body.mode || "reviews";
+    const dryRun = body?.dry_run !== false;
+    const limit = boundedLimit(body?.limit);
+
+    if (!firecrawlAdminToolsEnabled()) {
+      await writeAuditLog({
+        adminClient: supabase,
+        actor,
+        request: req,
+        functionName: "enrich-restaurants",
+        action: "firecrawl_enrich_restaurants_blocked",
+        status: "failure",
+        targetEntityType: "restaurants",
+        errorMessage: "firecrawl_admin_tools_disabled",
+        metadata: { mode, dry_run: dryRun },
+      });
+      throw new HttpError(403, "firecrawl_admin_tools_disabled");
+    }
+
+    if (dryRun) {
+      await writeAuditLog({
+        adminClient: supabase,
+        actor,
+        request: req,
+        functionName: "enrich-restaurants",
+        action: "firecrawl_enrich_restaurants_dry_run",
+        status: "success",
+        targetEntityType: "restaurants",
+        metadata: { mode, limit },
+      });
+
+      return jsonResponse({
+        success: true,
+        dryRun: true,
+        mode,
+        limit,
+      }, 200, corsHeaders);
+    }
 
     // Fake review injection must never run in production.
     if (mode === "reviews") {
@@ -79,7 +131,8 @@ Deno.serve(async (req) => {
     const { data: restaurants, error: restErr } = await supabase
       .from("restaurants")
       .select("id, name, cuisine_type, image_url, city, rating")
-      .eq("is_active", true);
+      .eq("is_active", true)
+      .limit(limit);
 
     if (restErr) throw new Error("Failed to fetch restaurants: " + restErr.message);
     log.info("restaurants_found", { count: restaurants?.length ?? 0 });
@@ -163,10 +216,18 @@ Deno.serve(async (req) => {
         await supabase.rpc("recompute_restaurant_review_stats", { p_restaurant_id: rid });
       }
 
-      return new Response(
-        JSON.stringify({ success: true, reviewsAdded, totalRestaurants: restaurants.length }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      const result = { success: true, reviewsAdded, totalRestaurants: restaurants.length };
+      await writeAuditLog({
+        adminClient: supabase,
+        actor,
+        request: req,
+        functionName: "enrich-restaurants",
+        action: "firecrawl_enrich_restaurants_write",
+        status: "success",
+        targetEntityType: "restaurants",
+        metadata: { mode, reviews_added: reviewsAdded, total_restaurants: restaurants.length },
+      });
+      return jsonResponse(result, 200, corsHeaders);
     }
 
     if (mode === "photos") {
@@ -242,10 +303,18 @@ Deno.serve(async (req) => {
         }
       }
 
-      return new Response(
-        JSON.stringify({ success: true, photosAdded }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      const result = { success: true, photosAdded };
+      await writeAuditLog({
+        adminClient: supabase,
+        actor,
+        request: req,
+        functionName: "enrich-restaurants",
+        action: "firecrawl_enrich_restaurants_write",
+        status: "success",
+        targetEntityType: "restaurants",
+        metadata: { mode, photos_added: photosAdded },
+      });
+      return jsonResponse(result, 200, corsHeaders);
     }
 
     if (mode === "product_photos") {
@@ -314,10 +383,18 @@ Deno.serve(async (req) => {
         }
       }
 
-      return new Response(
-        JSON.stringify({ success: true, productPhotosAdded }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      const result = { success: true, productPhotosAdded };
+      await writeAuditLog({
+        adminClient: supabase,
+        actor,
+        request: req,
+        functionName: "enrich-restaurants",
+        action: "firecrawl_enrich_restaurants_write",
+        status: "success",
+        targetEntityType: "menu_items",
+        metadata: { mode, product_photos_added: productPhotosAdded },
+      });
+      return jsonResponse(result, 200, corsHeaders);
     }
 
     return jsonResponse(

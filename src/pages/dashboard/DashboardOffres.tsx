@@ -65,13 +65,14 @@ export default function DashboardOffres() {
       if (!selectedId) return [];
 
       const { data, error } = await supabase
-        .from("anti_waste_offers")
+        .from("anti_waste_offers" as any)
         .select("*")
         .eq("restaurant_id", selectedId)
+        .is("archived_at", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as OfferRecord[];
     },
     enabled: !!selectedId,
   });
@@ -87,11 +88,11 @@ export default function DashboardOffres() {
       return;
     }
 
-    const { error } = await supabase
-      .from("anti_waste_offers")
-      .update({ is_active: !current })
-      .eq("id", id)
-      .eq("restaurant_id", selectedId);
+    const { error } = await (supabase.rpc as any)("restaurant_update_anti_waste_offer_status", {
+      p_offer_id: id,
+      p_is_active: !current,
+      p_reason: "Changement statut offre anti-gaspi",
+    });
 
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -104,12 +105,13 @@ export default function DashboardOffres() {
 
   const deleteOffer = async (id: string) => {
     if (!selectedId) return;
+    const reason = window.prompt("Raison obligatoire pour archiver cette offre anti-gaspi.");
+    if (!reason?.trim()) return;
 
-    const { error } = await supabase
-      .from("anti_waste_offers")
-      .delete()
-      .eq("id", id)
-      .eq("restaurant_id", selectedId);
+    const { error } = await (supabase.rpc as any)("restaurant_archive_anti_waste_offer", {
+      p_offer_id: id,
+      p_reason: reason.trim(),
+    });
 
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -310,18 +312,22 @@ function OfferForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
 
     setLoading(true);
 
-    const { error } = await supabase.from("anti_waste_offers").insert({
-      restaurant_id: restaurantId,
-      title: selectedItem.name,
-      description: `Anti-gaspi -${discountPercent}%`,
-      offer_type: offerType,
-      original_price: originalPrice,
-      discounted_price: discountedPrice,
-      quantity_available: quantity,
-      available_date: availableDate,
-      pickup_start: pickupStart,
-      pickup_end: pickupEnd,
-      is_active: true,
+    const { error } = await (supabase.rpc as any)("restaurant_upsert_anti_waste_offer", {
+      p_offer_id: null,
+      p_payload: {
+        restaurant_id: restaurantId,
+        title: selectedItem.name,
+        description: `Anti-gaspi -${discountPercent}%`,
+        offer_type: offerType,
+        original_price: originalPrice,
+        discounted_price: discountedPrice,
+        quantity_available: quantity,
+        available_date: availableDate,
+        pickup_start: pickupStart,
+        pickup_end: pickupEnd,
+        is_active: true,
+      },
+      p_reason: "Creation offre anti-gaspi restaurateur",
     });
 
     setLoading(false);

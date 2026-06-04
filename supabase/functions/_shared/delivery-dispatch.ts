@@ -421,10 +421,21 @@ export async function triggerDispatchOrder(input: {
       radius_km: input.radiusKm || null,
     }),
   });
+  const body = await response.text();
+  let parsedBody: Record<string, unknown> | null = null;
+  try {
+    parsedBody = body ? JSON.parse(body) as Record<string, unknown> : null;
+  } catch {
+    parsedBody = null;
+  }
 
   return {
     ok: response.ok,
     status: response.status,
-    body: await response.text(),
+    body,
+    error: typeof parsedBody?.error === "string" ? parsedBody.error : null,
+    diagnostic: parsedBody?.diagnostic && typeof parsedBody.diagnostic === "object"
+      ? parsedBody.diagnostic as Record<string, unknown>
+      : null,
   };
 }

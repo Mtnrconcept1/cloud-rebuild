@@ -789,59 +789,88 @@ export default function Panier() {
         }));
 
         firstOrderId = pendingOrderResults.find((result) => result.orderId)?.orderId || null;
+        const pendingOrderIds = pendingOrderResults
+          .map((result) => result.orderId)
+          .filter((orderId): orderId is string => Boolean(orderId));
+        const compensatePendingCheckout = async (reason: string) => {
+          if (pendingOrderIds.length === 0) return;
 
-        const { data: checkoutData, error: checkoutError } = await withTimeout(
-          invokeSupabaseFunction("create-checkout", {
-            accessToken,
-            body: {
-              items: items.map(i => ({
-                name: i.name,
-                price: i.price,
-                quantity: i.quantity,
-                restaurant_name: i.restaurantName,
-                restaurant_id: i.restaurantId,
-                menu_item_id: i.menuItemId,
-                metadata: i.metadata || {},
-              })),
-              payment_method: paymentMethod,
-              return_url: buildCheckoutReturnUrl("/commande/confirmation"),
-              order_metadata: {
-                order_reference: orderReference,
-                restaurant_id: restaurantId,
-                delivery_fee: quotedDeliveryFee,
+          try {
+            await invokeSupabaseFunction("cancel-pending-order-checkout", {
+              accessToken,
+              body: {
+                order_ids: pendingOrderIds,
                 checkout_group_id: checkoutGroupId,
-                primary_order_id: firstOrderId,
-                checkout_session_state: "pending",
-                promo_code_id: promoCodeId,
-                points_to_redeem: pointsToRedeem,
-                ...guaranteedDeliveryOrderMetadata,
-                delivery_address: checkoutDeliveryAddress,
-                delivery_city: checkoutDeliveryCity,
-                delivery_lat: checkoutDeliveryLat,
-                delivery_lng: checkoutDeliveryLng,
-                formula_discount: formulaDiscount,
-                formula_discount_amount: formulaDiscount,
-                promotion_discount_amount: effectivePromoDiscount,
-                promotion_applied: effectivePromoName,
-                points_discount: pointsDiscount,
-                points_discount_amount: pointsDiscount,
-                flex_discount: flexDiscount,
-                flex_discount_amount: flexDiscount,
-                tok_one_discount_amount: tokOneDiscount,
-                tok_one_discount_percent: tokOneDiscountPercent,
-                tok_one_member: isTokOneMember,
-                tok_one_delivery_saved: tokOneDeliverySaved,
-                flex_option: flexOption,
+                reason,
               },
-            },
-          }),
-          CHECKOUT_TIMEOUT_MS,
-          "La creation de la session Stripe prend trop de temps. Reessayez dans quelques instants.",
-        );
+            });
+          } catch (compensationError) {
+            console.error("Pending checkout compensation failed", compensationError);
+          }
+        };
 
-        if (checkoutError) throw new Error(checkoutError.message);
-        if (checkoutData?.error) throw new Error(checkoutData.error);
-        if (!checkoutData?.url || !checkoutData?.session_id) {
+        let checkoutData: Record<string, any> | null = null;
+        try {
+          const { data, error: checkoutError } = await withTimeout(
+            invokeSupabaseFunction("create-checkout", {
+              accessToken,
+              body: {
+                items: items.map(i => ({
+                  name: i.name,
+                  price: i.price,
+                  quantity: i.quantity,
+                  restaurant_name: i.restaurantName,
+                  restaurant_id: i.restaurantId,
+                  menu_item_id: i.menuItemId,
+                  metadata: i.metadata || {},
+                })),
+                payment_method: paymentMethod,
+                return_url: buildCheckoutReturnUrl("/commande/confirmation"),
+                order_metadata: {
+                  order_reference: orderReference,
+                  restaurant_id: restaurantId,
+                  delivery_fee: quotedDeliveryFee,
+                  checkout_group_id: checkoutGroupId,
+                  primary_order_id: firstOrderId,
+                  checkout_session_state: "pending",
+                  promo_code_id: promoCodeId,
+                  points_to_redeem: pointsToRedeem,
+                  ...guaranteedDeliveryOrderMetadata,
+                  delivery_address: checkoutDeliveryAddress,
+                  delivery_city: checkoutDeliveryCity,
+                  delivery_lat: checkoutDeliveryLat,
+                  delivery_lng: checkoutDeliveryLng,
+                  formula_discount: formulaDiscount,
+                  formula_discount_amount: formulaDiscount,
+                  promotion_discount_amount: effectivePromoDiscount,
+                  promotion_applied: effectivePromoName,
+                  points_discount: pointsDiscount,
+                  points_discount_amount: pointsDiscount,
+                  flex_discount: flexDiscount,
+                  flex_discount_amount: flexDiscount,
+                  tok_one_discount_amount: tokOneDiscount,
+                  tok_one_discount_percent: tokOneDiscountPercent,
+                  tok_one_member: isTokOneMember,
+                  tok_one_delivery_saved: tokOneDeliverySaved,
+                  flex_option: flexOption,
+                },
+              },
+            }),
+            CHECKOUT_TIMEOUT_MS,
+            "La creation de la session Stripe prend trop de temps. Reessayez dans quelques instants.",
+          );
+
+          if (checkoutError) throw new Error(checkoutError.message);
+          if (data?.error) throw new Error(data.error);
+          if (!data?.url || !data?.session_id) {
+            throw new Error("Impossible de lancer le paiement Stripe pour cette commande.");
+          }
+          checkoutData = data;
+        } catch (checkoutFailure: any) {
+          await compensatePendingCheckout(checkoutFailure?.message || "Echec creation session Stripe");
+          throw checkoutFailure;
+        }
+        if (!checkoutData) {
           throw new Error("Impossible de lancer le paiement Stripe pour cette commande.");
         }
 

@@ -4,6 +4,7 @@ import {
   HttpError,
   createAdminClient,
   jsonResponse,
+  writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
@@ -12,6 +13,32 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TRACKABLE_ENTITY_TYPES = new Set(["restaurant", "dish", "collection", "ad"]);
+const TRACKABLE_EVENT_NAMES_BY_ENTITY = new Map<string, Set<string>>([
+  ["restaurant", new Set(["view", "favorite", "unfavorite", "share", "call", "directions", "menu_open", "gallery_open", "order_start", "reservation_start"])],
+  ["dish", new Set(["view", "add_to_cart", "remove_from_cart", "customize", "share"])],
+  ["collection", new Set(["view", "click", "filter", "sort"])],
+  ["ad", new Set(["impression", "click", "cta_click", "dismiss"])],
+]);
+const ALLOWED_EVENT_PAYLOAD_KEYS = new Set([
+  "source",
+  "surface",
+  "section",
+  "position",
+  "restaurant_id",
+  "dish_id",
+  "collection_id",
+  "ad_id",
+  "campaign_id",
+  "query",
+  "city",
+  "cuisine",
+  "device",
+  "locale",
+  "variant",
+]);
+const MAX_EVENT_PAYLOAD_KEYS = 12;
+const MAX_EVENT_PAYLOAD_BYTES = 2_048;
+const MAX_EVENT_PAYLOAD_STRING_LENGTH = 160;
 
 type AnalyticsPayload = {
   kind?: string;
@@ -51,6 +78,35 @@ function asObject(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function sanitizeEventPayload(value: unknown) {
+  const input = asObject(value);
+  const output: Record<string, unknown> = {};
+
+  for (const [key, rawValue] of Object.entries(input)) {
+    if (Object.keys(output).length >= MAX_EVENT_PAYLOAD_KEYS) break;
+    if (!ALLOWED_EVENT_PAYLOAD_KEYS.has(key)) continue;
+
+    if (typeof rawValue === "string") {
+      output[key] = rawValue.trim().slice(0, MAX_EVENT_PAYLOAD_STRING_LENGTH);
+    } else if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+      output[key] = rawValue;
+    } else if (typeof rawValue === "boolean" || rawValue === null) {
+      output[key] = rawValue;
+    }
+  }
+
+  const encoded = JSON.stringify(output);
+  if (encoded.length > MAX_EVENT_PAYLOAD_BYTES) {
+    throw new HttpError(400, "payload trop volumineux");
+  }
+
+  return output;
+}
+
+function isAllowedEvent(entityType: string, eventName: string) {
+  return Boolean(TRACKABLE_EVENT_NAMES_BY_ENTITY.get(entityType)?.has(eventName));
+}
+
 function getClientIp(req: Request) {
   const forwardedFor = req.headers.get("x-forwarded-for") || "";
   return forwardedFor.split(",")[0]?.trim() || "unknown";
@@ -76,12 +132,50 @@ async function maybeResolveUserId(req: Request) {
   return data.user.id;
 }
 
+async function auditRejectedEvent({
+  adminClient,
+  req,
+  userId,
+  entityType,
+  eventName,
+  errorMessage,
+}: {
+  adminClient: ReturnType<typeof createAdminClient>;
+  req: Request;
+  userId: string | null;
+  entityType: string;
+  eventName: string;
+  errorMessage: string;
+}) {
+  await writeAuditLog({
+    adminClient,
+    actor: userId
+      ? { userId, roles: [], isServiceRole: false, authMode: "user_jwt" }
+      : null,
+    request: req,
+    functionName: "track-analytics",
+    action: "reject_public_analytics_event",
+    status: "failure",
+    targetEntityType: "analytics_event",
+    errorMessage,
+    metadata: {
+      entity_type: entityType || "missing",
+      event_name: eventName || "missing",
+    },
+  });
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
 
   const log = makeLogger("track-analytics");
+  const adminClient = createAdminClient();
+  let userId: string | null = null;
+  let kind = "";
+  let rejectedEventType = "";
+  let rejectedEventName = "";
 
   try {
     if (req.method !== "POST") {
@@ -89,9 +183,8 @@ Deno.serve(async (req) => {
     }
 
     const input: AnalyticsPayload = await req.json();
-    const kind = normalizeKind(input.kind);
-    const adminClient = createAdminClient();
-    const userId = await maybeResolveUserId(req);
+    kind = normalizeKind(input.kind);
+    userId = await maybeResolveUserId(req);
     const limiter = createRateLimiter(adminClient, "track-analytics");
     const ipSubject = `ip:${getClientIp(req)}`;
 
@@ -104,25 +197,28 @@ Deno.serve(async (req) => {
     switch (kind) {
       case "event": {
         const entityId = normalizeText(input.entityId);
-        const entityType = normalizeText(input.entityType);
-        const eventName = normalizeText(input.eventName);
+        const entityType = normalizeKind(input.entityType);
+        const eventName = normalizeKind(input.eventName);
+        rejectedEventType = entityType;
+        rejectedEventName = eventName;
 
         if (!isUuid(entityId)) {
           throw new HttpError(400, "entityId invalide");
         }
-        if (!entityType) {
-          throw new HttpError(400, "entityType requis");
+        if (!TRACKABLE_ENTITY_TYPES.has(entityType)) {
+          throw new HttpError(400, "entityType invalide");
         }
-        if (!eventName) {
-          throw new HttpError(400, "eventName requis");
+        if (!isAllowedEvent(entityType, eventName)) {
+          throw new HttpError(400, "eventName invalide");
         }
+        const safePayload = sanitizeEventPayload(input.payload);
 
         const { error } = await adminClient.from("event_store").insert({
           entity_id: entityId,
           entity_type: entityType,
           event_name: eventName,
           payload: {
-            ...asObject(input.payload),
+            ...safePayload,
             user_id: userId,
           },
         });
@@ -211,6 +307,16 @@ Deno.serve(async (req) => {
     }
   } catch (error) {
     log.error("track-analytics error", { message: error instanceof Error ? error.message : "unknown" });
+    if (kind === "event" && error instanceof HttpError && error.status >= 400 && error.status < 500) {
+      await auditRejectedEvent({
+        adminClient,
+        req,
+        userId,
+        entityType: rejectedEventType,
+        eventName: rejectedEventName,
+        errorMessage: error.message,
+      });
+    }
     if (error instanceof HttpError) {
       return jsonResponse({ error: error.message }, error.status, corsHeaders);
     }

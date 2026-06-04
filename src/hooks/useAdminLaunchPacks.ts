@@ -58,10 +58,11 @@ export function useUpdateFulfillment() {
         patch.completed_at = null;
       }
 
-      const { error } = await supabase
-        .from("launch_pack_service_fulfillments")
-        .update(patch)
-        .eq("id", id);
+      const { error } = await (supabase.rpc as any)("admin_update_launch_pack_fulfillment", {
+        p_fulfillment_id: id,
+        p_patch: patch,
+        p_reason: "Mise a jour fulfillment Launch Pack",
+      });
 
       if (error) throw error;
     },
@@ -80,10 +81,11 @@ export function useUpdateRestaurantFeatures() {
       restaurantId: string;
       disabledFeatures: string[];
     }) => {
-      const { error } = await supabase
-        .from("restaurants")
-        .update({ disabled_dashboard_features: params.disabledFeatures })
-        .eq("id", params.restaurantId);
+      const { error } = await (supabase.rpc as any)("admin_update_restaurant_disabled_features", {
+        p_restaurant_id: params.restaurantId,
+        p_features: params.disabledFeatures,
+        p_reason: "Mise a jour features dashboard Launch Pack",
+      });
 
       if (error) throw error;
     },
@@ -102,16 +104,11 @@ export function useUpdatePackStatus() {
       id: string;
       status: PackPurchaseStatus;
     }) => {
-      const patch: Record<string, unknown> = { status: params.status };
-
-      if (params.status === "completed") {
-        patch.completed_at = new Date().toISOString();
-      }
-
-      const { error } = await supabase
-        .from("restaurant_launch_packs")
-        .update(patch)
-        .eq("id", params.id);
+      const { error } = await (supabase.rpc as any)("admin_update_launch_pack_status", {
+        p_pack_id: params.id,
+        p_status: params.status,
+        p_reason: "Mise a jour statut Launch Pack",
+      });
 
       if (error) throw error;
     },

@@ -147,6 +147,42 @@ function getStatusOptions(order: DashboardOrder) {
     : [currentStatus, ...nonCancellationStatuses.filter((status) => status !== currentStatus)];
 }
 
+function getDispatchFailureMessage(dispatch: unknown) {
+  const record = dispatch && typeof dispatch === "object" && !Array.isArray(dispatch)
+    ? dispatch as Record<string, any>
+    : {};
+  let errorMessage = typeof record.error === "string" ? record.error : "Impossible de notifier les livreurs.";
+  let diagnostic = record.diagnostic && typeof record.diagnostic === "object"
+    ? record.diagnostic as Record<string, any>
+    : null;
+
+  if (!diagnostic && errorMessage.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(errorMessage);
+      if (typeof parsed?.error === "string") errorMessage = parsed.error;
+      if (parsed?.diagnostic && typeof parsed.diagnostic === "object") diagnostic = parsed.diagnostic;
+    } catch {
+      // Keep the raw server message when it is not JSON.
+    }
+  }
+
+  const code = String(diagnostic?.code || "");
+  if (code === "missing_authorization" || code === "session_expired") {
+    return "Le statut est enregistre, mais dispatch-order a refuse l'appel interne. Action admin: verifier le secret service-role synchronise sur les Edge Functions.";
+  }
+  if (code === "role_failure") {
+    return "Le statut est enregistre, mais le dispatch a echoue sur un controle de role. Action admin: verifier les roles et l'acces restaurant.";
+  }
+  if (code === "missing_secret") {
+    return `Le statut est enregistre, mais un secret Edge Function manque: ${diagnostic?.missing_secret || "secret inconnu"}.`;
+  }
+  if (code === "firebase_config_invalid") {
+    return "Le statut est enregistre, mais la configuration Firebase push est invalide. Action admin: verifier FIREBASE_SERVICE_ACCOUNT.";
+  }
+
+  return errorMessage;
+}
+
 function getOrderRefundSnapshot(order: DashboardOrder) {
   const paymentStatus = String(order.payment_status || order.metadata?.payment_status || "").trim().toLowerCase();
   const refundStatus = String(order.refund_status || "").trim().toLowerCase();
@@ -392,7 +428,7 @@ export default function DashboardCommandes() {
 
     const dispatchState = typeof data?.dispatch?.state === "string" ? data.dispatch.state : null;
     if (dispatchState === "failed") {
-      const dispatchError = typeof data?.dispatch?.error === "string" ? data.dispatch.error : "Impossible de notifier les livreurs.";
+      const dispatchError = getDispatchFailureMessage(data?.dispatch);
       toast({
         title: "Statut mis à jour (alerté livreur échouée)",
         description: dispatchError,

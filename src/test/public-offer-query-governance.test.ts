@@ -37,4 +37,18 @@ describe("public offer query governance", () => {
 
     expect(restaurantDetail).toContain("staleTime: RESTAURANT_DETAIL_STALE_MS");
   });
+
+  it("keeps remaining high-volume public and dashboard reads bounded", () => {
+    const home = read("src/pages/Index.tsx");
+    const chefsTable = read("src/pages/ChefsTable.tsx");
+    const dashboardReservations = read("src/pages/dashboard/DashboardReservations.tsx");
+    const socialFeed = read("src/hooks/useSocialFeed.ts");
+
+    expect(home).toContain("HOME_MAP_RESTAURANTS_LIMIT");
+    expect(home).toContain(".limit(HOME_MAP_RESTAURANTS_LIMIT)");
+    expect(chefsTable).toContain(".limit(CHEFS_TABLE_DROPS_LIMIT)");
+    expect(dashboardReservations).toContain(".limit(DASHBOARD_RESERVATIONS_FETCH_LIMIT)");
+    expect(socialFeed).toContain(".limit(RESTAURANT_SOCIAL_POSTS_LIMIT)");
+    expect(socialFeed).toContain(".limit(SOCIAL_COMMENTS_LIMIT)");
+  });
 });

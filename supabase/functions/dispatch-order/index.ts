@@ -13,6 +13,7 @@ import {
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { getEdgeErrorDiagnostic, getEdgeErrorPayload } from "../_shared/error-diagnostics.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
 const ACTIVE_DISPATCH_STATUSES = ["accepted", "arriving_pickup", "picked_up", "arriving_dropoff"];
@@ -566,11 +567,14 @@ Deno.serve(async (req) => {
       status: "failure",
       targetEntityType: "dispatch_jobs",
       errorMessage: error instanceof Error ? error.message : "Erreur interne",
+      metadata: {
+        diagnostic: getEdgeErrorDiagnostic(error, actor),
+      },
     });
     if (error instanceof HttpError) {
-      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+      return jsonResponse(getEdgeErrorPayload(error, actor), error.status, corsHeaders);
     }
     const msg = error instanceof Error ? error.message : "Erreur interne";
-    return jsonResponse({ error: msg }, 500, corsHeaders);
+    return jsonResponse({ error: msg, diagnostic: getEdgeErrorDiagnostic(error, actor) }, 500, corsHeaders);
   }
 });

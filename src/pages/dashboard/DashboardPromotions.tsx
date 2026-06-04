@@ -156,11 +156,12 @@ function PromoForm({ restaurantIds, initial, onSaved }: { restaurantIds: string[
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const normalizedPromotionValue = promoType === "free_delivery" ? 0 : Number(promoValue);
     const payload = {
       restaurant_id: initial?.restaurant_id || restaurantIds[0],
       name,
       promotion_type: promoType,
-      promotion_value: Number(promoValue),
+      promotion_value: normalizedPromotionValue,
       target,
       start_at: new Date(startAt).toISOString(),
       end_at: endAt ? new Date(endAt).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
@@ -190,7 +191,14 @@ function PromoForm({ restaurantIds, initial, onSaved }: { restaurantIds: string[
         </div>
         <div className="space-y-2">
           <Label>Valeur {promoType === "percentage" ? "(%)" : "(CHF)"}</Label>
-          <Input type="number" step="0.01" value={promoValue} onChange={e => setPromoValue(e.target.value)} required />
+          <Input
+            type="number"
+            step="0.01"
+            value={promoType === "free_delivery" ? "0" : promoValue}
+            onChange={e => setPromoValue(e.target.value)}
+            disabled={promoType === "free_delivery"}
+            required
+          />
         </div>
       </div>
       <div className="space-y-2">

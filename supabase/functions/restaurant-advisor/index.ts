@@ -8,11 +8,17 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import {
+  OPENAI_API_KEY,
+  selectTokAiModel,
+} from "../_shared/openai.ts";
 
 // Restaurant columns sent to the AI. Keep this list minimal and business-only:
 // never send owner_id, stripe_account_id, internal flags, raw addresses, etc.
 const RESTAURANT_COLUMNS =
   "id, name, city, cuisine_type, rating, review_count, price_range, delivery_available, delivery_fee, min_order_amount";
+const FUNCTION_NAME = "restaurant-advisor";
+const FEATURE_NAME = "ai_sales_insights";
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
@@ -29,6 +35,76 @@ function sanitizeMessages(raw: unknown): ChatMessage[] {
     .filter((m) => m.content.length > 0);
 }
 
+function isQuotaAllowed(value: unknown) {
+  if (!value || typeof value !== "object") return true;
+  return (value as Record<string, unknown>).allowed !== false;
+}
+
+function isMissingQuotaRpc(error: { message?: string } | null | undefined) {
+  const message = error?.message || "";
+  return message.includes("check_restaurant_ai_quota") || message.includes("schema cache");
+}
+
+async function checkRestaurantQuota(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  restaurantId: string,
+) {
+  const { data, error } = await actor.adminClient.rpc("check_restaurant_ai_quota", {
+    p_restaurant_id: restaurantId,
+    p_feature: FEATURE_NAME,
+    p_units: 1,
+  });
+
+  if (!error) return data;
+  if (!isMissingQuotaRpc(error)) throw new HttpError(503, error.message);
+
+  return {
+    allowed: true,
+    feature: FEATURE_NAME,
+    degraded: true,
+    reason: "quota_rpc_unavailable",
+  };
+}
+
+function estimateTokens(text: string) {
+  return Math.max(1, Math.ceil(text.length / 4));
+}
+
+function estimateCostChf(inputTokens = 0, outputTokens = 0) {
+  return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
+}
+
+async function insertUsage(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  payload: {
+    status: "success" | "failure";
+    restaurantId?: string | null;
+    model: string;
+    inputTokens?: number;
+    outputTokens?: number;
+    metadata?: Record<string, unknown>;
+  },
+) {
+  const inputTokens = payload.inputTokens || 0;
+  const outputTokens = payload.outputTokens || 0;
+
+  await actor.adminClient.from("ai_usage_logs").insert({
+    function_name: FUNCTION_NAME,
+    action: "streaming_chat",
+    feature_name: FEATURE_NAME,
+    source: FUNCTION_NAME,
+    model: payload.model,
+    user_id: actor.userId,
+    restaurant_id: payload.restaurantId || null,
+    status: payload.status,
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+    total_tokens: inputTokens + outputTokens,
+    estimated_cost_chf: estimateCostChf(inputTokens, outputTokens),
+    metadata: { feature: FEATURE_NAME, ...(payload.metadata || {}) },
+  });
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
@@ -36,12 +112,14 @@ Deno.serve(async (req) => {
 
   const log = makeLogger("restaurant-advisor");
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let auditRestaurantId: string | null = null;
+  let model = selectTokAiModel("strategy");
+  let estimatedInputTokens = 0;
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     if (!actor.userId) throw new HttpError(401, "Unauthorized");
 
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!OPENAI_API_KEY && !LOVABLE_API_KEY) {
       log.error("ai_provider_missing");
@@ -50,6 +128,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const restaurantId = typeof body.restaurantId === "string" ? body.restaurantId : "";
+    auditRestaurantId = restaurantId || null;
     const messages = sanitizeMessages(body.messages);
     if (!restaurantId || messages.length === 0) {
       throw new HttpError(400, "invalid_request");
@@ -63,6 +142,9 @@ Deno.serve(async (req) => {
     await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 3600 });
     await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 50, windowSeconds: 3600 });
     await rl.consume("global", { maxRequests: 200, windowSeconds: 60 });
+
+    const quota = await checkRestaurantQuota(actor, restaurantId);
+    if (!isQuotaAllowed(quota)) throw new HttpError(402, "ai_quota_exceeded");
 
     // Gather restaurant data (minimal columns).
     const now = new Date();
@@ -242,7 +324,7 @@ RÈGLES :
 - Propose des actions prioritaires classées par impact`;
 
     const useOpenAI = !!OPENAI_API_KEY;
-    const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL") || "gpt-4o-mini";
+    model = useOpenAI ? selectTokAiModel("strategy") : "google/gemini-3-flash-preview";
 
     const aiUrl = useOpenAI
       ? "https://api.openai.com/v1/chat/completions"
@@ -255,12 +337,13 @@ RÈGLES :
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: useOpenAI ? OPENAI_MODEL : "google/gemini-3-flash-preview",
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
         ],
         stream: true,
+        stream_options: useOpenAI ? { include_usage: true } : undefined,
       }),
     });
 
@@ -275,6 +358,22 @@ RÈGLES :
       throw new HttpError(502, "ai_service_error");
     }
 
+    estimatedInputTokens = estimateTokens(systemPrompt)
+      + messages.reduce((sum, message) => sum + estimateTokens(message.content), 0);
+    await insertUsage(actor, {
+      status: "success",
+      restaurantId,
+      model,
+      inputTokens: estimatedInputTokens,
+      metadata: {
+        rid: log.rid,
+        message_count: messages.length,
+        quota,
+        streaming: true,
+        usage_estimated: true,
+      },
+    });
+
     // Audit success (fire-and-forget).
     writeAuditLog({
       adminClient: actor.adminClient,
@@ -284,7 +383,7 @@ RÈGLES :
       request: req,
       targetEntityType: "restaurants",
       targetEntityId: restaurantId,
-      metadata: { rid: log.rid, message_count: messages.length },
+      metadata: { rid: log.rid, message_count: messages.length, model, feature_name: FEATURE_NAME },
     }).catch(() => {});
 
     return new Response(response.body, {
@@ -296,6 +395,14 @@ RÈGLES :
     log.error("request_failed", { status, message });
 
     if (actor) {
+      insertUsage(actor, {
+        status: "failure",
+        restaurantId: auditRestaurantId,
+        model,
+        inputTokens: estimatedInputTokens,
+        metadata: { rid: log.rid, error: message },
+      }).catch(() => {});
+
       writeAuditLog({
         adminClient: actor.adminClient,
         functionName: "restaurant-advisor",

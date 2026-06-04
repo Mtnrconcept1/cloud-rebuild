@@ -161,16 +161,36 @@ function shouldShowPublicNavbar(pathname: string) {
   );
 }
 
+function AdminRouteFrame({
+  children,
+  fallback = "/admin",
+}: {
+  children: React.ReactNode;
+  fallback?: string;
+}) {
+  return (
+    <div className="min-h-screen bg-background pt-[calc(env(safe-area-inset-top,0px)+3.75rem)]">
+      <div className="fixed left-3 top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[80] sm:left-6">
+        <BackNavigationButton
+          fallback={fallback}
+          showLabel={false}
+          className="h-11 w-11 shrink-0 justify-center border-primary bg-primary px-0 text-primary-foreground shadow-[0_14px_34px_rgba(15,23,42,0.22)] hover:bg-primary/90 dark:border-primary dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
+        />
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function AdminDashboardRoute() {
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="container px-4 pt-4">
-        <BackNavigationButton fallback="/" />
-      </div>
-      <div className="container pt-8">
-        <AdminUrgentActions compact />
-      </div>
-      <AdminHome />
+      <AdminRouteFrame fallback="/">
+        <div className="container pt-6">
+          <AdminUrgentActions compact />
+        </div>
+        <AdminHome />
+      </AdminRouteFrame>
     </ProtectedRoute>
   );
 }
@@ -184,10 +204,9 @@ function AdminProtectedRoute({
 }) {
   return (
     <ProtectedRoute requiredRole="admin">
-      <div className="container px-4 pt-4">
-        <BackNavigationButton fallback={fallback} />
-      </div>
-      {children}
+      <AdminRouteFrame fallback={fallback}>
+        {children}
+      </AdminRouteFrame>
     </ProtectedRoute>
   );
 }

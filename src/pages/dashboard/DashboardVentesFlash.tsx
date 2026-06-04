@@ -54,13 +54,14 @@ export default function DashboardVentesFlash() {
       if (!selectedId) return [];
 
       const { data, error } = await supabase
-        .from("flash_sales")
+        .from("flash_sales" as any)
         .select("*")
         .eq("restaurant_id", selectedId)
+        .is("archived_at", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as FlashSaleRecord[];
     },
     enabled: !!selectedId,
   });
@@ -76,11 +77,11 @@ export default function DashboardVentesFlash() {
       return;
     }
 
-    const { error } = await supabase
-      .from("flash_sales")
-      .update({ is_active: !current })
-      .eq("id", id)
-      .eq("restaurant_id", selectedId);
+    const { error } = await (supabase.rpc as any)("restaurant_update_flash_sale_status", {
+      p_sale_id: id,
+      p_is_active: !current,
+      p_reason: "Changement statut vente flash",
+    });
 
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -93,12 +94,13 @@ export default function DashboardVentesFlash() {
 
   const deleteSale = async (id: string) => {
     if (!selectedId) return;
+    const reason = window.prompt("Raison obligatoire pour archiver cette vente flash.");
+    if (!reason?.trim()) return;
 
-    const { error } = await supabase
-      .from("flash_sales")
-      .delete()
-      .eq("id", id)
-      .eq("restaurant_id", selectedId);
+    const { error } = await (supabase.rpc as any)("restaurant_archive_flash_sale", {
+      p_sale_id: id,
+      p_reason: reason.trim(),
+    });
 
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -304,17 +306,23 @@ function FlashForm({ restaurantId, onSaved }: { restaurantId: string | null; onS
 
     setLoading(true);
 
-    const { error } = await supabase.from("flash_sales").insert({
-      restaurant_id: restaurantId,
-      title: selectedItem.name,
-      description: `Vente flash -${discountPercent}%`,
-      original_price: originalPrice,
-      discounted_price: discountedPrice,
-      quantity_available: quantity,
-      sale_date: saleDate,
-      sale_start: saleStart,
-      sale_end: saleEnd,
-      is_active: true,
+    const { error } = await (supabase.rpc as any)("restaurant_upsert_flash_sale", {
+      p_sale_id: null,
+      p_payload: {
+        restaurant_id: restaurantId,
+        title: selectedItem.name,
+        description: `Vente flash -${discountPercent}%`,
+        original_price: originalPrice,
+        discounted_price: discountedPrice,
+        quantity_available: quantity,
+        sale_date: saleDate,
+        sale_start: saleStart,
+        sale_end: saleEnd,
+        is_active: true,
+        delivery_available: true,
+        takeaway_available: true,
+      },
+      p_reason: "Creation vente flash restaurateur",
     });
 
     setLoading(false);

@@ -24,6 +24,7 @@ import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 
 const supabase = getSupabase();
 const NearbyRestaurantsMap = lazy(() => import("@/components/NearbyRestaurantsMap"));
+const HOME_MAP_RESTAURANTS_LIMIT = 80;
 
 type SearchSort =
   | "pertinence"
@@ -150,7 +151,9 @@ export default function Index() {
       const { data } = await supabase
         .from("restaurants")
         .select("id, name, cuisine_type, rating, city, address, image_url")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .order("rating", { ascending: false })
+        .limit(HOME_MAP_RESTAURANTS_LIMIT);
       return data || [];
     },
   });

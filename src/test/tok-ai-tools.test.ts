@@ -176,7 +176,8 @@ describe("TOK AI tools foundation", () => {
     expect(source).not.toContain("image_brief");
     expect(source).not.toContain("brief_only");
     expect(client).toContain("imageOnly?: boolean");
-    expect(client).toContain('import { invokeSupabaseFunction } from "@/lib/session";');
+    expect(client).toContain('from "@/lib/session";');
+    expect(client).toContain("invokeSupabaseFunction");
     expect(client).not.toContain("async function getAuthorizationHeader");
     expect(client).not.toContain("supabase.functions.invoke(functionName");
     expect(studio).toContain("image_edit_timeout");
@@ -262,13 +263,16 @@ describe("TOK AI tools foundation", () => {
   it("adds restaurateur-facing text and image tools to the existing AI dashboard", () => {
     const advisor = readProjectFile("src/pages/dashboard/DashboardAdvisor.tsx");
 
-    expect(advisor).toContain("ai-restaurant-tools");
-    expect(advisor).toContain("ai-image-enhance");
+    expect(advisor).toContain("streamRestaurantAdvisor");
+    expect(advisor).toContain("runRestaurantAgent");
+    expect(advisor).toContain("generateTokDishImage");
     expect(advisor).toContain("Optimiser un plat");
-    expect(advisor).toContain("Créer une campagne");
-    expect(advisor).toContain("Améliorer une photo");
+    expect(advisor).toContain("Creer une campagne");
+    expect(advisor).toContain("Ameliorer une photo");
     expect(advisor).toContain("generated_image_url");
-    expect(advisor).toContain('imageOnly: tool.endpoint === "ai-image-enhance" ? true : undefined');
+    expect(advisor).toContain("imageOnly: true");
+    expect(advisor).not.toContain("tool.endpoint");
+    expect(advisor).not.toContain("supabase.auth.getSession");
     expect(advisor).not.toContain("**Prompt visuel**");
     expect(advisor).not.toContain("data.publication_caption");
   });

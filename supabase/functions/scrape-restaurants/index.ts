@@ -3,9 +3,16 @@ import {
   authenticateRequest,
   jsonResponse,
   requireRole,
+  writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+
+const FIRECRAWL_ADMIN_TOOLS_ENV = "ENABLE_FIRECRAWL_ADMIN_TOOLS";
+
+function firecrawlAdminToolsEnabled() {
+  return String(Deno.env.get(FIRECRAWL_ADMIN_TOOLS_ENV) || "").trim().toLowerCase() === "true";
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -13,11 +20,13 @@ Deno.serve(async (req) => {
   if (preflight) return preflight;
 
   const log = makeLogger("scrape-restaurants");
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
-    const actor = await authenticateRequest(req, { allowServiceRole: false });
+    actor = await authenticateRequest(req, { allowServiceRole: false });
     requireRole(actor, ["admin"]);
     const body = await req.json().catch(() => ({}));
+    const dryRun = body?.dry_run !== false;
     const ownerId = typeof body?.owner_id === "string" && body.owner_id.trim().length > 0
       ? body.owner_id.trim()
       : actor.userId;
@@ -27,6 +36,51 @@ Deno.serve(async (req) => {
     }
 
     const supabase = actor.adminClient;
+
+    if (!firecrawlAdminToolsEnabled()) {
+      await writeAuditLog({
+        adminClient: supabase,
+        actor,
+        request: req,
+        functionName: "scrape-restaurants",
+        action: "firecrawl_scrape_restaurants_blocked",
+        status: "failure",
+        targetEntityType: "restaurants",
+        errorMessage: "firecrawl_admin_tools_disabled",
+        metadata: { dry_run: dryRun },
+      });
+      throw new HttpError(403, "firecrawl_admin_tools_disabled");
+    }
+
+    if (dryRun) {
+      const restaurants = getGenevaRestaurants();
+      const menuItems = restaurants.reduce(
+        (sum, restaurant) => sum + generateMenuItems(restaurant.cuisine_type || "Europeen").length,
+        0,
+      );
+
+      await writeAuditLog({
+        adminClient: supabase,
+        actor,
+        request: req,
+        functionName: "scrape-restaurants",
+        action: "firecrawl_scrape_restaurants_dry_run",
+        status: "success",
+        targetEntityType: "restaurants",
+        metadata: {
+          would_insert_restaurants: restaurants.length,
+          would_insert_menu_items: menuItems,
+        },
+      });
+
+      return jsonResponse({
+        success: true,
+        dryRun: true,
+        wouldInsertRestaurants: restaurants.length,
+        wouldInsertMenuItems: menuItems,
+      }, 200, corsHeaders);
+    }
+
     // Check if restaurants already exist
     const { count } = await supabase.from("restaurants").select("*", { count: "exact", head: true });
     if (count && count > 0) {
@@ -110,13 +164,30 @@ Deno.serve(async (req) => {
       }
     }
 
-    return jsonResponse({
+    const result = {
       success: true,
       inserted: (inserted?.length || 0) + firecrawlResults.length,
       known: inserted?.map((r) => r.name) || [],
       scraped: firecrawlResults,
       menuItems: allMenuItems.length,
-    }, 200, corsHeaders);
+    };
+
+    await writeAuditLog({
+      adminClient: supabase,
+      actor,
+      request: req,
+      functionName: "scrape-restaurants",
+      action: "firecrawl_scrape_restaurants_write",
+      status: "success",
+      targetEntityType: "restaurants",
+      metadata: {
+        inserted: result.inserted,
+        menu_items: result.menuItems,
+        scraped: result.scraped.length,
+      },
+    });
+
+    return jsonResponse(result, 200, corsHeaders);
   } catch (error) {
     log.error("scrape-restaurants error", { message: error instanceof Error ? error.message : "unknown" });
     if (error instanceof HttpError) {
@@ -246,4 +317,3 @@ function generateMenuItems(cuisineType: string) {
     { name: "Fondant au chocolat", description: "Fondant cœur coulant, glace vanille", price: 12, category: "Desserts" },
   ];
 }
-

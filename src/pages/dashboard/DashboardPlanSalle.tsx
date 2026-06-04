@@ -1702,27 +1702,20 @@ export default function DashboardPlanSalle() {
           (normalizedAssignments[reservationId] || null) !== (persistedAssignments[reservationId] || null)
         ));
 
-        for (const reservationId of changedReservationIds) {
-          const { error: deleteError } = await (supabase.from("reservation_slots" as any))
-            .delete()
-            .eq("reservation_id", reservationId);
-          if (deleteError) throw deleteError;
+        if (changedReservationIds.length > 0) {
+          const changedAssignments = Object.fromEntries(
+            changedReservationIds.map((reservationId) => [
+              reservationId,
+              normalizedAssignments[reservationId] || null,
+            ]),
+          ) as Record<string, string | null>;
 
-          const nextTableId = normalizedAssignments[reservationId];
-          if (!nextTableId) continue;
-
-          const { error: slotError } = await (supabase.from("reservation_slots" as any))
-            .insert({
-              reservation_id: reservationId,
-              table_id: nextTableId,
-            });
-          if (slotError) throw slotError;
-
-          const { error: reservationError } = await supabase
-            .from("reservations")
-            .update({ branch_id: selectedBranchId })
-            .eq("id", reservationId);
-          if (reservationError) throw reservationError;
+          const { error } = await (supabase.rpc as any)("restaurant_save_floor_plan_assignments", {
+            p_branch_id: selectedBranchId,
+            p_assignments: changedAssignments,
+            p_reason: isTemplateMode ? "Sauvegarde template plan de salle" : "Sauvegarde plan de salle du jour",
+          });
+          if (error) throw error;
         }
 
         return normalizedAssignments;

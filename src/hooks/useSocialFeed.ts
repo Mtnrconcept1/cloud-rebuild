@@ -35,6 +35,8 @@ import {
 const supabase = getSupabase();
 const SOCIAL_FEED_BUCKET = "social-post-media";
 const MAX_POST_MEDIA = 10;
+const RESTAURANT_SOCIAL_POSTS_LIMIT = 50;
+const SOCIAL_COMMENTS_LIMIT = 50;
 const SOCIAL_INSIGHTS_BASE_SELECT = "id,likes_count,comments_count,reposts_count,shares_count,status,post_type,cta_type,created_at,scheduled_at";
 const SOCIAL_INSIGHTS_MARKETING_SELECT = `${SOCIAL_INSIGHTS_BASE_SELECT},campaign_goal,audience_segment`;
 
@@ -476,7 +478,8 @@ export function useRestaurantSocialPosts(restaurantId?: string | null) {
       const { data, error } = await (supabase.from("social_posts" as any) as any)
         .select("*, restaurants(id,name,image_url,city,cuisine_type), social_post_media(*)")
         .eq("restaurant_id", restaurantId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(RESTAURANT_SOCIAL_POSTS_LIMIT);
 
       if (error) throw error;
       return (data || []).map(mapRestaurantPostRow);
@@ -1031,7 +1034,8 @@ export function useSocialComments(postId?: string | null) {
         .select("*")
         .eq("post_id", postId)
         .eq("status", "published")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .limit(SOCIAL_COMMENTS_LIMIT);
 
       if (error) throw error;
       const rows = data || [];

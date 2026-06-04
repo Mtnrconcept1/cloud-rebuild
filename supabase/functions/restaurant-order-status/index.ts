@@ -13,6 +13,7 @@ import {
   triggerDispatchOrder,
 } from "../_shared/delivery-dispatch.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { getEdgeErrorDiagnostic, getEdgeErrorPayload } from "../_shared/error-diagnostics.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { triggerNotificationDispatch } from "../_shared/notifications.ts";
 
@@ -91,7 +92,82 @@ type DispatchResult =
   | { state: "skipped" }
   | { state: "scheduled"; scheduled_at: string | null }
   | { state: "queued"; status: number | null }
-  | { state: "failed"; error: string };
+  | { state: "failed"; error: string; status: number | null; diagnostic: Record<string, unknown> | null };
+
+async function upsertDispatchRetryAlert(input: {
+  adminClient: ReturnType<typeof createAdminClient>;
+  orderId: string;
+  orderNumber: string | null;
+  dispatch: Extract<DispatchResult, { state: "failed" }>;
+}) {
+  const { data: existingJob } = await input.adminClient
+    .from("dispatch_jobs")
+    .select("id")
+    .eq("order_id", input.orderId)
+    .not("status", "in", "(delivered,cancelled)")
+    .maybeSingle();
+
+  let dispatchJobId = existingJob?.id || null;
+  if (dispatchJobId) {
+    await input.adminClient
+      .from("dispatch_jobs")
+      .update({
+        status: "no_courier",
+        cancel_reason: `Dispatch retry required: ${input.dispatch.error}`.slice(0, 240),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", dispatchJobId);
+  } else {
+    const { data: newJob } = await input.adminClient
+      .from("dispatch_jobs")
+      .insert({
+        order_id: input.orderId,
+        status: "no_courier",
+        cancel_reason: `Dispatch retry required: ${input.dispatch.error}`.slice(0, 240),
+      })
+      .select("id")
+      .maybeSingle();
+    dispatchJobId = newJob?.id || null;
+  }
+
+  const alertKey = `dispatch:retry-required:${input.orderId}`;
+  const note = [
+    `Dispatch a reprendre pour la commande ${input.orderNumber || input.orderId.slice(0, 8)}.`,
+    input.dispatch.status ? `Statut HTTP ${input.dispatch.status}.` : null,
+    input.dispatch.error,
+  ].filter(Boolean).join(" ");
+
+  await input.adminClient
+    .from("marketplace_alert_states")
+    .upsert({
+      alert_key: alertKey,
+      status: "new",
+      note,
+      handled_by: null,
+      handled_at: null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "alert_key" });
+
+  await input.adminClient
+    .from("marketplace_alert_state_history")
+    .insert({
+      alert_key: alertKey,
+      previous_status: null,
+      next_status: "new",
+      note,
+      metadata: {
+        source: "restaurant-order-status",
+        order_id: input.orderId,
+        order_number: input.orderNumber,
+        dispatch_job_id: dispatchJobId,
+        dispatch: input.dispatch,
+        action_url: dispatchJobId
+          ? `/admin/commandes-reservations?dispatch=${dispatchJobId}`
+          : `/admin/commandes-reservations?order=${input.orderId}`,
+        recommended_action: "Relancer dispatch-order depuis Operations Center ou assigner un livreur.",
+      },
+    });
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -220,8 +296,16 @@ Deno.serve(async (req) => {
         } else {
           dispatch = {
             state: "failed",
-            error: response.body || "Dispatch failed",
+            status: typeof response.status === "number" ? response.status : null,
+            error: response.error || response.body || "Dispatch failed",
+            diagnostic: response.diagnostic || null,
           };
+          await upsertDispatchRetryAlert({
+            adminClient: actor.adminClient,
+            orderId: order.id,
+            orderNumber: order.order_number || null,
+            dispatch,
+          });
         }
       }
     }
@@ -281,13 +365,16 @@ Deno.serve(async (req) => {
       targetEntityType: "orders",
       targetEntityId: auditOrderId,
       errorMessage: error instanceof Error ? error.message : "Erreur interne",
+      metadata: {
+        diagnostic: getEdgeErrorDiagnostic(error, actor),
+      },
     });
 
     if (error instanceof HttpError) {
-      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+      return jsonResponse(getEdgeErrorPayload(error, actor), error.status, corsHeaders);
     }
 
     const message = error instanceof Error ? error.message : "Erreur interne";
-    return jsonResponse({ error: message }, 500, corsHeaders);
+    return jsonResponse({ error: message, diagnostic: getEdgeErrorDiagnostic(error, actor) }, 500, corsHeaders);
   }
 });

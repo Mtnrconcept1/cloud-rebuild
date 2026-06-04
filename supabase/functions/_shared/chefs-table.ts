@@ -226,6 +226,58 @@ async function incrementDropPortions(input: {
   if (updateError) throw updateError;
 }
 
+async function hasHeldDropPortion(input: {
+  adminClient: any;
+  sessionId: string;
+  dropId: string;
+  quantity: number;
+}) {
+  const { data, error } = await input.adminClient
+    .from("chef_table_checkout_holds")
+    .select("id")
+    .eq("checkout_session_id", input.sessionId)
+    .eq("drop_id", input.dropId)
+    .eq("status", "held")
+    .gte("quantity", input.quantity)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return Boolean(data?.id);
+}
+
+async function consumeHeldDropPortions(input: {
+  adminClient: any;
+  sessionId: string;
+  drops: Array<{ dropId: string; quantity: number }>;
+  log?: LoggerLike;
+}) {
+  for (const drop of input.drops) {
+    const hasHold = await hasHeldDropPortion({
+      adminClient: input.adminClient,
+      sessionId: input.sessionId,
+      dropId: drop.dropId,
+      quantity: drop.quantity,
+    });
+
+    if (!hasHold) continue;
+
+    const { data, error } = await input.adminClient.rpc("consume_chef_table_checkout_hold", {
+      p_session_id: input.sessionId,
+      p_drop_id: drop.dropId,
+      p_quantity: drop.quantity,
+    });
+
+    if (error) throw error;
+    if (data !== true) {
+      input.log?.warn?.("chef_table_hold_missing_on_consume", {
+        session_id: input.sessionId,
+        drop_id: drop.dropId,
+      });
+    }
+  }
+}
+
 export async function finalizeChefsTableCheckout(input: {
   adminClient: any;
   session: Stripe.Checkout.Session;
@@ -354,6 +406,12 @@ export async function finalizeChefsTableCheckout(input: {
 
     if (existingReservation) {
       finalizedReservations.push(normalizeExistingReservation(existingReservation, group.restaurantName));
+      await consumeHeldDropPortions({
+        adminClient,
+        sessionId: session.id,
+        drops: group.drops,
+        log,
+      });
 
       await recordReservationChargeIfMissing({
         adminClient,
@@ -384,6 +442,12 @@ export async function finalizeChefsTableCheckout(input: {
 
     if (existingReservationByKey) {
       finalizedReservations.push(existingReservationByKey);
+      await consumeHeldDropPortions({
+        adminClient,
+        sessionId: session.id,
+        drops: group.drops,
+        log,
+      });
       await recordReservationChargeIfMissing({
         adminClient,
         userId,
@@ -405,9 +469,22 @@ export async function finalizeChefsTableCheckout(input: {
     }
 
     const decrementedDrops: Array<{ dropId: string; quantity: number }> = [];
+    const heldDrops: Array<{ dropId: string; quantity: number }> = [];
 
     try {
       for (const dropAllocation of group.drops) {
+        const alreadyHeld = await hasHeldDropPortion({
+          adminClient,
+          sessionId: session.id,
+          dropId: dropAllocation.dropId,
+          quantity: dropAllocation.quantity,
+        });
+
+        if (alreadyHeld) {
+          heldDrops.push(dropAllocation);
+          continue;
+        }
+
         await decrementDropPortions({
           adminClient,
           dropId: dropAllocation.dropId,
@@ -528,6 +605,13 @@ export async function finalizeChefsTableCheckout(input: {
           card_brand: cardBrand || null,
           card_last4: cardLast4 || null,
         },
+        log,
+      });
+
+      await consumeHeldDropPortions({
+        adminClient,
+        sessionId: session.id,
+        drops: heldDrops,
         log,
       });
 

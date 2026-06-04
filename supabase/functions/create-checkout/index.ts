@@ -120,6 +120,9 @@ Deno.serve(async (req) => {
 
     let lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
     let discountCents = 0;
+    let zeroAttenteHoldReservationId = "";
+    let chefTableHoldCount = 0;
+    const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
       checkout_kind: effectiveKind,
@@ -386,6 +389,8 @@ Deno.serve(async (req) => {
           throw new HttpError(400, "Prix La Table du Chef invalide.");
         }
 
+        chefTableHoldItems.push({ drop_id: drop.id, quantity });
+
         lineItems.push({
           price_data: {
             currency: "chf",
@@ -651,6 +656,83 @@ Deno.serve(async (req) => {
     // Le restaurateur genere ensuite ses factures de reversement (90%) depuis son dashboard.
 
     const session = await stripe.checkout.sessions.create(sessionParams);
+
+    if (effectiveKind === "zero-attente") {
+      const { data: holdReservationId, error: holdError } = await actor.adminClient.rpc(
+        "create_zero_attente_checkout_hold",
+        {
+          p_restaurant_id: sessionMetadata.restaurant_id,
+          p_date: sessionMetadata.arrival_date,
+          p_time: sessionMetadata.arrival_time,
+          p_party_size: Math.max(1, Number(sessionMetadata.party_size || 1)),
+          p_session_id: session.id,
+          p_metadata: {
+            ...sessionMetadata,
+            _internal_user_id: actor.userId,
+            checkout_session_id: session.id,
+            checkout_session_state: "pending_payment",
+            paid: false,
+            total_amount: sessionMetadata.authoritative_total,
+            payment_method: String(payment_method || "card"),
+          },
+          p_notes: "Hold Zero Attente cree avant redirection Stripe.",
+        },
+      );
+
+      if (holdError || !holdReservationId) {
+        try {
+          await stripe.checkout.sessions.expire(session.id);
+        } catch (expireError) {
+          log.warn("zero_attente_checkout_session_expire_failed", {
+            session_id: session.id,
+            message: expireError instanceof Error ? expireError.message : "unknown",
+          });
+        }
+
+        throw new HttpError(
+          409,
+          holdError?.message || "Ce creneau Zero Attente n'est plus disponible.",
+        );
+      }
+
+      zeroAttenteHoldReservationId = String(holdReservationId);
+    }
+
+    if (effectiveKind === "chefs-table") {
+      const { data: heldCount, error: holdError } = await actor.adminClient.rpc(
+        "create_chef_table_checkout_hold",
+        {
+          p_session_id: session.id,
+          p_user_id: actor.userId,
+          p_items: chefTableHoldItems,
+          p_metadata: {
+            checkout_kind: "chefs-table",
+            checkout_session_id: session.id,
+            restaurant_id: sessionMetadata.restaurant_id,
+            authoritative_total: sessionMetadata.authoritative_total,
+          },
+        },
+      );
+
+      if (holdError || !heldCount) {
+        try {
+          await stripe.checkout.sessions.expire(session.id);
+        } catch (expireError) {
+          log.warn("chef_table_checkout_session_expire_failed", {
+            session_id: session.id,
+            message: expireError instanceof Error ? expireError.message : "unknown",
+          });
+        }
+
+        throw new HttpError(
+          409,
+          holdError?.message || "Certaines experiences La Table du Chef ne sont plus disponibles.",
+        );
+      }
+
+      chefTableHoldCount = Number(heldCount || 0);
+    }
+
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,
@@ -665,6 +747,8 @@ Deno.serve(async (req) => {
         session_id: session.id,
         payment_method: payment_method || "card",
         line_items: lineItems.length,
+        zero_attente_hold_reservation_id: zeroAttenteHoldReservationId || null,
+        chef_table_hold_count: chefTableHoldCount || null,
       },
     });
     return jsonResponse(

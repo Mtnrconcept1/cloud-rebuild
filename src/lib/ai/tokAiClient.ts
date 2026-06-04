@@ -1,5 +1,6 @@
 import { getSupabase } from "@/integrations/supabase/client";
-import { invokeSupabaseFunction } from "@/lib/session";
+import { SUPABASE_URL } from "@/lib/env";
+import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
 
 const supabase = getSupabase();
 
@@ -33,6 +34,12 @@ export type RestaurantAgentRequest = {
   action: RestaurantAgentAction;
   prompt: string;
   context?: JsonRecord;
+};
+
+export type RestaurantAdvisorStreamRequest = {
+  restaurantId: string;
+  messages: TokAiMessage[];
+  onDelta: (content: string) => void;
 };
 
 export type TokImageFormat = "landscape" | "square" | "portrait";
@@ -163,6 +170,72 @@ export function runRestaurantAgent(request: RestaurantAgentRequest) {
     status: "draft";
     quota?: JsonRecord;
   }>("ai-restaurant-agent", { ...request });
+}
+
+export async function streamRestaurantAdvisor(request: RestaurantAdvisorStreamRequest) {
+  const response = await fetchWithFreshAccessToken(`${SUPABASE_URL}/functions/v1/restaurant-advisor`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      restaurantId: request.restaurantId,
+      messages: request.messages,
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({ error: `Erreur ${response.status}` }));
+    throw new Error(typeof payload?.error === "string" ? payload.error : `Erreur ${response.status}`);
+  }
+  if (!response.body) throw new Error("Pas de reponse du serveur");
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let textBuffer = "";
+  let streamDone = false;
+
+  const parseLine = (rawLine: string) => {
+    let line = rawLine;
+    if (line.endsWith("\r")) line = line.slice(0, -1);
+    if (line.startsWith(":") || line.trim() === "") return true;
+    if (!line.startsWith("data: ")) return true;
+
+    const jsonStr = line.slice(6).trim();
+    if (jsonStr === "[DONE]") {
+      streamDone = true;
+      return true;
+    }
+
+    try {
+      const parsed = JSON.parse(jsonStr);
+      const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+      if (content) request.onDelta(content);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  while (!streamDone) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    textBuffer += decoder.decode(value, { stream: true });
+
+    let newlineIndex: number;
+    while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+      const line = textBuffer.slice(0, newlineIndex);
+      textBuffer = textBuffer.slice(newlineIndex + 1);
+      if (!parseLine(line)) {
+        textBuffer = `${line}\n${textBuffer}`;
+        break;
+      }
+    }
+  }
+
+  if (textBuffer.trim()) {
+    for (const line of textBuffer.split("\n")) {
+      parseLine(line);
+    }
+  }
 }
 
 export function generateTokDishImage(request: TokImageGenerationRequest) {

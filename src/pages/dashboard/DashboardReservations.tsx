@@ -37,6 +37,7 @@ import {
 } from "@/lib/dashboardTimeRange";
 
 const supabase = getSupabase();
+const DASHBOARD_RESERVATIONS_FETCH_LIMIT = 300;
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -189,8 +190,9 @@ export default function DashboardReservations() {
         .from("reservations")
         .select("*")
         .eq("restaurant_id", selectedId!)
-        .order("date", { ascending: true })
-        .order("time", { ascending: true });
+        .order("date", { ascending: false })
+        .order("time", { ascending: false })
+        .limit(DASHBOARD_RESERVATIONS_FETCH_LIMIT);
 
       if (reservationError) throw reservationError;
       if (!reservationRows?.length) return [] as ReservationWithProfile[];

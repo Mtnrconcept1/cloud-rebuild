@@ -208,6 +208,96 @@ function isTimeInWindow(target: number, start: number, end: number) {
   return target >= start || target <= end;
 }
 
+function toIsoDateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function buildLocalDateTime(dateValue: unknown, timeValue: unknown) {
+  const dateText = String(dateValue || "").trim();
+  const timeText = String(timeValue || "").trim();
+  if (!dateText || !timeText) return null;
+
+  const parsed = new Date(`${dateText}T${timeText}`);
+  return Number.isFinite(parsed.getTime()) ? parsed : null;
+}
+
+function sumQuantitiesByMetadata(items: Array<{ quantity: number; metadata: Record<string, unknown> }>, keys: string[]) {
+  const totals = new Map<string, number>();
+
+  for (const item of items) {
+    const id = keys
+      .map((key) => String(item.metadata?.[key] || ""))
+      .find(Boolean);
+    if (!id) continue;
+    totals.set(id, (totals.get(id) || 0) + item.quantity);
+  }
+
+  return totals;
+}
+
+function validateAntiWasteOfferAvailability(input: {
+  offer: any;
+  requestedQuantity: number;
+  now: Date;
+}) {
+  if (!input.offer || !input.offer.is_active) {
+    throw new Error("Offre anti-gaspi invalide ou expiree.");
+  }
+  if (Number(input.offer.quantity_available || 0) < input.requestedQuantity) {
+    throw new Error("Stock anti-gaspi insuffisant pour cette offre.");
+  }
+  if (!input.offer.available_date || !input.offer.pickup_start || !input.offer.pickup_end) {
+    throw new Error("Fenetre de retrait anti-gaspi invalide.");
+  }
+
+  const today = toIsoDateKey(input.now);
+  const availableDate = String(input.offer.available_date);
+  if (availableDate < today) {
+    throw new Error("Offre anti-gaspi expiree.");
+  }
+
+  const pickupStart = buildLocalDateTime(availableDate, input.offer.pickup_start);
+  const pickupEnd = buildLocalDateTime(availableDate, input.offer.pickup_end);
+  if (!pickupStart || !pickupEnd || pickupEnd <= pickupStart) {
+    throw new Error("Fenetre de retrait anti-gaspi invalide.");
+  }
+  if (availableDate === today && pickupEnd <= input.now) {
+    throw new Error("Offre anti-gaspi expiree.");
+  }
+}
+
+function validateFlashSaleAvailability(input: {
+  sale: any;
+  requestedQuantity: number;
+  now: Date;
+  isDeliveryJourney: boolean;
+}) {
+  if (!input.sale || !input.sale.is_active) {
+    throw new Error("Vente flash invalide ou expiree.");
+  }
+  if (Number(input.sale.quantity_available || 0) < input.requestedQuantity) {
+    throw new Error("Stock vente flash insuffisant pour cette offre.");
+  }
+  if (input.isDeliveryJourney && input.sale.delivery_available === false) {
+    throw new Error("Cette vente flash n'est pas disponible en livraison.");
+  }
+  if (!input.isDeliveryJourney && input.sale.takeaway_available === false) {
+    throw new Error("Cette vente flash n'est pas disponible a l'emporter.");
+  }
+  if (!input.sale.sale_date || !input.sale.sale_start || !input.sale.sale_end) {
+    throw new Error("Fenetre de vente flash invalide.");
+  }
+
+  const saleStart = buildLocalDateTime(input.sale.sale_date, input.sale.sale_start);
+  const saleEnd = buildLocalDateTime(input.sale.sale_date, input.sale.sale_end);
+  if (!saleStart || !saleEnd || saleEnd <= saleStart) {
+    throw new Error("Fenetre de vente flash invalide.");
+  }
+  if (input.now < saleStart || input.now >= saleEnd) {
+    throw new Error("Vente flash expiree ou pas encore active.");
+  }
+}
+
 function isFormulaAvailableForSlot(
   availability: MealFormulaAvailability,
   reservationDate?: string,
@@ -768,6 +858,8 @@ export async function buildVerifiedOrderPricing(input: {
       .map((item) => String(item.metadata?.flash_sale_id || ""))
       .filter(Boolean),
   ));
+  const antiWasteQuantities = sumQuantitiesByMetadata(items, ["anti_waste_offer_id", "offer_id"]);
+  const flashSaleQuantities = sumQuantitiesByMetadata(items, ["flash_sale_id"]);
 
   const [restaurantRes, activeFlags, menuItemsRes, antiWasteRes, flashSalesRes, formulasRes, promotionsRes, profileRes] = await Promise.all([
     input.adminClient
@@ -785,13 +877,13 @@ export async function buildVerifiedOrderPricing(input: {
     antiWasteOfferIds.length
       ? input.adminClient
         .from("anti_waste_offers")
-        .select("id, restaurant_id, title, discounted_price, is_active")
+        .select("id, restaurant_id, title, discounted_price, quantity_available, available_date, pickup_start, pickup_end, is_active")
         .in("id", antiWasteOfferIds)
       : Promise.resolve({ data: [], error: null }),
     flashSaleIds.length
       ? input.adminClient
         .from("flash_sales")
-        .select("id, restaurant_id, title, discounted_price, is_active")
+        .select("id, restaurant_id, title, discounted_price, quantity_available, sale_date, sale_start, sale_end, delivery_available, takeaway_available, is_active")
         .in("id", flashSaleIds)
       : Promise.resolve({ data: [], error: null }),
     input.adminClient
@@ -860,6 +952,7 @@ export async function buildVerifiedOrderPricing(input: {
   const flashMap = new Map((flashSalesRes.data || []).map((row: any) => [row.id, row]));
 
   const validatedItems: ValidatedOrderItem[] = [];
+  const now = new Date();
 
   for (const item of items) {
     if (!item.menu_item_id || item.menu_item_id === "garantie-qualite-fee") continue;
@@ -885,7 +978,11 @@ export async function buildVerifiedOrderPricing(input: {
     const antiWasteOfferId = String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || "");
     if (antiWasteOfferId) {
       const offer = antiWasteMap.get(antiWasteOfferId);
-      if (!offer || !offer.is_active) throw new Error("Offre anti-gaspi invalide ou expiree.");
+      validateAntiWasteOfferAvailability({
+        offer,
+        requestedQuantity: antiWasteQuantities.get(antiWasteOfferId) || item.quantity,
+        now,
+      });
       if (offer.restaurant_id !== input.restaurantId) throw new Error("Offre anti-gaspi invalide pour ce restaurant.");
       validatedItems.push({
         menuItemId: item.menu_item_id,
@@ -902,7 +999,12 @@ export async function buildVerifiedOrderPricing(input: {
     const flashSaleId = String(item.metadata?.flash_sale_id || "");
     if (flashSaleId) {
       const sale = flashMap.get(flashSaleId);
-      if (!sale || !sale.is_active) throw new Error("Vente flash invalide ou expiree.");
+      validateFlashSaleAvailability({
+        sale,
+        requestedQuantity: flashSaleQuantities.get(flashSaleId) || item.quantity,
+        now,
+        isDeliveryJourney,
+      });
       if (sale.restaurant_id !== input.restaurantId) throw new Error("Vente flash invalide pour ce restaurant.");
       validatedItems.push({
         menuItemId: item.menu_item_id,

@@ -41,4 +41,20 @@ describe("admin catalog governance", () => {
     expect(page).not.toContain('.from("collections").delete');
     expect(page).not.toContain('.from("collection_restaurants").delete');
   });
+
+  it("governs cuisine taxonomy through audited admin RPCs", () => {
+    const sql = latestMigrationContaining(/admin_upsert_cuisine/i);
+    const page = readFileSync(resolve(root, "src/pages/admin/AdminCatalog.tsx"), "utf8");
+
+    expect(sql).toMatch(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+archived_at/i);
+    expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_upsert_cuisine/i);
+    expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_archive_cuisine/i);
+    expect(sql).toMatch(/REVOKE\s+INSERT,\s*UPDATE,\s*DELETE\s+ON\s+public\.cuisines\s+FROM\s+authenticated/i);
+    expect(sql).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
+    expect(page).toContain("admin_upsert_cuisine");
+    expect(page).toContain("admin_archive_cuisine");
+    expect(page).toContain("Raison obligatoire pour archiver cette cuisine");
+    expect(page).not.toContain('.from("cuisines").insert');
+    expect(page).not.toContain('.from("cuisines").delete');
+  });
 });

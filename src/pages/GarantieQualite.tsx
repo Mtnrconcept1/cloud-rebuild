@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ShieldCheck, Thermometer, QrCode, CreditCard,
-  CheckCircle2, Package, AlertTriangle, Truck, Eye,
+  CheckCircle2, Package, AlertTriangle, Truck,
   Plus, Minus
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +25,6 @@ export default function GarantieQualite() {
   const [optionEnabled, setOptionEnabled] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [scanned, setScanned] = useState(false);
 
   const QUALITY_FEE = 1.50;
 
@@ -77,10 +76,12 @@ export default function GarantieQualite() {
     if (!selectedRestaurant || !menuItems) return;
     clearCart();
 
-    // Save quality guarantee status to cart metadata
+    // The checkout Edge Function recomputes the guarantee fee from this metadata or the reserved fee line.
     updateCartMetadata({
       feature: "garantie-qualite",
-      qualityGuarantee: optionEnabled
+      qualityGuarantee: optionEnabled,
+      quality_guarantee: optionEnabled,
+      quality_workflow: "server_verified_checkout",
     });
 
     Object.entries(quantities).forEach(([id, qty]) => {
@@ -119,10 +120,10 @@ export default function GarantieQualite() {
   };
 
   const qualityChecks = [
-    { id: "seal", label: "Sac scellé", status: scanned ? "ok" : "pending", detail: "Intégrité de l'emballage vérifiée" },
-    { id: "temp", label: "Température", status: scanned ? "ok" : "pending", detail: scanned ? "68°C - Conforme" : "En attente de scan" },
-    { id: "time", label: "Délai de livraison", status: scanned ? "ok" : "pending", detail: scanned ? "23 min - Dans les temps" : "En cours" },
-    { id: "integrity", label: "Intégrité visuelle", status: scanned ? "ok" : "pending", detail: scanned ? "Aucun dommage détecté" : "Vérification au scan" },
+    { id: "seal", label: "Sac scelle", detail: "Controle restaurant requis avant remise au livreur" },
+    { id: "temp", label: "Temperature", detail: "Mesure operationnelle attendue au depart" },
+    { id: "time", label: "Delai de livraison", detail: "Suivi avec l'heure reelle de prise en charge" },
+    { id: "integrity", label: "Integrite visuelle", detail: "Verification rattachee a la commande" },
   ];
 
   return (
@@ -319,42 +320,28 @@ export default function GarantieQualite() {
               </div>
             </div>
 
-            {/* QR Scan simulation (only if option enabled) */}
+            {/* Server-verified quality workflow status */}
             {optionEnabled && (
               <div className="rounded-2xl border bg-card p-6 space-y-4">
                 <h3 className="font-semibold flex items-center gap-2">
                   <QrCode className="h-5 w-5 text-teal-500" />
-                  Vérification à la réception
+                  Verification rattachee a la commande
                 </h3>
-                {!scanned ? (
-                  <div className="text-center space-y-4 py-4">
-                    <div className="w-32 h-32 mx-auto rounded-2xl border-2 border-dashed border-teal-500/30 flex items-center justify-center">
-                      <QrCode className="h-16 w-16 text-teal-500/30" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Scannez le QR code sur votre sac à la réception</p>
-                    <Button onClick={() => setScanned(true)} className="bg-teal-500 hover:bg-teal-600 gap-2">
-                      <Eye className="h-4 w-4" /> Simuler le scan
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {qualityChecks.map((check) => (
-                      <div key={check.id} className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
-                        <CheckCircle2 className="h-5 w-5 text-teal-500 shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{check.label}</p>
-                          <p className="text-xs text-muted-foreground">{check.detail}</p>
-                        </div>
-                        <Badge className="bg-teal-500 text-white text-xs">OK</Badge>
+                <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-4 text-sm text-muted-foreground">
+                  La garantie est ajoutee au panier puis recalculee par le checkout serveur. Les preuves operationnelles seront visibles lorsque le restaurant ou le livreur aura enregistre le controle qualite de la commande.
+                </div>
+                <div className="space-y-3">
+                  {qualityChecks.map((check) => (
+                    <div key={check.id} className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
+                      <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{check.label}</p>
+                        <p className="text-xs text-muted-foreground">{check.detail}</p>
                       </div>
-                    ))}
-                    <div className="rounded-lg bg-teal-500/5 border border-teal-500/20 p-4 text-center">
-                      <CheckCircle2 className="h-8 w-8 text-teal-500 mx-auto mb-2" />
-                      <p className="font-semibold text-teal-700">Tout est conforme !</p>
-                      <p className="text-xs text-muted-foreground">Votre commande est parfaite. Bon appétit !</p>
+                      <Badge variant="outline" className="text-xs">En attente</Badge>
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             )}
 

@@ -1,10 +1,21 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "npm:stripe@18.5.0";
+
+import {
+  HttpError,
+  authenticateRequest,
+  createAdminClient,
+  getEnv,
+  jsonResponse,
+  requireRestaurantAccess,
+  writeAuditLog,
+} from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 
-const getEnv = (name: string) => Deno.env.get(name)?.trim() || "";
+function text(value: unknown) {
+  return String(value || "").trim();
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -12,98 +23,68 @@ Deno.serve(async (req) => {
   if (preflight) return preflight;
 
   const log = makeLogger("stripe-connect-onboard");
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let restaurantId = "";
+  let accountId = "";
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
 
-    const supabaseUser = createClient(
-      getEnv("SUPABASE_URL"),
-      getEnv("SUPABASE_ANON_KEY"),
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    actor = await authenticateRequest(req, { allowServiceRole: false });
+    const adminClient = actor.adminClient;
+    const body = await req.json().catch(() => ({}));
 
-    const { data: userData, error: userError } = await supabaseUser.auth.getUser();
-    if (userError || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    restaurantId = text(body.restaurant_id);
+    if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
 
-    const supabaseAdmin = createClient(
-      getEnv("SUPABASE_URL"),
-      getEnv("SUPABASE_SERVICE_ROLE_KEY")
-    );
-
-    const { restaurant_id, return_url } = await req.json();
-
-    if (!restaurant_id) {
-      return new Response(JSON.stringify({ error: "restaurant_id requis" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Verify the user owns this restaurant
-    const { data: restaurant } = await supabaseAdmin
-      .from("restaurants")
-      .select("id, stripe_account_id, owner_id, name")
-      .eq("id", restaurant_id)
-      .single();
-
-    if (!restaurant || restaurant.owner_id !== userData.user.id) {
-      return new Response(JSON.stringify({ error: "Restaurant non trouvé" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    const restaurant = await requireRestaurantAccess(actor, restaurantId);
     const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) {
-      throw new Error("STRIPE_SECRET_KEY not configured");
-    }
+    if (!stripeSecretKey) throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2025-08-27.basil",
     });
 
-    let accountId = restaurant.stripe_account_id;
+    accountId = text(restaurant.stripe_account_id);
 
-    // Create a new Stripe Connected Account if none exists
     if (!accountId) {
       const account = await stripe.accounts.create({
         type: "express",
         country: "CH",
-        email: userData.user.email,
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
         business_profile: {
           name: restaurant.name,
-          mcc: "5812", // Eating Places, Restaurants
+          mcc: "5812",
         },
+        metadata: {
+          restaurant_id: restaurant.id,
+          owner_id: actor.userId || "",
+        },
+      }, {
+        idempotencyKey: `stripe-connect-account:${restaurant.id}`,
       });
 
       accountId = account.id;
 
-      // Save the Stripe account ID on the restaurant
-      await supabaseAdmin
+      const { data: persistedRestaurant, error: persistError } = await adminClient
         .from("restaurants")
         .update({ stripe_account_id: accountId })
-        .eq("id", restaurant_id);
+        .eq("id", restaurantId)
+        .select("id, stripe_account_id")
+        .single();
+
+      if (persistError) throw new HttpError(500, persistError.message);
+      if (persistedRestaurant?.stripe_account_id !== accountId) {
+        throw new HttpError(500, "stripe_account_id non persiste");
+      }
     }
 
-    // Validate return_url against allowlist to prevent open redirect.
-    const siteUrl = Deno.env.get("SITE_URL") || "https://www.thetok.ch";
+    const siteUrl = getEnv("SITE_URL") || "https://www.thetok.ch";
     const fallbackReturn = `${siteUrl}/dashboard/restaurant`;
-    const safeReturnUrl = normalizeCheckoutReturnUrl(return_url) || fallbackReturn;
+    const safeReturnUrl = normalizeCheckoutReturnUrl(body.return_url) || fallbackReturn;
 
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
@@ -112,16 +93,48 @@ Deno.serve(async (req) => {
       type: "account_onboarding",
     });
 
-    return new Response(
-      JSON.stringify({ url: accountLink.url, account_id: accountId }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error: unknown) {
-    log.error("request_failed", { message: error instanceof Error ? error.message : "unknown" });
-    const msg = error instanceof Error ? error.message : "Erreur interne";
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await writeAuditLog({
+      adminClient,
+      actor,
+      request: req,
+      functionName: "stripe-connect-onboard",
+      action: "create_stripe_connect_onboarding_link",
+      status: "success",
+      targetEntityType: "restaurants",
+      targetEntityId: restaurant.id,
+      metadata: {
+        stripe_account_id: accountId,
+        reused_existing_account: Boolean(restaurant.stripe_account_id),
+      },
     });
+
+    return jsonResponse({ url: accountLink.url, account_id: accountId }, 200, corsHeaders);
+  } catch (error) {
+    log.error("request_failed", { message: error instanceof Error ? error.message : "unknown" });
+
+    await writeAuditLog({
+      adminClient: actor?.adminClient || createAdminClient(),
+      actor,
+      request: req,
+      functionName: "stripe-connect-onboard",
+      action: "create_stripe_connect_onboarding_link",
+      status: "failure",
+      targetEntityType: restaurantId ? "restaurants" : null,
+      targetEntityId: restaurantId || null,
+      errorMessage: error instanceof Error ? error.message : "Erreur interne",
+      metadata: {
+        stripe_account_id: accountId || null,
+      },
+    });
+
+    if (error instanceof HttpError) {
+      return jsonResponse({ error: error.message }, error.status, corsHeaders);
+    }
+
+    return jsonResponse(
+      { error: error instanceof Error ? error.message : "Erreur interne" },
+      500,
+      corsHeaders,
+    );
   }
 });

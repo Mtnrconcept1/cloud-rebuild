@@ -48,7 +48,11 @@ export default function AdminCatalog() {
   const { data: cuisines = [] } = useQuery({
     queryKey: ["admin-cuisines"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("cuisines").select("*").order("name");
+      const { data, error } = await supabase
+        .from("cuisines")
+        .select("*")
+        .is("archived_at", null)
+        .order("name");
       if (error) throw error;
       return data || [];
     },
@@ -115,7 +119,11 @@ export default function AdminCatalog() {
 
   const handleAddCuisine = async () => {
     if (!newCuisine.trim()) return;
-    const { error } = await supabase.from("cuisines").insert({ name: newCuisine.trim() });
+    const { error } = await (supabase.rpc as any)("admin_upsert_cuisine", {
+      p_cuisine_id: null,
+      p_name: newCuisine.trim(),
+      p_reason: "Creation cuisine catalogue",
+    });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
@@ -126,12 +134,17 @@ export default function AdminCatalog() {
   };
 
   const handleDeleteCuisine = async (id: string) => {
-    const { error } = await supabase.from("cuisines").delete().eq("id", id);
+    const reason = window.prompt("Raison obligatoire pour archiver cette cuisine.");
+    if (!reason?.trim()) return;
+    const { error } = await (supabase.rpc as any)("admin_archive_cuisine", {
+      p_cuisine_id: id,
+      p_reason: reason.trim(),
+    });
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Cuisine supprimée" });
+    toast({ title: "Cuisine archivée" });
     queryClient.invalidateQueries({ queryKey: ["admin-cuisines"] });
   };
 

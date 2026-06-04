@@ -9,6 +9,7 @@ type BackNavigationButtonProps = {
   fallback?: string;
   label?: string;
   className?: string;
+  showLabel?: boolean;
 };
 
 const CUSTOMER_SHELL_PATHS = new Set([
@@ -48,6 +49,7 @@ export function BackNavigationButton({
   fallback = "/",
   label = "Retour",
   className,
+  showLabel = true,
 }: BackNavigationButtonProps) {
   const navigate = useNavigate();
 
@@ -74,7 +76,7 @@ export function BackNavigationButton({
       )}
     >
       <ArrowLeft className="h-4 w-4" />
-      <span>{label}</span>
+      <span className={showLabel ? undefined : "sr-only"}>{label}</span>
     </Button>
   );
 }

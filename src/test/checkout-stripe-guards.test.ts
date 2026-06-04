@@ -6,8 +6,13 @@ const createCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/funct
 const stripeWebhookSource = readFileSync(resolve(process.cwd(), "supabase/functions/stripe-webhook/index.ts"), "utf8");
 const orderCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/order-checkout.ts"), "utf8");
 const chefsTableSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/chefs-table.ts"), "utf8");
+const zeroAttenteSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/zero-attente.ts"), "utf8");
 const validateOrderSource = readFileSync(resolve(process.cwd(), "supabase/functions/validate-order/index.ts"), "utf8");
 const cartSource = readFileSync(resolve(process.cwd(), "src/pages/Panier.tsx"), "utf8");
+const cancelPendingCheckoutSource = readFileSync(
+  resolve(process.cwd(), "supabase/functions/cancel-pending-order-checkout/index.ts"),
+  "utf8",
+);
 const restoreStockMigration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260603114000_restore_special_offer_stock.sql"),
   "utf8",
@@ -65,6 +70,10 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(onlineCheckoutBlock).toContain('checkout_session_state: "pending"');
     expect(onlineCheckoutBlock.indexOf("const pendingOrderResults = await Promise.all"))
       .toBeLessThan(onlineCheckoutBlock.indexOf('invokeSupabaseFunction("create-checkout"'));
+    expect(onlineCheckoutBlock).toContain("compensatePendingCheckout");
+    expect(onlineCheckoutBlock).toContain('invokeSupabaseFunction("cancel-pending-order-checkout"');
+    expect(onlineCheckoutBlock.indexOf("compensatePendingCheckout"))
+      .toBeGreaterThan(onlineCheckoutBlock.indexOf("const pendingOrderResults = await Promise.all"));
     expect(onlineCheckoutBlock.indexOf("writePendingOrderCheckoutSessionId"))
       .toBeGreaterThan(onlineCheckoutBlock.indexOf('invokeSupabaseFunction("create-checkout"'));
   });
@@ -123,12 +132,25 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(restoreStockMigration).toContain("GRANT EXECUTE ON FUNCTION public.restore_special_offer_stock(text, uuid, integer) TO service_role");
   });
 
+  it("compensates pending payment orders when Stripe checkout creation fails before a session id exists", () => {
+    expect(orderCheckoutSource).toContain("export async function restoreReservedSpecialOfferStock");
+    expect(cancelPendingCheckoutSource).toContain("cancel-pending-order-checkout");
+    expect(cancelPendingCheckoutSource).toContain("restoreReservedSpecialOfferStock");
+    expect(cancelPendingCheckoutSource).toContain('status: "payment_failed"');
+    expect(cancelPendingCheckoutSource).toContain('payment_status: "failed"');
+    expect(cancelPendingCheckoutSource).toContain('checkout_session_state: "failed"');
+    expect(cancelPendingCheckoutSource).toContain("checkout_creation_failed");
+    expect(cancelPendingCheckoutSource).toContain("hasStripeSession");
+    expect(cancelPendingCheckoutSource).toContain("writeAuditLog");
+  });
+
   it("creates or updates Zero Attente reservations idempotently after payment", () => {
     expect(stripeWebhookSource).toContain("isZeroAttenteCheckoutKind(checkoutKind)");
-    expect(stripeWebhookSource).toContain("existingZeroAttenteReservation");
-    expect(stripeWebhookSource).toContain("validate_and_create_reservation");
-    expect(stripeWebhookSource).toContain('status: "confirmed"');
-    expect(stripeWebhookSource).toContain("recordZeroAttenteChargeIfMissing");
+    expect(stripeWebhookSource).toContain("finalizeZeroAttenteCheckout");
+    expect(zeroAttenteSource).toContain("existingReservation");
+    expect(zeroAttenteSource).toContain("validate_and_create_reservation");
+    expect(zeroAttenteSource).toContain('status: "confirmed"');
+    expect(zeroAttenteSource).toContain("recordZeroAttenteChargeIfMissing");
   });
 
   it("creates or reuses Chef Table reservations idempotently after payment", () => {

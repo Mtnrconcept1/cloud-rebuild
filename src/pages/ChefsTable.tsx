@@ -31,6 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
+const CHEFS_TABLE_DROPS_LIMIT = 24;
 
 interface FlashDrop {
   id: string;
@@ -363,7 +364,8 @@ export default function ChefsTable() {
         .from("chef_table_drops" as any)
         .select("*, restaurants (name, rating, cuisine_type, image_url, address, city, opening_hours)")
         .eq("is_active", true)
-        .order("drop_time", { ascending: true });
+        .order("drop_time", { ascending: true })
+        .limit(CHEFS_TABLE_DROPS_LIMIT);
 
       if (error) throw error;
 

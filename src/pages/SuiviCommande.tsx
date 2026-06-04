@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -35,8 +35,6 @@ import { useRealtimeDeliveryTracking, useRealtimeDispatchJob, useRealtimeOrder }
 const supabase = getSupabase();
 
 const FALLBACK_RESTAURANT = { lat: 46.5197, lng: 6.6323 };
-const FALLBACK_DELIVERY = { lat: 46.5285, lng: 6.6270 };
-const SIMULATION_PHASE_SECONDS = 20;
 
 const TRACKING_STEPS = [
   {
@@ -82,18 +80,6 @@ const TRACKING_STEPS = [
     description: "Votre commande a été livrée.",
   },
 ];
-
-function generateRoute(from: { lat: number; lng: number }, to: { lat: number; lng: number }, points: number) {
-  const route = [];
-  for (let i = 0; i <= points; i += 1) {
-    const t = i / points;
-    route.push({
-      lat: from.lat + (to.lat - from.lat) * t,
-      lng: from.lng + (to.lng - from.lng) * t,
-    });
-  }
-  return route;
-}
 
 function asMetadata(value: unknown): Record<string, any> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
@@ -157,20 +143,9 @@ function formatEta(value: string | null | undefined) {
   return date.toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit" });
 }
 
-function formatCountdown(seconds: number) {
-  const minutes = Math.floor(seconds / 60);
-  const remaining = seconds % 60;
-  return `${minutes}:${String(remaining).padStart(2, "0")}`;
-}
-
 export default function SuiviCommande() {
   const { id } = useParams<{ id: string }>();
   useAuth();
-
-  const [simulationPhase, setSimulationPhase] = useState(0);
-  const [simulationCountdown, setSimulationCountdown] = useState(SIMULATION_PHASE_SECONDS);
-  const [simulationRouteIndex, setSimulationRouteIndex] = useState(0);
-  const [simulationStarted, setSimulationStarted] = useState(false);
 
   const { orderStatus: realtimeOrderStatus, lastUpdate: realtimeOrderUpdate } = useRealtimeOrder(id);
   const { tracking: deliveryTrackingUpdate } = useRealtimeDeliveryTracking(id);
@@ -283,46 +258,6 @@ export default function SuiviCommande() {
   }), [liveDispatchJob?.route_geometry, liveOrder?.delivery_address, liveOrder?.metadata, orders]);
 
   const routeOrigin = routeSteps.find((step) => step.type === "pickup" && step.latitude !== null && step.longitude !== null);
-  const routeDestination = [...routeSteps].reverse().find((step) => step.type === "dropoff" && step.latitude !== null && step.longitude !== null);
-
-  const simulationRoute = useMemo(() => generateRoute(
-    routeOrigin && routeOrigin.latitude !== null && routeOrigin.longitude !== null
-      ? { lat: routeOrigin.latitude, lng: routeOrigin.longitude }
-      : FALLBACK_RESTAURANT,
-    routeDestination && routeDestination.latitude !== null && routeDestination.longitude !== null
-      ? { lat: routeDestination.latitude, lng: routeDestination.longitude }
-      : FALLBACK_DELIVERY,
-    60,
-  ), [routeDestination, routeOrigin]);
-
-  useEffect(() => {
-    if (!liveOrder || simulationStarted || hasLiveCourierFlow) return;
-    setSimulationPhase(getPhaseFromState(liveOrder, null, null));
-    setSimulationStarted(true);
-  }, [hasLiveCourierFlow, liveOrder, simulationStarted]);
-
-  useEffect(() => {
-    if (!simulationStarted || hasLiveCourierFlow || simulationPhase >= 5) return;
-
-    if (simulationPhase < 4) {
-      if (simulationCountdown <= 0) {
-        setSimulationPhase((phase) => Math.min(phase + 1, 5));
-        setSimulationCountdown(SIMULATION_PHASE_SECONDS);
-        return;
-      }
-      const timer = window.setTimeout(() => setSimulationCountdown((seconds) => seconds - 1), 1000);
-      return () => window.clearTimeout(timer);
-    }
-
-    if (simulationPhase === 4) {
-      if (simulationRouteIndex >= simulationRoute.length - 1) {
-        setSimulationPhase(5);
-        return;
-      }
-      const timer = window.setTimeout(() => setSimulationRouteIndex((index) => index + 1), 450);
-      return () => window.clearTimeout(timer);
-    }
-  }, [hasLiveCourierFlow, simulationCountdown, simulationPhase, simulationRoute.length, simulationRouteIndex, simulationStarted]);
 
   if (!liveOrder) {
     return (
@@ -409,7 +344,11 @@ export default function SuiviCommande() {
     );
   }
 
-  const phase = hasLiveCourierFlow ? getPhaseFromState(liveOrder, liveTracking, liveDispatchJob) : simulationPhase;
+  const phase = getPhaseFromState(
+    liveOrder,
+    hasLiveCourierFlow ? liveTracking : null,
+    hasLiveCourierFlow ? liveDispatchJob : null,
+  );
   const currentStep = TRACKING_STEPS[phase] || TRACKING_STEPS[0];
   const progress = Math.round(((phase + 1) / TRACKING_STEPS.length) * 100);
   const isDelivered = phase >= 5;
@@ -418,12 +357,14 @@ export default function SuiviCommande() {
     ? formatEta(liveTracking.estimated_arrival)
     : liveOrder.estimated_delivery_at
       ? formatEta(liveOrder.estimated_delivery_at)
-      : scheduledDeliveryLabel || (phase < 4 && !hasLiveCourierFlow ? formatCountdown(simulationCountdown) : "Bientôt");
+      : scheduledDeliveryLabel || (hasLiveCourierFlow ? "Bientôt" : "Suivi live indisponible");
   const currentDriverPos = hasLiveCourierFlow && liveTracking?.current_lat && liveTracking?.current_lng
     ? { lat: Number(liveTracking.current_lat), lng: Number(liveTracking.current_lng) }
-    : simulationRoute[Math.min(simulationRouteIndex, simulationRoute.length - 1)] || FALLBACK_RESTAURANT;
+    : routeOrigin && routeOrigin.latitude !== null && routeOrigin.longitude !== null
+      ? { lat: Number(routeOrigin.latitude), lng: Number(routeOrigin.longitude) }
+      : FALLBACK_RESTAURANT;
   const hasRouteOverview = routeSteps.some((step) => step.type === "pickup") && routeSteps.some((step) => step.type === "dropoff");
-  const showDriver = hasLiveCourierFlow ? Boolean(liveTracking?.driver_name || liveTracking?.driver_phone || liveDispatchJob?.courier_id) : phase >= 3;
+  const showDriver = Boolean(hasLiveCourierFlow && (liveTracking?.driver_name || liveTracking?.driver_phone || liveDispatchJob?.courier_id));
   const driverName = liveTracking?.driver_name || (liveDispatchJob?.courier_id ? "Coursier assigné" : "Coursier TOK");
   const driverPhone = liveTracking?.driver_phone || "";
   const deliveryProofCode = String(orderMeta.delivery_proof_code || "");
@@ -437,7 +378,7 @@ export default function SuiviCommande() {
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="gap-1">
-              <Route className="h-3.5 w-3.5" /> Suivi en temps réel
+              <Route className="h-3.5 w-3.5" /> {hasLiveCourierFlow ? "Suivi en temps réel" : "Statut restaurant"}
             </Badge>
             <OrderStatusBadge status={String(liveOrder.status || "pending")} />
           </div>
@@ -456,6 +397,11 @@ export default function SuiviCommande() {
             <div className="text-right text-sm font-bold text-primary">{progress}%</div>
           </div>
           <Progress value={progress} />
+          {!hasLiveCourierFlow ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              Aucun flux livreur n'est encore disponible. Cette page affiche uniquement le dernier statut confirme par le restaurant ou la plateforme.
+            </p>
+          ) : null}
           <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
             {TRACKING_STEPS.map((step, index) => {
               const Icon = step.icon;

@@ -113,7 +113,8 @@ describe("TOK AI platform plan", () => {
       expect(client).toContain(fn);
     }
 
-    expect(client).toContain('import { invokeSupabaseFunction } from "@/lib/session";');
+    expect(client).toContain('from "@/lib/session";');
+    expect(client).toContain("invokeSupabaseFunction");
     expect(client).toContain("invokeSupabaseFunction<T>");
     expect(client).not.toContain("supabase.auth.getSession");
     expect(client).not.toContain("supabase.functions.invoke(functionName");
@@ -127,9 +128,18 @@ describe("TOK AI platform plan", () => {
     const adminComptaAi = readProjectFile("src/pages/admin/AdminComptaAi.tsx");
     const adminAiOperations = readProjectFile("src/pages/admin/AdminAiOperations.tsx");
 
-    for (const text of ["Assistant IA", "ai-restaurant-tools", "SUGGESTED_PROMPTS", "QUICK_TOOLS"]) {
+    for (const text of [
+      "Assistant IA",
+      "SUGGESTED_PROMPTS",
+      "QUICK_TOOLS",
+      "streamRestaurantAdvisor",
+      "runRestaurantAgent",
+      "generateTokDishImage",
+    ]) {
       expect(dashboardAdvisor).toContain(text);
     }
+    expect(dashboardAdvisor).not.toContain("functions/v1/restaurant-advisor");
+    expect(dashboardAdvisor).not.toContain("supabase.auth.getSession");
 
     expect(supportChat).toContain("askClientSupport");
     expect(supportChat).toContain("escalated");

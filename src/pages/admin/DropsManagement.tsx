@@ -37,6 +37,7 @@ export default function DropsManagement() {
       const { data, error } = await supabase
         .from("chef_table_drops" as any)
         .select("*, restaurants(name)")
+        .is("archived_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
@@ -54,12 +55,11 @@ export default function DropsManagement() {
 
   const createOrUpdateMutation = useMutation({
     mutationFn: async (payload: any) => {
-      if (editingId) {
-        const { error } = await supabase.from("chef_table_drops" as any).update(payload).eq("id", editingId);
-        if (error) throw error;
-        return;
-      }
-      const { error } = await supabase.from("chef_table_drops" as any).insert([payload]);
+      const { error } = await (supabase.rpc as any)("admin_save_chef_table_drop", {
+        p_drop_id: editingId,
+        p_payload: payload,
+        p_reason: editingId ? "Mise a jour drop La Table du Chef" : "Creation drop La Table du Chef",
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -74,13 +74,16 @@ export default function DropsManagement() {
   });
 
   const deleteDropMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("chef_table_drops" as any).delete().eq("id", id);
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const { error } = await (supabase.rpc as any)("admin_archive_chef_table_drop", {
+        p_drop_id: id,
+        p_reason: reason,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-drops"] });
-      toast({ title: "Expérience supprimée" });
+      toast({ title: "Expérience archivée" });
     },
     onError: (error: any) => {
       toast({ title: "Erreur", description: error.message || "Suppression impossible.", variant: "destructive" });
@@ -298,7 +301,11 @@ export default function DropsManagement() {
                   variant="ghost"
                   size="icon"
                   className="text-destructive"
-                  onClick={() => deleteDropMutation.mutate(drop.id)}
+                  onClick={() => {
+                    const reason = window.prompt("Raison obligatoire pour archiver ce drop.");
+                    if (!reason?.trim()) return;
+                    deleteDropMutation.mutate({ id: drop.id, reason: reason.trim() });
+                  }}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

@@ -59,7 +59,7 @@ function getOrderJourneyLabel(input: {
   return "commande";
 }
 
-async function restoreReservedSpecialOfferStock(input: {
+export async function restoreReservedSpecialOfferStock(input: {
   adminClient: any;
   order: OrderLookupRow;
   metadata: JsonRecord;
