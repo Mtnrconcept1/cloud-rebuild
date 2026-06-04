@@ -45,6 +45,8 @@ describe("route back navigation", () => {
     expect(app).toContain("zIndex: 1200");
     expect(app).toContain('data-testid="admin-mobile-back-button"');
     expect(app).toContain("createPortal(backButton, document.body)");
+    expect(app).toContain("AdminMobileNavigation");
+    expect(app).toContain("pb-24");
     expect(app).toContain("pt-[calc(env(safe-area-inset-top,0px)+3.75rem)]");
     expect(app).toContain("showLabel={false}");
     expect(app).toContain("bg-primary");

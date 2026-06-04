@@ -14,6 +14,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navigation/BackNavigationButton";
+import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
@@ -190,8 +191,9 @@ export function AdminRouteFrame({
   );
 
   return (
-    <div className="min-h-screen bg-background pt-[calc(env(safe-area-inset-top,0px)+3.75rem)]">
+    <div className="min-h-screen bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0">
       {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
+      <AdminMobileNavigation />
       {children}
     </div>
   );
