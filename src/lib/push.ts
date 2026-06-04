@@ -17,7 +17,11 @@ export type WebPushStatus = {
   permission: NotificationPermission | "unsupported";
   browserSupported: boolean;
   configReady: boolean;
+  configError?: string;
 };
+
+export const FIREBASE_VAPID_KEY_ERROR =
+  "La cle VAPID web Firebase est invalide. Dans Firebase Console > Cloud Messaging > Web Push certificates, copiez la cle publique VAPID dans VITE_FIREBASE_VAPID_KEY.";
 
 function getFirebaseConfig() {
   const projectId = FIREBASE_PROJECT_ID;
@@ -31,13 +35,15 @@ function getFirebaseConfig() {
   };
 
   const vapidKey = FIREBASE_VAPID_KEY;
-  const isReady = Object.values(config).every((value) => typeof value === "string" && value.length > 0)
-    && typeof vapidKey === "string"
-    && vapidKey.length > 0;
+  const configFieldsReady = Object.values(config).every((value) => typeof value === "string" && value.length > 0);
+  const vapidKeyValid = isValidP256PublicVapidKey(vapidKey);
+  const isReady = configFieldsReady && vapidKeyValid;
 
   return {
     config,
     vapidKey,
+    configFieldsReady,
+    vapidKeyValid,
     isReady,
   };
 }
@@ -55,7 +61,7 @@ function buildFirebaseMessagingServiceWorkerUrl() {
 export async function getWebPushStatus(userId: string): Promise<WebPushStatus> {
   const browserSupported = "Notification" in window && "serviceWorker" in navigator;
   const permission = "Notification" in window ? Notification.permission : "unsupported";
-  const { isReady } = getFirebaseConfig();
+  const { configFieldsReady, vapidKeyValid, isReady } = getFirebaseConfig();
 
   const { count, error } = await getSupabase()
     .from("device_tokens")
@@ -74,6 +80,7 @@ export async function getWebPushStatus(userId: string): Promise<WebPushStatus> {
     permission,
     browserSupported,
     configReady: isReady,
+    configError: configFieldsReady && !vapidKeyValid ? FIREBASE_VAPID_KEY_ERROR : undefined,
   };
 }
 
@@ -85,6 +92,10 @@ export async function enableWebPush(userId: string) {
   try {
     const { config: firebaseConfig, vapidKey, isReady } = getFirebaseConfig();
     if (!isReady) {
+      if (!isValidP256PublicVapidKey(vapidKey)) {
+        return { ok: false, reason: FIREBASE_VAPID_KEY_ERROR };
+      }
+
       return { ok: false, reason: "Configuration Firebase manquante." };
     }
 
@@ -133,7 +144,7 @@ export async function enableWebPush(userId: string) {
 
     return { ok: true };
   } catch (e: any) {
-    return { ok: false, reason: e?.message || "Firebase non disponible." };
+    return { ok: false, reason: getWebPushErrorMessage(e) };
   }
 }
 
@@ -149,4 +160,35 @@ export async function disableWebPush(userId: string) {
   }
 
   return { ok: true };
+}
+
+export function isValidP256PublicVapidKey(value: unknown) {
+  if (typeof value !== "string") return false;
+
+  const normalized = value.trim();
+  if (!normalized || normalized.includes("-----") || normalized.startsWith("{")) return false;
+  if (!/^[A-Za-z0-9_-]+={0,2}$/.test(normalized)) return false;
+
+  try {
+    const bytes = base64UrlToBytes(normalized);
+    return bytes.length === 65 && bytes[0] === 0x04;
+  } catch {
+    return false;
+  }
+}
+
+function base64UrlToBytes(value: string) {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+function getWebPushErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (/applicationServerKey|P-256|vapid/i.test(message)) {
+    return FIREBASE_VAPID_KEY_ERROR;
+  }
+
+  return message || "Firebase non disponible.";
 }

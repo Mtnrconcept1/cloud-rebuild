@@ -28,7 +28,7 @@ function getStatusMeta(status: ReturnType<typeof useCourierPushStatus>["data"]) 
     return {
       label: "Configuration manquante",
       tone: "bg-red-100 text-red-700",
-      description: "La configuration push n'est pas complète sur cette instance.",
+      description: status.configError || "La configuration push n'est pas complète sur cette instance.",
     };
   }
 
