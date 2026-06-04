@@ -38,4 +38,19 @@ describe("vercel config", () => {
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
   });
+
+  it("deploys production through GitHub Actions instead of a canceled Vercel Git hook", () => {
+    const configPath = path.resolve(process.cwd(), "vercel.json");
+    const workflowPath = path.resolve(process.cwd(), ".github/workflows/deploy-production.yml");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      git?: { deploymentEnabled?: boolean };
+    };
+    const workflow = readFileSync(workflowPath, "utf8");
+
+    expect(config.git?.deploymentEnabled).toBe(false);
+    expect(workflow).not.toContain("VERCEL_DEPLOY_HOOK_URL");
+    expect(workflow).not.toContain("Trigger Vercel production deploy hook");
+    expect(workflow).toContain("pnpm dlx vercel@latest build --prod --token=\"$VERCEL_TOKEN\"");
+    expect(workflow).toContain("pnpm dlx vercel@latest deploy --prebuilt --prod --token=\"$VERCEL_TOKEN\"");
+  });
 });
