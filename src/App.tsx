@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -161,22 +162,36 @@ function shouldShowPublicNavbar(pathname: string) {
   );
 }
 
-function AdminRouteFrame({
+const adminBackButtonPortalStyle: CSSProperties = {
+  left: "calc(env(safe-area-inset-left, 0px) + 0.75rem)",
+  top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
+  zIndex: 1200,
+};
+
+export function AdminRouteFrame({
   children,
   fallback = "/admin",
 }: {
   children: React.ReactNode;
   fallback?: string;
 }) {
+  const backButton = (
+    <div
+      className="pointer-events-none fixed"
+      data-testid="admin-mobile-back-button"
+      style={adminBackButtonPortalStyle}
+    >
+      <BackNavigationButton
+        fallback={fallback}
+        showLabel={false}
+        className="pointer-events-auto h-11 w-11 shrink-0 justify-center border-primary bg-primary px-0 text-primary-foreground shadow-[0_14px_34px_rgba(15,23,42,0.22)] hover:bg-primary/90 dark:border-primary dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
+      />
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background pt-[calc(env(safe-area-inset-top,0px)+3.75rem)]">
-      <div className="fixed left-3 top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[80] sm:left-6">
-        <BackNavigationButton
-          fallback={fallback}
-          showLabel={false}
-          className="h-11 w-11 shrink-0 justify-center border-primary bg-primary px-0 text-primary-foreground shadow-[0_14px_34px_rgba(15,23,42,0.22)] hover:bg-primary/90 dark:border-primary dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-        />
-      </div>
+      {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
       {children}
     </div>
   );

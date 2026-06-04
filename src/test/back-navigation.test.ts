@@ -1,12 +1,21 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { cleanup, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { afterEach, describe, expect, it } from "vitest";
+
+import { AdminRouteFrame } from "@/App";
 
 const root = process.cwd();
 
 function read(path: string) {
   return readFileSync(resolve(root, path), "utf8");
 }
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("route back navigation", () => {
   it("provides one shared back button with history fallback handling", () => {
@@ -31,8 +40,11 @@ describe("route back navigation", () => {
 
     expect(app).toContain("<FloatingRouteBackButton />");
     expect(app).toContain("function AdminRouteFrame");
-    expect(app).toContain("fixed left-3");
-    expect(app).toContain("z-[80]");
+    expect(app).toContain('import { createPortal } from "react-dom";');
+    expect(app).toContain("adminBackButtonPortalStyle");
+    expect(app).toContain("zIndex: 1200");
+    expect(app).toContain('data-testid="admin-mobile-back-button"');
+    expect(app).toContain("createPortal(backButton, document.body)");
     expect(app).toContain("pt-[calc(env(safe-area-inset-top,0px)+3.75rem)]");
     expect(app).toContain("showLabel={false}");
     expect(app).toContain("bg-primary");
@@ -56,5 +68,28 @@ describe("route back navigation", () => {
 
     expect(adminSubRoutes.length).toBeGreaterThan(0);
     expect(adminSubRoutes.every((line) => line.includes("<AdminProtectedRoute"))).toBe(true);
+  });
+
+  it("renders the admin back button through a body portal for mobile stacking safety", () => {
+    render(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ["/admin/restaurants"] },
+        createElement(
+          AdminRouteFrame,
+          { fallback: "/admin" },
+          createElement("main", null, "Admin content"),
+        ),
+      ),
+    );
+
+    const portal = screen.getByTestId("admin-mobile-back-button");
+
+    expect(document.body.contains(portal)).toBe(true);
+    expect(portal.className).toContain("fixed");
+    expect(portal.style.zIndex).toBe("1200");
+    expect(portal.style.left).toContain("safe-area-inset-left");
+    expect(portal.style.top).toContain("safe-area-inset-top");
+    expect(screen.getByRole("button", { name: /retour/i })).toBeTruthy();
   });
 });
