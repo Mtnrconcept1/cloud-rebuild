@@ -14,6 +14,10 @@ describe("HeroSection mobile newsletter", () => {
 
     expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("h-[calc(100svh-216px)]");
     expect(screen.getByTestId("mobile-hero-panel")).toHaveClass("min-h-[600px]");
+    expect(screen.getByText("Réservez et")).toBeInTheDocument();
+    expect(screen.getByText("offres food")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /je veux manger/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /restaurateur/i }).length).toBeGreaterThan(0);
 
     const newsletter = screen.getByTestId("mobile-newsletter");
     expect(newsletter).toHaveClass("min-h-[148px]");

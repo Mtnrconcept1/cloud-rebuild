@@ -14,10 +14,34 @@ export type TokAiMessage = {
 
 export type ClientSupportRequest = {
   messages: TokAiMessage[];
+  conversationId?: string | null;
   orderId?: string | null;
   reservationId?: string | null;
   restaurantId?: string | null;
   context?: JsonRecord;
+};
+
+export type ClientSupportConversation = {
+  id: string;
+  scope: "client" | "restaurant" | "admin" | "image";
+  title: string | null;
+  status: string;
+  support_incident_id: string | null;
+  restaurant_id: string | null;
+  order_id: string | null;
+  reservation_id: string | null;
+  metadata: JsonRecord | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ClientSupportConversationMessage = {
+  id: string;
+  conversation_id: string;
+  role: "user" | "assistant" | "system" | "tool";
+  content: string;
+  metadata: JsonRecord | null;
+  created_at: string;
 };
 
 export type RestaurantAgentAction =
@@ -83,6 +107,7 @@ export type AccountingAgentRequest = {
   action: "monthly_summary" | "invoice_anomalies" | "revenue_forecast" | "margin_review";
   month: string;
   restaurantId?: string | null;
+  restaurantName?: string | null;
 };
 
 export type AccountingAgentResult = {
@@ -153,6 +178,41 @@ export function askClientSupport(request: ClientSupportRequest) {
     supportTicketId: string;
     supportIncidentId?: string | null;
   }>("ai-client-support", { ...request });
+}
+
+export async function getClientSupportConversations(limit = 20) {
+  const { data, error } = await (supabase.from as any)("ai_conversations")
+    .select(`
+      id,
+      scope,
+      title,
+      status,
+      support_incident_id,
+      restaurant_id,
+      order_id,
+      reservation_id,
+      metadata,
+      created_at,
+      updated_at
+    `)
+    .in("scope", ["client", "restaurant", "admin"])
+    .contains("metadata", { endpoint: "ai-client-support" })
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data || []) as ClientSupportConversation[];
+}
+
+export async function getClientSupportConversationMessages(conversationId: string, limit = 100) {
+  const { data, error } = await (supabase.from as any)("ai_messages")
+    .select("id, conversation_id, role, content, metadata, created_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data || []) as ClientSupportConversationMessage[];
 }
 
 export function runRestaurantAgent(request: RestaurantAgentRequest) {

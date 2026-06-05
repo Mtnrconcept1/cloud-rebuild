@@ -32,7 +32,7 @@ const ALL_SERVICES: { slug: LaunchPackServiceSlug; label: string }[] = [
   { slug: "mise_en_place", label: "Mise en place" },
   { slug: "menu_creation", label: "Création de menu" },
   { slug: "product_photography", label: "Photos produits" },
-  { slug: "social_media_setup", label: "Reseaux sociaux" },
+  { slug: "social_media_setup", label: "Réseaux sociaux" },
   { slug: "advertising_campaign", label: "Campagne publicitaire" },
   { slug: "floor_plan_design", label: "Plan de salle" },
   { slug: "account_manager", label: "Account manager dédié" },
@@ -40,7 +40,7 @@ const ALL_SERVICES: { slug: LaunchPackServiceSlug; label: string }[] = [
 
 const FAQ_ITEMS = [
   {
-    q: "Quand les services sont-ils delivres ?",
+    q: "Quand les services sont-ils délivrés ?",
     a: "Après votre inscription et le paiement du pack, notre équipe vous contacte sous 48h pour planifier chaque service. La mise en place et la création de menu sont généralement réalisées dans la première semaine.",
   },
   {
@@ -48,15 +48,15 @@ const FAQ_ITEMS = [
     a: "Oui, vous pouvez passer à un pack supérieur à tout moment. La différence de prix sera calculée et vous sera facturée. Le downgrade n'est pas possible une fois les services commencés.",
   },
   {
-    q: "Les photos sont-elles realisees sur place ?",
-    a: "Oui, un photographe professionnel se deplace dans votre restaurant pour une seance photo. Les photos sont retouchees et livrees sous 5 jours ouvrables.",
+    q: "Les photos sont-elles réalisées sur place ?",
+    a: "Oui, un photographe professionnel se déplace dans votre restaurant pour une séance photo. Les photos sont retouchées et livrées sous 5 jours ouvrables.",
   },
   {
     q: "Comment fonctionne le budget publicitaire inclus ?",
-    a: "Le budget est utilisé pour des campagnes sponsorisées sur la plateforme Tok (placement en avant, bannieres, notifications push). Notre équipe marketing crée et gere les campagnes pour vous.",
+    a: "Le budget est utilisé pour des campagnes sponsorisées sur la plateforme Tok (placement en avant, bannières, notifications push). Notre équipe marketing crée et gère les campagnes pour vous.",
   },
   {
-    q: "Le paiement est-il unique ou recurrent ?",
+    q: "Le paiement est-il unique ou récurrent ?",
     a: "Le paiement est unique. Il n'y a aucun abonnement ni frais caché. Les services inclus dans votre pack sont délivrés une seule fois lors de votre lancement.",
   },
 ];
@@ -355,7 +355,7 @@ function CancelledBanner() {
       <div>
         <h3 className="font-semibold text-amber-800">Paiement annulé</h3>
         <p className="text-sm text-amber-700 mt-1">
-          Le paiement a été annule. Vous pouvez re-essayer à tout moment en selectionnant un pack ci-dessous.
+          Le paiement a été annulé. Vous pouvez réessayer à tout moment en sélectionnant un pack ci-dessous.
         </p>
       </div>
     </div>
@@ -439,7 +439,7 @@ export default function PacksRestaurateur() {
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(
-        error instanceof Error ? error.message : "Erreur lors de la creation du paiement."
+        error instanceof Error ? error.message : "Erreur lors de la création du paiement."
       );
       setCheckingOut(false);
     }
@@ -464,6 +464,14 @@ export default function PacksRestaurateur() {
           professionnelles, campagnes publicitaires — on s'occupe de tout pour
           que votre lancement soit un succès.
         </p>
+        <div className="flex flex-col justify-center gap-3 sm:flex-row">
+          <Button asChild size="lg">
+            <a href="#packs-restaurateur">Comparer les packs</a>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link to="/contact?subject=demo-restaurateur">Demander une démo</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Pack cards */}
@@ -473,7 +481,7 @@ export default function PacksRestaurateur() {
         </div>
       ) : packs && packs.length > 0 ? (
         <>
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+          <section id="packs-restaurateur" className="grid scroll-mt-28 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 items-stretch">
             {packs.map((pack) => (
               <PackCard
                 key={pack.id}
@@ -488,7 +496,7 @@ export default function PacksRestaurateur() {
           {/* Comparison table */}
           <section className="space-y-8">
             <h2 className="text-3xl font-bold text-center">
-              Comparaison detaillee
+              Comparaison détaillée
             </h2>
             <div className="border rounded-2xl bg-card overflow-hidden">
               <ComparisonTable packs={packs} />
@@ -505,15 +513,15 @@ export default function PacksRestaurateur() {
       <section className="text-center space-y-6 py-12 px-8 rounded-3xl bg-primary/5">
         <h2 className="text-3xl font-bold">Prêt à vous lancer ?</h2>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Rejoignez les centaines de restaurateurs qui font confiance a Tok.
-          Inscrivez-vous et choisissez votre pack de lancement.
+          Rejoignez les restaurateurs qui font confiance à TOK.
+          Comparez les packs, demandez une démo ou créez votre compte restaurateur.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg">
             <Link to="/auth">Créer mon compte restaurateur</Link>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link to="/contact">Nous contacter</Link>
+            <Link to="/contact?subject=demo-restaurateur">Demander une démo</Link>
           </Button>
         </div>
       </section>
@@ -521,7 +529,7 @@ export default function PacksRestaurateur() {
       {/* FAQ */}
       <section className="space-y-8">
         <h2 className="text-3xl font-bold text-center">
-          Questions frequentes
+          Questions fréquentes
         </h2>
         <FaqSection />
       </section>

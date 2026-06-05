@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Search, Star, X } from "lucide-react";
+import { ChefHat, MapPin, Search, Star, X } from "lucide-react";
 
 import CityAutocomplete from "@/components/CityAutocomplete";
 
@@ -34,7 +34,7 @@ const desktopFieldInputClassName =
 export default function HeroSection({ contentVisible = true }: { contentVisible?: boolean }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const [city, setCity] = useState("Geneve");
+  const [city, setCity] = useState("Genève");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewsletter, setShowNewsletter] = useState(true);
 
@@ -88,15 +88,15 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <motion.div variants={fadeUp} className="relative isolate -top-[55px] left-[15px] ml-auto mt-11 w-[56%] min-w-[198px] max-w-[268px] text-left">
                 <div className="pointer-events-none absolute -left-5 -right-4 -top-5 bottom-[-18px] -z-10 rounded-[42px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.96)_42%,rgba(255,255,255,0.66)_68%,transparent_90%)] opacity-[0.94] blur-xl" aria-hidden="true" />
                 <h1 className="font-display text-[1.68rem] font-bold leading-[0.95] tracking-normal text-[#26344c] drop-shadow-[0_2px_1px_rgba(255,255,255,0.55)] min-[390px]:text-[1.88rem]">
-                  <span className="block">Découvrez et</span>
-                  <span className="block">réservez le</span>
-                  <span className="block italic text-[#ff5f16]">meilleur</span>
-                  <span className="block italic text-[#ff5f16]">restaurant</span>
+                  <span className="block">Réservez et</span>
+                  <span className="block">commandez</span>
+                  <span className="block italic text-[#ff5f16]">les meilleures</span>
+                  <span className="block italic text-[#ff5f16]">offres food</span>
                 </h1>
                 <p className="relative -left-2 mt-2 inline-block w-[218px] max-w-none rounded-[18px] bg-white/76 px-2 py-1.5 text-[0.74rem] font-extrabold leading-[1.14] text-[#21314b] shadow-[0_8px_22px_rgba(255,255,255,0.24)] backdrop-blur-[2px] min-[390px]:w-[230px] min-[390px]:text-[0.78rem]">
-                  <span className="block">Trouvez et réservez en</span>
+                  <span className="block">À Genève, cumulez des</span>
                   <span className="block whitespace-nowrap">
-                    <span className="text-[#ff5f16]">quelques clics</span> la table idéale
+                    <span className="text-[#ff5f16]">Miamz</span> solidaires à chaque repas
                   </span>
                 </p>
               </motion.div>
@@ -127,28 +127,22 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 />
               </div>
 
-              <button
-                type="submit"
-                className="h-[48px] w-full rounded-full bg-[#ff6418] px-6 text-[0.92rem] font-extrabold uppercase tracking-[0.1em] text-white shadow-[0_12px_24px_rgba(255,100,24,0.30)] transition hover:bg-[#ff711f] active:translate-y-px min-[390px]:h-[50px] min-[390px]:text-[1rem]"
-              >
-                RECHERCHER
-              </button>
-
-              <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-2 pt-0.5">
-                <div className="flex h-[40px] min-w-0 items-center justify-center gap-2 rounded-full bg-white px-3 shadow-[0_8px_18px_rgba(25,12,5,0.16)]">
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#fff0e7]">
-                    <Star className="h-3.5 w-3.5 text-[#ff6418]" />
-                  </span>
-                  <span className="text-[0.9rem] font-extrabold text-[#26344c]">4.8/5</span>
-                </div>
-                <div className="flex h-[40px] min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-full bg-white px-2 shadow-[0_8px_18px_rgba(25,12,5,0.16)]">
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#fff0e7] text-[#ff6418]">
-                    <MapPin className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="min-w-0 whitespace-nowrap text-center text-[0.58rem] font-extrabold leading-tight text-[#26344c] min-[390px]:text-[0.64rem]">
-                    Des centaines de partenaires
-                  </span>
-                </div>
+              <div className="grid grid-cols-2 gap-2 pt-0.5">
+                <button
+                  type="submit"
+                  className="flex h-[46px] items-center justify-center gap-1.5 rounded-full bg-[#ff6418] px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_12px_24px_rgba(255,100,24,0.30)] transition hover:bg-[#ff711f] active:translate-y-px min-[390px]:h-[48px] min-[390px]:text-[0.74rem]"
+                >
+                  <Search className="h-3.5 w-3.5 shrink-0" />
+                  Je veux manger
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/packs-restaurateur")}
+                  className="flex h-[46px] items-center justify-center gap-1.5 rounded-full bg-white px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.04em] text-[#26344c] shadow-[0_8px_18px_rgba(25,12,5,0.16)] transition hover:bg-[#fff7f1] active:translate-y-px min-[390px]:h-[48px] min-[390px]:text-[0.74rem]"
+                >
+                  <ChefHat className="h-3.5 w-3.5 shrink-0 text-[#ff6418]" />
+                  Restaurateur
+                </button>
               </div>
             </motion.form>
           </div>
@@ -211,11 +205,11 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           <motion.div variants={fadeUp} className="relative isolate max-w-[960px] space-y-3">
             <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[132%] w-[114%] -translate-x-1/2 -translate-y-1/2 rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,1)_0%,rgba(255,255,255,0.96)_38%,rgba(255,255,255,0.62)_64%,transparent_88%)] opacity-[0.94] blur-3xl" aria-hidden="true" />
             <h1 className="font-display text-[3.95rem] font-bold leading-[0.96] tracking-normal text-[#21314b] dark:text-white dark:drop-shadow-[0_0_30px_rgba(255,255,255,0.16)] lg:text-[5.15rem]">
-              <span className="block">Découvrez et réservez le</span>
-              <span className="block italic text-[#ff6b1c]">meilleur restaurant</span>
+              <span className="block">Réservez, commandez et profitez</span>
+              <span className="block italic text-[#ff6b1c]">des meilleures offres food à Genève</span>
             </h1>
             <p className="mx-auto max-w-[760px] text-[1.35rem] font-medium text-[#33445e] dark:text-slate-100 md:text-[1.55rem]">
-              Trouvez et réservez en <span className="font-semibold text-[#ff6b1c]">quelques clics</span> la table idéale
+              Gagnez du temps, cumulez des <span className="font-semibold text-[#ff6b1c]">Miamz</span> et transformez vos repas en impact solidaire.
             </p>
           </motion.div>
 
@@ -248,13 +242,28 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               />
             </div>
 
-            <button
-              type="submit"
-              className="group relative mt-1 h-[74px] w-full overflow-hidden rounded-full bg-[#ff6b1c] px-8 text-lg font-extrabold uppercase tracking-[0.08em] text-white shadow-[0_22px_46px_rgba(255,107,28,0.34)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#ff7528] hover:shadow-[0_26px_54px_rgba(255,107,28,0.42)] active:translate-y-0"
-            >
-              <span className="pointer-events-none absolute inset-x-10 top-1 h-12 rounded-full bg-white/20 blur-2xl" />
-              <span className="relative">RECHERCHER</span>
-            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="submit"
+                className="group relative h-[68px] overflow-hidden rounded-full bg-[#ff6b1c] px-6 text-base font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_22px_46px_rgba(255,107,28,0.34)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#ff7528] hover:shadow-[0_26px_54px_rgba(255,107,28,0.42)] active:translate-y-0"
+              >
+                <span className="pointer-events-none absolute inset-x-10 top-1 h-12 rounded-full bg-white/20 blur-2xl" />
+                <span className="relative inline-flex items-center justify-center gap-2">
+                  <Search className="h-5 w-5" />
+                  Je veux manger
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/packs-restaurateur")}
+                className="h-[68px] rounded-full border border-white/90 bg-white px-6 text-base font-extrabold uppercase tracking-[0.05em] text-[#25354e] shadow-[0_18px_40px_rgba(104,70,29,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#fff7f1] active:translate-y-0 dark:border-orange-200/30 dark:bg-slate-950/90 dark:text-white"
+              >
+                <span className="inline-flex items-center justify-center gap-2">
+                  <ChefHat className="h-5 w-5 text-[#ff6b1c]" />
+                  Je suis restaurateur
+                </span>
+              </button>
+            </div>
           </motion.form>
 
           <motion.div variants={scaleIn} className="mt-8 flex flex-wrap items-center justify-center gap-4">
@@ -268,7 +277,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#fff2e8]">
                 <MapPin className="h-4 w-4 text-[#ff6b1c]" />
               </span>
-              <span className="text-sm font-bold text-[#25354e] dark:text-white">Des centaines restaurants partenaires</span>
+              <span className="text-sm font-bold text-[#25354e] dark:text-white">Restaurants locaux partenaires</span>
             </div>
           </motion.div>
         </motion.div>

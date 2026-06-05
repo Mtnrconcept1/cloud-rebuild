@@ -21,6 +21,8 @@ export const SOCIAL_MEDIA_MIME_EXTENSIONS: Record<string, string> = {
   "video/webm": "webm",
 };
 
+export const SOCIAL_MEDIA_ACCEPT = Object.keys(SOCIAL_MEDIA_MIME_EXTENSIONS).join(",");
+
 const DANGEROUS_EXTENSIONS = new Set([
   "bat",
   "cmd",

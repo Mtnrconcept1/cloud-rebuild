@@ -331,7 +331,7 @@ export default function Index() {
     }
     : {
       title: "Pour ce soir",
-      subtitle: "Reservations et plaisir",
+      subtitle: "Réservations et plaisir",
       icon: MoonStar,
       iconColor: "text-indigo-500",
       restaurants: dinnerCards,
@@ -344,7 +344,7 @@ export default function Index() {
   const secondaryRail = lunchFocus
     ? {
       title: "Pour ce soir",
-      subtitle: "Reservations et plaisir",
+      subtitle: "Réservations et plaisir",
       icon: MoonStar,
       iconColor: "text-indigo-500",
       restaurants: dinnerCards,
@@ -390,7 +390,7 @@ export default function Index() {
         description: hasSavedCity
           ? "Ajoutez votre nom complet pour rendre vos confirmations et favoris plus clairs."
           : "Ajoutez votre ville pour voir plus vite les bonnes adresses autour de vous.",
-        cta: "Completer mon profil",
+        cta: "Compléter mon profil",
         href: "/profil?tab=infos",
         icon: UserRound,
         tint: "bg-sky-500/10 text-sky-600",
@@ -499,7 +499,7 @@ export default function Index() {
 
         <motion.div variants={sectionBounce}>
           <RestaurantSection
-            title={userContext?.city ? `Dans ${userContext.city}` : "Pres de chez vous"}
+            title={userContext?.city ? `Dans ${userContext.city}` : "Près de chez vous"}
             subtitle="Local"
             icon={MapPinned}
             iconColor="text-sky-500"
@@ -530,7 +530,7 @@ export default function Index() {
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">A ne pas manquer</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">À ne pas manquer</p>
                   <h2 className="font-display text-2xl font-bold">Promotions et activations du moment</h2>
                 </div>
               </div>

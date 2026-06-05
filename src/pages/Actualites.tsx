@@ -84,8 +84,8 @@ export default function Actualites() {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.14),transparent_34rem),linear-gradient(180deg,rgba(255,247,237,0.9),rgba(255,255,255,0.95)_22rem,rgba(248,250,252,0.85))] py-6 md:py-10">
-      <div className="container grid gap-6 xl:grid-cols-[minmax(0,1fr)_21rem]">
+    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.14),transparent_34rem),linear-gradient(180deg,rgba(255,247,237,0.9),rgba(255,255,255,0.95)_22rem,rgba(248,250,252,0.85))] py-6 md:py-10">
+      <div className="container grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
         <section className="min-w-0 space-y-5">
           <div className="relative overflow-hidden rounded-[2rem] border border-orange-100/80 bg-background/90 p-5 shadow-xl shadow-orange-100/50 backdrop-blur md:p-6">
             <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
@@ -246,7 +246,7 @@ export default function Actualites() {
           )}
         </section>
 
-        <aside className="space-y-4 xl:sticky xl:top-28 xl:self-start">
+        <aside className="min-w-0 space-y-4 xl:sticky xl:top-28 xl:self-start">
           <Card className="overflow-hidden rounded-[2rem] border-orange-100 bg-background/95 shadow-xl shadow-orange-100/40">
             <CardContent className="space-y-4 p-5">
               <div className="flex items-center justify-between gap-3">
@@ -261,7 +261,7 @@ export default function Actualites() {
                 </div>
                 <Badge variant="outline" className="rounded-full">Live</Badge>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-white p-3 ring-1 ring-orange-100">
                   <Megaphone className="mb-2 h-4 w-4 text-primary" />
                   <p className="text-xs text-muted-foreground">Posts</p>

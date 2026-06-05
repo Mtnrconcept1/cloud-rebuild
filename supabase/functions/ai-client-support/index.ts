@@ -258,14 +258,38 @@ Deno.serve(async (req) => {
     const messages = sanitizeMessages(body.messages);
     if (messages.length === 0) throw new HttpError(400, "messages_required");
 
-    const orderId = maybeUuid(body.orderId);
-    const reservationId = maybeUuid(body.reservationId);
-    const requestedRestaurantId = maybeUuid(body.restaurantId);
+    const requestedConversationId = maybeUuid(body.conversationId);
+    let orderId = maybeUuid(body.orderId);
+    let reservationId = maybeUuid(body.reservationId);
+    let requestedRestaurantId = maybeUuid(body.restaurantId);
     const context = typeof body.context === "object" && body.context ? body.context : {};
 
     const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
     await rl.consume(`user:${actor.userId}`, { maxRequests: 30, windowSeconds: 3600 });
     await rl.consume("global", { maxRequests: 240, windowSeconds: 60 });
+
+    let existingConversation: Record<string, any> | null = null;
+    if (requestedConversationId) {
+      const { data, error } = await actor.adminClient
+        .from("ai_conversations")
+        .select("id, user_id, restaurant_id, order_id, reservation_id, scope, status, title, metadata")
+        .eq("id", requestedConversationId)
+        .maybeSingle();
+
+      if (error) throw new HttpError(500, error.message);
+      if (!data) throw new HttpError(404, "conversation_not_found");
+      if (!actor.isAdmin && data.user_id !== actor.userId) {
+        if (!data.restaurant_id) throw new HttpError(403, "forbidden");
+        await requireRestaurantAccess(actor, data.restaurant_id);
+      }
+
+      existingConversation = data;
+      conversationId = requestedConversationId;
+      orderId = orderId || maybeUuid(data.order_id);
+      reservationId = reservationId || maybeUuid(data.reservation_id);
+      restaurantId = data.restaurant_id || null;
+      requestedRestaurantId = requestedRestaurantId || restaurantId;
+    }
 
     const orderContext: Record<string, unknown> = {};
     if (orderId) {
@@ -311,31 +335,48 @@ Deno.serve(async (req) => {
     }
 
     const lastUserMessage = messages.filter((message) => message.role === "user").at(-1);
-    const { data: conversation, error: conversationError } = await actor.adminClient
-      .from("ai_conversations")
-      .insert({
-        scope: "client",
-        user_id: actor.userId,
-        restaurant_id: restaurantId,
-        order_id: orderId,
-        reservation_id: reservationId,
-        title: lastUserMessage?.content.slice(0, 140) || "Support IA TOK",
-        metadata: { endpoint: FUNCTION_NAME, context },
-      })
-      .select("id")
-      .single();
+    const messagesToPersist = existingConversation && lastUserMessage ? [lastUserMessage] : messages;
 
-    if (conversationError) throw new HttpError(500, conversationError.message);
-    conversationId = conversation.id;
+    if (existingConversation) {
+      conversationId = requestedConversationId;
+      await actor.adminClient
+        .from("ai_conversations")
+        .update({
+          updated_at: new Date().toISOString(),
+          metadata: {
+            ...(existingConversation.metadata || {}),
+            endpoint: FUNCTION_NAME,
+            context,
+          },
+        })
+        .eq("id", conversationId);
+    } else {
+      const { data: conversation, error: conversationError } = await actor.adminClient
+        .from("ai_conversations")
+        .insert({
+          scope: "client",
+          user_id: actor.userId,
+          restaurant_id: restaurantId,
+          order_id: orderId,
+          reservation_id: reservationId,
+          title: lastUserMessage?.content.slice(0, 140) || "Support IA TOK",
+          metadata: { endpoint: FUNCTION_NAME, context },
+        })
+        .select("id")
+        .single();
 
-    await actor.adminClient.from("ai_messages").insert(
-      messages.map((message) => ({
+      if (conversationError) throw new HttpError(500, conversationError.message);
+      conversationId = conversation.id;
+    }
+
+    if (!conversationId) throw new HttpError(500, "conversation_not_created");
+
+    await actor.adminClient.from("ai_messages").insert(messagesToPersist.map((message) => ({
         conversation_id: conversationId,
         role: message.role,
         content: message.content,
         model,
-      })),
-    );
+      })));
 
     const systemPrompt = `Tu es l'agent support IA de TOK en Suisse.
 Aucun remboursement automatique: tu ne promets jamais un remboursement, un avoir important, une action juridique ou une modification de commande sans regle explicite.
@@ -374,24 +415,43 @@ Reponds en francais clair et court.`;
     const usage = extractUsage(openAIResponse);
     const finalStatus: SupportStatus = result.should_escalate ? "escalated" : result.status;
 
-    const { data: supportTicket, error: supportTicketError } = await actor.adminClient
+    const supportTicketPayload = {
+      conversation_id: conversationId,
+      restaurant_id: restaurantId,
+      user_id: actor.userId,
+      order_id: orderId,
+      reservation_id: reservationId,
+      title: result.ticket_title || "Demande support IA",
+      summary: result.ticket_summary || result.reply,
+      category: result.category || "general",
+      priority: result.priority,
+      status: finalStatus,
+      metadata: {
+        suggested_next_steps: result.suggested_next_steps,
+        should_escalate: result.should_escalate,
+      },
+    };
+
+    const { data: existingSupportTicket, error: existingSupportTicketError } = await actor.adminClient
       .from("ai_support_tickets")
-      .insert({
-        conversation_id: conversationId,
-        restaurant_id: restaurantId,
-        user_id: actor.userId,
-        order_id: orderId,
-        reservation_id: reservationId,
-        title: result.ticket_title || "Demande support IA",
-        summary: result.ticket_summary || result.reply,
-        category: result.category || "general",
-        priority: result.priority,
-        status: finalStatus,
-        metadata: {
-          suggested_next_steps: result.suggested_next_steps,
-          should_escalate: result.should_escalate,
-        },
-      })
+      .select("id")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingSupportTicketError) throw new HttpError(500, existingSupportTicketError.message);
+
+    const supportTicketQuery = existingSupportTicket?.id
+      ? actor.adminClient
+          .from("ai_support_tickets")
+          .update(supportTicketPayload)
+          .eq("id", existingSupportTicket.id)
+      : actor.adminClient
+          .from("ai_support_tickets")
+          .insert(supportTicketPayload);
+
+    const { data: supportTicket, error: supportTicketError } = await supportTicketQuery
       .select("id")
       .single();
 

@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Bot, Send, X } from "lucide-react";
+import { Bot, History, Loader2, MessageSquarePlus, Send, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { askClientSupport, type TokAiMessage } from "@/lib/ai/tokAiClient";
+import {
+  askClientSupport,
+  getClientSupportConversationMessages,
+  getClientSupportConversations,
+  type ClientSupportConversation,
+  type TokAiMessage,
+} from "@/lib/ai/tokAiClient";
 import { type HelpChatAgentId, type HelpChatOpenOptions, type HelpChatSurface } from "@/lib/helpChat";
 
 type ChatMessage = {
@@ -72,6 +78,26 @@ function getInitialHistory(agentId: HelpChatAgentId, surface: HelpChatSurface): 
   ];
 }
 
+function isHelpChatSurface(value: unknown): value is HelpChatSurface {
+  return value === "client" || value === "restaurant" || value === "admin" || value === "courier" || value === "public";
+}
+
+function isHelpChatAgentId(value: unknown): value is HelpChatAgentId {
+  return value === "support_ai" || value === "orders_ai" || value === "payments_ai";
+}
+
+function getConversationContext(conversation: ClientSupportConversation) {
+  const metadata = conversation.metadata || {};
+  const context = metadata.context && typeof metadata.context === "object"
+    ? metadata.context as Record<string, unknown>
+    : {};
+
+  return {
+    surface: isHelpChatSurface(context.surface) ? context.surface : null,
+    agentId: isHelpChatAgentId(context.agentId) ? context.agentId : null,
+  };
+}
+
 export default function SupportChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [chatSurface, setChatSurface] = useState<HelpChatSurface>("client");
@@ -79,6 +105,13 @@ export default function SupportChat() {
   const [history, setHistory] = useState<ChatMessage[]>(() =>
     getInitialHistory("support_ai", "client")
   );
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [supportTicketId, setSupportTicketId] = useState<string | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<ClientSupportConversation[]>([]);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [loadingConversationId, setLoadingConversationId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -97,6 +130,10 @@ export default function SupportChat() {
       setChatSurface(normalized.surface);
       setSelectedAgent(normalized.agentId);
       setHistory(getInitialHistory(normalized.agentId, normalized.surface));
+      setActiveConversationId(null);
+      setSupportTicketId(null);
+      setIsHistoryOpen(false);
+      setHistoryError(null);
       setInputValue("");
       setIsTyping(false);
       setIsOpen(true);
@@ -109,6 +146,9 @@ export default function SupportChat() {
 
   const resetChat = () => {
     setHistory(getInitialHistory(selectedAgent, chatSurface));
+    setActiveConversationId(null);
+    setSupportTicketId(null);
+    setHistoryError(null);
     setInputValue("");
     setIsTyping(false);
   };
@@ -116,8 +156,56 @@ export default function SupportChat() {
   const handleAgentChange = (agentId: HelpChatAgentId) => {
     setSelectedAgent(agentId);
     setHistory(getInitialHistory(agentId, chatSurface));
+    setActiveConversationId(null);
+    setSupportTicketId(null);
     setInputValue("");
     setIsTyping(false);
+  };
+
+  const loadConversationHistory = async () => {
+    setIsHistoryOpen(true);
+    setHistoryError(null);
+    setIsHistoryLoading(true);
+
+    try {
+      const conversations = await getClientSupportConversations();
+      setConversationHistory(conversations);
+    } catch (error) {
+      setHistoryError(error instanceof Error ? error.message : "Historique indisponible.");
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const loadConversationMessages = async (conversation: ClientSupportConversation) => {
+    setLoadingConversationId(conversation.id);
+    setHistoryError(null);
+
+    try {
+      const { surface, agentId } = getConversationContext(conversation);
+      const nextSurface = surface || chatSurface;
+      const nextAgentId = agentId || selectedAgent;
+      const messages = await getClientSupportConversationMessages(conversation.id);
+      const nextHistory = messages
+        .filter((message) => message.role === "user" || message.role === "assistant")
+        .map((message) => ({
+          type: message.role === "user" ? "user" as const : "bot" as const,
+          text: message.content,
+        }));
+
+      setChatSurface(nextSurface);
+      setSelectedAgent(nextAgentId);
+      setActiveConversationId(conversation.id);
+      setSupportTicketId(null);
+      setHistory(nextHistory.length > 0 ? nextHistory : getInitialHistory(nextAgentId, nextSurface));
+      setInputValue("");
+      setIsTyping(false);
+      setIsHistoryOpen(false);
+    } catch (error) {
+      setHistoryError(error instanceof Error ? error.message : "Conversation indisponible.");
+    } finally {
+      setLoadingConversationId(null);
+    }
   };
 
   const handleSendMessage = async (event: FormEvent) => {
@@ -145,11 +233,15 @@ export default function SupportChat() {
 
       const data = await askClientSupport({
         messages,
+        conversationId: activeConversationId,
         context: {
           agentId: selectedAgent,
           surface: chatSurface,
         },
       });
+
+      setActiveConversationId(data?.conversationId || activeConversationId);
+      setSupportTicketId(data?.supportTicketId || null);
 
       setHistory((previous) => [
         ...previous,
@@ -205,13 +297,25 @@ export default function SupportChat() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="shrink-0 rounded-full p-1.5 transition-colors hover:bg-white/10"
-                  aria-label="Fermer le chat"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={loadConversationHistory}
+                    className="h-9 gap-1.5 rounded-full px-2 text-xs text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+                  >
+                    <History className="h-4 w-4" />
+                    Historique
+                  </Button>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="rounded-full p-1.5 transition-colors hover:bg-white/10"
+                    aria-label="Fermer le chat"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
 
               <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -234,6 +338,50 @@ export default function SupportChat() {
                 </Badge>
               </div>
             </div>
+
+            {isHistoryOpen ? (
+              <div className="max-h-56 overflow-y-auto border-b bg-card p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Historique</p>
+                  <Button type="button" variant="outline" size="sm" className="h-8 gap-1 rounded-full text-xs" onClick={resetChat}>
+                    <MessageSquarePlus className="h-3.5 w-3.5" />
+                    Nouvelle
+                  </Button>
+                </div>
+                {historyError ? <p className="rounded-xl bg-destructive/10 p-2 text-xs text-destructive">{historyError}</p> : null}
+                {isHistoryLoading ? (
+                  <div className="flex items-center gap-2 rounded-xl border bg-muted/30 p-3 text-xs text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Chargement de l'historique...
+                  </div>
+                ) : conversationHistory.length > 0 ? (
+                  <div className="space-y-2">
+                    {conversationHistory.map((conversation) => (
+                      <button
+                        key={conversation.id}
+                        type="button"
+                        onClick={() => loadConversationMessages(conversation)}
+                        className="w-full rounded-xl border bg-background p-3 text-left text-xs transition hover:border-primary/40 hover:bg-primary/5"
+                      >
+                        <span className="block truncate font-semibold text-foreground">
+                          {conversation.title || "Conversation support IA"}
+                        </span>
+                        <span className="mt-1 flex items-center justify-between gap-2 text-muted-foreground">
+                          <span>{conversation.status}</span>
+                          <span>
+                            {loadingConversationId === conversation.id ? "Ouverture..." : new Date(conversation.updated_at).toLocaleDateString("fr-CH")}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="rounded-xl border border-dashed bg-muted/20 p-3 text-xs text-muted-foreground">
+                    Aucune ancienne conversation trouvee pour ce compte.
+                  </p>
+                )}
+              </div>
+            ) : null}
 
             <div
               ref={scrollRef}
@@ -280,6 +428,11 @@ export default function SupportChat() {
                   >
                     {activeAgent.badge}
                   </Badge>
+                  {supportTicketId ? (
+                    <p className="mt-1 text-[10px] text-muted-foreground">Ticket {supportTicketId.slice(0, 8)}</p>
+                  ) : activeConversationId ? (
+                    <p className="mt-1 text-[10px] text-muted-foreground">Conversation enregistree</p>
+                  ) : null}
                 </div>
               ) : null}
 

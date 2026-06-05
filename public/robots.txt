@@ -12,5 +12,15 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /courier
+Disallow: /profil
+Disallow: /notifications
+Disallow: /commandes
+Disallow: /commande/
+Disallow: /reservations
+Disallow: /panier
+Disallow: /auth
 
 Sitemap: https://www.thetok.ch/sitemap.xml

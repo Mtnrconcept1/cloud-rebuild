@@ -13,8 +13,8 @@ import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 const supabase = getSupabase();
 
 const CITY_LABELS: Record<string, string> = {
-  geneve: "Geneve",
-  genève: "Geneve",
+  geneve: "Genève",
+  genève: "Genève",
   lausanne: "Lausanne",
 };
 
@@ -55,7 +55,7 @@ function buildRestaurantJsonLd(restaurants: any[], city: string, category: strin
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: category ? `Restaurants ${category} a ${city}` : `Restaurants a ${city}`,
+    name: category ? `Restaurants ${category} à ${city}` : `Restaurants à ${city}`,
     url: buildCanonicalUrl(path),
     itemListElement: restaurants.slice(0, 24).map((restaurant, index) => ({
       "@type": "ListItem",
@@ -114,11 +114,11 @@ export default function LocalRestaurants() {
   });
 
   const title = category
-    ? `Restaurants ${category} a ${city} | Tok`
-    : `Restaurants a ${city} | Tok`;
+    ? `Restaurants ${category} à ${city} | Tok`
+    : `Restaurants à ${city} | Tok`;
   const description = category
-    ? `Decouvrez les restaurants ${category} disponibles a ${city} sur Tok : commande, reservation, offres locales et adresses indexables.`
-    : `Decouvrez les restaurants disponibles a ${city} sur Tok : livraison, reservation, anti-gaspi, ventes flash et adresses locales.`;
+    ? `Découvrez les restaurants ${category} disponibles à ${city} sur Tok : commande, réservation, offres locales et adresses indexables.`
+    : `Découvrez les restaurants disponibles à ${city} sur Tok : livraison, réservation, anti-gaspi, ventes flash et adresses locales.`;
   const jsonLd = useMemo(
     () => buildRestaurantJsonLd(restaurants, city, category, path),
     [category, city, path, restaurants],
@@ -140,7 +140,7 @@ export default function LocalRestaurants() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
               <h1 className="font-display text-3xl font-bold md:text-4xl">
-                {category ? `Restaurants ${category} a ${city}` : `Restaurants a ${city}`}
+                {category ? `Restaurants ${category} à ${city}` : `Restaurants à ${city}`}
               </h1>
               <p className="max-w-2xl text-muted-foreground">{description}</p>
             </div>
@@ -167,7 +167,7 @@ export default function LocalRestaurants() {
           </section>
         ) : (
           <section className="rounded-2xl border border-dashed p-10 text-center">
-            <p className="font-semibold">Aucun restaurant trouve pour cette page locale.</p>
+            <p className="font-semibold">Aucun restaurant trouvé pour cette page locale.</p>
             <p className="mt-2 text-sm text-muted-foreground">Essayez une autre ville ou une autre cuisine depuis la recherche.</p>
           </section>
         )}

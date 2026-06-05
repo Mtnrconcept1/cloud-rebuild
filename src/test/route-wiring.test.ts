@@ -38,6 +38,7 @@ const CORE_ROUTES = new Set([
   "/politique-confidentialite",
   "/a-propos",
   "/packs-restaurateur",
+  "/restaurateurs/geneve",
   "/aide",
   "/admin",
 ]);

@@ -208,7 +208,7 @@ export default function Navbar() {
     <>
       {/* ─── Top utility bar ─── */}
       {showClientSurface ? (
-        <div className="hidden w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 md:block">
+        <div className="hidden w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 lg:block">
           <div className="container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground">
             <Link to="/auth?type=restaurateur" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
               <Store className="h-3.5 w-3.5" />
@@ -228,7 +228,7 @@ export default function Navbar() {
           </Link>
 
           {showClientSurface ? (
-            <NavigationMenu className="hidden md:flex">
+            <NavigationMenu className="hidden lg:flex">
               <NavigationMenuList>
                 <NavigationMenuItem>
                   <Link to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -309,7 +309,7 @@ export default function Navbar() {
 
           <div className="flex min-w-0 items-center gap-0.5 min-[380px]:gap-1">
             {!showClientSurface && showSocialFeedSurface && actualitesEnabled ? (
-              <Button variant="ghost" size="sm" asChild className="hidden gap-2 rounded-full md:inline-flex">
+              <Button variant="ghost" size="sm" asChild className="hidden gap-2 rounded-full lg:inline-flex">
                 <Link to="/actualites">
                   <Newspaper className="h-4 w-4" />
                   Actualités
@@ -323,7 +323,7 @@ export default function Navbar() {
               aria-label="Mode sombre"
               onMouseDown={preserveNavbarActionScrollPosition}
               onClick={handleThemeToggle}
-              className={`${isMobileHomeHeader ? "hidden md:inline-flex" : ""} text-muted-foreground hover:text-foreground`}
+              className={`${isMobileHomeHeader ? "hidden lg:inline-flex" : ""} text-muted-foreground hover:text-foreground`}
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -331,7 +331,7 @@ export default function Navbar() {
             </Button>
 
             {showCartShortcut ? (
-              <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className={`${isMobileHomeHeader ? "hidden md:inline-flex" : ""} relative`}>
+              <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className={`${isMobileHomeHeader ? "hidden lg:inline-flex" : ""} relative`}>
                 <Link to="/panier">
                   <ShoppingCart className="h-5 w-5" />
                   <span className="sr-only">Panier</span>
@@ -347,7 +347,7 @@ export default function Navbar() {
             <NotificationBell className={isMobileHomeHeader ? "text-slate-950 hover:bg-transparent" : undefined} />
 
             {showClientSurface ? (
-              <ChefHelpButton surface="client" compact className="hidden h-11 md:flex" />
+              <ChefHelpButton surface="client" compact className="hidden h-11 lg:flex" />
             ) : null}
 
             {user ? (
@@ -362,7 +362,7 @@ export default function Navbar() {
                       isMobileHomeHeader
                         ? "order-3 h-[48px] rounded-full bg-primary px-5 text-[0.88rem] font-bold text-white shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-primary/90"
                         : hasDashboardAccess
-                          ? "hidden h-11 rounded-full border border-primary/25 bg-gradient-to-r from-primary via-orange-500 to-amber-500 px-4 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(255,107,28,0.26)] transition-all hover:-translate-y-0.5 hover:text-white hover:shadow-[0_16px_34px_rgba(255,107,28,0.32)] md:inline-flex"
+                          ? "hidden h-11 rounded-full border border-primary/25 bg-gradient-to-r from-primary via-orange-500 to-amber-500 px-4 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(255,107,28,0.26)] transition-all hover:-translate-y-0.5 hover:text-white hover:shadow-[0_16px_34px_rgba(255,107,28,0.32)] lg:inline-flex"
                         : "rounded-full"
                     }
                   >
@@ -462,7 +462,7 @@ export default function Navbar() {
 
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} md:hidden`}>
+                <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} lg:hidden`}>
                   <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
                 </Button>

@@ -403,6 +403,7 @@ function AppShell() {
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/a-propos" element={<APropos />} />
           <Route path="/packs-restaurateur" element={<PacksRestaurateur />} />
+          <Route path="/restaurateurs/geneve" element={<PacksRestaurateur />} />
           <Route path="/aide" element={<Aide />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

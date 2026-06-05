@@ -6,7 +6,6 @@ import {
   CalendarCheck,
   EyeOff,
   MessageCircle,
-  MoreHorizontal,
   Repeat2,
   Send,
   Share2,
@@ -14,6 +13,7 @@ import {
   Sparkles,
   Store,
   Target,
+  TriangleAlert,
   Trash2,
   UserPlus,
   UserRoundCheck,
@@ -410,8 +410,8 @@ export default function SocialPostCard({
           </div>
         ) : null}
 
-        <div className="flex items-start justify-between gap-3">
-          <Link to={`/restaurant/${post.restaurantId}`} className="flex min-w-0 items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <Link to={`/restaurant/${post.restaurantId}`} className="flex w-full min-w-0 flex-1 items-center gap-3">
             <Avatar className="h-14 w-14 rounded-2xl border-2 border-orange-100 shadow-sm">
               <AvatarImage src={post.restaurant.imageUrl || undefined} alt={post.restaurant.name} />
               <AvatarFallback className="rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 font-bold text-white">
@@ -438,7 +438,7 @@ export default function SocialPostCard({
               </p>
             </div>
           </Link>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
             <Button
               variant={post.followedByMe ? "secondary" : "outline"}
               size="sm"
@@ -464,7 +464,7 @@ export default function SocialPostCard({
           </div>
         </div>
 
-        <div className={cn("mt-4 grid gap-4", hasMedia && "lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center")}>
+        <div className={cn("mt-4 grid gap-4", hasMedia && "lg:grid-cols-[minmax(0,1fr)_minmax(15rem,19rem)] lg:items-center")}>
           <div className="min-w-0">
             <p className="whitespace-pre-wrap text-[15px] font-medium leading-7 text-slate-950">{post.body}</p>
 
@@ -562,7 +562,7 @@ export default function SocialPostCard({
                 variant="ghost"
                 size="sm"
                 className="gap-1.5 rounded-xl text-muted-foreground"
-                onClick={() => feedback.mutate({ post, feedbackType: "show_more" })}
+                onClick={() => feedback.mutate({ post, feedbackType: "show_more", reason: "Preference client" })}
                 disabled={feedback.isPending}
               >
                 <Sparkles className="h-4 w-4" />
@@ -572,7 +572,7 @@ export default function SocialPostCard({
                 variant="ghost"
                 size="sm"
                 className="gap-1.5 rounded-xl text-muted-foreground"
-                onClick={() => feedback.mutate({ post, feedbackType: "not_interested", reason: "Client feedback" })}
+                onClick={() => feedback.mutate({ post, feedbackType: "hide_post", reason: "Post masque par le client" })}
                 disabled={feedback.isPending}
               >
                 <EyeOff className="h-4 w-4" />
@@ -585,9 +585,9 @@ export default function SocialPostCard({
             size="icon"
             className="ml-auto h-9 w-9 rounded-xl text-muted-foreground"
             onClick={() => reportItem.mutate({ targetType: "post", targetId: post.id, reason: "Contenu inapproprie" })}
-            aria-label="Plus d'options"
+            aria-label="Signaler le post"
           >
-            <MoreHorizontal className="h-4 w-4" />
+            <TriangleAlert className="h-4 w-4" />
           </Button>
         </div>
 

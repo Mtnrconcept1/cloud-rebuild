@@ -20,6 +20,8 @@ type SupportDraft = {
   messages: TokAiMessage[];
   input: string;
   status: "open" | "waiting_restaurant" | "waiting_tok" | "resolved" | "escalated";
+  conversationId?: string | null;
+  supportTicketId?: string | null;
 };
 
 export default function TokAiSupportChat({
@@ -56,6 +58,7 @@ export default function TokAiSupportChat({
     try {
       const result = await askClientSupport({
         messages: nextMessages,
+        conversationId: draft.conversationId || null,
         orderId,
         reservationId,
         restaurantId,
@@ -68,6 +71,8 @@ export default function TokAiSupportChat({
       setDraft((previous) => ({
         ...previous,
         status: result.status,
+        conversationId: result.conversationId,
+        supportTicketId: result.supportTicketId,
         messages: [...nextMessages, { role: "assistant", content: result.reply }],
       }));
     } catch (chatError) {

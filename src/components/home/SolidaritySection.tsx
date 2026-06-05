@@ -65,7 +65,7 @@ export default function SolidaritySection({ donatedMeals, donatedPoints }: Solid
                       <span className="text-base font-black tabular-nums sm:text-lg md:text-2xl">{displayedGoal}</span>
                       <span className="text-[9px] font-black sm:text-[10px] md:text-sm">pts</span>
                     </div>
-                    <p className="text-[7px] font-bold sm:text-[8px] md:text-[11px]">repas d&apos;ici P&acirc;ques</p>
+                    <p className="text-[7px] font-bold sm:text-[8px] md:text-[11px]">objectif solidaire du mois</p>
                   </div>
                 </div>
               </div>

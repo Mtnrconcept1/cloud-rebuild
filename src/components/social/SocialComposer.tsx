@@ -16,6 +16,7 @@ import {
   type SocialPostCtaType,
   type SocialPostType,
 } from "@/lib/socialFeed";
+import { SOCIAL_MEDIA_ACCEPT } from "@/lib/uploadSecurity";
 
 function getMinimumScheduledAtInputValue() {
   const minimum = new Date(Date.now() + 5 * 60_000);
@@ -186,7 +187,7 @@ export default function SocialComposer({
               <input
                 ref={inputRef}
                 type="file"
-                accept="image/*,video/*"
+                accept={SOCIAL_MEDIA_ACCEPT}
                 multiple
                 className="hidden"
                 onChange={(event) => {

@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { useToast } from "@/hooks/use-toast";
+import { formatAccountingAiResultForDisplay, formatAccountingAiText } from "@/lib/ai/accountingPublicCopy";
 import { getAccountingInsightsForRestaurant, runAccountingAgent, type AccountingAgentResult } from "@/lib/ai/tokAiClient";
 import {
   fetchDashboardAccountingExportEntries,
@@ -63,6 +64,14 @@ function getInsightExportMarkdown(metadata: Record<string, unknown> | null | und
   return typeof exportMarkdown === "string" && exportMarkdown.trim() ? exportMarkdown : summary;
 }
 
+function getCleanInsightExportMarkdown(
+  metadata: Record<string, unknown> | null | undefined,
+  summary: string,
+  restaurantName: string,
+) {
+  return formatAccountingAiText(getInsightExportMarkdown(metadata, summary), restaurantName);
+}
+
 function DashboardAccountingAiPanel({
   restaurantId,
   restaurantName,
@@ -84,6 +93,7 @@ function DashboardAccountingAiPanel({
   const accountingMutation = useMutation({
     mutationFn: () => runAccountingAgent({
       restaurantId,
+      restaurantName,
       month: draft.month,
       action: "monthly_summary",
     }),
@@ -94,7 +104,9 @@ function DashboardAccountingAiPanel({
   });
 
   const result = draft.result;
+  const displayResult = result ? formatAccountingAiResultForDisplay(result, restaurantName) : null;
   const history = historyQuery.data || [];
+  const restaurantFilePart = sanitizeAccountingFilePart(restaurantName);
 
   return (
     <AccountingPanel
@@ -128,8 +140,8 @@ function DashboardAccountingAiPanel({
           className="gap-2"
           disabled={!result}
           onClick={() => {
-            if (!result) return;
-            downloadMarkdown(`tok-compta-ia-${restaurantId}-${draft.month}.md`, result.export_markdown || result.summary);
+            if (!displayResult) return;
+            downloadMarkdown(`tok-compta-ia-${restaurantFilePart}-${draft.month}.md`, displayResult.export_markdown || displayResult.summary);
           }}
         >
           <FileDown className="h-4 w-4" />
@@ -149,22 +161,22 @@ function DashboardAccountingAiPanel({
         <p className="text-sm text-destructive">{getErrorMessage(accountingMutation.error)}</p>
       ) : null}
 
-      {result ? (
+      {displayResult ? (
         <div className="space-y-3 rounded-2xl border bg-background/70 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">Brouillon</Badge>
             <Badge variant="outline">{draft.month}</Badge>
           </div>
-          <p className="text-sm leading-6 text-muted-foreground">{result.summary}</p>
+          <p className="text-sm leading-6 text-muted-foreground">{displayResult.summary}</p>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-xl border p-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground">Prévision CA</p>
-              <p className="mt-1 text-sm">{result.revenue_forecast}</p>
+              <p className="mt-1 text-sm">{displayResult.revenue_forecast}</p>
             </div>
             <div className="rounded-xl border p-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground">Actions recommandées</p>
               <ul className="mt-1 space-y-1 text-sm">
-                {result.recommended_actions.slice(0, 3).map((action) => (
+                {displayResult.recommended_actions.slice(0, 3).map((action) => (
                   <li key={action}>{action}</li>
                 ))}
               </ul>
@@ -189,7 +201,7 @@ function DashboardAccountingAiPanel({
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-semibold">{formatInsightPeriod(insight.period_start, insight.period_end)}</p>
-                <p className="line-clamp-2 text-sm text-muted-foreground">{insight.summary}</p>
+                <p className="line-clamp-2 text-sm text-muted-foreground">{formatAccountingAiText(insight.summary, restaurantName)}</p>
               </div>
               <Button
                 type="button"
@@ -197,8 +209,8 @@ function DashboardAccountingAiPanel({
                 variant="outline"
                 className="gap-2"
                 onClick={() => downloadMarkdown(
-                  `tok-compta-ia-${restaurantId}-${insight.period_start.slice(0, 7)}.md`,
-                  getInsightExportMarkdown(insight.metadata, insight.summary),
+                  `tok-compta-ia-${restaurantFilePart}-${insight.period_start.slice(0, 7)}.md`,
+                  getCleanInsightExportMarkdown(insight.metadata, insight.summary, restaurantName),
                 )}
               >
                 <FileDown className="h-4 w-4" />

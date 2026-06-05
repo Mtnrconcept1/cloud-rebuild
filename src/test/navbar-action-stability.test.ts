@@ -25,4 +25,11 @@ describe("navbar action stability", () => {
     expect(source).toContain("setAccountMenuOpen(open)");
     expect(source).toContain("data-[state=closed]:hidden");
   });
+
+  it("keeps the compact menu available through tablet widths before desktop navigation", () => {
+    expect(source).toContain('<NavigationMenu className="hidden lg:flex">');
+    expect(source).toContain('className="hidden h-11 lg:flex"');
+    expect(source).toContain("lg:hidden");
+    expect(source).not.toContain('<NavigationMenu className="hidden md:flex">');
+  });
 });

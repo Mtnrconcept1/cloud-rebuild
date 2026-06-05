@@ -12,6 +12,8 @@ describe("SolidaritySection", () => {
     expect(screen.getByText(/68 repas/i)).toBeInTheDocument();
     expect(screen.getByText("6 939")).toBeInTheDocument();
     expect(screen.getByText("5 000")).toBeInTheDocument();
+    expect(screen.getByText(/objectif solidaire du mois/i)).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/pâques|paques/i);
 
     const progress = screen.getByRole("progressbar", { name: /progression vers le prochain objectif/i });
     expect(progress).toHaveAttribute("aria-valuenow", "5000");

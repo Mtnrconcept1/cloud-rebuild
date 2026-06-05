@@ -32,6 +32,42 @@ type AccountingResult = {
 
 const FUNCTION_NAME = "ai-accounting-agent";
 const FEATURE_NAME = "ai_accounting_insights";
+const DEFAULT_RESTAURANT_LABEL = "le restaurant concerné";
+const UUID_PATTERN = /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi;
+const SNAKE_CASE_PATTERN = /\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b/g;
+
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending_payment: "paiement en attente",
+  payment_pending: "paiement en attente",
+  pending: "en attente",
+  preparing: "en préparation",
+  accepted: "acceptée",
+  completed: "terminée",
+  delivered: "livrée",
+  cancelled: "annulée",
+  refunded: "remboursée",
+};
+
+const PUBLIC_COPY_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bpending_payment\b/gi, "paiement en attente"],
+  [/\bpayment_pending\b/gi, "paiement en attente"],
+  [/\bpreparing\b/gi, "en préparation"],
+  [/\baccepted\b/gi, "acceptée"],
+  [/\bcompleted\b/gi, "terminée"],
+  [/\bdelivered\b/gi, "livrée"],
+  [/\bcancelled\b/gi, "annulée"],
+  [/\brefunded\b/gi, "remboursée"],
+  [/\bdonn(?:ées|ees)\s+back[- ]?end\b/gi, "données disponibles"],
+  [/\bbackend\b/gi, "données disponibles"],
+  [/\bback-end\b/gi, "données disponibles"],
+  [/\bSupabase\b/gi, "plateforme"],
+  [/\bStripe\b/gi, "paiement"],
+  [/\bcut[- ]off\b/gi, "clôture"],
+  [/\bpayment_transactions\b/gi, "transactions de paiement"],
+  [/\bai_usage_logs\b/gi, "consommation IA"],
+  [/\borders\b/gi, "commandes"],
+  [/\brestaurant_invoices\b/gi, "factures"],
+];
 
 const OUTPUT_SCHEMA = {
   type: "object",
@@ -125,18 +161,110 @@ function estimateCostChf(inputTokens = 0, outputTokens = 0) {
   return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
 }
 
-function getPaymentProvider(row: Record<string, unknown>) {
-  const metadata = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
-    ? row.metadata as Record<string, unknown>
-    : {};
+function getDisplayName(raw: unknown, fallback = DEFAULT_RESTAURANT_LABEL) {
+  return typeof raw === "string" && raw.trim() ? raw.trim() : fallback;
+}
 
-  return String(
-    metadata.provider ||
-    metadata.payment_provider ||
-    metadata.payment_method ||
-    metadata.payment_method_label ||
-    "stripe",
-  );
+function formatOrderStatus(raw: unknown) {
+  const status = typeof raw === "string" ? raw.trim() : "";
+  return ORDER_STATUS_LABELS[status] || status.replace(/_/g, " ") || "statut non précisé";
+}
+
+function replaceSnakeCaseToken(token: string) {
+  return token.split("_").filter(Boolean).join(" ");
+}
+
+function sanitizeAccountingText(value: unknown, restaurantName?: string | null) {
+  if (typeof value !== "string" || !value.trim()) return "";
+
+  const displayName = getDisplayName(restaurantName);
+  let text = value;
+
+  text = text.replace(/\brestaurant[_\s-]?id\b\s*:?\s*/gi, "restaurant ");
+  text = text.replace(UUID_PATTERN, displayName);
+
+  for (const [pattern, replacement] of PUBLIC_COPY_REPLACEMENTS) {
+    text = text.replace(pattern, replacement);
+  }
+
+  text = text.replace(SNAKE_CASE_PATTERN, replaceSnakeCaseToken);
+
+  return text
+    .replace(/\brestaurant\s+le restaurant concerné\b/gi, DEFAULT_RESTAURANT_LABEL)
+    .replace(/\bpaiement\/paiement\b/gi, "paiement")
+    .replace(/\s+([,.])/g, "$1")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function sanitizeAccountingResult(result: AccountingResult, restaurantName?: string | null): AccountingResult {
+  return {
+    ...result,
+    summary: sanitizeAccountingText(result.summary, restaurantName),
+    anomalies: result.anomalies.map((anomaly) => ({
+      ...anomaly,
+      label: sanitizeAccountingText(anomaly.label, restaurantName),
+      evidence: sanitizeAccountingText(anomaly.evidence, restaurantName),
+    })),
+    unpaid_invoices: result.unpaid_invoices.map((item) => sanitizeAccountingText(item, restaurantName)),
+    risky_restaurants: result.risky_restaurants.map((item) => sanitizeAccountingText(item, restaurantName)),
+    revenue_forecast: sanitizeAccountingText(result.revenue_forecast, restaurantName),
+    margin_notes: result.margin_notes.map((item) => sanitizeAccountingText(item, restaurantName)),
+    recommended_actions: result.recommended_actions.map((item) => sanitizeAccountingText(item, restaurantName)),
+    export_markdown: sanitizeAccountingText(result.export_markdown, restaurantName),
+  };
+}
+
+function getRestaurantNameForRow(row: Record<string, unknown>, restaurantNames: Map<string, string>, fallback: string) {
+  const rowRestaurantId = typeof row.restaurant_id === "string" ? row.restaurant_id : "";
+  return restaurantNames.get(rowRestaurantId) || fallback;
+}
+
+function buildPublicInvoices(invoices: Array<Record<string, unknown>>, restaurantNames: Map<string, string>, fallback: string) {
+  return invoices.map((invoice) => ({
+    restaurant: getRestaurantNameForRow(invoice, restaurantNames, fallback),
+    invoice_number: invoice.invoice_number || null,
+    period_start: invoice.period_start || null,
+    period_end: invoice.period_end || null,
+    amount_ht: Number(invoice.amount_ht || 0),
+    amount_tva: Number(invoice.amount_tva || 0),
+    amount_ttc: Number(invoice.amount_ttc || 0),
+    status: formatOrderStatus(invoice.status),
+    due_at: invoice.due_at || null,
+    created_at: invoice.created_at || null,
+  }));
+}
+
+function buildPublicOrders(orders: Array<Record<string, unknown>>, restaurantNames: Map<string, string>, fallback: string) {
+  return orders.slice(0, 80).map((order) => ({
+    restaurant: getRestaurantNameForRow(order, restaurantNames, fallback),
+    status: formatOrderStatus(order.status),
+    total_amount: Number(order.total_amount || 0),
+    delivery_fee: Number(order.delivery_fee || 0),
+    discount_amount: Number(order.discount_amount || 0),
+    created_at: order.created_at || null,
+  }));
+}
+
+function buildPublicPayments(payments: Array<Record<string, unknown>>) {
+  return payments.map((payment) => ({
+    amount: Number(payment.amount || 0),
+    status: formatOrderStatus(payment.status),
+    type: formatOrderStatus(payment.type),
+    method: "paiement en ligne",
+    created_at: payment.created_at || null,
+  }));
+}
+
+function buildPublicAiUsage(rows: Array<Record<string, unknown>>, restaurantNames: Map<string, string>, fallback: string) {
+  return rows.map((row) => ({
+    restaurant: getRestaurantNameForRow(row, restaurantNames, fallback),
+    action: formatOrderStatus(row.action),
+    status: formatOrderStatus(row.status),
+    total_tokens: Number(row.total_tokens || 0),
+    estimated_cost_chf: Number(row.estimated_cost_chf || 0),
+    created_at: row.created_at || null,
+  }));
 }
 
 async function insertUsage(
@@ -180,6 +308,7 @@ Deno.serve(async (req) => {
   const log = makeLogger(FUNCTION_NAME);
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
   let restaurantId: string | null = null;
+  let restaurantDisplayName = DEFAULT_RESTAURANT_LABEL;
   let insightId: string | null = null;
   let action: AccountingAction = "monthly_summary";
   const model = selectTokAiModel("accounting");
@@ -188,11 +317,14 @@ Deno.serve(async (req) => {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     const body = await req.json().catch(() => ({}));
     restaurantId = maybeUuid(body.restaurantId);
+    const requestedRestaurantName = typeof body.restaurantName === "string" ? body.restaurantName.trim() : "";
 
     if (restaurantId) {
-      await requireRestaurantAccess(actor, restaurantId);
+      const restaurant = await requireRestaurantAccess(actor, restaurantId);
+      restaurantDisplayName = getDisplayName(restaurant.name, requestedRestaurantName || DEFAULT_RESTAURANT_LABEL);
     } else {
       requireUserRole(actor, ["admin"]);
+      restaurantDisplayName = getDisplayName(requestedRestaurantName, "tous les restaurants");
     }
 
     if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
@@ -255,7 +387,7 @@ Deno.serve(async (req) => {
     if (!restaurantId || orders.length > 0) {
       const paymentsQuery = actor.adminClient
         .from("payment_transactions")
-        .select("id, order_id, amount, status, type, metadata, created_at, stripe_payment_intent_id, stripe_checkout_session_id")
+        .select("order_id, amount, status, type, created_at")
         .gte("created_at", `${period.start}T00:00:00Z`)
         .lte("created_at", `${period.end}T23:59:59Z`)
         .order("created_at", { ascending: false })
@@ -270,10 +402,26 @@ Deno.serve(async (req) => {
       paymentRows = (paymentsResult.data || []) as Array<Record<string, unknown>>;
     }
 
-    const payments = paymentRows.map((payment) => ({
-      ...payment,
-      provider: getPaymentProvider(payment),
-    }));
+    const restaurantIdsInScope = new Set<string>();
+    if (restaurantId) restaurantIdsInScope.add(restaurantId);
+    for (const row of [...orders, ...invoices, ...aiUsage] as Array<Record<string, unknown>>) {
+      if (typeof row.restaurant_id === "string" && row.restaurant_id) restaurantIdsInScope.add(row.restaurant_id);
+    }
+
+    const restaurantNames = new Map<string, string>();
+    if (restaurantId) restaurantNames.set(restaurantId, restaurantDisplayName);
+    if (restaurantIdsInScope.size > 0) {
+      const { data: restaurantRows, error: restaurantsError } = await actor.adminClient
+        .from("restaurants")
+        .select("id, name")
+        .in("id", [...restaurantIdsInScope]);
+
+      if (restaurantsError) throw new HttpError(500, restaurantsError.message);
+      for (const row of (restaurantRows || []) as Array<Record<string, unknown>>) {
+        if (typeof row.id === "string") restaurantNames.set(row.id, getDisplayName(row.name, restaurantNames.get(row.id) || DEFAULT_RESTAURANT_LABEL));
+      }
+    }
+
     const grossRevenue = orders.reduce((sum: number, order: Record<string, unknown>) => sum + Number(order.total_amount || 0), 0);
     const invoiceTotal = invoices.reduce((sum: number, invoice: Record<string, unknown>) => sum + Number(invoice.amount_ttc || 0), 0);
     const aiCost = aiUsage.reduce((sum: number, row: Record<string, unknown>) => sum + Number(row.estimated_cost_chf || 0), 0);
@@ -281,8 +429,11 @@ Deno.serve(async (req) => {
     const context = {
       action,
       period,
-      restaurant_id: restaurantId,
-      quota,
+      restaurant: {
+        name: restaurantDisplayName,
+        scope: restaurantId ? "restaurant" : "plateforme",
+      },
+      quota: restaurantId ? { status: "disponible" } : null,
       metrics: {
         order_count: orders.length,
         gross_revenue_chf: Number(grossRevenue.toFixed(2)),
@@ -291,16 +442,19 @@ Deno.serve(async (req) => {
         estimated_restaurant_payout_chf: Number((grossRevenue * 0.9).toFixed(2)),
         ai_cost_chf: Number(aiCost.toFixed(4)),
       },
-      invoices,
-      orders_sample: orders.slice(0, 80),
-      payments_sample: payments,
-      ai_usage_sample: aiUsage,
+      invoices: buildPublicInvoices(invoices as Array<Record<string, unknown>>, restaurantNames, restaurantDisplayName),
+      orders_sample: buildPublicOrders(orders as Array<Record<string, unknown>>, restaurantNames, restaurantDisplayName),
+      payments_sample: buildPublicPayments(paymentRows),
+      ai_usage_sample: buildPublicAiUsage(aiUsage as Array<Record<string, unknown>>, restaurantNames, restaurantDisplayName),
     };
 
     const systemPrompt = `Tu es l'agent IA comptable interne TOK.
-Tu analyses les factures, commissions, frais Stripe, impayes, couts IA et previsions.
+Tu analyses les factures, commissions, frais de paiement, impayes, couts IA et previsions.
 Garde toutes les recommandations en brouillon: aucune ecriture comptable, aucun verrouillage mensuel, aucune annulation et aucun remboursement.
-Mentionne les incertitudes et les donnees manquantes. Reponds en francais business, factuel et exportable.`;
+Mentionne les incertitudes et les donnees manquantes. Reponds en francais business, factuel et exportable.
+Utilise uniquement les noms visibles des restaurants fournis dans le contexte.
+N'affiche jamais d'identifiant technique, UUID, nom de table, nom de colonne, statut brut, fournisseur de paiement, backend, Supabase ou Stripe.
+Convertis les statuts techniques en libelles metier comprehensibles.`;
 
     const openAIResponse = await createOpenAIResponse({
       model,
@@ -316,7 +470,10 @@ Mentionne les incertitudes et les donnees manquantes. Reponds en francais busine
       },
     });
 
-    const result = parseStructuredOutput<AccountingResult>(openAIResponse);
+    const result = sanitizeAccountingResult(
+      parseStructuredOutput<AccountingResult>(openAIResponse),
+      restaurantDisplayName,
+    );
     const usage = extractUsage(openAIResponse);
 
     const { data: insight, error: insightError } = await actor.adminClient

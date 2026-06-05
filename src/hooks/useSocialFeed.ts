@@ -26,6 +26,11 @@ import {
   type SocialReactionType,
 } from "@/lib/socialFeed";
 import {
+  filterSocialPostsByHiddenFeedback,
+  readSocialFeedHiddenFeedback,
+  rememberSocialFeedHiddenFeedback,
+} from "@/lib/socialFeedVisibility";
+import {
   MAX_SOCIAL_MEDIA_UPLOAD_BYTES,
   SOCIAL_MEDIA_MIME_EXTENSIONS,
   assertSafeFileUpload,
@@ -396,15 +401,14 @@ async function uploadPostMedia(restaurantId: string, postId: string, files: File
   }
 }
 
-function assertMediaFiles(files: File[]) {
+function assertSocialPostMediaFiles(files: File[]) {
   if (files.length > MAX_POST_MEDIA) throw new Error(`Maximum ${MAX_POST_MEDIA} medias par post.`);
   for (const file of files) {
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      throw new Error("Formats acceptés : images et vidéos uniquement.");
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      throw new Error("Chaque média doit faire moins de 25 Mo.");
-    }
+    assertSafeFileUpload(file, {
+      allowedMimeTypes: SOCIAL_MEDIA_MIME_EXTENSIONS,
+      maxBytes: MAX_SOCIAL_MEDIA_UPLOAD_BYTES,
+      label: "Media social",
+    });
   }
 }
 
@@ -439,10 +443,13 @@ export function useSocialRealtime(enabled = true) {
 
 export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit = 20) {
   useSocialRealtime(true);
+  const { user } = useAuth();
+  const userId = user?.id || null;
 
   return useInfiniteQuery({
-    queryKey: ["social-feed", scope, limit],
+    queryKey: ["social-feed", scope, limit, userId],
     queryFn: async ({ pageParam }) => {
+      const hiddenFeedback = readSocialFeedHiddenFeedback(userId);
       const { data, error } = await (supabase.rpc as any)("get_social_feed_v2", {
         p_limit: limit,
         p_cursor: pageParam || null,
@@ -461,13 +468,13 @@ export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit 
       if (fallbackResult.error) throw fallbackResult.error;
       const rows = fallbackResult.data || [];
       return {
-        posts: rows.map(mapRestaurantPostRow),
+        posts: filterSocialPostsByHiddenFeedback(rows.map(mapRestaurantPostRow), hiddenFeedback),
         nextCursor: null,
       };
     }
 
     const rows = data || [];
-    const posts = rows.map(mapSocialPost);
+    const posts = filterSocialPostsByHiddenFeedback(rows.map(mapSocialPost), hiddenFeedback);
     const nextCursor = rows.length === limit ? rows[rows.length - 1]?.created_at || null : null;
     return { posts, nextCursor };
   },
@@ -645,7 +652,7 @@ export function useCreateSocialPost() {
       utmCampaign = null,
     }: CreateSocialPostInput) => {
       if (!user?.id) throw new Error("Connexion requise.");
-      assertMediaFiles(files);
+      assertSocialPostMediaFiles(files);
 
       const cleanBody = body.trim();
       const errors = validateSocialPostDraft({
@@ -1012,10 +1019,20 @@ export function useSocialFeedFeedback() {
 
       const { error } = await (supabase.from("social_feed_feedback" as any) as any).insert(payload);
       if (error && error.code !== "23505") throw error;
+
+      await recordSocialEventBestEffort({
+        postId: post.id,
+        eventType: "click",
+        metadata: { action: "feed_feedback", feedback_type: feedbackType },
+      }).catch((trackingError) => {
+        console.warn("Social feedback tracking skipped", trackingError);
+      });
+
       return feedbackType;
     },
     onMutate: async ({ post, feedbackType }) => {
       if (feedbackType === "hide_post" || feedbackType === "hide_restaurant" || feedbackType === "not_interested") {
+        rememberSocialFeedHiddenFeedback(user?.id, post, feedbackType);
         removeSocialPost(queryClient, post.id);
       }
     },
