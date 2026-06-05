@@ -35,6 +35,7 @@ describe("Miamz business logic guards", () => {
     expect(migrationsSource).toContain("tg_orders_apply_miamz_metadata");
     expect(migrationsSource).toContain("tg_support_incidents_apply_miamz_priority");
     expect(migrationsSource).toContain("tg_ai_support_tickets_apply_miamz_priority");
+    expect(migrationsSource).toContain("DROP FUNCTION IF EXISTS public.admin_get_refund_queue()");
     expect(migrationsSource).toContain("miamz_priority_score");
     expect(migrationsSource).toContain("miamz_refund_priority");
   });

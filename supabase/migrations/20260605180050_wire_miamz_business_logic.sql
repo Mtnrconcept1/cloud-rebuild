@@ -954,6 +954,8 @@ BEGIN
 END;
 $block$;
 
+DROP FUNCTION IF EXISTS public.admin_get_refund_queue();
+
 CREATE OR REPLACE FUNCTION public.admin_get_refund_queue()
 RETURNS TABLE (
   target_type text,
