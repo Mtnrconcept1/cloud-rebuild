@@ -256,9 +256,12 @@ describe("TOK AI tools foundation", () => {
 
   it("routes the public support chat through the Supabase client AI function with user auth", () => {
     const supportChat = readProjectFile("src/components/SupportChat.tsx");
+    const aiClient = readProjectFile("src/lib/ai/tokAiClient.ts");
 
-    expect(supportChat).toContain("ai-client-chat");
-    expect(supportChat).toContain("invokeSupabaseFunction");
+    expect(supportChat).toContain("askClientSupport({");
+    expect(supportChat).toContain("supportTicketId");
+    expect(aiClient).toContain('"ai-client-support"');
+    expect(aiClient).toContain("invokeSupabaseFunction");
     expect(supportChat).toContain("support_ai");
     expect(supportChat).not.toContain("supabase.auth.getSession");
     expect(supportChat).not.toContain("Authorization: `Bearer");

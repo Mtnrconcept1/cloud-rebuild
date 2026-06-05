@@ -33,9 +33,9 @@ describe("space Help chat access", () => {
 
   it("keeps the global support chat OpenAI-only without guided local flows", () => {
     const supportChat = readProjectFile("src/components/SupportChat.tsx");
-    const edgeFunction = readProjectFile("supabase/functions/ai-client-chat/index.ts");
+    const edgeFunction = readProjectFile("supabase/functions/ai-client-support/index.ts");
 
-    expect(supportChat).toContain('invokeSupabaseFunction<ClientChatResponse>("ai-client-chat"');
+    expect(supportChat).toContain("askClientSupport({");
     expect(supportChat).toContain("OpenAI API");
     expect(supportChat).toContain("OpenAI en ligne");
     expect(supportChat).toContain("agentId: selectedAgent");
@@ -43,8 +43,8 @@ describe("space Help chat access", () => {
     expect(supportChat).not.toContain("CHAT_TREE");
     expect(supportChat).not.toContain("\"guided\"");
     expect(supportChat).not.toContain("SUPABASE_URL");
-    expect(edgeFunction).toContain("type ChatSurface");
-    expect(edgeFunction).toContain("getSurfaceInstruction(surface)");
+    expect(edgeFunction).toContain("ai_support_tickets");
+    expect(edgeFunction).toContain("supportTicketId");
     expect(edgeFunction).toContain("OPENAI_API_KEY");
     expect(edgeFunction).toContain("createOpenAIResponse");
   });

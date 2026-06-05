@@ -22,7 +22,11 @@ import { cn } from "@/lib/utils";
 const supabase = getSupabase();
 
 type SupportIncidentRow = {
+  record_kind: "incident" | "ai_ticket";
   id: string;
+  support_ticket_id: string | null;
+  support_incident_id: string | null;
+  conversation_id: string | null;
   user_id: string | null;
   restaurant_id: string | null;
   order_id: string | null;
@@ -40,6 +44,27 @@ type SupportIncidentRow = {
   orders?: { order_number?: string | null } | null;
   reservations?: { order_reference?: string | null } | null;
   customer?: { full_name?: string | null; phone?: string | null } | null;
+};
+
+type AiSupportTicketRow = {
+  id: string;
+  support_incident_id: string | null;
+  conversation_id: string | null;
+  user_id: string | null;
+  restaurant_id: string | null;
+  order_id: string | null;
+  reservation_id: string | null;
+  title: string;
+  summary: string | null;
+  category: string;
+  priority: "low" | "normal" | "high" | "urgent" | string;
+  status: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+  restaurants?: { name?: string | null } | null;
+  orders?: { order_number?: string | null } | null;
+  reservations?: { order_reference?: string | null } | null;
 };
 
 type SupportMessageRow = {
@@ -99,6 +124,7 @@ function statusClass(status: string) {
   if (["closed", "resolved"].includes(status)) return "bg-emerald-100 text-emerald-800";
   if (status === "waiting_customer") return "bg-sky-100 text-sky-800";
   if (status === "waiting_restaurant") return "bg-violet-100 text-violet-800";
+  if (status === "waiting_tok" || status === "waiting_admin" || status === "escalated") return "bg-red-100 text-red-800";
   return "bg-red-100 text-red-800";
 }
 
@@ -112,7 +138,61 @@ function isChatIncident(row: SupportIncidentRow) {
     || Boolean(metadata.ai_support_ticket_id);
 }
 
-async function fetchChatIncidents() {
+function getTicketSummary(metadata: Record<string, unknown>, fallback: string | null) {
+  return String(metadata.ticket_summary || metadata.summary || fallback || "Aucun résumé disponible.");
+}
+
+function getItemActivityDate(item: SupportIncidentRow) {
+  return item.last_message_at || item.updated_at || item.created_at;
+}
+
+function mapSupportIncident(row: SupportIncidentRow): SupportIncidentRow {
+  const metadata = asRecord(row.metadata);
+
+  return {
+    ...row,
+    record_kind: "incident",
+    support_ticket_id: typeof metadata.ai_support_ticket_id === "string" ? metadata.ai_support_ticket_id : null,
+    support_incident_id: row.id,
+    conversation_id: typeof metadata.conversation_id === "string" ? metadata.conversation_id : null,
+  };
+}
+
+function mapAiSupportTicket(row: AiSupportTicketRow): SupportIncidentRow {
+  const metadata = {
+    ...asRecord(row.metadata),
+    source: "ai-client-support",
+    ai_support_ticket_id: row.id,
+    conversation_id: row.conversation_id,
+    ticket_summary: row.summary,
+  };
+
+  return {
+    record_kind: "ai_ticket",
+    id: row.id,
+    support_ticket_id: row.id,
+    support_incident_id: row.support_incident_id,
+    conversation_id: row.conversation_id,
+    user_id: row.user_id,
+    restaurant_id: row.restaurant_id,
+    order_id: row.order_id,
+    reservation_id: row.reservation_id,
+    category: row.category,
+    priority: row.priority,
+    status: row.status,
+    subject: row.title || "Ticket support IA",
+    description: row.summary,
+    metadata,
+    last_message_at: row.updated_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    restaurants: row.restaurants,
+    orders: row.orders,
+    reservations: row.reservations,
+  };
+}
+
+async function fetchSupportIncidentRows() {
   const { data, error } = await (supabase as any)
     .from("support_incidents")
     .select(`
@@ -145,7 +225,56 @@ async function fetchChatIncidents() {
 
   if (error) throw error;
 
-  const rows = ((data || []) as SupportIncidentRow[]).filter(isChatIncident);
+  return ((data || []) as SupportIncidentRow[]).map(mapSupportIncident).filter(isChatIncident);
+}
+
+async function fetchStandaloneAiSupportTickets() {
+  const { data, error } = await (supabase as any)
+    .from("ai_support_tickets")
+    .select(`
+      id,
+      support_incident_id,
+      conversation_id,
+      user_id,
+      restaurant_id,
+      order_id,
+      reservation_id,
+      title,
+      summary,
+      category,
+      priority,
+      status,
+      metadata,
+      created_at,
+      updated_at,
+      restaurants (
+        name
+      ),
+      orders (
+        order_number
+      ),
+      reservations (
+        order_reference
+      )
+    `)
+    .is("support_incident_id", null)
+    .order("updated_at", { ascending: false })
+    .limit(150);
+
+  if (error) throw error;
+
+  return ((data || []) as AiSupportTicketRow[]).map(mapAiSupportTicket);
+}
+
+async function fetchChatIncidents() {
+  const [incidentRows, aiTicketRows] = await Promise.all([
+    fetchSupportIncidentRows(),
+    fetchStandaloneAiSupportTickets(),
+  ]);
+
+  const rows = [...incidentRows, ...aiTicketRows]
+    .sort((left, right) => new Date(getItemActivityDate(right)).getTime() - new Date(getItemActivityDate(left)).getTime())
+    .slice(0, 200);
   const userIds = Array.from(new Set(rows.map((row) => row.user_id).filter(Boolean))) as string[];
   if (userIds.length === 0) return rows;
 
@@ -166,13 +295,45 @@ async function fetchIncidentConversation(incident: SupportIncidentRow | null) {
   if (!incident) return { supportMessages: [], conversation: null, aiMessages: [] };
 
   const metadata = asRecord(incident.metadata);
-  const metadataConversationId = typeof metadata.conversation_id === "string" ? metadata.conversation_id : null;
+  const metadataConversationId = incident.conversation_id || (typeof metadata.conversation_id === "string" ? metadata.conversation_id : null);
+  const supportIncidentId = incident.support_incident_id || (incident.record_kind === "incident" ? incident.id : null);
+
+  if (incident.record_kind === "ai_ticket" && !supportIncidentId) {
+    const conversationResult = metadataConversationId
+      ? await (supabase as any)
+          .from("ai_conversations")
+          .select("id, title, status, created_at")
+          .eq("id", metadataConversationId)
+          .maybeSingle()
+      : { data: null, error: null };
+
+    if (conversationResult.error) throw conversationResult.error;
+
+    const conversation = conversationResult.data as AiConversationRow | null;
+    if (!conversation?.id) {
+      return { supportMessages: [] as SupportMessageRow[], conversation: null, aiMessages: [] as AiMessageRow[] };
+    }
+
+    const { data: aiMessages, error: aiMessagesError } = await (supabase as any)
+      .from("ai_messages")
+      .select("id, role, content, created_at")
+      .eq("conversation_id", conversation.id)
+      .order("created_at", { ascending: true });
+
+    if (aiMessagesError) throw aiMessagesError;
+
+    return {
+      supportMessages: [] as SupportMessageRow[],
+      conversation,
+      aiMessages: (aiMessages || []) as AiMessageRow[],
+    };
+  }
 
   const [supportMessagesResult, conversationResult] = await Promise.all([
     (supabase as any)
       .from("support_incident_messages")
       .select("id, author_role, body, visibility, created_at")
-      .eq("incident_id", incident.id)
+      .eq("incident_id", supportIncidentId || incident.id)
       .order("created_at", { ascending: true }),
     metadataConversationId
       ? (supabase as any)
@@ -183,7 +344,7 @@ async function fetchIncidentConversation(incident: SupportIncidentRow | null) {
       : (supabase as any)
           .from("ai_conversations")
           .select("id, title, status, created_at")
-          .eq("support_incident_id", incident.id)
+          .eq("support_incident_id", supportIncidentId || incident.id)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
@@ -229,16 +390,22 @@ export default function AdminSinistres() {
   });
 
   const { data: detail, isLoading: detailLoading } = useQuery({
-    queryKey: ["admin-chat-sinistre-detail", selectedIncident?.id],
+    queryKey: ["admin-chat-sinistre-detail", selectedIncident?.record_kind, selectedIncident?.id],
     queryFn: () => fetchIncidentConversation(selectedIncident),
     enabled: Boolean(selectedIncident?.id),
   });
 
   useEffect(() => {
     const incidentId = searchParams.get("incident");
-    if (!incidentId || selectedIncident?.id === incidentId || incidents.length === 0) return;
+    const ticketId = searchParams.get("ticket");
+    const targetId = incidentId || ticketId;
+    if (!targetId || selectedIncident?.id === targetId || incidents.length === 0) return;
 
-    const incident = incidents.find((row) => row.id === incidentId);
+    const incident = incidents.find((row) =>
+      ticketId
+        ? row.support_ticket_id === ticketId || row.id === ticketId
+        : row.support_incident_id === incidentId || row.id === incidentId
+    );
     if (incident) setSelectedIncident(incident);
   }, [incidents, searchParams, selectedIncident?.id]);
 
@@ -265,6 +432,7 @@ export default function AdminSinistres() {
         incident.customer?.full_name,
         incident.customer?.phone,
         metadata.ticket_summary,
+        metadata.ai_support_ticket_id,
         metadata.conversation_id,
       ].join(" ").toLowerCase();
 
@@ -282,7 +450,13 @@ export default function AdminSinistres() {
     setSelectedIncident(incident);
     setSearchParams((current) => {
       const next = new URLSearchParams(current);
-      next.set("incident", incident.id);
+      next.delete("incident");
+      next.delete("ticket");
+      if (incident.record_kind === "ai_ticket") {
+        next.set("ticket", incident.support_ticket_id || incident.id);
+      } else {
+        next.set("incident", incident.support_incident_id || incident.id);
+      }
       return next;
     });
   };
@@ -326,6 +500,8 @@ export default function AdminSinistres() {
               <SelectContent>
                 <SelectItem value="open">Ouverts</SelectItem>
                 <SelectItem value="waiting_admin">À traiter</SelectItem>
+                <SelectItem value="waiting_tok">Attente TOK</SelectItem>
+                <SelectItem value="escalated">Escaladés</SelectItem>
                 <SelectItem value="waiting_customer">Attente client</SelectItem>
                 <SelectItem value="waiting_restaurant">Attente restaurant</SelectItem>
                 <SelectItem value="resolved">Résolus</SelectItem>
@@ -361,11 +537,11 @@ export default function AdminSinistres() {
             <div className="grid gap-3">
               {filteredIncidents.map((incident) => {
                 const metadata = asRecord(incident.metadata);
-                const summary = String(metadata.ticket_summary || incident.description || "Aucun résumé disponible.");
+                const summary = getTicketSummary(metadata, incident.description);
 
                 return (
                   <div
-                    key={incident.id}
+                    key={`${incident.record_kind}-${incident.id}`}
                     role="button"
                     tabIndex={0}
                     onClick={() => openIncident(incident)}
@@ -383,13 +559,16 @@ export default function AdminSinistres() {
                           <Badge className={priorityClass(incident.priority)}>{incident.priority}</Badge>
                           <Badge className={statusClass(incident.status)}>{incident.status}</Badge>
                           <Badge variant="outline">{incident.category}</Badge>
+                          <Badge variant="outline">
+                            {incident.record_kind === "ai_ticket" ? "Ticket IA" : "Sinistre"}
+                          </Badge>
                         </div>
                         <p className="break-words text-base font-semibold">{incident.subject}</p>
                         <p className="line-clamp-2 break-words text-sm text-muted-foreground">{summary}</p>
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{incident.customer?.full_name || "Client inconnu"}</span>
                           <span className="flex items-center gap-1"><Store className="h-3.5 w-3.5" />{incident.restaurants?.name || "Restaurant inconnu"}</span>
-                          <span>{formatDateTime(incident.last_message_at || incident.updated_at)}</span>
+                          <span>{formatDateTime(getItemActivityDate(incident))}</span>
                         </div>
                       </div>
                       <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
@@ -426,6 +605,7 @@ export default function AdminSinistres() {
             setSearchParams((current) => {
               const next = new URLSearchParams(current);
               next.delete("incident");
+              next.delete("ticket");
               return next;
             });
           }
@@ -433,7 +613,7 @@ export default function AdminSinistres() {
       >
         <DialogContent className="max-h-[86vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedIncident?.subject || "Sinistre chat"}</DialogTitle>
+            <DialogTitle>{selectedIncident?.subject || "Ticket chat"}</DialogTitle>
             <DialogDescription>
               Résumé, messages support et transcription IA complète.
             </DialogDescription>
@@ -460,14 +640,14 @@ export default function AdminSinistres() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Dernière activité</p>
-                  <p className="font-medium">{formatDateTime(selectedIncident.last_message_at || selectedIncident.updated_at)}</p>
+                  <p className="font-medium">{formatDateTime(getItemActivityDate(selectedIncident))}</p>
                 </div>
               </div>
 
               <div className="rounded-xl border p-4">
                 <p className="mb-2 text-sm font-semibold">Résumé de la discussion</p>
                 <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-                  {String(asRecord(selectedIncident.metadata).ticket_summary || selectedIncident.description || "Aucun résumé disponible.")}
+                  {getTicketSummary(asRecord(selectedIncident.metadata), selectedIncident.description)}
                 </p>
               </div>
 

@@ -69,6 +69,9 @@ describe("notifications and chat sinistres governance", () => {
     expect(adminHome).toContain("/admin/sinistres");
     expect(catalog).toContain('"/admin/sinistres"');
     expect(page).toContain("support_incident_messages");
+    expect(page).toContain("ai_support_tickets");
+    expect(page).toContain("fetchStandaloneAiSupportTickets");
+    expect(page).toContain('searchParams.get("ticket")');
     expect(page).toContain("ai_conversations");
     expect(page).toContain("ai_messages");
     expect(page).toContain("ticket_summary");
@@ -86,6 +89,8 @@ describe("notifications and chat sinistres governance", () => {
     }
 
     const supportChat = readProjectFile("src/components/SupportChat.tsx");
+    expect(supportChat).toContain('askClientSupport({');
+    expect(supportChat).toContain("supportTicketId");
     expect(supportChat).toContain("agentId: selectedAgent");
     expect(supportChat).toContain("surface: chatSurface");
   });

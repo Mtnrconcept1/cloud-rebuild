@@ -4,8 +4,8 @@ import { Bot, Send, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { askClientSupport, type TokAiMessage } from "@/lib/ai/tokAiClient";
 import { type HelpChatAgentId, type HelpChatOpenOptions, type HelpChatSurface } from "@/lib/helpChat";
-import { invokeSupabaseFunction } from "@/lib/session";
 
 type ChatMessage = {
   type: "bot" | "user";
@@ -16,12 +16,6 @@ type AgentConfig = {
   id: HelpChatAgentId;
   label: string;
   badge: string;
-};
-
-type ClientChatResponse = {
-  reply?: string;
-  ticketId?: string | null;
-  conversationId?: string;
 };
 
 const AGENTS: Record<HelpChatAgentId, AgentConfig> = {
@@ -142,31 +136,27 @@ export default function SupportChat() {
     setIsTyping(true);
 
     try {
-      const messages = nextHistory
+      const messages: TokAiMessage[] = nextHistory
         .filter((message) => message.text.trim().length > 0)
         .map((message) => ({
           role: message.type === "user" ? "user" : "assistant",
           content: message.text,
         }));
 
-      const { data, error } = await invokeSupabaseFunction<ClientChatResponse>("ai-client-chat", {
-        body: {
+      const data = await askClientSupport({
+        messages,
+        context: {
           agentId: selectedAgent,
           surface: chatSurface,
-          messages,
         },
       });
-
-      if (error) {
-        throw error;
-      }
 
       setHistory((previous) => [
         ...previous,
         {
           type: "bot",
-          text: data?.ticketId
-            ? `${data.reply}\n\nTicket support créé : ${data.ticketId}`
+          text: data?.supportTicketId
+            ? `${data.reply}\n\nTicket support créé : ${data.supportTicketId}`
             : data?.reply || "L'Assistant IA OpenAI n'a pas pu générer de réponse pour le moment.",
         },
       ]);
