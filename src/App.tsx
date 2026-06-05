@@ -15,6 +15,7 @@ import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navigation/BackNavigationButton";
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
+import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
@@ -217,7 +218,8 @@ export function AdminRouteFrame({
   return (
     <div className="min-h-screen bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0">
       {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
-      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200]">
+      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
+        <ChefHelpButton surface="admin" compact className="hidden w-auto md:flex" />
         <NotificationBell />
       </div>
       <AdminMobileNavigation />

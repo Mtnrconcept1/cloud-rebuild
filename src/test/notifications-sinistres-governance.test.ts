@@ -86,6 +86,7 @@ describe("notifications and chat sinistres governance", () => {
     }
 
     const supportChat = readProjectFile("src/components/SupportChat.tsx");
-    expect(supportChat).toContain('agentId: activeAgent.kind === "guided" ? "support_ai" : selectedAgent');
+    expect(supportChat).toContain("agentId: selectedAgent");
+    expect(supportChat).toContain("surface: chatSurface");
   });
 });

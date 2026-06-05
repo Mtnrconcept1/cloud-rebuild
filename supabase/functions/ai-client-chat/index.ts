@@ -18,6 +18,8 @@ import {
 
 type ClientMessage = { role: "user" | "assistant"; content: string };
 type AgentId = "support_ai" | "orders_ai" | "payments_ai";
+type ChatSurface = "client" | "restaurant" | "admin" | "courier" | "public";
+type ConversationScope = "client" | "restaurant" | "admin";
 
 type ClientAiResult = {
   reply: string;
@@ -72,6 +74,32 @@ const OUTPUT_SCHEMA = {
 function normalizeAgentId(raw: unknown): AgentId {
   if (raw === "orders_ai" || raw === "payments_ai") return raw;
   return "support_ai";
+}
+
+function normalizeSurface(raw: unknown): ChatSurface {
+  if (raw === "restaurant" || raw === "admin" || raw === "courier" || raw === "public") return raw;
+  return "client";
+}
+
+function getConversationScope(surface: ChatSurface): ConversationScope {
+  if (surface === "restaurant") return "restaurant";
+  if (surface === "admin") return "admin";
+  return "client";
+}
+
+function getSurfaceInstruction(surface: ChatSurface) {
+  switch (surface) {
+    case "restaurant":
+      return "L'utilisateur est dans le dashboard restaurateur. Oriente l'aide vers commandes restaurant, reservations, menu, offres, campagnes, avis, factures et incidents operationnels.";
+    case "admin":
+      return "L'utilisateur est dans le back-office admin TOK. Oriente l'aide vers supervision, operations, sinistres chat, restaurants, utilisateurs, feature flags, notifications, comptabilite et audit. Ne revele jamais de secret.";
+    case "courier":
+      return "L'utilisateur est dans l'espace livreur. Oriente l'aide vers missions, statut en ligne, geolocalisation, gains, preuves de livraison et profil coursier.";
+    case "public":
+      return "L'utilisateur est sur une page publique TOK. Oriente l'aide vers decouverte, panier, reservation, commande, abonnement et contact.";
+    default:
+      return "L'utilisateur est dans l'espace client TOK. Oriente l'aide vers commandes, paiements, reservations, profil, Tok One et points fidelite.";
+  }
 }
 
 function sanitizeMessages(raw: unknown): ClientMessage[] {
@@ -225,6 +253,11 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const agentId = normalizeAgentId(body.agentId);
+    let surface = normalizeSurface(body.surface);
+    if (surface === "admin" && !actor.isAdmin) {
+      surface = "client";
+    }
+    const conversationScope = getConversationScope(surface);
     action = agentId;
     const messages = sanitizeMessages(body.messages);
     if (messages.length === 0) throw new HttpError(400, "invalid_request");
@@ -309,13 +342,13 @@ Deno.serve(async (req) => {
     const { data: conversation, error: conversationError } = await actor.adminClient
       .from("ai_conversations")
       .insert({
-        scope: "client",
+        scope: conversationScope,
         user_id: actor.userId,
         restaurant_id: restaurantId,
         order_id: orderId,
         reservation_id: reservationId,
         title: lastUserMessage?.content.slice(0, 140) || "Support IA TOK",
-        metadata: { agent_id: agentId },
+        metadata: { agent_id: agentId, surface },
       })
       .select("id")
       .single();
@@ -335,7 +368,8 @@ Deno.serve(async (req) => {
     const systemPrompt = `Tu es l'agent support IA de TOK, plateforme suisse de restauration.
 Reponds en francais clair et utile.
 Tu peux aider pour les commandes, paiements, abonnements Tok One, reservations et questions generales.
-Tu ne dois jamais promettre un remboursement, une compensation importante ou une action irreverssible.
+${getSurfaceInstruction(surface)}
+Tu ne dois jamais promettre un remboursement, une compensation importante ou une action irreversible.
 Toute demande de parler a un humain, allergie/intoxication, menace juridique, paiement sensible ou litige doit etre escaladee.
 Si tu proposes un avoir, il est indicatif et plafonne a 5 CHF.`;
 
@@ -346,6 +380,7 @@ Si tu proposes un avoir, il est indicatif et plafonne a 5 CHF.`;
           role: "system",
           content: JSON.stringify({
             agent_id: agentId,
+            surface,
             order: orderContext,
             reservation: reservationContext,
             safety_rules: safetyRules || [],
@@ -443,6 +478,7 @@ Si tu proposes un avoir, il est indicatif et plafonne a 5 CHF.`;
       usage,
       metadata: {
         agent_id: agentId,
+        surface,
         ticket_created: Boolean(ticketId),
       },
     });

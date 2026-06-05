@@ -42,6 +42,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
+import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 
@@ -344,6 +345,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <RestaurantSelector collapsed={collapsed} />
 
+        <div className="px-2 pb-2">
+          <ChefHelpButton surface="restaurant" collapsed={collapsed} />
+        </div>
+
         <nav className="flex flex-col gap-1 px-2 pb-6">
           <NavItems
             pathname={pathname}
@@ -401,6 +406,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </SheetHeader>
             <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
               <RestaurantSelector />
+              <div className="mb-4">
+                <ChefHelpButton surface="restaurant" onOpen={() => setMobileMenuOpen(false)} />
+              </div>
               <nav className="flex flex-col gap-1 pb-4">
                 <NavItems
                   pathname={pathname}

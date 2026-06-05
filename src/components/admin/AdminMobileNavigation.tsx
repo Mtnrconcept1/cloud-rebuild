@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
@@ -224,6 +225,9 @@ export default function AdminMobileNavigation() {
             </SheetDescription>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
+            <div className="mb-4">
+              <ChefHelpButton surface="admin" onOpen={() => setMobileMenuOpen(false)} />
+            </div>
             <nav className="flex flex-col gap-1 pb-4">
               <AdminNavItems
                 activeTo={activeNavItem?.to}

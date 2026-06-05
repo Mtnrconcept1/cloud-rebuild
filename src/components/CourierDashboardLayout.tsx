@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import CourierMissionDialog from "@/components/courier/CourierMissionDialog";
+import ChefHelpButton from "@/components/help/ChefHelpButton";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
@@ -57,6 +58,10 @@ function CourierNavContent({
       <div className="px-3 py-2">
         <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary">Operations</p>
         <h2 className="font-display text-lg font-semibold">Espace Livreur</h2>
+      </div>
+
+      <div className="px-1 pb-2">
+        <ChefHelpButton surface="courier" onOpen={onNavigate} />
       </div>
 
       {visibleNavItems.map((item) => (

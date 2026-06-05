@@ -1,34 +1,21 @@
-import { useState, useEffect, useRef } from "react";
-import { X, Send, User, Phone, Mail, Bot } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Bot, Send, X } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/contact";
-import { SUPABASE_URL } from "@/lib/env";
+import { type HelpChatAgentId, type HelpChatOpenOptions, type HelpChatSurface } from "@/lib/helpChat";
 import { invokeSupabaseFunction } from "@/lib/session";
-
-type Node = {
-  id: string;
-  text: string;
-  options?: { label: string; next: string }[];
-  final?: boolean;
-};
-
-type AgentId = "guided" | "support_ai" | "orders_ai" | "payments_ai";
 
 type ChatMessage = {
   type: "bot" | "user";
   text: string;
-  options?: Node["options"];
-  showContacts?: boolean;
 };
 
 type AgentConfig = {
-  id: AgentId;
+  id: HelpChatAgentId;
   label: string;
-  kind: "guided" | "ai";
   badge: string;
-  intro: string;
 };
 
 type ClientChatResponse = {
@@ -37,126 +24,66 @@ type ClientChatResponse = {
   conversationId?: string;
 };
 
-const CHAT_TREE: Record<string, Node> = {
-  start: {
-    id: "start",
-    text: "Bonjour ! Comment l'équipe Tok peut-elle vous aider aujourd'hui ?",
-    options: [
-      { label: "Où est ma commande ?", next: "order_status" },
-      { label: "Problème de paiement", next: "payment" },
-      { label: "Tok One", next: "membership" },
-      { label: "Autre chose", next: "other" },
-    ],
-  },
-  order_status: {
-    id: "order_status",
-    text: "Patience ! Vous pouvez suivre le trajet en direct dans l'onglet 'Commandes'. Le livreur respecte-t-il le délai ?",
-    options: [
-      { label: "Oui, je regarde", next: "end_satisfied" },
-      { label: "Non, c'est en retard", next: "order_late" },
-    ],
-  },
-  order_late: {
-    id: "order_late",
-    text: "Nous sommes désolés pour ce retard. Souhaitez-vous contacter le support pour un geste commercial ?",
-    options: [
-      { label: "Oui", next: "contact_final" },
-      { label: "Non, j'attends", next: "end_satisfied" },
-    ],
-  },
-  payment: {
-    id: "payment",
-    text: "Les paiements sont sécurisés. Un bug lors du paiement ? Vérifiez votre plafond ou contactez votre banque.",
-    options: [
-      { label: "Toujours bloqué", next: "contact_final" },
-      { label: "C'est résolu", next: "end_satisfied" },
-    ],
-  },
-  membership: {
-    id: "membership",
-    text: "Tok One vous offre la livraison illimitée ! Souhaitez-vous gérer votre abonnement ?",
-    options: [
-      { label: "Oui, comment faire ?", next: "membership_how" },
-      { label: "Non, simple question", next: "contact_final" },
-    ],
-  },
-  membership_how: {
-    id: "membership_how",
-    text: "Rendez-vous dans votre Profil > Abonnement pour gérer vos options.",
-    options: [{ label: "Merci !", next: "end_satisfied" }],
-  },
-  other: {
-    id: "other",
-    text: "Dites-m'en plus ou discutez avec un de nos agents.",
-    options: [{ label: "Parler à un agent", next: "contact_final" }],
-  },
-  contact_final: {
-    id: "contact_final",
-    text: "Voici les moyens de nous joindre directement :",
-    final: true,
-  },
-  end_satisfied: {
-    id: "end_satisfied",
-    text: "Génial ! Bon appétit avec Tok ! 🍔",
-    final: true,
-  },
-};
-
-const AGENTS: Record<AgentId, AgentConfig> = {
-  guided: {
-    id: "guided",
-    label: "Assistant Tok",
-    kind: "guided",
-    badge: "Parcours guidé",
-    intro: CHAT_TREE.start.text,
-  },
+const AGENTS: Record<HelpChatAgentId, AgentConfig> = {
   support_ai: {
     id: "support_ai",
     label: "Assistant IA Support",
-    kind: "ai",
     badge: "OpenAI API",
-    intro:
-      "Bonjour, je suis l’Assistant IA Tok. Je peux vous aider pour une commande, un paiement, un abonnement ou une question générale.",
   },
   orders_ai: {
     id: "orders_ai",
     label: "Assistant IA Commandes",
-    kind: "ai",
     badge: "OpenAI API",
-    intro:
-      "Bonjour, je suis l’Assistant IA spécialisé commandes et livraisons. Décrivez votre problème et je vous aide.",
   },
   payments_ai: {
     id: "payments_ai",
     label: "Assistant IA Paiement",
-    kind: "ai",
     badge: "OpenAI API",
-    intro:
-      "Bonjour, je suis l’Assistant IA spécialisé paiements et facturation. Expliquez le blocage rencontré.",
   },
 };
 
-function getInitialHistory(agentId: AgentId): ChatMessage[] {
+const SURFACE_LABELS: Record<HelpChatSurface, string> = {
+  client: "l'espace client",
+  restaurant: "le dashboard restaurateur",
+  admin: "l'administration TOK",
+  courier: "l'espace livreur",
+  public: "TOK",
+};
+
+function getDefaultAgentForSurface(surface: HelpChatSurface): HelpChatAgentId {
+  if (surface === "courier") return "orders_ai";
+  if (surface === "admin") return "support_ai";
+  return "support_ai";
+}
+
+function normalizeOpenOptions(options?: HelpChatOpenOptions) {
+  const surface = options?.surface || "client";
+  const agentId = options?.agentId || getDefaultAgentForSurface(surface);
+
+  return {
+    surface,
+    agentId: AGENTS[agentId] ? agentId : "support_ai",
+  };
+}
+
+function getInitialHistory(agentId: HelpChatAgentId, surface: HelpChatSurface): ChatMessage[] {
   const agent = AGENTS[agentId];
+  const surfaceLabel = SURFACE_LABELS[surface] || SURFACE_LABELS.client;
 
-  if (agent.kind === "guided") {
-    return [
-      {
-        type: "bot",
-        text: CHAT_TREE.start.text,
-        options: CHAT_TREE.start.options,
-      },
-    ];
-  }
-
-  return [{ type: "bot", text: agent.intro }];
+  return [
+    {
+      type: "bot",
+      text: `Bonjour, je suis ${agent.label}, piloté par OpenAI pour ${surfaceLabel}. Décrivez votre question ou le blocage à résoudre.`,
+    },
+  ];
 }
 
 export default function SupportChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState<AgentId>("guided");
+  const [chatSurface, setChatSurface] = useState<HelpChatSurface>("client");
+  const [selectedAgent, setSelectedAgent] = useState<HelpChatAgentId>("support_ai");
   const [history, setHistory] = useState<ChatMessage[]>(() =>
-    getInitialHistory("guided")
+    getInitialHistory("support_ai", "client")
   );
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -171,41 +98,36 @@ export default function SupportChat() {
   }, [history, isTyping]);
 
   useEffect(() => {
-    (window as unknown as Record<string, unknown>).openChat = () => setIsOpen(true);
+    window.openChat = (options?: HelpChatOpenOptions) => {
+      const normalized = normalizeOpenOptions(options);
+      setChatSurface(normalized.surface);
+      setSelectedAgent(normalized.agentId);
+      setHistory(getInitialHistory(normalized.agentId, normalized.surface));
+      setInputValue("");
+      setIsTyping(false);
+      setIsOpen(true);
+    };
+
     return () => {
-      (window as unknown as Record<string, unknown>).openChat = undefined;
+      window.openChat = undefined;
     };
   }, []);
 
-  useEffect(() => {
-    setHistory(getInitialHistory(selectedAgent));
-    setInputValue("");
-    setIsTyping(false);
-  }, [selectedAgent]);
-
   const resetChat = () => {
-    setHistory(getInitialHistory(selectedAgent));
+    setHistory(getInitialHistory(selectedAgent, chatSurface));
     setInputValue("");
     setIsTyping(false);
   };
 
-  const handleOption = (option: { label: string; next: string }) => {
-    const nextNode = CHAT_TREE[option.next];
-
-    setHistory((prev) => [
-      ...prev,
-      { type: "user", text: option.label },
-      {
-        type: "bot",
-        text: nextNode.text,
-        options: nextNode.options,
-        showContacts: nextNode.id === "contact_final",
-      },
-    ]);
+  const handleAgentChange = (agentId: HelpChatAgentId) => {
+    setSelectedAgent(agentId);
+    setHistory(getInitialHistory(agentId, chatSurface));
+    setInputValue("");
+    setIsTyping(false);
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = async (event: FormEvent) => {
+    event.preventDefault();
 
     if (!inputValue.trim() || isTyping) return;
 
@@ -217,25 +139,6 @@ export default function SupportChat() {
 
     setInputValue("");
     setHistory(nextHistory);
-
-    if (activeAgent.kind === "guided" && !SUPABASE_URL) {
-      setIsTyping(true);
-
-      setTimeout(() => {
-        setHistory((prev) => [
-          ...prev,
-          {
-            type: "bot",
-            text: "Merci pour votre message. Un opérateur va prendre le relais et vous répondra dans les plus brefs délais.",
-            showContacts: true,
-          },
-        ]);
-        setIsTyping(false);
-      }, 1200);
-
-      return;
-    }
-
     setIsTyping(true);
 
     try {
@@ -248,7 +151,8 @@ export default function SupportChat() {
 
       const { data, error } = await invokeSupabaseFunction<ClientChatResponse>("ai-client-chat", {
         body: {
-          agentId: activeAgent.kind === "guided" ? "support_ai" : selectedAgent,
+          agentId: selectedAgent,
+          surface: chatSurface,
           messages,
         },
       });
@@ -257,24 +161,21 @@ export default function SupportChat() {
         throw error;
       }
 
-      setHistory((prev) => [
-        ...prev,
+      setHistory((previous) => [
+        ...previous,
         {
           type: "bot",
-          text:
-            data?.ticketId
-              ? `${data.reply}\n\nTicket support cree : ${data.ticketId}`
-              : data?.reply ||
-            "Je n’ai pas pu générer une réponse pour le moment.",
+          text: data?.ticketId
+            ? `${data.reply}\n\nTicket support créé : ${data.ticketId}`
+            : data?.reply || "L'Assistant IA OpenAI n'a pas pu générer de réponse pour le moment.",
         },
       ]);
-    } catch (error) {
-      setHistory((prev) => [
-        ...prev,
+    } catch {
+      setHistory((previous) => [
+        ...previous,
         {
           type: "bot",
-          text: "Je n’arrive pas à joindre l’Assistant IA pour le moment. Vous pouvez réessayer ou contacter le support.",
-          showContacts: true,
+          text: "L'Assistant IA OpenAI est indisponible pour le moment. Réessayez dans quelques instants.",
         },
       ]);
     } finally {
@@ -284,35 +185,31 @@ export default function SupportChat() {
 
   return (
     <>
-      {isOpen && (
+      {isOpen ? (
         <div
           className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
-      )}
+      ) : null}
 
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-4">
-        {isOpen && (
-          <div className="w-[min(350px,calc(100vw-2rem))] md:w-[420px] h-[min(560px,calc(100vh-6rem))] bg-card border rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-4 sm:bottom-6 sm:right-6">
+        {isOpen ? (
+          <div className="flex h-[min(560px,calc(100vh-6rem))] w-[min(350px,calc(100vw-2rem))] animate-in flex-col overflow-hidden rounded-3xl border bg-card shadow-2xl slide-in-from-bottom-5 md:w-[420px]">
             <div className="bg-primary p-4 text-primary-foreground">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                    {activeAgent.kind === "ai" ? (
-                      <Bot className="h-6 w-6" />
-                    ) : (
-                      <User className="h-6 w-6" />
-                    )}
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                    <Bot className="h-6 w-6" />
                   </div>
 
                   <div className="min-w-0">
-                    <p className="font-bold text-sm truncate">
+                    <p className="truncate text-sm font-bold">
                       {activeAgent.label}
                     </p>
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                      <span className="text-[10px] opacity-80 uppercase tracking-widest font-bold">
-                        En ligne
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">
+                        OpenAI en ligne
                       </span>
                     </div>
                   </div>
@@ -320,154 +217,113 @@ export default function SupportChat() {
 
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="hover:bg-white/10 p-1.5 rounded-full transition-colors shrink-0"
+                  className="shrink-0 rounded-full p-1.5 transition-colors hover:bg-white/10"
                   aria-label="Fermer le chat"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="mt-3">
-                <label className="block text-[10px] opacity-80 uppercase tracking-widest font-bold mb-1">
-                  Choisir un assistant
+              <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+                <label className="block text-[10px] font-bold uppercase tracking-widest opacity-80">
+                  Assistant OpenAI
+                  <select
+                    value={selectedAgent}
+                    onChange={(event) => handleAgentChange(event.target.value as HelpChatAgentId)}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs outline-none"
+                  >
+                    {Object.values(AGENTS).map((agent) => (
+                      <option key={agent.id} value={agent.id} className="text-black">
+                        {agent.label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
-                <select
-                  value={selectedAgent}
-                  onChange={(e) => setSelectedAgent(e.target.value as AgentId)}
-                  className="w-full rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-xs outline-none"
-                >
-                  {Object.values(AGENTS).map((agent) => (
-                    <option key={agent.id} value={agent.id} className="text-black">
-                      {agent.label}
-                    </option>
-                  ))}
-                </select>
+                <Badge variant="outline" className="h-9 justify-center rounded-xl border-white/20 bg-white/10 text-[10px] uppercase tracking-widest text-white">
+                  {SURFACE_LABELS[chatSurface]}
+                </Badge>
               </div>
             </div>
 
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/20"
+              className="flex-1 space-y-4 overflow-y-auto bg-muted/20 p-4"
             >
-              {history.map((msg, i) => (
+              {history.map((message, index) => (
                 <div
-                  key={i}
+                  key={`${message.type}-${index}`}
                   className={`flex ${
-                    msg.type === "user" ? "justify-end" : "justify-start"
+                    message.type === "user" ? "justify-end" : "justify-start"
                   } animate-in fade-in duration-300`}
                 >
                   <div
-                    className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${
-                      msg.type === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-none"
-                        : "bg-card border rounded-bl-none"
+                    className={`max-w-[85%] whitespace-pre-line rounded-2xl p-3 text-sm shadow-sm ${
+                      message.type === "user"
+                        ? "rounded-br-none bg-primary text-primary-foreground"
+                        : "rounded-bl-none border bg-card"
                     }`}
                   >
-                    <div>{msg.text}</div>
-
-                    {msg.options && activeAgent.kind === "guided" && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {msg.options.map((opt, j) => (
-                          <Button
-                            key={j}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOption(opt)}
-                            className="text-xs rounded-full"
-                            disabled={isTyping}
-                          >
-                            {opt.label}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-
-                    {msg.type === "bot" &&
-                      msg.showContacts &&
-                      i === history.length - 1 && (
-                        <div className="mt-4 space-y-2">
-                          <div className="p-3 bg-primary/5 rounded-xl space-y-2 border border-primary/10">
-                            <a
-                              href={SUPPORT_MAILTO}
-                              className="flex items-center gap-2 text-primary font-bold hover:underline"
-                            >
-                              <Mail className="h-4 w-4" />
-                              {SUPPORT_EMAIL}
-                            </a>
-                            <a
-                              href="tel:+33123456789"
-                              className="flex items-center gap-2 text-primary font-bold hover:underline"
-                            >
-                              <Phone className="h-4 w-4" />
-                              +33 1 23 45 67 89
-                            </a>
-                          </div>
-                        </div>
-                      )}
+                    {message.text}
                   </div>
                 </div>
               ))}
 
-              {isTyping && (
-                <div className="flex justify-start animate-in fade-in duration-300">
-                  <div className="bg-card border rounded-2xl rounded-bl-none px-3 py-4 shadow-sm">
-                    <div className="flex gap-1 animate-pulse">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+              {isTyping ? (
+                <div className="flex animate-in justify-start fade-in duration-300">
+                  <div className="rounded-2xl rounded-bl-none border bg-card px-3 py-4 shadow-sm">
+                    <div className="flex animate-pulse gap-1">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
 
-            <div className="p-4 bg-card border-t">
-              {!isTyping && (
-                <div className="text-center mb-2">
+            <div className="border-t bg-card p-4">
+              {!isTyping ? (
+                <div className="mb-2 text-center">
                   <Badge
                     variant="outline"
-                    className="text-[10px] opacity-60 uppercase tracking-tighter"
+                    className="text-[10px] uppercase tracking-tighter opacity-60"
                   >
                     {activeAgent.badge}
                   </Badge>
                 </div>
-              )}
+              ) : null}
 
               <form onSubmit={handleSendMessage} className="flex gap-2">
                 <Input
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder={
-                    activeAgent.kind === "ai"
-                      ? "Écrivez votre message à l’Assistant IA..."
-                      : "Écrivez votre message..."
-                  }
-                  className="rounded-full bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary/30 h-10 text-xs"
+                  onChange={(event) => setInputValue(event.target.value)}
+                  placeholder="Écrivez votre message à l'Assistant IA OpenAI..."
+                  className="h-10 rounded-full border-0 bg-muted/50 text-xs focus-visible:ring-1 focus-visible:ring-primary/30"
                   disabled={isTyping}
                 />
                 <Button
                   type="submit"
                   size="icon"
-                  className="rounded-full shrink-0 h-10 w-10"
+                  className="h-10 w-10 shrink-0 rounded-full"
                   disabled={!inputValue.trim() || isTyping}
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               </form>
 
-              {history.length > 1 && !isTyping && (
+              {history.length > 1 && !isTyping ? (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={resetChat}
-                  className="w-full mt-2 text-xs gap-1 opacity-70"
+                  className="mt-2 w-full gap-1 text-xs opacity-70"
                 >
                   Recommencer
                 </Button>
-              )}
+              ) : null}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </>
   );
