@@ -157,6 +157,9 @@ export function extractOutputText(data: unknown): string {
       if (typeof record.text === "string") {
         parts.push(record.text);
       }
+      if (typeof record.output_text === "string") {
+        parts.push(record.output_text);
+      }
     }
   }
 
@@ -180,14 +183,102 @@ export function extractUsage(data: unknown): OpenAIResponseUsage {
 }
 
 export function parseStructuredOutput<T>(data: unknown): T {
+  const parsedOutput = findParsedStructuredOutput(data);
+  if (parsedOutput !== null) {
+    return parsedOutput as T;
+  }
+
   const text = extractOutputText(data);
   if (!text) {
     throw new HttpError(502, "ai_empty_response");
   }
 
+  const candidate = extractJsonCandidate(text);
   try {
-    return JSON.parse(text) as T;
+    return JSON.parse(candidate) as T;
   } catch {
     throw new HttpError(502, "ai_invalid_response");
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function findParsedStructuredOutput(data: unknown): unknown | null {
+  if (!isRecord(data)) return null;
+
+  const output = Array.isArray(data.output) ? data.output : [];
+  for (const item of output) {
+    if (!isRecord(item)) continue;
+    const content = item.content;
+    if (!Array.isArray(content)) continue;
+
+    for (const entry of content) {
+      if (!isRecord(entry)) continue;
+      for (const key of ["parsed", "json", "value"]) {
+        const value = entry[key];
+        if (isRecord(value) || Array.isArray(value)) return value;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractJsonCandidate(text: string) {
+  const normalized = stripMarkdownCodeFence(text.trim());
+
+  try {
+    JSON.parse(normalized);
+    return normalized;
+  } catch {
+    const embeddedJson = findBalancedJson(normalized);
+    return embeddedJson || normalized;
+  }
+}
+
+function stripMarkdownCodeFence(text: string) {
+  const match = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return match ? match[1].trim() : text;
+}
+
+function findBalancedJson(text: string) {
+  const objectStart = text.indexOf("{");
+  const arrayStart = text.indexOf("[");
+  const start = objectStart < 0 ? arrayStart : arrayStart < 0 ? objectStart : Math.min(objectStart, arrayStart);
+  if (start < 0) return "";
+
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < text.length; index++) {
+    const char = text[index];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") stack.push("}");
+    else if (char === "[") stack.push("]");
+    else if (char === "}" || char === "]") {
+      if (stack.pop() !== char) return "";
+      if (stack.length === 0) return text.slice(start, index + 1).trim();
+    }
+  }
+
+  return "";
 }

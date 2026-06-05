@@ -56,6 +56,10 @@ describe("TOK AI tools foundation", () => {
     expect(helper).toContain("text");
     expect(helper).toContain("json_schema");
     expect(helper).toContain("extractOutputText");
+    expect(helper).toContain("findParsedStructuredOutput");
+    expect(helper).toContain("extractJsonCandidate");
+    expect(helper).toContain("stripMarkdownCodeFence");
+    expect(helper).toContain("findBalancedJson");
     expect(helper).not.toContain("VITE_OPENAI");
   });
 

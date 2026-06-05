@@ -267,6 +267,10 @@ describe("TOK AI platform plan", () => {
     expect(adminMonitor).toContain("admin_get_marketplace_alerts");
     expect(adminMonitor).toContain("function_errors: verifiedFunctionErrorLines");
     expect(adminMonitor).toContain("recovered_function_errors");
+    expect(adminMonitor).toContain("buildFallbackAdminMonitorResult");
+    expect(adminMonitor).toContain("ai_response_parse_fallback");
+    expect(adminMonitor).toContain("ai_response_fallback");
+    expect(adminMonitor).toContain("!aiResponseFallback && result.security_alerts.length > 0");
     expect(adminMonitor).toContain("aucune sanction utilisateur");
   });
 });

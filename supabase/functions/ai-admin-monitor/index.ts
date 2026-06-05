@@ -287,6 +287,129 @@ function toHealthScore(value: unknown) {
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
+function clampScore(score: number) {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function normalizeSeverity(value: unknown): "low" | "medium" | "high" | "critical" {
+  if (value === "critical" || value === "high" || value === "medium" || value === "low") return value;
+  return "medium";
+}
+
+function rowLabel(row: Record<string, unknown>, keys: string[], fallback: string) {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return fallback;
+}
+
+function buildTicketLine(row: Record<string, unknown>) {
+  const title = rowLabel(row, ["title", "subject", "category"], "Ticket critique");
+  const priority = rowLabel(row, ["priority", "status"], "priorite non renseignee");
+  const updatedAt = rowLabel(row, ["updated_at", "created_at"], "date non renseignee");
+  return `${title} - ${priority} - ${updatedAt}`.slice(0, 220);
+}
+
+function buildRepeatedRestaurantLines(rows: Array<Record<string, unknown>>) {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const restaurantId = typeof row.restaurant_id === "string" ? row.restaurant_id : "";
+    if (!restaurantId) continue;
+    counts.set(restaurantId, (counts.get(restaurantId) || 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .filter(([, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([restaurantId, count]) => `${restaurantId} - ${count} incidents ouverts sur ${SUPPORT_CONTEXT_LOOKBACK_DAYS} jours`);
+}
+
+function buildFallbackAdminMonitorResult(input: {
+  action: MonitorAction;
+  aiCost: number;
+  aiFailureRatio7d: number;
+  usageRows7d: Array<Record<string, unknown>>;
+  verifiedFunctionErrorLines: string[];
+  verificationSummary: string;
+  applicationSmokeTest: ApplicationSmokeTest | null;
+  incidents: Array<Record<string, unknown>>;
+  aiTickets: Array<Record<string, unknown>>;
+  securityEvents: Array<Record<string, unknown>>;
+  marketplaceAlerts: Array<Record<string, unknown>>;
+}): AdminMonitorResult {
+  const criticalTickets = [
+    ...input.aiTickets.filter((row) => row.status === "escalated" || row.priority === "urgent" || row.priority === "high"),
+    ...input.incidents.filter((row) => row.priority === "urgent" || row.priority === "high"),
+  ].slice(0, 12);
+  const securityAlerts = input.securityEvents.slice(0, 10).map((row) => ({
+    label: rowLabel(row, ["signal", "event_type"], "Signal securite"),
+    severity: normalizeSeverity(row.severity),
+    evidence: `Risque ${String(row.risk_score || "-")} - ${rowLabel(row, ["created_at"], "date non renseignee")}`,
+  }));
+
+  if (input.applicationSmokeTest && !input.applicationSmokeTest.ok) {
+    securityAlerts.unshift({
+      label: "Smoke test applicatif KO",
+      severity: "high",
+      evidence: `${input.applicationSmokeTest.target} - ${input.applicationSmokeTest.status || "timeout"} - ${input.applicationSmokeTest.evidence}`,
+    });
+  }
+
+  if (input.aiFailureRatio7d >= 0.25 && input.usageRows7d.length >= 10) {
+    securityAlerts.push({
+      label: "Ratio d'echec IA eleve",
+      severity: "medium",
+      evidence: `${Math.round(input.aiFailureRatio7d * 100)}% d'echecs sur ${input.usageRows7d.length} appels IA recents.`,
+    });
+  }
+
+  const healthScore = clampScore(
+    92
+      - input.verifiedFunctionErrorLines.length * 12
+      - securityAlerts.filter((alert) => alert.severity === "critical").length * 18
+      - securityAlerts.filter((alert) => alert.severity === "high").length * 10
+      - Math.min(12, criticalTickets.length * 3)
+      - (input.applicationSmokeTest && !input.applicationSmokeTest.ok ? 12 : 0),
+  );
+  const recommendedActions = [
+    input.verifiedFunctionErrorLines.length > 0
+      ? "Priorite P1: traiter les Edge Functions encore en echec apres verification active."
+      : "Conserver la surveillance: aucune Edge Function en echec actif dans la fenetre fraiche.",
+    criticalTickets.length > 0
+      ? "Revoir les tickets critiques et assigner un responsable avant toute action de donnees."
+      : "Aucun ticket critique a escalader immediatement.",
+    securityAlerts.length > 0
+      ? "Verifier les alertes securite recentes sans tenir compte des logs deja recuperes."
+      : "Maintenir le monitoring securite standard.",
+  ];
+
+  if (input.marketplaceAlerts.length > 0) {
+    recommendedActions.push("Verifier les alertes marketplace ouvertes dans le centre operations.");
+  }
+
+  return {
+    title: `Analyse operations TOK - ${input.action}`,
+    health_score: healthScore,
+    executive_summary: `${input.verificationSummary} Rapport de secours genere car la reponse IA structuree etait illisible.`,
+    cost_summary: `${input.aiCost.toFixed(4)} CHF estimes sur 30 jours. Ratio d'echec IA 7 jours: ${Math.round(input.aiFailureRatio7d * 100)}%.`,
+    security_alerts: securityAlerts,
+    function_errors: input.verifiedFunctionErrorLines,
+    critical_tickets: criticalTickets.map(buildTicketLine),
+    abusive_users: input.securityEvents
+      .filter((row) => row.user_id && String(row.event_type || "").toLowerCase().includes("abuse"))
+      .slice(0, 8)
+      .map((row) => String(row.user_id)),
+    repeated_incidents_restaurants: buildRepeatedRestaurantLines([...input.incidents, ...input.aiTickets]),
+    average_response_time: "Non mesure par le fallback",
+    human_escalation_rate: input.aiTickets.length > 0
+      ? `${Math.round((criticalTickets.length / input.aiTickets.length) * 100)}%`
+      : "0%",
+    recommended_actions: recommendedActions,
+  };
+}
+
 async function insertUsage(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   payload: {
@@ -507,7 +630,33 @@ Reponds en francais operationnel avec priorites.`;
       },
     });
 
-    const rawResult = parseStructuredOutput<AdminMonitorResult>(openAIResponse);
+    let aiResponseFallback = false;
+    let rawResult: AdminMonitorResult;
+
+    try {
+      rawResult = parseStructuredOutput<AdminMonitorResult>(openAIResponse);
+    } catch (error) {
+      const recoverableParseError = error instanceof HttpError
+        && (error.message === "ai_invalid_response" || error.message === "ai_empty_response");
+      if (!recoverableParseError) throw error;
+
+      aiResponseFallback = true;
+      log.warn("ai_response_parse_fallback", { reason: error.message, action });
+      rawResult = buildFallbackAdminMonitorResult({
+        action,
+        aiCost,
+        aiFailureRatio7d,
+        usageRows7d,
+        verifiedFunctionErrorLines,
+        verificationSummary,
+        applicationSmokeTest,
+        incidents,
+        aiTickets,
+        securityEvents,
+        marketplaceAlerts,
+      });
+    }
+
     const result: AdminMonitorResult = {
       ...rawResult,
       function_errors: verifiedFunctionErrorLines,
@@ -532,6 +681,7 @@ Reponds en francais operationnel avec priorites.`;
           function_errors: verifiedFunctionErrorLines,
           recovered_function_errors: functionErrorVerification.recovered,
           recommended_actions: result.recommended_actions,
+          ai_response_fallback: aiResponseFallback,
         },
       })
       .select("id")
@@ -540,10 +690,11 @@ Reponds en francais operationnel avec priorites.`;
     if (adminEventError) throw new HttpError(500, adminEventError.message);
     adminEventId = adminEvent.id;
 
-    if (result.security_alerts.length > 0) {
+    if (!aiResponseFallback && result.security_alerts.length > 0) {
+      const actorUserId = actor.userId;
       await actor.adminClient.from("ai_security_events").insert(
         result.security_alerts.slice(0, 10).map((alert) => ({
-          user_id: actor.userId,
+          user_id: actorUserId,
           restaurant_id: restaurantId,
           event_type: action,
           severity: alert.severity,
@@ -579,6 +730,7 @@ Reponds en francais operationnel avec priorites.`;
         security_alerts: result.security_alerts.length,
         verified_function_errors: functionErrorVerification.active.length,
         recovered_function_errors: functionErrorVerification.recovered.length,
+        ai_response_fallback: aiResponseFallback,
       },
     });
 
@@ -596,6 +748,7 @@ Reponds en francais operationnel avec priorites.`;
         restaurant_id: restaurantId,
         verified_function_errors: functionErrorVerification.active.length,
         recovered_function_errors: functionErrorVerification.recovered.length,
+        ai_response_fallback: aiResponseFallback,
       },
     });
 
