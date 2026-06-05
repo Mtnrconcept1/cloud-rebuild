@@ -13,6 +13,11 @@ import {
   getNetReservationCommissionBase,
   getTokCoveredMiamzAmount,
 } from "@/lib/comptaCommissionSources";
+import {
+  buildAccountingExportEntries,
+  type AccountingExportEntry,
+  type AccountingPeriodRange,
+} from "@/lib/accountingExports";
 import { buildRestaurantAccountingSummary } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
 import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
@@ -408,6 +413,272 @@ function buildRestaurantShareBySource(bases: Record<string, number>) {
     }),
     {} as Record<typeof COMMISSION_SOURCE_ORDER[number], number>,
   );
+}
+
+type SupabasePagedQuery<T> = {
+  range: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>;
+};
+
+function applyAccountingPeriodRange<TQuery>(
+  query: TQuery,
+  column: string,
+  period: AccountingPeriodRange,
+  valueKind: "date" | "timestamp" = "timestamp",
+) {
+  let filteredQuery = query as any;
+  if (period.startDate) {
+    filteredQuery = filteredQuery.gte(
+      column,
+      valueKind === "date" ? period.startDate : `${period.startDate}T00:00:00.000Z`,
+    );
+  }
+
+  return filteredQuery.lte(
+    column,
+    valueKind === "date" ? period.endDate : `${period.endDate}T23:59:59.999Z`,
+  ) as TQuery;
+}
+
+async function fetchPagedRows<T>(buildQuery: () => SupabasePagedQuery<T>, pageSize = 1000) {
+  const rows: T[] = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await buildQuery().range(offset, offset + pageSize - 1);
+    if (error) throw error;
+
+    const page = data || [];
+    rows.push(...page);
+
+    if (page.length < pageSize) {
+      break;
+    }
+  }
+
+  return rows;
+}
+
+async function fetchDashboardExportOrders(restaurantId: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("orders")
+      .select(`
+        id,
+        created_at,
+        total_amount,
+        payment_status,
+        refunded_amount_chf,
+        refund_status,
+        refunded_at,
+        status,
+        order_number,
+        metadata,
+        restaurant_id,
+        restaurant_invoice_id,
+        restaurants ( name )
+      `)
+      .eq("restaurant_id", restaurantId)
+      .in("payment_status", ["paid", "captured"])
+      .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)");
+
+    return applyAccountingPeriodRange(query, "created_at", period).order("created_at", { ascending: true });
+  };
+
+  try {
+    return await fetchPagedRows<RestaurantOrderRow & { restaurants?: { name: string | null } | null }>(buildQuery);
+  } catch (error) {
+    if (!isRefundColumnsMissingError(error)) {
+      throw error;
+    }
+
+    const fallbackBuildQuery = () => {
+      const query = supabase
+        .from("orders")
+        .select(`
+          id,
+          created_at,
+          total_amount,
+          payment_status,
+          status,
+          order_number,
+          metadata,
+          restaurant_id,
+          restaurant_invoice_id,
+          restaurants ( name )
+        `)
+        .eq("restaurant_id", restaurantId)
+        .in("payment_status", ["paid", "captured"])
+        .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)");
+
+      return applyAccountingPeriodRange(query, "created_at", period).order("created_at", { ascending: true });
+    };
+
+    return withDefaultRefundFields(
+      await fetchPagedRows<RestaurantOrderRow & { restaurants?: { name: string | null } | null }>(fallbackBuildQuery),
+    ) as Array<RestaurantOrderRow & { restaurants?: { name: string | null } | null }>;
+  }
+}
+
+async function fetchDashboardExportReservations(restaurantId: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("reservations")
+      .select(`
+        id,
+        created_at,
+        date,
+        feature,
+        metadata,
+        total_amount,
+        refunded_amount_chf,
+        refund_status,
+        refunded_at,
+        status,
+        restaurant_id,
+        restaurant_invoice_id,
+        restaurants ( name )
+      `)
+      .eq("restaurant_id", restaurantId)
+      .gt("total_amount", 0)
+      .not("status", "in", "(cancelled,no_show,pending)");
+
+    return applyAccountingPeriodRange(query, "created_at", period).order("created_at", { ascending: true });
+  };
+
+  try {
+    return await fetchPagedRows<RestaurantReservationPaymentRow & { restaurants?: { name: string | null } | null }>(buildQuery);
+  } catch (error) {
+    if (!isRefundColumnsMissingError(error)) {
+      throw error;
+    }
+
+    const fallbackBuildQuery = () => {
+      const query = supabase
+        .from("reservations")
+        .select(`
+          id,
+          created_at,
+          date,
+          feature,
+          metadata,
+          total_amount,
+          status,
+          restaurant_id,
+          restaurant_invoice_id,
+          restaurants ( name )
+        `)
+        .eq("restaurant_id", restaurantId)
+        .gt("total_amount", 0)
+        .not("status", "in", "(cancelled,no_show,pending)");
+
+      return applyAccountingPeriodRange(query, "created_at", period).order("created_at", { ascending: true });
+    };
+
+    return withDefaultRefundFields(
+      await fetchPagedRows<RestaurantReservationPaymentRow & { restaurants?: { name: string | null } | null }>(fallbackBuildQuery),
+    ) as Array<RestaurantReservationPaymentRow & { restaurants?: { name: string | null } | null }>;
+  }
+}
+
+async function fetchDashboardExportReservationFees(restaurantId: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("reservations")
+      .select(`
+        id,
+        restaurant_id,
+        confirmed_at,
+        billing_fee_chf,
+        cancelled_by,
+        reservation_fee_invoice_id,
+        restaurants ( name )
+      `)
+      .eq("restaurant_id", restaurantId)
+      .not("confirmed_at", "is", null);
+
+    return applyAccountingPeriodRange(query, "confirmed_at", period).order("confirmed_at", { ascending: true });
+  };
+
+  return fetchPagedRows<RestaurantReservationFeeRow & { restaurants?: { name: string | null } | null }>(buildQuery);
+}
+
+async function fetchDashboardExportCampaigns(restaurantId: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("ad_campaigns")
+      .select(`
+        id,
+        restaurant_id,
+        created_at,
+        payment_status,
+        paid_amount,
+        total_budget,
+        title,
+        restaurants ( name )
+      `)
+      .eq("restaurant_id", restaurantId)
+      .eq("payment_status", "paid");
+
+    return applyAccountingPeriodRange(query, "created_at", period).order("created_at", { ascending: true });
+  };
+
+  return fetchPagedRows<RestaurantPaidCampaignRow & { restaurants?: { name: string | null } | null }>(buildQuery);
+}
+
+async function fetchDashboardExportInvoices(restaurantId: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("restaurant_invoices")
+      .select(`
+        id,
+        restaurant_id,
+        invoice_number,
+        period_start,
+        period_end,
+        amount_ttc,
+        status,
+        created_at,
+        invoice_type,
+        restaurants ( name )
+      `)
+      .eq("restaurant_id", restaurantId);
+
+    return applyAccountingPeriodRange(query, "period_end", period, "date").order("period_end", { ascending: true });
+  };
+
+  return fetchPagedRows<RestaurantInvoiceRow & { restaurants?: { name: string | null } | null }>(buildQuery);
+}
+
+export async function fetchDashboardAccountingExportEntries({
+  restaurantId,
+  period,
+}: {
+  restaurantId: string;
+  period: AccountingPeriodRange;
+}): Promise<AccountingExportEntry[]> {
+  const [
+    orders,
+    reservations,
+    reservationFees,
+    paidCampaigns,
+    invoices,
+  ] = await Promise.all([
+    fetchDashboardExportOrders(restaurantId, period),
+    fetchDashboardExportReservations(restaurantId, period),
+    fetchDashboardExportReservationFees(restaurantId, period),
+    fetchDashboardExportCampaigns(restaurantId, period),
+    fetchDashboardExportInvoices(restaurantId, period),
+  ]);
+
+  return buildAccountingExportEntries({
+    perspective: "restaurant",
+    sources: {
+      orders,
+      reservations,
+      reservationFees,
+      paidCampaigns,
+      invoices,
+    },
+  });
 }
 
 export function useDashboardPayoutInvoiceDetailLines(invoiceId: string | null) {

@@ -27,6 +27,23 @@ describe("dashboard shell navigation", () => {
     expect(layout).toContain('feature: "dashboard-promotions"');
   });
 
+  it("removes the legacy recommendations dashboard surface in favor of Assistant IA", () => {
+    const layout = read("src/components/DashboardLayout.tsx");
+    const app = read("src/App.tsx");
+    const featureCatalog = read("src/lib/featureCatalog.ts");
+    const packFeatureGating = read("src/lib/packFeatureGating.ts");
+    const edgePackEntitlements = read("supabase/functions/_shared/pack-entitlements.ts");
+
+    expect(layout).not.toContain('to: "/dashboard/recommandations"');
+    expect(layout).not.toContain('label: "Recommandations"');
+    expect(app).toContain('path="/dashboard/recommandations"');
+    expect(app).toContain('to="/dashboard/advisor"');
+    expect(app).not.toContain("DashboardRecommandations");
+    expect(featureCatalog).not.toContain("dashboard-recommandations");
+    expect(packFeatureGating).not.toContain("dashboard-recommandations");
+    expect(edgePackEntitlements).not.toContain("dashboard-recommandations");
+  });
+
   it("keeps the public navbar out of protected business shells", () => {
     const app = read("src/App.tsx");
 

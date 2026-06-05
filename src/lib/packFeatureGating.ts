@@ -9,7 +9,6 @@ export const ALL_GATABLE_FEATURES = [
   { key: "dashboard-photos", label: "Photos" },
   { key: "dashboard-commandes", label: "Commandes" },
   { key: "dashboard-reservations", label: "Reservations" },
-  { key: "dashboard-recommandations", label: "Recommandations" },
   { key: "dashboard-performances", label: "Performances" },
   { key: "dashboard-comparaison", label: "Comparaison" },
   { key: "dashboard-avis", label: "Avis clients" },
@@ -56,7 +55,6 @@ const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, GatableFeatureKey[]> = 
   floor_plan_design: ["dashboard-plan-salle"],
   account_manager: [
     "dashboard-advisor",
-    "dashboard-recommandations",
     "dashboard-performances",
     "dashboard-comparaison",
   ],

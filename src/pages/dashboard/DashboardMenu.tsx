@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Image as ImageIcon, Images, Loader2, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { generateTokDishImage, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 
 const supabase = getSupabase();
@@ -37,6 +39,16 @@ type MenuItemRecord = {
   is_available: boolean | null;
 };
 
+type RestaurantMediaRecord = {
+  id: string;
+  media_url: string;
+  alt_text: string | null;
+  media_type: string;
+  is_cover: boolean | null;
+  position: number | null;
+  created_at: string;
+};
+
 const emptyItem = {
   name: "",
   description: "",
@@ -47,6 +59,8 @@ const emptyItem = {
 } satisfies MenuItemForm;
 
 const CUSTOM_CATEGORY_VALUE = "__custom__";
+const MENU_PHOTO_STUDIO_PROMPT =
+  "Crée une photo culinaire premium pour une fiche menu TOK. Le rendu doit rester appétissant, naturel, sans texte incrusté, sans logo ajouté par le modèle, avec une lumière studio propre et un cadrage centré sur le plat.";
 
 const MENU_CATEGORY_PRESETS = [
   "Entrées",
@@ -90,6 +104,25 @@ function isPresetCategory(category: string) {
   return MENU_CATEGORY_PRESETS.includes(category);
 }
 
+function buildMenuPhotoStudioPrompt(form: MenuItemForm) {
+  return [
+    MENU_PHOTO_STUDIO_PROMPT,
+    form.name.trim() ? `Plat: ${form.name.trim()}` : "",
+    form.category.trim() ? `Catégorie: ${form.category.trim()}` : "",
+    form.description.trim() ? `Description: ${form.description.trim()}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function getPhotoGenerationErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (message.includes("rate_limited")) return "Trop de générations lancées. Patientez quelques minutes avant de relancer.";
+  if (message.includes("Unauthorized") || message.includes("Session expir")) return "Session expirée. Reconnectez-vous puis relancez la génération.";
+  if (message.includes("source_image_unsupported_type")) return "Format non pris en charge. Utilisez une photo JPG, PNG ou WebP.";
+  if (message.includes("source_image_too_large")) return "Photo trop lourde pour la retouche IA. Utilisez une image plus légère.";
+  if (message.includes("ai_credits_exhausted")) return "Crédit IA indisponible pour le moment.";
+  return message || "Génération impossible";
+}
+
 export default function DashboardMenu() {
   const { selectedId } = useDashboardRestaurant();
   const { toast } = useToast();
@@ -98,6 +131,8 @@ export default function DashboardMenu() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MenuItemForm>(emptyItem);
   const [categoryMode, setCategoryMode] = useState<"preset" | "custom">("preset");
+  const [generatingPhoto, setGeneratingPhoto] = useState(false);
+  const [photoStudioResult, setPhotoStudioResult] = useState<TokImageGenerationResult | null>(null);
 
   const restaurant = selectedId ? { id: selectedId } : null;
 
@@ -117,10 +152,30 @@ export default function DashboardMenu() {
     enabled: !!restaurant,
   });
 
+  const { data: galleryItems = [], isLoading: galleryLoading } = useQuery<RestaurantMediaRecord[]>({
+    queryKey: ["restaurant-media-picker", restaurant?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurant_media")
+        .select("id, media_url, alt_text, media_type, is_cover, position, created_at")
+        .eq("restaurant_id", restaurant!.id)
+        .in("media_type", ["photo", "photo_ai_tok"])
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: false })
+        .limit(24);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!restaurant && dialogOpen,
+  });
+
   const openNew = () => {
     setEditingId(null);
     setForm(emptyItem);
     setCategoryMode("preset");
+    setPhotoStudioResult(null);
+    setGeneratingPhoto(false);
     setDialogOpen(true);
   };
 
@@ -136,7 +191,17 @@ export default function DashboardMenu() {
       is_available: item.is_available,
     });
     setCategoryMode(category && !isPresetCategory(category) ? "custom" : "preset");
+    setPhotoStudioResult(null);
+    setGeneratingPhoto(false);
     setDialogOpen(true);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setPhotoStudioResult(null);
+      setGeneratingPhoto(false);
+    }
   };
 
   const refreshMenu = () => {
@@ -206,6 +271,48 @@ export default function DashboardMenu() {
     refreshMenu();
   };
 
+  const selectDishImage = (imageUrl: string) => {
+    setForm((previous) => ({ ...previous, image_url: imageUrl }));
+    setPhotoStudioResult(null);
+  };
+
+  const generateMenuPhoto = async () => {
+    if (!restaurant) return;
+    if (!form.name.trim() && !form.image_url.trim()) {
+      toast({
+        title: "Nom ou photo requis",
+        description: "Ajoutez un nom de plat ou une photo source avant de lancer le studio.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGeneratingPhoto(true);
+    setPhotoStudioResult(null);
+    try {
+      const result = await generateTokDishImage({
+        restaurantId: restaurant.id,
+        sourceImageUrl: form.image_url.trim() || null,
+        dishName: form.name.trim() || null,
+        prompt: buildMenuPhotoStudioPrompt(form),
+        assetType: "menu_visual",
+        format: "square",
+        variantCount: 1,
+        generateImage: true,
+        imageOnly: true,
+      });
+      const generatedImageUrl = result.gallery_image_url || result.generated_image_url;
+      if (!generatedImageUrl) throw new Error("Aucune image générée par le studio.");
+      setPhotoStudioResult(result);
+      setForm((previous) => ({ ...previous, image_url: generatedImageUrl }));
+      toast({ title: "Image générée", description: "Le visuel du studio est appliqué au plat." });
+    } catch (error) {
+      toast({ title: "Erreur IA", description: getPhotoGenerationErrorMessage(error), variant: "destructive" });
+    } finally {
+      setGeneratingPhoto(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -272,8 +379,8 @@ export default function DashboardMenu() {
           </div>
         )}
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent>
+        <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+          <DialogContent className="max-h-[min(92vh,900px)] overflow-y-auto sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>{editingId ? "Modifier le plat" : "Nouveau plat"}</DialogTitle>
             </DialogHeader>
@@ -295,7 +402,7 @@ export default function DashboardMenu() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Categorie</Label>
+                <Label>Catégorie</Label>
                 <Select
                   value={categoryMode === "custom" ? CUSTOM_CATEGORY_VALUE : form.category}
                   onValueChange={(value) => {
@@ -309,7 +416,7 @@ export default function DashboardMenu() {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Choisir une categorie" />
+                    <SelectValue placeholder="Choisir une catégorie" />
                   </SelectTrigger>
                   <SelectContent>
                     {MENU_CATEGORY_PRESETS.map((category) => (
@@ -317,7 +424,7 @@ export default function DashboardMenu() {
                         {category}
                       </SelectItem>
                     ))}
-                    <SelectItem value={CUSTOM_CATEGORY_VALUE}>Categorie personnalisee</SelectItem>
+                    <SelectItem value={CUSTOM_CATEGORY_VALUE}>Catégorie personnalisée</SelectItem>
                   </SelectContent>
                 </Select>
                 {categoryMode === "custom" ? (
@@ -332,7 +439,86 @@ export default function DashboardMenu() {
                 <Label>Description</Label>
                 <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
-              <ImageUpload label="Photo du plat" value={form.image_url} onChange={(url) => setForm({ ...form, image_url: url })} />
+              <div className="space-y-3">
+                <ImageUpload
+                  label="Photo du plat"
+                  value={form.image_url}
+                  onChange={(url) => {
+                    setForm((previous) => ({ ...previous, image_url: url }));
+                    setPhotoStudioResult(null);
+                  }}
+                  showUrlInput={false}
+                />
+                <Tabs defaultValue="studio" className="rounded-lg border bg-muted/30 p-3">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="studio" className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Studio photo
+                    </TabsTrigger>
+                    <TabsTrigger value="gallery" className="gap-2">
+                      <Images className="h-4 w-4" />
+                      Galerie
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="studio" className="mt-3 space-y-3">
+                    <div className="flex flex-col gap-3 rounded-md border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold">Studio photo TOK</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {form.image_url ? "La photo actuelle sert de source." : "Le nom et la description guident la génération."}
+                        </p>
+                      </div>
+                      <Button type="button" onClick={generateMenuPhoto} disabled={!restaurant || generatingPhoto} className="shrink-0 gap-2">
+                        {generatingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                        Générer
+                      </Button>
+                    </div>
+                    {photoStudioResult ? (
+                      <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
+                        Image du studio appliquée au plat. Sauvegardez le produit pour la publier dans le menu.
+                      </p>
+                    ) : null}
+                  </TabsContent>
+                  <TabsContent value="gallery" className="mt-3">
+                    {galleryLoading ? (
+                      <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-4 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Chargement de la galerie...
+                      </div>
+                    ) : galleryItems.length ? (
+                      <div className="grid max-h-72 gap-3 overflow-y-auto pr-1 sm:grid-cols-3">
+                        {galleryItems.map((item) => {
+                          const selected = item.media_url === form.image_url;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => selectDishImage(item.media_url)}
+                              className={`group relative overflow-hidden rounded-lg border bg-background text-left transition ${selected ? "border-primary ring-2 ring-primary/30" : "hover:border-primary/60"}`}
+                              aria-pressed={selected}
+                            >
+                              <img src={item.media_url} alt={item.alt_text || "Photo de galerie"} className="aspect-square w-full object-cover transition group-hover:scale-[1.02]" />
+                              <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-[11px] font-medium text-white">
+                                <span className="line-clamp-1">{item.alt_text || (item.is_cover ? "Couverture" : "Photo galerie")}</span>
+                              </div>
+                              {selected ? (
+                                <span className="absolute right-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                                  Choisie
+                                </span>
+                              ) : null}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-4 text-sm text-muted-foreground">
+                        <ImageIcon className="h-4 w-4" />
+                        Aucune image dans la galerie du restaurant.
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </div>
             </div>
             <DialogFooter>
               <Button onClick={handleSave} disabled={!restaurant}>

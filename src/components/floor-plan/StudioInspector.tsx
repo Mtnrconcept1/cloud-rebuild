@@ -3,7 +3,6 @@ import { Armchair, Copy, LayoutPanelTop, RotateCw, Ruler, Trash2 } from "lucide-
 import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,29 +67,25 @@ export default function StudioInspector({
     : null;
 
   return (
-    <Card className="flex min-h-0 flex-col overflow-hidden rounded-[30px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] shadow-[0_24px_80px_-44px_rgba(15,23,42,0.4)]">
-      <CardHeader className="space-y-3 border-b border-slate-200/80 pb-4">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="space-y-2 border-b border-slate-200/80 pb-3">
         <div>
-          <CardTitle className="text-xl text-slate-950">Inspecteur studio</CardTitle>
-          <CardDescription className="mt-1 text-slate-500">
-            Réglages utiles uniquement. Les options lourdes sont déplacées dans le configurateur.
-          </CardDescription>
+          <h2 className="text-base font-semibold text-slate-950">Réglages</h2>
+          <p className="mt-1 text-xs text-slate-500">Nom, secteur, rotation et taille.</p>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="min-h-0 flex-1 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 overflow-y-auto py-3">
         {!selectedTable ? (
-          <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center">
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
             <LayoutPanelTop className="mx-auto h-6 w-6 text-slate-400" />
             <p className="mt-3 text-sm font-medium text-slate-700">Aucune sélection</p>
-            <p className="mt-1 text-sm text-slate-500">
-              Touchez un élément dans le canevas pour ajuster son nom, sa rotation, sa taille ou ouvrir son configurateur.
-            </p>
+            <p className="mt-1 text-xs text-slate-500">Touchez un élément du canevas.</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="rounded-[26px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-              <div className="flex h-48 items-center justify-center rounded-[22px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.94),rgba(241,245,249,0.98))]">
+          <div className="space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
+              <div className="flex h-28 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
                 <FloorPlanItemIllustration
                   kind={selectedTable.layout.kind}
                   shape={selectedTable.layout.shape}
@@ -104,12 +99,12 @@ export default function StudioInspector({
                   cornerBenchHorizontal={selectedTable.layout.cornerBenchHorizontal}
                   cornerBenchVertical={selectedTable.layout.cornerBenchVertical}
                   cornerBenchDepth={selectedTable.layout.cornerBenchDepth}
-                  className="h-40 w-full max-w-[220px]"
+                  className="h-24 w-full max-w-[180px]"
                   decorative={false}
                 />
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 text-slate-700">
                   {getFloorPlanItemTypeLabel(selectedTable.layout.kind, selectedTable.layout.shape)}
                 </Badge>
@@ -129,15 +124,15 @@ export default function StudioInspector({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>Nom</Label>
-              <Input value={selectedTable.table_number} onChange={(event) => onRename(event.target.value)} />
+              <Input className="h-10 rounded-xl" value={selectedTable.table_number} onChange={(event) => onRename(event.target.value)} />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>Secteur</Label>
               <Select value={selectedTable.sector} onValueChange={onSectorChange}>
-                <SelectTrigger className="min-w-0">
+                <SelectTrigger className="h-10 min-w-0 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -151,14 +146,14 @@ export default function StudioInspector({
             </div>
 
             {selectedTableIsReservable ? (
-              <div className="grid gap-3 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                   <Armchair className="h-3.5 w-3.5" />
                   Assises
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Capacite</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Capacité</p>
                     <p className="mt-1 text-sm font-semibold text-slate-900">{selectedTable.capacity} couverts</p>
                   </div>
                   <div>
@@ -175,13 +170,13 @@ export default function StudioInspector({
                     plateau {Math.round(selectedTableDimensions.tableWidth)} x {Math.round(selectedTableDimensions.tableHeight)} px
                   </div>
                 ) : null}
-                <Button type="button" variant="outline" className="justify-start rounded-2xl" onClick={onConfigureTable}>
+                <Button type="button" variant="outline" className="justify-start rounded-xl" onClick={onConfigureTable}>
                   <Armchair className="mr-2 h-4 w-4" />
                   Configurer les assises
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-3 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                   <Ruler className="h-3.5 w-3.5" />
                   Taille du mobilier
@@ -190,6 +185,7 @@ export default function StudioInspector({
                   <div className="space-y-2">
                     <Label>Largeur</Label>
                     <Input
+                      className="h-10 rounded-xl"
                       type="number"
                       min={1}
                       step={1}
@@ -208,6 +204,7 @@ export default function StudioInspector({
                   <div className="space-y-2">
                     <Label>Profondeur</Label>
                     <Input
+                      className="h-10 rounded-xl"
                       type="number"
                       min={1}
                       step={1}
@@ -229,7 +226,7 @@ export default function StudioInspector({
                     <Button
                       type="button"
                       variant="outline"
-                      className="rounded-2xl"
+                      className="rounded-xl"
                       onClick={() => onUpdateFurnitureSize(furnitureMinimum.w, furnitureMinimum.h)}
                     >
                       Mini
@@ -237,7 +234,7 @@ export default function StudioInspector({
                     <Button
                       type="button"
                       variant="outline"
-                      className="rounded-2xl"
+                      className="rounded-xl"
                       onClick={() => onUpdateFurnitureSize(
                         Math.max(furnitureMinimum.w, Math.round(selectedTable.layout.w * 0.75)),
                         Math.max(furnitureMinimum.h, Math.round(selectedTable.layout.h * 0.75)),
@@ -248,7 +245,7 @@ export default function StudioInspector({
                     <Button
                       type="button"
                       variant="outline"
-                      className="rounded-2xl"
+                      className="rounded-xl"
                       onClick={() => onUpdateFurnitureSize(
                         Math.round(selectedTable.layout.w * 1.25),
                         Math.round(selectedTable.layout.h * 1.25),
@@ -266,8 +263,8 @@ export default function StudioInspector({
               </div>
             )}
 
-            <div className="grid gap-3 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="space-y-2">
+            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+              <div className="space-y-1.5">
                 <Label>Rotation</Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -280,7 +277,7 @@ export default function StudioInspector({
                       const raw = Math.round(Number(event.target.value) || 0) % 360;
                       onRotationChange(raw < 0 ? raw + 360 : raw);
                     }}
-                    className="w-[110px]"
+                    className="h-10 w-[110px] rounded-xl"
                   />
                   <span className="text-xs text-slate-500">deg</span>
                   <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-xl" onClick={onRotateIncrement}>
@@ -289,7 +286,7 @@ export default function StudioInspector({
                 </div>
               </div>
 
-              <div className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-slate-900">Visible sur le plan</p>
                   <p className="text-sm text-slate-500">Désactivez un élément sans le supprimer définitivement.</p>
@@ -299,18 +296,18 @@ export default function StudioInspector({
             </div>
 
             <div className="grid gap-2">
-              <Button type="button" variant="outline" className="justify-start rounded-2xl" onClick={onDuplicate}>
+              <Button type="button" variant="outline" className="justify-start rounded-xl" onClick={onDuplicate}>
                 <Copy className="mr-2 h-4 w-4" />
                 Dupliquer
               </Button>
-              <Button type="button" variant="outline" className="justify-start rounded-2xl text-destructive" onClick={onRemove}>
+              <Button type="button" variant="outline" className="justify-start rounded-xl text-destructive" onClick={onRemove}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Supprimer
               </Button>
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

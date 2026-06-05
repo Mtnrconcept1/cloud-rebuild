@@ -69,7 +69,6 @@ const DashboardOffres = lazy(() => import("./pages/dashboard/DashboardOffres"));
 const DashboardVentesFlash = lazy(() => import("./pages/dashboard/DashboardVentesFlash"));
 const DashboardFormules = lazy(() => import("./pages/dashboard/DashboardFormules"));
 const DashboardCampagnes = lazy(() => import("./pages/dashboard/DashboardCampagnes"));
-const DashboardRecommandations = lazy(() => import("./pages/dashboard/DashboardRecommandations"));
 const DashboardPerformances = lazy(() => import("./pages/dashboard/DashboardPerformances"));
 const DashboardComparaison = lazy(() => import("./pages/dashboard/DashboardComparaison"));
 const DashboardAvis = lazy(() => import("./pages/dashboard/DashboardAvis"));
@@ -275,7 +274,6 @@ function AppShell() {
   const dashboardMenuEnabled = hasFeature("dashboard-menu");
   const dashboardReservationsEnabled = hasFeature("dashboard-reservations");
   const dashboardCommandesEnabled = hasFeature("dashboard-commandes");
-  const dashboardRecommandationsEnabled = hasFeature("dashboard-recommandations");
   const dashboardPerformancesEnabled = hasFeature("dashboard-performances");
   const dashboardComparaisonEnabled = hasFeature("dashboard-comparaison");
   const dashboardAvisEnabled = hasFeature("dashboard-avis");
@@ -355,7 +353,7 @@ function AppShell() {
           <Route path="/dashboard/menu" element={<DashboardRoute><FeatureSwitch enabled={dashboardMenuEnabled} fallback="/dashboard"><DashboardMenu /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/reservations" element={<DashboardRoute><FeatureSwitch enabled={dashboardReservationsEnabled} fallback="/dashboard"><DashboardReservations /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCommandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/recommandations" element={<DashboardRoute><FeatureSwitch enabled={dashboardRecommandationsEnabled} fallback="/dashboard"><DashboardRecommandations /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/recommandations" element={<Navigate to="/dashboard/advisor" replace />} />
           <Route path="/dashboard/performances" element={<DashboardRoute><FeatureSwitch enabled={dashboardPerformancesEnabled} fallback="/dashboard"><DashboardPerformances /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/comparaison" element={<DashboardRoute><FeatureSwitch enabled={dashboardComparaisonEnabled} fallback="/dashboard"><DashboardComparaison /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/avis" element={<DashboardRoute><FeatureSwitch enabled={dashboardAvisEnabled} fallback="/dashboard"><DashboardAvis /></FeatureSwitch></DashboardRoute>} />

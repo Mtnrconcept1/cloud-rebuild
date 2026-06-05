@@ -33,7 +33,7 @@ describe("dashboard menu category presets", () => {
     }
 
     expect(source).toContain("MENU_CATEGORY_PRESETS");
-    expect(source).toContain("Categorie personnalisee");
+    expect(source).toContain("Catégorie personnalisée");
     expect(source).toContain("isPresetCategory");
     expect(source).toContain('setCategoryMode(category && !isPresetCategory(category) ? "custom" : "preset")');
   });

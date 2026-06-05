@@ -15,7 +15,6 @@ export const ALL_GATABLE_FEATURES = [
   "dashboard-photos",
   "dashboard-commandes",
   "dashboard-reservations",
-  "dashboard-recommandations",
   "dashboard-performances",
   "dashboard-comparaison",
   "dashboard-avis",
@@ -56,7 +55,6 @@ const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, string[]> = {
   floor_plan_design: ["dashboard-plan-salle"],
   account_manager: [
     "dashboard-advisor",
-    "dashboard-recommandations",
     "dashboard-performances",
     "dashboard-comparaison",
   ],

@@ -15,6 +15,12 @@ import {
   type CommissionBaseTotals,
 } from "@/lib/comptaCommissionSources";
 import { buildTokAccountingSummary, buildTokRevenueSummary } from "@/lib/comptaFlow";
+import {
+  buildAccountingExportEntries,
+  type AccountingExportEntry,
+  type AccountingExportPerspective,
+  type AccountingPeriodRange,
+} from "@/lib/accountingExports";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
 import { summarizeFinancialHealth, type FinancialHealthRow } from "@/lib/financialHealth";
 import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
@@ -245,7 +251,7 @@ function csvEscape(value: unknown) {
 
 export function downloadAccountingCsv(filename: string, rows: Array<Array<unknown>>) {
   const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -504,6 +510,315 @@ function buildAdminPayableAccrualSummary(input: {
     + summary.campaignCount;
 
   return summary;
+}
+
+type SupabasePagedQuery<T> = {
+  range: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>;
+};
+
+function applyAccountingPeriodRange<TQuery>(
+  query: TQuery,
+  column: string,
+  period: AccountingPeriodRange,
+  valueKind: "date" | "timestamp" = "timestamp",
+) {
+  let filteredQuery = query as any;
+  if (period.startDate) {
+    filteredQuery = filteredQuery.gte(
+      column,
+      valueKind === "date" ? period.startDate : `${period.startDate}T00:00:00.000Z`,
+    );
+  }
+
+  return filteredQuery.lte(
+    column,
+    valueKind === "date" ? period.endDate : `${period.endDate}T23:59:59.999Z`,
+  ) as TQuery;
+}
+
+function applyAdminRestaurantFilter<TQuery>(query: TQuery, selectedRestaurant: string) {
+  if (selectedRestaurant === "all") {
+    return query;
+  }
+
+  return (query as any).eq("restaurant_id", selectedRestaurant) as TQuery;
+}
+
+async function fetchPagedRows<T>(buildQuery: () => SupabasePagedQuery<T>, pageSize = 1000) {
+  const rows: T[] = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await buildQuery().range(offset, offset + pageSize - 1);
+    if (error) throw error;
+
+    const page = data || [];
+    rows.push(...page);
+
+    if (page.length < pageSize) {
+      break;
+    }
+  }
+
+  return rows;
+}
+
+async function fetchAdminExportOrders(selectedRestaurant: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("orders")
+      .select(`
+        id,
+        created_at,
+        total_amount,
+        payment_status,
+        refunded_amount_chf,
+        refund_status,
+        refunded_at,
+        status,
+        order_number,
+        metadata,
+        restaurant_id,
+        restaurant_invoice_id,
+        restaurants ( name )
+      `)
+      .in("payment_status", ["paid", "captured"])
+      .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)");
+
+    return applyAccountingPeriodRange(
+      applyAdminRestaurantFilter(query, selectedRestaurant),
+      "created_at",
+      period,
+    ).order("created_at", { ascending: true });
+  };
+
+  try {
+    return await fetchPagedRows<AdminOrderRow>(buildQuery);
+  } catch (error) {
+    if (!isRefundColumnsMissingError(error)) {
+      throw error;
+    }
+
+    const fallbackBuildQuery = () => {
+      const query = supabase
+        .from("orders")
+        .select(`
+          id,
+          created_at,
+          total_amount,
+          payment_status,
+          status,
+          order_number,
+          metadata,
+          restaurant_id,
+          restaurant_invoice_id,
+          restaurants ( name )
+        `)
+        .in("payment_status", ["paid", "captured"])
+        .not("status", "in", "(cancelled,payment_failed,refused,pending,pending_payment)");
+
+      return applyAccountingPeriodRange(
+        applyAdminRestaurantFilter(query, selectedRestaurant),
+        "created_at",
+        period,
+      ).order("created_at", { ascending: true });
+    };
+
+    return withDefaultRefundFields(await fetchPagedRows<AdminOrderRow>(fallbackBuildQuery)) as AdminOrderRow[];
+  }
+}
+
+async function fetchAdminExportReservations(selectedRestaurant: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("reservations")
+      .select(`
+        id,
+        created_at,
+        date,
+        feature,
+        metadata,
+        total_amount,
+        refunded_amount_chf,
+        refund_status,
+        refunded_at,
+        status,
+        restaurant_id,
+        restaurants ( name )
+      `)
+      .gt("total_amount", 0)
+      .not("status", "in", "(cancelled,no_show,pending)");
+
+    return applyAccountingPeriodRange(
+      applyAdminRestaurantFilter(query, selectedRestaurant),
+      "created_at",
+      period,
+    ).order("created_at", { ascending: true });
+  };
+
+  try {
+    return await fetchPagedRows<AdminReservationPaymentRow>(buildQuery);
+  } catch (error) {
+    if (!isRefundColumnsMissingError(error)) {
+      throw error;
+    }
+
+    const fallbackBuildQuery = () => {
+      const query = supabase
+        .from("reservations")
+        .select(`
+          id,
+          created_at,
+          date,
+          feature,
+          metadata,
+          total_amount,
+          status,
+          restaurant_id,
+          restaurants ( name )
+        `)
+        .gt("total_amount", 0)
+        .not("status", "in", "(cancelled,no_show,pending)");
+
+      return applyAccountingPeriodRange(
+        applyAdminRestaurantFilter(query, selectedRestaurant),
+        "created_at",
+        period,
+      ).order("created_at", { ascending: true });
+    };
+
+    return withDefaultRefundFields(await fetchPagedRows<AdminReservationPaymentRow>(fallbackBuildQuery)) as AdminReservationPaymentRow[];
+  }
+}
+
+async function fetchAdminExportReservationFees(selectedRestaurant: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("reservations")
+      .select(`
+        id,
+        restaurant_id,
+        confirmed_at,
+        billing_fee_chf,
+        cancelled_by,
+        reservation_fee_invoice_id,
+        restaurants ( name )
+      `)
+      .not("confirmed_at", "is", null);
+
+    return applyAccountingPeriodRange(
+      applyAdminRestaurantFilter(query, selectedRestaurant),
+      "confirmed_at",
+      period,
+    ).order("confirmed_at", { ascending: true });
+  };
+
+  return fetchPagedRows<AdminReservationFeeAccrualRow>(buildQuery);
+}
+
+async function fetchAdminExportCampaigns(selectedRestaurant: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("ad_campaigns")
+      .select(`
+        id,
+        restaurant_id,
+        created_at,
+        payment_status,
+        paid_amount,
+        total_budget,
+        title,
+        restaurants ( name )
+      `)
+      .eq("payment_status", "paid");
+
+    return applyAccountingPeriodRange(
+      applyAdminRestaurantFilter(query, selectedRestaurant),
+      "created_at",
+      period,
+    ).order("created_at", { ascending: true });
+  };
+
+  return fetchPagedRows<AdminCampaignRow>(buildQuery);
+}
+
+async function fetchAdminExportInvoices(selectedRestaurant: string, period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = supabase
+      .from("restaurant_invoices")
+      .select(`
+        id,
+        restaurant_id,
+        invoice_number,
+        period_start,
+        period_end,
+        amount_ttc,
+        status,
+        created_at,
+        invoice_type,
+        restaurants ( name )
+      `);
+
+    return applyAccountingPeriodRange(
+      applyAdminRestaurantFilter(query, selectedRestaurant),
+      "period_end",
+      period,
+      "date",
+    ).order("period_end", { ascending: true });
+  };
+
+  return fetchPagedRows<AdminInvoiceRow>(buildQuery);
+}
+
+async function fetchAdminExportTokOnePayments(period: AccountingPeriodRange) {
+  const buildQuery = () => {
+    const query = (supabase as any)
+      .from("payment_transactions")
+      .select("id, created_at, amount, status, type, metadata")
+      .eq("type", "subscription")
+      .in("status", ["paid", "succeeded"]);
+
+    return applyAccountingPeriodRange(query, "created_at", period).order("created_at", { ascending: true });
+  };
+
+  return fetchPagedRows<any>(buildQuery);
+}
+
+export async function fetchAdminAccountingExportEntries({
+  selectedRestaurant,
+  period,
+  perspective = "admin",
+}: {
+  selectedRestaurant: string;
+  period: AccountingPeriodRange;
+  perspective?: AccountingExportPerspective;
+}): Promise<AccountingExportEntry[]> {
+  const [
+    orders,
+    reservations,
+    reservationFees,
+    paidCampaigns,
+    invoices,
+    tokOnePayments,
+  ] = await Promise.all([
+    fetchAdminExportOrders(selectedRestaurant, period),
+    fetchAdminExportReservations(selectedRestaurant, period),
+    fetchAdminExportReservationFees(selectedRestaurant, period),
+    fetchAdminExportCampaigns(selectedRestaurant, period),
+    fetchAdminExportInvoices(selectedRestaurant, period),
+    selectedRestaurant === "all" ? fetchAdminExportTokOnePayments(period) : Promise.resolve([]),
+  ]);
+
+  return buildAccountingExportEntries({
+    perspective,
+    sources: {
+      orders,
+      reservations,
+      reservationFees,
+      paidCampaigns,
+      invoices,
+      tokOnePayments,
+    },
+  });
 }
 
 export function useAdminPayoutInvoiceDetailLines(invoiceId: string | null) {

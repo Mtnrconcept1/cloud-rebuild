@@ -316,7 +316,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     defaultEnabled: true,
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur"],
-    routeTargets: ["/dashboard/advisor"],
+    routeTargets: ["/dashboard/advisor", "/dashboard/recommandations"],
   },
   {
     name: "ai_support_chat",
@@ -426,15 +426,6 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     group: "restaurant_dashboard",
     dependsOn: ["dashboard-restaurateur", "reservation"],
     routeTargets: ["/dashboard/reservations"],
-  },
-  {
-    name: "dashboard-recommandations",
-    label: "Dashboard: Recommandations",
-    description: "Expose les recommandations opérationnelles côté restaurateur.",
-    defaultEnabled: true,
-    group: "restaurant_dashboard",
-    dependsOn: ["dashboard-restaurateur"],
-    routeTargets: ["/dashboard/recommandations"],
   },
   {
     name: "dashboard-performances",

@@ -131,14 +131,12 @@ export default function StudioCanvas({
   };
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
-      <CardHeader className="space-y-3 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-3">
+    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-200/80 px-4 py-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="text-[1.45rem] text-slate-950">{selectedSector}</CardTitle>
-            <CardDescription className="mt-1 text-slate-500">
-              Atelier de composition du template. Le canevas garde la priorité, les réglages passent en second plan.
-            </CardDescription>
+            <CardTitle className="text-lg text-slate-950">{selectedSector}</CardTitle>
+            <CardDescription className="mt-1 text-sm text-slate-500">Glissez, redimensionnez, configurez.</CardDescription>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -186,43 +184,9 @@ export default function StudioCanvas({
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
-        <div className="grid gap-2 sm:grid-cols-3">
-          <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Elements</p>
-            <p className="mt-2 text-2xl font-bold text-slate-950">{visibleTables.length}</p>
-          </div>
-          <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Tables</p>
-            <p className="mt-2 text-2xl font-bold text-slate-950">
-              {visibleTables.filter((table) => isReservableFloorPlanItem(table.layout.kind)).length}
-            </p>
-          </div>
-          <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Mobilier</p>
-            <p className="mt-2 text-2xl font-bold text-slate-950">
-              {visibleTables.filter((table) => !isReservableFloorPlanItem(table.layout.kind)).length}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,1),rgba(241,244,248,1))] p-3">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-                <LayoutPanelTop className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Plan du template</p>
-                <p className="text-sm text-slate-500">Glissez, redimensionnez ou configurez depuis l'inspecteur.</p>
-              </div>
-            </div>
-            <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
-              Scroll local actif
-            </Badge>
-          </div>
-
-          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto rounded-[26px] border border-slate-200/80 bg-white/80 p-2 shadow-inner">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-2">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
+          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-inner">
             <div className="flex min-h-full min-w-full items-start justify-start">
               <div
                 ref={canvasRef}
@@ -249,8 +213,8 @@ export default function StudioCanvas({
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-slate-500">
                     <LayoutPanelTop className="h-10 w-10 text-primary/60" />
                     <div className="space-y-1">
-                      <p className="font-medium text-slate-900">Aucun element dans ce secteur</p>
-                      <p className="text-sm">Ajoutez des presets depuis la palette pour commencer à construire la salle.</p>
+                      <p className="font-medium text-slate-900">Aucun élément dans ce secteur</p>
+                      <p className="text-sm">Ajoutez un preset depuis le panneau Outils.</p>
                     </div>
                   </div>
                 ) : null}
@@ -335,7 +299,7 @@ export default function StudioCanvas({
                         {isSelected ? (
                           <button
                             type="button"
-                            aria-label={`Deplacer ${table.table_number}`}
+                            aria-label={`Déplacer ${table.table_number}`}
                             className="absolute left-[-12px] top-1/2 flex h-10 w-10 touch-none -translate-y-1/2 items-center justify-center rounded-full border border-slate-900/10 bg-white text-slate-700 shadow-[0_18px_28px_-18px_rgba(15,23,42,0.55)]"
                             onPointerDown={(event) => onStartDraggingTable(event, table.id)}
                           >
@@ -392,11 +356,6 @@ export default function StudioCanvas({
           </div>
         </div>
 
-        <div className="mt-3 flex justify-center">
-          <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2 text-xs text-slate-500 shadow-sm">
-            Le canevas garde son scroll local. Les panneaux se compactent avant de rogner la surface de travail.
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

@@ -33,7 +33,6 @@ describe("packFeatureGating", () => {
       "dashboard-photos",
       "dashboard-commandes",
       "dashboard-reservations",
-      "dashboard-recommandations",
       "dashboard-performances",
       "dashboard-comparaison",
       "dashboard-avis",

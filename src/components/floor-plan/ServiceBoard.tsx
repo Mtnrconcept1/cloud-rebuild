@@ -202,15 +202,24 @@ export default function ServiceBoard({
   };
 
   return (
-    <Card className="flex min-h-0 flex-col overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,246,251,0.97))] shadow-[0_36px_110px_-48px_rgba(15,23,42,0.42)]">
-      <CardHeader className="space-y-3 border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(246,248,252,0.88))] pb-3">
+    <Card className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <CardHeader className="space-y-3 border-b border-slate-200/80 px-4 py-3">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <CardTitle className="text-[1.5rem] text-slate-950">{selectedSector}</CardTitle>
-            <CardDescription className="mt-1 text-slate-500">{subtitle}</CardDescription>
+            <CardTitle className="text-lg text-slate-950">{selectedSector}</CardTitle>
+            <CardDescription className="mt-1 text-sm text-slate-500">{subtitle}</CardDescription>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 text-slate-700">
+              Tables {visibleTablesCount}
+            </Badge>
+            <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">
+              Libres {availableTablesCount}
+            </Badge>
+            <Badge variant="outline" className="rounded-full border-amber-200 bg-amber-50 text-amber-700">
+              Sans table {unassignedReservationsCount}
+            </Badge>
             <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white px-1 py-1 shadow-sm">
               <Button
                 type="button"
@@ -247,54 +256,23 @@ export default function ServiceBoard({
           </div>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
-          <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Tables visibles</p>
-            <p className="mt-2 text-2xl font-bold text-slate-950">{visibleTablesCount}</p>
-          </div>
-          <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">Disponibles</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-900">{availableTablesCount}</p>
-          </div>
-          <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">Sans table</p>
-            <p className="mt-2 text-2xl font-bold text-amber-900">{unassignedReservationsCount}</p>
-          </div>
-        </div>
-
         {activeReservationLabel ? (
-          <div className="flex items-start gap-3 rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-amber-700 shadow-sm">
               <Grip className="h-4 w-4" />
             </div>
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">Placement en cours</p>
               <p className="mt-1 truncate text-sm font-semibold text-amber-950">{activeReservationLabel}</p>
-              <p className="text-sm text-amber-800">Glissez vers une table ou touchez une table compatible pour la déposer.</p>
+              <p className="text-xs text-amber-800">Glissez vers une table compatible.</p>
             </div>
           </div>
         ) : null}
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(250,251,253,1),rgba(241,244,248,1))] p-3">
-          <div className="flex min-h-0 flex-1 flex-col rounded-[24px] border border-slate-200/80 bg-white/80 p-2 shadow-inner">
-            <div className="flex items-center justify-between gap-3 px-2 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-                  <LayoutPanelTop className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Surface de service</p>
-                  <p className="text-sm text-slate-500">Un tap pour sélectionner, un second pour affecter.</p>
-                </div>
-              </div>
-
-              <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
-                Zoom {canvasZoomLabel}
-              </Badge>
-            </div>
-
+      <CardContent className="flex min-h-0 flex-1 flex-col p-2">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
+          <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-inner">
             <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1">
               <ScrollArea className="h-full w-full">
                 <div
@@ -639,11 +617,6 @@ export default function ServiceBoard({
           </div>
         </div>
 
-        <div className="mt-4 flex justify-center">
-          <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2 text-xs text-slate-500 shadow-sm">
-            Sélectionnez une réservation puis une table compatible. Les poignées apparaissent seulement sur la table active.
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

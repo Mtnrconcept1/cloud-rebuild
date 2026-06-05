@@ -1,9 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, FileDown, HandCoins, Lock, Megaphone, Percent, Receipt, Store, Unlock, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, FileDown, FileText, HandCoins, Loader2, Lock, Megaphone, Percent, Receipt, Store, Unlock, Wallet } from "lucide-react";
 
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import {
+  ACCOUNTING_PERIOD_PRESETS,
+  buildAccountingPeriodRange,
+  downloadAccountingExportCsv,
+  exportAccountingStatementPdf,
+  sanitizeAccountingFilePart,
+  type AccountingPeriodPreset,
+  type AccountingStatementKind,
+} from "@/lib/accountingExports";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   downloadAccountingCsv,
+  fetchAdminAccountingExportEntries,
   formatAmount,
   toAmount,
   useAdminComptaData,
@@ -32,6 +42,8 @@ export default function AdminCompta() {
     const currentDate = new Date();
     return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
   });
+  const [exportPeriodPreset, setExportPeriodPreset] = useState<AccountingPeriodPreset>("current_month");
+  const [exporting, setExporting] = useState<"csv" | AccountingStatementKind | null>(null);
 
   const {
     restaurants,
@@ -66,6 +78,10 @@ export default function AdminCompta() {
   const selectedRestaurantName = selectedRestaurant === "all"
     ? "Tous les restaurateurs"
     : restaurants.find((restaurant) => restaurant.id === selectedRestaurant)?.name || "Restaurateur";
+  const exportPeriod = useMemo(
+    () => buildAccountingPeriodRange(exportPeriodPreset),
+    [exportPeriodPreset],
+  );
   const lockStatusLabel = isPeriodClosed
     ? "Mois cloture"
     : periodControl?.status === "reopened"
@@ -88,6 +104,46 @@ export default function AdminCompta() {
       ["Miamz Tok", tokCoveredMiamzAmount],
       ["Remboursements emis", refundsIssuedTotal],
     ]);
+  };
+
+  const runAccountingExport = async (kind: "csv" | AccountingStatementKind) => {
+    setExporting(kind);
+    try {
+      const entries = await fetchAdminAccountingExportEntries({
+        selectedRestaurant,
+        period: exportPeriod,
+      });
+      const scopeFilePart = sanitizeAccountingFilePart(selectedRestaurantName);
+      const periodFilePart = sanitizeAccountingFilePart(exportPeriod.label);
+
+      if (kind === "csv") {
+        downloadAccountingExportCsv(
+          `tok-journal-comptable-${scopeFilePart}-${periodFilePart}.csv`,
+          entries,
+        );
+        toast({
+          title: "Export CSV préparé",
+          description: `${entries.length} écriture${entries.length > 1 ? "s" : ""} exportée${entries.length > 1 ? "s" : ""}.`,
+        });
+        return;
+      }
+
+      exportAccountingStatementPdf({
+        entries,
+        statement: kind,
+        title: "Comptabilité admin TOK",
+        scopeLabel: selectedRestaurantName,
+        periodLabel: exportPeriod.label,
+      });
+    } catch (exportError) {
+      toast({
+        title: "Export impossible",
+        description: getErrorMessage(exportError) || "Impossible de préparer l'export comptable.",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(null);
+    }
   };
 
   const setAccountingMonthLock = async (status: "closed" | "reopened") => {
@@ -193,6 +249,73 @@ export default function AdminCompta() {
       </Card>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Chargement des données comptables...</p> : null}
+      <Card className="tok-dashboard-section rounded-3xl border border-border/70">
+        <CardContent className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_240px_auto] lg:items-center md:p-6">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">Exports comptables</p>
+            <p className="text-sm text-muted-foreground">
+              Journal CSV complet des entrées et sorties, puis PDF bilan, compte de résultat ou journal sur la période choisie.
+            </p>
+          </div>
+
+          <Select value={exportPeriodPreset} onValueChange={(value) => setExportPeriodPreset(value as AccountingPeriodPreset)}>
+            <SelectTrigger className="h-12 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+              <SelectValue placeholder="Période comptable" />
+            </SelectTrigger>
+            <SelectContent>
+              {ACCOUNTING_PERIOD_PRESETS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex flex-wrap gap-2 lg:justify-end">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void runAccountingExport("csv")}
+              disabled={exporting !== null}
+            >
+              {exporting === "csv" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+              CSV écritures
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void runAccountingExport("balance_sheet")}
+              disabled={exporting !== null}
+            >
+              {exporting === "balance_sheet" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+              PDF bilan
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void runAccountingExport("income_statement")}
+              disabled={exporting !== null}
+            >
+              {exporting === "income_statement" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+              PDF résultat
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void runAccountingExport("journal")}
+              disabled={exporting !== null}
+            >
+              {exporting === "journal" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+              PDF journal
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {error ? <p className="text-sm text-destructive">{getErrorMessage(error)}</p> : null}
       {!isLoading && !error && !financialHealth.healthy ? (
         <Card className="border-amber-200 bg-amber-50 text-amber-950">

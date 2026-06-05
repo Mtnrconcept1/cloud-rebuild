@@ -86,6 +86,8 @@ describe("admin compta governance", () => {
     const actions = readFileSync(resolve(root, "src/lib/adminComptaActions.ts"), "utf8");
     const dashboardInflow = readFileSync(resolve(root, "src/pages/dashboard/DashboardFacturesInflow.tsx"), "utf8");
     const dashboardOutflow = readFileSync(resolve(root, "src/pages/dashboard/DashboardFacturesOutflow.tsx"), "utf8");
+    const dashboardOverview = readFileSync(resolve(root, "src/pages/dashboard/DashboardFactures.tsx"), "utf8");
+    const accountingExports = readFileSync(resolve(root, "src/lib/accountingExports.ts"), "utf8");
 
     expect(shared).toContain("admin_get_accounting_period_control");
     expect(shared).toContain("admin_get_accounting_stripe_reconciliation");
@@ -93,6 +95,11 @@ describe("admin compta governance", () => {
     expect(shared).toContain("isAccountingPeriodClosed");
 
     expect(overview).toContain("exportAdminComptaCsv");
+    expect(overview).toContain("fetchAdminAccountingExportEntries");
+    expect(overview).toContain("CSV écritures");
+    expect(overview).toContain("PDF bilan");
+    expect(overview).toContain("PDF résultat");
+    expect(overview).toContain("PDF journal");
     expect(overview).toContain("admin_set_accounting_month_lock");
     expect(overview).toContain("Écarts Stripe");
     expect(overview).toContain("Clôturer le mois");
@@ -124,5 +131,17 @@ describe("admin compta governance", () => {
     expect(dashboardOutflow).toContain("admin_mark_restaurant_invoice_paid");
     expect(dashboardOutflow).toContain("p_reference");
     expect(dashboardOutflow).not.toContain('.from("restaurant_invoices").update');
+
+    expect(dashboardOverview).toContain("fetchDashboardAccountingExportEntries");
+    expect(dashboardOverview).toContain("CSV écritures");
+    expect(dashboardOverview).toContain("PDF bilan");
+    expect(dashboardOverview).toContain("PDF résultat");
+    expect(dashboardOverview).toContain("PDF journal");
+
+    expect(accountingExports).toContain("buildAccountingExportEntries");
+    expect(accountingExports).toContain("buildAccountingStatementSummary");
+    expect(accountingExports).toContain("exportAccountingStatementPdf");
+    expect(accountingExports).toContain("text/csv;charset=utf-8");
+    expect(accountingExports).toContain("\\uFEFF");
   });
 });
