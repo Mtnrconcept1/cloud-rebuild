@@ -69,7 +69,20 @@ function formatDateTime(value: string) {
   return date.toLocaleString("fr-CH", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
+function isMissingReconcileRpc(error: { message?: string } | null | undefined) {
+  const message = error?.message || "";
+  return message.includes("admin_reconcile_marketplace_alerts")
+    || message.includes("schema cache")
+    || message.includes("Could not find the function");
+}
+
+async function reconcileAlerts() {
+  const { error } = await (supabase.rpc as any)("admin_reconcile_marketplace_alerts");
+  if (error && !isMissingReconcileRpc(error)) throw error;
+}
+
 async function fetchAlerts(includeResolved: boolean) {
+  await reconcileAlerts();
   const { data, error } = await (supabase.rpc as any)("admin_get_marketplace_alerts", {
     p_include_resolved: includeResolved,
   });

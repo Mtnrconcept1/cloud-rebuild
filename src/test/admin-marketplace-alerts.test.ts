@@ -82,6 +82,22 @@ describe("admin marketplace alerts RPC", () => {
     expect(fn).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
   });
 
+  it("auto-resolves technical error alerts when the current signal disappears", () => {
+    const sql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_reconcile_marketplace_alerts/i,
+    );
+
+    expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_reconcile_marketplace_alerts\(\)/i);
+    expect(sql).toContain("public.admin_get_marketplace_alerts(true)");
+    expect(sql).toMatch(/s\.alert_key\s+LIKE\s+'edge-function:failure:%'/i);
+    expect(sql).toContain("error_signal_cleared");
+    expect(sql).toMatch(/INSERT\s+INTO\s+public\.marketplace_alert_state_history/i);
+    expect(sql).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
+    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reconcile_marketplace_alerts\(\)\s+FROM\s+PUBLIC/i);
+    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reconcile_marketplace_alerts\(\)\s+FROM\s+anon/i);
+    expect(sql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reconcile_marketplace_alerts\(\)\s+TO\s+authenticated,\s*service_role/i);
+  });
+
   it("does not expose marketplace alert RPCs to anonymous callers", () => {
     const sql = latestMigrationContaining(
       /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_get_marketplace_alerts/i,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, Coins, FileUp, HandCoins, Receipt, Wallet } from "lucide-react";
+import { ArrowUpRight, Coins, FileUp, HandCoins, Loader2, Receipt, Wallet } from "lucide-react";
 
 import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
@@ -11,6 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { InvoiceDetailAccordion } from "@/components/invoices/InvoiceDetailAccordion";
+import {
+  getAdminComptaActionErrorMessage,
+  markAdminRestaurantInvoicePaid,
+  type AdminComptaRpcClient,
+} from "@/lib/adminComptaActions";
 import {
   formatAmount,
   formatDate,
@@ -25,8 +30,7 @@ import {
 const supabase = getSupabase();
 
 function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  return error ? String(error) : "";
+  return getAdminComptaActionErrorMessage(error);
 }
 
 function downloadInvoicePdf(invoice: AdminInvoiceRow) {
@@ -59,14 +63,17 @@ function InvoiceListItem({
   isExpanded,
   onToggleDetail,
   onMarkPaid,
+  payingInvoiceId,
 }: {
   invoice: AdminInvoiceRow;
   isExpanded: boolean;
   onToggleDetail: (invoiceId: string) => void;
   onMarkPaid: (invoice: AdminInvoiceRow) => Promise<void>;
+  payingInvoiceId: string | null;
 }) {
   const detailQuery = useAdminPayoutInvoiceDetailLines(isExpanded ? invoice.id : null);
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
+  const isPaying = payingInvoiceId === invoice.id;
   const detailButtonLabel = isExpanded ? "Masquer le détail" : "Voir le détail";
 
   return (
@@ -95,8 +102,16 @@ function InvoiceListItem({
                 Reglee
               </span>
             ) : (
-              <Button size="sm" variant="outline" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" onClick={() => void onMarkPaid(invoice)}>
-                Marquer payée
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap"
+                disabled={isPaying}
+                onClick={() => void onMarkPaid(invoice)}
+              >
+                {isPaying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isPaying ? "Marquage..." : "Marquer payée"}
               </Button>
             )}
           </div>
@@ -134,9 +149,11 @@ function InvoiceListItem({
 function InvoiceTable({
   invoices,
   onMarkPaid,
+  payingInvoiceId,
 }: {
   invoices: AdminInvoiceRow[];
   onMarkPaid: (invoice: AdminInvoiceRow) => Promise<void>;
+  payingInvoiceId: string | null;
 }) {
   const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
 
@@ -159,6 +176,7 @@ function InvoiceTable({
             setExpandedInvoiceId((current) => (current === invoiceId ? null : invoiceId));
           }}
           onMarkPaid={onMarkPaid}
+          payingInvoiceId={payingInvoiceId}
         />
       ))}
     </div>
@@ -173,6 +191,7 @@ export default function AdminComptaOutflow() {
     const currentDate = new Date();
     return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
   });
+  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
 
   const {
     restaurants,
@@ -199,19 +218,28 @@ export default function AdminComptaOutflow() {
     const confirmed = window.confirm("Marquer ce reversement comme paye ? L'action sera auditee.");
     if (!confirmed) return;
 
-    const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
-      p_invoice_id: invoice.id,
-      p_paid_at: new Date().toISOString(),
-      p_reference: "Marquage paye depuis l'admin compta - sorties",
-    });
+    setPayingInvoiceId(invoice.id);
+    try {
+      await markAdminRestaurantInvoicePaid(supabase as unknown as AdminComptaRpcClient, {
+        invoiceId: invoice.id,
+        reference: "Marquage paye depuis l'admin compta - sorties",
+      });
 
-    if (updateError) {
-      toast({ title: "Erreur", description: updateError.message, variant: "destructive" });
-      return;
+      toast({ title: "Reversement marqué comme payé" });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-payout-invoices-v2"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-payable-invoices-v3"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-period-control"] }),
+      ]);
+    } catch (markPaidError) {
+      toast({
+        title: "Erreur",
+        description: getErrorMessage(markPaidError) || "Impossible de marquer la facture comme payée.",
+        variant: "destructive",
+      });
+    } finally {
+      setPayingInvoiceId(null);
     }
-
-    toast({ title: "Reversement marque comme paye" });
-    await queryClient.invalidateQueries({ queryKey: ["admin-compta-payout-invoices-v2"] });
   };
 
   const totalRestaurantShare = COMMISSION_SOURCE_ORDER.reduce(
@@ -460,7 +488,11 @@ export default function AdminComptaOutflow() {
                   </div>
                 </CardHeader>
                 <CardContent className="min-w-0">
-                  <InvoiceTable invoices={payoutInvoiceSections.actionable} onMarkPaid={handleMarkPaid} />
+                  <InvoiceTable
+                    invoices={payoutInvoiceSections.actionable}
+                    onMarkPaid={handleMarkPaid}
+                    payingInvoiceId={payingInvoiceId}
+                  />
                 </CardContent>
               </Card>
 
@@ -472,7 +504,11 @@ export default function AdminComptaOutflow() {
                   </div>
                 </CardHeader>
                 <CardContent className="min-w-0">
-                  <InvoiceTable invoices={payoutInvoiceSections.history} onMarkPaid={handleMarkPaid} />
+                  <InvoiceTable
+                    invoices={payoutInvoiceSections.history}
+                    onMarkPaid={handleMarkPaid}
+                    payingInvoiceId={payingInvoiceId}
+                  />
                 </CardContent>
               </Card>
             </div>

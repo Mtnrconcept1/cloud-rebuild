@@ -180,6 +180,8 @@ describe("TOK AI platform plan", () => {
       "Coût OpenAI estimé",
       "Alertes sécurité",
       "Erreurs Supabase Functions",
+      "Verification active",
+      "Test app",
       "Tickets critiques",
       "Utilisateurs abusifs",
       "Restaurants avec incidents répétés",
@@ -256,6 +258,15 @@ describe("TOK AI platform plan", () => {
     expect(adminMonitor).toContain("aucune action destructive");
     expect(adminMonitor).toContain("ai_failure_ratio_7d");
     expect(adminMonitor).toContain("failure_ratio_not_absolute_spend");
+    expect(adminMonitor).toContain("ERROR_LOG_LOOKBACK_HOURS");
+    expect(adminMonitor).toContain("verifyCurrentFunctionFailures");
+    expect(adminMonitor).toContain("runApplicationSmokeTest");
+    expect(adminMonitor).toContain("no_success_after_last_failure");
+    expect(adminMonitor).toContain("application_smoke_test");
+    expect(adminMonitor).toContain("admin_reconcile_marketplace_alerts");
+    expect(adminMonitor).toContain("admin_get_marketplace_alerts");
+    expect(adminMonitor).toContain("function_errors: verifiedFunctionErrorLines");
+    expect(adminMonitor).toContain("recovered_function_errors");
     expect(adminMonitor).toContain("aucune sanction utilisateur");
   });
 });

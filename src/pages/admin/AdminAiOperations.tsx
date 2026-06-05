@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Activity, AlertTriangle, Brain, Clock, FileDown, ShieldAlert, Ticket, Zap } from "lucide-react";
+import { Activity, AlertTriangle, Brain, CheckCircle2, Clock, FileDown, ShieldAlert, Ticket, Zap } from "lucide-react";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,14 @@ function exportAdminAiOperationsReport(result: AdminMonitorResult, action: Admin
   link.download = `tok-ai-operations-${action}-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function getSmokeTestLabel(result: AdminMonitorResult) {
+  const smokeTest = result.logVerification?.application_smoke_test;
+  if (!smokeTest || typeof smokeTest !== "object") return "Test app non requis";
+  const payload = smokeTest as Record<string, unknown>;
+  const status = typeof payload.status === "number" ? payload.status : "-";
+  return `Test app ${payload.ok === true ? "OK" : "KO"} (${status})`;
 }
 
 export default function AdminAiOperations() {
@@ -110,7 +118,7 @@ export default function AdminAiOperations() {
 
       {result ? (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <Card>
               <CardHeader><CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5" />Santé IA</CardTitle></CardHeader>
               <CardContent>
@@ -123,8 +131,18 @@ export default function AdminAiOperations() {
               <CardContent className="text-sm text-muted-foreground">{result.cost_summary}</CardContent>
             </Card>
             <Card>
+              <CardHeader><CardTitle className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-emerald-600" />Verification active</CardTitle></CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                <p>{result.verificationSummary || "Logs recents verifies avant analyse IA."}</p>
+                <p className="mt-2 text-xs">
+                  Fenetre {String(result.metrics?.edge_error_window_hours || 6)}h - actuelles {String(result.metrics?.edge_errors_current || result.function_errors.length)} - ecartees {String(result.metrics?.edge_errors_recovered || 0)}
+                </p>
+                <p className="mt-1 text-xs">{getSmokeTestLabel(result)}</p>
+              </CardContent>
+            </Card>
+            <Card>
               <CardHeader><CardTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5" />Erreurs Supabase Functions</CardTitle></CardHeader>
-              <CardContent className="text-sm text-muted-foreground">{result.function_errors.join("\n") || "Aucune erreur prioritaire."}</CardContent>
+              <CardContent className="whitespace-pre-line text-sm text-muted-foreground">{result.function_errors.join("\n") || "Aucune erreur prioritaire."}</CardContent>
             </Card>
           </div>
 

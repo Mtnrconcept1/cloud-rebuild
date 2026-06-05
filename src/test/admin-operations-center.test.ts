@@ -35,6 +35,7 @@ describe("admin operations center", () => {
     const component = readFileSync(resolve(root, "src/components/admin/AdminUrgentActions.tsx"), "utf8");
 
     expect(component).toContain("admin_get_marketplace_alerts");
+    expect(component).toContain("admin_reconcile_marketplace_alerts");
     expect(component).toContain("admin_update_marketplace_alert");
     expect(component).toContain("sourceWhitelist");
     expect(component).toContain("statusFilter");

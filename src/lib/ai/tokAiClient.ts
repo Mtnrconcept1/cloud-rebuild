@@ -267,6 +267,9 @@ export function runAdminMonitor(request: AdminMonitorRequest) {
     human_escalation_rate: string;
     recommended_actions: string[];
     metrics?: JsonRecord;
+    verificationSummary?: string;
+    logVerification?: JsonRecord;
+    recoveredFunctionErrors?: JsonRecord[];
     adminEventId: string;
   }>("ai-admin-monitor", { ...request });
 }

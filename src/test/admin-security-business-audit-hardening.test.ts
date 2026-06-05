@@ -56,6 +56,7 @@ describe("admin security and business audit hardening", () => {
   it("keeps raw invoice generators behind service-role or audited admin wrappers", () => {
     const migration = read("supabase/migrations/20260602133000_admin_security_scheduler_rpc_lockdown.sql");
     const adminCompta = read("src/pages/admin/AdminComptaInflow.tsx");
+    const adminComptaActions = read("src/lib/adminComptaActions.ts");
     const dashboardInflow = read("src/pages/dashboard/DashboardFacturesInflow.tsx");
 
     for (const signature of [
@@ -70,8 +71,9 @@ describe("admin security and business audit hardening", () => {
       expect(migration).toContain(`GRANT EXECUTE ON FUNCTION public.${signature} TO service_role`);
     }
 
-    expect(adminCompta).toContain("admin_generate_tok_payable_invoice");
-    expect(adminCompta).toContain("admin_generate_tok_payable_invoices_all");
+    expect(adminCompta).toContain("generateAdminTokPayableInvoices");
+    expect(adminComptaActions).toContain("admin_generate_tok_payable_invoice");
+    expect(adminComptaActions).toContain("admin_generate_tok_payable_invoices_all");
     expect(dashboardInflow).toContain('supabase.functions.invoke("generate-invoices"');
   });
 

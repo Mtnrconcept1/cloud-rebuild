@@ -35,6 +35,40 @@ type AdminMonitorResult = {
 
 const FUNCTION_NAME = "ai-admin-monitor";
 const FEATURE_NAME = "ai_admin_monitoring";
+const ERROR_LOG_LOOKBACK_HOURS = 6;
+const SUPPORT_CONTEXT_LOOKBACK_DAYS = 14;
+const SECURITY_CONTEXT_LOOKBACK_DAYS = 7;
+
+type AuditLogRow = {
+  function_name?: string | null;
+  action?: string | null;
+  status?: string | null;
+  actor_user_id?: string | null;
+  error_message?: string | null;
+  request_metadata?: Record<string, unknown> | null;
+  created_at?: string | null;
+};
+
+type VerifiedFunctionError = {
+  functionName: string;
+  action: string;
+  failureCount: number;
+  lastFailureAt: string;
+  lastError: string;
+  currentnessTest: "no_success_after_last_failure";
+};
+
+type RecoveredFunctionError = VerifiedFunctionError & {
+  recoveredAt: string;
+};
+
+type ApplicationSmokeTest = {
+  target: string;
+  ok: boolean;
+  status: number | null;
+  checkedAt: string;
+  evidence: string;
+};
 
 const OUTPUT_SCHEMA = {
   type: "object",
@@ -98,6 +132,128 @@ function isQuotaAllowed(value: unknown) {
 function isMissingQuotaRpc(error: { message?: string } | null | undefined) {
   const message = error?.message || "";
   return message.includes("check_restaurant_ai_quota") || message.includes("schema cache");
+}
+
+function isMissingOpsRpc(error: { message?: string } | null | undefined) {
+  const message = error?.message || "";
+  return message.includes("admin_reconcile_marketplace_alerts")
+    || message.includes("admin_get_marketplace_alerts")
+    || message.includes("schema cache")
+    || message.includes("Could not find the function");
+}
+
+function toTimeMs(value: unknown) {
+  if (typeof value !== "string") return Number.NaN;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function auditKey(row: AuditLogRow) {
+  return `${row.function_name || "unknown"}::${row.action || "unknown"}`;
+}
+
+function verifyCurrentFunctionFailures(rows: AuditLogRow[]) {
+  const grouped = new Map<string, AuditLogRow[]>();
+
+  for (const row of rows) {
+    if (!row.function_name) continue;
+    const createdAt = toTimeMs(row.created_at);
+    if (!Number.isFinite(createdAt)) continue;
+    const key = auditKey(row);
+    grouped.set(key, [...(grouped.get(key) || []), row]);
+  }
+
+  const active: VerifiedFunctionError[] = [];
+  const recovered: RecoveredFunctionError[] = [];
+
+  for (const group of grouped.values()) {
+    const failures = group
+      .filter((row) => row.status === "failure")
+      .sort((a, b) => toTimeMs(b.created_at) - toTimeMs(a.created_at));
+    if (failures.length === 0) continue;
+
+    const lastFailure = failures[0];
+    const lastFailureMs = toTimeMs(lastFailure.created_at);
+    const laterSuccess = group
+      .filter((row) => row.status === "success")
+      .map((row) => ({ row, createdAt: toTimeMs(row.created_at) }))
+      .filter(({ createdAt }) => Number.isFinite(createdAt) && createdAt > lastFailureMs)
+      .sort((a, b) => b.createdAt - a.createdAt)[0];
+
+    const verified: VerifiedFunctionError = {
+      functionName: lastFailure.function_name || "unknown",
+      action: lastFailure.action || "unknown",
+      failureCount: failures.length,
+      lastFailureAt: lastFailure.created_at || "",
+      lastError: String(lastFailure.error_message || "Erreur non renseignee").slice(0, 220),
+      currentnessTest: "no_success_after_last_failure",
+    };
+
+    if (laterSuccess?.row.created_at) {
+      recovered.push({ ...verified, recoveredAt: laterSuccess.row.created_at });
+    } else {
+      active.push(verified);
+    }
+  }
+
+  return { active, recovered };
+}
+
+function formatVerifiedFunctionError(error: VerifiedFunctionError) {
+  return [
+    `${error.functionName}/${error.action}`,
+    `${error.failureCount} echec(s) confirmes sur ${ERROR_LOG_LOOKBACK_HOURS}h`,
+    `dernier signal ${error.lastFailureAt}`,
+    error.lastError,
+  ].join(" - ");
+}
+
+function buildVerificationSummary(activeErrors: VerifiedFunctionError[], recoveredErrors: RecoveredFunctionError[]) {
+  if (activeErrors.length === 0) {
+    return `Verification active OK: aucun echec Edge Function actuel sur les ${ERROR_LOG_LOOKBACK_HOURS} dernieres heures. ${recoveredErrors.length} ancien(s) echec(s) ont ete ecartes car un succes plus recent prouve la recuperation.`;
+  }
+
+  return `Verification active: ${activeErrors.length} fonction(s) restent en echec sur les ${ERROR_LOG_LOOKBACK_HOURS} dernieres heures apres test de recuperation; ${recoveredErrors.length} echec(s) anciens ont ete ecartes.`;
+}
+
+function getApplicationSmokeTestUrl() {
+  return Deno.env.get("APP_BASE_URL")
+    || Deno.env.get("SITE_URL")
+    || Deno.env.get("PUBLIC_SITE_URL")
+    || "https://cloud-rebuild-recovered.vercel.app/";
+}
+
+async function runApplicationSmokeTest(): Promise<ApplicationSmokeTest> {
+  const target = getApplicationSmokeTestUrl();
+  const checkedAt = new Date().toISOString();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const response = await fetch(target, {
+      method: "GET",
+      signal: controller.signal,
+      headers: { "User-Agent": "TOK ai-admin-monitor" },
+    });
+
+    return {
+      target,
+      ok: response.ok,
+      status: response.status,
+      checkedAt,
+      evidence: response.ok ? "frontend_reachable" : "frontend_unhealthy_status",
+    };
+  } catch (error) {
+    return {
+      target,
+      ok: false,
+      status: null,
+      checkedAt,
+      evidence: String(error instanceof Error ? error.message : error).slice(0, 180),
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function checkRestaurantQuota(
@@ -196,8 +352,11 @@ Deno.serve(async (req) => {
       if (!isQuotaAllowed(quota)) throw new HttpError(402, "ai_quota_exceeded");
     }
 
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const checkedAt = new Date();
+    const errorLogSince = new Date(checkedAt.getTime() - ERROR_LOG_LOOKBACK_HOURS * 60 * 60 * 1000).toISOString();
+    const supportContextSince = new Date(checkedAt.getTime() - SUPPORT_CONTEXT_LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const securityContextSince = new Date(checkedAt.getTime() - SECURITY_CONTEXT_LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const thirtyDaysAgo = new Date(checkedAt.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const usageQuery = actor.adminClient
       .from("ai_usage_logs")
@@ -207,32 +366,38 @@ Deno.serve(async (req) => {
       .limit(500);
     if (restaurantId) usageQuery.eq("restaurant_id", restaurantId);
 
-    const [usageResult, auditResult, incidentsResult, aiTicketsResult, securityResult] = await Promise.all([
+    const [usageResult, auditResult, incidentsResult, aiTicketsResult, securityResult, reconcileResult, marketplaceAlertsResult] = await Promise.all([
       usageQuery,
       actor.adminClient
         .from("edge_function_audit_logs")
         .select("function_name, action, status, actor_user_id, error_message, request_metadata, created_at")
-        .gte("created_at", since)
+        .gte("created_at", errorLogSince)
+        .in("status", ["failure", "success"])
         .order("created_at", { ascending: false })
-        .limit(300),
+        .limit(500),
       actor.adminClient
         .from("support_incidents")
         .select("id, user_id, restaurant_id, category, priority, status, subject, created_at, updated_at, metadata")
         .neq("status", "closed")
+        .gte("updated_at", supportContextSince)
         .order("updated_at", { ascending: false })
         .limit(120),
       actor.adminClient
         .from("ai_support_tickets")
-        .select("id, user_id, restaurant_id, category, priority, status, title, created_at, metadata")
+        .select("id, user_id, restaurant_id, category, priority, status, title, created_at, updated_at, metadata")
         .neq("status", "resolved")
+        .gte("updated_at", supportContextSince)
         .order("created_at", { ascending: false })
         .limit(120),
       actor.adminClient
         .from("ai_security_events")
         .select("id, user_id, restaurant_id, event_type, severity, signal, risk_score, status, created_at")
         .neq("status", "resolved")
+        .gte("created_at", securityContextSince)
         .order("created_at", { ascending: false })
         .limit(80),
+      actor.adminClient.rpc("admin_reconcile_marketplace_alerts"),
+      actor.adminClient.rpc("admin_get_marketplace_alerts", { p_include_resolved: false }),
     ]);
 
     if (usageResult.error) throw new HttpError(500, usageResult.error.message);
@@ -240,12 +405,17 @@ Deno.serve(async (req) => {
     if (incidentsResult.error) throw new HttpError(500, incidentsResult.error.message);
     if (aiTicketsResult.error) throw new HttpError(500, aiTicketsResult.error.message);
     if (securityResult.error) throw new HttpError(500, securityResult.error.message);
+    if (reconcileResult.error && !isMissingOpsRpc(reconcileResult.error)) throw new HttpError(500, reconcileResult.error.message);
+    if (marketplaceAlertsResult.error && !isMissingOpsRpc(marketplaceAlertsResult.error)) {
+      throw new HttpError(500, marketplaceAlertsResult.error.message);
+    }
 
     const usageRows = usageResult.data || [];
-    const auditRows = auditResult.data || [];
+    const auditRows = (auditResult.data || []) as AuditLogRow[];
     const incidents = incidentsResult.data || [];
     const aiTickets = aiTicketsResult.data || [];
     const securityEvents = securityResult.data || [];
+    const marketplaceAlerts = marketplaceAlertsResult.error ? [] : marketplaceAlertsResult.data || [];
     const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const usageRows7d = usageRows.filter((row: Record<string, unknown>) => {
       const createdAt = typeof row.created_at === "string" ? Date.parse(row.created_at) : Number.NaN;
@@ -253,7 +423,14 @@ Deno.serve(async (req) => {
     });
     const aiFailures7d = usageRows7d.filter((row: Record<string, unknown>) => row.status === "failure").length;
     const aiFailureRatio7d = usageRows7d.length > 0 ? Number((aiFailures7d / usageRows7d.length).toFixed(4)) : 0;
-    const failedAudit = auditRows.filter((row: Record<string, unknown>) => row.status === "failure");
+    const rawFailuresInWindow = auditRows.filter((row) => row.status === "failure");
+    const functionErrorVerification = verifyCurrentFunctionFailures(auditRows);
+    const verifiedFunctionErrorLines = functionErrorVerification.active.map(formatVerifiedFunctionError);
+    const verificationSummary = buildVerificationSummary(
+      functionErrorVerification.active,
+      functionErrorVerification.recovered,
+    );
+    const applicationSmokeTest = rawFailuresInWindow.length > 0 ? await runApplicationSmokeTest() : null;
     const escalatedTickets = aiTickets.filter((row: Record<string, unknown>) => row.status === "escalated");
     const aiCost = usageRows.reduce((sum: number, row: Record<string, unknown>) => sum + Number(row.estimated_cost_chf || 0), 0);
 
@@ -261,23 +438,47 @@ Deno.serve(async (req) => {
       action,
       restaurant_id: restaurantId,
       quota,
+      checked_at: checkedAt.toISOString(),
+      log_verification: {
+        method: "fresh_error_window_and_success_after_failure_check",
+        error_log_window_hours: ERROR_LOG_LOOKBACK_HOURS,
+        support_context_window_days: SUPPORT_CONTEXT_LOOKBACK_DAYS,
+        security_context_window_days: SECURITY_CONTEXT_LOOKBACK_DAYS,
+        raw_edge_failures_in_window: rawFailuresInWindow.length,
+        active_function_errors: functionErrorVerification.active,
+        recovered_function_errors: functionErrorVerification.recovered,
+        application_smoke_test_required: rawFailuresInWindow.length > 0,
+        application_smoke_test: applicationSmokeTest,
+        auto_reconciled_marketplace_alerts: reconcileResult.error
+          ? null
+          : Number((reconcileResult.data as Record<string, unknown> | null)?.auto_resolved_alerts || 0),
+        marketplace_alerts_checked: !marketplaceAlertsResult.error,
+      },
       metrics: {
         ai_calls_30d: usageRows.length,
-        ai_failures_30d: usageRows.filter((row: Record<string, unknown>) => row.status === "failure").length,
+        ai_cost_window_days: 30,
+        ai_failure_window_days: 7,
         ai_calls_7d: usageRows7d.length,
         ai_failures_7d: aiFailures7d,
         ai_failure_ratio_7d: aiFailureRatio7d,
         ai_failure_ratio_alert: aiFailureRatio7d >= 0.25 && usageRows7d.length >= 10,
         ai_cost_alert_basis: "failure_ratio_not_absolute_spend",
         estimated_ai_cost_chf: Number(aiCost.toFixed(4)),
-        edge_errors_24h: failedAudit.length,
+        edge_error_window_hours: ERROR_LOG_LOOKBACK_HOURS,
+        edge_errors_current: functionErrorVerification.active.length,
+        edge_errors_recovered: functionErrorVerification.recovered.length,
+        edge_failures_raw_window: rawFailuresInWindow.length,
+        application_smoke_test_ok: applicationSmokeTest?.ok ?? null,
+        current_marketplace_alerts: marketplaceAlerts.length,
         open_support_incidents: incidents.length,
         open_ai_tickets: aiTickets.length,
         escalated_ai_tickets: escalatedTickets.length,
         security_events: securityEvents.length,
       },
-      usage_rows: usageRows.slice(0, 120),
-      audit_failures: failedAudit.slice(0, 120),
+      usage_rows: usageRows7d.slice(0, 120),
+      audit_failures: functionErrorVerification.active.slice(0, 120),
+      recovered_audit_failures: functionErrorVerification.recovered.slice(0, 80),
+      current_marketplace_alerts: marketplaceAlerts.slice(0, 80),
       support_incidents: incidents.slice(0, 80),
       ai_support_tickets: aiTickets.slice(0, 80),
       security_events: securityEvents,
@@ -286,6 +487,9 @@ Deno.serve(async (req) => {
     const systemPrompt = `Tu es l'agent IA admin monitoring de TOK.
 Tu detectes les anomalies de securite, couts OpenAI, erreurs Supabase Functions, tickets critiques, abus, incidents repetes et degradation de performance.
 Pour les couts OpenAI, privilegie le ratio echec/succes sur 7 jours plutot que la depense absolue.
+Pour les erreurs, tu dois uniquement tenir compte de log_verification.active_function_errors. Les logs anciens ou listes dans log_verification.recovered_function_errors sont consideres resolus et ne doivent jamais etre presentes comme incidents actifs.
+Un log d'erreur est actuel seulement si le test de recuperation ne trouve aucun succes plus recent pour la meme fonction/action dans la fenetre fraiche.
+Quand log_verification.application_smoke_test_required est vrai, tiens compte du smoke test applicatif et de son statut avant de conclure a une degradation globale.
 Tes recommandations sont en lecture seule: aucune action destructive, aucune suspension automatique, aucune fermeture de ticket, aucune sanction utilisateur et aucune modification de donnees sans validation humaine.
 Reponds en francais operationnel avec priorites.`;
 
@@ -303,7 +507,11 @@ Reponds en francais operationnel avec priorites.`;
       },
     });
 
-    const result = parseStructuredOutput<AdminMonitorResult>(openAIResponse);
+    const rawResult = parseStructuredOutput<AdminMonitorResult>(openAIResponse);
+    const result: AdminMonitorResult = {
+      ...rawResult,
+      function_errors: verifiedFunctionErrorLines,
+    };
     const usage = extractUsage(openAIResponse);
     const healthScore = toHealthScore(result.health_score);
 
@@ -319,6 +527,10 @@ Reponds en francais operationnel avec priorites.`;
         metadata: {
           health_score: healthScore,
           cost_summary: result.cost_summary,
+          verification_summary: verificationSummary,
+          log_verification: context.log_verification,
+          function_errors: verifiedFunctionErrorLines,
+          recovered_function_errors: functionErrorVerification.recovered,
           recommended_actions: result.recommended_actions,
         },
       })
@@ -349,7 +561,7 @@ Reponds en francais operationnel avec priorites.`;
       function_name: null,
       health_score: healthScore,
       average_response_ms: 0,
-      error_count: failedAudit.length,
+      error_count: functionErrorVerification.active.length,
       escalation_rate: aiTickets.length > 0 ? Number(((escalatedTickets.length / aiTickets.length) * 100).toFixed(2)) : 0,
       estimated_cost_chf: Number(aiCost.toFixed(4)),
       metrics: context.metrics,
@@ -362,7 +574,12 @@ Reponds en francais operationnel avec priorites.`;
       adminEventId,
       model,
       usage,
-      metadata: { health_score: healthScore, security_alerts: result.security_alerts.length },
+      metadata: {
+        health_score: healthScore,
+        security_alerts: result.security_alerts.length,
+        verified_function_errors: functionErrorVerification.active.length,
+        recovered_function_errors: functionErrorVerification.recovered.length,
+      },
     });
 
     await writeAuditLog({
@@ -374,7 +591,12 @@ Reponds en francais operationnel avec priorites.`;
       request: req,
       targetEntityType: "ai_admin_events",
       targetEntityId: adminEventId,
-      metadata: { rid: log.rid, restaurant_id: restaurantId },
+      metadata: {
+        rid: log.rid,
+        restaurant_id: restaurantId,
+        verified_function_errors: functionErrorVerification.active.length,
+        recovered_function_errors: functionErrorVerification.recovered.length,
+      },
     });
 
     return jsonResponse({
@@ -385,6 +607,9 @@ Reponds en francais operationnel avec priorites.`;
       healthScore,
       metrics: context.metrics,
       quota,
+      verificationSummary,
+      logVerification: context.log_verification,
+      recoveredFunctionErrors: functionErrorVerification.recovered,
     }, 200, cors);
   } catch (err) {
     const status = err instanceof HttpError ? err.status : 500;

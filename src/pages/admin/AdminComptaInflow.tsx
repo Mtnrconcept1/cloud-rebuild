@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDownRight, Coins, FileDown, Receipt, RefreshCcw, Wallet } from "lucide-react";
+import { ArrowDownRight, Coins, FileDown, Loader2, Receipt, RefreshCcw, Wallet } from "lucide-react";
 
 import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { TokPayableInvoiceDialog } from "@/components/invoices/TokPayableInvoiceDialog";
@@ -11,6 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  generateAdminTokPayableInvoices,
+  getAdminComptaActionErrorMessage,
+  markAdminRestaurantInvoicePaid,
+  type AdminComptaRpcClient,
+} from "@/lib/adminComptaActions";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import type { PayableInvoiceRow } from "@/lib/payableInvoice";
 import {
@@ -27,8 +33,7 @@ import {
 const supabase = getSupabase();
 
 function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  return error ? String(error) : "";
+  return getAdminComptaActionErrorMessage(error);
 }
 
 function downloadInvoicePdf(invoice: AdminInvoiceRow) {
@@ -40,12 +45,15 @@ function downloadInvoicePdf(invoice: AdminInvoiceRow) {
 function InvoiceTableRow({
   invoice,
   onMarkPaid,
+  payingInvoiceId,
 }: {
   invoice: PayableInvoiceRow;
   onMarkPaid: (invoice: PayableInvoiceRow) => Promise<void>;
+  payingInvoiceId: string | null;
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
+  const isPaying = payingInvoiceId === invoice.id;
 
   return (
     <>
@@ -79,8 +87,9 @@ function InvoiceTableRow({
             {isPaid ? (
               <span className="text-xs text-muted-foreground">Reglee</span>
             ) : (
-              <Button size="sm" variant="outline" onClick={() => void onMarkPaid(invoice)}>
-                Marquer payée
+              <Button type="button" size="sm" variant="outline" disabled={isPaying} onClick={() => void onMarkPaid(invoice)}>
+                {isPaying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isPaying ? "Marquage..." : "Marquer payée"}
               </Button>
             )}
           </div>
@@ -94,9 +103,11 @@ function InvoiceTableRow({
 function InvoiceTable({
   invoices,
   onMarkPaid,
+  payingInvoiceId,
 }: {
   invoices: PayableInvoiceRow[];
   onMarkPaid: (invoice: PayableInvoiceRow) => Promise<void>;
+  payingInvoiceId: string | null;
 }) {
   if (invoices.length === 0) {
     return (
@@ -112,7 +123,12 @@ function InvoiceTable({
     <>
       <div className="space-y-3 md:hidden">
         {invoices.map((invoice) => (
-          <MobileInvoiceCard key={invoice.id} invoice={invoice} onMarkPaid={onMarkPaid} />
+          <MobileInvoiceCard
+            key={invoice.id}
+            invoice={invoice}
+            onMarkPaid={onMarkPaid}
+            payingInvoiceId={payingInvoiceId}
+          />
         ))}
       </div>
       <div className="hidden overflow-x-auto rounded-xl border md:block">
@@ -130,7 +146,12 @@ function InvoiceTable({
           </TableHeader>
           <TableBody>
             {invoices.map((invoice) => (
-              <InvoiceTableRow key={invoice.id} invoice={invoice} onMarkPaid={onMarkPaid} />
+              <InvoiceTableRow
+                key={invoice.id}
+                invoice={invoice}
+                onMarkPaid={onMarkPaid}
+                payingInvoiceId={payingInvoiceId}
+              />
             ))}
           </TableBody>
         </Table>
@@ -142,12 +163,15 @@ function InvoiceTable({
 function MobileInvoiceCard({
   invoice,
   onMarkPaid,
+  payingInvoiceId,
 }: {
   invoice: PayableInvoiceRow;
   onMarkPaid: (invoice: PayableInvoiceRow) => Promise<void>;
+  payingInvoiceId: string | null;
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const isPaid = String(invoice.status || "").trim().toLowerCase() === "paid";
+  const isPaying = payingInvoiceId === invoice.id;
 
   return (
     <>
@@ -188,8 +212,16 @@ function MobileInvoiceCard({
               </Button>
             ) : null}
             {!isPaid ? (
-              <Button size="sm" variant="outline" className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap" onClick={() => void onMarkPaid(invoice)}>
-                Marquer payée
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-auto min-h-[44px] max-w-full whitespace-normal text-left sm:h-9 sm:whitespace-nowrap"
+                disabled={isPaying}
+                onClick={() => void onMarkPaid(invoice)}
+              >
+                {isPaying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isPaying ? "Marquage..." : "Marquer payée"}
               </Button>
             ) : (
               <span className="text-xs text-muted-foreground">Reglee</span>
@@ -211,6 +243,7 @@ export default function AdminComptaInflow() {
     return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
   });
   const [generating, setGenerating] = useState(false);
+  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
 
   const {
     restaurants,
@@ -250,28 +283,27 @@ export default function AdminComptaInflow() {
       return;
     }
 
+    if (payableAccruals.totalAmount <= 0) {
+      toast({
+        title: "Aucune facture TOK à générer",
+        description: "Aucune ligne non facturée n'est disponible sur ce mois et ce filtre restaurant.",
+      });
+      return;
+    }
+
     const confirmed = window.confirm("Generer les factures TOK du mois selectionne ? L'action sera auditee.");
     if (!confirmed) return;
 
     setGenerating(true);
     try {
-      const firstOfMonth = `${selectedMonth}-01`;
-      const { data, error: rpcError } = await supabase.rpc(
-        selectedRestaurant === "all"
-          ? "admin_generate_tok_payable_invoices_all"
-          : "admin_generate_tok_payable_invoice",
-        selectedRestaurant === "all"
-          ? { p_month: firstOfMonth }
-          : { p_restaurant_id: selectedRestaurant, p_month: firstOfMonth },
-      );
-
-      if (rpcError) throw rpcError;
-
-      const generated = selectedRestaurant === "all" ? Number(data ?? 0) : data ? 1 : 0;
+      const generated = await generateAdminTokPayableInvoices(supabase as unknown as AdminComptaRpcClient, {
+        restaurantId: selectedRestaurant,
+        selectedMonth,
+      });
       toast({
-        title: generated > 0 ? "Factures TOK generees" : "Aucune facturé generee",
+        title: generated > 0 ? "Factures TOK générées" : "Aucune facture générée",
         description: generated > 0
-          ? `${generated} facturé${generated > 1 ? "s" : ""} ajoutee${generated > 1 ? "s" : ""} pour ${selectedMonth}.`
+          ? `${generated} facture${generated > 1 ? "s" : ""} ajoutée${generated > 1 ? "s" : ""} pour ${selectedMonth}.`
           : "Aucune nouvelle facture à produire sur cette période.",
       });
 
@@ -303,19 +335,28 @@ export default function AdminComptaInflow() {
     const confirmed = window.confirm("Marquer cette facture comme payee ? L'action sera auditee.");
     if (!confirmed) return;
 
-    const { error: updateError } = await (supabase.rpc as any)("admin_mark_restaurant_invoice_paid", {
-      p_invoice_id: invoice.id,
-      p_paid_at: new Date().toISOString(),
-      p_reference: "Marquage paye depuis l'admin compta - entrees",
-    });
+    setPayingInvoiceId(invoice.id);
+    try {
+      await markAdminRestaurantInvoicePaid(supabase as unknown as AdminComptaRpcClient, {
+        invoiceId: invoice.id,
+        reference: "Marquage paye depuis l'admin compta - entrees",
+      });
 
-    if (updateError) {
-      toast({ title: "Erreur", description: updateError.message, variant: "destructive" });
-      return;
+      toast({ title: "Facture marquée comme payée" });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-payable-invoices-v3"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-payout-invoices-v2"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-compta-period-control"] }),
+      ]);
+    } catch (markPaidError) {
+      toast({
+        title: "Erreur",
+        description: getErrorMessage(markPaidError) || "Impossible de marquer la facture comme payée.",
+        variant: "destructive",
+      });
+    } finally {
+      setPayingInvoiceId(null);
     }
-
-    toast({ title: "Facture marquée comme payée" });
-    await queryClient.invalidateQueries({ queryKey: ["admin-compta-payable-invoices-v3"] });
   };
 
   return (
@@ -335,9 +376,13 @@ export default function AdminComptaInflow() {
             <Button asChild size="sm" variant="outline">
               <Link to="/admin/compta/sorties">Sorties d&apos;argent</Link>
             </Button>
-            <Button size="sm" onClick={handleGenerateInvoices} disabled={generating}>
-              <RefreshCcw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-              Generer les factures TOK
+            <Button type="button" size="sm" onClick={handleGenerateInvoices} disabled={generating}>
+              {generating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCcw className="mr-2 h-4 w-4" />
+              )}
+              {generating ? "Génération..." : "Generer les factures TOK"}
             </Button>
             <Button size="sm" variant="outline" onClick={exportInflowCsv}>
               <FileDown className="mr-2 h-4 w-4" />
@@ -444,9 +489,13 @@ export default function AdminComptaInflow() {
                 ]}
               />
               <div className="flex flex-wrap gap-2">
-                <Button onClick={handleGenerateInvoices} disabled={generating}>
-                  <RefreshCcw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-                  Generer maintenant
+                <Button type="button" onClick={handleGenerateInvoices} disabled={generating}>
+                  {generating ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                  )}
+                  {generating ? "Génération..." : "Generer maintenant"}
                 </Button>
               </div>
             </AccountingPanel>
@@ -581,7 +630,11 @@ export default function AdminComptaInflow() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <InvoiceTable invoices={payableInvoiceSections.actionable as PayableInvoiceRow[]} onMarkPaid={handleMarkPaid} />
+                  <InvoiceTable
+                    invoices={payableInvoiceSections.actionable as PayableInvoiceRow[]}
+                    onMarkPaid={handleMarkPaid}
+                    payingInvoiceId={payingInvoiceId}
+                  />
                 </CardContent>
               </Card>
 
@@ -590,7 +643,11 @@ export default function AdminComptaInflow() {
                   <CardTitle className="text-base">Historique</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <InvoiceTable invoices={payableInvoiceSections.history as PayableInvoiceRow[]} onMarkPaid={handleMarkPaid} />
+                  <InvoiceTable
+                    invoices={payableInvoiceSections.history as PayableInvoiceRow[]}
+                    onMarkPaid={handleMarkPaid}
+                    payingInvoiceId={payingInvoiceId}
+                  />
                 </CardContent>
               </Card>
             </div>

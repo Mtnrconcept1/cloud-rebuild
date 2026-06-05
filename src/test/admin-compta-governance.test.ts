@@ -83,6 +83,7 @@ describe("admin compta governance", () => {
     const overview = readFileSync(resolve(root, "src/pages/admin/AdminCompta.tsx"), "utf8");
     const inflow = readFileSync(resolve(root, "src/pages/admin/AdminComptaInflow.tsx"), "utf8");
     const outflow = readFileSync(resolve(root, "src/pages/admin/AdminComptaOutflow.tsx"), "utf8");
+    const actions = readFileSync(resolve(root, "src/lib/adminComptaActions.ts"), "utf8");
     const dashboardInflow = readFileSync(resolve(root, "src/pages/dashboard/DashboardFacturesInflow.tsx"), "utf8");
     const dashboardOutflow = readFileSync(resolve(root, "src/pages/dashboard/DashboardFacturesOutflow.tsx"), "utf8");
 
@@ -98,18 +99,24 @@ describe("admin compta governance", () => {
     expect(overview).toContain("Réouvrir");
 
     expect(inflow).toContain("exportInflowCsv");
-    expect(inflow).toContain("admin_generate_tok_payable_invoice");
-    expect(inflow).toContain("admin_generate_tok_payable_invoices_all");
-    expect(inflow).toContain("admin_mark_restaurant_invoice_paid");
-    expect(inflow).toContain("p_reference");
+    expect(inflow).toContain("generateAdminTokPayableInvoices");
+    expect(inflow).toContain("markAdminRestaurantInvoicePaid");
+    expect(inflow).toContain("payingInvoiceId");
+    expect(inflow).toContain("Loader2");
     expect(inflow).toContain("downloadInvoicePdf");
     expect(inflow).not.toContain('.from("restaurant_invoices").update');
 
     expect(outflow).toContain("exportOutflowCsv");
-    expect(outflow).toContain("admin_mark_restaurant_invoice_paid");
-    expect(outflow).toContain("p_reference");
+    expect(outflow).toContain("markAdminRestaurantInvoicePaid");
+    expect(outflow).toContain("payingInvoiceId");
+    expect(outflow).toContain("Loader2");
     expect(outflow).toContain("downloadInvoicePdf");
     expect(outflow).not.toContain('.from("restaurant_invoices").update');
+
+    expect(actions).toContain("admin_generate_tok_payable_invoice");
+    expect(actions).toContain("admin_generate_tok_payable_invoices_all");
+    expect(actions).toContain("admin_mark_restaurant_invoice_paid");
+    expect(actions).toContain("p_reference");
 
     expect(dashboardInflow).toContain("admin_mark_restaurant_invoice_paid");
     expect(dashboardInflow).toContain("p_reference");
