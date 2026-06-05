@@ -23,22 +23,27 @@ describe("MobileLogoIntro", () => {
     vi.restoreAllMocks();
   });
 
-  it("covers the mobile viewport with a lightweight logo intro", () => {
+  it("covers the mobile viewport with the intro video", () => {
     render(<MobileLogoIntro />);
 
     const overlay = screen.getByTestId("mobile-logo-intro");
     const logoFrame = screen.getByTestId("mobile-logo-intro-logo-frame");
-    const logo = screen.getByTestId("mobile-logo-intro-logo") as HTMLImageElement;
+    const video = screen.getByTestId("mobile-logo-intro-video") as HTMLVideoElement;
     const vignette = screen.getByTestId("mobile-logo-intro-vignette");
 
     expect(overlay).toHaveClass("fixed", "inset-0", "z-[9999]", "bg-black");
-    expect(logo).toHaveAttribute(
+    expect(video).toHaveAttribute(
       "src",
-      "/logo.png",
+      "/higgsfield/tok-logo-intro-mobile.mp4",
     );
-    expect(screen.queryByTestId("mobile-logo-intro-video")).not.toBeInTheDocument();
+    expect(video).toHaveAttribute("poster", "/logo.png");
+    expect(video).toHaveAttribute("preload", "auto");
+    expect(video.autoplay).toBe(true);
+    expect(video.muted).toBe(true);
+    expect(video.playsInline).toBe(true);
+    expect(screen.queryByTestId("mobile-logo-intro-logo")).not.toBeInTheDocument();
     expect(logoFrame).toHaveClass("relative", "grid", "place-items-center");
-    expect(logo).toHaveClass("h-40", "w-40", "object-contain");
+    expect(video).toHaveClass("h-full", "w-full", "object-cover");
     expect(vignette.parentElement).toBe(logoFrame);
     expect(vignette).toHaveClass("pointer-events-none", "absolute", "inset-0");
     expect(vignette.getAttribute("style")).toContain("linear-gradient");
@@ -66,7 +71,7 @@ describe("MobileLogoIntro", () => {
     const overlay = screen.getByTestId("mobile-logo-intro");
 
     act(() => {
-      vi.advanceTimersByTime(900);
+      vi.advanceTimersByTime(11000);
     });
 
     expect(overlay).toHaveClass("opacity-0");
@@ -80,7 +85,7 @@ describe("MobileLogoIntro", () => {
     render(<MobileLogoIntro />);
 
     act(() => {
-      vi.advanceTimersByTime(900);
+      vi.advanceTimersByTime(11000);
     });
 
     expect(screen.getByTestId("mobile-logo-intro")).toHaveClass("opacity-0");

@@ -5,6 +5,7 @@ import { AccountingHero } from "@/components/invoices/AccountingCockpit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
@@ -130,8 +131,8 @@ export default function AdminComptaAi() {
         description="Synthèses, anomalies, impayés, prévision CA, marge par restaurant et coût IA par restaurant restent en brouillon audité."
         actions={(
           <Button onClick={() => accountingMutation.mutate()} disabled={accountingMutation.isPending} className="gap-2">
-            <Brain className="h-4 w-4" />
-            Générer l'analyse
+            <Brain className={accountingMutation.isPending ? "h-4 w-4 animate-pulse" : "h-4 w-4"} />
+            {accountingMutation.isPending ? "Analyse en cours..." : "Générer l'analyse"}
           </Button>
         )}
       />
@@ -173,6 +174,14 @@ export default function AdminComptaAi() {
       </Card>
 
       {accountingMutation.error ? <p className="text-sm text-destructive">{accountingMutation.error.message}</p> : null}
+
+      {accountingMutation.isPending ? (
+        <AiLoadingState
+          title="Génération du rapport comptabilité IA"
+          description="Lecture des factures, anomalies, prévisions et recommandations avant export."
+          steps={["Factures", "Anomalies", "Prévision", "Synthèse"]}
+        />
+      ) : null}
 
       {result ? (
         <>

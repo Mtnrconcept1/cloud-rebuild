@@ -6,6 +6,7 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { runAdminMonitor } from "@/lib/ai/tokAiClient";
@@ -93,8 +94,8 @@ export default function AdminAiOperations() {
             </SelectContent>
           </Select>
           <Button onClick={() => monitorMutation.mutate()} disabled={monitorMutation.isPending} className="gap-2">
-            <Activity className="h-4 w-4" />
-            Lancer l'analyse
+            <Activity className={monitorMutation.isPending ? "h-4 w-4 animate-pulse" : "h-4 w-4"} />
+            {monitorMutation.isPending ? "Analyse en cours..." : "Lancer l'analyse"}
           </Button>
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">Utilisateurs abusifs</Badge>
@@ -121,6 +122,14 @@ export default function AdminAiOperations() {
       </Card>
 
       {monitorMutation.error ? <p className="text-sm text-destructive">{monitorMutation.error.message}</p> : null}
+
+      {monitorMutation.isPending ? (
+        <AiLoadingState
+          title="Analyse IA des opérations"
+          description="Vérification des signaux plateforme, sécurité, coûts IA et incidents critiques."
+          steps={["Santé", "Sécurité", "Coûts", "Tickets"]}
+        />
+      ) : null}
 
       {result ? (
         <>

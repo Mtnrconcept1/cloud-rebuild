@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
 const MOBILE_BREAKPOINT = 768;
-const LOGO_INTRO_IMAGE_SRC = "/logo.png";
-const LOGO_INTRO_VISIBLE_MS = 900;
+const LOGO_INTRO_VIDEO_SRC = "/higgsfield/tok-logo-intro-mobile.mp4";
+const LOGO_INTRO_POSTER_SRC = "/logo.png";
+const LOGO_INTRO_VISIBLE_MS = 11_000;
 const LOGO_INTRO_FADE_MS = 700;
 const LOGO_INTRO_DISMISS_FALLBACK_MS = LOGO_INTRO_FADE_MS + 100;
 
@@ -91,12 +92,16 @@ export default function MobileLogoIntro() {
         className="relative grid h-dvh w-screen place-items-center overflow-hidden"
         data-testid="mobile-logo-intro-logo-frame"
       >
-        <img
-          alt=""
-          className="h-40 w-40 object-contain drop-shadow-[0_18px_44px_rgba(255,107,28,0.36)]"
-          data-testid="mobile-logo-intro-logo"
-          decoding="async"
-          src={LOGO_INTRO_IMAGE_SRC}
+        <video
+          autoPlay
+          className="h-full w-full object-cover"
+          data-testid="mobile-logo-intro-video"
+          muted
+          playsInline
+          poster={LOGO_INTRO_POSTER_SRC}
+          preload="auto"
+          src={LOGO_INTRO_VIDEO_SRC}
+          onEnded={() => setFadingOut(true)}
         />
         <div
           className="pointer-events-none absolute inset-0"

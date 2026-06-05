@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowDownRight, ArrowUpRight, Bot, Coins, FileDown, HandCoins, History, Loader2, Megaphone, ReceiptText, Settings, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Bot, Coins, FileDown, HandCoins, History, Megaphone, ReceiptText, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { Badge } from "@/components/ui/badge";
+import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -105,8 +106,8 @@ function DashboardAccountingAiPanel({
           onClick={() => accountingMutation.mutate()}
           disabled={accountingMutation.isPending}
         >
-          {accountingMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
-          Générer une synthèse IA
+          <Bot className={accountingMutation.isPending ? "h-4 w-4 animate-pulse" : "h-4 w-4"} />
+          {accountingMutation.isPending ? "Synthèse en cours..." : "Générer une synthèse IA"}
         </Button>
         <Button
           type="button"
@@ -122,6 +123,14 @@ function DashboardAccountingAiPanel({
           Exporter
         </Button>
       </div>
+
+      {accountingMutation.isPending ? (
+        <AiLoadingState
+          title="Préparation de la synthèse IA"
+          description="Analyse des écritures, historique et recommandations comptables du restaurant."
+          steps={["Données", "Anomalies", "Prévision", "Rapport"]}
+        />
+      ) : null}
 
       {accountingMutation.error ? (
         <p className="text-sm text-destructive">{getErrorMessage(accountingMutation.error)}</p>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Bot,
-  Loader2,
   LayoutGrid,
   Lightbulb,
   Sofa,
@@ -10,6 +9,7 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react";
+import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -188,10 +188,12 @@ export default function FloorPlanAIPanel({
       </form>
 
       {loading && (
-        <div className="flex items-center gap-2 rounded-xl bg-primary/5 p-3">
-          <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          <p className="text-xs font-medium text-primary">L'IA analyse votre plan...</p>
-        </div>
+        <AiLoadingState
+          compact
+          title="Analyse du plan en cours"
+          description="L'IA vérifie la salle, la capacité et les placements avant de proposer une disposition."
+          steps={["Salle", "Tables", "Flux"]}
+        />
       )}
 
       {error && (

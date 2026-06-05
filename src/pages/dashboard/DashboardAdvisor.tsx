@@ -3,7 +3,6 @@ import {
   BarChart3,
   Bot,
   Camera,
-  Loader2,
   Megaphone,
   RotateCcw,
   Send,
@@ -17,6 +16,7 @@ import ReactMarkdown from "react-markdown";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
+import { AiLoadingState } from "@/components/ui/ai-loading-state";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -375,12 +375,14 @@ export default function DashboardAdvisor() {
               <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600">
                 <Bot className="h-4 w-4 text-white" />
               </div>
-              <Card className="bg-card p-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {activeTool ? `${activeTool}...` : "Analyse en cours..."}
-                </div>
-              </Card>
+              <div className="max-w-[85%]">
+                <AiLoadingState
+                  compact
+                  title={activeTool ? `${activeTool} en cours` : "Analyse IA en cours"}
+                  description={activeTool ? "L'assistant prépare les données, appelle l'outil IA et formate la réponse." : "L'assistant lit le contexte du restaurant et prépare une réponse exploitable."}
+                  steps={activeTool ? ["Contexte", "Génération", "Réponse"] : ["Contexte", "Analyse", "Réponse"]}
+                />
+              </div>
             </div>
           )}
           <div ref={messagesEndRef} />
