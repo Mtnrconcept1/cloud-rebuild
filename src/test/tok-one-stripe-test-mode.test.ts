@@ -21,6 +21,9 @@ describe("Tok One Stripe test mode", () => {
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET");
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET");
     expect(stripeClientSource).toContain('kind === "tok-one"');
+    expect(stripeClientSource).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY"]');
+    expect(stripeClientSource).toContain('purpose: "Tok One Stripe test secret"');
+    expect(stripeClientSource).toContain('expectedMode: "test"');
     expect(stripeClientSource).toContain("inferStripeRuntimeMode");
     expect(stripeClientSource).not.toContain("VITE_STRIPE_TOK_ONE_TEST_SECRET_KEY");
   });
