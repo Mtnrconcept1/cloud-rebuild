@@ -59,6 +59,10 @@ describe("route back navigation", () => {
     expect(customer).toContain('<BackNavigationButton fallback="/"');
     expect(courier).toContain('const backFallback = pathname === "/courier" ? "/" : "/courier";');
     expect(courier).toContain("<BackNavigationButton fallback={backFallback}");
+    expect(courier).toContain('data-testid="courier-mobile-back-button"');
+    expect(courier).toContain('data-testid="courier-mobile-menu-trigger"');
+    expect(courier).toContain("Sheet open={mobileMenuOpen}");
+    expect(courier).toContain("hidden w-full shrink-0 md:block");
     expect(backNavigation).not.toContain('pathname.startsWith("/restaurant/")');
   });
 
