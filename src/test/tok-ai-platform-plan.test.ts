@@ -260,6 +260,9 @@ describe("TOK AI platform plan", () => {
     expect(adminMonitor).toContain("failure_ratio_not_absolute_spend");
     expect(adminMonitor).toContain("ERROR_LOG_LOOKBACK_HOURS");
     expect(adminMonitor).toContain("verifyCurrentFunctionFailures");
+    expect(adminMonitor).toContain("isOperationalFunctionFailure");
+    expect(adminMonitor).toContain("isExpectedClientAuditRejection");
+    expect(adminMonitor).toContain("synthetic_current_success");
     expect(adminMonitor).toContain("runApplicationSmokeTest");
     expect(adminMonitor).toContain("no_success_after_last_failure");
     expect(adminMonitor).toContain("application_smoke_test");

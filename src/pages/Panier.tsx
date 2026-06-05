@@ -579,7 +579,11 @@ export default function Panier() {
         return;
       }
 
-      trackEvent({ eventType: "checkout_initiated", eventData: { restaurant_id: restaurantId, total: finalTotal } });
+      trackEvent({
+        eventType: "checkout_initiated",
+        eventData: { restaurant_id: restaurantId, total: finalTotal },
+        restaurantId,
+      });
       if (!hasJourneyAvailable) {
         return toast({
           title: "Parcours indisponible",

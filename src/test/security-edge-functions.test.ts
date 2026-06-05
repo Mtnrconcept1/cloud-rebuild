@@ -23,6 +23,8 @@ describe("security hardening in edge functions", () => {
     expect(source).toContain("ALLOWED_EVENT_PAYLOAD_KEYS");
     expect(source).toContain("sanitizeEventPayload");
     expect(source).toContain("reject_public_analytics_event");
+    expect(source).toContain("track-analytics rejected");
+    expect(source).toContain("log.warn");
     expect(source).toContain("writeAuditLog");
     expect(source.indexOf("createRateLimiter")).toBeLessThan(source.indexOf("adminClient.from(\"event_store\")"));
     expect(source.indexOf("isAllowedEvent(entityType, eventName)")).toBeLessThan(source.indexOf("adminClient.from(\"event_store\")"));

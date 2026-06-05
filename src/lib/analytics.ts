@@ -481,14 +481,13 @@ export async function trackEvent({
   eventData = {},
   restaurantId,
 }: TrackEventParams) {
-  const entityId = restaurantId || currentUserId;
-  if (!entityId) return;
+  if (!restaurantId) return;
 
   try {
     await invokeAnalyticsIngest({
       kind: "event",
-      entityId,
-      entityType: restaurantId ? "restaurant" : "user",
+      entityId: restaurantId,
+      entityType: "restaurant",
       eventName: eventType,
       payload: eventData,
     });

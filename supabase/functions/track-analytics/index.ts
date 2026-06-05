@@ -306,8 +306,15 @@ Deno.serve(async (req) => {
         throw new HttpError(400, "Type de tracking invalide");
     }
   } catch (error) {
-    log.error("track-analytics error", { message: error instanceof Error ? error.message : "unknown" });
-    if (kind === "event" && error instanceof HttpError && error.status >= 400 && error.status < 500) {
+    const isClientRejection = error instanceof HttpError && error.status >= 400 && error.status < 500;
+    const logMessage = error instanceof Error ? error.message : "unknown";
+    if (isClientRejection) {
+      log.warn("track-analytics rejected", { message: logMessage });
+    } else {
+      log.error("track-analytics error", { message: logMessage });
+    }
+
+    if (kind === "event" && isClientRejection) {
       await auditRejectedEvent({
         adminClient,
         req,

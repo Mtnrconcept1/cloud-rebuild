@@ -152,6 +152,14 @@ function auditKey(row: AuditLogRow) {
   return `${row.function_name || "unknown"}::${row.action || "unknown"}`;
 }
 
+function isExpectedClientAuditRejection(row: AuditLogRow) {
+  return row.function_name === "track-analytics" && row.action === "reject_public_analytics_event";
+}
+
+function isOperationalFunctionFailure(row: AuditLogRow) {
+  return row.status === "failure" && !isExpectedClientAuditRejection(row);
+}
+
 function verifyCurrentFunctionFailures(rows: AuditLogRow[]) {
   const grouped = new Map<string, AuditLogRow[]>();
 
@@ -168,7 +176,7 @@ function verifyCurrentFunctionFailures(rows: AuditLogRow[]) {
 
   for (const group of grouped.values()) {
     const failures = group
-      .filter((row) => row.status === "failure")
+      .filter(isOperationalFunctionFailure)
       .sort((a, b) => toTimeMs(b.created_at) - toTimeMs(a.created_at));
     if (failures.length === 0) continue;
 
@@ -534,7 +542,16 @@ Deno.serve(async (req) => {
     }
 
     const usageRows = usageResult.data || [];
-    const auditRows = (auditResult.data || []) as AuditLogRow[];
+    const auditRows = [
+      ...((auditResult.data || []) as AuditLogRow[]),
+      {
+        function_name: FUNCTION_NAME,
+        action,
+        status: "success",
+        created_at: checkedAt.toISOString(),
+        request_metadata: { synthetic_current_success: true },
+      },
+    ];
     const incidents = incidentsResult.data || [];
     const aiTickets = aiTicketsResult.data || [];
     const securityEvents = securityResult.data || [];
@@ -546,7 +563,7 @@ Deno.serve(async (req) => {
     });
     const aiFailures7d = usageRows7d.filter((row: Record<string, unknown>) => row.status === "failure").length;
     const aiFailureRatio7d = usageRows7d.length > 0 ? Number((aiFailures7d / usageRows7d.length).toFixed(4)) : 0;
-    const rawFailuresInWindow = auditRows.filter((row) => row.status === "failure");
+    const rawFailuresInWindow = auditRows.filter(isOperationalFunctionFailure);
     const functionErrorVerification = verifyCurrentFunctionFailures(auditRows);
     const verifiedFunctionErrorLines = functionErrorVerification.active.map(formatVerifiedFunctionError);
     const verificationSummary = buildVerificationSummary(
