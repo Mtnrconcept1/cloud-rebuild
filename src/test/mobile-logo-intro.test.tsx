@@ -36,7 +36,7 @@ describe("MobileLogoIntro", () => {
       "src",
       "/higgsfield/tok-logo-intro-mobile.mp4",
     );
-    expect(video).toHaveAttribute("poster", "/logo.png");
+    expect(video).not.toHaveAttribute("poster");
     expect(video).toHaveAttribute("preload", "auto");
     expect(video.autoplay).toBe(true);
     expect(video.muted).toBe(true);

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 
 const MOBILE_BREAKPOINT = 768;
 const LOGO_INTRO_VIDEO_SRC = "/higgsfield/tok-logo-intro-mobile.mp4";
-const LOGO_INTRO_POSTER_SRC = "/logo.png";
 const LOGO_INTRO_VISIBLE_MS = 11_000;
 const LOGO_INTRO_FADE_MS = 700;
 const LOGO_INTRO_DISMISS_FALLBACK_MS = LOGO_INTRO_FADE_MS + 100;
@@ -94,11 +93,10 @@ export default function MobileLogoIntro() {
       >
         <video
           autoPlay
-          className="h-full w-full object-cover"
+          className="h-full w-full bg-black object-cover"
           data-testid="mobile-logo-intro-video"
           muted
           playsInline
-          poster={LOGO_INTRO_POSTER_SRC}
           preload="auto"
           src={LOGO_INTRO_VIDEO_SRC}
           onEnded={() => setFadingOut(true)}

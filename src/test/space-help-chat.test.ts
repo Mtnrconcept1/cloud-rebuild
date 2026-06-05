@@ -12,8 +12,9 @@ function readProjectFile(path: string) {
 }
 
 describe("space Help chat access", () => {
-  it("adds a chef-hat Help button to restaurant, admin and courier menus", () => {
+  it("adds a chef-hat Help button to client, restaurant, admin and courier menus", () => {
     const button = readProjectFile("src/components/help/ChefHelpButton.tsx");
+    const navbar = readProjectFile("src/components/Navbar.tsx");
     const dashboardLayout = readProjectFile("src/components/DashboardLayout.tsx");
     const adminNavigation = readProjectFile("src/components/admin/AdminMobileNavigation.tsx");
     const courierLayout = readProjectFile("src/components/CourierDashboardLayout.tsx");
@@ -23,6 +24,7 @@ describe("space Help chat access", () => {
     expect(button).toContain("Help !");
     expect(button).toContain("Chat IA OpenAI");
     expect(button).toContain("openHelpChat({ surface })");
+    expect(navbar).toContain('ChefHelpButton surface="client"');
     expect(dashboardLayout).toContain('ChefHelpButton surface="restaurant"');
     expect(adminNavigation).toContain('ChefHelpButton surface="admin"');
     expect(app).toContain('ChefHelpButton surface="admin" compact');

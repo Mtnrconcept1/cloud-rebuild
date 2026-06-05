@@ -8,6 +8,21 @@ export type LoyaltyBenefit = {
   highlight?: boolean;
 };
 
+export type LoyaltyBenefitConfig = {
+  enabled?: boolean;
+  title?: string;
+  description?: string;
+  highlight?: boolean;
+};
+
+export type LoyaltyTierConfigRow = {
+  name?: string | null;
+  benefits?: unknown;
+  status?: string | null;
+};
+
+export const MIAMZ_BENEFITS_CONFIG_KEY = "miamz_benefits";
+
 export const LOYALTY_TIER_ORDER = ["bronze", "silver", "gold", "platinum"] as const;
 
 export const LOYALTY_TIERS: Record<LoyaltyTierId, {
@@ -161,14 +176,86 @@ export function getTierForPoints(points: number): LoyaltyTierId {
   return ordered.find((tier) => safePoints >= LOYALTY_TIERS[tier].threshold) || "bronze";
 }
 
-export function getTierBenefits(tier: LoyaltyTierId): LoyaltyBenefit[] {
-  const tierIndex = LOYALTY_TIER_ORDER.indexOf(tier);
-  return LOYALTY_BENEFITS.filter((benefit) => LOYALTY_TIER_ORDER.indexOf(benefit.appliesFrom) <= tierIndex);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-export function getLockedTierBenefits(tier: LoyaltyTierId): LoyaltyBenefit[] {
+function normalizeBenefitConfig(value: unknown): LoyaltyBenefitConfig | null {
+  if (typeof value === "boolean") return { enabled: value };
+  if (!isRecord(value)) return null;
+
+  return {
+    enabled: typeof value.enabled === "boolean" ? value.enabled : undefined,
+    title: typeof value.title === "string" && value.title.trim() ? value.title.trim() : undefined,
+    description: typeof value.description === "string" && value.description.trim() ? value.description.trim() : undefined,
+    highlight: typeof value.highlight === "boolean" ? value.highlight : undefined,
+  };
+}
+
+export function getTierBenefitConfigMap(tierBenefits: unknown): Record<string, LoyaltyBenefitConfig> {
+  if (!isRecord(tierBenefits)) return {};
+
+  const rawConfig = isRecord(tierBenefits[MIAMZ_BENEFITS_CONFIG_KEY])
+    ? tierBenefits[MIAMZ_BENEFITS_CONFIG_KEY]
+    : tierBenefits;
+
+  if (!isRecord(rawConfig)) return {};
+
+  return Object.entries(rawConfig).reduce<Record<string, LoyaltyBenefitConfig>>((configs, [benefitId, value]) => {
+    const config = normalizeBenefitConfig(value);
+    if (config) configs[benefitId] = config;
+    return configs;
+  }, {});
+}
+
+function getTierRow(tierRows: LoyaltyTierConfigRow[] | null | undefined, tier: LoyaltyTierId) {
+  return (tierRows || []).find((row) => String(row.name || "").toLowerCase() === tier);
+}
+
+function resolveLoyaltyBenefit(benefit: LoyaltyBenefit, tierRows: LoyaltyTierConfigRow[] | null | undefined) {
+  const tierRow = getTierRow(tierRows, benefit.appliesFrom);
+  const config = getTierBenefitConfigMap(tierRow?.benefits)[benefit.id];
+
+  if (config?.enabled === false) return null;
+
+  return {
+    ...benefit,
+    title: config?.title || benefit.title,
+    description: config?.description || benefit.description,
+    highlight: config?.highlight ?? benefit.highlight,
+  } satisfies LoyaltyBenefit;
+}
+
+export function getResolvedLoyaltyBenefits(tierRows?: LoyaltyTierConfigRow[] | null): LoyaltyBenefit[] {
+  return LOYALTY_BENEFITS.flatMap((benefit) => {
+    const resolved = resolveLoyaltyBenefit(benefit, tierRows);
+    return resolved ? [resolved] : [];
+  });
+}
+
+export function buildTierBenefitPayload(benefits: LoyaltyBenefit[], configs: Record<string, LoyaltyBenefitConfig>) {
+  return {
+    [MIAMZ_BENEFITS_CONFIG_KEY]: benefits.reduce<Record<string, Required<LoyaltyBenefitConfig>>>((payload, benefit) => {
+      const config = configs[benefit.id] || {};
+      payload[benefit.id] = {
+        enabled: config.enabled !== false,
+        title: config.title || benefit.title,
+        description: config.description || benefit.description,
+        highlight: config.highlight ?? Boolean(benefit.highlight),
+      };
+      return payload;
+    }, {}),
+  };
+}
+
+export function getTierBenefits(tier: LoyaltyTierId, tierRows?: LoyaltyTierConfigRow[] | null): LoyaltyBenefit[] {
   const tierIndex = LOYALTY_TIER_ORDER.indexOf(tier);
-  return LOYALTY_BENEFITS.filter((benefit) => LOYALTY_TIER_ORDER.indexOf(benefit.appliesFrom) > tierIndex);
+  return getResolvedLoyaltyBenefits(tierRows).filter((benefit) => LOYALTY_TIER_ORDER.indexOf(benefit.appliesFrom) <= tierIndex);
+}
+
+export function getLockedTierBenefits(tier: LoyaltyTierId, tierRows?: LoyaltyTierConfigRow[] | null): LoyaltyBenefit[] {
+  const tierIndex = LOYALTY_TIER_ORDER.indexOf(tier);
+  return getResolvedLoyaltyBenefits(tierRows).filter((benefit) => LOYALTY_TIER_ORDER.indexOf(benefit.appliesFrom) > tierIndex);
 }
 
 export function getLoyaltyStatus(points: number, explicitTier?: string | null) {

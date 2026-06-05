@@ -25,14 +25,25 @@ export default function LoyaltyStatus() {
     },
     enabled: !!user,
   });
+  const { data: tiers = [] } = useQuery({
+    queryKey: ["loyalty-tiers"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("loyalty_tiers")
+        .select("name, benefits")
+        .order("min_points", { ascending: true });
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   if (!user || !profile) return null;
 
   const points = profile.loyalty_points || 0;
   const loyalty = getLoyaltyStatus(points, profile.current_tier);
   const config = LOYALTY_TIERS[loyalty.currentTier];
-  const currentBenefits = getTierBenefits(loyalty.currentTier);
-  const lockedBenefits = getLockedTierBenefits(loyalty.currentTier);
+  const currentBenefits = getTierBenefits(loyalty.currentTier, tiers);
+  const lockedBenefits = getLockedTierBenefits(loyalty.currentTier, tiers);
   const previewBenefits = currentBenefits.filter((benefit) => benefit.highlight).slice(0, 2);
   const nextTierLabel = loyalty.nextTier ? LOYALTY_TIERS[loyalty.nextTier].label : null;
 

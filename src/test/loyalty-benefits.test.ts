@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getLockedTierBenefits,
   getLoyaltyStatus,
   getTierBenefits,
   LOYALTY_TIER_ORDER,
@@ -26,5 +27,31 @@ describe("loyaltyBenefits", () => {
     expect(getTierBenefits("gold").map((benefit) => benefit.id)).toContain("priority_support");
     expect(getTierBenefits("platinum").map((benefit) => benefit.id)).toContain("vip_table_access");
   });
-});
 
+  it("applies admin-configured Miamz benefit activation and text per tier", () => {
+    const configuredTiers = [
+      {
+        name: "gold",
+        benefits: {
+          miamz_benefits: {
+            priority_support: { enabled: false },
+            restaurant_gifts: {
+              enabled: true,
+              title: "Invitation dégustation admin",
+              description: "Texte visible piloté depuis le Dashboard admin.",
+            },
+          },
+        },
+      },
+    ];
+
+    const goldBenefits = getTierBenefits("gold", configuredTiers);
+
+    expect(goldBenefits.map((benefit) => benefit.id)).not.toContain("priority_support");
+    expect(goldBenefits.find((benefit) => benefit.id === "restaurant_gifts")).toMatchObject({
+      title: "Invitation dégustation admin",
+      description: "Texte visible piloté depuis le Dashboard admin.",
+    });
+    expect(getLockedTierBenefits("silver", configuredTiers).map((benefit) => benefit.id)).not.toContain("priority_support");
+  });
+});

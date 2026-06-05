@@ -8,9 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { getTierBenefits, LOYALTY_TIER_ORDER, LOYALTY_TIERS } from "@/lib/loyaltyBenefits";
+import {
+  buildTierBenefitPayload,
+  getTierBenefitConfigMap,
+  getTierBenefits,
+  isLoyaltyTier,
+  LOYALTY_BENEFITS,
+  LOYALTY_TIER_ORDER,
+  LOYALTY_TIERS,
+  type LoyaltyBenefitConfig,
+  type LoyaltyTierId,
+} from "@/lib/loyaltyBenefits";
 import {
   TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
   buildSubscriptionBenefitRows,
@@ -28,6 +39,33 @@ const tokOneAmountFormatter = new Intl.NumberFormat("fr-CH", {
 
 function formatTokOneAmount(value: unknown) {
   return tokOneAmountFormatter.format(Number(value || 0));
+}
+
+function parseTierBenefitsJson(value: string): Record<string, unknown> {
+  if (!value.trim()) return {};
+
+  const parsed = JSON.parse(value);
+  return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+}
+
+function normalizeTierName(value: string): LoyaltyTierId | null {
+  const normalized = value.trim().toLowerCase();
+  return isLoyaltyTier(normalized) ? normalized : null;
+}
+
+function getEditableBenefitsForTier(tierName: string) {
+  const tierId = normalizeTierName(tierName);
+  return tierId ? LOYALTY_BENEFITS.filter((benefit) => benefit.appliesFrom === tierId) : LOYALTY_BENEFITS;
+}
+
+function mergeTierBenefitPayload(rawBenefits: Record<string, unknown>, tierName: string) {
+  const editableBenefits = getEditableBenefitsForTier(tierName);
+  const currentConfigs = getTierBenefitConfigMap(rawBenefits);
+
+  return {
+    ...rawBenefits,
+    ...buildTierBenefitPayload(editableBenefits, currentConfigs),
+  };
 }
 
 const EMPTY_PLAN = {
@@ -128,6 +166,61 @@ export default function AdminLoyalty() {
       return data || [];
     },
   });
+
+  const tierEditorRawBenefits = (() => {
+    try {
+      return parseTierBenefitsJson(tierForm.benefits);
+    } catch {
+      return {};
+    }
+  })();
+  const tierBenefitConfigs = getTierBenefitConfigMap(tierEditorRawBenefits);
+  const tierBenefitEditorBenefits = getEditableBenefitsForTier(tierForm.name);
+
+  const updateTierBenefitConfig = (benefitId: string, nextConfig: LoyaltyBenefitConfig) => {
+    setTierForm((previous) => {
+      let rawBenefits: Record<string, unknown> = {};
+      try {
+        rawBenefits = parseTierBenefitsJson(previous.benefits);
+      } catch {
+        rawBenefits = {};
+      }
+
+      const currentConfigs = getTierBenefitConfigMap(rawBenefits);
+      const editableBenefits = getEditableBenefitsForTier(previous.name);
+      const nextConfigs = {
+        ...currentConfigs,
+        [benefitId]: {
+          ...currentConfigs[benefitId],
+          ...nextConfig,
+        },
+      };
+
+      return {
+        ...previous,
+        benefits: JSON.stringify(
+          {
+            ...rawBenefits,
+            ...buildTierBenefitPayload(editableBenefits, nextConfigs),
+          },
+          null,
+          2,
+        ),
+      };
+    });
+  };
+
+  const toggleTierBenefit = (benefitId: string, enabled: boolean) => {
+    updateTierBenefitConfig(benefitId, { enabled });
+  };
+
+  const updateTierBenefitText = (
+    benefitId: string,
+    field: "title" | "description",
+    value: string,
+  ) => {
+    updateTierBenefitConfig(benefitId, { [field]: value });
+  };
 
   const getPlanBenefits = (planId: string): SubscriptionBenefitInput[] =>
     subscriptionBenefits
@@ -288,7 +381,7 @@ export default function AdminLoyalty() {
       name: tierForm.name,
       min_points: Number(tierForm.min_points || 0),
       multiplier: Number(tierForm.multiplier || 1),
-      benefits: benefitsPayload,
+      benefits: mergeTierBenefitPayload(benefitsPayload, tierForm.name),
       status: tierForm.status,
     };
 
@@ -413,7 +506,7 @@ export default function AdminLoyalty() {
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {LOYALTY_TIER_ORDER.map((tierId) => {
             const tier = LOYALTY_TIERS[tierId];
-            const benefits = getTierBenefits(tierId).filter((benefit) => benefit.appliesFrom === tierId);
+            const benefits = getTierBenefits(tierId, tiers).filter((benefit) => benefit.appliesFrom === tierId);
             return (
               <div key={tierId} className="rounded-xl border p-4">
                 <div className="flex items-center justify-between gap-2">
@@ -531,7 +624,7 @@ export default function AdminLoyalty() {
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" onClick={openNewTier}>Ajouter palier</Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-3xl overflow-y-auto">
                   <DialogHeader><DialogTitle>{editingTier ? "Modifier le palier" : "Nouveau palier"}</DialogTitle></DialogHeader>
                   <form onSubmit={saveTier} className="space-y-3">
                     <Input placeholder="Nom" value={tierForm.name} onChange={(event) => setTierForm((prev) => ({ ...prev, name: event.target.value }))} required />
@@ -539,7 +632,56 @@ export default function AdminLoyalty() {
                       <Input placeholder="Points minimum" type="number" value={tierForm.min_points} onChange={(event) => setTierForm((prev) => ({ ...prev, min_points: event.target.value }))} required />
                       <Input placeholder="Multiplicateur" type="number" step="0.1" value={tierForm.multiplier} onChange={(event) => setTierForm((prev) => ({ ...prev, multiplier: event.target.value }))} required />
                     </div>
-                    <Textarea placeholder='Avantages JSON ex: {"priority_support": true}' value={tierForm.benefits} onChange={(event) => setTierForm((prev) => ({ ...prev, benefits: event.target.value }))} />
+                    <div className="rounded-md border p-3 space-y-3">
+                      <div>
+                        <p className="text-sm font-semibold">Avantages Miamz du palier</p>
+                        <p className="text-xs text-muted-foreground">Texte visible sur la page des avantages et dans la modal client.</p>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {tierBenefitEditorBenefits.map((benefit) => {
+                          const config = tierBenefitConfigs[benefit.id] || {};
+                          const enabled = config.enabled !== false;
+                          return (
+                            <div key={benefit.id} className={enabled ? "rounded-lg border p-3" : "rounded-lg border border-dashed p-3 opacity-70"}>
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-medium">{benefit.title}</p>
+                                  <p className="text-xs text-muted-foreground">{benefit.appliesFrom}</p>
+                                </div>
+                                <Switch
+                                  checked={enabled}
+                                  aria-label={`Activer ${benefit.title}`}
+                                  onCheckedChange={(checked) => toggleTierBenefit(benefit.id, checked === true)}
+                                />
+                              </div>
+                              <div className="mt-3 space-y-2">
+                                <Input
+                                  aria-label={`Titre ${benefit.title}`}
+                                  value={config.title ?? benefit.title}
+                                  onChange={(event) => updateTierBenefitText(benefit.id, "title", event.target.value)}
+                                />
+                                <Textarea
+                                  aria-label={`Description ${benefit.title}`}
+                                  rows={2}
+                                  value={config.description ?? benefit.description}
+                                  onChange={(event) => updateTierBenefitText(benefit.id, "description", event.target.value)}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <details className="rounded-md border p-3">
+                      <summary className="cursor-pointer text-sm font-medium">JSON avance</summary>
+                      <Textarea
+                        className="mt-3 font-mono text-xs"
+                        placeholder='Avantages JSON ex: {"miamz_benefits":{"priority_support":{"enabled":true}}}'
+                        rows={5}
+                        value={tierForm.benefits}
+                        onChange={(event) => setTierForm((prev) => ({ ...prev, benefits: event.target.value }))}
+                      />
+                    </details>
                     <select value={tierForm.status} onChange={(event) => setTierForm((prev) => ({ ...prev, status: event.target.value }))} className="w-full rounded-md border bg-background px-3 py-2 text-sm">
                       <option value="active">active</option>
                       <option value="archived">archived</option>

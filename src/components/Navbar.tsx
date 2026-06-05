@@ -13,7 +13,6 @@ import {
   Leaf,
   LogOut,
   Menu,
-  MessageCircle,
   Moon,
   Newspaper,
   Repeat,
@@ -32,6 +31,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { useAuth } from "@/lib/auth-context";
@@ -40,7 +40,6 @@ import { LOGO_URL } from "@/lib/constants";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
-import { openHelpChat } from "@/lib/helpChat";
 import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -347,6 +346,10 @@ export default function Navbar() {
 
             <NotificationBell className={isMobileHomeHeader ? "text-slate-950 hover:bg-transparent" : undefined} />
 
+            {showClientSurface ? (
+              <ChefHelpButton surface="client" compact className="hidden h-11 md:flex" />
+            ) : null}
+
             {user ? (
               <DropdownMenu modal={false} open={accountMenuOpen} onOpenChange={handleAccountMenuOpenChange}>
                 <DropdownMenuTrigger asChild>
@@ -625,16 +628,9 @@ export default function Navbar() {
                   ) : null}
 
                   <div className="mt-2 space-y-4 border-t pt-4">
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        openHelpChat({ surface: "public" });
-                      }}
-                      className="flex items-center gap-2 text-left text-sm font-medium text-orange-500 hover:text-orange-600"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Assistance
-                    </button>
+                    {showClientSurface ? (
+                      <ChefHelpButton surface="client" onOpen={() => setMenuOpen(false)} />
+                    ) : null}
                     <Link to="/a-propos" className="text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
                       À propos
                     </Link>
