@@ -4,7 +4,7 @@ This document is the canonical project-context skill for agents working on the T
 
 ## 1. Product identity
 
-TOK is a Swiss restaurant, delivery, reservation, loyalty and restaurant-operations platform. The public brand is generally presented as TOK or TheTok, with the public domain `www.thetok.ch`. The current production frontend target used in the deployment workflow is `https://cloud-rebuild-recovered.vercel.app/`.
+TOK is a Swiss restaurant, delivery, reservation, loyalty and restaurant-operations platform. The public brand is generally presented as TOK or TheTok, with the public domain `www.thetok.ch`. The admin interface is separated on `admin.thetok.ch`. The current production frontend target used in the deployment workflow is `https://cloud-rebuild-recovered.vercel.app/`.
 
 The product is designed for the Swiss/French-speaking market, with Geneva as a strong anchor. The tone of the app should remain clear, premium, energetic, and restaurant-friendly. The commercial positioning is restaurateur-first: lower costs, more direct value for restaurants, smoother experience for customers, and operational tools for restaurants.
 
@@ -317,6 +317,7 @@ Current production workflow assumptions:
 - Production Supabase project ref: `wwcrtyoueexyxkkikaos`.
 - App base/public URL: `https://cloud-rebuild-recovered.vercel.app/`.
 - Site URL: `https://www.thetok.ch`.
+- Admin URL: `https://admin.thetok.ch`.
 
 Do not switch production workflows back to npm unless the whole repository is migrated back to npm and a valid full `package-lock.json` is committed. The current lock source is pnpm.
 
@@ -378,6 +379,7 @@ General rules for modifications:
 - When changing RLS, reason through SELECT/INSERT/UPDATE/DELETE separately.
 - For any function that mutates money/order state, preserve idempotency.
 - For user-facing French copy, keep tone direct, polished and clear.
+- Save all modified text files as UTF-8. Do not introduce ANSI/Windows-1252 encodings; verify French accents and visible copy to avoid mojibake before finishing.
 
 ## 22. Debugging checklist
 
@@ -447,6 +449,7 @@ Before modifying high-risk areas, inspect current code, tests, migrations and wo
 
 - Brand/site: TOK / TheTok.
 - Public site URL: `https://www.thetok.ch`.
+- Admin site URL: `https://admin.thetok.ch`.
 - Current app deployment URL: `https://cloud-rebuild-recovered.vercel.app/`.
 - Supabase project ref: `wwcrtyoueexyxkkikaos`.
 - Package manager: pnpm.

@@ -21,9 +21,11 @@ TOK est une application transactionnelle de réservation, commande directe, paie
 11. Paginer les lectures sur les tables qui peuvent grossir.
 12. Préférer les patterns existants du repo aux nouvelles abstractions.
 13. Garder les modifications minimales, lisibles et auditées.
+14. Enregistrer tous les fichiers texte modifiés en UTF-8, sans conversion ANSI/Windows-1252, et vérifier les accents français pour éviter le mojibake.
 
 ## Avant de finir une tâche
 
 - Lister les fichiers modifiés.
 - Vérifier les impacts paiement, Supabase, RLS, rôles, SEO et performance.
 - Vérifier que les commandes `pnpm lint`, `pnpm test` et `pnpm build` restent applicables.
+- Vérifier qu'aucun fichier modifié n'a introduit de mojibake ou d'encodage non UTF-8.

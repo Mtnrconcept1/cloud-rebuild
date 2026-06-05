@@ -23,6 +23,7 @@ Bloquer les changements qui pourraient casser la production, perdre une commande
 13. Aucun changement admin sensible ne doit être fait sans audit log ou contrôle de rôle.
 14. Aucun changement de commande ne doit être fait sans état clair et traçable.
 15. Les migrations doivent être nouvelles, idempotentes quand possible, et ne doivent pas modifier l’historique déjà appliqué.
+16. Tous les fichiers texte modifiés doivent rester en UTF-8, sans mojibake dans les copies françaises.
 
 ## Points de blocage immédiat
 
@@ -36,6 +37,7 @@ Bloquer la PR si :
 - une action admin sensible n’est pas protégée ;
 - une page publique importante devient non indexable ;
 - une migration supprime des données ou objets existants sans validation explicite.
+- un fichier texte modifié contient du mojibake ou a été enregistré hors UTF-8.
 
 ## Réponse attendue de l’IDE ou de l’agent
 

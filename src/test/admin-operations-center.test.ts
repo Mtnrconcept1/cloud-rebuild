@@ -43,6 +43,9 @@ describe("admin operations center", () => {
     expect(component).toContain("refetchOnWindowFocus: false");
     expect(component).toContain("Rechercher restaurant, client, ville, statut ou identifiant");
     expect(component).toContain("window.confirm");
+    expect(component).toContain("marketplace alert reconciliation skipped");
+    expect(component).toContain("getAdminUrgentActionsErrorMessage");
+    expect(component).toContain("Accès admin requis pour charger les actions urgentes.");
     expect(component).toContain("Note admin obligatoire pour résoudre/ignorer");
   });
 });

@@ -69,16 +69,44 @@ function formatDateTime(value: string) {
   return date.toLocaleString("fr-CH", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-function isMissingReconcileRpc(error: { message?: string } | null | undefined) {
-  const message = error?.message || "";
-  return message.includes("admin_reconcile_marketplace_alerts")
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error && "message" in error) {
+    return String((error as { message?: unknown }).message || "");
+  }
+  return String(error || "");
+}
+
+function isMissingMarketplaceAlertRpc(error: unknown) {
+  const message = getErrorMessage(error);
+  return message.includes("admin_get_marketplace_alerts")
+    || message.includes("admin_reconcile_marketplace_alerts")
     || message.includes("schema cache")
     || message.includes("Could not find the function");
 }
 
+function getAdminUrgentActionsErrorMessage(error: unknown) {
+  const message = getErrorMessage(error);
+
+  if (isMissingMarketplaceAlertRpc(error)) {
+    return "Impossible de charger les actions urgentes. Vérifiez la migration `admin_get_marketplace_alerts`.";
+  }
+
+  if (message.includes("42501") || message.includes("Admin access required") || message.includes("permission denied")) {
+    return "Accès admin requis pour charger les actions urgentes.";
+  }
+
+  return "Impossible de charger les actions urgentes. Vérifiez les logs Supabase ou réessayez.";
+}
+
+function logSkippedReconciliation(error: unknown) {
+  const message = getErrorMessage(error);
+  console.warn("[admin] marketplace alert reconciliation skipped", message || error);
+}
+
 async function reconcileAlerts() {
   const { error } = await (supabase.rpc as any)("admin_reconcile_marketplace_alerts");
-  if (error && !isMissingReconcileRpc(error)) throw error;
+  if (error) logSkippedReconciliation(error);
 }
 
 async function fetchAlerts(includeResolved: boolean) {
@@ -261,7 +289,7 @@ export default function AdminUrgentActions({
           </div>
         ) : error ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-            Impossible de charger les actions urgentes. Vérifiez la migration `admin_get_marketplace_alerts`.
+            {getAdminUrgentActionsErrorMessage(error)}
           </div>
         ) : filteredAlerts.length === 0 ? (
           <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">

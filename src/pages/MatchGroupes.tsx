@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { PUBLIC_MENU_ITEMS_LIMIT, PUBLIC_RESTAURANTS_LIMIT } from "@/lib/queryLimits";
 import { invokeSupabaseFunction } from "@/lib/session";
 
 const supabase = getSupabase();
@@ -247,7 +248,8 @@ export default function MatchGroupes() {
         .select("*")
         .eq("is_active", true)
         .eq("delivery_available", true)
-        .order("rating", { ascending: false });
+        .order("rating", { ascending: false })
+        .limit(PUBLIC_RESTAURANTS_LIMIT);
       return data || [];
     },
   });
@@ -260,7 +262,8 @@ export default function MatchGroupes() {
         .select("*")
         .eq("restaurant_id", selectedRestaurant.id)
         .eq("is_available", true)
-        .order("category");
+        .order("category")
+        .limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
     enabled: !!selectedRestaurant,

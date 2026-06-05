@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
+import { getAdminNavigationHref } from "@/lib/adminDomains";
 import { useAuth } from "@/lib/auth-context";
 import { respondToDispatchAttempt } from "@/lib/courier";
 import {
@@ -49,6 +50,8 @@ function CourierNavContent({
   onSignOut,
   onNavigate,
 }: CourierNavContentProps) {
+  const adminDashboardHref = getAdminNavigationHref("/admin");
+
   return (
     <>
       <div className="px-3 py-2">
@@ -87,14 +90,14 @@ function CourierNavContent({
             </Link>
           ) : null}
           {roles.includes("admin") ? (
-            <Link
-              to="/admin"
+            <a
+              href={adminDashboardHref}
               onClick={onNavigate}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
             >
               <Shield className="h-4 w-4" />
               Administration
-            </Link>
+            </a>
           ) : null}
         </div>
       ) : null}

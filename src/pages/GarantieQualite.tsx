@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardBackButton, WizardNextButton, WizardCartSummary } from "@/components/FeatureWizard";
+import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
 
 const supabase = getSupabase();
 
@@ -50,7 +51,8 @@ export default function GarantieQualite() {
         .select("*")
         .eq("restaurant_id", selectedRestaurant.id)
         .eq("is_available", true)
-        .order("category");
+        .order("category")
+        .limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
     enabled: !!selectedRestaurant,

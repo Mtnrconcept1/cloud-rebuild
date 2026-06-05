@@ -37,6 +37,7 @@ import { useCart } from "@/lib/cart-context";
 import { LOGO_URL } from "@/lib/constants";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
+import { getAdminNavigationHref } from "@/lib/adminDomains";
 import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -119,6 +120,7 @@ export default function Navbar() {
   const showAdminDashboardLink = roles.includes("admin");
   const showCourierDashboardLink = courierEnabled && roles.includes("courier");
   const isMobileHomeHeader = showClientSurface && location.pathname === "/";
+  const adminDashboardHref = getAdminNavigationHref("/admin");
 
   const handleAccountMenuOpenChange = (open: boolean) => {
     setAccountMenuOpen(open);
@@ -355,7 +357,7 @@ export default function Navbar() {
                   ) : null}
                   {showAdminDashboardLink ? (
                     <DropdownMenuItem asChild>
-                      <Link to="/admin" className="font-bold text-primary">Administration</Link>
+                      <a href={adminDashboardHref} className="font-bold text-primary">Administration</a>
                     </DropdownMenuItem>
                   ) : null}
                   {showCourierDashboardLink ? (
@@ -534,10 +536,10 @@ export default function Navbar() {
                         </Link>
                       ) : null}
                       {showAdminDashboardLink ? (
-                        <Link to="/admin" className="flex items-center gap-2 text-sm font-bold text-primary" onClick={() => setMenuOpen(false)}>
+                        <a href={adminDashboardHref} className="flex items-center gap-2 text-sm font-bold text-primary" onClick={() => setMenuOpen(false)}>
                           <Shield className="h-4 w-4" />
                           Administration
-                        </Link>
+                        </a>
                       ) : null}
                       {showCourierDashboardLink ? (
                         <Link to="/courier" className="flex items-center gap-2 text-sm font-bold text-primary" onClick={() => setMenuOpen(false)}>

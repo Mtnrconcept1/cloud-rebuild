@@ -1,9 +1,12 @@
-export const TOK_CANONICAL_APP_HOST = "www.thetok.ch";
+import { TOK_ADMIN_APP_HOST, TOK_PUBLIC_APP_HOST } from "@/lib/adminDomains";
+
+export const TOK_CANONICAL_APP_HOST = TOK_PUBLIC_APP_HOST;
 
 export const TOK_APP_LINK_HOSTS = [
   TOK_CANONICAL_APP_HOST,
   "thetok.ch",
   "app.thetok.ch",
+  TOK_ADMIN_APP_HOST,
 ] as const;
 
 const allowedAppLinkHosts = new Set<string>(TOK_APP_LINK_HOSTS);

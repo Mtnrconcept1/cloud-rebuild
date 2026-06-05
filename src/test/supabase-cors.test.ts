@@ -68,6 +68,24 @@ describe("supabase edge function cors", () => {
     expect(preflight?.headers.get("Access-Control-Allow-Origin")).toBe("https://www.thetok.ch");
   });
 
+  it("allows the dedicated admin origin from defaults", async () => {
+    const { buildCorsHeaders, handleCorsPreflight } = await loadCorsModule({});
+
+    const req = new Request("https://example.supabase.co/functions/v1/test", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://admin.thetok.ch",
+      },
+    });
+
+    const corsHeaders = buildCorsHeaders(req);
+    const preflight = handleCorsPreflight(req, corsHeaders);
+
+    expect(corsHeaders["Access-Control-Allow-Origin"]).toBe("https://admin.thetok.ch");
+    expect(preflight?.status).toBe(204);
+    expect(preflight?.headers.get("Access-Control-Allow-Origin")).toBe("https://admin.thetok.ch");
+  });
+
   it("allows owned Vercel preview deployments for the current project", async () => {
     const { buildCorsHeaders, handleCorsPreflight } = await loadCorsModule({});
 

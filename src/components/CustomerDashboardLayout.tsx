@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
+import { getAdminNavigationHref } from "@/lib/adminDomains";
 
 const NAV_ITEMS = [
   { to: "/profil", label: "Mon profil", icon: User },
@@ -18,6 +19,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   const { pathname } = useLocation();
   const { signOut, roles, role } = useAuth();
   const { unreadNotifications } = useNotificationCenter(50);
+  const adminDashboardHref = getAdminNavigationHref("/admin");
 
   return (
     <div className="min-h-screen bg-muted/30 pt-16">
@@ -39,7 +41,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
             )}
             {roles.includes("admin") && (
               <div className="mt-2 pt-2 border-t">
-                <Link to="/admin" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition-colors"><Settings className="h-4 w-4" />Administration</Link>
+                <a href={adminDashboardHref} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition-colors"><Settings className="h-4 w-4" />Administration</a>
               </div>
             )}
             <div className="mt-4 pt-4 border-t">

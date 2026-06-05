@@ -88,6 +88,7 @@ import {
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
   formatDashboardDateHeading,
+  getDashboardTimeRangeBounds,
   getTodayReferenceDate,
   isDateInDashboardTimeRange,
   type DashboardTimeRange,
@@ -215,6 +216,7 @@ const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
 const RELEASED_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived"]);
+const FLOOR_PLAN_RESERVATIONS_LIMIT = 500;
 const EMPTY_BRANCHES: BranchRow[] = [];
 const EMPTY_TABLES: TableRow[] = [];
 const EMPTY_RESERVATIONS: ReservationWithCustomer[] = [];
@@ -228,6 +230,23 @@ const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 const getSafeTime = (value: string | null | undefined) => (value && value.slice(0, 5)) || "00:00";
+
+function formatDateOnlyForQuery(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getReservationDateQueryBounds(referenceDate: string, timeRange: DashboardTimeRange) {
+  const bounds = getDashboardTimeRangeBounds(referenceDate, timeRange);
+  if (!bounds) return null;
+
+  return {
+    startIso: formatDateOnlyForQuery(bounds.start),
+    endIso: formatDateOnlyForQuery(bounds.end),
+  };
+}
 
 function getReservationBranchId(reservation: ReservationRow) {
   const branchId = (reservation as Record<string, unknown>).branch_id;
@@ -954,16 +973,29 @@ export default function DashboardPlanSalle() {
     enabled: !!selectedBranchId,
   });
   const layoutOverrides = layoutOverridesData ?? EMPTY_LAYOUT_OVERRIDES;
+  const reservationDateBounds = useMemo(
+    () => getReservationDateQueryBounds(referenceDate, timeRange),
+    [referenceDate, timeRange],
+  );
 
   const { data: reservationsData, isLoading: reservationsLoading, error: reservationsError } = useQuery({
-    queryKey: ["floor-plan-reservations", selectedId],
+    queryKey: ["floor-plan-reservations", selectedId, referenceDate, timeRange],
     queryFn: async () => {
-      const { data: reservationRows, error: reservationError } = await supabase
+      let reservationsQuery = supabase
         .from("reservations")
         .select("*")
-        .eq("restaurant_id", selectedId!)
+        .eq("restaurant_id", selectedId!);
+
+      if (reservationDateBounds) {
+        reservationsQuery = reservationsQuery
+          .gte("date", reservationDateBounds.startIso)
+          .lt("date", reservationDateBounds.endIso);
+      }
+
+      const { data: reservationRows, error: reservationError } = await reservationsQuery
         .order("date", { ascending: true })
-        .order("time", { ascending: true });
+        .order("time", { ascending: true })
+        .limit(FLOOR_PLAN_RESERVATIONS_LIMIT);
 
       if (reservationError) throw reservationError;
       if (!reservationRows?.length) return [] as ReservationWithCustomer[];

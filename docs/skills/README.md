@@ -32,6 +32,8 @@ Avant de générer du code, lire les skills dans `docs/skills/`.
 
 Priorités absolues : paiement fiable, commande fiable, Supabase sécurisé, RLS correcte, aucun secret exposé, aucune modification critique sans test, aucune requête non paginée sur table volumineuse, aucun webhook non idempotent, aucune migration destructive.
 
+Encodage obligatoire : tous les fichiers texte modifiés doivent rester en UTF-8. Vérifier les accents français et refuser tout mojibake avant de finir.
+
 Quand une fonctionnalité est modifiée :
 
 1. Identifier le domaine concerné : paiement, Supabase, restaurant, admin, SEO, média, IA, sécurité, performance.

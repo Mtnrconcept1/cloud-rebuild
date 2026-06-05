@@ -110,4 +110,19 @@ describe("admin marketplace alerts RPC", () => {
     expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_update_marketplace_alert\(text,\s*text,\s*text\)\s+FROM\s+anon/i);
     expect(sql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_update_marketplace_alert\(text,\s*text,\s*text\)\s+TO\s+authenticated,\s*service_role/i);
   });
+
+  it("hardens legacy marketplace alert tables surfaced by Supabase advisors", () => {
+    const sql = latestMigrationContaining(/admin_marketplace_alert_events_alert_id_idx/i);
+
+    expect(sql).toMatch(/ALTER\s+TABLE\s+public\.admin_marketplace_alerts\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/i);
+    expect(sql).toMatch(/ALTER\s+TABLE\s+public\.admin_marketplace_alert_events\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/i);
+    expect(sql).toMatch(/CREATE\s+POLICY\s+"admin_marketplace_alerts_admin_select"/i);
+    expect(sql).toMatch(/CREATE\s+POLICY\s+"admin_marketplace_alert_events_admin_insert"/i);
+    expect(sql).toMatch(/USING\s*\(\s*public\.has_role\(auth\.uid\(\),\s*'admin'\)\s*\)/i);
+    expect(sql).toMatch(/REVOKE\s+ALL\s+ON\s+public\.admin_marketplace_alerts\s+FROM\s+PUBLIC,\s*anon/i);
+    expect(sql).toMatch(/REVOKE\s+ALL\s+ON\s+public\.admin_marketplace_alert_events\s+FROM\s+PUBLIC,\s*anon/i);
+    expect(sql).toMatch(/GRANT\s+SELECT,\s*INSERT,\s*UPDATE\s+ON\s+public\.admin_marketplace_alerts\s+TO\s+authenticated/i);
+    expect(sql).toMatch(/GRANT\s+SELECT,\s*INSERT\s+ON\s+public\.admin_marketplace_alert_events\s+TO\s+authenticated/i);
+    expect(sql).toMatch(/CREATE\s+INDEX\s+IF\s+NOT\s+EXISTS\s+admin_marketplace_alert_events_alert_id_idx/i);
+  });
 });

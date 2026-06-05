@@ -7,6 +7,15 @@ function read(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
+function expectMenuItemsQueryBounded(source: string) {
+  const queryMatches = [...source.matchAll(/from\("menu_items"\)[\s\S]*?(?:;|return data \|\| \[\];)/g)];
+  expect(queryMatches.length).toBeGreaterThan(0);
+
+  for (const [query] of queryMatches) {
+    expect(query).toContain(".limit(PUBLIC_MENU_ITEMS_LIMIT)");
+  }
+}
+
 describe("public offer query governance", () => {
   it("keeps public special-offer pages bounded and cache-driven", () => {
     const antiGaspi = read("src/pages/AntiGaspi.tsx");
@@ -50,5 +59,28 @@ describe("public offer query governance", () => {
     expect(dashboardReservations).toContain(".limit(DASHBOARD_RESERVATIONS_FETCH_LIMIT)");
     expect(socialFeed).toContain(".limit(RESTAURANT_SOCIAL_POSTS_LIMIT)");
     expect(socialFeed).toContain(".limit(SOCIAL_COMMENTS_LIMIT)");
+  });
+
+  it("bounds public menu item reads used by guided checkout funnels", () => {
+    for (const file of [
+      "src/pages/CreneauxGarantis.tsx",
+      "src/pages/FlexPrixBas.tsx",
+      "src/pages/GarantieQualite.tsx",
+      "src/pages/MatchGroupes.tsx",
+      "src/pages/MultiRestaurant.tsx",
+      "src/pages/MultiStop.tsx",
+      "src/pages/ZeroAttente.tsx",
+      "src/components/cart/UpsellModal.tsx",
+    ]) {
+      expectMenuItemsQueryBounded(read(file));
+    }
+  });
+
+  it("bounds public restaurant discovery reads in guided checkout funnels", () => {
+    const matchGroupes = read("src/pages/MatchGroupes.tsx");
+    const multiRestaurant = read("src/pages/MultiRestaurant.tsx");
+
+    expect(matchGroupes).toContain(".limit(PUBLIC_RESTAURANTS_LIMIT)");
+    expect(multiRestaurant).toContain(".limit(PUBLIC_RESTAURANTS_LIMIT)");
   });
 });

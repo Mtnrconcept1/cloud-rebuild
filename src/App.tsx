@@ -17,6 +17,7 @@ import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navi
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { setupDeepLinks } from "@/lib/deep-links";
+import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 
@@ -143,6 +144,27 @@ function NativeIntegration() {
       for (const cleanup of cleanups.splice(0)) cleanup();
     };
   }, [navigate]);
+
+  return null;
+}
+
+function AdminHostBoundary() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const redirectTarget = getAdminHostRedirectTarget({
+      hostname: window.location.hostname,
+      pathname: location.pathname,
+      search: location.search,
+      hash: location.hash,
+    });
+
+    if (redirectTarget && redirectTarget !== window.location.href) {
+      window.location.replace(redirectTarget);
+    }
+  }, [location.hash, location.pathname, location.search]);
 
   return null;
 }
@@ -401,6 +423,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <AdminHostBoundary />
           <NativeIntegration />
           <AuthProvider>
             <CartProvider>

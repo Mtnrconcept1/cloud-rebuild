@@ -22,7 +22,7 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("admin Chef Table drops governance", () => {
   it("adds audited save/archive RPCs and blocks editing sold drops", () => {
-    const sql = latestMigrationContaining(/admin_save_chef_table_drop/i);
+    const sql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_save_chef_table_drop/i);
 
     expect(sql).toMatch(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+archived_at/i);
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_save_chef_table_drop/i);

@@ -13,6 +13,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
 
 const supabase = getSupabase();
 
@@ -47,7 +48,7 @@ export default function MultiStop() {
   const { data: menuItems } = useQuery({
     queryKey: ["menu-multistop", selectedRestaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category");
+      const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", selectedRestaurant.id).eq("is_available", true).order("category").limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
     enabled: !!selectedRestaurant,

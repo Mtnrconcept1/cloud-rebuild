@@ -42,4 +42,15 @@ describe("floor plan assignment governance", () => {
     expect(page).not.toMatch(/from\("reservation_slots" as any\)\)\s*[\s\S]{0,120}\.delete\(/);
     expect(page).not.toMatch(/from\("reservation_slots" as any\)\)\s*[\s\S]{0,120}\.insert\(/);
   });
+
+  it("bounds floor-plan reservation reads by the active date range", () => {
+    const page = read("src/pages/dashboard/DashboardPlanSalle.tsx");
+
+    expect(page).toContain("FLOOR_PLAN_RESERVATIONS_LIMIT");
+    expect(page).toContain('queryKey: ["floor-plan-reservations", selectedId, referenceDate, timeRange]');
+    expect(page).toContain("getDashboardTimeRangeBounds(referenceDate, timeRange)");
+    expect(page).toContain('.gte("date", reservationDateBounds.startIso)');
+    expect(page).toContain('.lt("date", reservationDateBounds.endIso)');
+    expect(page).toContain(".limit(FLOOR_PLAN_RESERVATIONS_LIMIT)");
+  });
 });

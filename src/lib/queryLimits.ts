@@ -1,0 +1,2 @@
+export const PUBLIC_MENU_ITEMS_LIMIT = 120;
+export const PUBLIC_RESTAURANTS_LIMIT = 80;

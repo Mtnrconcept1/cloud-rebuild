@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { calculateDistance } from "@/lib/geo";
 import { FeatureWizard, WizardBackButton, WizardNextButton } from "@/components/FeatureWizard";
+import { PUBLIC_MENU_ITEMS_LIMIT, PUBLIC_RESTAURANTS_LIMIT } from "@/lib/queryLimits";
 
 const supabase = getSupabase();
 
@@ -49,7 +50,8 @@ export default function MultiRestaurant() {
         .select("id, name, cuisine_type, image_url, rating, city, latitude, longitude")
         .eq("is_active", true)
         .eq("delivery_available", true)
-        .order("rating", { ascending: false });
+        .order("rating", { ascending: false })
+        .limit(PUBLIC_RESTAURANTS_LIMIT);
       return data || [];
     },
   });
@@ -62,7 +64,8 @@ export default function MultiRestaurant() {
         .select("*")
         .eq("restaurant_id", selectedRestaurantId!)
         .eq("is_available", true)
-        .order("category");
+        .order("category")
+        .limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
     enabled: !!selectedRestaurantId,

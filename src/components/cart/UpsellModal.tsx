@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Sparkles, X } from "lucide-react";
 import type { CartItem } from "@/lib/cart-context";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
 
 const supabase = getSupabase();
 
@@ -42,7 +43,8 @@ export default function UpsellModal({
           .from("menu_items")
           .select("*")
           .eq("restaurant_id", restaurantId)
-          .eq("is_available", true);
+          .eq("is_available", true)
+          .limit(PUBLIC_MENU_ITEMS_LIMIT);
 
         if (error || !data) return;
 

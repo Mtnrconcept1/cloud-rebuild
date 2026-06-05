@@ -23,7 +23,7 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("admin Launch Pack governance", () => {
   it("adds audited RPCs for status, fulfillment and feature locks", () => {
-    const sql = latestMigrationContaining(/admin_update_launch_pack_status/i);
+    const sql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_update_launch_pack_status/i);
 
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_update_launch_pack_status/i);
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_update_launch_pack_fulfillment/i);

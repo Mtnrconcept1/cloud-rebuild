@@ -43,7 +43,7 @@ describe("admin catalog governance", () => {
   });
 
   it("governs cuisine taxonomy through audited admin RPCs", () => {
-    const sql = latestMigrationContaining(/admin_upsert_cuisine/i);
+    const sql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_upsert_cuisine/i);
     const page = readFileSync(resolve(root, "src/pages/admin/AdminCatalog.tsx"), "utf8");
 
     expect(sql).toMatch(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+archived_at/i);
@@ -56,5 +56,14 @@ describe("admin catalog governance", () => {
     expect(page).toContain("Raison obligatoire pour archiver cette cuisine");
     expect(page).not.toContain('.from("cuisines").insert');
     expect(page).not.toContain('.from("cuisines").delete');
+  });
+
+  it("pins the cuisine slug normalizer search path after security lint", () => {
+    const sql = latestMigrationContaining(/admin_normalize_cuisine_slug/i);
+
+    expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_normalize_cuisine_slug\(p_name\s+text\)/i);
+    expect(sql).toMatch(/IMMUTABLE\s+SET\s+search_path\s*=\s*public/i);
+    expect(sql).toMatch(/REVOKE\s+ALL\s+ON\s+FUNCTION\s+public\.admin_normalize_cuisine_slug\(text\)\s+FROM\s+PUBLIC/i);
+    expect(sql).toMatch(/REVOKE\s+ALL\s+ON\s+FUNCTION\s+public\.admin_normalize_cuisine_slug\(text\)\s+FROM\s+anon/i);
   });
 });

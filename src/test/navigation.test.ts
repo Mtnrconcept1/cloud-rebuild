@@ -31,6 +31,7 @@ describe("getNavigationTargetFromAppUrl", () => {
   it("keeps supported Tok domains internal", () => {
     expect(getNavigationTargetFromAppUrl("https://www.thetok.ch/courier/jobs", "/")).toBe("/courier/jobs");
     expect(getNavigationTargetFromAppUrl("https://app.thetok.ch/notifications", "/")).toBe("/notifications");
+    expect(getNavigationTargetFromAppUrl("https://admin.thetok.ch/admin/audit", "/")).toBe("/admin/audit");
   });
 
   it("rejects https app links from untrusted domains", () => {

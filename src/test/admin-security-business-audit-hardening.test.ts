@@ -48,9 +48,11 @@ describe("admin security and business audit hardening", () => {
     expect(matchGroupPage).toContain('retry: false');
     expect(matchGroupPage).toContain('invokeSupabaseFunction<ConfirmMatchGroupAuthorizationResult>("confirm-match-group-authorization"');
     expect(matchGroupPage).toContain("pending_confirmation");
+    expect(confirmFunction).toContain('import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts"');
+    expect(confirmFunction).not.toContain('"Access-Control-Allow-Origin": "*"');
     expect(confirmFunction).toContain("pending_confirmation: true");
     expect(confirmFunction).toContain("retry_after_seconds: 15");
-    expect(confirmFunction).toContain("}, 202)");
+    expect(confirmFunction).toContain("}, 202, corsHeaders)");
   });
 
   it("keeps raw invoice generators behind service-role or audited admin wrappers", () => {
@@ -107,6 +109,28 @@ describe("admin security and business audit hardening", () => {
 
     expect(laterSql).not.toMatch(/CREATE\s+POLICY\s+"Authenticated can insert audit logs"/i);
     expect(laterSql).not.toMatch(/CREATE\s+POLICY\s+"System can insert audit logs"/i);
+  });
+
+  it("removes anonymous execution from late admin security definer RPCs", () => {
+    const migration = readMigration("20260605131641_admin_domain_and_advisor_hardening.sql");
+
+    for (const fn of [
+      "admin_archive_chef_table_drop",
+      "admin_archive_cuisine",
+      "admin_get_actualites_sponsored_posts",
+      "admin_log_admin_action",
+      "admin_review_social_post_promotion",
+      "admin_save_chef_table_drop",
+      "admin_update_launch_pack_fulfillment",
+      "admin_update_launch_pack_status",
+      "admin_update_restaurant_disabled_features",
+      "admin_upsert_cuisine",
+    ]) {
+      expect(migration).toContain(`'${fn}'`);
+    }
+
+    expect(migration).toContain("AND p.prosecdef");
+    expect(migration).toContain("REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC, anon");
   });
 
   it("surfaces security abuse monitoring in admin audit without automatic polling", () => {

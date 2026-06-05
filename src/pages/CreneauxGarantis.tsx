@@ -17,6 +17,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
 
 const supabase = getSupabase();
 
@@ -108,7 +109,8 @@ export default function CreneauxGarantis() {
         .select("*")
         .eq("restaurant_id", selectedRestaurant.id)
         .eq("is_available", true)
-        .order("category");
+        .order("category")
+        .limit(PUBLIC_MENU_ITEMS_LIMIT);
       return data || [];
     },
     enabled: !!selectedRestaurant,
