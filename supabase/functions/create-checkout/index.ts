@@ -5,7 +5,6 @@ import {
   authenticateRequest,
   buildRequestMetadata,
   createAdminClient,
-  getEnv,
   jsonResponse,
   requireRestaurantAccess,
   writeAuditLog,
@@ -13,6 +12,7 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
+import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
 import { isTokOneEntitledStatus } from "../_shared/tok-one.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
@@ -77,16 +77,9 @@ Deno.serve(async (req) => {
       checkout_kind,
     } = await req.json();
 
-    const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) {
-      throw new HttpError(503, "STRIPE_SECRET_KEY not configured");
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-08-27.basil",
-    });
-
     const effectiveKind = checkout_kind || order_metadata?.checkout_kind || "order";
+    const stripeRuntime = getStripeRuntimeForCheckoutKind(effectiveKind);
+    const stripe = stripeRuntime.stripe;
     const safeReturnUrl = normalizeCheckoutReturnUrl(return_url);
     if (!safeReturnUrl) {
       throw new HttpError(400, "URL de retour invalide");
@@ -126,6 +119,8 @@ Deno.serve(async (req) => {
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
       checkout_kind: effectiveKind,
+      stripe_mode: stripeRuntime.mode,
+      stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
       payment_method_label: String(payment_method || "card"),
       order_reference: String(order_metadata?.order_reference || ""),
       restaurant_id: String(order_metadata?.restaurant_id || ""),
@@ -145,6 +140,10 @@ Deno.serve(async (req) => {
       points_to_redeem: String(order_metadata?.points_to_redeem || 0),
       points_discount_amount: "0.00",
       flex_discount_amount: "0.00",
+      miamz_delivery_discount_amount: "0.00",
+      miamz_delivery_discount_percent: "0.00",
+      miamz_benefits_applied: "",
+      miamz_points_multiplier: "1.00",
       authoritative_total: "0.00",
       pre_discount_subtotal: String(order_metadata?.pre_discount_subtotal || ""),
       arrival_date: String(order_metadata?.arrival_date || ""),
@@ -296,6 +295,8 @@ Deno.serve(async (req) => {
         plan_id: plan.id,
         plan_name: plan.name,
         billing_period: billingPeriod,
+        stripe_mode: stripeRuntime.mode,
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
         authoritative_total: amount.toFixed(2),
       };
     } else if (effectiveKind === "campaign") {
@@ -488,10 +489,14 @@ Deno.serve(async (req) => {
       let tokOneDeliveryDiscountTotal = 0;
       let tokOneMemberAny = false;
       let tokOneDiscountPercentMax = 0;
+      let miamzDeliveryDiscountTotal = 0;
+      let miamzDeliveryDiscountPercentMax = 0;
+      let miamzPointsMultiplierMax = 1;
       let pointsDiscountTotal = 0;
       let flexDiscountTotal = 0;
       const primaryFormulaNames: string[] = [];
       const primaryPromoNames: string[] = [];
+      const miamzBenefitsApplied = new Set<string>();
 
       for (const [index, [paymentGroupKey, group]] of Array.from(groupedItems.entries()).entries()) {
         const { groupRestaurantId, items: restaurantItems } = group;
@@ -572,6 +577,14 @@ Deno.serve(async (req) => {
         if (pricing.tokOneDiscountPercent > tokOneDiscountPercentMax) {
           tokOneDiscountPercentMax = pricing.tokOneDiscountPercent;
         }
+        miamzDeliveryDiscountTotal += pricing.miamzDeliveryDiscount;
+        if (pricing.miamzDeliveryDiscountPercent > miamzDeliveryDiscountPercentMax) {
+          miamzDeliveryDiscountPercentMax = pricing.miamzDeliveryDiscountPercent;
+        }
+        if (pricing.miamzPointsMultiplier > miamzPointsMultiplierMax) {
+          miamzPointsMultiplierMax = pricing.miamzPointsMultiplier;
+        }
+        pricing.miamzBenefitsApplied.forEach((benefitId) => miamzBenefitsApplied.add(benefitId));
         pointsDiscountTotal += pricing.pointsDiscount;
         flexDiscountTotal += pricing.flexDiscount;
 
@@ -580,7 +593,15 @@ Deno.serve(async (req) => {
       }
 
 
-      discountCents = Math.round((formulaDiscountTotal + promoDiscountTotal + tokOneDiscountTotal + tokOneDeliveryDiscountTotal + pointsDiscountTotal + flexDiscountTotal) * 100);
+      discountCents = Math.round((
+        formulaDiscountTotal
+        + promoDiscountTotal
+        + tokOneDiscountTotal
+        + tokOneDeliveryDiscountTotal
+        + miamzDeliveryDiscountTotal
+        + pointsDiscountTotal
+        + flexDiscountTotal
+      ) * 100);
       sessionMetadata = {
         ...sessionMetadata,
         restaurant_id: primaryRestaurantId,
@@ -595,6 +616,10 @@ Deno.serve(async (req) => {
         tok_one_discount_percent: tokOneDiscountPercentMax.toFixed(2),
         tok_one_delivery_saved: tokOneDeliveryDiscountTotal.toFixed(2),
         tok_one_total_saved: (tokOneDiscountTotal + tokOneDeliveryDiscountTotal).toFixed(2),
+        miamz_delivery_discount_amount: miamzDeliveryDiscountTotal.toFixed(2),
+        miamz_delivery_discount_percent: miamzDeliveryDiscountPercentMax.toFixed(2),
+        miamz_benefits_applied: Array.from(miamzBenefitsApplied).join(","),
+        miamz_points_multiplier: miamzPointsMultiplierMax.toFixed(2),
         points_discount_amount: pointsDiscountTotal.toFixed(2),
         flex_discount_amount: flexDiscountTotal.toFixed(2),
         authoritative_total: authoritativeTotal.toFixed(2),
@@ -638,9 +663,12 @@ Deno.serve(async (req) => {
     if (discountCents > 0) {
       const hasTokOneDiscount = toMoney(sessionMetadata.tok_one_discount_amount) > 0
         || toMoney(sessionMetadata.tok_one_delivery_saved) > 0;
+      const hasMiamzDiscount = toMoney(sessionMetadata.miamz_delivery_discount_amount) > 0;
       const couponName = hasTokOneDiscount
         ? "Avantage Tok One"
-        : sessionMetadata.formula_applied
+        : hasMiamzDiscount
+          ? "Avantage Miamz"
+          : sessionMetadata.formula_applied
           ? `Reduction ${sessionMetadata.formula_applied}`
           : "Reduction commande";
       const coupon = await stripe.coupons.create({
@@ -746,6 +774,8 @@ Deno.serve(async (req) => {
         checkout_kind: auditKind,
         session_id: session.id,
         payment_method: payment_method || "card",
+        stripe_mode: stripeRuntime.mode,
+        stripe_key_scope: stripeRuntime.isolatedTokOneKey ? "tok_one" : "default",
         line_items: lineItems.length,
         zero_attente_hold_reservation_id: zeroAttenteHoldReservationId || null,
         chef_table_hold_count: chefTableHoldCount || null,

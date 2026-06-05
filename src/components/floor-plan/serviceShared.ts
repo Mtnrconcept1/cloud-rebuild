@@ -108,6 +108,23 @@ function getReservationMetadataRecord(reservation: ReservationRow) {
   return isJsonRecord(reservation.metadata) ? reservation.metadata : {};
 }
 
+export function getReservationMiamzPriority(reservation: ReservationRow) {
+  const metadata = getReservationMetadataRecord(reservation);
+  const rawPriority = metadata.miamz_priority_score
+    ?? (isJsonRecord(metadata.miamz) ? metadata.miamz.reservation_priority_score : null);
+  const priority = Number(rawPriority);
+  return Number.isFinite(priority) ? Math.max(0, Math.round(priority)) : 0;
+}
+
+export function getReservationMiamzPriorityLabel(reservation: ReservationRow) {
+  const metadata = getReservationMetadataRecord(reservation);
+  if (typeof metadata.miamz_priority_label === "string" && metadata.miamz_priority_label.trim()) {
+    return metadata.miamz_priority_label.trim();
+  }
+
+  return getReservationMiamzPriority(reservation) > 0 ? "Priorite Miamz" : null;
+}
+
 function getReservationFeature(reservation: ReservationRow) {
   const explicitFeature = normalizeReservationFeature(reservation.feature);
   const metadataFeature = normalizeReservationFeature(getReservationMetadataRecord(reservation).feature);
@@ -247,6 +264,12 @@ export function scoreReservationPlacement({
   if (isZeroAttenteReservation(reservation)) {
     score += 4;
     reasons.push("Zéro Attente priorise");
+  }
+
+  const miamzPriority = getReservationMiamzPriority(reservation);
+  if (miamzPriority > 0) {
+    score += Math.min(12, Math.ceil(miamzPriority / 10));
+    reasons.push("Priorite Miamz");
   }
 
   return {

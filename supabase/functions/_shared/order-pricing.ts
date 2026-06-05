@@ -120,6 +120,10 @@ export type VerifiedOrderPricing = {
   tokOneDiscountPercent: number;
   tokOneDeliveryDiscount: number;
   tokOneTotalSaved: number;
+  miamzBenefitsApplied: string[];
+  miamzPointsMultiplier: number;
+  miamzDeliveryDiscount: number;
+  miamzDeliveryDiscountPercent: number;
   pointsDiscount: number;
   flexDiscount: number;
   originalTotal: number;
@@ -562,6 +566,54 @@ function normalizeBenefitList(value: unknown) {
       .filter(Boolean);
   }
   return [];
+}
+
+async function resolveMiamzPricing(input: {
+  adminClient: any;
+  userId: string;
+  isDeliveryJourney: boolean;
+  deliveryFee: number;
+}) {
+  const defaults = {
+    miamzBenefitsApplied: [] as string[],
+    miamzPointsMultiplier: 1,
+    miamzDeliveryDiscount: 0,
+    miamzDeliveryDiscountPercent: 0,
+  };
+
+  try {
+    const { data, error } = await input.adminClient.rpc("resolve_miamz_benefit_state", {
+      p_user_id: input.userId,
+    });
+
+    if (error) throw error;
+
+    const state = asRecord(data);
+    const effects = asRecord(state?.effects);
+    const miamzBenefitsApplied = normalizeBenefitList(state?.active_benefit_ids);
+    const hasDeliveryFeeBoost = miamzBenefitsApplied.includes("delivery_fee_boost");
+    const miamzPointsMultiplier = Math.max(1, toNumber(effects?.points_multiplier, 1));
+    const deliveryPercent = hasDeliveryFeeBoost
+      ? Math.max(0, toNumber(effects?.delivery_fee_discount_percent))
+      : 0;
+    const deliveryCap = Math.max(0, toNumber(effects?.delivery_fee_discount_cap));
+    const rawDeliveryDiscount = input.isDeliveryJourney && input.deliveryFee > 0 && deliveryPercent > 0
+      ? roundCurrency((input.deliveryFee * deliveryPercent) / 100)
+      : 0;
+    const miamzDeliveryDiscount = roundCurrency(
+      deliveryCap > 0 ? Math.min(rawDeliveryDiscount, deliveryCap) : rawDeliveryDiscount,
+    );
+
+    return {
+      miamzBenefitsApplied,
+      miamzPointsMultiplier,
+      miamzDeliveryDiscount,
+      miamzDeliveryDiscountPercent: deliveryPercent,
+    };
+  } catch (error) {
+    console.error("Miamz pricing resolution failed:", error);
+    return defaults;
+  }
 }
 
 const TOK_ONE_CONTEXT_ALIASES: Record<TokOneJourney, string[]> = {
@@ -1047,6 +1099,12 @@ export async function buildVerifiedOrderPricing(input: {
     subtotal,
     deliveryFee,
   });
+  const miamzPricing = await resolveMiamzPricing({
+    adminClient: input.adminClient,
+    userId: input.userId,
+    isDeliveryJourney,
+    deliveryFee,
+  });
 
   const hasQualityGuarantee = Boolean(metadata.quality_guarantee) || items.some((item) => item.menu_item_id === "garantie-qualite-fee");
   const qualityFee = hasQualityGuarantee ? QUALITY_GUARANTEE_FEE : 0;
@@ -1112,7 +1170,13 @@ export async function buildVerifiedOrderPricing(input: {
   const discountAmount = roundCurrency(
     Math.min(
       originalTotal,
-      formula.amount + selectedPromo.amount + tokOnePricing.tokOneDiscount + tokOnePricing.tokOneDeliveryDiscount + pointsDiscount + flexDiscount,
+      formula.amount
+        + selectedPromo.amount
+        + tokOnePricing.tokOneDiscount
+        + tokOnePricing.tokOneDeliveryDiscount
+        + miamzPricing.miamzDeliveryDiscount
+        + pointsDiscount
+        + flexDiscount,
     ),
   );
 
@@ -1135,6 +1199,10 @@ export async function buildVerifiedOrderPricing(input: {
     tokOneDiscountPercent: tokOnePricing.tokOneDiscountPercent,
     tokOneDeliveryDiscount: tokOnePricing.tokOneDeliveryDiscount,
     tokOneTotalSaved: tokOnePricing.tokOneTotalSaved,
+    miamzBenefitsApplied: miamzPricing.miamzBenefitsApplied,
+    miamzPointsMultiplier: miamzPricing.miamzPointsMultiplier,
+    miamzDeliveryDiscount: miamzPricing.miamzDeliveryDiscount,
+    miamzDeliveryDiscountPercent: miamzPricing.miamzDeliveryDiscountPercent,
     pointsDiscount,
     flexDiscount,
     originalTotal,

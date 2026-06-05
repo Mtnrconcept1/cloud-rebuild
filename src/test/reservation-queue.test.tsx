@@ -127,6 +127,33 @@ describe("ReservationQueue", () => {
     expect(onReservationPress).toHaveBeenCalledWith("middle-assigned");
   });
 
+  it("prioritizes Miamz reservations in the service timeline", () => {
+    renderReservationQueue({
+      unassignedReservations: [
+        reservation({
+          id: "regular",
+          time: "18:30",
+          customer: { full_name: "Regular", phone: null },
+        }),
+        reservation({
+          id: "miamz-priority",
+          time: "20:15",
+          customer: { full_name: "VIP Miamz", phone: null },
+          metadata: {
+            miamz_priority_score: 60,
+            miamz_priority_label: "VIP Miamz",
+          },
+        }),
+      ],
+    });
+
+    const timeline = screen.getByTestId("reservation-service-timeline");
+    const rows = within(timeline).getAllByRole("button");
+
+    expect(rows[0].textContent).toContain("VIP Miamz");
+    expect(rows[0].textContent).toContain("Priorite Miamz");
+  });
+
   it("assigns an unassigned reservation to its recommended table from the queue", () => {
     const onAssignReservationToTable = vi.fn();
     renderReservationQueue({

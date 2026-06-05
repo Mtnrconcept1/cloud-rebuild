@@ -251,6 +251,15 @@ function getRefundReference(refund: RefundQueueItem) {
   return refund.reference || refund.target_id.slice(0, 8);
 }
 
+function getRefundMiamzPriorityLabel(refund: RefundQueueItem) {
+  const score = Number(refund.miamz_priority_score || 0);
+  if (!Number.isFinite(score) || score <= 0) return null;
+
+  const priority = String(refund.miamz_priority || "").toLowerCase();
+  if (priority === "urgent") return "Urgence Miamz";
+  return "Priorite Miamz";
+}
+
 function EmptyMobileHistory({ children }: { children: string }) {
   return (
     <div className="rounded-xl border border-dashed bg-muted/20 px-4 py-6 text-center text-sm text-muted-foreground md:hidden">
@@ -669,11 +678,20 @@ export default function AdminOrdersReservations() {
         refund.feature,
         refund.target_id,
         refund.payment_method,
+        refund.miamz_priority,
       ]
         .map((value) => String(value || "").toLowerCase())
         .join(" ");
 
       return haystack.includes(normalizedSearch);
+    }).sort((left, right) => {
+      const leftPriority = Number(left.miamz_priority_score || 0);
+      const rightPriority = Number(right.miamz_priority_score || 0);
+      if (rightPriority !== leftPriority) return rightPriority - leftPriority;
+
+      const leftDate = String(left.cancelled_at || left.created_at || "");
+      const rightDate = String(right.cancelled_at || right.created_at || "");
+      return rightDate.localeCompare(leftDate);
     });
   }, [deferredSearch, endDate, refundQueue, restaurantFilter, startDate]);
 
@@ -1253,6 +1271,7 @@ export default function AdminOrdersReservations() {
                   <TableBody>
                     {filteredRefunds.map((refund) => {
                       const status = getHistoryStatusPresentation(refund.refund_status || "pending", refund.payment_status);
+                      const miamzPriorityLabel = getRefundMiamzPriorityLabel(refund);
                       return (
                       <TableRow
                         key={`${refund.target_type}-${refund.target_id}`}
@@ -1279,7 +1298,14 @@ export default function AdminOrdersReservations() {
                         <TableCell data-label="Restaurant" className="text-sm">{refund.restaurant_name || "-"}</TableCell>
                         <TableCell data-label="Détails">
                           <div className="space-y-1">
-                            <Badge variant="outline">{refund.target_type === "order" ? "Commande" : "Reservation"}</Badge>
+                            <div className="flex flex-wrap gap-1">
+                              <Badge variant="outline">{refund.target_type === "order" ? "Commande" : "Reservation"}</Badge>
+                              {miamzPriorityLabel ? (
+                                <Badge className="border border-pink-200 bg-pink-50 text-pink-800">
+                                  {miamzPriorityLabel}
+                                </Badge>
+                              ) : null}
+                            </div>
                             <p className="text-xs text-muted-foreground">
                               {refund.feature || "Sans libelle"} · annule par {refund.cancelled_by || "inconnu"}
                             </p>
@@ -1373,6 +1399,9 @@ export default function AdminOrdersReservations() {
                 <p><strong>Feature:</strong> {selectedRefund.feature || "-"}</p>
                 <p><strong>Annule par:</strong> {selectedRefund.cancelled_by || "-"}</p>
                 <p><strong>Statut refund:</strong> {selectedRefund.refund_status || "pending"}</p>
+                {getRefundMiamzPriorityLabel(selectedRefund) ? (
+                  <p><strong>Priorite:</strong> {getRefundMiamzPriorityLabel(selectedRefund)}</p>
+                ) : null}
                 {selectedRefund.refund_reason ? (
                   <p><strong>Motif:</strong> {selectedRefund.refund_reason}</p>
                 ) : null}

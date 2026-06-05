@@ -3,9 +3,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
 import {
   getLockedTierBenefits,
   getLoyaltyStatus,
@@ -17,6 +18,8 @@ const supabase = getSupabase();
 
 export default function LoyaltyStatus() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: profile } = useQuery({
     queryKey: ["profile-loyalty", user?.id],
     queryFn: async () => {
@@ -35,6 +38,30 @@ export default function LoyaltyStatus() {
       return data || [];
     },
     enabled: !!user,
+  });
+  const birthdayBonusMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("claim_miamz_birthday_bonus");
+      if (error) throw error;
+      return data as { already_claimed?: boolean; points?: number } | null;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["profile-loyalty"] });
+      queryClient.invalidateQueries({ queryKey: ["loyalty-transactions"] });
+      toast({
+        title: result?.already_claimed ? "Bonus deja reclame" : "Bonus anniversaire ajoute",
+        description: result?.already_claimed
+          ? "Votre bonus anniversaire MIAMZ a deja ete utilise cette annee."
+          : `${Number(result?.points || 0).toLocaleString()} Miamz ajoutes a votre solde.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Bonus indisponible",
+        description: error?.message || "Le bonus anniversaire ne peut pas etre reclame maintenant.",
+        variant: "destructive",
+      });
+    },
   });
 
   if (!user || !profile) return null;
@@ -118,6 +145,19 @@ export default function LoyaltyStatus() {
                         <span>{benefit.title}</span>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">{benefit.description}</p>
+                      {benefit.id === "birthday_bonus" ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="mt-3 h-8 rounded-md px-2 text-xs"
+                          aria-label={`Bonus anniversaire - ${benefit.title}`}
+                          disabled={birthdayBonusMutation.isPending}
+                          onClick={() => birthdayBonusMutation.mutate()}
+                        >
+                          {birthdayBonusMutation.isPending ? "Traitement..." : "Reclamer"}
+                        </Button>
+                      ) : null}
                     </div>
                   ))}
                 </div>

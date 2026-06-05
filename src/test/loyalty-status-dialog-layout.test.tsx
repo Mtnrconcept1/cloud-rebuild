@@ -9,6 +9,7 @@ const testState = vi.hoisted(() => ({
     current_tier: "gold",
   },
   tiers: [] as Array<{ name: string; benefits: Record<string, unknown> }>,
+  mutate: vi.fn(),
 }));
 
 vi.mock("@/lib/auth-context", () => ({
@@ -25,6 +26,13 @@ vi.mock("@tanstack/react-query", () => ({
 
     return { data: testState.profile };
   },
+  useMutation: () => ({
+    mutate: testState.mutate,
+    isPending: false,
+  }),
+  useQueryClient: () => ({
+    invalidateQueries: vi.fn(),
+  }),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -42,6 +50,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 describe("LoyaltyStatus dialog layout", () => {
   beforeEach(() => {
     testState.tiers = [];
+    testState.mutate.mockReset();
   });
 
   it("opens above the mobile navbar and keeps benefits scrollable", () => {
@@ -84,5 +93,25 @@ describe("LoyaltyStatus dialog layout", () => {
     expect(screen.getByText("Invitation dégustation admin")).toBeInTheDocument();
     expect(screen.getByText("Texte visible piloté depuis le Dashboard admin.")).toBeInTheDocument();
     expect(screen.queryByText("Support prioritaire")).not.toBeInTheDocument();
+  });
+
+  it("lets eligible members claim the birthday Miamz bonus from an active benefit", () => {
+    testState.tiers = [
+      {
+        name: "gold",
+        benefits: {
+          miamz_benefits: {
+            birthday_bonus: { enabled: true },
+          },
+        },
+      },
+    ];
+
+    render(<LoyaltyStatus />);
+
+    fireEvent.click(screen.getByRole("button", { name: /d.couvrir les avantages/i }));
+    fireEvent.click(screen.getByRole("button", { name: /bonus anniversaire/i }));
+
+    expect(testState.mutate).toHaveBeenCalledTimes(1);
   });
 });

@@ -5653,6 +5653,8 @@ export type Database = {
           id: string
           plan_id: string
           status: string
+          stripe_checkout_session_id: string | null
+          stripe_mode: string
           stripe_subscription_id: string | null
           updated_at: string
           user_id: string
@@ -5665,6 +5667,8 @@ export type Database = {
           id?: string
           plan_id: string
           status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_mode?: string
           stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
@@ -5677,6 +5681,8 @@ export type Database = {
           id?: string
           plan_id?: string
           status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_mode?: string
           stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string

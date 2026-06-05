@@ -124,15 +124,48 @@ export default function TokOne() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get("status");
+    const sessionId = params.get("session_id");
     if (status === "success") {
-      toast({ title: "Bienvenue dans Tok One !", description: "Votre abonnement ou votre essai gratuit est en cours d'activation." });
-      queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
-      window.history.replaceState({}, "", window.location.pathname);
+      if (!user) return;
+
+      let cancelled = false;
+      const syncSubscription = async () => {
+        try {
+          if (sessionId) {
+            const { error } = await supabase.functions.invoke("manage-tok-one-subscription", {
+              body: {
+                action: "sync_checkout_session",
+                session_id: sessionId,
+              },
+            });
+            if (error) throw error;
+          }
+
+          if (!cancelled) {
+            toast({ title: "Bienvenue dans Tok One !", description: "Votre abonnement est actif. Vous pouvez tester vos avantages." });
+          }
+        } catch (error: unknown) {
+          if (!cancelled) {
+            const message = error instanceof Error ? error.message : "La synchronisation Tok One est en attente.";
+            toast({ title: "Activation Tok One", description: message, variant: "destructive" });
+          }
+        } finally {
+          if (!cancelled) {
+            queryClient.invalidateQueries({ queryKey: ["tok-one-subscription"] });
+            window.history.replaceState({}, "", window.location.pathname);
+          }
+        }
+      };
+
+      void syncSubscription();
+      return () => {
+        cancelled = true;
+      };
     } else if (status === "cancelled") {
       toast({ title: "Paiement annulé", variant: "destructive" });
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [toast, queryClient]);
+  }, [toast, queryClient, user]);
 
   const { data: plans, isLoading: plansLoading } = useTokOnePlans();
   const { data: activeSubscription } = useTokOneSubscription();

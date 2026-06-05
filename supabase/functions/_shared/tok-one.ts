@@ -33,7 +33,7 @@ async function findExistingTokOneSubscription(input: {
   if (stripeSubscriptionId) {
     const { data, error } = await adminClient
       .from("tok_one_subscriptions")
-      .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id")
+      .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
       .eq("stripe_subscription_id", stripeSubscriptionId)
       .maybeSingle();
 
@@ -45,7 +45,7 @@ async function findExistingTokOneSubscription(input: {
 
   const { data, error } = await adminClient
     .from("tok_one_subscriptions")
-    .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id")
+    .select("id, user_id, plan_id, status, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
     .eq("user_id", userId)
     .eq("plan_id", planId)
     .order("created_at", { ascending: false })
@@ -59,7 +59,7 @@ async function findExistingTokOneSubscription(input: {
 export async function getLatestTokOneSubscription(adminClient: AdminClient, userId: string) {
   const { data, error } = await adminClient
     .from("tok_one_subscriptions")
-    .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id")
+    .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -74,8 +74,17 @@ export async function syncTokOneSubscriptionRecord(input: {
   subscription: Stripe.Subscription;
   fallbackUserId?: string | null;
   fallbackPlanId?: string | null;
+  stripeMode?: "live" | "test" | string | null;
+  stripeCheckoutSessionId?: string | null;
 }) {
-  const { adminClient, subscription, fallbackUserId = null, fallbackPlanId = null } = input;
+  const {
+    adminClient,
+    subscription,
+    fallbackUserId = null,
+    fallbackPlanId = null,
+    stripeMode = null,
+    stripeCheckoutSessionId = null,
+  } = input;
   const metadata = subscription.metadata || {};
 
   const existing = await findExistingTokOneSubscription({
@@ -110,6 +119,8 @@ export async function syncTokOneSubscriptionRecord(input: {
     current_period_end: toIsoFromUnix(subscription.current_period_end, fallbackDate),
     cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
     stripe_subscription_id: subscription.id,
+    stripe_mode: stripeMode === "test" ? "test" : stripeMode === "live" ? "live" : (existing?.stripe_mode || "live"),
+    stripe_checkout_session_id: stripeCheckoutSessionId || existing?.stripe_checkout_session_id || null,
   };
 
   const { data, error } = existing?.id
@@ -117,12 +128,12 @@ export async function syncTokOneSubscriptionRecord(input: {
       .from("tok_one_subscriptions")
       .update(payload)
       .eq("id", existing.id)
-      .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id")
+      .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
       .single()
     : await adminClient
       .from("tok_one_subscriptions")
       .insert(payload)
-      .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id")
+      .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
       .single();
 
   if (error) throw error;

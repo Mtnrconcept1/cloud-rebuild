@@ -18,6 +18,11 @@ import {
   isTokOneEntitledStatus,
   syncTokOneSubscriptionRecord,
 } from "../_shared/tok-one.ts";
+import {
+  getStripeVerificationRuntime,
+  getStripeWebhookSigningSecrets,
+  getTokOneStripeRuntime,
+} from "../_shared/stripe-client.ts";
 import { computeDisabledDashboardFeatures } from "../_shared/pack-entitlements.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -43,24 +48,6 @@ function getCampaignId(metadata: unknown) {
     : null;
 }
 
-function splitWebhookSecrets(value: string | null) {
-  if (!value) return [];
-
-  return value
-    .split(/[,\n]/)
-    .map((secret) => secret.trim())
-    .filter(Boolean);
-}
-
-function getStripeWebhookSecrets() {
-  return Array.from(
-    new Set([
-      ...splitWebhookSecrets(getEnv("STRIPE_WEBHOOK_SECRET")),
-      ...splitWebhookSecrets(getEnv("STRIPE_WEBHOOK_SIGNING_SECRET")),
-    ]),
-  );
-}
-
 async function recordTokOnePaymentIfMissing(input: {
   adminClient: ReturnType<typeof createClient>;
   session: Stripe.Checkout.Session;
@@ -68,6 +55,7 @@ async function recordTokOnePaymentIfMissing(input: {
   planId: string;
   billingPeriod: string;
   stripeSubscriptionId: string | null;
+  stripeMode: "live" | "test";
   eventId: string;
   log?: LoggerLike;
 }) {
@@ -78,6 +66,7 @@ async function recordTokOnePaymentIfMissing(input: {
     planId,
     billingPeriod,
     stripeSubscriptionId,
+    stripeMode,
     eventId,
     log,
   } = input;
@@ -117,6 +106,7 @@ async function recordTokOnePaymentIfMissing(input: {
         plan_id: planId,
         billing_period: billingPeriod,
         stripe_subscription_id: stripeSubscriptionId,
+        stripe_mode: stripeMode,
         stripe_event_id: eventId,
       },
     });
@@ -133,14 +123,13 @@ Deno.serve(async (req) => {
     return new Response("Method not allowed", { status: 405 });
   }
 
-  const stripeSecretKey = getEnv("STRIPE_SECRET_KEY");
-  if (!stripeSecretKey) {
-    return new Response("STRIPE_SECRET_KEY not configured", { status: 503 });
+  let stripeRuntime: ReturnType<typeof getStripeVerificationRuntime>;
+  try {
+    stripeRuntime = getStripeVerificationRuntime();
+  } catch {
+    return new Response("Stripe verification secret not configured", { status: 503 });
   }
-
-  const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: "2025-08-27.basil",
-  });
+  const stripe = stripeRuntime.stripe;
 
   const supabaseAdmin = createClient(
     getEnv("SUPABASE_URL"),
@@ -149,7 +138,7 @@ Deno.serve(async (req) => {
 
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
-  const webhookSecrets = getStripeWebhookSecrets();
+  const webhookSecrets = getStripeWebhookSigningSecrets();
 
   if (webhookSecrets.length === 0) {
     await writeAuditLog({
@@ -327,6 +316,7 @@ Deno.serve(async (req) => {
           const userId = session.metadata?.user_id || null;
           const planId = session.metadata?.plan_id || null;
           const billingPeriod = session.metadata?.billing_period || "monthly";
+          const tokOneStripeRuntime = getTokOneStripeRuntime(event.livemode ? "live" : "test");
 
           if (!userId || !planId) {
             log.warn("tok_one_missing_metadata", { sessionId: session.id });
@@ -335,12 +325,14 @@ Deno.serve(async (req) => {
 
           let stripeSubscription: Stripe.Subscription | null = null;
           if (typeof session.subscription === "string") {
-            stripeSubscription = await stripe.subscriptions.retrieve(session.subscription);
+            stripeSubscription = await tokOneStripeRuntime.stripe.subscriptions.retrieve(session.subscription);
             await syncTokOneSubscriptionRecord({
               adminClient: supabaseAdmin,
               subscription: stripeSubscription,
               fallbackUserId: userId,
               fallbackPlanId: planId,
+              stripeMode: tokOneStripeRuntime.mode,
+              stripeCheckoutSessionId: session.id,
             });
           } else {
             log.warn("tok_one_no_subscription", { sessionId: session.id });
@@ -353,6 +345,7 @@ Deno.serve(async (req) => {
             planId,
             billingPeriod,
             stripeSubscriptionId: stripeSubscription?.id || null,
+            stripeMode: tokOneStripeRuntime.mode,
             eventId: event.id,
             log,
           });
@@ -373,6 +366,7 @@ Deno.serve(async (req) => {
                 plan_id: planId,
                 billing_period: billingPeriod,
                 stripe_subscription_id: stripeSubscription?.id || null,
+                stripe_mode: tokOneStripeRuntime.mode,
               },
             });
             await triggerNotificationDispatch({ source: "stripe-webhook-tok-one", push: true, email: true });
@@ -756,6 +750,7 @@ Deno.serve(async (req) => {
         const syncResult = await syncTokOneSubscriptionRecord({
           adminClient: supabaseAdmin,
           subscription,
+          stripeMode: event.livemode ? "live" : "test",
         });
 
         if (!syncResult.updated) {

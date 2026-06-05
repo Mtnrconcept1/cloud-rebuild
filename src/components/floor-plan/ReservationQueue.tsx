@@ -15,6 +15,8 @@ import {
   type ServiceDraftTable,
   type ServiceReservation,
   getReservationCustomerLabel,
+  getReservationMiamzPriority,
+  getReservationMiamzPriorityLabel,
   getReservationSpecialRequest,
   getReservationStatusTone,
   getSafeTime,
@@ -79,6 +81,8 @@ function ReservationQueueItem({
   const serviceLabel = getServicePeriodLabel(getServicePeriodFromMetadata(reservation.metadata, reservation.time));
   const note = getReservationSpecialRequest(reservation);
   const isZeroAttente = isZeroAttenteReservation(reservation);
+  const miamzPriority = getReservationMiamzPriority(reservation);
+  const miamzPriorityLabel = getReservationMiamzPriorityLabel(reservation);
   const dropState = selectedTable ? getReservationDropState(reservation.id, selectedTable.id) : null;
 
   return (
@@ -110,6 +114,11 @@ function ReservationQueueItem({
             {isZeroAttente ? (
               <Badge className={cn("border", isSelected ? "border-teal-300 bg-teal-400/20 text-teal-50" : "border-teal-200 bg-teal-50 text-teal-800")}>
                 Zéro Attente
+              </Badge>
+            ) : null}
+            {miamzPriority > 0 ? (
+              <Badge className={cn("border", isSelected ? "border-pink-200/30 bg-pink-400/15 text-pink-50" : "border-pink-200 bg-pink-50 text-pink-800")}>
+                {miamzPriorityLabel || "Priorite Miamz"}
               </Badge>
             ) : null}
             <Badge className={cn("border", isSelected ? "border-white/15 bg-white/10 text-white" : getReservationStatusTone(reservation.status))}>
@@ -261,9 +270,13 @@ export default function ReservationQueue({
           reservation,
           assignedTable,
           sortKey: getServiceTimelineSortKey(reservation),
+          miamzPriority: getReservationMiamzPriority(reservation),
         };
       })
-      .sort((left, right) => left.sortKey.localeCompare(right.sortKey))
+      .sort((left, right) => (
+        right.miamzPriority - left.miamzPriority
+        || left.sortKey.localeCompare(right.sortKey)
+      ))
       .slice(0, 8);
   }, [assignedReservations, draftAssignments, tableMap, unassignedReservations]);
 
@@ -342,13 +355,14 @@ export default function ReservationQueue({
             <div className="mt-3 grid gap-2">
               {serviceTimeline.map(({ reservation, assignedTable }) => {
                 const isTimelineSelected = reservation.id === selectedReservationId;
+                const miamzPriority = getReservationMiamzPriority(reservation);
 
                 return (
                   <button
                     key={`timeline-${reservation.id}`}
                     type="button"
                     className={cn(
-                      "grid min-h-11 grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors sm:grid-cols-[52px_minmax(0,1fr)_auto_auto]",
+                      "grid min-h-11 grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors sm:grid-cols-[52px_minmax(0,1fr)_auto_auto_auto]",
                       isTimelineSelected
                         ? "border-slate-900 bg-slate-900 text-white"
                         : "border-slate-200 bg-slate-50 hover:bg-slate-100",
@@ -384,6 +398,11 @@ export default function ReservationQueue({
                     <Badge className={cn("hidden border sm:inline-flex", isTimelineSelected ? "border-white/15 bg-white/10 text-white" : getReservationStatusTone(reservation.status))}>
                       {reservation.status || "pending"}
                     </Badge>
+                    {miamzPriority > 0 ? (
+                      <Badge className={cn("hidden border sm:inline-flex", isTimelineSelected ? "border-pink-200/30 bg-pink-400/15 text-pink-50" : "border-pink-200 bg-pink-50 text-pink-800")}>
+                        Priorite Miamz
+                      </Badge>
+                    ) : null}
                   </button>
                 );
               })}

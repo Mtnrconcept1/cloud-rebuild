@@ -57,6 +57,8 @@ export type RefundQueueItem = {
   remaining_amount_chf: number | string | null;
   payment_status: string | null;
   payment_method: string | null;
+  miamz_priority?: string | null;
+  miamz_priority_score?: number | string | null;
 };
 
 const getFirstRow = <T>(data: T[] | T | null | undefined): T | null => {

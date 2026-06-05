@@ -222,7 +222,7 @@ export default function GiftPoints() {
             </div>
             <div className="rounded-xl bg-amber-500/5 border border-amber-500/10 p-3 text-center">
               <Trophy className="h-4 w-4 text-amber-500 mx-auto mb-1" />
-              <p className="text-lg font-bold">{(giftStats.total_sent || 0).toLocaleString()}</p>
+              <p className="text-lg font-bold">{(giftStats.points_sent || giftStats.total_points_sent || 0).toLocaleString()}</p>
               <p className="text-[10px] text-muted-foreground">Points offerts</p>
             </div>
             <div className="rounded-xl bg-blue-500/5 border border-blue-500/10 p-3 text-center">

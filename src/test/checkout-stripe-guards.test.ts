@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const createCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/create-checkout/index.ts"), "utf8");
 const stripeWebhookSource = readFileSync(resolve(process.cwd(), "supabase/functions/stripe-webhook/index.ts"), "utf8");
+const stripeClientSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/stripe-client.ts"), "utf8");
 const orderCheckoutSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/order-checkout.ts"), "utf8");
 const chefsTableSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/chefs-table.ts"), "utf8");
 const zeroAttenteSource = readFileSync(resolve(process.cwd(), "supabase/functions/_shared/zero-attente.ts"), "utf8");
@@ -32,9 +33,11 @@ describe("checkout and Stripe webhook safety guards", () => {
   });
 
   it("verifies Stripe webhook signatures and records event ids for idempotency before processing", () => {
+    const webhookSecretSources = `${stripeWebhookSource}\n${stripeClientSource}`;
+
     expect(stripeWebhookSource).toContain("constructEventAsync");
-    expect(stripeWebhookSource).toContain("STRIPE_WEBHOOK_SECRET");
-    expect(stripeWebhookSource).toContain("STRIPE_WEBHOOK_SIGNING_SECRET");
+    expect(webhookSecretSources).toContain("STRIPE_WEBHOOK_SECRET");
+    expect(webhookSecretSources).toContain("STRIPE_WEBHOOK_SIGNING_SECRET");
     expect(stripeWebhookSource).toContain("stripe_webhook_events");
     expect(stripeWebhookSource).toContain("duplicate_event_skipped");
     expect(stripeWebhookSource).toContain("insert({ event_id: event.id, event_type: event.type, livemode: event.livemode })");

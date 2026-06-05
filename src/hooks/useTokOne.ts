@@ -37,6 +37,8 @@ export type TokOneSubscription = {
   current_period_end: string;
   cancel_at_period_end: boolean;
   stripe_subscription_id: string | null;
+  stripe_checkout_session_id?: string | null;
+  stripe_mode?: "live" | "test" | string | null;
   stripe_session_id?: string | null;
   billing_period?: string | null;
   user_subscription_plans: TokOnePlan | null;
@@ -72,6 +74,8 @@ function attachPlan<T extends Record<string, any>>(subscription: T, plan: TokOne
     ...subscription,
     cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
     stripe_subscription_id: subscription.stripe_subscription_id ?? null,
+    stripe_checkout_session_id: subscription.stripe_checkout_session_id ?? null,
+    stripe_mode: subscription.stripe_mode ?? null,
     user_subscription_plans: plan,
   } as TokOneSubscription;
 }
