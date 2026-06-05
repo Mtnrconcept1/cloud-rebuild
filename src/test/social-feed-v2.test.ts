@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -14,6 +17,8 @@ import {
   validateSocialPostDraft,
   type SocialFeedPost,
 } from "@/lib/socialFeed";
+
+const root = process.cwd();
 
 const basePost: SocialFeedPost = {
   id: "post-1",
@@ -169,5 +174,15 @@ describe("social feed v2 helpers", () => {
       }),
     ).toBe(true);
     expect(isMissingSocialMarketingSchemaError({ code: "23505", message: "duplicate key value violates unique constraint" })).toBe(false);
+  });
+
+  it("keeps open social reports idempotent when the unique report index already exists", () => {
+    const source = readFileSync(resolve(root, "src/hooks/useSocialFeed.ts"), "utf8");
+
+    expect(source).toContain("isDuplicateOpenSocialReport");
+    expect(source).toContain("social_reports_open_unique_idx");
+    expect(source).toContain('candidate?.code === "23505"');
+    expect(source).toContain("alreadyReported");
+    expect(source).toContain("Signalement déjà transmis.");
   });
 });

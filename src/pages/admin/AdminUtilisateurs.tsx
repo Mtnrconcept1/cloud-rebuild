@@ -29,6 +29,13 @@ import { COURIER_APPROVAL_STATUS_META, COURIER_VEHICLE_OPTIONS } from "@/lib/cou
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -157,7 +164,7 @@ function downloadCsv(filename: string, rows: Array<Array<unknown>>) {
   URL.revokeObjectURL(url);
 }
 
-function UserDetailPanel({ userId }: { userId: string | null }) {
+function UserDetailPanel({ userId, embedded = false }: { userId: string | null; embedded?: boolean }) {
   const { data: detail, isLoading, error } = useQuery({
     queryKey: ["admin-user-detail", userId],
     enabled: Boolean(userId),
@@ -200,7 +207,7 @@ function UserDetailPanel({ userId }: { userId: string | null }) {
   const courierProfile = detail?.courier_profile;
 
   return (
-    <div className="rounded-xl border bg-card p-4 space-y-4">
+    <div className={embedded ? "space-y-4" : "rounded-xl border bg-card p-4 space-y-4"}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -893,7 +900,7 @@ export default function AdminUtilisateurs() {
               Impossible de charger les utilisateurs.
             </div>
           ) : (
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
+            <>
               <div className="space-y-3">
                 {filteredUsers.map((user) => {
                   const baseRoles = user.roles || ["client"];
@@ -1029,8 +1036,26 @@ export default function AdminUtilisateurs() {
                   <p className="text-center text-muted-foreground py-8">Aucun utilisateur trouvé.</p>
                 ) : null}
               </div>
-              <UserDetailPanel userId={selectedUserId} />
-            </div>
+              <Dialog
+                open={Boolean(selectedUserId)}
+                onOpenChange={(open) => {
+                  if (!open) setSelectedUserId(null);
+                }}
+              >
+                <DialogContent className="max-h-[90vh] w-[min(96vw,980px)] max-w-none overflow-y-auto p-0">
+                  <DialogHeader className="border-b px-6 py-5 pr-12">
+                    <DialogTitle>Fiche utilisateur</DialogTitle>
+                    <DialogDescription>
+                      Informations de compte, rôles, commandes, réservations, incidents, restaurants, livreur, dossiers
+                      et historique.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="p-6">
+                    <UserDetailPanel userId={selectedUserId} embedded />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
           )}
         </TabsContent>
 

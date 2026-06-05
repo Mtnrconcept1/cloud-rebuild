@@ -175,6 +175,13 @@ function isMissingRpc(error: { message?: string; code?: string } | null | undefi
   return error?.code === "42883" || /Could not find the function|schema cache|does not exist/i.test(message);
 }
 
+function isDuplicateOpenSocialReport(error: unknown) {
+  const candidate = error as { code?: string; message?: string; details?: string; constraint?: string } | null;
+  const text = [candidate?.message, candidate?.details, candidate?.constraint].filter(Boolean).join(" ");
+
+  return candidate?.code === "23505" || text.includes("social_reports_open_unique_idx");
+}
+
 function countReactions(counts: SocialReactionCounts) {
   return Object.values(counts).reduce((total, count) => total + Number(count || 0), 0);
 }
@@ -1207,7 +1214,15 @@ export function useReportSocialItem() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ targetType, targetId, reason }: { targetType: "post" | "comment" | "repost"; targetId: string; reason: string }) => {
+    mutationFn: async ({
+      targetType,
+      targetId,
+      reason,
+    }: {
+      targetType: "post" | "comment" | "repost";
+      targetId: string;
+      reason: string;
+    }): Promise<{ alreadyReported: boolean }> => {
       if (!user?.id) throw new Error("Connexion requise.");
       const { error } = await (supabase.from("social_reports" as any) as any).insert({
         target_type: targetType,
@@ -1215,10 +1230,14 @@ export function useReportSocialItem() {
         reporter_id: user.id,
         reason,
       });
-      if (error) throw error;
+      if (error) {
+        if (isDuplicateOpenSocialReport(error)) return { alreadyReported: true };
+        throw error;
+      }
+      return { alreadyReported: false };
     },
-    onSuccess: () => {
-      toast.success("Signalement transmis.");
+    onSuccess: (result) => {
+      toast.success(result.alreadyReported ? "Signalement déjà transmis." : "Signalement transmis.");
       invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error((error as Error).message),

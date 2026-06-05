@@ -95,6 +95,11 @@ describe("admin users governance", () => {
     expect(source).toContain("anomalyFilter");
     expect(source).toContain("createdFilter");
     expect(source).toContain("Fiche utilisateur");
+    expect(source).toContain("DialogContent");
+    expect(source).toContain("open={Boolean(selectedUserId)}");
+    expect(source).toContain("setSelectedUserId(null)");
+    expect(source).toContain("<UserDetailPanel userId={selectedUserId} embedded />");
+    expect(source).not.toContain("xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]");
     expect(source).toContain("Historique");
     expect(source).toContain("Suspendre");
     expect(source).toContain("Réactiver");
