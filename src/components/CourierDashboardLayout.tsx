@@ -6,8 +6,11 @@ import { toast } from "sonner";
 
 import CourierMissionDialog from "@/components/courier/CourierMissionDialog";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
+import NotificationBell from "@/components/notifications/NotificationBell";
+import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
 import { useAuth } from "@/lib/auth-context";
 import { respondToDispatchAttempt } from "@/lib/courier";
@@ -29,7 +32,9 @@ type CourierNavContentProps = {
   pathname: string;
   visibleNavItems: typeof NAV_ITEMS;
   roles: string[];
+  role: ReturnType<typeof useAuth>["role"];
   activeFeatures: ReadonlySet<string>;
+  unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
   onSignOut: () => void;
   onNavigate?: () => void;
 };
@@ -38,7 +43,9 @@ function CourierNavContent({
   pathname,
   visibleNavItems,
   roles,
+  role,
   activeFeatures,
+  unreadNotifications,
   onSignOut,
   onNavigate,
 }: CourierNavContentProps) {
@@ -62,7 +69,8 @@ function CourierNavContent({
           )}
         >
           <item.icon className="h-4 w-4" />
-          {item.label}
+          <span>{item.label}</span>
+          <NotificationMenuBadge route={item.to} role={role} unreadNotifications={unreadNotifications} />
         </Link>
       ))}
 
@@ -106,9 +114,10 @@ function CourierNavContent({
 
 export default function CourierDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { signOut, roles } = useAuth();
+  const { signOut, roles, role } = useAuth();
   const activeFeatures = useActiveFeatures();
   const queryClient = useQueryClient();
+  const { unreadNotifications } = useNotificationCenter(50);
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [missionPreview, setMissionPreview] = useState<CourierMissionPreview | null>(null);
@@ -203,7 +212,9 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               pathname={pathname}
               visibleNavItems={visibleNavItems}
               roles={roles}
+              role={role}
               activeFeatures={activeFeatures}
+              unreadNotifications={unreadNotifications}
               onSignOut={() => signOut()}
             />
           </div>
@@ -213,6 +224,10 @@ export default function CourierDashboardLayout({ children }: { children: React.R
           <BackNavigationButton fallback={backFallback} className="mb-4 hidden md:inline-flex" />
           {children}
         </main>
+      </div>
+
+      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70]">
+        <NotificationBell />
       </div>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:hidden">
@@ -263,7 +278,9 @@ export default function CourierDashboardLayout({ children }: { children: React.R
                   pathname={pathname}
                   visibleNavItems={visibleNavItems}
                   roles={roles}
+                  role={role}
                   activeFeatures={activeFeatures}
+                  unreadNotifications={unreadNotifications}
                   onSignOut={() => signOut()}
                   onNavigate={() => setMobileMenuOpen(false)}
                 />

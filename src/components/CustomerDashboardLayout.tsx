@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { User, ShoppingCart, CalendarDays, LogOut, LayoutDashboard, Settings, Bell, Crown } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
+import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
+import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 
 const NAV_ITEMS = [
   { to: "/profil", label: "Mon profil", icon: User },
@@ -14,7 +16,8 @@ const NAV_ITEMS = [
 
 export default function CustomerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { signOut, roles } = useAuth();
+  const { signOut, roles, role } = useAuth();
+  const { unreadNotifications } = useNotificationCenter(50);
 
   return (
     <div className="min-h-screen bg-muted/30 pt-16">
@@ -24,7 +27,9 @@ export default function CustomerDashboardLayout({ children }: { children: React.
             <h2 className="font-display font-semibold px-3 py-2 mb-2 text-lg">Mon Espace</h2>
             {NAV_ITEMS.map((item) => (
               <Link key={item.to} to={item.to} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", pathname === item.to ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted")}>
-                <item.icon className="h-4 w-4" />{item.label}
+                <item.icon className="h-4 w-4" />
+                <span>{item.label}</span>
+                <NotificationMenuBadge route={item.to} role={role} unreadNotifications={unreadNotifications} />
               </Link>
             ))}
             {roles.includes("restaurateur") && (

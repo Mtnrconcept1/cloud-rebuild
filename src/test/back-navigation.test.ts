@@ -3,11 +3,19 @@ import { resolve } from "node:path";
 import { createElement } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AdminRouteFrame } from "@/App";
 
 const root = process.cwd();
+
+vi.mock("@/components/notifications/NotificationBell", () => ({
+  default: () => null,
+}));
+
+vi.mock("@/components/admin/AdminMobileNavigation", () => ({
+  default: () => null,
+}));
 
 function read(path: string) {
   return readFileSync(resolve(root, path), "utf8");

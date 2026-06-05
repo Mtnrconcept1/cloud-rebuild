@@ -12,6 +12,14 @@ vi.mock("@/lib/featureFlags", () => ({
   useActiveFeatures: () => featureState.activeFeatures,
 }));
 
+vi.mock("@/lib/auth-context", () => ({
+  useAuth: () => ({ role: "admin" }),
+}));
+
+vi.mock("@/hooks/useNotificationCenter", () => ({
+  useNotificationCenter: () => ({ unreadNotifications: [] }),
+}));
+
 const allAdminFeatures = [
   "admin-operations-center",
   "admin-restaurants",

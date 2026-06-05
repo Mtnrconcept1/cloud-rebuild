@@ -214,7 +214,7 @@ export default function SupportChat() {
     setInputValue("");
     setHistory(nextHistory);
 
-    if (activeAgent.kind === "guided") {
+    if (activeAgent.kind === "guided" && !SUPABASE_URL) {
       setIsTyping(true);
 
       setTimeout(() => {
@@ -257,7 +257,7 @@ export default function SupportChat() {
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          agentId: selectedAgent,
+          agentId: activeAgent.kind === "guided" ? "support_ai" : selectedAgent,
           messages,
         }),
       });

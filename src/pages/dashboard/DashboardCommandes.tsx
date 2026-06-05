@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -214,6 +215,7 @@ function formatAcceptanceDeadline(value: string | null | undefined) {
 
 export default function DashboardCommandes() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [expandedRouteOrderId, setExpandedRouteOrderId] = useState<string | null>(null);
@@ -222,6 +224,11 @@ export default function DashboardCommandes() {
   const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const orderTarget = searchParams.get("order");
+    if (orderTarget) setSearchTerm(orderTarget);
+  }, [searchParams]);
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
 

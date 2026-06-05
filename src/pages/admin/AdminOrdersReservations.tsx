@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
   CalendarDays,
@@ -534,6 +535,7 @@ async function fetchReservationInventoryRows() {
 
 export default function AdminOrdersReservations() {
   const defaultFilters = useMemo(() => getDefaultAdminHistoryFilters(), []);
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<AdminDashboardTab>("orders");
@@ -549,6 +551,13 @@ export default function AdminOrdersReservations() {
   const [selectedRefund, setSelectedRefund] = useState<RefundQueueItem | null>(null);
 
   const deferredSearch = useDeferredValue(search);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "orders" || tab === "reservations" || tab === "refunds") {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const {
     data: restaurants = [],
@@ -598,6 +607,30 @@ export default function AdminOrdersReservations() {
     setSelectedOperation(null);
     setSelectedRefund(null);
   }, [activeTab, restaurantFilter, startDate, endDate]);
+
+  useEffect(() => {
+    const operationId = searchParams.get("operation");
+    if (!operationId) return;
+
+    if (activeTab === "orders") {
+      const order = orders.find((item) => item.id === operationId || item.orderNumber === operationId);
+      if (order) setSelectedOperation({ kind: "order", item: order });
+      return;
+    }
+
+    if (activeTab === "reservations") {
+      const reservation = reservations.find((item) => item.id === operationId || item.reference === operationId);
+      if (reservation) setSelectedOperation({ kind: "reservation", item: reservation });
+    }
+  }, [activeTab, orders, reservations, searchParams]);
+
+  const clearOperationSearchParam = () => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete("operation");
+      return next;
+    });
+  };
 
   const filteredOrders = useMemo(() => (
     orders.filter((order) => orderMatchesSearchTerm(order, deferredSearch))
@@ -1296,6 +1329,7 @@ export default function AdminOrdersReservations() {
         onOpenChange={(open) => {
           if (!open) {
             setSelectedOperation(null);
+            clearOperationSearchParam();
           }
         }}
       />

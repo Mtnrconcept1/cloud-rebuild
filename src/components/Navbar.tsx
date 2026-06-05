@@ -1,9 +1,9 @@
-import { type MouseEvent, useEffect, useState } from "react";
+import { type MouseEvent, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
   Calculator,
+  CalendarDays,
   ChefHat,
   Crown,
   Gift,
@@ -30,11 +30,13 @@ import {
   Users,
 } from "lucide-react";
 
-import { getSupabase } from "@/integrations/supabase/client";
+import NotificationBell from "@/components/notifications/NotificationBell";
+import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { LOGO_URL } from "@/lib/constants";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,8 +61,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-
-const supabase = getSupabase();
 
 function preserveNavbarActionScrollPosition(event: MouseEvent<HTMLElement>) {
   if (event.detail === 0) return;
@@ -98,9 +98,8 @@ export default function Navbar() {
   const location = useLocation();
   const { itemCount } = useCart();
   const activeFeatures = useActiveFeatures();
-  const queryClient = useQueryClient();
+  const { unreadNotifications } = useNotificationCenter(50);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
@@ -115,121 +114,15 @@ export default function Navbar() {
   const showClientSurface = canShowClientSurface({ activeRole: role });
   const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role });
   const homeTarget = showClientSurface ? "/" : getRoleHomePath(role);
-  const notificationsTarget = showClientSurface ? "/notifications" : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
   const showRestaurantDashboardLink = dashboardEnabled && roles.includes("restaurateur");
   const showAdminDashboardLink = roles.includes("admin");
   const showCourierDashboardLink = courierEnabled && roles.includes("courier");
   const isMobileHomeHeader = showClientSurface && location.pathname === "/";
 
-  const { data: notifications } = useQuery({
-    queryKey: ["navbar-notifications", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("notifications" as any)
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false })
-        .limit(5);
-      return data || [];
-    },
-    enabled: !!user,
-  });
-
-  const { data: notificationPrefs } = useQuery({
-    queryKey: ["notification-preferences", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("notification_preferences" as any)
-        .select("*")
-        .eq("user_id", user!.id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const inAppEnabled = (notificationPrefs as any)?.channels?.in_app ?? true;
-  const allowedCategories = (notificationPrefs as any)?.categories ?? {
-    transactional: true,
-    product: true,
-    marketing: false,
-    system: true,
-  };
-  const visibleNotifications = (notifications || []).filter((notification: any) => allowedCategories?.[notification.category] !== false);
-  const unreadCount = inAppEnabled ? visibleNotifications.filter((notification: any) => !notification.read_at).length : 0;
-
-  const markAllReadFromBell = async () => {
-    if (!user || !inAppEnabled || unreadCount === 0) return;
-
-    const readAt = new Date().toISOString();
-    const { error } = await supabase
-      .from("notifications" as any)
-      .update({ read_at: readAt })
-      .eq("user_id", user.id)
-      .is("read_at", null);
-
-    if (error) return;
-
-    queryClient.setQueryData(["navbar-notifications", user.id], (current: any[] | undefined) =>
-      (current || []).map((notification) => ({
-        ...notification,
-        read_at: notification.read_at ?? readAt,
-      })),
-    );
-    queryClient.setQueryData(["notifications", user.id], (current: any[] | undefined) =>
-      (current || []).map((notification) => ({
-        ...notification,
-        read_at: notification.read_at ?? readAt,
-      })),
-    );
-    queryClient.invalidateQueries({ queryKey: ["navbar-notifications", user.id] });
-    queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
-  };
-
-  const handleNotificationsOpenChange = (open: boolean) => {
-    setNotificationsOpen(open);
-    if (open) {
-      setAccountMenuOpen(false);
-      void markAllReadFromBell();
-    }
-  };
-
   const handleAccountMenuOpenChange = (open: boolean) => {
     setAccountMenuOpen(open);
-    if (open) setNotificationsOpen(false);
   };
-
-  const isRecentNotification = (createdAt?: string) => {
-    if (!createdAt) return false;
-    const createdAtMs = new Date(createdAt).getTime();
-    if (Number.isNaN(createdAtMs)) return false;
-    return Date.now() - createdAtMs <= 1000 * 60 * 60 * 24;
-  };
-
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`navbar-notifications:${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["navbar-notifications", user.id] });
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient, user]);
 
   const handleThemeToggle = () => {
     document.documentElement.classList.toggle("dark");
@@ -376,66 +269,7 @@ export default function Navbar() {
               </Button>
             ) : null}
 
-            {user ? (
-              <DropdownMenu modal={false} open={notificationsOpen} onOpenChange={handleNotificationsOpenChange}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Notifications"
-                    onMouseDown={preserveNavbarActionScrollPosition}
-                    className={`${isMobileHomeHeader ? "hidden md:inline-flex" : ""} relative`}
-                  >
-                    <Bell className="h-5 w-5" />
-                    <span className="sr-only">Notifications</span>
-                    {unreadCount > 0 && !notificationsOpen ? (
-                      <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center p-0 text-[10px]">
-                        {unreadCount}
-                      </Badge>
-                    ) : null}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[min(320px,calc(100vw-2rem))] data-[state=closed]:hidden">
-                  <div className="border-b px-3 py-2">
-                    <p className="text-sm font-semibold">Notifications</p>
-                    <p className="text-[11px] text-muted-foreground">Dernières alertes</p>
-                  </div>
-                  <div className="max-h-72 overflow-auto">
-                    {!inAppEnabled ? (
-                      <div className="px-3 py-3 text-xs text-muted-foreground">Activez le canal in-app pour voir vos alertes.</div>
-                    ) : visibleNotifications.length > 0 ? (
-                      visibleNotifications.map((notification: any) => {
-                        const isRecent = isRecentNotification(notification.created_at);
-                        return (
-                          <DropdownMenuItem
-                            key={notification.id}
-                            asChild
-                            className={`cursor-pointer items-start rounded-none border-l-2 p-0 ${isRecent ? "border-l-primary bg-primary/5" : "border-l-transparent"
-                              }`}
-                          >
-                            <Link to={notification.data?.url || notificationsTarget} className="flex w-full flex-col gap-1 px-3 py-2">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">{notification.title}</span>
-                                {isRecent ? <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Récente</span> : null}
-                                {!notification.read_at ? <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Nouveau</span> : null}
-                              </div>
-                              <span className="text-[11px] text-muted-foreground">{notification.body}</span>
-                            </Link>
-                          </DropdownMenuItem>
-                        );
-                      })
-                    ) : (
-                      <div className="px-3 py-3 text-xs text-muted-foreground">Aucune notification.</div>
-                    )}
-                  </div>
-                  {showClientSurface ? (
-                    <DropdownMenuItem asChild>
-                      <Link to="/notifications">Voir toutes les notifications</Link>
-                    </DropdownMenuItem>
-                  ) : null}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
+            <NotificationBell className={isMobileHomeHeader ? "text-slate-950 hover:bg-transparent" : undefined} />
 
             {user ? (
               <DropdownMenu modal={false} open={accountMenuOpen} onOpenChange={handleAccountMenuOpenChange}>
@@ -482,12 +316,26 @@ export default function Navbar() {
                   ) : null}
                   {showClientSurface && activeFeatures.has("commandes") ? (
                     <DropdownMenuItem asChild>
-                      <Link to="/commandes">Mes commandes</Link>
+                      <Link to="/commandes" className="flex w-full items-center gap-2">
+                        <span>Mes commandes</span>
+                        <NotificationMenuBadge route="/commandes" role={role} unreadNotifications={unreadNotifications} />
+                      </Link>
                     </DropdownMenuItem>
                   ) : null}
                   {showClientSurface && reservationEnabled ? (
                     <DropdownMenuItem asChild>
-                      <Link to="/reservations">Mes réservations</Link>
+                      <Link to="/reservations" className="flex w-full items-center gap-2">
+                        <span>Mes réservations</span>
+                        <NotificationMenuBadge route="/reservations" role={role} unreadNotifications={unreadNotifications} />
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {showClientSurface ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/notifications" className="flex w-full items-center gap-2">
+                        <span>Notifications</span>
+                        <NotificationMenuBadge route="/notifications" role={role} unreadNotifications={unreadNotifications} />
+                      </Link>
                     </DropdownMenuItem>
                   ) : null}
                   {showSocialFeedSurface && actualitesEnabled ? (
@@ -661,7 +509,22 @@ export default function Navbar() {
                       {showClientSurface && activeFeatures.has("commandes") ? (
                         <Link to="/commandes" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                           <ShoppingBag className="h-4 w-4" />
-                          Mes commandes
+                          <span>Mes commandes</span>
+                          <NotificationMenuBadge route="/commandes" role={role} unreadNotifications={unreadNotifications} />
+                        </Link>
+                      ) : null}
+                      {showClientSurface && reservationEnabled ? (
+                        <Link to="/reservations" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                          <CalendarDays className="h-4 w-4" />
+                          <span>Mes réservations</span>
+                          <NotificationMenuBadge route="/reservations" role={role} unreadNotifications={unreadNotifications} />
+                        </Link>
+                      ) : null}
+                      {showClientSurface ? (
+                        <Link to="/notifications" className="flex items-center gap-2 text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                          <Bell className="h-4 w-4" />
+                          <span>Notifications</span>
+                          <NotificationMenuBadge route="/notifications" role={role} unreadNotifications={unreadNotifications} />
                         </Link>
                       ) : null}
                       {showRestaurantDashboardLink ? (

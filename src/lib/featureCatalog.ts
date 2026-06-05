@@ -704,7 +704,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Expose la supervision admin des commandes, reservations, remboursements et dispatch.",
     defaultEnabled: true,
     group: "admin_tools",
-    routeTargets: ["/admin/commandes-reservations"],
+    routeTargets: ["/admin/commandes-reservations", "/admin/sinistres"],
     critical: true,
   },
   {

@@ -16,13 +16,17 @@ import {
   Rocket,
   Settings2,
   Shield,
+  ShieldAlert,
   Store,
   Users,
   UtensilsCrossed,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useNotificationCenter } from "@/hooks/useNotificationCenter";
+import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +48,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
     items: [
       { to: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
       { to: "/admin/commandes-reservations", label: "Commandes et reservations", icon: ClipboardList, feature: "admin-operations-center" },
+      { to: "/admin/sinistres", label: "Sinistres chat", icon: ShieldAlert, feature: "admin-operations-center" },
       { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
       { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, feature: "admin-utilisateurs" },
       { to: "/admin/utilisateurs?tab=applications", label: "Dossiers d'inscription", icon: FileText, feature: "admin-utilisateurs" },
@@ -106,9 +111,13 @@ function isAdminNavItemActive(pathname: string, search: string, itemTo: string) 
 function AdminNavItems({
   activeTo,
   sections,
+  unreadNotifications,
+  role,
 }: {
   activeTo?: string;
   sections: AdminNavSection[];
+  unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
+  role: ReturnType<typeof useAuth>["role"];
 }) {
   return (
     <>
@@ -131,7 +140,8 @@ function AdminNavItems({
                 )}
               >
                 <item.icon className="h-4 w-4" />
-                {item.label}
+                <span>{item.label}</span>
+                <NotificationMenuBadge route={item.to} role={role} unreadNotifications={unreadNotifications} />
               </Link>
             );
           })}
@@ -144,6 +154,8 @@ function AdminNavItems({
 export default function AdminMobileNavigation() {
   const { pathname, search } = useLocation();
   const activeFeatures = useActiveFeatures();
+  const { role } = useAuth();
+  const { unreadNotifications } = useNotificationCenter(50);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -213,7 +225,12 @@ export default function AdminMobileNavigation() {
           </SheetHeader>
           <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
             <nav className="flex flex-col gap-1 pb-4">
-              <AdminNavItems activeTo={activeNavItem?.to} sections={sections} />
+              <AdminNavItems
+                activeTo={activeNavItem?.to}
+                sections={sections}
+                unreadNotifications={unreadNotifications}
+                role={role}
+              />
             </nav>
           </div>
         </SheetContent>

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("navbar action stability", () => {
   const source = readFileSync(resolve(process.cwd(), "src/components/Navbar.tsx"), "utf8");
+  const notificationBell = readFileSync(resolve(process.cwd(), "src/components/notifications/NotificationBell.tsx"), "utf8");
 
   it("prevents mouse focus from scrolling the sticky desktop action bar", () => {
     expect(source).toContain("preserveNavbarActionScrollPosition");
@@ -13,15 +14,15 @@ describe("navbar action stability", () => {
     expect(source).toContain("window.scrollTo(scrollX, scrollY)");
     expect(source).toContain("onMouseDown={preserveNavbarActionScrollPosition}");
     expect(source).toContain('aria-label="Mode sombre"');
-    expect(source).toContain('aria-label="Notifications"');
+    expect(notificationBell).toContain("aria-label={`Notifications");
     expect(source).toContain('aria-label="Compte"');
   });
 
   it("keeps desktop dropdown actions non-modal so scroll locking does not move the sticky header", () => {
-    expect(source).toContain("<DropdownMenu modal={false} open={notificationsOpen}");
+    expect(source).toContain("NotificationBell");
+    expect(notificationBell).toContain("<DropdownMenu modal={false}>");
     expect(source).toContain("<DropdownMenu modal={false} open={accountMenuOpen}");
-    expect(source).toContain("setAccountMenuOpen(false)");
-    expect(source).toContain("setNotificationsOpen(false)");
+    expect(source).toContain("setAccountMenuOpen(open)");
     expect(source).toContain("data-[state=closed]:hidden");
   });
 });

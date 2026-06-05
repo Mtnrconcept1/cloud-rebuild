@@ -38,8 +38,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { useAuth } from "@/lib/auth-context";
+import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
+import NotificationBell from "@/components/notifications/NotificationBell";
+import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 
 type NavItem = {
   to: string;
@@ -177,11 +181,15 @@ function NavItems({
   sections,
   collapsed = false,
   disabledFeatures,
+  unreadNotifications,
+  role,
 }: {
   pathname: string;
   sections: NavSection[];
   collapsed?: boolean;
   disabledFeatures?: Set<string>;
+  unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
+  role: ReturnType<typeof useAuth>["role"];
 }) {
   return (
     <>
@@ -222,6 +230,12 @@ function NavItems({
               >
                 <item.icon className="h-4 w-4" />
                 {!collapsed && item.label}
+                <NotificationMenuBadge
+                  route={item.to}
+                  role={role}
+                  unreadNotifications={unreadNotifications}
+                  className={collapsed ? "ml-0 h-2 min-w-2 p-0 text-[0px]" : undefined}
+                />
               </Link>
             );
           })}
@@ -236,6 +250,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const queryClient = useQueryClient();
   const { selectedId, disabledFeatures } = useDashboardRestaurant();
   const activeFeatures = useActiveFeatures();
+  const { role } = useAuth();
+  const { unreadNotifications } = useNotificationCenter(50);
 
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -329,9 +345,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <RestaurantSelector collapsed={collapsed} />
 
         <nav className="flex flex-col gap-1 px-2 pb-6">
-          <NavItems pathname={pathname} sections={sections} collapsed={collapsed} disabledFeatures={disabledFeatures} />
+          <NavItems
+            pathname={pathname}
+            sections={sections}
+            collapsed={collapsed}
+            disabledFeatures={disabledFeatures}
+            unreadNotifications={unreadNotifications}
+            role={role}
+          />
         </nav>
       </aside>
+
+      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70]">
+        <NotificationBell />
+      </div>
 
       {/* MOBILE */}
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:hidden">
@@ -375,7 +402,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
               <RestaurantSelector />
               <nav className="flex flex-col gap-1 pb-4">
-                <NavItems pathname={pathname} sections={sections} disabledFeatures={disabledFeatures} />
+                <NavItems
+                  pathname={pathname}
+                  sections={sections}
+                  disabledFeatures={disabledFeatures}
+                  unreadNotifications={unreadNotifications}
+                  role={role}
+                />
               </nav>
             </div>
           </SheetContent>

@@ -14,6 +14,7 @@ import {
   Newspaper,
   Rocket,
   Settings2,
+  ShieldAlert,
   Shield,
   ShoppingCart,
   Store,
@@ -29,8 +30,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
+import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getSupabase } from "@/integrations/supabase/client";
+import { useNotificationCenter } from "@/hooks/useNotificationCenter";
+import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { scoreMarketplaceLiquidity } from "@/lib/marketplaceLiquidity";
 
@@ -73,6 +77,14 @@ const ADMIN_TOOLS = [
     href: "/admin/commandes-reservations",
     feature: "admin-operations-center",
     color: "text-orange-500",
+  },
+  {
+    title: "Sinistres chat",
+    description: "Suivre les plaintes remontées par le chat avec résumé et conversation complète.",
+    icon: ShieldAlert,
+    href: "/admin/sinistres",
+    feature: "admin-operations-center",
+    color: "text-red-500",
   },
   {
     title: "Utilisateurs",
@@ -206,6 +218,8 @@ function getOrderCity(row: any) {
 export default function AdminHome() {
   const navigate = useNavigate();
   const activeFeatures = useActiveFeatures();
+  const { role } = useAuth();
+  const { unreadNotifications } = useNotificationCenter(50);
   const adminPlatformConfigEnabled = activeFeatures.has(ADMIN_PLATFORM_CONFIG_LINK.feature);
   const visibleTools = ADMIN_TOOLS.filter((tool) => !tool.feature || activeFeatures.has(tool.feature));
 
@@ -584,8 +598,11 @@ export default function AdminHome() {
               >
                 <div className="flex items-start gap-3">
                   <tool.icon className={`mt-0.5 h-5 w-5 ${tool.color}`} />
-                  <div className="space-y-1">
-                    <p className="font-semibold">{tool.title}</p>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">{tool.title}</p>
+                      <NotificationMenuBadge route={tool.href} role={role} unreadNotifications={unreadNotifications} />
+                    </div>
                     <p className="text-sm text-muted-foreground">{tool.description}</p>
                   </div>
                 </div>

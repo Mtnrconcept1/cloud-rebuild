@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronDown, ChevronRight, Clock, Receipt, Users, Utensils } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
@@ -114,6 +115,7 @@ const formatShortDate = (date: string) => new Date(date).toLocaleDateString("fr-
 
 export default function Reservations() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState<ReservationSort>("reservation_date_desc");
   const [selectedReservation, setSelectedReservation] = useState<ReservationWithRestaurant | null>(null);
   const [expandedReservations, setExpandedReservations] = useState<Set<string>>(new Set());
@@ -130,6 +132,14 @@ export default function Reservations() {
     },
     enabled: !!user,
   });
+
+  useEffect(() => {
+    const reservationId = searchParams.get("reservation");
+    if (!reservationId || !reservations?.length) return;
+
+    const reservation = reservations.find((item) => item.id === reservationId);
+    if (reservation) setSelectedReservation(reservation);
+  }, [reservations, searchParams]);
 
   const sortedReservations = useMemo(() => {
     const list = [...(reservations || [])];

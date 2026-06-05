@@ -119,6 +119,93 @@ async function insertUsage(
   });
 }
 
+async function appendChatTranscriptToIncident(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  input: {
+    incidentId: string;
+    conversationId: string;
+    messages: ClientMessage[];
+    assistantReply: string;
+  },
+) {
+  const transcriptRows = [
+    ...input.messages.map((message) => ({
+      incident_id: input.incidentId,
+      author_id: message.role === "user" ? actor.userId : null,
+      author_role: message.role === "user" ? "client" : "system",
+      body: message.content.slice(0, 4000),
+      visibility: "internal",
+      metadata: {
+        source: FUNCTION_NAME,
+        conversation_id: input.conversationId,
+        transcript_role: message.role,
+      },
+    })),
+    {
+      incident_id: input.incidentId,
+      author_id: null,
+      author_role: "system",
+      body: input.assistantReply.slice(0, 4000),
+      visibility: "internal",
+      metadata: {
+        source: FUNCTION_NAME,
+        conversation_id: input.conversationId,
+        transcript_role: "assistant",
+      },
+    },
+  ].filter((row) => row.body.trim().length > 0);
+
+  if (transcriptRows.length === 0) return;
+
+  const { error } = await actor.adminClient
+    .from("support_incident_messages")
+    .insert(transcriptRows);
+
+  if (error) throw error;
+}
+
+async function notifyAdminsOfChatIncident(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  input: {
+    incidentId: string;
+    conversationId: string;
+    title: string;
+    summary: string;
+    priority: string;
+    orderId: string | null;
+    reservationId: string | null;
+    restaurantId: string | null;
+  },
+) {
+  const { data: admins, error } = await actor.adminClient
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin");
+
+  if (error) throw error;
+
+  const adminIds = Array.from(new Set((admins || []).map((row: { user_id?: string | null }) => row.user_id).filter(Boolean))) as string[];
+  await Promise.all(adminIds.map((adminUserId) =>
+    actor.adminClient.rpc("enqueue_notification", {
+      p_user_id: adminUserId,
+      p_title: "Nouveau sinistre chat",
+      p_body: `${input.priority.toUpperCase()} - ${input.title || input.summary || "Plainte client remontée par le chat"}`.slice(0, 240),
+      p_type: "support_incident",
+      p_category: "system",
+      p_data: {
+        url: `/admin/sinistres?incident=${input.incidentId}`,
+        support_incident_id: input.incidentId,
+        conversation_id: input.conversationId,
+        order_id: input.orderId,
+        reservation_id: input.reservationId,
+        restaurant_id: input.restaurantId,
+        source: FUNCTION_NAME,
+        requested_channels: { in_app: true, push: true, email: false },
+      },
+    })
+  ));
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
@@ -305,6 +392,30 @@ Si tu proposes un avoir, il est indicatif et plafonne a 5 CHF.`;
           .from("ai_conversations")
           .update({ status: "ticket_created", support_incident_id: ticketId })
           .eq("id", conversationId);
+        await appendChatTranscriptToIncident(actor, {
+          incidentId: ticketId,
+          conversationId,
+          messages,
+          assistantReply: result.reply,
+        }).catch((transcriptError) => {
+          log.warn("support_incident_transcript_append_failed", {
+            message: transcriptError instanceof Error ? transcriptError.message : "unknown",
+          });
+        });
+        await notifyAdminsOfChatIncident(actor, {
+          incidentId: ticketId,
+          conversationId,
+          title: result.ticket_title,
+          summary: result.ticket_summary,
+          priority: result.priority,
+          orderId,
+          reservationId,
+          restaurantId,
+        }).catch((notificationError) => {
+          log.warn("support_incident_admin_notification_failed", {
+            message: notificationError instanceof Error ? notificationError.message : "unknown",
+          });
+        });
       } else {
         log.warn("support_incident_create_failed", { message: incidentError.message });
       }

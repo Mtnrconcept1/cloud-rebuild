@@ -2,15 +2,18 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import { Bell, CheckCheck } from "lucide-react";
+import { getNotificationTarget } from "@/lib/notificationRouting";
 
 const supabase = getSupabase();
 
 export default function Notifications() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: notifications } = useQuery({
@@ -55,6 +58,11 @@ export default function Notifications() {
     if (user) queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
   };
 
+  const openNotification = async (notification: any) => {
+    await markRead(notification.id);
+    navigate(getNotificationTarget(notification, role, "/notifications"));
+  };
+
   if (!user) return <main className="min-h-screen flex items-center justify-center text-muted-foreground">Connectez-vous pour voir vos notifications.</main>;
 
   return (
@@ -74,13 +82,36 @@ export default function Notifications() {
             <div className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">Aucune notification.</div>
           ) : (
             visibleNotifications.map((n: any) => (
-              <div key={n.id} className={`rounded-2xl border p-4 flex items-start justify-between gap-4 ${n.read_at ? "bg-card" : "bg-primary/5 border-primary/20"}`}>
+              <div
+                key={n.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => void openNotification(n)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    void openNotification(n);
+                  }
+                }}
+                className={`flex w-full items-start justify-between gap-4 rounded-2xl border p-4 text-left ${n.read_at ? "bg-card" : "bg-primary/5 border-primary/20"}`}
+              >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2"><h3 className="font-semibold text-sm">{n.title}</h3>{!n.read_at && <Badge className="text-[10px]">Nouveau</Badge>}</div>
                   <p className="text-xs text-muted-foreground">{n.body}</p>
                   <p className="text-[10px] text-muted-foreground">{new Date(n.created_at).toLocaleString()}</p>
                 </div>
-                {!n.read_at && <Button variant="ghost" size="sm" onClick={() => markRead(n.id)}>Marquer lu</Button>}
+                {!n.read_at && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void markRead(n.id);
+                    }}
+                  >
+                    Marquer lu
+                  </Button>
+                )}
               </div>
             ))
           )}

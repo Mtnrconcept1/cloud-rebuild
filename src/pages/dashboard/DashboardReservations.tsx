@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import type { Database, Json } from "@/integrations/supabase/types";
@@ -163,6 +164,7 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
 
 export default function DashboardReservations() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
@@ -174,6 +176,11 @@ export default function DashboardReservations() {
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const reservationTarget = searchParams.get("reservation");
+    if (reservationTarget) setSearchTerm(reservationTarget);
+  }, [searchParams]);
 
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId);
 

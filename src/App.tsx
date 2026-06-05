@@ -15,6 +15,7 @@ import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navigation/BackNavigationButton";
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
@@ -108,6 +109,7 @@ const AdminComptaAi = lazy(() => import("./pages/admin/AdminComptaAi"));
 const AdminOperationsCenter = lazy(() => import("./pages/admin/AdminOperationsCenter"));
 const AdminAiOperations = lazy(() => import("./pages/admin/AdminAiOperations"));
 const AdminActualites = lazy(() => import("./pages/admin/AdminActualites"));
+const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
 
 focusManager.setEventListener(() => () => undefined);
 
@@ -193,6 +195,9 @@ export function AdminRouteFrame({
   return (
     <div className="min-h-screen bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0">
       {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
+      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200]">
+        <NotificationBell />
+      </div>
       <AdminMobileNavigation />
       {children}
     </div>
@@ -369,6 +374,7 @@ function AppShell() {
           <Route path="/admin/compta/sorties" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/compta/ia" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaAiEnabled} fallback="/admin/compta"><AdminComptaAi /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/commandes-reservations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminOperationsCenter /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/sinistres" element={<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminSinistres /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/ai-operations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cgu" element={<CGU />} />
