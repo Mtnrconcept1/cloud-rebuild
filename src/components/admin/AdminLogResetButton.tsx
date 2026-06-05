@@ -23,22 +23,36 @@ type AdminLogResetResult = {
   deleted_edge_logs?: number;
   deleted_data_logs?: number;
   deleted_ai_usage_logs?: number;
+  resolved_ai_admin_events?: number;
+  resolved_ai_security_events?: number;
+  resolved_ai_support_tickets?: number;
+  closed_support_incidents?: number;
+  resolved_marketplace_alerts?: number;
+  deleted_ai_performance_snapshots?: number;
 };
 
 type AdminLogResetButtonProps = {
   className?: string;
   size?: "sm" | "default";
   variant?: "outline" | "destructive" | "ghost";
+  onResetSuccess?: (result: AdminLogResetResult) => void;
 };
 
 function getResetTotal(result: AdminLogResetResult | null | undefined) {
   return Number(result?.deleted_edge_logs || 0)
     + Number(result?.deleted_data_logs || 0)
-    + Number(result?.deleted_ai_usage_logs || 0);
+    + Number(result?.deleted_ai_usage_logs || 0)
+    + Number(result?.resolved_ai_admin_events || 0)
+    + Number(result?.resolved_ai_security_events || 0)
+    + Number(result?.resolved_ai_support_tickets || 0)
+    + Number(result?.closed_support_incidents || 0)
+    + Number(result?.resolved_marketplace_alerts || 0)
+    + Number(result?.deleted_ai_performance_snapshots || 0);
 }
 
 export default function AdminLogResetButton({
   className,
+  onResetSuccess,
   size = "sm",
   variant = "destructive",
 }: AdminLogResetButtonProps) {
@@ -61,14 +75,16 @@ export default function AdminLogResetButton({
       queryClient.invalidateQueries({ queryKey: ["admin-audit-logs-full"] });
       queryClient.invalidateQueries({ queryKey: ["admin-production-health"] });
       queryClient.invalidateQueries({ queryKey: ["admin-security-abuse-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-marketplace-alerts"] });
       queryClient.invalidateQueries({ queryKey: ["payment-integrity-anomalies"] });
 
       setOpen(false);
       setCode("");
+      onResetSuccess?.(result);
 
       toast({
         title: "Logs remis à zéro",
-        description: `${getResetTotal(result)} entrée(s) supprimée(s) du dashboard admin.`,
+        description: `${getResetTotal(result)} signal(s) remis à zéro dans le dashboard admin.`,
       });
     },
     onError: (error: Error) => {
