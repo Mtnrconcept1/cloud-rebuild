@@ -35,6 +35,45 @@ function isCampaignOwnerPreview(campaign: CampaignVisibilityCandidate, viewerUse
   return String(campaign?.restaurants?.owner_id || "") === viewerUserId;
 }
 
+function normalizeTargetPages(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.map((page) => String(page || "").trim()).filter(Boolean);
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      return parsed.map((page) => String(page || "").trim()).filter(Boolean);
+    }
+  } catch {
+    // Fall back to comma-separated values for legacy payloads.
+  }
+
+  return trimmed.split(",").map((page) => page.trim()).filter(Boolean);
+}
+
+function hasUsableAudienceSnapshot(snapshot: AudienceSnapshot | null) {
+  if (!snapshot) return false;
+
+  return Boolean(
+    snapshot.city ||
+    (Array.isArray(snapshot.favoriteRestaurantIds) && snapshot.favoriteRestaurantIds.length > 0) ||
+    snapshot.interactionCount > 0 ||
+    snapshot.avgBasket > 0 ||
+    snapshot.daysSinceLastActivity != null ||
+    (Array.isArray(snapshot.cuisineSignals) && snapshot.cuisineSignals.length > 0) ||
+    (Array.isArray(snapshot.journeyTypes) && snapshot.journeyTypes.length > 0) ||
+    (Array.isArray(snapshot.serviceMoments) && snapshot.serviceMoments.length > 0),
+  );
+}
+
 export function isCampaignVisibleForViewer(
   campaign: CampaignVisibilityCandidate,
   {
@@ -66,8 +105,8 @@ export function isCampaignVisibleForViewer(
     if (dailySpent >= Number(campaign.budget_daily)) return false;
   }
 
-  const pages = campaign.target_pages;
-  if (pages && Array.isArray(pages) && pages.length > 0 && !pages.includes(page)) {
+  const pages = normalizeTargetPages(campaign.target_pages);
+  if (pages.length > 0 && !pages.includes(page)) {
     return false;
   }
 
@@ -75,7 +114,7 @@ export function isCampaignVisibleForViewer(
     return true;
   }
 
-  if (!audienceSnapshot) {
+  if (!hasUsableAudienceSnapshot(audienceSnapshot)) {
     return true;
   }
 

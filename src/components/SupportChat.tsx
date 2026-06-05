@@ -3,9 +3,9 @@ import { X, Send, User, Phone, Mail, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { getSupabase } from "@/integrations/supabase/client";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/contact";
 import { SUPABASE_URL } from "@/lib/env";
+import { invokeSupabaseFunction } from "@/lib/session";
 
 type Node = {
   id: string;
@@ -29,6 +29,12 @@ type AgentConfig = {
   kind: "guided" | "ai";
   badge: string;
   intro: string;
+};
+
+type ClientChatResponse = {
+  reply?: string;
+  ticketId?: string | null;
+  conversationId?: string;
 };
 
 const CHAT_TREE: Record<string, Node> = {
@@ -129,8 +135,6 @@ const AGENTS: Record<AgentId, AgentConfig> = {
       "Bonjour, je suis l’Assistant IA spécialisé paiements et facturation. Expliquez le blocage rencontré.",
   },
 };
-
-const supabase = getSupabase();
 
 function getInitialHistory(agentId: AgentId): ChatMessage[] {
   const agent = AGENTS[agentId];
@@ -242,30 +246,15 @@ export default function SupportChat() {
           content: message.text,
         }));
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) {
-        throw new Error("auth_required");
-      }
-
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-client-chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await invokeSupabaseFunction<ClientChatResponse>("ai-client-chat", {
+        body: {
           agentId: activeAgent.kind === "guided" ? "support_ai" : selectedAgent,
           messages,
-        }),
+        },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error || "Erreur lors de la réponse IA");
+      if (error) {
+        throw error;
       }
 
       setHistory((prev) => [

@@ -130,8 +130,8 @@ export default function UpsellModal({
 
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!val) onClose(); }}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-background">
-        <div className="relative">
+      <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden bg-background p-0 sm:max-w-md">
+        <div className="relative flex min-h-0 flex-1 flex-col">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -155,7 +155,7 @@ export default function UpsellModal({
             </DialogDescription>
           </div>
 
-          <div className="px-6 pb-6 -mt-6">
+          <div className="-mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
             <div className="bg-card rounded-xl border shadow-sm p-4">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-8">

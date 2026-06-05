@@ -258,9 +258,10 @@ describe("TOK AI tools foundation", () => {
     const supportChat = readProjectFile("src/components/SupportChat.tsx");
 
     expect(supportChat).toContain("ai-client-chat");
-    expect(supportChat).toContain("supabase.auth.getSession");
-    expect(supportChat).toContain("Authorization");
+    expect(supportChat).toContain("invokeSupabaseFunction");
     expect(supportChat).toContain("support_ai");
+    expect(supportChat).not.toContain("supabase.auth.getSession");
+    expect(supportChat).not.toContain("Authorization: `Bearer");
     expect(supportChat).not.toContain("/api/support-ai");
   });
 

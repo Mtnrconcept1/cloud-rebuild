@@ -395,7 +395,7 @@ export default function ReservationDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+        <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden p-0 sm:max-w-md">
           <DialogTitle className="sr-only">Reservation</DialogTitle>
           <DialogDescription className="sr-only">
             Choisissez une date, un créneau disponible et le nombre de convives pour réserver une table.
@@ -432,7 +432,7 @@ export default function ReservationDialog({
             </div>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 pb-6">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
             {step === "datetime" && (
               <>
                 <div className="space-y-2">

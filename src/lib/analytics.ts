@@ -48,6 +48,7 @@ const SPONSORED_AUDIENCE_CACHE_MS = 5 * 60 * 1000;
 const SPONSORED_DISPLAY_DEDUPE_TTL_MS = 1500;
 const MAX_SPONSORED_DISPLAY_KEYS = 300;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const SPONSORED_DISPLAY_TYPES = ["boost", "banner", "sponsored", "in_app"];
 
 const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed", "pending_payment"]);
 const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "refused"]);
@@ -762,9 +763,9 @@ export async function getRestaurantCampaigns(restaurantId: string) {
 export async function getActiveSponsoredRestaurants(page: string) {
   const [campaignResponse, audienceSnapshot] = await Promise.all([
     getSupabase()
-    .from("ad_campaigns" as any)
-    .select("*, restaurants(*)")
-    .in("type", ["boost", "banner", "sponsored"])
+      .from("ad_campaigns" as any)
+      .select("*, restaurants(*)")
+      .in("type", SPONSORED_DISPLAY_TYPES)
       .eq("status", "active"),
     getCurrentAudienceSnapshot(),
   ]);

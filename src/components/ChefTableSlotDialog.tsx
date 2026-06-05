@@ -153,8 +153,9 @@ export default function ChefTableSlotDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden border-amber-200 bg-white p-0 shadow-[0_40px_120px_-48px_rgba(120,53,15,0.55)] dark:border-amber-300/25 dark:bg-slate-950 dark:text-white dark:shadow-[0_40px_130px_-40px_rgba(0,0,0,0.82),0_0_48px_rgba(245,158,11,0.18)] sm:max-w-[780px] sm:rounded-[32px]">
-        <DialogHeader className="border-b border-amber-200/70 bg-gradient-to-br from-stone-950 via-neutral-900 to-amber-950 px-6 pb-6 pt-6 text-left">
+      <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden border-amber-200 bg-white p-0 shadow-[0_40px_120px_-48px_rgba(120,53,15,0.55)] dark:border-amber-300/25 dark:bg-slate-950 dark:text-white dark:shadow-[0_40px_130px_-40px_rgba(0,0,0,0.82),0_0_48px_rgba(245,158,11,0.18)] sm:max-w-[780px] sm:rounded-[32px]">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <DialogHeader className="border-b border-amber-200/70 bg-gradient-to-br from-stone-950 via-neutral-900 to-amber-950 px-6 pb-6 pt-6 text-left">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/80">
               <ChefHat className="h-3.5 w-3.5 text-amber-300" />
@@ -191,7 +192,7 @@ export default function ChefTableSlotDialog({
               </p>
             </div>
           </div>
-        </DialogHeader>
+          </DialogHeader>
 
         <div className="grid gap-6 px-6 pb-6 pt-5 lg:grid-cols-[minmax(0,1.15fr)_280px]">
           <div className="space-y-5">
@@ -325,8 +326,9 @@ export default function ChefTableSlotDialog({
             </div>
           </div>
         </div>
+        </div>
 
-        <div className="flex flex-col-reverse gap-2 border-t border-amber-100 px-6 py-4 dark:border-white/10 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 border-t border-amber-100 px-6 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-4 dark:border-white/10 sm:flex-row sm:justify-end">
           <Button variant="outline" className="rounded-2xl" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
