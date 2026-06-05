@@ -52,5 +52,9 @@ describe("vercel config", () => {
     expect(workflow).not.toContain("Trigger Vercel production deploy hook");
     expect(workflow).toContain("pnpm dlx vercel@latest build --prod --token=\"$VERCEL_TOKEN\"");
     expect(workflow).toContain("pnpm dlx vercel@latest deploy --prebuilt --prod --token=\"$VERCEL_TOKEN\"");
+    expect(workflow).toContain("deploy_frontend:");
+    expect(workflow).toContain("VITE_SUPABASE_URL: https://wwcrtyoueexyxkkikaos.supabase.co");
+    expect(workflow).toContain("VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}");
+    expect(workflow).toContain("VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}");
   });
 });
