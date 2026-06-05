@@ -22,24 +22,29 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("admin dashboard log reset governance", () => {
   it("adds an admin-only reset RPC with a confirmation code and auditable reset history", () => {
-    const sql = latestMigrationContaining(/admin_reset_dashboard_logs/i);
+    const setupSql = latestMigrationContaining(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_dashboard_log_reset_history/i);
+    const rpcSql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_reset_dashboard_logs/i);
 
-    expect(sql).toMatch(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_dashboard_log_reset_history/i);
-    expect(sql).toMatch(/ALTER\s+TABLE\s+public\.admin_dashboard_log_reset_history\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/i);
-    expect(sql).toMatch(/public\.has_role\(auth\.uid\(\),\s*'admin'\)/i);
-    expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_reset_dashboard_logs/i);
-    expect(sql).toMatch(/SECURITY\s+DEFINER/i);
-    expect(sql).toMatch(/public\.has_role\(v_actor_id,\s*'admin'\)/i);
-    expect(sql).toContain("Tok2026$$");
-    expect(sql).toMatch(/DELETE\s+FROM\s+public\.edge_function_audit_logs/i);
-    expect(sql).toMatch(/DELETE\s+FROM\s+public\.audit_log/i);
-    expect(sql).toMatch(/DELETE\s+FROM\s+public\.ai_usage_logs/i);
-    expect(sql).toMatch(/INSERT\s+INTO\s+public\.admin_dashboard_log_reset_history/i);
-    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reset_dashboard_logs\(text\)\s+FROM\s+PUBLIC/i);
-    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reset_dashboard_logs\(text\)\s+FROM\s+anon/i);
-    expect(sql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reset_dashboard_logs\(text\)\s+TO\s+authenticated,\s+service_role/i);
-    expect(sql).toContain("DO $reset_dashboard_logs$");
-    expect(sql).toMatch(/VALUES\s*\(\s*NULL,\s*v_edge_count,\s*v_data_count,\s*v_ai_count\s*\)/i);
+    expect(setupSql).toMatch(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_dashboard_log_reset_history/i);
+    expect(setupSql).toMatch(/ALTER\s+TABLE\s+public\.admin_dashboard_log_reset_history\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/i);
+    expect(setupSql).toMatch(/public\.has_role\(auth\.uid\(\),\s*'admin'\)/i);
+    expect(setupSql).toContain("DO $reset_dashboard_logs$");
+    expect(setupSql).toMatch(/VALUES\s*\(\s*NULL,\s*v_edge_count,\s*v_data_count,\s*v_ai_count\s*\)/i);
+
+    expect(rpcSql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_reset_dashboard_logs/i);
+    expect(rpcSql).toMatch(/SECURITY\s+DEFINER/i);
+    expect(rpcSql).toMatch(/public\.has_role\(v_actor_id,\s*'admin'\)/i);
+    expect(rpcSql).toContain("Tok2026$$");
+    expect(rpcSql).toMatch(/DELETE\s+FROM\s+public\.edge_function_audit_logs\s+WHERE\s+id\s+IS\s+NOT\s+NULL/i);
+    expect(rpcSql).toMatch(/DELETE\s+FROM\s+public\.audit_log\s+WHERE\s+id\s+IS\s+NOT\s+NULL/i);
+    expect(rpcSql).toMatch(/DELETE\s+FROM\s+public\.ai_usage_logs\s+WHERE\s+id\s+IS\s+NOT\s+NULL/i);
+    expect(rpcSql).not.toMatch(/DELETE\s+FROM\s+public\.edge_function_audit_logs\s*;/i);
+    expect(rpcSql).not.toMatch(/DELETE\s+FROM\s+public\.audit_log\s*;/i);
+    expect(rpcSql).not.toMatch(/DELETE\s+FROM\s+public\.ai_usage_logs\s*;/i);
+    expect(rpcSql).toMatch(/INSERT\s+INTO\s+public\.admin_dashboard_log_reset_history/i);
+    expect(rpcSql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reset_dashboard_logs\(text\)\s+FROM\s+PUBLIC/i);
+    expect(rpcSql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reset_dashboard_logs\(text\)\s+FROM\s+anon/i);
+    expect(rpcSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_reset_dashboard_logs\(text\)\s+TO\s+authenticated,\s+service_role/i);
   });
 
   it("exposes the reset action only through the dedicated admin control", () => {
