@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 const MOBILE_BREAKPOINT = 768;
 const LOGO_INTRO_IMAGE_SRC = "/logo.png";
 const LOGO_INTRO_VISIBLE_MS = 900;
+const LOGO_INTRO_FADE_MS = 700;
+const LOGO_INTRO_DISMISS_FALLBACK_MS = LOGO_INTRO_FADE_MS + 100;
 
 function isMobileViewport() {
   if (typeof window === "undefined") return false;
@@ -56,6 +58,17 @@ export default function MobileLogoIntro() {
 
     return () => window.clearTimeout(timeoutId);
   }, [visible]);
+
+  useEffect(() => {
+    if (!visible || !fadingOut) return;
+
+    const timeoutId = window.setTimeout(() => {
+      dismissedRef.current = true;
+      setVisible(false);
+    }, LOGO_INTRO_DISMISS_FALLBACK_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [visible, fadingOut]);
 
   if (!visible) return null;
 

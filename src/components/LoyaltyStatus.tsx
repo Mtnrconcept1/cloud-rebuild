@@ -76,22 +76,22 @@ export default function LoyaltyStatus() {
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="link" className="min-h-[44px] justify-start p-0 text-xs font-semibold text-pink-500 hover:text-pink-600">
-              Decouvrir les avantages <ArrowUpRight className="h-3 w-3" />
+              Découvrir les avantages <ArrowUpRight className="h-3 w-3" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:h-auto sm:max-h-[min(860px,calc(100dvh-2rem))]">
-            <DialogHeader className="border-b bg-background/95 px-4 py-4 pr-12 text-left backdrop-blur sm:px-6">
+          <DialogContent className="flex h-[calc(100dvh-0.75rem)] max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:h-[min(860px,calc(100dvh-2rem))] sm:max-h-[min(860px,calc(100dvh-2rem))]">
+            <DialogHeader className="shrink-0 border-b bg-background/95 px-4 py-4 pr-12 text-left backdrop-blur sm:px-6">
               <DialogTitle>Avantages {config.label}</DialogTitle>
               <DialogDescription>
-                Tous vos avantages actifs et ceux a debloquér, lisibles sur mobile.
+                Tous vos avantages actifs et ceux à débloquer, lisibles sur mobile.
               </DialogDescription>
             </DialogHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] sm:px-6">
               <div className="sticky top-0 z-10 rounded-lg border bg-background/95 p-3 shadow-sm backdrop-blur sm:p-4">
                 <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <span className="font-medium">{points.toLocaleString()} Miamz</span>
                   <span className="text-muted-foreground">
-                    {nextTierLabel ? `${loyalty.pointsToNextTier} Miamz avant ${nextTierLabel}` : "Tous les avantages sont debloqués"}
+                    {nextTierLabel ? `${loyalty.pointsToNextTier} Miamz avant ${nextTierLabel}` : "Tous les avantages sont débloqués"}
                   </span>
                 </div>
                 <Progress value={loyalty.progressPercent} className="mt-3 h-2" />
@@ -114,7 +114,7 @@ export default function LoyaltyStatus() {
 
               {lockedBenefits.length > 0 ? (
                 <div className="mt-5 space-y-2 pb-2">
-                  <p className="text-sm font-semibold">A debloquér ensuite</p>
+                  <p className="text-sm font-semibold">À débloquer ensuite</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {lockedBenefits.slice(0, 6).map((benefit) => (
                       <div key={benefit.id} className="rounded-lg border border-dashed p-3 text-sm opacity-80">

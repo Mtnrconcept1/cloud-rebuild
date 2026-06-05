@@ -196,15 +196,21 @@ function CommentForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex gap-2">
+    <form onSubmit={submit} className="flex items-end gap-2">
       <Textarea
         value={body}
         onChange={(event) => setBody(event.target.value)}
         placeholder={placeholder}
-        className="min-h-10 resize-none"
+        className="min-h-10 min-w-0 flex-1 resize-none text-base sm:text-sm"
         maxLength={1000}
       />
-      <Button type="submit" size="icon" disabled={!body.trim() || addComment.isPending} aria-label="Envoyer le commentaire">
+      <Button
+        type="submit"
+        size="icon"
+        className="h-10 w-10 shrink-0"
+        disabled={!body.trim() || addComment.isPending}
+        aria-label="Envoyer le commentaire"
+      >
         <Send className="h-4 w-4" />
       </Button>
     </form>
@@ -516,7 +522,13 @@ export default function SocialPostCard({
             disabled={setPostReaction.isPending}
             onSelect={(reaction) => setPostReaction.mutate({ post, reaction })}
           />
-          <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm" onClick={() => setCommentsOpen((open) => !open)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm"
+            onClick={() => setCommentsOpen((open) => !open)}
+            aria-label={commentsOpen ? "Masquer les commentaires" : "Afficher les commentaires"}
+          >
             <MessageCircle className="h-4 w-4" />
             {post.commentsCount}
           </Button>
@@ -588,13 +600,13 @@ export default function SocialPostCard({
           </div>
         ) : null}
 
-        <Drawer open={commentsOpen} onOpenChange={setCommentsOpen}>
-          <DrawerContent className="max-h-[88vh]">
-            <DrawerHeader>
+        <Drawer open={commentsOpen} onOpenChange={setCommentsOpen} shouldScaleBackground={false}>
+          <DrawerContent className="max-h-[calc(100dvh-0.75rem)] min-h-0 overflow-hidden">
+            <DrawerHeader className="shrink-0">
               <DrawerTitle>Commentaires</DrawerTitle>
               <DrawerDescription>{post.restaurant.name}</DrawerDescription>
             </DrawerHeader>
-            <div className="overflow-y-auto px-4 pb-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]">
               <SocialComments post={post} />
             </div>
           </DrawerContent>

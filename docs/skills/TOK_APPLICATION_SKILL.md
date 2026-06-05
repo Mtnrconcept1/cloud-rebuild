@@ -318,6 +318,7 @@ Current production workflow assumptions:
 - App base/public URL: `https://cloud-rebuild-recovered.vercel.app/`.
 - Site URL: `https://www.thetok.ch`.
 - Admin URL: `https://admin.thetok.ch`.
+- DNS: the `thetok.ch` zone has been delegated from Hostinger to Vercel DNS with `ns1.vercel-dns.com` and `ns2.vercel-dns.com`. Manage public/admin records in Vercel DNS, not in Hostinger DNS.
 
 Do not switch production workflows back to npm unless the whole repository is migrated back to npm and a valid full `package-lock.json` is committed. The current lock source is pnpm.
 
@@ -451,6 +452,7 @@ Before modifying high-risk areas, inspect current code, tests, migrations and wo
 - Public site URL: `https://www.thetok.ch`.
 - Admin site URL: `https://admin.thetok.ch`.
 - Current app deployment URL: `https://cloud-rebuild-recovered.vercel.app/`.
+- DNS delegation: Hostinger nameservers have been switched to Vercel DNS (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`) so `thetok.ch`, `www.thetok.ch` and `admin.thetok.ch` records should be managed from Vercel.
 - Supabase project ref: `wwcrtyoueexyxkkikaos`.
 - Package manager: pnpm.
 - Node in CI/deploy: 22.

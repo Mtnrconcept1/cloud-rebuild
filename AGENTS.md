@@ -36,6 +36,7 @@ Priorites absolues pour tout agent/IDE : paiement fiable, commande fiable, Supab
 - Admin catalogue renforce avec upload media, tri, preview publique et validation avant publication.
 - Admin notifications renforce avec preview multi-canal, envoi test, duplication, annulation non destructive et visibilite scheduler/desabonnements.
 - Skills IDE TOK ajoutes dans `docs/skills/` pour encadrer la generation de code.
+- DNS `thetok.ch` bascule depuis Hostinger vers les nameservers Vercel `ns1.vercel-dns.com` et `ns2.vercel-dns.com`; les records publics/admin doivent etre geres cote Vercel DNS.
 
 ## Ce qui est partiellement fait
 

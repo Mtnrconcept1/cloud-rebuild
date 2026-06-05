@@ -75,4 +75,21 @@ describe("MobileLogoIntro", () => {
 
     expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
   });
+
+  it("removes the blocking overlay even if the transition end event is not fired", () => {
+    render(<MobileLogoIntro />);
+
+    act(() => {
+      vi.advanceTimersByTime(900);
+    });
+
+    expect(screen.getByTestId("mobile-logo-intro")).toHaveClass("opacity-0");
+
+    act(() => {
+      vi.advanceTimersByTime(800);
+    });
+
+    expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
+    expect(document.body.style.overflow).toBe("");
+  });
 });
