@@ -23,6 +23,8 @@ describe("Miamz business logic guards", () => {
     expect(migrationsSource).toContain("birthday_bonus");
     expect(migrationsSource).toContain("restaurant_gifts");
     expect(migrationsSource).toContain("premium_refunds");
+    expect(migrationsSource).toContain("repair_loyalty_tiers_status");
+    expect(migrationsSource).toContain("ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'active'");
     expect(migrationsSource).toContain("REVOKE EXECUTE ON FUNCTION public.resolve_miamz_benefit_state(uuid) FROM PUBLIC, anon, authenticated");
     expect(migrationsSource).toContain("GRANT EXECUTE ON FUNCTION public.resolve_miamz_benefit_state(uuid) TO service_role");
   });

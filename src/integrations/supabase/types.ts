@@ -2392,6 +2392,7 @@ export type Database = {
           min_points: number
           multiplier: number | null
           name: string
+          status: string
         }
         Insert: {
           benefits?: Json | null
@@ -2400,6 +2401,7 @@ export type Database = {
           min_points: number
           multiplier?: number | null
           name: string
+          status?: string
         }
         Update: {
           benefits?: Json | null
@@ -2408,6 +2410,7 @@ export type Database = {
           min_points?: number
           multiplier?: number | null
           name?: string
+          status?: string
         }
         Relationships: []
       }
