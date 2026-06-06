@@ -31,7 +31,7 @@ describe("social media upload guards", () => {
   it("keeps the Supabase social media bucket aligned with the frontend media limits", () => {
     const migrations = readMigrations();
 
-    expect(migrations).toContain("20260605163000_social_post_media_bucket_hardening");
+    expect(migrations).toContain("social_post_media_bucket_hardening");
     expect(migrations).toContain("file_size_limit = 26214400");
     expect(migrations).toContain("allowed_mime_types = ARRAY[");
     expect(migrations).toContain("'image/jpeg'");

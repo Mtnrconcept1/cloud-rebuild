@@ -1,4 +1,4 @@
--- 20260605163000_social_post_media_bucket_hardening
+-- 20260606000500_social_post_media_bucket_hardening
 -- Align social post media storage with the frontend allowlist and 25 MB upload guard.
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
