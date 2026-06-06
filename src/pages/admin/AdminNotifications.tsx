@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import NotificationHistoryList from "@/components/notifications/NotificationHistoryList";
 import CityMultiSelect from "@/components/CityMultiSelect";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -296,6 +297,12 @@ export default function AdminNotifications() {
           </Dialog>
         </div>
         )}
+      />
+
+      <NotificationHistoryList
+        title="Historique admin"
+        description="Alertes opérationnelles reçues par l'administration, avec accès direct aux commandes, réservations, incidents et audits concernés."
+        fallbackTarget="/admin/notifications"
       />
 
       <Card>

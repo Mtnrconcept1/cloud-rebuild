@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Activity, CreditCard, History, RotateCcw, Truck, Utensils } from "lucide-react";
 
 import AdminUrgentActions from "@/components/admin/AdminUrgentActions";
@@ -50,9 +52,23 @@ const OPERATION_VIEWS = [
   },
 ] as const;
 
+type OperationCenterTab = (typeof OPERATION_VIEWS)[number]["value"] | "history";
+
 export default function AdminOperationsCenter() {
+  const [searchParams] = useSearchParams();
+  const [activeView, setActiveView] = useState<OperationCenterTab>("live");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const operationId = searchParams.get("operation");
+
+    if (operationId || tab === "orders" || tab === "reservations" || tab === "refunds") {
+      setActiveView("history");
+    }
+  }, [searchParams]);
+
   return (
-    <Tabs defaultValue="live" className="space-y-6">
+    <Tabs value={activeView} onValueChange={(value) => setActiveView(value as OperationCenterTab)} className="space-y-6">
       <div className="container space-y-6 py-8">
         <DashboardPageHero
           badge="Operations admin"

@@ -81,6 +81,7 @@ const DashboardFacturesInflow = lazy(() => import("./pages/dashboard/DashboardFa
 const DashboardFacturesOutflow = lazy(() => import("./pages/dashboard/DashboardFacturesOutflow"));
 const DashboardInvoiceSettings = lazy(() => import("./pages/dashboard/DashboardInvoiceSettings"));
 const DashboardPhotos = lazy(() => import("./pages/dashboard/DashboardPhotos"));
+const DashboardNotifications = lazy(() => import("./pages/dashboard/DashboardNotifications"));
 const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport"));
 const DashboardService = lazy(() => import("./pages/dashboard/DashboardService"));
 const DashboardPlanSalle = lazy(() => import("./pages/dashboard/DashboardPlanSalle"));
@@ -89,6 +90,7 @@ const DashboardPack = lazy(() => import("./pages/dashboard/DashboardPack"));
 
 const CourierHome = lazy(() => import("./pages/courier/CourierHome"));
 const CourierJobs = lazy(() => import("./pages/courier/CourierJobs"));
+const CourierNotifications = lazy(() => import("./pages/courier/CourierNotifications"));
 const CourierEarnings = lazy(() => import("./pages/courier/CourierEarnings"));
 const CourierProfile = lazy(() => import("./pages/courier/CourierProfile"));
 
@@ -371,12 +373,14 @@ function AppShell() {
           <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><DashboardReseauxSociaux /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><DashboardActualites /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><DashboardCampagnes /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/notifications" element={<DashboardRoute><DashboardNotifications /></DashboardRoute>} />
           <Route path="/dashboard/support" element={<DashboardRoute><FeatureSwitch enabled={dashboardSupportEnabled} fallback="/dashboard"><DashboardSupport /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/service" element={<DashboardRoute><FeatureSwitch enabled={dashboardServiceEnabled} fallback="/dashboard"><DashboardService /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/pack" element={<DashboardRoute><FeatureSwitch enabled={dashboardPackEnabled} fallback="/dashboard"><DashboardPack /></FeatureSwitch></DashboardRoute>} />
           <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/jobs" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierJobsEnabled} fallback="/courier"><CourierJobs /></FeatureSwitch></ProtectedRoute>} />
+          <Route path="/courier/notifications" element={<ProtectedRoute requiredRole="courier"><CourierNotifications /></ProtectedRoute>} />
           <Route path="/courier/earnings" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierEarningsEnabled} fallback="/courier"><CourierEarnings /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/courier/profile" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierProfileEnabled} fallback="/courier"><CourierProfile /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/admin" element={<AdminDashboardRoute />} />

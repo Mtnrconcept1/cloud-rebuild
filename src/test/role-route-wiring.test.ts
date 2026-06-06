@@ -29,6 +29,11 @@ describe("role route wiring", () => {
     expect(routesWithoutClientGuard).toEqual([]);
   });
 
+  it("guards restaurant and courier notification history routes by role", () => {
+    expect(getRouteElement("/dashboard/notifications")).toContain("DashboardRoute");
+    expect(getRouteElement("/courier/notifications")).toContain('requiredRole="courier"');
+  });
+
   it("keeps the public social feed accessible without an auth guard", () => {
     const actualitesRoute = getRouteElement("/actualites");
 

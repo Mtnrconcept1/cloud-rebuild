@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { Bike, Clock3, ExternalLink, MapPin, Package, Route, Store, Timer } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,10 +43,15 @@ function mapsLink(address: string) {
 
 export default function CourierJobs() {
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
   const { data: profile, isLoading: profileLoading } = useCourierProfile();
   const [clockTick, setClockTick] = useState(Date.now());
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<CourierMissionPreview | null>(null);
+  const [openedTargetKey, setOpenedTargetKey] = useState<string | null>(null);
+  const targetJobId = searchParams.get("job");
+  const targetOrderId = searchParams.get("order");
+  const targetMissionKey = targetJobId ? `job:${targetJobId}` : targetOrderId ? `order:${targetOrderId}` : null;
 
   useEffect(() => {
     const timer = window.setInterval(() => setClockTick(Date.now()), 1000);
@@ -98,6 +104,22 @@ export default function CourierJobs() {
     setSelectedMission(mission);
     setMissionDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (!targetMissionKey || openedTargetKey === targetMissionKey || jobsLoading) return;
+
+    const targetedJob = [...activeJobs, ...recentJobs].find((job: any) => {
+      if (targetJobId && job.id === targetJobId) return true;
+      if (!targetOrderId) return false;
+      return job.order_id === targetOrderId || job.orders?.id === targetOrderId;
+    });
+
+    if (!targetedJob) return;
+
+    setSelectedMission(buildCourierMissionFromJob(targetedJob));
+    setMissionDialogOpen(true);
+    setOpenedTargetKey(targetMissionKey);
+  }, [activeJobs, jobsLoading, openedTargetKey, recentJobs, targetJobId, targetMissionKey, targetOrderId]);
 
   const respondMutation = useMutation({
     mutationFn: async ({ attemptId, decision }: { attemptId: string; decision: "accept" | "decline" }) =>

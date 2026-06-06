@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
+  Bell,
   BookOpen,
   Bot,
   CalendarDays,
@@ -109,6 +110,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "Support",
     items: [
+      { to: "/dashboard/notifications", label: "Notifications", icon: Bell },
       { to: "/dashboard/support", label: "Aide et support", icon: CircleHelp, feature: "dashboard-support" },
     ],
   },

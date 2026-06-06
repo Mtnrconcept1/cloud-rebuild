@@ -48,8 +48,8 @@ const FAQ_ITEMS = [
     a: "Oui, vous pouvez passer à un pack supérieur à tout moment. La différence de prix sera calculée et vous sera facturée. Le downgrade n'est pas possible une fois les services commencés.",
   },
   {
-    q: "Les photos sont-elles réalisées sur place ?",
-    a: "Oui, un photographe professionnel se déplace dans votre restaurant pour une séance photo. Les photos sont retouchées et livrées sous 5 jours ouvrables.",
+    q: "Comment fonctionnent les photos incluses dans les packs premium ?",
+    a: "Les packs premium n'incluent pas de photographe sur place. Ils comprennent un outil de retouche automatique TOK : vous importez vos photos de plats, puis le studio les améliore en visuels premium prêts à publier.",
   },
   {
     q: "Comment fonctionne le budget publicitaire inclus ?",

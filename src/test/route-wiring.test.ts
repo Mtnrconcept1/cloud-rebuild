@@ -33,6 +33,8 @@ const CORE_ROUTES = new Set([
   "/panier",
   "/profil",
   "/notifications",
+  "/dashboard/notifications",
+  "/courier/notifications",
   "/contact",
   "/cgu",
   "/politique-confidentialite",

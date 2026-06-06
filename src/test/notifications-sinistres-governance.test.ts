@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getNotificationBadgeCountForRoute,
+  getNotificationCenterPathForRole,
   getNotificationTarget,
 } from "@/lib/notificationRouting";
 
@@ -20,6 +21,8 @@ describe("notifications and chat sinistres governance", () => {
   it("routes notifications directly to the relevant operational screen", () => {
     expect(getNotificationTarget({ data: { order_id: "order-1" } }, "client"))
       .toBe("/commande/order-1");
+    expect(getNotificationTarget({ data: { url: "/notifications", order_id: "order-1" } }, "client"))
+      .toBe("/commande/order-1");
     expect(getNotificationTarget({ data: { order_id: "order-1" } }, "admin"))
       .toBe("/admin/commandes-reservations?tab=orders&operation=order-1");
     expect(getNotificationTarget({ data: { reservation_id: "res-1" } }, "restaurateur"))
@@ -30,6 +33,8 @@ describe("notifications and chat sinistres governance", () => {
       .toBe("/admin/sinistres?incident=incident-1");
     expect(getNotificationTarget({ data: { url: "/admin/audit?event=1" } }, "admin"))
       .toBe("/admin/audit?event=1");
+    expect(getNotificationCenterPathForRole("restaurateur")).toBe("/dashboard/notifications");
+    expect(getNotificationCenterPathForRole("courier")).toBe("/courier/notifications");
   });
 
   it("counts unread notifications beside the concerned menu tab", () => {
@@ -41,6 +46,7 @@ describe("notifications and chat sinistres governance", () => {
     ];
 
     expect(getNotificationBadgeCountForRoute(notifications, "/admin/commandes-reservations", "admin")).toBe(2);
+    expect(getNotificationBadgeCountForRoute(notifications, "/admin/notifications", "admin")).toBe(4);
     expect(getNotificationBadgeCountForRoute(notifications, "/admin/sinistres", "admin")).toBe(1);
     expect(getNotificationBadgeCountForRoute(notifications, "/admin/audit", "admin")).toBe(1);
   });
@@ -57,6 +63,43 @@ describe("notifications and chat sinistres governance", () => {
 
     expect(readProjectFile("src/components/CustomerDashboardLayout.tsx")).toContain("NotificationMenuBadge");
     expect(readProjectFile("src/components/admin/AdminMobileNavigation.tsx")).toContain("NotificationMenuBadge");
+  });
+
+  it("exposes a notification history page for every authenticated interface", () => {
+    const app = readProjectFile("src/App.tsx");
+    const customerPage = readProjectFile("src/pages/Notifications.tsx");
+    const dashboardPage = readProjectFile("src/pages/dashboard/DashboardNotifications.tsx");
+    const courierPage = readProjectFile("src/pages/courier/CourierNotifications.tsx");
+    const adminPage = readProjectFile("src/pages/admin/AdminNotifications.tsx");
+    const adminOperationsCenter = readProjectFile("src/pages/admin/AdminOperationsCenter.tsx");
+    const adminOrdersReservations = readProjectFile("src/pages/admin/AdminOrdersReservations.tsx");
+    const historyList = readProjectFile("src/components/notifications/NotificationHistoryList.tsx");
+    const courierJobs = readProjectFile("src/pages/courier/CourierJobs.tsx");
+    const dashboardLayout = readProjectFile("src/components/DashboardLayout.tsx");
+    const courierLayout = readProjectFile("src/components/CourierDashboardLayout.tsx");
+    const bell = readProjectFile("src/components/notifications/NotificationBell.tsx");
+
+    expect(app).toContain('path="/notifications"');
+    expect(app).toContain('path="/dashboard/notifications"');
+    expect(app).toContain('path="/courier/notifications"');
+    expect(app).toContain('path="/admin/notifications"');
+    expect(customerPage).toContain("NotificationHistoryList");
+    expect(dashboardPage).toContain("NotificationHistoryList");
+    expect(courierPage).toContain("NotificationHistoryList");
+    expect(adminPage).toContain("NotificationHistoryList");
+    expect(historyList).toContain("useNotificationCenter(limit, { realtime: true })");
+    expect(historyList).toContain("getNotificationTarget(notification, role, notificationCenterTarget)");
+    expect(historyList).toContain("markNotificationRead(notification.id)");
+    expect(historyList).toContain("navigate(target)");
+    expect(adminOperationsCenter).toContain("useSearchParams");
+    expect(adminOperationsCenter).toContain('setActiveView("history")');
+    expect(adminOrdersReservations).toContain('searchParams.get("operation")');
+    expect(courierJobs).toContain("useSearchParams");
+    expect(courierJobs).toContain('searchParams.get("job")');
+    expect(courierJobs).toContain('searchParams.get("order")');
+    expect(dashboardLayout).toContain("/dashboard/notifications");
+    expect(courierLayout).toContain("/courier/notifications");
+    expect(bell).toContain("getNotificationCenterPathForRole(role)");
   });
 
   it("exposes chat sinistres in admin with summary and full conversation history", () => {

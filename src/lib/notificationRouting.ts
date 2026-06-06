@@ -27,16 +27,25 @@ function firstString(...values: unknown[]) {
 
 function pathnameOf(target: string) {
   try {
-    return new URL(target, window.location.origin).pathname;
+    const origin = typeof window === "undefined" ? "https://www.thetok.ch" : window.location.origin;
+    return new URL(target, origin).pathname;
   } catch {
     return target.split("?")[0].split("#")[0] || "/";
   }
 }
 
+export function getNotificationCenterPathForRole(role: NotificationRole, fallback = "/notifications") {
+  if (role === "admin") return "/admin/notifications";
+  if (role === "restaurateur") return "/dashboard/notifications";
+  if (role === "courier") return "/courier/notifications";
+  if (role === "client") return "/notifications";
+  return fallback;
+}
+
 export function getNotificationTarget(notification: RoutableNotification, role: NotificationRole, fallback = "/notifications") {
   const data = asRecord(notification.data);
   const explicitTarget = firstString(data.url, data.deepLink, data.deep_link, data.action_url, data.target_url, data.link);
-  if (explicitTarget) return normalizeInternalNavigationTarget(explicitTarget, fallback);
+  const normalizedExplicitTarget = explicitTarget ? normalizeInternalNavigationTarget(explicitTarget, fallback) : null;
 
   const supportIncidentId = firstString(data.support_incident_id, data.incident_id, data.ticket_id);
   const aiSupportTicketId = firstString(data.ai_support_ticket_id, data.support_ticket_id);
@@ -46,7 +55,7 @@ export function getNotificationTarget(notification: RoutableNotification, role: 
       return `/admin/sinistres?${id}`;
     }
     if (role === "restaurateur") return "/dashboard/support";
-    return fallback;
+    return normalizedExplicitTarget || getNotificationCenterPathForRole(role, fallback);
   }
 
   const orderId = firstString(data.order_id, data.orderId);
@@ -79,11 +88,9 @@ export function getNotificationTarget(notification: RoutableNotification, role: 
     if (normalizedEntityType.includes("campaign") || normalizedEntityType.includes("notification")) return "/admin/notifications";
   }
 
-  if (role === "admin") return "/admin/notifications";
-  if (role === "restaurateur") return "/dashboard/support";
-  if (role === "courier") return "/courier/jobs";
+  if (normalizedExplicitTarget) return normalizedExplicitTarget;
 
-  return fallback;
+  return getNotificationCenterPathForRole(role, fallback);
 }
 
 export function getNotificationBadgeCountForRoute(
@@ -92,9 +99,12 @@ export function getNotificationBadgeCountForRoute(
   role: NotificationRole,
 ) {
   const routePathname = pathnameOf(route);
+  const notificationCenterPathname = pathnameOf(getNotificationCenterPathForRole(role));
+
+  if (routePathname === notificationCenterPathname) return notifications.length;
 
   return notifications.filter((notification) => {
-    const target = getNotificationTarget(notification, role, "/notifications");
+    const target = getNotificationTarget(notification, role, getNotificationCenterPathForRole(role));
     const targetPathname = pathnameOf(target);
 
     if (routePathname === "/admin") return targetPathname === "/admin";

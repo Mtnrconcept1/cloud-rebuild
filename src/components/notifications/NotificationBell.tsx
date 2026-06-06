@@ -12,7 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useNotificationCenter, type TokNotification } from "@/hooks/useNotificationCenter";
 import { useAuth } from "@/lib/auth-context";
-import { formatNotificationCount, getNotificationTarget } from "@/lib/notificationRouting";
+import {
+  formatNotificationCount,
+  getNotificationCenterPathForRole,
+  getNotificationTarget,
+} from "@/lib/notificationRouting";
 import { cn } from "@/lib/utils";
 
 type NotificationBellProps = {
@@ -53,16 +57,10 @@ export function NotificationBell({
 
   if (!user) return null;
 
-  const notificationCenterTarget = role === "admin"
-    ? "/admin/notifications"
-    : role === "restaurateur"
-      ? "/dashboard/support"
-      : role === "courier"
-        ? "/courier/jobs"
-        : "/notifications";
+  const notificationCenterTarget = getNotificationCenterPathForRole(role);
 
   const openNotification = (notification: TokNotification) => {
-    const target = getNotificationTarget(notification, role, "/notifications");
+    const target = getNotificationTarget(notification, role, notificationCenterTarget);
     void markNotificationRead(notification.id);
     navigate(target);
   };

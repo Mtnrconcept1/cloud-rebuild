@@ -94,10 +94,9 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       return { ...notification, read_at: notification.read_at ?? readAt };
     });
 
-    queryClient.setQueryData(["notifications", user.id, limit], patch);
-    queryClient.setQueryData(["notifications", user.id], patch);
+    queryClient.setQueriesData<TokNotification[]>({ queryKey: ["notifications", user.id] }, patch);
     queryClient.setQueryData(["navbar-notifications", user.id], patch);
-  }, [limit, queryClient, user?.id]);
+  }, [queryClient, user?.id]);
 
   const markNotificationRead = useCallback(async (notificationId: string) => {
     if (!user?.id) return;

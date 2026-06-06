@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Bike, Coins, LayoutDashboard, LogOut, Menu, Shield, Store, UserRound } from "lucide-react";
+import { Bell, Bike, Coins, LayoutDashboard, LogOut, Menu, Shield, Store, UserRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import type { ComponentType } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -23,16 +24,24 @@ import {
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+type CourierNavItem = {
+  to: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+  feature?: string;
+};
+
+const NAV_ITEMS: CourierNavItem[] = [
   { to: "/courier", label: "Vue d'ensemble", icon: LayoutDashboard, feature: "courier-home" },
   { to: "/courier/jobs", label: "Missions", icon: Bike, feature: "courier-jobs" },
+  { to: "/courier/notifications", label: "Notifications", icon: Bell },
   { to: "/courier/earnings", label: "Gains", icon: Coins, feature: "courier-earnings" },
   { to: "/courier/profile", label: "Profil", icon: UserRound, feature: "courier-profile" },
 ];
 
 type CourierNavContentProps = {
   pathname: string;
-  visibleNavItems: typeof NAV_ITEMS;
+  visibleNavItems: CourierNavItem[];
   roles: string[];
   role: ReturnType<typeof useAuth>["role"];
   activeFeatures: ReadonlySet<string>;
@@ -129,7 +138,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
   const [missionDialogOpen, setMissionDialogOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [missionPreview, setMissionPreview] = useState<CourierMissionPreview | null>(null);
-  const visibleNavItems = NAV_ITEMS.filter((item) => activeFeatures.has(item.feature));
+  const visibleNavItems = NAV_ITEMS.filter((item) => !item.feature || activeFeatures.has(item.feature));
   const backFallback = pathname === "/courier" ? "/" : "/courier";
   const activeNavItem = visibleNavItems.find((item) => item.to === pathname);
 
