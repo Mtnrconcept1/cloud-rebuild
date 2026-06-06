@@ -1500,7 +1500,7 @@ export default function DashboardPlanSalle() {
 
   useEffect(() => {
     if (selectedTableId || selectedReservationId) {
-      setInspectorTab("properties");
+      setToolPanelTab("inspector");
     }
   }, [selectedReservationId, selectedTableId]);
 

@@ -15,6 +15,7 @@ describe("floor plan page layout", () => {
     expect(source).toContain("value={toolPanelTab}");
     expect(source).toContain('value="library"');
     expect(source).toContain('value="inspector"');
+    expect(source).not.toContain("setInspectorTab(");
     expect(source).not.toContain("leftSidebarCollapsed");
     expect(source).not.toContain("rightSidebarCollapsed");
     expect(source).not.toContain("showWorkspaceStats");
