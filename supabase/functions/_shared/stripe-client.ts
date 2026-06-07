@@ -124,6 +124,12 @@ export function getTokOneStripeRuntime(preferredMode?: unknown) {
   return getStripeRuntimeForCheckoutKind("tok-one");
 }
 
+export function getTokOneStripeRuntimeForCheckoutSession(sessionId: string) {
+  if (sessionId.startsWith("cs_test_")) return getTokOneStripeRuntime("test");
+  if (sessionId.startsWith("cs_live_")) return getTokOneStripeRuntime("live");
+  return getTokOneStripeRuntime();
+}
+
 export function getStripeVerificationRuntime() {
   return selectRuntime({
     names: ["STRIPE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_TOK_ONE_SECRET_KEY"],

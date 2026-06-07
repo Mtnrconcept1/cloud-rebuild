@@ -77,10 +77,10 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain('type="application/ld+json"');
     expect(prerender).toContain("SearchAction");
     expect(prerender).toContain("FAQPage");
-    expect(prerender).toContain("Alternative aux commissions par couvert pour restaurants");
-    expect(prerender).toContain("modèles facturés au couvert");
-    expect(prerender).toContain("Solution de réservation et marketing pour restaurants à Genève");
-    expect(prerender).toContain("Réservation, marketing local, offres restaurant et outils opérationnels");
+    expect(prerender).toContain("Commission par couvert restaurant : alternative et comparatif marge");
+    expect(prerender).toContain("no-show, groupes, coût d'acquisition");
+    expect(prerender).toContain("Logiciel restaurateur à Genève");
+    expect(prerender).toContain("Logiciel restaurateur pour réservations, commandes, anti-gaspi");
     expect(prerender).not.toMatch(/SERVICE_ROLE|SUPABASE_SERVICE_ROLE_KEY|service_role/i);
   });
 
@@ -90,12 +90,13 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain("staticContent");
     expect(prerender).toContain('id="tok-prerendered-content"');
     expect(prerender).toContain('<noscript><section id="tok-prerendered-content"');
-    expect(prerender).toContain("Remplissez vos tables sans exploser vos commissions.");
-    expect(prerender).toContain("Simulateur de marge");
-    expect(prerender).toContain("TOK vs plateformes classiques");
-    expect(prerender).toContain("Modèle par couvert vs tarif fixe par table");
-    expect(prerender).toContain("Comparez vos coûts avant de changer d'outil");
-    expect(prerender).toContain("Nom du restaurant");
+    expect(prerender).toContain("La plateforme restaurateur pour transformer la demande locale à Genève.");
+    expect(prerender).toContain("Plan d'activation Genève");
+    expect(prerender).toContain("Modules restaurateur");
+    expect(prerender).toContain("Transformez votre fiche Google Business en canal direct.");
+    expect(prerender).toContain("Checklist de bascule");
+    expect(prerender).toContain("Commission par couvert : comparez avant de choisir.");
+    expect(prerender).toContain("Scénarios chiffrés");
     expect(prerender).toContain("BreadcrumbList");
     expect(prerender).not.toContain('document.getElementById("tok-prerendered-content")');
     expect(prerender).not.toContain(

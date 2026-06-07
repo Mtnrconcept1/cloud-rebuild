@@ -9,7 +9,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
-import { getTokOneStripeRuntime } from "../_shared/stripe-client.ts";
+import { getTokOneStripeRuntime, getTokOneStripeRuntimeForCheckoutSession } from "../_shared/stripe-client.ts";
 import {
   getLatestTokOneSubscription,
   isTokOneEntitledStatus,
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
         throw new HttpError(400, "session_id requis");
       }
 
-      const stripeRuntime = getTokOneStripeRuntime();
+      const stripeRuntime = getTokOneStripeRuntimeForCheckoutSession(sessionId);
       const session = await stripeRuntime.stripe.checkout.sessions.retrieve(sessionId, {
         expand: ["subscription"],
       });

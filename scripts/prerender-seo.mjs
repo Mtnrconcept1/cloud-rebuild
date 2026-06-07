@@ -158,50 +158,61 @@ const PUBLIC_SEO_PAGES = [
   },
   {
     path: "/restaurateurs/geneve",
-    title: "Solution de réservation et marketing pour restaurants à Genève | TOK",
+    title: "Logiciel restaurateur à Genève : réservations, commandes et marketing | TOK",
     description:
-      "TOK aide les restaurants genevois à recevoir des réservations, vendre leurs offres, améliorer leurs photos et réduire leurs frais.",
+      "TOK aide les restaurants genevois à piloter réservations, commandes, anti-gaspi, ventes flash, actualités, photos IA, Miamz et campagnes depuis un dashboard unique.",
     priority: "0.8",
     changefreq: "weekly",
     staticContent: {
-      heading: "Remplissez vos tables sans exploser vos commissions.",
+      heading: "La plateforme restaurateur pour transformer la demande locale à Genève.",
       paragraphs: [
-        "TOK aide les restaurants genevois à capter plus de réservations, activer les heures creuses, améliorer leurs photos et garder une relation client directe.",
-        "Le modèle combine 5 CHF par table, packs de lancement, photos IA, offres locales, zéro attente et pilotage business pour protéger la marge.",
+        "TOK centralise les réservations, les commandes, les offres anti-gaspi, les ventes flash, les actualités, les photos IA, les Miamz et les campagnes dans un dashboard pensé pour les restaurants genevois.",
+        "La page Genève présente la solution complète : onboarding, fiche publique, services ouverts, pilotage commercial, cas d'usage par type de restaurant et FAQ locale.",
       ],
       sections: [
         {
-          heading: "Simulateur de marge",
+          heading: "Plan d'activation Genève",
           items: [
             "Tables par mois",
-            "Ticket moyen",
-            "Pack restaurateur",
-            "Marketing autorisé à 60 % du CA encaissé",
+            "Commandes par mois",
+            "Actualités par semaine",
+            "Pack d'accompagnement",
+            "Photos IA et contenus de lancement",
           ],
         },
         {
-          heading: "TOK vs plateformes classiques",
+          heading: "Modules restaurateur",
           items: [
-            "Moins de dépendance aux commissions élevées",
-            "Données et relation client côté restaurant",
-            "Photos IA, offres heures creuses et réservations pilotées",
+            "Réservations et commandes directes",
+            "Anti-gaspi et ventes flash",
+            "Actualités, campagnes et Miamz",
+            "Photos IA et fiche publique",
           ],
         },
         {
-          heading: "Demander une démo",
+          heading: "Cas d'usage locaux",
           items: [
-            "Nom du restaurant",
-            "Ville",
-            "Téléphone",
-            "Email",
-            "Nombre de tables",
-            "Besoin principal",
+            "Bistrot de quartier",
+            "Restaurant premium",
+            "Cuisine rapide qualitative",
+            "Restaurant hôtelier",
+          ],
+        },
+        {
+          heading: "Onboarding restaurateur",
+          items: [
+            "Audit de la fiche et des canaux",
+            "Configuration du dashboard",
+            "Création des offres et actualités",
+            "Lancement Google Business et QR codes",
+            "Pilotage hebdomadaire des performances",
           ],
         },
       ],
       links: [
         { href: "/packs-restaurateur", label: "Voir les packs" },
-        { href: "/restaurateurs/google-business", label: "Audit Google Business" },
+        { href: "/restaurateurs/google-business", label: "Optimiser Google Business" },
+        { href: "/restaurateurs/alternative-commission-couvert", label: "Comparer les modèles économiques" },
         { href: "/zero-attente", label: "Découvrir zéro attente" },
         { href: "/miamz-solidaires", label: "Comprendre les Miamz solidaires" },
       ],
@@ -210,10 +221,11 @@ const PUBLIC_SEO_PAGES = [
       {
         "@context": "https://schema.org",
         "@type": "Service",
-        name: "Solution de réservation et marketing pour restaurants à Genève",
+        name: "Plateforme restaurateur TOK à Genève",
         provider: { "@type": "Organization", name: "TOK", url: CANONICAL_ORIGIN },
         areaServed: { "@type": "City", name: "Genève", addressCountry: "CH" },
-        serviceType: "Réservation, marketing local, offres restaurant et outils opérationnels",
+        serviceType:
+          "Logiciel restaurateur pour réservations, commandes, anti-gaspi, ventes flash, actualités, photos IA et fidélité Miamz",
       },
       {
         "@context": "https://schema.org",
@@ -239,18 +251,26 @@ const PUBLIC_SEO_PAGES = [
         mainEntity: [
           {
             "@type": "Question",
-            name: "Combien coûte TOK pour un restaurant ?",
+            name: "TOK est-il seulement un outil de réservation ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "TOK met en avant un modèle lisible avec 5 CHF par table, des packs de lancement et des options marketing ou photos IA selon le besoin du restaurant.",
+              text: "Non. TOK réunit réservations, commandes, offres anti-gaspi, ventes flash, actualités, photos IA, Miamz, campagnes et pilotage restaurateur dans un même espace.",
             },
           },
           {
             "@type": "Question",
-            name: "TOK remplace-t-il les plateformes classiques ?",
+            name: "Comment se passe l'onboarding restaurateur ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "TOK vise surtout à réduire la dépendance, garder la relation client côté restaurant et activer réservations, offres et photos sans exploser les commissions.",
+              text: "TOK commence par un audit, configure la fiche et le dashboard, prépare les contenus utiles, branche les liens publics puis suit les performances avec le restaurateur.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Les Miamz servent-ils aussi aux restaurateurs ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Oui. Les Miamz donnent des signaux de fidélité et peuvent soutenir des avantages comme la priorité, des tables VIP ou des expériences réservées aux clients engagés.",
             },
           },
         ],
@@ -259,49 +279,52 @@ const PUBLIC_SEO_PAGES = [
   },
   {
     path: "/restaurateurs/google-business",
-    title: "Remplacer le bouton Google Business par TOK | Restaurants Genève",
+    title: "Google Business restaurant : convertir clics Google en réservations | TOK",
     description:
-      "Comparez un modèle de réservation facturé au couvert avec le modèle TOK à 5 CHF par table, puis préparez l'audit de votre fiche Google Business.",
+      "Optimisez votre fiche Google Business restaurant avec TOK : bouton de réservation direct, tracking des clics Google Maps, conversions et checklist de bascule.",
     priority: "0.8",
     changefreq: "weekly",
     staticContent: {
-      heading: "Remplacer le bouton de réservation Google Business.",
+      heading: "Transformez votre fiche Google Business en canal direct.",
       paragraphs: [
-        "Vos clients vous trouvent déjà sur Google. TOK aide les restaurants à convertir cette intention en réservation directe tout en gardant une relation client exploitable.",
-        "Modèle par couvert vs tarif fixe par table: comparez vous-même les hypothèses, puis documentez le bouton actuel, le lien TOK et la date de bascule.",
+        "Les clients vous trouvent déjà sur Google. TOK aide à brancher un bouton de réservation traçable, suivre les clics Google Maps et convertir cette intention en tables, commandes et relation client.",
+        "Cette page est tactique : elle traite le canal Google Business, les liens UTM, la checklist de bascule et les conversions mesurées depuis Google Search ou Maps.",
       ],
       sections: [
         {
-          heading: "Simulateur Google Business",
+          heading: "Simulateur du canal Google",
           items: [
-            "Tables générées par mois",
+            "Tables Google par mois",
             "Couverts moyens par table",
-            "Commission par couvert comparée",
-            "5 CHF par table + pack TOK",
+            "Commission comparée par couvert",
+            "Coût par conversion",
+            "Écart annuel estimé",
           ],
         },
         {
-          heading: "Audit gratuit de ma fiche Google",
+          heading: "Checklist de bascule",
           items: [
-            "Lien fiche Google",
-            "Bouton actuel: plateforme, site propre ou aucun",
-            "Économie mensuelle estimée",
-            "Tracker bouton changé",
+            "Relever le lien actuel",
+            "Créer un lien TOK traçable",
+            "Ajouter les UTM et la source Google Business",
+            "Remplacer le bouton quand les services sont prêts",
+            "Suivre clics, réservations et commandes",
           ],
         },
         {
-          heading: "Guide de bascule",
+          heading: "Mesures à suivre",
           items: [
-            "Auditer le bouton actuel",
-            "Préparer le lien TOK",
-            "Modifier la fiche Google Business",
-            "Suivre les réservations issues de Google",
+            "Clics Google",
+            "Tables converties",
+            "Commandes à emporter",
+            "Réservations confirmées",
+            "Coût par conversion",
           ],
         },
       ],
       links: [
-        { href: "/restaurateurs/geneve", label: "Voir l'offre restaurateur" },
-        { href: "/packs-restaurateur", label: "Comparer les packs" },
+        { href: "/restaurateurs/geneve", label: "Voir la plateforme restaurateur" },
+        { href: "/restaurateurs/alternative-commission-couvert", label: "Comparer les coûts" },
         { href: "/contact", label: "Contacter TOK" },
       ],
     },
@@ -309,10 +332,11 @@ const PUBLIC_SEO_PAGES = [
       {
         "@context": "https://schema.org",
         "@type": "Service",
-        name: "Audit Google Business pour restaurants",
+        name: "Optimisation Google Business pour restaurants",
         provider: { "@type": "Organization", name: "TOK", url: CANONICAL_ORIGIN },
         areaServed: { "@type": "City", name: "Genève", addressCountry: "CH" },
-        serviceType: "Audit du bouton de réservation Google Business et comparaison de coûts",
+        serviceType:
+          "Audit du bouton Google Business, tracking des clics Google Maps et conversion en réservations directes",
       },
       {
         "@context": "https://schema.org",
@@ -344,18 +368,26 @@ const PUBLIC_SEO_PAGES = [
         mainEntity: [
           {
             "@type": "Question",
-            name: "Puis-je remplacer le bouton de réservation Google Business ?",
+            name: "Pourquoi créer une page dédiée à Google Business ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Le restaurateur peut choisir les liens affichés sur sa fiche selon les options disponibles dans Google Business Profile. TOK aide à comparer les coûts et à préparer un lien de réservation direct.",
+              text: "Parce que les clients qui arrivent depuis Google ont déjà une intention forte. TOK aide à convertir ces clics en réservations, commandes et données mesurables.",
             },
           },
           {
             "@type": "Question",
-            name: "Que compare le simulateur TOK ?",
+            name: "Comment mesurer les clics Google avec TOK ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Le simulateur compare une hypothèse de commission par couvert avec un tarif TOK fixe de 5 CHF par table et un pack mensuel optionnel.",
+              text: "Les liens peuvent porter une source Google Business, puis les conversions sont rapprochées des réservations, commandes, paiements et demandes de contact.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Faut-il abandonner les autres plateformes immédiatement ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Non. La page Google Business sert d'abord à tester un canal direct, mesurer la conversion et réduire progressivement la dépendance si les chiffres le justifient.",
             },
           },
         ],
@@ -364,48 +396,52 @@ const PUBLIC_SEO_PAGES = [
   },
   {
     path: "/restaurateurs/alternative-commission-couvert",
-    title: "Alternative aux commissions par couvert pour restaurants | TOK",
+    title: "Commission par couvert restaurant : alternative et comparatif marge | TOK",
     description:
-      "Comparez les modèles facturés au couvert avec TOK, une alternative lisible pour les restaurants qui veulent protéger leur marge, remplir leurs tables et garder la relation client.",
+      "Comparez commission par couvert, no-show, groupes, coût d'acquisition et tarif fixe par table pour choisir un modèle plus prévisible pour votre restaurant.",
     priority: "0.8",
     changefreq: "weekly",
     staticContent: {
-      heading: "Alternative aux commissions par couvert pour restaurants",
+      heading: "Commission par couvert : comparez avant de choisir.",
       paragraphs: [
-        "TOK permet aux restaurateurs de comparer les modèles facturés au couvert avec une approche plus prévisible, centrée sur les tables, les offres et la relation client.",
-        "Comparez vos coûts avant de changer d'outil : commencez par mesurer le volume, le budget mensuel et la marge avant de déplacer un canal existant.",
+        "Une commission par couvert peut sembler simple, mais elle change avec les groupes, les no-shows, le ticket moyen et le volume.",
+        "Cette page comparative aide le restaurateur à lire le coût d'acquisition, la marge, les scénarios de salle et les objections avant de déplacer ses ventes.",
       ],
       sections: [
         {
-          heading: "Modèle par couvert vs tarif fixe par table",
+          heading: "Simulation économique",
           items: [
-            "Coût variable selon le nombre de couverts",
-            "Tarif par table plus simple à simuler",
-            "Budget restaurateur plus lisible avant le service",
+            "Tables prévues par mois",
+            "Couverts par table",
+            "Commission par couvert",
+            "No-show et annulations",
+            "Coût TOK par couvert honoré",
           ],
         },
         {
-          heading: "Canal complémentaire",
+          heading: "Comparatif modèle économique",
           items: [
-            "Page publique restaurateur",
-            "Actualités, ventes flash et offres anti-gaspi",
-            "Relation client et données utiles côté restaurant",
+            "Déclencheur du coût",
+            "Prévisibilité",
+            "No-show et changements",
+            "Marge",
+            "Décision progressive",
           ],
         },
         {
-          heading: "Demander une comparaison",
+          heading: "Scénarios chiffrés",
           items: [
-            "Nom du restaurant",
-            "Ville",
-            "Tables par mois",
-            "Couverts moyens par table",
-            "Coût actuel estimé par couvert",
+            "Table de 2",
+            "Groupe de 6",
+            "Service irrégulier",
+            "Coût d'acquisition",
+            "Marge prévisible",
           ],
         },
       ],
       links: [
-        { href: "/restaurateurs/geneve", label: "Voir l'offre restaurateur TOK" },
-        { href: "/packs-restaurateur", label: "Comparer les packs" },
+        { href: "/restaurateurs/geneve", label: "Voir la solution complète" },
+        { href: "/restaurateurs/google-business", label: "Auditer Google Business" },
         { href: "/contact", label: "Demander une comparaison" },
       ],
     },
@@ -413,10 +449,10 @@ const PUBLIC_SEO_PAGES = [
       {
         "@context": "https://schema.org",
         "@type": "Service",
-        name: "Alternative aux commissions par couvert pour restaurants",
+        name: "Comparatif commission par couvert pour restaurants",
         provider: { "@type": "Organization", name: "TOK", url: CANONICAL_ORIGIN },
         areaServed: ["Genève", "Lausanne", "Suisse romande"],
-        serviceType: "Réservation restaurant, marketing local et outils restaurateur",
+        serviceType: "Comparaison économique entre commission par couvert, coût d'acquisition et tarif fixe par table",
         url: `${CANONICAL_ORIGIN}/restaurateurs/alternative-commission-couvert`,
       },
       {
@@ -449,18 +485,26 @@ const PUBLIC_SEO_PAGES = [
         mainEntity: [
           {
             "@type": "Question",
-            name: "Pourquoi comparer le coût par couvert ?",
+            name: "Qu'est-ce qu'une commission par couvert ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Un modèle facturé au couvert varie avec le volume. Une alternative par table permet de simuler plus tôt le budget mensuel et l'impact sur la marge.",
+              text: "C'est un modèle où le coût varie selon le nombre de personnes assises ou apportées par le canal. Il peut vite changer selon les groupes, le ticket moyen et le volume.",
             },
           },
           {
             "@type": "Question",
-            name: "TOK doit-il remplacer immédiatement un outil existant ?",
+            name: "Comment intégrer les no-shows dans le calcul ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Non. TOK peut être testé comme canal complémentaire afin de mesurer les réservations, les offres et la relation client avant toute décision opérationnelle.",
+              text: "Il faut comparer le coût du canal, les tables réellement honorées, les annulations, les acomptes éventuels et la capacité perdue pendant le service.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "TOK doit-il remplacer immédiatement une plateforme existante ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Non. Le restaurateur peut tester TOK sur un canal direct, mesurer le coût d'acquisition et décider ensuite s'il déplace plus de volume.",
             },
           },
         ],

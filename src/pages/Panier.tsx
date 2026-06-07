@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, LogIn, ShieldCheck, ShoppingCart, Sparkles, Zap, Clock, Leaf, Gift, Crown, ChefHat } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, LogIn, MapPin, ShieldCheck, ShoppingCart, Sparkles, Zap, Clock, Leaf, Crown, ChefHat } from "lucide-react";
 import { Link } from "react-router-dom";
 import FormulaDetector from "@/components/FormulaDetector";
 import PromotionDetector from "@/components/PromotionDetector";
@@ -31,7 +31,7 @@ import CartItemList from "@/components/cart/CartItemList";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import FlexOptions from "@/components/cart/FlexOptions";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
-import UpsellModal from "@/components/cart/UpsellModal";
+import CartSuggestionsStep from "@/components/cart/CartSuggestionsStep";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import {
   getAllowedPaymentMethods,
@@ -62,6 +62,28 @@ const supabase = getSupabase();
 const AUTH_TIMEOUT_MS = 30000;
 const CHECKOUT_TIMEOUT_MS = 15000;
 const ORDER_VALIDATION_TIMEOUT_MS = 15000;
+
+type CheckoutStepId = "summary" | "address" | "suggestions" | "payment";
+
+const CHECKOUT_STEPS: Array<{ id: CheckoutStepId; label: string; description: string }> = [
+  { id: "summary", label: "Resume", description: "Commande et mode" },
+  { id: "address", label: "Adresse", description: "Adresse ou retrait" },
+  { id: "suggestions", label: "Suggestions", description: "Produits en plus" },
+  { id: "payment", label: "Paiement", description: "Validation finale" },
+];
+
+function hasPreciseStreetNumber(address: string, selection: AddressSelection | null) {
+  const candidates = [
+    address,
+    selection?.fullAddress,
+    selection?.label,
+  ].filter(Boolean) as string[];
+
+  return candidates.some((candidate) => {
+    const firstLine = candidate.split(",")[0] || candidate;
+    return /\b\d{1,5}\s?(?:[a-zA-Z]|bis|ter|quater)?\b/i.test(firstLine);
+  });
+}
 
 function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -123,7 +145,7 @@ export default function Panier() {
   const [deliveryService, setDeliveryService] = useState<ServicePeriod | null>(
     () => guaranteedDeliveryContext?.deliveryService ?? null,
   );
-  const [upsellModalOpen, setUpsellModalOpen] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<CheckoutStepId>("summary");
   const lastDiscount = useRef({ amount: 0, name: null as string | null });
 
   const { isMember: isTokOneMember, subscription: tokOneSubscription } = useIsTokOneMember();
@@ -191,6 +213,21 @@ export default function Panier() {
   );
   const tokOneDeliverySaved = tokOneFreeDeliveryEligible ? quotedDeliveryFee : 0;
   const deliveryFee = roundMoney(Math.max(0, quotedDeliveryFee - tokOneDeliverySaved));
+  const missingForFreeDelivery = !isChefsTableCheckout
+    && orderMode === "delivery"
+    && isTokOneMember
+    && quotedDeliveryFee > 0
+    && discountableSubtotal < tokOneFreeDeliveryMinOrder
+    ? roundMoney(tokOneFreeDeliveryMinOrder - discountableSubtotal)
+    : null;
+  const deliveryAddressHasPreciseNumber = useMemo(
+    () => orderMode !== "delivery" || hasPreciseStreetNumber(address, deliverySelection),
+    [address, deliverySelection, orderMode],
+  );
+  const currentCheckoutStepIndex = Math.max(
+    0,
+    CHECKOUT_STEPS.findIndex((step) => step.id === checkoutStep),
+  );
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
   const cartRestaurantSummaryLabel = useMemo(
@@ -262,6 +299,12 @@ export default function Panier() {
       setOrderMode("delivery", { force: true });
     }
   }, [deliveryAvailable, isChefsTableCheckout, isGuaranteedDeliveryCheckout, orderMode, setOrderMode, takeawayAvailable]);
+
+  useEffect(() => {
+    if (isChefsTableCheckout && checkoutStep !== "payment") {
+      setCheckoutStep("payment");
+    }
+  }, [checkoutStep, isChefsTableCheckout]);
 
   useEffect(() => {
     if (allowedPaymentMethods.includes(paymentMethod)) return;
@@ -485,13 +528,173 @@ export default function Panier() {
     return Array.from(groups.values()).sort((a, b) => a.key.localeCompare(b.key));
   }, [chefsTableItems, isChefsTableCheckout]);
 
-  const handleCheckout = () => {
-    // If we have items and we are not in chef's table, we can show the upsell modal
-    if (!isChefsTableCheckout && items.length > 0) {
-      setUpsellModalOpen(true);
-    } else {
-      processCheckout();
+  const scrollCheckoutTop = () => {
+    window.scrollTo?.({ top: 0, behavior: "smooth" });
+  };
+
+  const validateJourneyStep = () => {
+    if (!hasJourneyAvailable) {
+      toast({
+        title: "Parcours indisponible",
+        description: "Livraison et emporter sont désactivés pour ce restaurant.",
+        variant: "destructive",
+      });
+      return false;
     }
+
+    if (orderMode === "delivery" && !deliveryAvailable) {
+      if (takeawayAvailable) setOrderMode("takeaway", { force: true });
+      toast({
+        title: "Livraison indisponible",
+        description: "Ce restaurant n'accepte plus la livraison actuellement.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (orderMode === "takeaway" && !takeawayAvailable) {
+      if (deliveryAvailable) setOrderMode("delivery", { force: true });
+      toast({
+        title: "Emporter indisponible",
+        description: "Ce restaurant n'accepte plus l'emporter actuellement.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (hasAntiGaspi && orderMode !== "takeaway") {
+      toast({
+        title: "Mode incompatible",
+        description: "Les offres anti-gaspi sont uniquement disponibles a l'emporter.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const hasIncompatibleFlashMode = flashItems.some((item) => {
+      const canDelivery = item.metadata?.delivery_available !== false;
+      const canTakeaway = item.metadata?.takeaway_available !== false;
+      return orderMode === "delivery" ? !canDelivery : !canTakeaway;
+    });
+
+    if (hasIncompatibleFlashMode) {
+      toast({
+        title: "Mode incompatible",
+        description: "Certaines ventes flash du panier ne sont pas disponibles dans ce mode.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateAddressStep = () => {
+    if (orderMode === "delivery") {
+      if (!address.trim()) {
+        toast({ title: "Adresse requise", variant: "destructive" });
+        return false;
+      }
+
+      if (deliverySelection?.latitude == null || deliverySelection?.longitude == null) {
+        toast({
+          title: "Adresse invalide",
+          description: "Sélectionnez une adresse dans la liste pour calculer correctement le trajet de livraison.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (!deliveryAddressHasPreciseNumber) {
+        toast({
+          title: "Numero de rue requis",
+          description: "Ajoutez le numero exact de la rue avant de continuer.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (deliveryScheduleMode === "scheduled") {
+        if (!canScheduleDelivery) {
+          toast({
+            title: "Planification indisponible",
+            description: "La livraison planifiee est disponible pour une commande sur un seul restaurant.",
+            variant: "destructive",
+          });
+          return false;
+        }
+
+        if (!deliveryDate || (!selectedDeliverySlot && !isGuaranteedDeliveryCheckout)) {
+          toast({
+            title: "Horaire requis",
+            description: "Choisissez une date et une heure de livraison valides.",
+            variant: "destructive",
+          });
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    if (!hasAntiGaspi && !hasTakeawayFlash) {
+      if (!pickupDate || !pickupTime) {
+        toast({
+          title: "Date et heure requises",
+          variant: "destructive",
+          description: "Veuillez preciser quand vous passerez recuperer la commande.",
+        });
+        return false;
+      }
+
+      if (needsTakeawaySlots && !selectedPickupSlot) {
+        toast({
+          title: "Horaire invalide",
+          variant: "destructive",
+          description: "Veuillez choisir un creneau de retrait pendant les heures de service du restaurant.",
+        });
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleSummaryContinue = () => {
+    if (!validateJourneyStep()) return;
+    setCheckoutStep("address");
+    scrollCheckoutTop();
+  };
+
+  const handleAddressContinue = () => {
+    if (!validateJourneyStep()) return;
+    if (!validateAddressStep()) return;
+    setCheckoutStep("suggestions");
+    scrollCheckoutTop();
+  };
+
+  const handleSuggestionsContinue = () => {
+    setCheckoutStep("payment");
+    scrollCheckoutTop();
+  };
+
+  const handleAddSuggestedItem = (suggestedItem: {
+    id: string;
+    name: string;
+    price: number;
+    restaurant_id: string;
+  }) => {
+    addItem({
+      menuItemId: suggestedItem.id,
+      name: suggestedItem.name,
+      price: Number(suggestedItem.price),
+      quantity: 1,
+      restaurantId: suggestedItem.restaurant_id,
+    });
+  };
+
+  const handleCheckout = () => {
+    void processCheckout();
   };
 
   const processCheckout = async () => {
@@ -584,6 +787,7 @@ export default function Panier() {
         eventData: { restaurant_id: restaurantId, total: finalTotal },
         restaurantId,
       });
+      if (!validateJourneyStep() || !validateAddressStep()) return;
       if (!hasJourneyAvailable) {
         return toast({
           title: "Parcours indisponible",
@@ -1225,12 +1429,47 @@ export default function Panier() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="container py-8 max-w-2xl space-y-6">
-        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Panier</span>
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Paiement</span>
-          <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">Confirmation</span>
-        </div>
+      <div className="container py-8 max-w-3xl space-y-6">
+        {isChefsTableCheckout ? (
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Panier</span>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">Paiement</span>
+            <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">Confirmation</span>
+          </div>
+        ) : (
+          <div className="grid gap-2 rounded-2xl border bg-card/70 p-3 sm:grid-cols-4">
+            {CHECKOUT_STEPS.map((step, index) => {
+              const isActive = step.id === checkoutStep;
+              const isDone = index < currentCheckoutStepIndex;
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={() => {
+                    if (index <= currentCheckoutStepIndex) setCheckoutStep(step.id);
+                  }}
+                  className={`flex min-h-[74px] items-start gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${
+                    isActive
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : isDone
+                        ? "border-primary/30 bg-background text-foreground"
+                        : "border-transparent bg-background/50 text-muted-foreground"
+                  }`}
+                >
+                  <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                    isActive || isDone ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  }`}>
+                    {isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{step.label}</span>
+                    <span className="block text-xs">{step.description}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
         <h1 className="font-display text-3xl font-bold">Votre panier</h1>
         <p className="text-sm text-muted-foreground">
           {isChefsTableCheckout
@@ -1238,7 +1477,71 @@ export default function Panier() {
             : cartRestaurantSummaryLabel}
         </p>
 
-        <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
+        {(isChefsTableCheckout || checkoutStep === "summary") ? (
+          <CartItemList items={items} updateQuantity={updateQuantity} removeItem={removeItem} />
+        ) : null}
+
+        {!isChefsTableCheckout && checkoutStep === "summary" ? (
+          <div className="space-y-4 rounded-2xl border bg-card/70 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Mode de commande</p>
+                <p className="text-sm text-muted-foreground">
+                  Vous pouvez encore choisir entre livraison et emporter avant de continuer.
+                </p>
+              </div>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                {finalTotal.toFixed(2)} CHF
+              </span>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={!deliveryAvailable || hasAntiGaspi || isGuaranteedDeliveryCheckout}
+                onClick={() => setOrderMode("delivery", { force: true })}
+                className={`rounded-xl border p-4 text-left transition-colors ${
+                  orderMode === "delivery"
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-background hover:bg-muted/40"
+                } ${(!deliveryAvailable || hasAntiGaspi || isGuaranteedDeliveryCheckout) ? "cursor-not-allowed opacity-60" : ""}`}
+              >
+                <span className="flex items-center gap-2 font-semibold">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  Livraison
+                </span>
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  Adresse precise et frais calcules avant paiement.
+                </span>
+              </button>
+
+              <button
+                type="button"
+                disabled={!takeawayAvailable || isGuaranteedDeliveryCheckout}
+                onClick={() => setOrderMode("takeaway", { force: true })}
+                className={`rounded-xl border p-4 text-left transition-colors ${
+                  orderMode === "takeaway"
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-background hover:bg-muted/40"
+                } ${(!takeawayAvailable || isGuaranteedDeliveryCheckout) ? "cursor-not-allowed opacity-60" : ""}`}
+              >
+                <span className="flex items-center gap-2 font-semibold">
+                  <ShoppingCart className="h-4 w-4 text-primary" />
+                  A emporter
+                </span>
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  Choisissez le jour et le creneau de retrait.
+                </span>
+              </button>
+            </div>
+
+            {!hasJourneyAvailable ? (
+              <div className="rounded-xl border border-dashed p-3 text-sm text-muted-foreground">
+                Livraison et emporter sont actuellement indisponibles pour ce restaurant.
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {isChefsTableCheckout ? (
           <div className="rounded-3xl border border-amber-300 bg-gradient-to-br from-amber-100 via-white to-orange-50 p-5 shadow-[0_24px_70px_-38px_rgba(245,158,11,0.5)] space-y-4">
@@ -1279,14 +1582,19 @@ export default function Panier() {
               </div>
             </div>
           </div>
-        ) : (
+        ) : checkoutStep === "summary" ? (
           <>
             <FormulaDetector items={items} restaurantId={restaurantId} onDiscountCalculated={handleDiscountCalculated} />
             <PromotionDetector restaurantId={restaurantId} subtotal={total} onDiscountCalculated={handlePromoCalculated} />
             <PromoCodeInput restaurantId={restaurantId} userId={user?.id} subtotal={total} onApplied={handlePromoCodeApplied} />
+            <Button type="button" className="w-full" size="lg" onClick={handleSummaryContinue}>
+              Continuer vers l'adresse
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </>
-        )}
+        ) : null}
 
+        {(isChefsTableCheckout || checkoutStep === "address") ? (
         <div className="space-y-4 pt-4 border-t">
           {isChefsTableCheckout ? (
             <div className="rounded-2xl border bg-card/60 p-4 space-y-2">
@@ -1531,8 +1839,44 @@ export default function Panier() {
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Code d'entrée, étage..." />
             </div>
           ) : null}
+          {!isChefsTableCheckout ? (
+            <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
+              <Button type="button" variant="outline" onClick={() => setCheckoutStep("summary")}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour au resume
+              </Button>
+              <Button type="button" onClick={handleAddressContinue}>
+                Voir les suggestions
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          ) : null}
         </div>
+        ) : null}
 
+        {!isChefsTableCheckout && checkoutStep === "suggestions" ? (
+          <div className="space-y-4 border-t pt-4">
+            <CartSuggestionsStep
+              restaurantId={restaurantId}
+              currentItems={items}
+              missingForFreeDelivery={missingForFreeDelivery}
+              onAdd={handleAddSuggestedItem}
+            />
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+              <Button type="button" variant="outline" onClick={() => setCheckoutStep("address")}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour a l'adresse
+              </Button>
+              <Button type="button" onClick={handleSuggestionsContinue}>
+                Continuer vers le paiement
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {(isChefsTableCheckout || checkoutStep === "payment") ? (
+          <>
         <div className="border-t pt-4 space-y-2">
           {!isChefsTableCheckout ? (
             <LoyaltySection loyaltyPoints={loyaltyPoints} maxPointsDiscount={maxPointsDiscount} useLoyaltyPoints={useLoyaltyPoints} setUseLoyaltyPoints={setUseLoyaltyPoints} pointsToRedeemInput={pointsToRedeemInput} setPointsToRedeemInput={setPointsToRedeemInput} maxPointsRedeemable={maxPointsRedeemable} earnedXp={earnedXp} donateEarnedXp={donateEarnedXp} setDonateEarnedXp={setDonateEarnedXp} />
@@ -1597,6 +1941,13 @@ export default function Panier() {
             : "Paiement sécurisé via Stripe"}
         />
 
+        {!isChefsTableCheckout ? (
+          <Button type="button" variant="outline" className="w-full" onClick={() => setCheckoutStep("suggestions")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour aux suggestions
+          </Button>
+        ) : null}
+
         <Button
           className={isChefsTableCheckout
             ? "h-14 w-full rounded-2xl bg-amber-500 text-base font-semibold text-white shadow-[0_22px_55px_-28px_rgba(245,158,11,0.9)] hover:bg-amber-600"
@@ -1614,32 +1965,9 @@ export default function Panier() {
             ? `Payer et confirmer la réservation · ${finalTotal.toFixed(2)} CHF`
             : `${requiresStripeCheckout ? "Payer" : "Commander"} · ${finalTotal.toFixed(2)} CHF`}
         </Button>
+          </>
+        ) : null}
       </div>
-
-      <UpsellModal 
-        open={upsellModalOpen}
-        onClose={() => setUpsellModalOpen(false)}
-        onContinue={() => {
-          setUpsellModalOpen(false);
-          void processCheckout();
-        }}
-        onAdd={(suggestedItem) => {
-          addItem({
-            menuItemId: suggestedItem.id,
-            name: suggestedItem.name,
-            price: Number(suggestedItem.price),
-            quantity: 1,
-            restaurantId: suggestedItem.restaurant_id,
-          });
-        }}
-        restaurantId={restaurantId}
-        missingForFreeDelivery={
-          !isChefsTableCheckout && orderMode === "delivery" && isTokOneMember && quotedDeliveryFee > 0 && discountableSubtotal < tokOneFreeDeliveryMinOrder
-            ? (tokOneFreeDeliveryMinOrder - discountableSubtotal)
-            : null
-        }
-        currentItems={items}
-      />
     </main>
   );
 }

@@ -24,6 +24,9 @@ describe("Tok One Stripe test mode", () => {
     expect(stripeClientSource).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY"]');
     expect(stripeClientSource).toContain('purpose: "Tok One Stripe test secret"');
     expect(stripeClientSource).toContain('expectedMode: "test"');
+    expect(stripeClientSource).toContain("getTokOneStripeRuntimeForCheckoutSession");
+    expect(stripeClientSource).toContain('sessionId.startsWith("cs_test_")');
+    expect(stripeClientSource).toContain('sessionId.startsWith("cs_live_")');
     expect(stripeClientSource).toContain("inferStripeRuntimeMode");
     expect(stripeClientSource).not.toContain("VITE_STRIPE_TOK_ONE_TEST_SECRET_KEY");
   });
@@ -47,6 +50,7 @@ describe("Tok One Stripe test mode", () => {
 
   it("activates Tok One on the success return by syncing the checkout session server-side", () => {
     expect(manageTokOneSource).toContain('"sync_checkout_session"');
+    expect(manageTokOneSource).toContain("getTokOneStripeRuntimeForCheckoutSession(sessionId)");
     expect(manageTokOneSource).toContain("checkout.sessions.retrieve(sessionId");
     expect(manageTokOneSource).toContain('metadata.checkout_kind !== "tok-one"');
     expect(manageTokOneSource).toContain("metadata.user_id !== actor.userId");

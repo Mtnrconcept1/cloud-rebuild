@@ -64,15 +64,15 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(app).not.toContain('<Route path="/restaurateurs/geneve" element={<PacksRestaurateur />} />');
 
     for (const expectedCopy of [
-      "Remplissez vos tables sans exploser vos commissions.",
+      "La plateforme restaurateur pour transformer la demande locale à Genève.",
       "Demander une démo",
-      "Voir les packs",
-      "5 CHF/table",
+      "Optimiser Google Business",
+      "Comparer les modèles",
       "Photos IA",
-      "Zéro attente",
-      "heures creuses",
-      "Nom du restaurant",
-      "Nombre de tables",
+      "Miamz",
+      "Onboarding restaurateur",
+      "Tables par mois",
+      "Commandes par mois",
     ]) {
       expect(page).toContain(expectedCopy);
     }
@@ -88,15 +88,15 @@ describe("phase 1 launch audit plan readiness", () => {
 
     expect(app).toContain('const RestaurateursGoogleBusiness = lazy(() => import("./pages/RestaurateursGoogleBusiness"))');
     expect(app).toContain('<Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />');
-    expect(page).toContain("Remplacer le bouton de réservation Google Business");
-    expect(page).toContain("5 CHF par table");
-    expect(page).toContain("commission par couvert");
-    expect(page).toContain("Audit gratuit de ma fiche Google");
+    expect(page).toContain("Transformez votre fiche Google Business en canal direct");
+    expect(page).toContain("Tables Google par mois");
+    expect(page).toContain("Commission comparée par couvert");
+    expect(page).toContain("Auditer ma fiche Google");
     expect(page).toContain("calculateGoogleBusinessSavings");
     expect(economics).toContain("calculateGoogleBusinessSavings");
     expect(sitemap).toContain("https://www.thetok.ch/restaurateurs/google-business");
     expect(prerender).toContain("/restaurateurs/google-business");
-    expect(prerender).toContain("Modèle par couvert vs tarif fixe par table");
+    expect(prerender).toContain("Checklist de bascule");
     expect(postDeployCheck).toContain("https://www.thetok.ch/restaurateurs/google-business");
   });
 
