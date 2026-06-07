@@ -53,4 +53,33 @@ describe("plan 2 sensitive SECURITY DEFINER RPC grants", () => {
 
     expect(sql).toContain("NOTIFY pgrst, 'reload schema';");
   });
+
+  it("documents the complementary plan 2 decision for sensitive and public RPCs", () => {
+    const audit = readFileSync(
+      resolve(process.cwd(), "docs/supabase/anon-security-definer-audit.md"),
+      "utf8",
+    );
+
+    expect(audit).toContain("20260607041441_plan2_sensitive_rpc_execute_hardening.sql");
+
+    for (const sensitiveRpc of [
+      "get_order_customers(uuid)",
+      "get_reservation_customers(uuid)",
+      "has_role(uuid, public.app_role)",
+      "is_feature_flag_active(text)",
+      "log_audit()",
+    ]) {
+      expect(audit).toContain(sensitiveRpc);
+      expect(audit).toContain("a revoquer pour `anon`");
+    }
+
+    for (const publicRpc of [
+      "get_total_donated_meals()",
+      "get_total_donated_points()",
+      "get_restaurant_reservation_slot_availability(uuid, date)",
+    ]) {
+      expect(audit).toContain(publicRpc);
+      expect(audit).toContain("publique volontaire");
+    }
+  });
 });
