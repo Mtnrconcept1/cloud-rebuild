@@ -163,14 +163,98 @@ const PUBLIC_SEO_PAGES = [
       "TOK aide les restaurants genevois à recevoir des réservations, vendre leurs offres, améliorer leurs photos et réduire leurs frais.",
     priority: "0.8",
     changefreq: "weekly",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "Service",
-      name: "Solution de réservation et marketing pour restaurants à Genève",
-      provider: { "@type": "Organization", name: "TOK", url: CANONICAL_ORIGIN },
-      areaServed: { "@type": "City", name: "Genève", addressCountry: "CH" },
-      serviceType: "Réservation, marketing local, offres restaurant et outils opérationnels",
+    staticContent: {
+      heading: "Remplissez vos tables sans exploser vos commissions.",
+      paragraphs: [
+        "TOK aide les restaurants genevois à capter plus de réservations, activer les heures creuses, améliorer leurs photos et garder une relation client directe.",
+        "Le modèle combine 5 CHF par table, packs de lancement, photos IA, offres locales, zéro attente et pilotage business pour protéger la marge.",
+      ],
+      sections: [
+        {
+          heading: "Simulateur de marge",
+          items: [
+            "Tables par mois",
+            "Ticket moyen",
+            "Pack restaurateur",
+            "Marketing autorisé à 60 % du CA encaissé",
+          ],
+        },
+        {
+          heading: "TOK vs plateformes classiques",
+          items: [
+            "Moins de dépendance aux commissions élevées",
+            "Données et relation client côté restaurant",
+            "Photos IA, offres heures creuses et réservations pilotées",
+          ],
+        },
+        {
+          heading: "Demander une démo",
+          items: [
+            "Nom du restaurant",
+            "Ville",
+            "Téléphone",
+            "Email",
+            "Nombre de tables",
+            "Besoin principal",
+          ],
+        },
+      ],
+      links: [
+        { href: "/packs-restaurateur", label: "Voir les packs" },
+        { href: "/zero-attente", label: "Découvrir zéro attente" },
+        { href: "/miamz-solidaires", label: "Comprendre les Miamz solidaires" },
+      ],
     },
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: "Solution de réservation et marketing pour restaurants à Genève",
+        provider: { "@type": "Organization", name: "TOK", url: CANONICAL_ORIGIN },
+        areaServed: { "@type": "City", name: "Genève", addressCountry: "CH" },
+        serviceType: "Réservation, marketing local, offres restaurant et outils opérationnels",
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Accueil",
+            item: `${CANONICAL_ORIGIN}/`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Restaurateurs Genève",
+            item: `${CANONICAL_ORIGIN}/restaurateurs/geneve`,
+          },
+        ],
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "Combien coûte TOK pour un restaurant ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "TOK met en avant un modèle lisible avec 5 CHF par table, des packs de lancement et des options marketing ou photos IA selon le besoin du restaurant.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "TOK remplace-t-il les plateformes classiques ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "TOK vise surtout à réduire la dépendance, garder la relation client côté restaurant et activer réservations, offres et photos sans exploser les commissions.",
+            },
+          },
+        ],
+      },
+    ],
   },
   {
     path: "/zero-attente",
@@ -569,6 +653,42 @@ function upsertTag(html, matcher, tag) {
   return html.replace(/<\/head>/i, `  ${tag}\n</head>`);
 }
 
+function renderStaticList(items = []) {
+  if (!items.length) return "";
+  return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+}
+
+function renderStaticLinks(links = []) {
+  if (!links.length) return "";
+  return `<nav aria-label="Liens utiles TOK">${links
+    .map((link) => `<a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`)
+    .join("")}</nav>`;
+}
+
+function renderStaticContent(page) {
+  const staticContent = page.staticContent || {
+    heading: page.title,
+    paragraphs: [page.description],
+    sections: [],
+    links: [],
+  };
+
+  const paragraphs = (staticContent.paragraphs || [])
+    .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+    .join("");
+  const sections = (staticContent.sections || [])
+    .map((section) => `<section><h2>${escapeHtml(section.heading)}</h2>${renderStaticList(section.items || [])}</section>`)
+    .join("");
+
+  return `<section id="tok-prerendered-content" aria-label="Contenu public TOK" style="font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:40px 24px;max-width:1080px;margin:0 auto;color:#111827;background:#ffffff">
+  <h1 style="font-size:clamp(2rem,5vw,4rem);line-height:1.02;margin:0 0 20px;font-weight:900">${escapeHtml(staticContent.heading)}</h1>
+  <div style="font-size:1rem;line-height:1.7;color:#4b5563;max-width:760px">${paragraphs}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:32px">${sections}</div>
+  ${renderStaticLinks(staticContent.links || [])}
+</section>
+<script>document.getElementById("tok-prerendered-content")?.remove();</script>`;
+}
+
 function renderPreRenderedHtml(baseHtml, page) {
   const canonical = canonicalUrl(page.path);
   const image = page.image || DEFAULT_IMAGE;
@@ -593,7 +713,7 @@ function renderPreRenderedHtml(baseHtml, page) {
   }
   html = html.replace(
     /<div id="root"><\/div>/i,
-    `<div id="root"></div><noscript><main><h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.description)}</p></main></noscript>`,
+    `<div id="root"></div>${renderStaticContent(page)}`,
   );
   return html;
 }

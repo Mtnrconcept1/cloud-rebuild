@@ -31,6 +31,7 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Données de navigation :</span> pages visitées, interactions avec la plateforme, recherches effectuées.</li>
             <li><span className="font-medium text-foreground">Données du fil Actualités :</span> abonnements à des restaurants, réactions, commentaires, signalements, sauvegardes, partages, clics sur les boutons d'action et préférences de contenu.</li>
             <li><span className="font-medium text-foreground">Données marketing restaurateur :</span> objectifs de campagne, segments d'audience, contenus publies, codes d'offres, statistiques d'impressions, clics, engagement et performance des actualités.</li>
+            <li><span className="font-medium text-foreground">Données d'usage IA :</span> ces données d'usage IA incluent demandes, résultats, coûts estimés, modèles utilisés, qualité de sortie et métadonnées nécessaires aux fonctionnalités d'assistance, de génération ou de retouche, y compris lorsque le traitement implique OpenAI.</li>
             <li><span className="font-medium text-foreground">Données techniques :</span> adresse IP, type de navigateur, système d'exploitation, identifiant d'appareil.</li>
             <li><span className="font-medium text-foreground">Données de géolocalisation :</span> position GPS (uniquement avec votre consentement explicite).</li>
           </ul>
@@ -43,6 +44,7 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Exécution du contrat :</span> gestion de votre compte, traitement des commandes, livraison, facturation, gestion des réservations.</li>
             <li><span className="font-medium text-foreground">Intérêt légitime :</span> amélioration de nos services, personnalisation de l'expérience, prévention de la fraude, analyses statistiques anonymisées.</li>
             <li><span className="font-medium text-foreground">Mesure et moderation des Actualités :</span> recommandation du fil social, detection d'abus, traitement des signalements et statistiques agrégées mises a disposition des Restaurants.</li>
+            <li><span className="font-medium text-foreground">Campagnes sponsorisées :</span> diffusion, contrôle, mesure d'audience et analyse de performance des campagnes sponsorisées et contenus promus, sans vente de données personnelles nominatives.</li>
             <li><span className="font-medium text-foreground">Consentement :</span> envoi de notifications push, géolocalisation, cookies non essentiels, communications marketing.</li>
             <li><span className="font-medium text-foreground">Obligation légale :</span> conservation des factures, conformité fiscale.</li>
           </ul>
@@ -55,6 +57,7 @@ export default function PolitiqueConfidentialite() {
             <li><span className="font-medium text-foreground">Stripe :</span> traitement des paiements par carte bancaire. Stripe est certifié PCI-DSS niveau 1.</li>
             <li><span className="font-medium text-foreground">Supabase (AWS) :</span> hébergement de la base de données et authentification. Données hébergées en Europe.</li>
             <li><span className="font-medium text-foreground">Firebase (Google) :</span> envoi de notifications push sur mobile.</li>
+            <li><span className="font-medium text-foreground">OpenAI :</span> traitement technique de certaines fonctionnalités d'assistance, de génération ou de retouche IA lorsque ces services sont activés.</li>
             <li><span className="font-medium text-foreground">Restaurants partenaires :</span> transmission des informations nécessaires à la préparation et livraison de votre commande (nom, adresse de livraison, contenu de la commande).</li>
             <li><span className="font-medium text-foreground">Restaurants publieurs :</span> accès a des statistiques agrégées sur leurs actualités (impressions, clics, réactions, commentaires, sauvegardes, partages) sans vente de données personnelles nominatives.</li>
             <li><span className="font-medium text-foreground">Livreurs partenaires :</span> adresse de livraison et informations de contact nécessaires à la livraison.</li>

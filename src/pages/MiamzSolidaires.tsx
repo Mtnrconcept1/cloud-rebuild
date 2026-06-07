@@ -8,32 +8,32 @@ const steps = [
   {
     icon: Utensils,
     title: "Je mange",
-    copy: "Chaque commande ou reservation eligible genere des Miamz selon le montant et les avantages actifs.",
+    copy: "Chaque commande ou réservation éligible génère des Miamz selon le montant et les avantages actifs.",
   },
   {
     icon: Sparkles,
     title: "Je gagne",
-    copy: "Les Miamz restent visibles dans le profil et peuvent financer une reduction, un cadeau ou une action solidaire.",
+    copy: "Les Miamz restent visibles dans le profil et peuvent financer une réduction, un cadeau ou une action solidaire.",
   },
   {
     icon: HeartHandshake,
     title: "Je donne",
-    copy: "Vous pouvez reverser vos Miamz pour contribuer a des repas solidaires suivis par TOK.",
+    copy: "Vous pouvez reverser vos Miamz pour contribuer à des repas solidaires suivis par TOK.",
   },
 ];
 
 const rules = [
-  "Les Miamz ne sont pas une monnaie et ne sont pas convertibles en espece.",
-  "Une reduction Miamz est appliquee uniquement dans les parcours eligibles et selon les conditions affichees au checkout.",
-  "Les dons solidaires sont traces comme une contribution d'impact, separee des paiements restaurant.",
-  "En cas d'annulation ou remboursement, les Miamz associes peuvent etre repris ou ajustes.",
+  "Les Miamz sont des points de fidélité non monétaires, sans valeur en espèces et non convertibles en espèces.",
+  "Chaque avantage, cadeau ou don précise sa durée de validité affichée et ses conditions d'utilisation avant activation.",
+  "Les dons solidaires sont tracés comme une contribution d'impact, séparée des paiements restaurant, avec une preuve de redistribution ou un suivi d'impact local.",
+  "En cas d'annulation ou remboursement, les Miamz associés peuvent être repris ou ajustés.",
 ];
 
 export default function MiamzSolidaires() {
   useSeoMeta({
     title: "Miamz solidaires - fidelite, cadeaux et dons food | TOK",
     description:
-      "Comprenez comment fonctionnent les Miamz TOK : points de fidelite, reductions, cadeaux et dons solidaires pour transformer chaque repas en impact local.",
+      "Comprenez comment fonctionnent les Miamz TOK : points de fidélité, réductions, cadeaux et dons solidaires pour transformer chaque repas en impact local.",
     path: "/miamz-solidaires",
     image: "/Miamz2.webp",
     jsonLd: {
@@ -45,7 +45,7 @@ export default function MiamzSolidaires() {
           name: "Les Miamz sont-ils une monnaie ?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Non. Les Miamz sont des points de fidelite TOK utilisables selon les conditions affichees dans l'application.",
+            text: "Non. Les Miamz sont des points de fidélité TOK utilisables selon les conditions affichées dans l'application.",
           },
         },
         {
@@ -53,7 +53,7 @@ export default function MiamzSolidaires() {
           name: "Peut-on donner ses Miamz ?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Oui. Les utilisateurs peuvent reverser des Miamz a une cagnotte solidaire suivie par TOK.",
+            text: "Oui. Les utilisateurs peuvent reverser des Miamz à une cagnotte solidaire suivie par TOK.",
           },
         },
       ],
@@ -71,7 +71,7 @@ export default function MiamzSolidaires() {
                 Miamz solidaires, chaque repas peut compter.
               </h1>
               <p className="max-w-xl text-base leading-7 text-slate-600 md:text-lg">
-                Les Miamz relient fidelite, cadeaux et dons. Vous profitez de vos repas, vous cumulez des points, puis vous choisissez comment les utiliser ou les reverser.
+                Les Miamz relient fidélité, cadeaux et dons. Vous profitez de vos repas, vous cumulez des points, puis vous choisissez comment les utiliser ou les reverser.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -120,7 +120,7 @@ export default function MiamzSolidaires() {
           <div className="space-y-3">
             <h2 className="font-display text-3xl font-black">Des regles claires avant le lancement commercial.</h2>
             <p className="text-sm leading-6 text-white/70">
-              TOK separe la fidelite, les reductions, les dons et les remboursements pour garder une comptabilite lisible et eviter toute confusion avec une monnaie.
+              TOK sépare la fidélité, les réductions, les dons et les remboursements pour garder une comptabilité lisible et éviter toute confusion avec une monnaie.
             </p>
           </div>
           <div className="grid gap-3">
@@ -139,14 +139,14 @@ export default function MiamzSolidaires() {
           <Gift className="mb-4 h-7 w-7 text-rose-600" />
           <h2 className="text-2xl font-black">Cadeaux entre proches</h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Envoyez des Miamz a un proche depuis votre profil. Le destinataire peut les reclamer selon la duree de validite affichee.
+            Envoyez des Miamz à un proche depuis votre profil. Le destinataire peut les réclamer selon la durée de validité affichée.
           </p>
         </div>
         <div className="rounded-lg border border-slate-200 p-6">
           <HeartHandshake className="mb-4 h-7 w-7 text-rose-600" />
           <h2 className="text-2xl font-black">Dons solidaires</h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Les dons Miamz alimentent une cagnotte d'impact local. Les ajustements en cas de remboursement restent audites dans les flux financiers.
+            Les dons Miamz alimentent une cagnotte d'impact local. Les ajustements en cas de remboursement restent audités dans les flux financiers.
           </p>
         </div>
       </section>

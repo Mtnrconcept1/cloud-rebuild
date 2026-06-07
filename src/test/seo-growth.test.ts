@@ -81,6 +81,21 @@ describe("SEO growth readiness", () => {
     expect(prerender).not.toMatch(/SERVICE_ROLE|SUPABASE_SERVICE_ROLE_KEY|service_role/i);
   });
 
+  it("renders meaningful static B2B content beyond a minimal noscript fallback", () => {
+    const prerender = read("scripts/prerender-seo.mjs");
+
+    expect(prerender).toContain("staticContent");
+    expect(prerender).toContain('id="tok-prerendered-content"');
+    expect(prerender).toContain("Remplissez vos tables sans exploser vos commissions.");
+    expect(prerender).toContain("Simulateur de marge");
+    expect(prerender).toContain("TOK vs plateformes classiques");
+    expect(prerender).toContain("Nom du restaurant");
+    expect(prerender).toContain("BreadcrumbList");
+    expect(prerender).not.toContain(
+      '<noscript><main><h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.description)}</p></main></noscript>',
+    );
+  });
+
   it("wires indexable city and cuisine pages with Restaurant structured data", () => {
     const app = read("src/App.tsx");
     const page = read("src/pages/LocalRestaurants.tsx");

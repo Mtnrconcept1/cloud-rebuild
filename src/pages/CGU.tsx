@@ -128,6 +128,16 @@ export default function CGU() {
           <p className="text-foreground/80 leading-relaxed">
             L'abonnement Tok One est renouvelé automatiquement à chaque période. L'Utilisateur peut résilier son abonnement à tout moment depuis les paramètrès de son compte, la résiliation prenant effet à la fin de la période en cours.
           </p>
+          <h3 className="text-xl font-medium mt-4">8.1 Miamz, cadeaux et dons solidaires</h3>
+          <p className="text-foreground/80 leading-relaxed">
+            Les Miamz ne constituent pas une monnaie, un instrument de paiement, un dépôt bancaire ou un actif financier. Ils sont sans valeur en espèces, non convertibles en espèces et utilisables uniquement dans les parcours TOK éligibles, selon les conditions affichées dans l'application.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Chaque avantage, cadeau ou contribution peut être soumis à une durée de validité, à des plafonds, à des conditions d'éligibilité ou à des restrictions communiquées avant utilisation. Les dons solidaires sont traités comme des contributions d'impact local, suivies séparément des paiements dus aux Restaurants.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            En cas d'annulation, remboursement, fraude ou erreur technique, TOK peut reprendre, ajuster ou neutraliser les Miamz associés afin de préserver la cohérence comptable et d'éviter tout avantage indu.
+          </p>
         </section>
 
         {/* 9. Avis et contenus utilisateurs */}
@@ -152,6 +162,12 @@ export default function CGU() {
           </p>
           <p className="text-foreground/80 leading-relaxed">
             Tok peut mesurer les impressions, clics, réactions, commentaires, sauvegardes, partages et conversions associés aux actualités afin de fournir des statistiques marketing au Restaurant. Ces indicateurs sont informatifs et ne garantissent aucun volume de commandes, réservations ou chiffre d'affaires.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les contenus sponsorisés, placements payants ou campagnes promues doivent être identifiables comme tels lorsqu'ils sont affichés aux Utilisateurs. Le Restaurant reste responsable de la loyauté du message publicitaire, des prix, des disponibilités et des conditions d'offre communiquées.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les photos générées ou retouchées par IA, ainsi que les autres visuels fournis ou validés par le Restaurant, doivent respecter les droits d'utilisation des visuels, les droits des tiers et ne doivent pas induire les Utilisateurs en erreur sur la nature, la quantité, la qualité ou la présentation réelle des plats.
           </p>
           <p className="text-foreground/80 leading-relaxed">
             Tok se réserve le droit de masquer, modérer, supprimer ou déclasser toute actualité ou campagne contraire à la loi, aux droits de tiers, aux présentes CGU, aux règles de modération ou susceptible d'induire les Utilisateurs en erreur.

@@ -115,102 +115,6 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.thetok.ch/restaurant/03c869aa-9d38-42f3-9a5b-61cd1fec8de0</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/2c57832f-af0c-4918-b3c1-4ccbb8f3e8a6</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/30e8b7d0-09f0-41e2-8d5e-57712bf410f0</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/40f1428e-4ba4-4623-8d5a-eff3b941d80a</loc>
-    <lastmod>2026-06-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/6365c0be-03f2-4624-be08-712b080735a2</loc>
-    <lastmod>2026-06-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/72dd35e7-c1d7-4cab-979c-3ad3a2aa7913</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/8af9e522-f5d5-4627-9cb2-d8989ffcb810</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/8d339837-5b96-4171-a9bb-3148520701e6</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/95e47578-3832-47ee-bc94-750eb84e2450</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/b931827b-8932-4462-b0f5-00cad89b8ba9</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/bcaf6ede-2c43-4278-a516-4a3f5cde10b3</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/c244d6ab-ef91-486f-8540-d3ab50608086</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/c45a82de-a36d-4002-ad7c-06f1e658c76c</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/c6daeb23-1105-4e3d-ad6e-a6348690aaaf</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/d51877ee-ccd4-4c25-8d68-5d9d11f7451f</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.thetok.ch/restaurant/f34b24a8-b668-4e91-aa46-176215de8a70</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.thetok.ch/restaurants/geneve</loc>
     <lastmod>2026-06-07</lastmod>
     <changefreq>daily</changefreq>
@@ -218,13 +122,13 @@
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/asiatique</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/brunch</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -233,6 +137,18 @@
     <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/burger-brothers-gva</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/cafe-des-bains</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/carouge</loc>
@@ -247,8 +163,20 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/chez-mamie-thai</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.thetok.ch/restaurants/geneve/coreen</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/dar-marrakech</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -260,31 +188,31 @@
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/grec</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/healthy</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/indien</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/italien</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/japonais</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -295,20 +223,50 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/la-table-libanaise</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/le-bosphore</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/le-comptoir-genevois</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/le-petit-grec</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.thetok.ch/restaurants/geneve/libanais</loc>
-    <lastmod>2026-06-05</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/maison-du-dragon</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/mexicain</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/oriental</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -325,14 +283,38 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/pizzeria-da-luigi</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.thetok.ch/restaurants/geneve/plainpalais</loc>
     <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/poke-bowl-factory</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/sakura-geneve</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/seoul-kitchen</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.thetok.ch/restaurants/geneve/suisse</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -343,14 +325,26 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/tacos-el-padrino</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/geneve/tandoori-palace</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.thetok.ch/restaurants/geneve/thailandais</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/geneve/turc</loc>
-    <lastmod>2026-05-25</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -374,13 +368,19 @@
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/puplinge</loc>
-    <lastmod>2026-06-06</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.thetok.ch/restaurants/puplinge/italien</loc>
-    <lastmod>2026-06-06</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.thetok.ch/restaurants/puplinge/quirinale</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
