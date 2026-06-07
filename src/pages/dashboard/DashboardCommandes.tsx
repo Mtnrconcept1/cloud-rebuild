@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import DeliveryMap from "@/components/DeliveryMap";
+import SortControls from "@/components/list/SortControls";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -36,6 +37,7 @@ import {
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
 import { groupItemsByDay, resolveOpenDayKey } from "@/lib/dashboardGrouping";
+import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import {
   DASHBOARD_ORDER_TYPE_ORDER,
   classifyDashboardOrderType,
@@ -103,6 +105,16 @@ type DashboardOrder = {
   delivery_tracking: DashboardDeliveryTracking | null;
   dispatch_job: DashboardDispatchJob | null;
 };
+
+type DashboardOrderSortKey = "created_at" | "order_number" | "customer" | "amount" | "status";
+
+const DASHBOARD_ORDER_SORT_COLUMNS: SortColumn<DashboardOrder, DashboardOrderSortKey>[] = [
+  { key: "created_at", label: "Date", type: "date", getValue: (order) => order.created_at },
+  { key: "order_number", label: "Numero", type: "text", getValue: (order) => order.order_number || order.id },
+  { key: "customer", label: "Nom client", type: "text", getValue: (order) => order.customer?.full_name || order.customer?.phone || "" },
+  { key: "amount", label: "Montant", type: "number", getValue: (order) => order.total_amount },
+  { key: "status", label: "Statut", type: "text", getValue: (order) => order.status },
+];
 
 const TAKEAWAY_STATUS_SEQUENCE = ["confirmed", "accepted", "preparing", "ready", "delivered", "cancelled"] as const;
 const DELIVERY_STATUS_SEQUENCE = ["confirmed", "accepted", "preparing", "delivering", "delivered", "cancelled"] as const;
@@ -224,6 +236,8 @@ export default function DashboardCommandes() {
   const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortKey, setSortKey] = useState<DashboardOrderSortKey>("created_at");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   useEffect(() => {
     const orderTarget = searchParams.get("order");
@@ -293,16 +307,21 @@ export default function DashboardCommandes() {
     filteredOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0)
   ), [filteredOrders]);
 
-  const groupedOrders = useMemo(() => {
-    const sortedOrders = [...filteredOrders].sort((left, right) => left.created_at.localeCompare(right.created_at, "fr"));
+  const sortedOrders = useMemo(() => (
+    sortByColumn(filteredOrders, DASHBOARD_ORDER_SORT_COLUMNS, { key: sortKey, direction: sortDirection })
+  ), [filteredOrders, sortDirection, sortKey]);
 
-    return groupItemsByDay(sortedOrders, (order) => order.created_at.slice(0, 10)).map((group) => ({
+  const groupedOrders = useMemo(() => {
+    const groups = groupItemsByDay(sortedOrders, (order) => order.created_at.slice(0, 10));
+    if (sortKey === "created_at" && sortDirection === "desc") groups.reverse();
+
+    return groups.map((group) => ({
       ...group,
       dateLabel: formatDashboardDateHeading(group.dateKey),
       revenue: group.items.reduce((sum, order) => sum + Number(order.total_amount || 0), 0),
       orderTypeSummary: summarizeDashboardOrdersByType(group.items, (order) => order.total_amount),
     }));
-  }, [filteredOrders]);
+  }, [sortDirection, sortKey, sortedOrders]);
 
   useEffect(() => {
     const visibleDateKeys = groupedOrders.map((group) => group.dateKey);
@@ -507,7 +526,7 @@ export default function DashboardCommandes() {
 
         {!restaurantsLoading && !restaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-2 xl:grid-cols-7">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
                 <div className="relative">
@@ -540,6 +559,14 @@ export default function DashboardCommandes() {
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de référence</p>
                 <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
               </div>
+              <SortControls
+                columns={DASHBOARD_ORDER_SORT_COLUMNS}
+                sortKey={sortKey}
+                direction={sortDirection}
+                onSortKeyChange={setSortKey}
+                onDirectionChange={setSortDirection}
+                className="xl:col-span-2"
+              />
               <div className="rounded-xl bg-muted/30 p-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Commandes visibles</p>
                 <p className="text-2xl font-bold">{filteredOrders.length}</p>

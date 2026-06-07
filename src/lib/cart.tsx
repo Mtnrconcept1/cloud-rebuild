@@ -1,6 +1,8 @@
-import { useState, useEffect, ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, ReactNode } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { useAuth } from "@/lib/auth-context";
 import { CartContext, type CartConflict, type CartInputItem, type CartItem } from "@/lib/cart-context";
+import { clearCartBrowserState } from "@/lib/sessionCleanup";
 
 function isGuaranteedDeliveryItem(item: CartInputItem | CartItem): boolean {
   return item.metadata?.is_guaranteed_delivery_slot === true
@@ -49,6 +51,7 @@ function cartFeatureAllowsCrossRestaurant(metadata: Record<string, any>) {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [orderMode, setOrderModeState] = useState<"delivery" | "takeaway">(() => {
     try {
       const stored = localStorage.getItem("miamz-order-mode");
@@ -77,6 +80,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return {};
     }
   });
+  const lastAuthenticatedUserIdRef = useRef<string | null>(user?.id ?? null);
+
+  const resetCartState = useCallback(() => {
+    setItems([]);
+    setCartMetadata({});
+    setConflict(null);
+    setOrderModeState("delivery");
+    clearCartBrowserState();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("miamz-cart", JSON.stringify(items));
@@ -89,6 +101,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem("miamz-order-mode", orderMode);
   }, [orderMode]);
+
+  useEffect(() => {
+    const nextUserId = user?.id ?? null;
+    const previousUserId = lastAuthenticatedUserIdRef.current;
+
+    if (previousUserId && previousUserId !== nextUserId) {
+      resetCartState();
+    }
+
+    lastAuthenticatedUserIdRef.current = nextUserId;
+  }, [resetCartState, user?.id]);
 
   const setOrderMode = (mode: "delivery" | "takeaway", options?: { force?: boolean }) => {
     if (options?.force) {
@@ -213,8 +236,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = () => {
-    setItems([]);
-    setCartMetadata({});
+    resetCartState();
   };
 
   const resolveConflict = (action: "clear" | "checkout") => {

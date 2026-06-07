@@ -98,6 +98,16 @@ function getConversationContext(conversation: ClientSupportConversation) {
   };
 }
 
+function formatChatReference(value: string | null | undefined) {
+  return value ? value.slice(0, 8).toUpperCase() : null;
+}
+
+function getActiveChatReference(activeConversationId: string | null, supportTicketId: string | null) {
+  if (supportTicketId) return `Ticket #${formatChatReference(supportTicketId)}`;
+  if (activeConversationId) return `Conversation #${formatChatReference(activeConversationId)}`;
+  return null;
+}
+
 export default function SupportChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [chatSurface, setChatSurface] = useState<HelpChatSurface>("client");
@@ -117,6 +127,7 @@ export default function SupportChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const activeAgent = AGENTS[selectedAgent];
+  const activeChatReference = getActiveChatReference(activeConversationId, supportTicketId);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -294,6 +305,11 @@ export default function SupportChat() {
                         OpenAI en ligne
                       </span>
                     </div>
+                    {activeChatReference ? (
+                      <p className="mt-1 font-mono text-[10px] font-semibold uppercase tracking-wider opacity-90">
+                        {activeChatReference}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -366,6 +382,9 @@ export default function SupportChat() {
                         <span className="block truncate font-semibold text-foreground">
                           {conversation.title || "Conversation support IA"}
                         </span>
+                        <span className="mt-1 block font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          Conversation #{formatChatReference(conversation.id)}
+                        </span>
                         <span className="mt-1 flex items-center justify-between gap-2 text-muted-foreground">
                           <span>{conversation.status}</span>
                           <span>
@@ -428,10 +447,10 @@ export default function SupportChat() {
                   >
                     {activeAgent.badge}
                   </Badge>
-                  {supportTicketId ? (
-                    <p className="mt-1 text-[10px] text-muted-foreground">Ticket {supportTicketId.slice(0, 8)}</p>
-                  ) : activeConversationId ? (
-                    <p className="mt-1 text-[10px] text-muted-foreground">Conversation enregistree</p>
+                  {activeChatReference ? (
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {activeChatReference}
+                    </p>
                   ) : null}
                 </div>
               ) : null}

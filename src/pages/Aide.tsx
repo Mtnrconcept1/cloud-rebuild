@@ -61,7 +61,7 @@ const CATEGORIES = [
   },
   {
     id: "reservations",
-    title: "Reservations",
+    title: "Réservations",
     icon: CalendarDays,
     color: "text-rose-600",
     bg: "bg-rose-50",
@@ -74,8 +74,15 @@ const CATEGORIES = [
     bg: "bg-indigo-50",
   },
   {
+    id: "social",
+    title: "Actualités",
+    icon: MessageSquare,
+    color: "text-cyan-600",
+    bg: "bg-cyan-50",
+  },
+  {
     id: "antigaspi",
-    title: "Anti-gaspi & Durabilite",
+    title: "Anti-gaspi & Durabilité",
     icon: Leaf,
     color: "text-emerald-600",
     bg: "bg-emerald-50",
@@ -333,6 +340,35 @@ const FAQS = [
     ],
   },
   {
+    category: "social",
+    questions: [
+      {
+        q: "Comment fonctionne la page Actualités ?",
+        a: "La page Actualités regroupe les posts publiés par les restaurants : nouveautés, coulisses, offres courtes, tables disponibles, événements, contenus sponsorisés et appels à réserver ou commander. Vous pouvez aimer, commenter, partager, sauvegarder, suivre un restaurant ou signaler un contenu.",
+      },
+      {
+        q: "Où retrouver les posts que j'ai sauvegardés ?",
+        a: "Un onglet dédié aux posts sauvegardés regroupe les contenus que vous avez enregistrés avec le bouton 'Sauver'. Il sert de liste personnelle pour retrouver une offre, une adresse, une table ou une actualité sans devoir rechercher le post dans le fil principal.",
+      },
+      {
+        q: "À quoi servent les boutons Plus comme ça et Moins comme ça ?",
+        a: "Le bouton 'Plus comme ça' renforce les signaux du post : cuisine, restaurant, type d'offre, ville, prix ou tags associés. Les contenus similaires auront plus de chances de remonter. Le bouton 'Moins comme ça' fait l'inverse : il réduit fortement le poids de ces signaux et aide à nettoyer votre fil.",
+      },
+      {
+        q: "Comment TOK choisit les posts que je vois ?",
+        a: "Le fil combine plusieurs signaux : vos vues, clics, likes, commentaires, partages, sauvegardes, réservations, commandes, préférences 'Plus/Moins comme ça', proximité géographique, engagement global et statut sponsorisé. L'objectif est de proposer des restaurants et offres que vous êtes susceptible d'apprécier, sans afficher uniquement des posts sponsorisés.",
+      },
+      {
+        q: "Pourquoi certains posts sont-ils indiqués comme sponsorisés ?",
+        a: "Un post sponsorisé est une publication mise en avant par un restaurant via une campagne payante. TOK affiche ce statut pour distinguer les contenus promus des recommandations organiques. Un post ne doit pas devenir sponsorisé automatiquement : le restaurant doit passer par le parcours de mise en avant et de paiement prévu.",
+      },
+      {
+        q: "Puis-je influencer ou corriger mes recommandations ?",
+        a: "Oui. Utilisez 'Plus comme ça' pour voir davantage de contenus similaires, 'Moins comme ça' pour en voir moins, 'Sauver' pour conserver un post, et les actions classiques comme like, commentaire ou partage. Vous pouvez aussi masquer ou signaler un contenu si celui-ci est trompeur, inadapté ou contraire aux règles.",
+      },
+    ],
+  },
+  {
     category: "antigaspi",
     questions: [
       {
@@ -366,7 +402,7 @@ const FAQS = [
     questions: [
       {
         q: "Quels sont les avantages de Tok One ?",
-        a: "Tok One vous offre : la livraison gratuite sur tous les restaurants éligibles (sans minimum de commande), des réductions exclusives allant jusqu’à 20%, un accès prioritaire aux La Table du Chefs et événements gastronomiques, un accès anticipé aux ventes flash et offres spéciales, un support client prioritaire avec temps de réponse accéléré, et des offres surprises régulières réservées aux membres.",
+        a: "Tok One vous offre : la livraison gratuite sur les restaurants éligibles, des réductions ou offres réservées selon les partenaires, un accès prioritaire à certaines expériences La Table du Chef, un accès anticipé aux ventes flash et offres spéciales, un support client prioritaire et des avantages réguliers réservés aux membres.",
       },
       {
         q: "Combien coûte l'abonnement Tok One ?",
@@ -399,11 +435,11 @@ const FAQS = [
     questions: [
       {
         q: "Comment fonctionne le programme de fidélité ?",
-        a: "Chaque commande et réservation vous rapporte des points Miamz. Le nombre de points dépend du montant dépensé. Vous pouvez consulter votre solde de points depuis votre profil. Les points sont cumulables et peuvent être convertis en réductions sur vos prochaines commandes, en cadeaux pour vos proches, ou en dons solidaires.",
+        a: "Chaque commande, réservation ou action qualifiée peut vous rapporter des Miamz selon les règles affichées dans l'application. Les Miamz servent à débloquer des avantages : bonus, offres partenaires, priorités, cadeaux, dons solidaires, accès à certains bons plans et niveaux de fidélité.",
       },
       {
         q: "Comment utiliser mes points Miamz ?",
-        a: "Lors du checkout, vous pouvez appliquer tout ou partie de vos points Miamz pour réduire le montant de votre commande (100 Miamz ~ 1 CHF de réduction). Vous pouvez aussi les offrir en cadeau à un proche ou les convertir en repas solidaires. Rendez-vous dans 'Profil' > 'Mes points' pour voir votre solde et vos options.",
+        a: "Rendez-vous dans 'Profil' > 'Mes points' pour voir votre solde et les avantages disponibles. Les Miamz ne sont pas une monnaie et ne sont pas convertibles en espèces. Lorsqu'un avantage est éligible, ses conditions, sa durée de validité et ses restrictions sont affichées avant utilisation.",
       },
       {
         q: "Mes points de fidélité expirent-ils ?",
@@ -415,7 +451,11 @@ const FAQS = [
       },
       {
         q: "Existe-t-il des niveaux de fidélité ?",
-        a: "Oui, le programme de fidélité comporte différents paliers qui offrent des avantages croissants : réductions supplémentaires, accès anticipé aux offres spéciales, bonus de points multipliés. Plus vous commandez, plus vous montez en niveau et débloquez de récompenses.",
+        a: "Oui, le programme de fidélité comporte des niveaux comme Bronze, Silver, Gold et Platinum. Ils peuvent donner accès à des bonus Miamz, priorités de réservation, avantages de livraison, événements partenaires, support prioritaire, créneaux premium et accès à certaines tables VIP lorsque les restaurants les rendent disponibles.",
+      },
+      {
+        q: "Que sont les tables VIP La Table du Chef ?",
+        a: "Certains restaurants peuvent réserver une partie de leurs expériences La Table du Chef à des clients éligibles, par exemple selon leur niveau Miamz, Tok One ou une invitation partenaire. Ces tables VIP restent limitées, non garanties et soumises aux règles de disponibilité du restaurant.",
       },
     ],
   },
@@ -446,6 +486,14 @@ const FAQS = [
         q: "Comment signaler un problème de qualité ?",
         a: `Si vous rencontrez un problème de qualité (plat froid, emballage endommagé, article non conforme), signalez-le immédiatement via le chat de support ou en envoyant un email à ${SUPPORT_EMAIL} avec votre numéro de commande et une photo si possible. Notre équipe traitera votre réclamation sous 48h ouvrées.`,
       },
+      {
+        q: "Comment suivre un sinistre ou une conversation support ?",
+        a: "Les conversations de support et les sinistres affichent un numéro de référence en haut de la fenêtre de chat. Le statut peut évoluer sans être clôturé immédiatement : en attente, en cours, résolu ou clôturé. Cela permet de suivre le traitement sans classer le dossier trop tôt.",
+      },
+      {
+        q: "Mes notifications et mon panier restent-ils après déconnexion ?",
+        a: "Non. Les notifications sont limitées au compte, rôle ou restaurant concerné. À la déconnexion ou lors d'un changement de compte, TOK nettoie les données locales sensibles comme le panier, certains brouillons de checkout et les jetons de notification push de la session courante.",
+      },
     ],
   },
   {
@@ -465,7 +513,7 @@ const FAQS = [
       },
       {
         q: "Comment fonctionne le dashboard restaurateur ?",
-        a: "Le dashboard vous donne un accès complet à la gestion de votre restaurant sur Tok. Vous y trouvez : vue d'ensemble avec indicateurs clés, gestion des commandes en temps réel, suivi des réservations (y compris Zéro Attente), édition du menu et des prix, galerie photo, performances et statistiques, facturation, gestion des campagnes publicitaires, et pilotage de service. Les sections accessibles dépendent de votre pack de lancement.",
+        a: "Le dashboard vous donne accès à la gestion de votre restaurant sur TOK : vue d'ensemble, commandes, réservations, Zéro Attente, menu, prix, photos, Actualités, campagnes, avis, factures, support, services, plan de salle et statistiques. Les sections accessibles peuvent dépendre de votre rôle, de votre restaurant et des fonctionnalités activées.",
       },
       {
         q: "Comment voir la progression de mon pack de lancement ?",
@@ -489,19 +537,27 @@ const FAQS = [
       },
       {
         q: "Comment utiliser Actualités comme outil marketing ?",
-        a: "Depuis le dashboard restaurateur, ouvrez 'Actualités'. Choisissez un objectif (notoriété, commandes, réservations, fidélisation ou offre limitée), une audience, un CTA et un modèle de publication. Le score marketing vous indique si le post contient une accroche suffisante, un média, un format adapté, un CTA clair et une programmation utile.",
+        a: "Depuis le dashboard restaurateur, ouvrez 'Actualités'. Choisissez un objectif (notoriété, commandes, réservations, fidélisation ou offre limitée), une audience, un CTA et un modèle de publication. Le score marketing vous aide à vérifier accroche, média, format, CTA, programmation et cohérence de l'offre avant publication.",
       },
       {
         q: "Quelles statistiques sont disponibles pour mes actualités ?",
-        a: "Le cockpit Actualités affiche les impressions, clics, clics CTA, réactions, commentaires, sauvegardes, partages, taux d'engagement, posts programmés et répartition par objectif marketing. Ces données vous aident à comprendre quels contenus génèrent de la visibilité, des commandes ou des réservations.",
+        a: "Le cockpit Actualités affiche les impressions, clics, clics CTA, réactions, commentaires, sauvegardes, partages, taux d'engagement, conversions, posts programmés et répartition par objectif marketing. Ces données vous aident à comprendre quels contenus génèrent visibilité, commandes ou réservations.",
       },
       {
         q: "Qui modere les publications et signalements Actualités ?",
         a: "Les administrateurs Tok peuvent examiner directement les publications, commentaires, reposts et signalements depuis l'espace admin, puis masquer, restaurer, supprimer ou clôturer un signalement sans passer par une console technique. Les contenus trompeurs, illicites ou contraires aux CGU peuvent être retirés.",
       },
       {
-        q: "Comment lancer une campagne publicitaire ?",
-        a: "Depuis l'onglet 'Campagnes' du dashboard (disponible avec les packs Pro et Premium), créez une campagne en définissant un titre, un budget et une audience cible. La campagne mettra en avant votre restaurant auprès des utilisateurs correspondants. Le paiement se fait à la création de la campagne. Vous pouvez suivre les performances (impressions, clics, conversions) en temps réel.",
+        q: "Comment fonctionne la page Campagnes ?",
+        a: "La page Campagnes regroupe les campagnes en cours et l'historique des campagnes terminées. Vous voyez une vue globale avec budget dépensé, coût global, impressions, clics, conversions, CPC et performance cumulée. En cliquant sur une campagne active, vous accédez aux données détaillées de cette campagne.",
+      },
+      {
+        q: "Comment le budget d'une campagne est-il diffusé ?",
+        a: "TOK répartit la diffusion selon le budget total et la durée. Par exemple, 50 CHF sur 5 jours donne environ 10 CHF par jour, tandis que 50 CHF sur 1 jour diffuse plus agressivement. Le score de diffusion tient compte du budget restant, des jours restants, de la pertinence, de la distance et de l'engagement historique.",
+      },
+      {
+        q: "Puis-je publier directement sur mes réseaux sociaux ?",
+        a: "Si vous avez renseigné ou connecté vos réseaux sociaux, l'interface Actualités peut proposer de préparer ou publier le post sur les canaux sélectionnés, selon les permissions accordées. Vous restez responsable du contenu, des droits sur les visuels et du respect des règles Instagram, TikTok, Facebook ou des autres réseaux utilisés.",
       },
     ],
   },

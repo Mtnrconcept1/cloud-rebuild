@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import MobileLogoIntro from "@/components/MobileLogoIntro";
@@ -78,7 +79,6 @@ const DashboardPerformances = lazy(() => import("./pages/dashboard/DashboardPerf
 const DashboardComparaison = lazy(() => import("./pages/dashboard/DashboardComparaison"));
 const DashboardAvis = lazy(() => import("./pages/dashboard/DashboardAvis"));
 const DashboardPromotions = lazy(() => import("./pages/dashboard/DashboardPromotions"));
-const DashboardCampagneOverview = lazy(() => import("./pages/dashboard/DashboardCampagneOverview"));
 const DashboardReseauxSociaux = lazy(() => import("./pages/dashboard/DashboardReseauxSociaux"));
 const DashboardActualites = lazy(() => import("./pages/dashboard/DashboardActualites"));
 const DashboardFactures = lazy(() => import("./pages/dashboard/DashboardFactures"));
@@ -134,11 +134,18 @@ const queryClient = new QueryClient({
 
 function NativeIntegration() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!isNative()) return;
 
-    const cleanups: Array<() => void> = [setupDeepLinks((path) => navigate(path))];
+    return setupDeepLinks((path) => navigate(path));
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!isNative() || !user?.id) return;
+
+    const cleanups: Array<() => void> = [];
     let disposed = false;
 
     import("@/lib/push-native").then(({ setupNativePushListeners }) => {
@@ -150,7 +157,7 @@ function NativeIntegration() {
       disposed = true;
       for (const cleanup of cleanups.splice(0)) cleanup();
     };
-  }, [navigate]);
+  }, [navigate, user?.id]);
 
   return null;
 }
@@ -295,7 +302,6 @@ function AppShell() {
   const dashboardFormulesEnabled = hasFeature("dashboard-formules");
   const dashboardPhotosEnabled = hasFeature("dashboard-photos");
   const dashboardPromotionsEnabled = hasFeature("dashboard-promotions");
-  const dashboardCampagneOverviewEnabled = hasFeature("dashboard-campagne-overview");
   const dashboardReseauxSociauxEnabled = hasFeature("dashboard-reseaux-sociaux");
   const dashboardActualitesEnabled = hasFeature("dashboard-actualites");
   const dashboardCampagnesEnabled = hasFeature("dashboard-campagnes");
@@ -381,7 +387,7 @@ function AppShell() {
           <Route path="/dashboard/formules" element={<DashboardRoute><FeatureSwitch enabled={dashboardFormulesEnabled} fallback="/dashboard"><DashboardFormules /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/photos" element={<DashboardRoute><FeatureSwitch enabled={dashboardPhotosEnabled} fallback="/dashboard"><DashboardPhotos /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/promotions" element={<DashboardRoute><FeatureSwitch enabled={dashboardPromotionsEnabled} fallback="/dashboard"><DashboardPromotions /></FeatureSwitch></DashboardRoute>} />
-          <Route path="/dashboard/campagne-overview" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagneOverviewEnabled} fallback="/dashboard"><DashboardCampagneOverview /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/campagne-overview" element={<Navigate to="/dashboard/campagnes" replace />} />
           <Route path="/dashboard/reseaux-sociaux" element={<DashboardRoute><FeatureSwitch enabled={dashboardReseauxSociauxEnabled} fallback="/dashboard"><DashboardReseauxSociaux /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/actualites" element={<DashboardRoute><FeatureSwitch enabled={dashboardActualitesEnabled} fallback="/dashboard"><DashboardActualites /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/campagnes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCampagnesEnabled} fallback="/dashboard"><DashboardCampagnes /></FeatureSwitch></DashboardRoute>} />
@@ -444,8 +450,8 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <AdminHostBoundary />
-          <NativeIntegration />
           <AuthProvider>
+            <NativeIntegration />
             <CartProvider>
               <AppShell />
             </CartProvider>

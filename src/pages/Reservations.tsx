@@ -6,20 +6,17 @@ import { CalendarDays, ChevronDown, ChevronRight, Clock, Receipt, Users, Utensil
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
+import SortControls from "@/components/list/SortControls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth-context";
+import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 
 const supabase = getSupabase();
 
-type ReservationSort =
-  | "reservation_date_desc"
-  | "reservation_date_asc"
-  | "created_at_desc"
-  | "created_at_asc";
+type ReservationSortKey = "reservation_date" | "created_at" | "restaurant" | "number" | "status";
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type RestaurantName = Pick<Database["public"]["Tables"]["restaurants"]["Row"], "name">;
@@ -113,10 +110,19 @@ const formatShortDate = (date: string) => new Date(date).toLocaleDateString("fr-
   year: "numeric",
 });
 
+const RESERVATION_SORT_COLUMNS: SortColumn<ReservationWithRestaurant, ReservationSortKey>[] = [
+  { key: "reservation_date", label: "Date de table", type: "date", getValue: getReservedDateTimeMs },
+  { key: "created_at", label: "Date de creation", type: "date", getValue: (reservation) => reservation.created_at },
+  { key: "restaurant", label: "Nom du restaurant", type: "text", getValue: (reservation) => getRestaurantName(reservation.restaurants) },
+  { key: "number", label: "Numero", type: "text", getValue: (reservation) => reservation.order_reference || reservation.id },
+  { key: "status", label: "Statut", type: "text", getValue: (reservation) => reservation.status },
+];
+
 export default function Reservations() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const [sortBy, setSortBy] = useState<ReservationSort>("reservation_date_desc");
+  const [sortKey, setSortKey] = useState<ReservationSortKey>("reservation_date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [selectedReservation, setSelectedReservation] = useState<ReservationWithRestaurant | null>(null);
   const [expandedReservations, setExpandedReservations] = useState<Set<string>>(new Set());
 
@@ -142,22 +148,11 @@ export default function Reservations() {
   }, [reservations, searchParams]);
 
   const sortedReservations = useMemo(() => {
-    const list = [...(reservations || [])];
-    list.sort((a, b) => {
-      const reservedA = getReservedDateTimeMs(a);
-      const reservedB = getReservedDateTimeMs(b);
-      const createdA = new Date(a.created_at).getTime();
-      const createdB = new Date(b.created_at).getTime();
-      switch (sortBy) {
-        case "reservation_date_asc": return reservedA - reservedB;
-        case "created_at_desc": return createdB - createdA;
-        case "created_at_asc": return createdA - createdB;
-        case "reservation_date_desc":
-        default: return reservedB - reservedA;
-      }
+    return sortByColumn(reservations || [], RESERVATION_SORT_COLUMNS, {
+      key: sortKey,
+      direction: sortDirection,
     });
-    return list;
-  }, [reservations, sortBy]);
+  }, [reservations, sortDirection, sortKey]);
 
   const toggleReservation = (reservationId: string) => {
     setExpandedReservations((current) => {
@@ -188,19 +183,14 @@ export default function Reservations() {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="font-display text-3xl font-bold">Mes réservations</h1>
-          <div className="w-full sm:w-[320px]">
-            <Select value={sortBy} onValueChange={(value) => setSortBy(value as ReservationSort)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Trier les réservations" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="reservation_date_desc">Date de table : plus récente</SelectItem>
-                <SelectItem value="reservation_date_asc">Date de table : plus ancienne</SelectItem>
-                <SelectItem value="created_at_desc">Date de creation : plus récente</SelectItem>
-                <SelectItem value="created_at_asc">Date de creation : plus ancienne</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <SortControls
+            columns={RESERVATION_SORT_COLUMNS}
+            sortKey={sortKey}
+            direction={sortDirection}
+            onSortKeyChange={setSortKey}
+            onDirectionChange={setSortDirection}
+            className="w-full sm:w-[440px]"
+          />
         </div>
 
         {isLoading ? (

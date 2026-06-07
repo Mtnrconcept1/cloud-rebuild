@@ -9,7 +9,10 @@ import {
   SOCIAL_MARKETING_GOALS,
   SOCIAL_POST_CTAS,
   SOCIAL_POST_TYPES,
+  SOCIAL_FEED_SCORE_MIX,
+  SOCIAL_FEED_SIGNAL_WEIGHTS,
   getSocialRecommendationReasons,
+  getSocialFeedScore,
   getVisibilityForAudienceSegment,
   isMissingSocialMarketingSchemaError,
   normalizeSocialFeedScope,
@@ -69,9 +72,11 @@ describe("social feed v2 helpers", () => {
       "followed",
       "nearby",
       "offers",
+      "saved",
     ]);
 
     expect(normalizeSocialFeedScope("followed")).toBe("followed");
+    expect(normalizeSocialFeedScope("saved")).toBe("saved");
     expect(normalizeSocialFeedScope("unknown")).toBe("for_you");
     expect(normalizeSocialFeedScope(null)).toBe("for_you");
   });
@@ -137,6 +142,66 @@ describe("social feed v2 helpers", () => {
         interactedRestaurantIds: [],
       }),
     ).toEqual(["Restaurant suivi", "Cuisine préférée", "À proximité"]);
+  });
+
+  it("weights personalized feed scores from explicit and implicit interest signals", () => {
+    expect(SOCIAL_FEED_SIGNAL_WEIGHTS).toMatchObject({
+      view3s: 1,
+      click: 3,
+      like: 5,
+      comment: 8,
+      share: 12,
+      reservation: 20,
+      order: 25,
+      hidePost: -20,
+      notInterested: -30,
+      showMore: 20,
+      showLess: -20,
+    });
+    expect(SOCIAL_FEED_SCORE_MIX).toEqual({
+      personalInterest: 0.4,
+      proximity: 0.25,
+      engagement: 0.2,
+      sponsored: 0.15,
+    });
+
+    const sushiPost = {
+      ...basePost,
+      id: "sushi-post",
+      restaurantId: "sushi-house",
+      restaurant: { ...basePost.restaurant, id: "sushi-house", cuisineType: "japonais" },
+    };
+    const genericPost = {
+      ...basePost,
+      id: "generic-post",
+      restaurantId: "generic",
+      restaurant: { ...basePost.restaurant, id: "generic", cuisineType: "burger", city: "Lausanne" },
+      likesCount: 200,
+      commentsCount: 80,
+      repostsCount: 20,
+      sharesCount: 30,
+    };
+
+    const sushiScore = getSocialFeedScore(sushiPost, {
+      viewerCity: "Geneve",
+      favoriteCuisines: ["japonais"],
+      interestWeights: {
+        restaurants: { "sushi-house": 35 },
+        cuisines: { japonais: 45 },
+        postTypes: { plat: 20 },
+      },
+    });
+    const genericScore = getSocialFeedScore(genericPost, {
+      viewerCity: "Geneve",
+      favoriteCuisines: ["japonais"],
+      interestWeights: {
+        restaurants: { generic: -30 },
+        cuisines: { burger: -20 },
+      },
+    });
+
+    expect(sushiScore).toBeGreaterThan(genericScore);
+    expect(sushiScore).toBeGreaterThan(55);
   });
 
   it("scores marketing drafts with actionable recommendations", () => {

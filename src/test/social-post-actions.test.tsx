@@ -99,6 +99,13 @@ describe("SocialPostCard actions", () => {
       reason: "Preference client",
     });
 
+    fireEvent.click(screen.getByRole("button", { name: /Moins comme/i }));
+    expect(socialHooks.feedbackMutate).toHaveBeenCalledWith({
+      post,
+      feedbackType: "not_interested",
+      reason: "Moins comme ca",
+    });
+
     fireEvent.click(screen.getByRole("button", { name: "Masquer" }));
     expect(socialHooks.feedbackMutate).toHaveBeenCalledWith({
       post,

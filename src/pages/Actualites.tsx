@@ -29,7 +29,7 @@ import { SOCIAL_FEED_SCOPES, normalizeSocialFeedScope, type SocialFeedPost, type
 import { useOwnerRestaurants } from "@/pages/dashboard/useOwnerRestaurants";
 
 export default function Actualites() {
-  const { role, isSuperAdmin } = useAuth();
+  const { role, isSuperAdmin, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
   const [composerRestaurantId, setComposerRestaurantId] = useState<string | null>(null);
@@ -185,7 +185,7 @@ export default function Actualites() {
 
           <Tabs value={scope} onValueChange={changeScope}>
             <div className="rounded-2xl border bg-background/90 p-2 shadow-sm">
-              <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1 sm:grid-cols-4">
+              <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1 sm:grid-cols-5">
                 {SOCIAL_FEED_SCOPES.map((item) => (
                   <TabsTrigger
                     key={item.value}
@@ -244,8 +244,16 @@ export default function Actualites() {
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <BellRing className="h-7 w-7" />
               </div>
-              <h2 className="font-display text-xl font-bold">Aucune actualité pour le moment</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Les publications des restaurants apparaîtront ici dès leur mise en ligne.</p>
+              <h2 className="font-display text-xl font-bold">
+                {scope === "saved" ? "Aucun post sauvegardé" : "Aucune actualité pour le moment"}
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {scope === "saved"
+                  ? user?.id
+                    ? "Les posts enregistrés avec le bouton Sauver apparaîtront ici."
+                    : "Connectez-vous pour retrouver les posts que vous sauvegardez."
+                  : "Les publications des restaurants apparaîtront ici dès leur mise en ligne."}
+              </p>
             </div>
           )}
         </section>

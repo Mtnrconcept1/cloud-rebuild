@@ -367,6 +367,8 @@ function invalidateSocialQueries(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: ["social-insights"] });
   queryClient.invalidateQueries({ queryKey: ["social-post-thread"] });
   queryClient.invalidateQueries({ queryKey: ["social-comments"] });
+  queryClient.invalidateQueries({ queryKey: ["admin-social"] });
+  queryClient.invalidateQueries({ queryKey: ["admin-actualites-sponsored"] });
 }
 
 function patchSocialPost(queryClient: QueryClient, postId: string, updater: (post: SocialFeedPost) => SocialFeedPost) {
@@ -397,6 +399,40 @@ function removeSocialPost(queryClient: QueryClient, postId: string) {
         posts: page.posts.filter((post: SocialFeedPost) => post.id !== postId),
       })),
     };
+  });
+}
+
+function patchAdminSocialModeration(queryClient: QueryClient, target: ModerationTarget) {
+  queryClient.setQueryData(["admin-social"], (oldData: any) => {
+    if (!oldData || typeof oldData !== "object") return oldData;
+
+    if (target.type === "post" && Array.isArray(oldData.posts)) {
+      return {
+        ...oldData,
+        posts: oldData.posts.map((post: SocialFeedPost) =>
+          post.id === target.id ? { ...post, status: target.status as SocialFeedPost["status"] } : post
+        ),
+      };
+    }
+
+    if (target.type === "report" && Array.isArray(oldData.reports)) {
+      const reviewedAt = target.status === "open" ? null : new Date().toISOString();
+
+      return {
+        ...oldData,
+        reports: oldData.reports.map((report: any) =>
+          report.id === target.id
+            ? {
+                ...report,
+                status: target.status,
+                reviewed_at: reviewedAt ?? report.reviewed_at,
+              }
+            : report
+        ),
+      };
+    }
+
+    return oldData;
   });
 }
 
@@ -560,29 +596,50 @@ export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit 
       if (error && !isMissingRpc(error)) throw error;
 
       if (error) {
-        const fallbackQuery = (supabase.from("social_posts" as any) as any)
+        if (scope === "saved" && !userId) {
+          return { posts: [], nextCursor: null };
+        }
+
+        let savedPostIds: string[] | null = null;
+        if (scope === "saved") {
+          const savedResult = await (supabase.from("social_post_saves" as any) as any)
+            .select("post_id")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(limit);
+
+          if (savedResult.error) throw savedResult.error;
+          savedPostIds = (savedResult.data || []).map((row: any) => row.post_id).filter(Boolean);
+          if (savedPostIds.length === 0) {
+            return { posts: [], nextCursor: null };
+          }
+        }
+
+        let fallbackQuery = (supabase.from("social_posts" as any) as any)
           .select("*, restaurants(id,name,image_url,city,cuisine_type), social_post_media(*)")
           .eq("status", "published")
           .order("published_at", { ascending: false })
           .limit(limit);
 
-      const fallbackResult = await fallbackQuery;
-      if (fallbackResult.error) throw fallbackResult.error;
-      const rows = fallbackResult.data || [];
-      return {
-        posts: filterSocialPostsByHiddenFeedback(rows.map(mapRestaurantPostRow), hiddenFeedback),
-        nextCursor: null,
-      };
-    }
+        if (savedPostIds) fallbackQuery = fallbackQuery.in("id", savedPostIds);
 
-    const rows = data || [];
-    const posts = filterSocialPostsByHiddenFeedback(rows.map(mapSocialPost), hiddenFeedback);
-    const nextCursor = rows.length === limit ? rows[rows.length - 1]?.created_at || null : null;
-    return { posts, nextCursor };
-  },
-  initialPageParam: null as string | null,
-  getNextPageParam: (lastPage) => lastPage.nextCursor,
-});
+        const fallbackResult = await fallbackQuery;
+        if (fallbackResult.error) throw fallbackResult.error;
+        const rows = fallbackResult.data || [];
+        return {
+          posts: filterSocialPostsByHiddenFeedback(rows.map(mapRestaurantPostRow), hiddenFeedback),
+          nextCursor: null,
+        };
+      }
+
+      const rows = data || [];
+      const posts = filterSocialPostsByHiddenFeedback(rows.map(mapSocialPost), hiddenFeedback);
+      const nextCursor = rows.length === limit ? rows[rows.length - 1]?.created_at || null : null;
+      return { posts, nextCursor };
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
 }
 
 export function useRestaurantSocialPosts(restaurantId?: string | null) {
@@ -1440,8 +1497,9 @@ export function useModerateSocialContent() {
       const { error } = await (supabase.from(table as any) as any).update(payload).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success("Moderation mise à jour.");
+      patchAdminSocialModeration(queryClient, variables);
       invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error((error as Error).message),

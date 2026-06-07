@@ -178,7 +178,7 @@ export function InvoiceLineTable(props: InvoiceLineTableProps) {
 
                 <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   <AmountDetail label="Date / heure" value={formatDateTime(payoutLine.occurredAt)} />
-                  <AmountDetail label="Montant brut" value={formatCurrency(payoutLine.grossAmount)} />
+                  <AmountDetail label="Base nette" value={formatCurrency(payoutLine.grossAmount)} />
                   <AmountDetail label="Taux" value={formatPercentage(payoutLine.rateApplied)} />
                   <AmountDetail label="Facture" value={formatCurrency(payoutLine.invoicedAmount)} emphasized />
                 </div>

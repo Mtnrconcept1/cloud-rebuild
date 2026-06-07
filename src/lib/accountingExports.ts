@@ -6,6 +6,7 @@ import {
   getNetReservationCommissionBase,
   getTokCoveredMiamzAmount,
 } from "@/lib/comptaCommissionSources";
+import { calculateRestaurantShare, calculateTokCommission } from "@/lib/comptaFlow";
 
 export type AccountingExportPerspective = "admin" | "restaurant";
 
@@ -295,8 +296,8 @@ export function buildAccountingExportEntries({
     if (!source) return;
 
     const commissionBase = getNetOrderCommissionBase(order);
-    const commissionAmount = commissionBase * 0.1;
-    const restaurantShare = commissionBase * 0.9;
+    const commissionAmount = calculateTokCommission(commissionBase);
+    const restaurantShare = calculateRestaurantShare(commissionBase);
     const miamzAmount = getTokCoveredMiamzAmount(order);
     const reference = order.order_number || order.id;
     const sourceLabel = buildSourceLabel(source);
@@ -361,8 +362,8 @@ export function buildAccountingExportEntries({
     if (!source) return;
 
     const commissionBase = getNetReservationCommissionBase(reservation);
-    const commissionAmount = commissionBase * 0.1;
-    const restaurantShare = commissionBase * 0.9;
+    const commissionAmount = calculateTokCommission(commissionBase);
+    const restaurantShare = calculateRestaurantShare(commissionBase);
     const reference = reservation.id;
     const sourceLabel = buildSourceLabel(source);
     const date = toDateOnly(reservation.created_at || reservation.date);

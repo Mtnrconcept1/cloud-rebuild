@@ -6,7 +6,24 @@ function read(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
+const publicLegalPages = [
+  "src/pages/CGU.tsx",
+  "src/pages/PolitiqueConfidentialite.tsx",
+  "src/pages/Aide.tsx",
+  "src/pages/APropos.tsx",
+];
+
 describe("legal Miamz and sponsored content readiness", () => {
+  it("keeps public legal and help pages in readable UTF-8 French", () => {
+    for (const path of publicLegalPages) {
+      const content = read(path);
+
+      for (const brokenEncoding of ["Ã", "Â", "â€”", "â€™", "â€œ", "â€", "�"]) {
+        expect(content, `${path} contains ${brokenEncoding}`).not.toContain(brokenEncoding);
+      }
+    }
+  });
+
   it("documents Miamz value, expiry, donations and refund adjustments in public legal copy", () => {
     const cgu = read("src/pages/CGU.tsx");
     const miamz = read("src/pages/MiamzSolidaires.tsx");
@@ -16,7 +33,8 @@ describe("legal Miamz and sponsored content readiness", () => {
       "sans valeur en espèces",
       "durée de validité",
       "dons solidaires",
-      "annulation, remboursement, fraude ou erreur technique",
+      "annulation, remboursement, fraude, abus ou erreur technique",
+      "tables VIP",
     ]) {
       expect(cgu).toContain(expected);
     }
@@ -36,21 +54,50 @@ describe("legal Miamz and sponsored content readiness", () => {
     const privacy = read("src/pages/PolitiqueConfidentialite.tsx");
 
     for (const expected of [
-      "contenus sponsorisés",
+      "campagnes sponsorisées",
       "photos générées ou retouchées par IA",
-      "ne doivent pas induire les Utilisateurs en erreur",
-      "droits d'utilisation des visuels",
+      "ne doivent pas induire les utilisateurs en erreur",
+      "post ne doit être présenté comme sponsorisé",
+      "budget quotidien",
     ]) {
       expect(cgu).toContain(expected);
     }
 
     for (const expected of [
-      "données d'usage IA",
+      "Données d'usage IA",
       "OpenAI",
-      "campagnes sponsorisées",
-      "mesure d'audience",
+      "scores d'intérêt",
+      "Réseaux sociaux restaurateur",
+      "jetons push",
     ]) {
       expect(privacy).toContain(expected);
+    }
+  });
+
+  it("explains recent product additions in FAQ and About pages", () => {
+    const aide = read("src/pages/Aide.tsx");
+    const about = read("src/pages/APropos.tsx");
+
+    for (const expected of [
+      "posts sauvegardés",
+      "Plus comme ça",
+      "Moins comme ça",
+      "CPC",
+      "budget total et la durée",
+      "tables VIP",
+      "panier",
+      "jetons de notification push",
+    ]) {
+      expect(aide).toContain(expected);
+    }
+
+    for (const expected of [
+      "Actualités",
+      "Miamz",
+      "campagnes",
+      "restaurants indépendants",
+    ]) {
+      expect(about).toContain(expected);
     }
   });
 });

@@ -18,7 +18,7 @@ import {
   type AccountingExportEntry,
   type AccountingPeriodRange,
 } from "@/lib/accountingExports";
-import { buildRestaurantAccountingSummary } from "@/lib/comptaFlow";
+import { buildRestaurantAccountingSummary, calculateRestaurantShare, calculateTokCommission } from "@/lib/comptaFlow";
 import { splitInvoicesByPaymentState } from "@/lib/dashboardInvoices";
 import { isRefundColumnsMissingError, withDefaultRefundFields } from "@/lib/refundSchemaCompat";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -254,7 +254,7 @@ function buildPayableAccrualSummary(input: {
     if (billedSourceLookup.orderCommissionIds.has(order.id)) return;
 
     const commissionBase = getNetOrderCommissionBase(order);
-    const commissionAmount = commissionBase * 0.1;
+    const commissionAmount = calculateTokCommission(commissionBase);
     if (commissionAmount <= 0) return;
 
     summary.orderCommissionAmount += commissionAmount;
@@ -264,7 +264,7 @@ function buildPayableAccrualSummary(input: {
   input.reservationPayments.forEach((reservation) => {
     if (billedSourceLookup.reservationCommissionIds.has(reservation.id)) return;
 
-    const commissionAmount = getNetReservationCommissionBase(reservation) * 0.1;
+    const commissionAmount = calculateTokCommission(getNetReservationCommissionBase(reservation));
     if (commissionAmount <= 0) return;
 
     summary.reservationCommissionAmount += commissionAmount;
@@ -409,7 +409,7 @@ function buildRestaurantShareBySource(bases: Record<string, number>) {
   return COMMISSION_SOURCE_ORDER.reduce(
     (accumulator, source) => ({
       ...accumulator,
-      [source]: toAmount(bases[source]) * 0.9,
+      [source]: calculateRestaurantShare(bases[source]),
     }),
     {} as Record<typeof COMMISSION_SOURCE_ORDER[number], number>,
   );

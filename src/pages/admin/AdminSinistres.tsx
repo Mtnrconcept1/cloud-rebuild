@@ -246,6 +246,34 @@ function getIncidentTargetKey(incident: SupportIncidentRow | null) {
     : incident.support_incident_id || incident.id;
 }
 
+function formatIncidentReference(value: string | null | undefined) {
+  return value ? value.slice(0, 8).toUpperCase() : null;
+}
+
+function getIncidentDisplayNumber(incident: SupportIncidentRow | null) {
+  if (!incident) return null;
+  return incident.record_kind === "ai_ticket" && !incident.support_incident_id
+    ? incident.support_ticket_id || incident.id
+    : incident.support_incident_id || incident.id;
+}
+
+function getConversationDisplayNumber(incident: SupportIncidentRow | null, conversation?: AiConversationRow | null) {
+  if (conversation?.id) return conversation.id;
+  if (!incident) return null;
+
+  const metadata = asRecord(incident.metadata);
+  return incident.conversation_id || (typeof metadata.conversation_id === "string" ? metadata.conversation_id : null);
+}
+
+function getIncidentReferenceText(incident: SupportIncidentRow | null) {
+  const reference = formatIncidentReference(getIncidentDisplayNumber(incident));
+  if (!incident || !reference) return null;
+
+  return incident.record_kind === "ai_ticket" && !incident.support_incident_id
+    ? `Ticket IA #${reference}`
+    : `Sinistre #${reference}`;
+}
+
 function getIncidentStatusActions(incident: SupportIncidentRow) {
   return ADMIN_INCIDENT_STATUS_ACTIONS.filter((action) =>
     incident.record_kind === "ai_ticket" ? action.aiTicket : action.supportIncident
@@ -620,6 +648,9 @@ export default function AdminSinistres() {
     urgent: incidents.filter((incident) => incident.priority === "urgent" || incident.priority === "high").length,
   }), [incidents]);
 
+  const selectedConversationNumber = getConversationDisplayNumber(selectedIncident, detail?.conversation || null);
+  const selectedIncidentReference = getIncidentReferenceText(selectedIncident);
+
   const openIncident = (incident: SupportIncidentRow) => {
     suppressedAutoOpenTargetRef.current = null;
     setSelectedIncident(incident);
@@ -730,6 +761,8 @@ export default function AdminSinistres() {
               {filteredIncidents.map((incident) => {
                 const metadata = asRecord(incident.metadata);
                 const summary = getTicketSummary(metadata, incident.description);
+                const conversationNumber = getConversationDisplayNumber(incident);
+                const incidentReference = getIncidentReferenceText(incident);
 
                 return (
                   <div
@@ -752,8 +785,13 @@ export default function AdminSinistres() {
                           <Badge className={statusClass(incident.status)}>{formatStatus(incident.status)}</Badge>
                           <Badge variant="outline">{incident.category}</Badge>
                           <Badge variant="outline">
-                            {incident.record_kind === "ai_ticket" ? "Ticket IA" : "Sinistre"}
+                            {incidentReference}
                           </Badge>
+                          {conversationNumber ? (
+                            <Badge variant="outline">
+                              Conversation #{formatIncidentReference(conversationNumber)}
+                            </Badge>
+                          ) : null}
                         </div>
                         <p className="break-words text-base font-semibold">{incident.subject}</p>
                         <p className="line-clamp-2 break-words text-sm text-muted-foreground">{summary}</p>
@@ -800,6 +838,18 @@ export default function AdminSinistres() {
         <DialogContent className="max-h-[86vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedIncident?.subject || "Ticket chat"}</DialogTitle>
+            {selectedIncident ? (
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Badge variant="secondary" className="font-mono uppercase tracking-wider">
+                  {selectedIncidentReference}
+                </Badge>
+                {selectedConversationNumber ? (
+                  <Badge variant="outline" className="font-mono uppercase tracking-wider">
+                    Conversation #{formatIncidentReference(selectedConversationNumber)}
+                  </Badge>
+                ) : null}
+              </div>
+            ) : null}
             <DialogDescription>
               Résumé, messages support et transcription IA complète.
             </DialogDescription>
@@ -836,7 +886,9 @@ export default function AdminSinistres() {
                         Modifiez le statut sans classer le dossier definitivement.
                       </p>
                     </div>
-                    <Badge variant="outline">{selectedIncident.record_kind === "ai_ticket" ? "Ticket IA" : "Sinistre"}</Badge>
+                    <Badge variant="outline" className="font-mono uppercase tracking-wider">
+                      {selectedIncidentReference}
+                    </Badge>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {getIncidentStatusActions(selectedIncident).map((action) => (

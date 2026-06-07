@@ -23,6 +23,33 @@ export type WebPushStatus = {
 export const FIREBASE_VAPID_KEY_ERROR =
   "La cle VAPID web Firebase est invalide. Dans Firebase Console > Cloud Messaging > Web Push certificates, copiez la cle publique VAPID dans VITE_FIREBASE_VAPID_KEY.";
 
+const WEB_PUSH_TOKEN_STORAGE_KEY = "tok-web-push-token";
+
+function rememberWebPushToken(token: string) {
+  try {
+    localStorage.setItem(WEB_PUSH_TOKEN_STORAGE_KEY, token);
+  } catch {
+    // Token cleanup is best effort when storage is blocked.
+  }
+}
+
+function readWebPushToken() {
+  try {
+    const token = localStorage.getItem(WEB_PUSH_TOKEN_STORAGE_KEY);
+    return token && token.trim() ? token.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearRememberedWebPushToken() {
+  try {
+    localStorage.removeItem(WEB_PUSH_TOKEN_STORAGE_KEY);
+  } catch {
+    // Token cleanup is best effort when storage is blocked.
+  }
+}
+
 function getFirebaseConfig() {
   const projectId = FIREBASE_PROJECT_ID;
   const config = {
@@ -142,6 +169,8 @@ export async function enableWebPush(userId: string) {
       return { ok: false, reason: error.message };
     }
 
+    rememberWebPushToken(token);
+
     return { ok: true };
   } catch (e: any) {
     return { ok: false, reason: getWebPushErrorMessage(e) };
@@ -154,6 +183,31 @@ export async function disableWebPush(userId: string) {
     .update({ enabled: false } as any)
     .eq("user_id", userId)
     .eq("platform", "web");
+
+  if (error) {
+    return { ok: false, reason: error.message };
+  }
+
+  clearRememberedWebPushToken();
+
+  return { ok: true };
+}
+
+export async function disableCurrentWebPush(userId: string) {
+  const token = readWebPushToken();
+
+  if (!token) {
+    return disableWebPush(userId);
+  }
+
+  const { error } = await getSupabase()
+    .from("device_tokens")
+    .update({ enabled: false } as any)
+    .eq("user_id", userId)
+    .eq("platform", "web")
+    .eq("token", token);
+
+  clearRememberedWebPushToken();
 
   if (error) {
     return { ok: false, reason: error.message };

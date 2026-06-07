@@ -256,8 +256,8 @@ export default function SocialComposer({
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-3">
+            <div className="flex w-full min-w-0 flex-wrap gap-2">
               {SOCIAL_MARKETING_TEMPLATES.map((template) => (
                 <Button
                   key={template.id}
@@ -279,8 +279,8 @@ export default function SocialComposer({
               ))}
             </div>
 
-            <div className="flex w-full min-w-0 flex-wrap items-center gap-2 2xl:w-auto 2xl:shrink-0 2xl:justify-end">
-              <div className="flex min-w-0 flex-1 basis-[13rem] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
+              <div className="flex min-w-0 flex-1 basis-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:basis-[13rem]">
                 <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
                 <div className="min-w-0 flex-1">
                   <Label htmlFor="social-post-scheduled-at" className="sr-only">Programmer la publication</Label>

@@ -9,17 +9,29 @@ export type InvoiceBuckets<T extends MoneyLike = MoneyLike> = {
   history: T[];
 };
 
-const COMMISSION_RATE = 0.1;
-const RESTAURANT_SHARE_RATE = 0.9;
-const DEVELOPER_RESERVED_SHARE_RATE = 0.06;
+export const TOK_COMMISSION_RATE = 0.1;
+export const RESTAURANT_SHARE_RATE = 1 - TOK_COMMISSION_RATE;
+export const DEVELOPER_RESERVED_SHARE_RATE = 0.06;
 
 function toAmount(value: number | string | null | undefined) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function roundCurrency(value: number) {
+export function roundCurrency(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+export function calculateTokCommission(commissionBase: number | string | null | undefined) {
+  return roundCurrency(toAmount(commissionBase) * TOK_COMMISSION_RATE);
+}
+
+export function calculateRestaurantShare(commissionBase: number | string | null | undefined) {
+  return roundCurrency(toAmount(commissionBase) * RESTAURANT_SHARE_RATE);
+}
+
+export function calculateDeveloperReservedShare(totalRevenue: number | string | null | undefined) {
+  return roundCurrency(toAmount(totalRevenue) * DEVELOPER_RESERVED_SHARE_RATE);
 }
 
 function sumInvoices(invoices: readonly MoneyLike[]) {
@@ -28,7 +40,7 @@ function sumInvoices(invoices: readonly MoneyLike[]) {
 
 function mapByRate(bases: CommissionBaseTotals, rate: number) {
   return Object.fromEntries(
-    Object.entries(bases).map(([source, amount]) => [source, toAmount(amount) * rate]),
+    Object.entries(bases).map(([source, amount]) => [source, roundCurrency(toAmount(amount) * rate)]),
   ) as Record<CommissionSource, number>;
 }
 
@@ -41,9 +53,9 @@ export function buildTokAccountingSummary(input: {
   reservationFeeAccruedAmount?: number;
 }) {
   const payableInvoices = input.payableInvoices ?? input.reservationFeeInvoices;
-  const bySource = mapByRate(input.commissionBases, COMMISSION_RATE);
+  const bySource = mapByRate(input.commissionBases, TOK_COMMISSION_RATE);
   const restaurantShareBySource = mapByRate(input.commissionBases, RESTAURANT_SHARE_RATE);
-  const totalCommissions = Object.values(bySource).reduce((sum, amount) => sum + amount, 0);
+  const totalCommissions = roundCurrency(Object.values(bySource).reduce((sum, amount) => sum + amount, 0));
   const payableOutstanding = sumInvoices(payableInvoices.actionable);
   const payableCollected = sumInvoices(payableInvoices.history);
   const payablePendingInvoice = toAmount(input.payableAccruedAmount ?? input.reservationFeeAccruedAmount);
@@ -87,7 +99,7 @@ export function buildTokRevenueSummary(input: {
 
   return {
     totalRevenue,
-    developerReservedShare: roundCurrency(totalRevenue * DEVELOPER_RESERVED_SHARE_RATE),
+    developerReservedShare: calculateDeveloperReservedShare(totalRevenue),
   };
 }
 

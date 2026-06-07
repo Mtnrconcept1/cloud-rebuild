@@ -18,6 +18,10 @@ describe("support chat backend history", () => {
     expect(supportChat).toContain("loadConversationMessages");
     expect(supportChat).toContain("activeConversationId");
     expect(supportChat).toContain("conversationId: activeConversationId");
+    expect(supportChat).toContain("formatChatReference");
+    expect(supportChat).toContain("activeChatReference");
+    expect(supportChat).toContain("Conversation #");
+    expect(supportChat).toContain("Ticket #");
 
     expect(aiClient).toContain("conversationId?: string | null");
     expect(aiClient).toContain("getClientSupportConversations");

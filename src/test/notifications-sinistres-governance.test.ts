@@ -119,6 +119,12 @@ describe("notifications and chat sinistres governance", () => {
     expect(page).toContain("ai_messages");
     expect(page).toContain("ticket_summary");
     expect(page).toContain("Transcription IA");
+    expect(page).toContain("formatIncidentReference");
+    expect(page).toContain("getIncidentDisplayNumber");
+    expect(page).toContain("getConversationDisplayNumber");
+    expect(page).toContain("Conversation #");
+    expect(page).toContain("Sinistre #");
+    expect(page).toContain("Ticket IA #");
   });
 
   it("keeps incident detail closing single-click and exposes triage status actions before closure", () => {

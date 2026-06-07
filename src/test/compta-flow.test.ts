@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DEVELOPER_RESERVED_SHARE_RATE,
+  calculateDeveloperReservedShare,
   buildTokRevenueSummary,
   buildRestaurantAccountingSummary,
   buildTokAccountingSummary,
@@ -53,6 +55,8 @@ describe("buildTokRevenueSummary", () => {
 
     expect(summary.totalRevenue).toBe(240);
     expect(summary.developerReservedShare).toBe(14.4);
+    expect(DEVELOPER_RESERVED_SHARE_RATE).toBe(0.06);
+    expect(calculateDeveloperReservedShare(1000)).toBe(60);
   });
 });
 
@@ -87,5 +91,39 @@ describe("buildRestaurantAccountingSummary", () => {
     expect(summary.outflow.payablePendingInvoice).toBe(10);
     expect(summary.outflow.alreadyPaidToTok).toBe(5);
     expect(summary.outflow.totalOutstanding).toBe(25);
+  });
+
+  it("uses the exact opposite open balance as the admin view for the same restaurant", () => {
+    const input = {
+      commissionBases: {
+        orders: 133.37,
+        zero_attente: 88.88,
+        chefs_table: 44.44,
+        flash_sales: 22.22,
+        anti_gaspi: 11.11,
+      },
+      payableInvoices: {
+        actionable: [{ amount_ttc: 19.5 }],
+        history: [{ amount_ttc: 7.25 }],
+      },
+      reservationFeeInvoices: {
+        actionable: [],
+        history: [],
+      },
+      payoutInvoices: {
+        actionable: [{ amount_ttc: 111.15 }],
+        history: [{ amount_ttc: 55.55 }],
+      },
+      payableAccruedAmount: 12.35,
+    };
+
+    const adminSummary = buildTokAccountingSummary(input);
+    const restaurantSummary = buildRestaurantAccountingSummary(input);
+
+    expect(adminSummary.outflow.bySource).toEqual(restaurantSummary.inflow.bySource);
+    expect(adminSummary.inflow.payableOutstanding).toBe(restaurantSummary.outflow.payableToTok);
+    expect(adminSummary.inflow.payablePendingInvoice).toBe(restaurantSummary.outflow.payablePendingInvoice);
+    expect(adminSummary.inflow.payableCollected).toBe(restaurantSummary.outflow.alreadyPaidToTok);
+    expect(adminSummary.netOutstanding).toBe(-restaurantSummary.netOutstanding);
   });
 });

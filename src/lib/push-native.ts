@@ -7,6 +7,7 @@ import { getPlatform } from "@/lib/platform";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 
 const PUSH_REGISTRATION_TIMEOUT_MS = 15000;
+const NATIVE_PUSH_TOKEN_STORAGE_KEY = "tok-native-push-token";
 
 let nativePushListenerHandles: Array<Promise<PluginListenerHandle>> = [];
 
@@ -25,6 +26,31 @@ function getErrorMessage(error: unknown, fallback: string) {
   }
 
   return error instanceof Error ? error.message : fallback;
+}
+
+function rememberNativePushToken(token: string) {
+  try {
+    localStorage.setItem(NATIVE_PUSH_TOKEN_STORAGE_KEY, token);
+  } catch {
+    // Token cleanup is best effort when storage is blocked.
+  }
+}
+
+function readNativePushToken() {
+  try {
+    const storedToken = localStorage.getItem(NATIVE_PUSH_TOKEN_STORAGE_KEY);
+    return storedToken && storedToken.trim() ? storedToken.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearRememberedNativePushToken() {
+  try {
+    localStorage.removeItem(NATIVE_PUSH_TOKEN_STORAGE_KEY);
+  } catch {
+    // Token cleanup is best effort when storage is blocked.
+  }
 }
 
 function cleanupListenerHandles(handles: Array<Promise<PluginListenerHandle>>) {
@@ -106,6 +132,7 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
         if (error) {
           finish({ ok: false, reason: error.message });
         } else {
+          rememberNativePushToken(token.value);
           finish({ ok: true });
         }
       });
@@ -128,16 +155,25 @@ export async function registerNativePush(userId: string): Promise<{ ok: boolean;
 }
 
 export async function unregisterNativePush(userId: string): Promise<{ ok: boolean; reason?: string }> {
+  const storedToken = readNativePushToken();
+
   await PushNotifications.unregister().catch((error) => {
     console.warn("Unable to unregister native push token", error);
   });
 
   const platform = getPlatform();
-  const { error } = await getSupabase()
+  let query = getSupabase()
     .from("device_tokens")
     .update({ enabled: false } satisfies Partial<DeviceTokenMutation>)
     .eq("user_id", userId)
     .eq("platform", platform);
+
+  if (storedToken) {
+    query = query.eq("token", storedToken);
+  }
+
+  const { error } = await query;
+  clearRememberedNativePushToken();
 
   if (error) return { ok: false, reason: error.message };
   return { ok: true };

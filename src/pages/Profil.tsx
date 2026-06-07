@@ -84,7 +84,7 @@ type LoyaltyTransaction = {
 };
 
 export default function Profil() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -517,7 +517,7 @@ export default function Profil() {
                           try {
                             const { error } = await supabase.functions.invoke("delete-account");
                             if (error) throw error;
-                            await supabase.auth.signOut();
+                            await signOut();
                             toast({ title: "Compte supprimé", description: "Votre compte a été supprimé avec succès." });
                             navigate("/");
                           } catch (err: any) {

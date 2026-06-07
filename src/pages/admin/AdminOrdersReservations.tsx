@@ -14,6 +14,7 @@ import {
 
 import AdminOperationDetailSheet from "@/components/admin/AdminOperationDetailSheet";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import SortControls from "@/components/list/SortControls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { summarizeDispatchHealth, type DispatchHealthRow } from "@/lib/dispatchHealth";
 import { summarizeReservationInventoryHealth, type ReservationInventoryRow } from "@/lib/reservationInventoryHealth";
+import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import { cn } from "@/lib/utils";
 import {
   fetchAdminRefundQueue,
@@ -62,6 +64,7 @@ const supabase = getSupabase();
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type AdminDashboardTab = AdminHistoryTab | "refunds";
+type AdminHistorySortKey = "date" | "reference" | "customer" | "restaurant" | "amount" | "status";
 
 const ADMIN_HISTORY_PAGE_SIZE = 250;
 const RESERVATION_INVENTORY_HEALTH_LIMIT = 500;
@@ -250,6 +253,35 @@ function getOrderReference(order: Pick<AdminOrderHistoryItem, "id" | "orderNumbe
 function getRefundReference(refund: RefundQueueItem) {
   return refund.reference || refund.target_id.slice(0, 8);
 }
+
+const ADMIN_ORDER_SORT_COLUMNS: SortColumn<AdminOrderHistoryItem, AdminHistorySortKey>[] = [
+  { key: "date", label: "Date", type: "date", getValue: (order) => order.createdAt },
+  { key: "reference", label: "Numero", type: "text", getValue: getOrderReference },
+  { key: "customer", label: "Nom client", type: "text", getValue: (order) => order.customer.displayName },
+  { key: "restaurant", label: "Restaurant", type: "text", getValue: (order) => order.restaurant.name },
+  { key: "amount", label: "Montant", type: "number", getValue: (order) => order.totalAmount },
+  { key: "status", label: "Statut", type: "text", getValue: (order) => order.status || order.paymentStatus || "" },
+];
+
+const ADMIN_RESERVATION_SORT_COLUMNS: SortColumn<AdminReservationHistoryItem, AdminHistorySortKey>[] = [
+  { key: "date", label: "Date", type: "date", getValue: (reservation) => `${reservation.reservationDate}T${reservation.displayTime || "00:00"}` },
+  { key: "reference", label: "Numero", type: "text", getValue: (reservation) => reservation.reference || reservation.id },
+  { key: "customer", label: "Nom client", type: "text", getValue: (reservation) => reservation.customer.displayName },
+  { key: "restaurant", label: "Restaurant", type: "text", getValue: (reservation) => reservation.restaurant.name },
+  { key: "amount", label: "Montant", type: "number", getValue: (reservation) => reservation.totalAmount },
+  { key: "status", label: "Statut", type: "text", getValue: (reservation) => reservation.status },
+];
+
+const ADMIN_REFUND_SORT_COLUMNS: SortColumn<RefundQueueItem, AdminHistorySortKey>[] = [
+  { key: "date", label: "Date", type: "date", getValue: (refund) => String(refund.cancelled_at || refund.created_at || "") },
+  { key: "reference", label: "Numero", type: "text", getValue: getRefundReference },
+  { key: "customer", label: "Nom client", type: "text", getValue: (refund) => refund.customer_name || refund.customer_phone || "" },
+  { key: "restaurant", label: "Restaurant", type: "text", getValue: (refund) => refund.restaurant_name || "" },
+  { key: "amount", label: "Montant", type: "number", getValue: (refund) => toAmount(refund.remaining_amount_chf) },
+  { key: "status", label: "Statut", type: "text", getValue: (refund) => refund.refund_status || refund.payment_status || "" },
+];
+
+const ADMIN_HISTORY_SORT_OPTIONS = ADMIN_ORDER_SORT_COLUMNS.map(({ key, label }) => ({ key, label }));
 
 function getRefundMiamzPriorityLabel(refund: RefundQueueItem) {
   const score = Number(refund.miamz_priority_score || 0);
@@ -552,6 +584,8 @@ export default function AdminOrdersReservations() {
   const [restaurantFilter, setRestaurantFilter] = useState("all");
   const [startDate, setStartDate] = useState(defaultFilters.startDate);
   const [endDate, setEndDate] = useState(defaultFilters.endDate);
+  const [sortKey, setSortKey] = useState<AdminHistorySortKey>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [selectedOperation, setSelectedOperation] = useState<
     | { kind: "order"; item: AdminOrderHistoryItem }
     | { kind: "reservation"; item: AdminReservationHistoryItem }
@@ -642,17 +676,25 @@ export default function AdminOrdersReservations() {
   };
 
   const filteredOrders = useMemo(() => (
-    orders.filter((order) => orderMatchesSearchTerm(order, deferredSearch))
-  ), [orders, deferredSearch]);
+    sortByColumn(
+      orders.filter((order) => orderMatchesSearchTerm(order, deferredSearch)),
+      ADMIN_ORDER_SORT_COLUMNS,
+      { key: sortKey, direction: sortDirection },
+    )
+  ), [orders, deferredSearch, sortDirection, sortKey]);
 
   const filteredReservations = useMemo(() => (
-    reservations.filter((reservation) => reservationMatchesSearchTerm(reservation, deferredSearch))
-  ), [reservations, deferredSearch]);
+    sortByColumn(
+      reservations.filter((reservation) => reservationMatchesSearchTerm(reservation, deferredSearch)),
+      ADMIN_RESERVATION_SORT_COLUMNS,
+      { key: sortKey, direction: sortDirection },
+    )
+  ), [reservations, deferredSearch, sortDirection, sortKey]);
 
   const filteredRefunds = useMemo(() => {
     const normalizedSearch = deferredSearch.trim().toLowerCase();
 
-    return refundQueue.filter((refund) => {
+    const matchedRefunds = refundQueue.filter((refund) => {
       if (restaurantFilter !== "all" && refund.restaurant_id !== restaurantFilter) {
         return false;
       }
@@ -684,16 +726,13 @@ export default function AdminOrdersReservations() {
         .join(" ");
 
       return haystack.includes(normalizedSearch);
-    }).sort((left, right) => {
-      const leftPriority = Number(left.miamz_priority_score || 0);
-      const rightPriority = Number(right.miamz_priority_score || 0);
-      if (rightPriority !== leftPriority) return rightPriority - leftPriority;
-
-      const leftDate = String(left.cancelled_at || left.created_at || "");
-      const rightDate = String(right.cancelled_at || right.created_at || "");
-      return rightDate.localeCompare(leftDate);
     });
-  }, [deferredSearch, endDate, refundQueue, restaurantFilter, startDate]);
+
+    return sortByColumn(matchedRefunds, ADMIN_REFUND_SORT_COLUMNS, {
+      key: sortKey,
+      direction: sortDirection,
+    });
+  }, [deferredSearch, endDate, refundQueue, restaurantFilter, sortDirection, sortKey, startDate]);
 
   const currentMetrics = useMemo(() => {
     if (activeTab === "orders") {
@@ -850,11 +889,22 @@ export default function AdminOrdersReservations() {
                 setRestaurantFilter("all");
                 setStartDate(defaultFilters.startDate);
                 setEndDate(defaultFilters.endDate);
+                setSortKey("date");
+                setSortDirection("desc");
               }}
             >
               <RotateCcw className="h-4 w-4" />
               Réinitialiser
             </Button>
+
+            <SortControls
+              columns={ADMIN_HISTORY_SORT_OPTIONS}
+              sortKey={sortKey}
+              direction={sortDirection}
+              onSortKeyChange={setSortKey}
+              onDirectionChange={setSortDirection}
+              className="lg:col-span-5"
+            />
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
+import SortControls from "@/components/list/SortControls";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +30,7 @@ import {
 import { getReservationStatusLockMessage } from "@/lib/statusLocks";
 import { AlertTriangle, Ban, CalendarDays, Check, CreditCard, Dot, MoonStar, Search, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
+import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import {
   DASHBOARD_TIME_RANGE_OPTIONS,
   formatDashboardDateHeading,
@@ -66,7 +68,7 @@ type ReservationMetadata = {
   preorder_items?: Array<{ name: string; quantity: number }>;
 };
 type ServiceFilter = "all" | "lunch" | "dinner";
-type SortBy = "time" | "party_size" | "status";
+type ReservationSortKey = "date" | "time" | "order_reference" | "customer" | "party_size" | "status";
 
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -162,6 +164,15 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
   };
 };
 
+const DASHBOARD_RESERVATION_SORT_COLUMNS: SortColumn<ReservationWithProfile, ReservationSortKey>[] = [
+  { key: "date", label: "Date", type: "date", getValue: (reservation) => `${reservation.date}T${getSafeTime(reservation.time)}` },
+  { key: "time", label: "Heure", type: "number", getValue: (reservation) => Number(getSafeTime(reservation.time).replace(":", "")) },
+  { key: "order_reference", label: "Numero", type: "text", getValue: (reservation) => reservation.order_reference || reservation.id },
+  { key: "customer", label: "Nom client", type: "text", getValue: (reservation) => reservation.customer?.full_name || reservation.customer?.phone || "" },
+  { key: "party_size", label: "Couverts", type: "number", getValue: (reservation) => reservation.party_size },
+  { key: "status", label: "Statut", type: "text", getValue: (reservation) => reservation.status },
+];
+
 export default function DashboardReservations() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
@@ -171,7 +182,8 @@ export default function DashboardReservations() {
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>("all");
   const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState<SortBy>("time");
+  const [sortKey, setSortKey] = useState<ReservationSortKey>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [isCompactMode, setIsCompactMode] = useState(false);
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
@@ -370,15 +382,9 @@ export default function DashboardReservations() {
   }, [referenceDate, reservations, searchTerm, serviceFilter, statusFilter, timeRange]);
 
   const groupedReservations = useMemo(() => {
-    const sorted = [...filteredReservations].sort((a, b) => {
-      const byDate = a.date.localeCompare(b.date, "fr");
-      if (byDate !== 0) return byDate;
-      if (sortBy === "party_size" && b.party_size !== a.party_size) return b.party_size - a.party_size;
-      if (sortBy === "status") {
-        const byStatus = a.status.localeCompare(b.status, "fr");
-        if (byStatus !== 0) return byStatus;
-      }
-      return getSafeTime(a.time).localeCompare(getSafeTime(b.time), "fr");
+    const sorted = sortByColumn(filteredReservations, DASHBOARD_RESERVATION_SORT_COLUMNS, {
+      key: sortKey,
+      direction: sortDirection,
     });
 
     const grouped = new Map<string, Map<string, ReservationWithProfile[]>>();
@@ -406,7 +412,7 @@ export default function DashboardReservations() {
         totalGuests: groups.reduce((sum, group) => sum + group.totalGuests, 0),
       };
     });
-  }, [filteredReservations, sortBy]);
+  }, [filteredReservations, sortDirection, sortKey]);
 
   const serviceBreakdown = useMemo(() => {
     return filteredReservations.reduce(
@@ -471,7 +477,7 @@ export default function DashboardReservations() {
 
         {selectedRestaurant && !reservationsError ? (
           <>
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-6">
+            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-7">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
                 <div className="relative">
@@ -532,19 +538,14 @@ export default function DashboardReservations() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Tri</p>
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Trier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="time">Heure d'arrivée</SelectItem>
-                    <SelectItem value="party_size">Taille du groupe</SelectItem>
-                    <SelectItem value="status">Statut</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <SortControls
+                columns={DASHBOARD_RESERVATION_SORT_COLUMNS}
+                sortKey={sortKey}
+                direction={sortDirection}
+                onSortKeyChange={setSortKey}
+                onDirectionChange={setSortDirection}
+                className="xl:col-span-2"
+              />
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">

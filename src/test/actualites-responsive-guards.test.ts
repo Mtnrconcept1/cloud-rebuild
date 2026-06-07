@@ -33,9 +33,13 @@ describe("Actualites responsive guards", () => {
     expect(dashboard).toContain("flex flex-wrap items-center gap-x-3 gap-y-2");
 
     expect(composer).toContain("flex flex-col gap-4 sm:flex-row");
-    expect(composer).toContain("2xl:flex-row");
+    expect(composer).toContain("flex flex-col gap-3");
     expect(composer).toContain("flex w-full min-w-0 flex-wrap items-center gap-2");
-    expect(composer).toContain("basis-[13rem]");
+    expect(composer).toContain("basis-full");
+    expect(composer).toContain("sm:basis-[13rem]");
+    expect(composer).not.toContain("2xl:flex-row");
+    expect(composer).not.toContain("2xl:w-auto");
+    expect(composer).not.toContain("2xl:shrink-0");
     expect(composer).not.toContain("flex shrink-0 flex-wrap items-center gap-2");
     expect(composer).not.toContain("flex min-w-[230px]");
   });

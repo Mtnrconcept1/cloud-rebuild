@@ -6,271 +6,187 @@ export default function CGU() {
     <div className="container py-12 md:py-20 max-w-4xl space-y-12">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Conditions Générales d'Utilisation</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 3 mars 2026</p>
+        <p className="text-muted-foreground">Dernière mise à jour : 7 juin 2026</p>
       </div>
-      <div className="prose prose-foodhub max-w-none space-y-8">
 
-        {/* 1. Objet */}
+      <div className="prose prose-foodhub max-w-none space-y-8">
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">1. Objet</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Les présentes Conditions Générales d'Utilisation (ci-après « CGU ») définissent les modalités d'accès et d'utilisation de la plateforme Tok (ci-après « la Plateforme »), accessible via le site web et l'application mobile, éditée par Tok SA, société de droit suisse, dont le siège est situé en Suisse.
+            Les présentes Conditions Générales d'Utilisation (« CGU ») définissent les modalités d'accès et d'utilisation de la plateforme TOK, accessible depuis le site, l'application web et les applications mobiles associées.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            La Plateforme permet la mise en relation entre des utilisateurs (ci-après « les Utilisateurs ») et des restaurants partenaires (ci-après « les Restaurants »), en vue de la consultation de menus, la réservation de tables, la commande de repas en livraison ou à emporter, ainsi que l'accès à des offres exclusives.
+            TOK met en relation des clients, des restaurants partenaires, des coursiers et l'équipe d'administration de la plateforme pour faciliter la découverte de restaurants, les commandes, les réservations, les offres locales, la fidélité et les outils opérationnels proposés aux restaurateurs.
           </p>
         </section>
 
-        {/* 2. Acceptation */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">2. Acceptation des CGU</h2>
           <p className="text-foreground/80 leading-relaxed">
-            L'utilisation de la Plateforme implique l'acceptation pleine et entière des présentes CGU. L'Utilisateur reconnaît en avoir pris connaissance et s'engage à les respecter.
+            L'utilisation de TOK implique l'acceptation pleine et entière des présentes CGU. Si vous n'acceptez pas ces conditions, vous devez cesser d'utiliser la plateforme.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            En créant un compte ou en passant une commande, l'Utilisateur déclare avoir lu, compris et accepté sans réserve les présentes CGU. Si l'Utilisateur n'accepté pas ces conditions, il est invité à ne pas utiliser la Plateforme.
+            Des conditions complémentaires peuvent s'appliquer à certains services, notamment Tok One, les packs restaurateurs, les campagnes sponsorisées, les réservations Zéro Attente, La Table du Chef, les dons solidaires et les services de paiement.
           </p>
         </section>
 
-        {/* 3. Services proposés */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">3. Services proposés</h2>
-          <p className="text-foreground/80 leading-relaxed">La Plateforme offre les services suivants :</p>
+          <p className="text-foreground/80 leading-relaxed">TOK peut proposer, selon les fonctionnalités activées et la zone de disponibilité :</p>
           <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li>Consultation des menus, cartes et informations des Restaurants partenaires.</li>
-            <li>Réservation de tables en ligne avec confirmation instantanée.</li>
-            <li>Commande de repas en livraison à domicile ou à emporter (click & collect).</li>
-            <li>Accès à des offres exclusives, promotions et programmés de fidélité.</li>
-            <li>Suivi en temps réel des commandes et des livraisons.</li>
-            <li>Accès aux avis et évaluations d'autres Utilisateurs.</li>
-            <li>Abonnement Tok One offrant des avantages premium (livraison gratuite, réductions exclusives, accès prioritaire aux événements).</li>
+            <li>La recherche de restaurants, la consultation de fiches, menus, médias, avis et offres.</li>
+            <li>La commande en livraison, à emporter, multi-restaurant, groupée ou planifiée.</li>
+            <li>La réservation classique, Zéro Attente et les expériences La Table du Chef, y compris des tables ou accès VIP liés à certains niveaux Miamz ou avantages Tok One.</li>
+            <li>Les offres Anti-gaspi, ventes flash, promotions, codes d'offre et dons solidaires.</li>
+            <li>Le programme Miamz, les cadeaux de points, les niveaux de fidélité et les avantages associés.</li>
+            <li>Le fil Actualités avec posts, commentaires, likes, partages, sauvegardes, signalements, boutons « Plus comme ça » et « Moins comme ça ».</li>
+            <li>Les contenus sponsorisés, campagnes publicitaires locales, rapports de performance et métriques marketing.</li>
+            <li>Les interfaces restaurateur, coursier et administrateur, incluant commandes, réservations, menus, campagnes, factures, support, notifications, sinistres et outils de pilotage.</li>
           </ul>
           <p className="text-foreground/80 leading-relaxed">
-            Tok agit en qualité d'intermédiaire entre l'Utilisateur et le Restaurant. Le contrat de vente des repas est conclu directement entre l'Utilisateur et le Restaurant concerné.
+            TOK agit principalement comme intermédiaire technique et commercial entre le client et le restaurant. Sauf mention contraire, la préparation, la qualité, la conformité et la disponibilité des plats relèvent du restaurant concerné.
           </p>
         </section>
 
-        {/* 4. Inscription et Compte */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">4. Inscription et compte utilisateur</h2>
+          <h2 className="text-2xl font-semibold">4. Comptes, rôles et sécurité</h2>
           <p className="text-foreground/80 leading-relaxed">
-            L'accès à certains services nécessite la création d'un compte personnel. L'Utilisateur doit être âgé d'au moins 16 ans et fournir des informations exactes, complètes et à jour lors de son inscription.
+            Certains services nécessitent un compte. Vous devez fournir des informations exactes, maintenir vos coordonnées à jour et protéger vos identifiants. Un même utilisateur peut disposer de plusieurs rôles uniquement lorsque TOK l'autorise explicitement.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            L'Utilisateur est responsable de la confidentialité de ses identifiants de connexion et de toutes les activités effectuées depuis son compte. En cas d'utilisation non autorisée de son compte, l'Utilisateur s'engage à en informer Tok immédiatement.
+            Les accès restaurateur, coursier et administrateur sont réservés aux personnes autorisées. Toute tentative d'accès à des données, notifications, paniers, commandes, réservations ou conversations qui ne vous sont pas destinés est interdite.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Tok se réserve le droit de suspendre ou de supprimer tout compte en cas de violation des présentes CGU, de fraude, ou d'utilisation abusive de la Plateforme.
+            À la déconnexion, TOK peut effacer les données locales liées à la session, comme le panier, certains brouillons de checkout et les jetons de notification push, afin d'éviter qu'elles persistent pour un autre utilisateur du même appareil.
           </p>
         </section>
 
-        {/* 5. Commandes et Paiement */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">5. Commandes et paiement</h2>
-          <h3 className="text-xl font-medium mt-4">5.1 Passation de commande</h3>
+          <h2 className="text-2xl font-semibold">5. Commandes, réservations et paiements</h2>
           <p className="text-foreground/80 leading-relaxed">
-            L'Utilisateur sélectionne les articles de son choix parmi les menus proposés par les Restaurants partenaires. La commande est validée une fois le paiement effectué. Un récapitulatif de commande est envoyé par email et/ou notification.
-          </p>
-          <h3 className="text-xl font-medium mt-4">5.2 Prix</h3>
-          <p className="text-foreground/80 leading-relaxed">
-            Les prix affichés sur la Plateforme sont indiqués en francs suisses (CHF), toutes taxes comprises. Tok se réserve le droit de modifier les prix à tout moment. Les prix applicables sont ceux en vigueur au moment de la validation de la commande.
+            Les prix sont affichés en francs suisses (CHF), toutes taxes applicables comprises lorsque cela est indiqué. Les frais de livraison, de service, de garantie, de réservation ou de campagne sont présentés avant validation lorsque le service les prévoit.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Des frais de livraison peuvent s'appliquer en fonction de la distance et du Restaurant, et sont clairement indiqués avant la validation de la commande.
-          </p>
-          <h3 className="text-xl font-medium mt-4">5.3 Moyens de paiement</h3>
-          <p className="text-foreground/80 leading-relaxed">
-            Le paiement s'effectue en ligne via les moyens de paiement acceptés : carte bancaire (Visa, Mastercard), TWINT, Apple Pay, Google Pay et solde Tok. Le paiement est sécurisé et traité par nos prestataires de paiement certifiés.
-          </p>
-          <h3 className="text-xl font-medium mt-4">5.4 Annulation et remboursement</h3>
-          <p className="text-foreground/80 leading-relaxed">
-            L'Utilisateur peut annuler sa commande tant que le Restaurant n'a pas commencé la préparation. Passé ce délai, aucune annulation ne sera possible. En cas d'annulation valide, le remboursement est effectué sous 5 à 10 jours ouvrés sur le moyen de paiement utilisé.
+            Une commande, réservation payante, campagne ou souscription est validée lorsque le paiement est confirmé par le prestataire de paiement. Les moyens de paiement disponibles peuvent inclure carte, portefeuilles compatibles, TWINT, PostFinance ou tout moyen ajouté ultérieurement.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            En cas de problème avéré (article manquant, erreur de commande, qualité non conforme), l'Utilisateur peut contacter le service client pour obtenir un remboursement partiel ou total, ou un crédit Tok.
+            L'annulation d'une commande dépend de son état de préparation. Les réservations peuvent être soumises à des délais d'annulation et à des règles spécifiques, notamment pour Zéro Attente, La Table du Chef et les expériences limitées. Les remboursements acceptés sont effectués sur le moyen de paiement d'origine ou sous forme de crédit TOK lorsque cela est proposé.
           </p>
         </section>
 
-        {/* 6. Livraison */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">6. Livraison</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les livraisons sont effectuées par des livreurs indépendants partenaires de Tok. Les délais de livraison estimés sont indicatifs et peuvent varier en fonction des conditions de circulation, de la météo et du volume de commandes.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            L'Utilisateur s'engage à fournir une adresse de livraison exacte et complète, ainsi qu'à être disponible pour réceptionner sa commande. En cas d'absence ou d'adresse incorrecte, Tok ne pourra être tenu responsable de la non-livraison.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les zones de livraison sont limitées et dépendent de la localisation du Restaurant partenaire. La disponibilité de la livraison est indiquée lors de là saisie de l'adresse de livraison.
-          </p>
-        </section>
-
-        {/* 7. Réservation de tables */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">7. Réservation de tables</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Le service de réservation permet à l'Utilisateur de réserver une table dans un Restaurant partenaire. La réservation est confirmée par email et/ou notification dans l'application.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            En cas d'impossibilité de se rendre au restaurant, l'Utilisateur est prié d'annuler sa réservation au moins 2 heures à l'avance. Les absences répétées sans annulation (no-show) pourront entraîner des restrictions d'accès au service de réservation.
-          </p>
-        </section>
-
-        {/* 8. Programme de fidélité et Tok One */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">8. Programme de fidélité et Tok One</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Tok propose un programme de fidélité permettant de cumuler des points à chaque commande. Ces points peuvent être convertis en réductions ou avantages selon les modalités en vigueur.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            L'abonnement Tok One est un service premium payant offrant des avantages exclusifs, notamment la livraison gratuite sur les restaurants éligibles, des réductions supplémentaires et un accès prioritaire aux événements gastronomiques (La Table du Chefs). Les conditions spécifiques de l'abonnement sont détaillées lors de la souscription.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            L'abonnement Tok One est renouvelé automatiquement à chaque période. L'Utilisateur peut résilier son abonnement à tout moment depuis les paramètrès de son compte, la résiliation prenant effet à la fin de la période en cours.
-          </p>
-          <h3 className="text-xl font-medium mt-4">8.1 Miamz, cadeaux et dons solidaires</h3>
+          <h2 className="text-2xl font-semibold">6. Miamz, Tok One et avantages VIP</h2>
           <p className="text-foreground/80 leading-relaxed">
             Les Miamz ne constituent pas une monnaie, un instrument de paiement, un dépôt bancaire ou un actif financier. Ils sont sans valeur en espèces, non convertibles en espèces et utilisables uniquement dans les parcours TOK éligibles, selon les conditions affichées dans l'application.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Chaque avantage, cadeau ou contribution peut être soumis à une durée de validité, à des plafonds, à des conditions d'éligibilité ou à des restrictions communiquées avant utilisation. Les dons solidaires sont traités comme des contributions d'impact local, suivies séparément des paiements dus aux Restaurants.
+            Les niveaux Bronze, Silver, Gold, Platinum ou tout autre niveau futur peuvent donner accès à des bonus, priorités de réservation, offres partenaires, avantages de livraison, support prioritaire, tables VIP ou expériences premium. Ces avantages peuvent dépendre du restaurant, de la disponibilité, du stock, de la zone, du niveau Miamz ou de l'abonnement Tok One.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            En cas d'annulation, remboursement, fraude ou erreur technique, TOK peut reprendre, ajuster ou neutraliser les Miamz associés afin de préserver la cohérence comptable et d'éviter tout avantage indu.
+            Chaque avantage, cadeau ou contribution peut être soumis à une durée de validité, à des plafonds, à des conditions d'éligibilité ou à des restrictions communiquées avant utilisation. Les dons solidaires sont traités comme des contributions d'impact local, suivies séparément des paiements dus aux restaurants.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            En cas d'annulation, remboursement, fraude, abus ou erreur technique, TOK peut reprendre, ajuster ou neutraliser les Miamz associés afin de préserver la cohérence comptable et d'éviter tout avantage indu.
           </p>
         </section>
 
-        {/* 9. Avis et contenus utilisateurs */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">9. Avis et contenus utilisateurs</h2>
+          <h2 className="text-2xl font-semibold">7. Actualités, recommandations et contenus utilisateurs</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Les Utilisateurs peuvent publier des avis, notes et commentaires sur les Restaurants. Ces contenus doivent être authentiques, respectueux et conformes à la législation en vigueur. Il est interdit de publier des contenus diffamatoires, discriminatoires, injurieux, trompeurs ou portant atteinte aux droits de tiers.
+            Les utilisateurs peuvent interagir avec le fil Actualités par des vues, clics, likes, commentaires, partages, sauvegardes, reposts, signalements et préférences de type « Plus comme ça » ou « Moins comme ça ». Ces signaux peuvent améliorer ou réduire la visibilité de contenus similaires dans l'expérience utilisateur.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Tok se réserve le droit de modérer, modifier ou supprimer tout contenu jugé inapproprié, sans notification préalable. L'Utilisateur accorde à Tok une licence non exclusive et gratuite d'utilisation des contenus publiés sur la Plateforme.
+            TOK peut classer les contenus selon des critères comme vos interactions, les tags du post, la proximité géographique, la popularité, l'engagement global, le statut sponsorisé et les réglages de modération. Ces recommandations visent à personnaliser le fil, sans garantir qu'un contenu soit exhaustif, neutre ou affiché dans un ordre chronologique strict.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les avis, commentaires, publications, photos, vidéos et signalements doivent être authentiques, respectueux, licites et ne pas porter atteinte aux droits de tiers. TOK peut masquer, déclasser, modérer, supprimer ou restaurer un contenu lorsque cela est nécessaire pour protéger la plateforme, les utilisateurs ou les restaurants.
           </p>
         </section>
 
-        {/* 9 bis. Actualites sociales et contenus promotionnels */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">9 bis. Actualités sociales et contenus promotionnels</h2>
+          <h2 className="text-2xl font-semibold">8. Restaurants, réseaux sociaux et campagnes</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Les Restaurants peuvent publier des actualités, photos, vidéos, offres, événements et appels à l'action dans le fil social Tok. Ces publications sont des contenus professionnels sous la responsabilité du Restaurant qui les crée ou les valide.
+            Les restaurants sont responsables des informations, prix, disponibilités, allergènes, horaires, images, vidéos, offres, campagnes et publications qu'ils fournissent ou valident. Ils doivent disposer des droits nécessaires sur les contenus et respecter les règles applicables aux communications commerciales.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Le Restaurant s'engage à publier des informations exactes, loyales et vérifiables, notamment concernant les prix, disponibilités, durées d'offres, conditions de réservation, allergènes, droits sur les visuels et autorisations des personnes identifiables.
+            Lorsqu'un restaurateur connecte ou renseigne ses réseaux sociaux, il autorise TOK à préparer ou publier les contenus demandés vers les canaux sélectionnés, dans la limite des permissions accordées et des règles des plateformes tierces concernées. Le restaurateur reste responsable du message publié et des réponses reçues sur ces réseaux.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Tok peut mesurer les impressions, clics, réactions, commentaires, sauvegardes, partages et conversions associés aux actualités afin de fournir des statistiques marketing au Restaurant. Ces indicateurs sont informatifs et ne garantissent aucun volume de commandes, réservations ou chiffre d'affaires.
+            Les campagnes sponsorisées sont diffusées selon un budget total, une durée, une zone ou audience cible et un rythme indicatif de dépense. À titre de logique produit, le budget quotidien correspond au budget total divisé par la durée, puis la diffusion peut être modulée par la pertinence, la distance et l'engagement. Les métriques comme impressions, clics, CPC, conversions et coût global sont indicatives et ne garantissent aucun chiffre d'affaires.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Les contenus sponsorisés, placements payants ou campagnes promues doivent être identifiables comme tels lorsqu'ils sont affichés aux Utilisateurs. Le Restaurant reste responsable de la loyauté du message publicitaire, des prix, des disponibilités et des conditions d'offre communiquées.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les photos générées ou retouchées par IA, ainsi que les autres visuels fournis ou validés par le Restaurant, doivent respecter les droits d'utilisation des visuels, les droits des tiers et ne doivent pas induire les Utilisateurs en erreur sur la nature, la quantité, la qualité ou la présentation réelle des plats.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Tok se réserve le droit de masquer, modérer, supprimer ou déclasser toute actualité ou campagne contraire à la loi, aux droits de tiers, aux présentes CGU, aux règles de modération ou susceptible d'induire les Utilisateurs en erreur.
+            Un post ne doit être présenté comme sponsorisé qu'après validation du parcours prévu, notamment le paiement ou l'autorisation de mise en avant lorsque celle-ci est payante. TOK peut suspendre une campagne en cas d'erreur, litige, contenu trompeur, défaut de paiement ou risque pour les utilisateurs.
           </p>
         </section>
 
-        {/* 10. Propriété intellectuelle */}
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">9. Support, sinistres et notifications</h2>
+          <p className="text-foreground/80 leading-relaxed">
+            TOK peut proposer un support par chat, email, centre d'aide ou interface de suivi des sinistres. Un sinistre ou une conversation peut recevoir un statut comme « en attente », « en cours », « résolu » ou « clôturé » afin de suivre son traitement sans le classer automatiquement.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les notifications sont destinées au compte, rôle ou restaurant concerné. Vous ne devez pas transférer, exploiter ou conserver une notification qui ne vous est pas destinée.
+          </p>
+        </section>
+
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">10. Propriété intellectuelle</h2>
           <p className="text-foreground/80 leading-relaxed">
-            L'ensemble des éléments composant la Plateforme (textes, images, logos, marques, design, logiciels, bases de données, etc.) sont la propriété exclusive de Tok SA ou de ses partenaires et sont protégés par les lois suisses et internationales relatives à la propriété intellectuelle.
+            Les éléments de la plateforme, notamment marques, logos, textes, interfaces, bases de données, logiciels, visuels, modèles et documents, appartiennent à TOK ou à ses partenaires. Toute reproduction, extraction, modification ou exploitation non autorisée est interdite.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Toute reproduction, représentation, modification, distribution ou exploitation de ces éléments, en tout ou en partie, sans l'autorisation écrite préalable de Tok, est strictement interdite et constitue une contrefaçon sanctionnable.
+            En publiant un contenu sur TOK, vous accordez à TOK une licence non exclusive, mondiale, gratuite et limitée au fonctionnement, à la promotion, à la modération, à l'hébergement et à l'affichage du service. Vous garantissez disposer des droits nécessaires, y compris pour les photos générées ou retouchées par IA, qui ne doivent pas induire les utilisateurs en erreur.
           </p>
         </section>
 
-        {/* 11. Données personnelles */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">11. Protection des données personnelles</h2>
+          <h2 className="text-2xl font-semibold">11. Données personnelles et cookies</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Tok s'engage à protéger les données personnelles de ses Utilisateurs conformément à la Loi fédérale sur la protection des données (LPD) et au Règlement général sur la protection des données (RGPD) lorsque applicable.
+            TOK traite les données personnelles conformément à la Loi fédérale suisse sur la protection des données (LPD) et, lorsque applicable, au RGPD. Les données nécessaires aux commandes, réservations, paiements, notifications, campagnes, recommandations et services de support sont décrites dans notre Politique de confidentialité.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Les données collectées (nom, prénom, email, adresse, historique de commandes, données de paiement, géolocalisation) sont nécessaires à la fourniture des services et ne sont transmises à des tiers que dans la mesure strictement nécessaire à l'exécution des commandes (Restaurants partenaires, prestataires de livraison, prestataires de paiement).
+            Les cookies et technologies similaires peuvent être utilisés pour l'authentification, le panier, les préférences, la sécurité, la mesure d'audience et, avec consentement lorsque requis, la personnalisation ou le marketing.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            L'Utilisateur dispose d'un droit d'accès, de rectification, de suppression et de portabilité de ses données. Il peut exercer ces droits en contactant Tok à l'adresse : <span className="font-medium text-foreground">privacy@thetok.ch</span>.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Pour plus de détails, veuillez consulter notre Politique de Confidentialité disponible sur la Plateforme.
+            Pour plus d'informations, consultez notre <Link to="/politique-confidentialite" className="text-primary hover:underline font-medium">Politique de confidentialité</Link>.
           </p>
         </section>
 
-        {/* 12. Cookies */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">12. Cookies</h2>
+          <h2 className="text-2xl font-semibold">12. Responsabilité</h2>
           <p className="text-foreground/80 leading-relaxed">
-            La Plateforme utilise des cookies et technologies similaires pour améliorer l'expérience utilisateur, analyser le trafic et personnaliser les contenus. L'Utilisateur peut gérer ses préférences en matière de cookies via les paramètrès de son navigateur ou le bandeau de consentement affiché lors de sa première visite.
+            TOK met en œuvre des moyens raisonnables pour assurer la disponibilité, la sécurité et la qualité de la plateforme, mais ne garantit pas un service ininterrompu, exempt d'erreurs ou compatible avec tous les appareils, navigateurs et réseaux.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            Les cookies essentiels au fonctionnement de la Plateforme ne peuvent pas être désactivés. Les cookies analytiques et publicitaires sont soumis au consentement préalable de l'Utilisateur.
+            TOK ne peut être tenu responsable des informations inexactes fournies par un restaurant, d'une indisponibilité de stock, d'un retard lié à la préparation ou à la livraison, d'une panne d'un prestataire tiers ou d'un usage non conforme de votre compte.
           </p>
         </section>
 
-        {/* 13. Responsabilité */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">13. Responsabilité</h2>
-          <h3 className="text-xl font-medium mt-4">13.1 Responsabilité de Tok</h3>
+          <h2 className="text-2xl font-semibold">13. Modification des CGU</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Tok agit en qualité d'intermédiaire technique et ne saurait être tenu responsable de la qualité, de la quantité ou de la conformité des repas préparés et servis par les Restaurants partenaires. Tok s'engage néanmoins à mettre en œuvre tous les moyens raisonnables pour assurer le bon fonctionnement de la Plateforme.
+            TOK peut modifier les présentes CGU pour tenir compte de l'évolution du service, de la réglementation, de la sécurité ou de nouvelles fonctionnalités. En cas de modification substantielle, les utilisateurs peuvent être informés par email, notification ou affichage dans l'application.
           </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Tok ne garantit pas la disponibilité ininterrompue de la Plateforme et ne saurait être tenu responsable des dommages résultant d'une indisponibilité temporaire, de bugs ou d'erreurs techniques.
-          </p>
-          <h3 className="text-xl font-medium mt-4">13.2 Responsabilité de l'Utilisateur</h3>
-          <p className="text-foreground/80 leading-relaxed">
-            L'Utilisateur est responsable de l'utilisation qu'il fait de la Plateforme et s'engage à ne pas utiliser celle-ci à des fins illicites ou contraires aux présentes CGU. Il est notamment interdit de :
-          </p>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li>Créer de faux comptes ou usurper l'identité d'un tiers.</li>
-            <li>Utiliser la Plateforme pour des activités frauduleuses.</li>
-            <li>Perturber le fonctionnement de la Plateforme (attaques, scraping, etc.).</li>
-            <li>Publier des contenus illégaux ou portant atteinte aux droits de tiers.</li>
-            <li>Abuser des offres promotionnelles ou du programme de fidélité.</li>
-          </ul>
         </section>
 
-        {/* 14. Modifications des CGU */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">14. Modification des CGU</h2>
+          <h2 className="text-2xl font-semibold">14. Droit applicable et juridiction</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Tok se réserve le droit de modifier les présentes CGU à tout moment. Les Utilisateurs seront informés des modifications par notification dans l'application ou par email. La poursuite de l'utilisation de la Plateforme après modification vaut acceptation des nouvelles CGU.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Il est recommandé à l'Utilisateur de consulter régulièrement les CGU pour prendre connaissance des éventuelles modifications.
+            Les présentes CGU sont régies par le droit suisse. En cas de litige, les parties rechercheront d'abord une solution amiable. À défaut, les tribunaux compétents suisses seront saisis, sous réserve des dispositions impératives applicables aux consommateurs.
           </p>
         </section>
 
-        {/* 15. Droit applicable et juridiction */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">15. Droit applicable et juridiction</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les présentes CGU sont régies par le droit suisse. En cas de litige relatif à l'interprétation, l'exécution ou la résiliation des présentes CGU, les parties s'engagent à rechercher une solution amiable avant de saisir les tribunaux compétents.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            À défaut de règlement amiable, tout litige sera soumis à la compétence exclusive des tribunaux du siège social de Tok SA, sous réserve des dispositions impératives du droit de la consommation applicables.
-          </p>
-        </section>
-
-        {/* 16. Contact */}
         <section className="space-y-4 border-t pt-8 mt-8">
-          <h2 className="text-2xl font-semibold">16. Contact</h2>
+          <h2 className="text-2xl font-semibold">15. Contact</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Pour toute question relative aux présentes CGU, vous pouvez nous contacter :
+            Pour toute question relative aux présentes CGU :
           </p>
           <ul className="list-none space-y-2 text-foreground/80">
             <li><span className="font-medium text-foreground">Email :</span> {SUPPORT_EMAIL}</li>
             <li><span className="font-medium text-foreground">Formulaire :</span> via notre <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>
-            <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide Tok</Link></li>
+            <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide TOK</Link></li>
           </ul>
         </section>
-
       </div>
     </div>
   );

@@ -5,148 +5,152 @@ export default function PolitiqueConfidentialite() {
     <div className="container py-12 md:py-20 max-w-4xl space-y-12">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Politique de confidentialité</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 23 mars 2026</p>
+        <p className="text-muted-foreground">Dernière mise à jour : 7 juin 2026</p>
       </div>
-      <div className="prose prose-foodhub max-w-none space-y-8">
 
+      <div className="prose prose-foodhub max-w-none space-y-8">
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">1. Responsable du traitement</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Tok SA, société de droit suisse (ci-après « Tok », « nous »), est responsable du traitement des données personnelles collectées vià la plateforme Tok (site web et application mobile).
+            TOK traite les données personnelles nécessaires à l'exploitation de la plateforme. Pour toute demande relative à vos données, vous pouvez nous contacter à <span className="font-medium text-foreground">privacy@thetok.ch</span>.
           </p>
           <ul className="list-none space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Email :</span> privacy@thetok.ch</li>
-            <li><span className="font-medium text-foreground">Siège :</span> Suisse</li>
+            <li><span className="font-medium text-foreground">Responsable :</span> TOK, Suisse</li>
+            <li><span className="font-medium text-foreground">Site public :</span> www.thetok.ch</li>
           </ul>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">2. Données collectées</h2>
-          <p className="text-foreground/80 leading-relaxed">Nous collectons les catégories de données suivantes :</p>
+          <p className="text-foreground/80 leading-relaxed">Selon votre usage de TOK, nous pouvons traiter les catégories suivantes :</p>
           <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Données d'identification :</span> nom, prénom, adresse email, numéro de téléphone, date de naissance (optionnel).</li>
-            <li><span className="font-medium text-foreground">Données de livraison :</span> adresse postale, coordonnées GPS pour la localisation des livraisons.</li>
-            <li><span className="font-medium text-foreground">Données de commande :</span> historique des commandes, montants, préférences alimentaires, restaurants favoris.</li>
-            <li><span className="font-medium text-foreground">Données de paiement :</span> méthode de paiement choisie. Les données bancaires sont traitées directement par notre prestataire Stripe et ne sont pas stockées sur nos serveurs.</li>
-            <li><span className="font-medium text-foreground">Données de navigation :</span> pages visitées, interactions avec la plateforme, recherches effectuées.</li>
-            <li><span className="font-medium text-foreground">Données du fil Actualités :</span> abonnements à des restaurants, réactions, commentaires, signalements, sauvegardes, partages, clics sur les boutons d'action et préférences de contenu.</li>
-            <li><span className="font-medium text-foreground">Données marketing restaurateur :</span> objectifs de campagne, segments d'audience, contenus publies, codes d'offres, statistiques d'impressions, clics, engagement et performance des actualités.</li>
-            <li><span className="font-medium text-foreground">Données d'usage IA :</span> ces données d'usage IA incluent demandes, résultats, coûts estimés, modèles utilisés, qualité de sortie et métadonnées nécessaires aux fonctionnalités d'assistance, de génération ou de retouche, y compris lorsque le traitement implique OpenAI.</li>
-            <li><span className="font-medium text-foreground">Données techniques :</span> adresse IP, type de navigateur, système d'exploitation, identifiant d'appareil.</li>
-            <li><span className="font-medium text-foreground">Données de géolocalisation :</span> position GPS (uniquement avec votre consentement explicite).</li>
+            <li><span className="font-medium text-foreground">Compte et identité :</span> nom, prénom, email, téléphone, photo, préférences, rôles et informations de connexion.</li>
+            <li><span className="font-medium text-foreground">Commandes et réservations :</span> paniers, articles, restaurants, horaires, adresses, instructions, statuts, remboursements, sinistres et historique.</li>
+            <li><span className="font-medium text-foreground">Paiement :</span> montants, devise, statut, identifiants de transaction et informations nécessaires au traitement par Stripe. Les données bancaires complètes ne sont pas stockées par TOK.</li>
+            <li><span className="font-medium text-foreground">Localisation :</span> adresse, zone de livraison, distance, coordonnées approximatives ou GPS lorsque vous l'autorisez.</li>
+            <li><span className="font-medium text-foreground">Actualités et interactions :</span> vues, clics, likes, commentaires, reposts, partages, sauvegardes, signalements, posts masqués, « Plus comme ça », « Moins comme ça » et préférences déduites.</li>
+            <li><span className="font-medium text-foreground">Recommandations :</span> scores d'intérêt, tags de cuisine, restaurants favoris, types de contenus, zones fréquentes, engagement historique et signaux utilisés pour ordonner le fil.</li>
+            <li><span className="font-medium text-foreground">Campagnes restaurateur :</span> budgets, durées, zones de diffusion, contenus, audiences, impressions, clics, CPC, conversions, dépenses, statuts et historiques.</li>
+            <li><span className="font-medium text-foreground">Réseaux sociaux restaurateur :</span> profils renseignés, canaux sélectionnés, autorisations de publication, identifiants techniques et jetons strictement nécessaires lorsque le restaurateur connecte un compte externe.</li>
+            <li><span className="font-medium text-foreground">Support et administration :</span> conversations, numéros de sinistre, pièces jointes, statuts de traitement, notes d'audit, décisions de modération et notifications.</li>
+            <li><span className="font-medium text-foreground">Données techniques :</span> adresse IP, appareil, navigateur, logs de sécurité, jetons de notification push, erreurs, performances et événements d'audit.</li>
+            <li><span className="font-medium text-foreground">Données d'usage IA :</span> demandes, résultats, coûts estimés, modèles utilisés, qualité de sortie et métadonnées nécessaires aux fonctionnalités d'assistance, de génération ou de retouche, y compris lorsque le traitement implique OpenAI.</li>
           </ul>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">3. Finalités et base légale</h2>
-          <p className="text-foreground/80 leading-relaxed">Vos données sont traitées pour les finalités suivantes :</p>
+          <h2 className="text-2xl font-semibold">3. Finalités du traitement</h2>
+          <p className="text-foreground/80 leading-relaxed">Nous utilisons ces données pour :</p>
           <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Exécution du contrat :</span> gestion de votre compte, traitement des commandes, livraison, facturation, gestion des réservations.</li>
-            <li><span className="font-medium text-foreground">Intérêt légitime :</span> amélioration de nos services, personnalisation de l'expérience, prévention de la fraude, analyses statistiques anonymisées.</li>
-            <li><span className="font-medium text-foreground">Mesure et moderation des Actualités :</span> recommandation du fil social, detection d'abus, traitement des signalements et statistiques agrégées mises a disposition des Restaurants.</li>
-            <li><span className="font-medium text-foreground">Campagnes sponsorisées :</span> diffusion, contrôle, mesure d'audience et analyse de performance des campagnes sponsorisées et contenus promus, sans vente de données personnelles nominatives.</li>
-            <li><span className="font-medium text-foreground">Consentement :</span> envoi de notifications push, géolocalisation, cookies non essentiels, communications marketing.</li>
-            <li><span className="font-medium text-foreground">Obligation légale :</span> conservation des factures, conformité fiscale.</li>
+            <li>Créer et sécuriser votre compte, gérer les rôles client, restaurateur, coursier ou administrateur.</li>
+            <li>Traiter les commandes, réservations, paiements, remboursements, livraisons, factures et demandes de support.</li>
+            <li>Afficher des restaurants, offres, actualités, posts sauvegardés et recommandations adaptées à vos interactions.</li>
+            <li>Gérer les boutons « Plus comme ça » et « Moins comme ça » pour ajuster les contenus similaires qui vous sont proposés.</li>
+            <li>Mesurer les campagnes sponsorisées, répartir leur diffusion selon le budget quotidien et fournir des métriques agrégées aux restaurants.</li>
+            <li>Permettre aux restaurateurs de gérer menus, photos, campagnes, actualités, réseaux sociaux, factures, réservations et commandes.</li>
+            <li>Envoyer des notifications strictement destinées au compte, rôle ou restaurant concerné.</li>
+            <li>Prévenir la fraude, sécuriser la plateforme, auditer les actions sensibles et respecter nos obligations légales.</li>
           </ul>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">4. Partage avec des tiers</h2>
-          <p className="text-foreground/80 leading-relaxed">Vos données peuvent être partagées avec les prestataires suivants, dans le strict cadre de la fourniture de nos services :</p>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Stripe :</span> traitement des paiements par carte bancaire. Stripe est certifié PCI-DSS niveau 1.</li>
-            <li><span className="font-medium text-foreground">Supabase (AWS) :</span> hébergement de la base de données et authentification. Données hébergées en Europe.</li>
-            <li><span className="font-medium text-foreground">Firebase (Google) :</span> envoi de notifications push sur mobile.</li>
-            <li><span className="font-medium text-foreground">OpenAI :</span> traitement technique de certaines fonctionnalités d'assistance, de génération ou de retouche IA lorsque ces services sont activés.</li>
-            <li><span className="font-medium text-foreground">Restaurants partenaires :</span> transmission des informations nécessaires à la préparation et livraison de votre commande (nom, adresse de livraison, contenu de la commande).</li>
-            <li><span className="font-medium text-foreground">Restaurants publieurs :</span> accès a des statistiques agrégées sur leurs actualités (impressions, clics, réactions, commentaires, sauvegardes, partages) sans vente de données personnelles nominatives.</li>
-            <li><span className="font-medium text-foreground">Livreurs partenaires :</span> adresse de livraison et informations de contact nécessaires à la livraison.</li>
-          </ul>
+          <h2 className="text-2xl font-semibold">4. Bases légales</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Nous ne vendons jamais vos données personnelles à des tiers. Nous ne partageons vos données qu'avec les prestataires nécessaires au fonctionnement du service.
+            Les traitements reposent notamment sur l'exécution du contrat, votre consentement lorsque requis, notre intérêt légitime à sécuriser et améliorer le service, ainsi que nos obligations légales comptables, fiscales ou de sécurité.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les recommandations du fil Actualités personnalisent l'ordre et la sélection des contenus. Elles ne constituent pas une décision individuelle automatisée produisant à elles seules un effet juridique significatif.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">5. Sécurité des données</h2>
+          <h2 className="text-2xl font-semibold">5. Partage avec des tiers</h2>
+          <p className="text-foreground/80 leading-relaxed">Nous partageons des données uniquement lorsque cela est nécessaire au service :</p>
           <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li>Toutes les communications sont chiffrées en transit (TLS/HTTPS).</li>
-            <li>Les données sont chiffrées au repos dans notre base de données.</li>
-            <li>L'accès aux données est restreint par des politiques de contrôle d'accès (Row-Level Security).</li>
-            <li>Les mots de passe sont hashés et ne sont jamais stockés en clair.</li>
-            <li>Les données de paiement sont traitées par Stripe et ne transitent pas par nos serveurs.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">6. Durée de conservation</h2>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Données de compte :</span> conservées tant que votre compte est actif, puis supprimées dans les 30 jours suivant la suppression du compte.</li>
-            <li><span className="font-medium text-foreground">Données de commande :</span> conservées 3 ans à compter de la commande (obligations comptables et fiscales).</li>
-            <li><span className="font-medium text-foreground">Données de navigation :</span> conservées 13 mois maximum.</li>
-            <li><span className="font-medium text-foreground">Données de géolocalisation :</span> conservées uniquement le temps de la session ou de la livraison en cours.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">7. Vos droits</h2>
-          <p className="text-foreground/80 leading-relaxed">Conformément à la Loi fédérale sur la protection des données (LPD) et au RGPD (si applicable), vous disposez des droits suivants :</p>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Droit d'accès :</span> obtenir une copie de vos données personnelles.</li>
-            <li><span className="font-medium text-foreground">Droit de rectification :</span> corriger des données inexactes ou incomplètes.</li>
-            <li><span className="font-medium text-foreground">Droit à l'effacement :</span> demander la suppression de vos données (sous réserve des obligations légales de conservation).</li>
-            <li><span className="font-medium text-foreground">Droit à la portabilité :</span> recevoir vos données dans un format structuré et lisible par machine.</li>
-            <li><span className="font-medium text-foreground">Droit d'opposition :</span> vous opposer au traitement de vos données à des fins de marketing.</li>
-            <li><span className="font-medium text-foreground">Droit de retirer votre consentement :</span> à tout moment, sans affecter la licéité du traitement antérieur.</li>
+            <li><span className="font-medium text-foreground">Restaurants partenaires :</span> informations nécessaires à la préparation, réservation, service, facturation et support.</li>
+            <li><span className="font-medium text-foreground">Coursiers :</span> informations nécessaires à la livraison et au suivi de mission.</li>
+            <li><span className="font-medium text-foreground">Stripe :</span> traitement des paiements, abonnements, remboursements, Connect et facturation.</li>
+            <li><span className="font-medium text-foreground">Supabase :</span> authentification, base de données, stockage, fonctions serveur, temps réel et sécurité.</li>
+            <li><span className="font-medium text-foreground">Vercel :</span> hébergement, déploiement et logs techniques du frontend.</li>
+            <li><span className="font-medium text-foreground">Firebase ou services push :</span> notifications mobiles et web lorsque vous les activez.</li>
+            <li><span className="font-medium text-foreground">Réseaux sociaux tiers :</span> publication ou préparation de posts lorsque le restaurateur connecte un compte externe et déclenche cette action.</li>
+            <li><span className="font-medium text-foreground">OpenAI ou prestataires IA :</span> traitement technique de certaines fonctionnalités d'assistance ou de génération lorsque ces services sont activés.</li>
+            <li><span className="font-medium text-foreground">Prestataires email, analytics, sécurité et support :</span> uniquement dans les limites nécessaires à l'exploitation de TOK.</li>
           </ul>
           <p className="text-foreground/80 leading-relaxed">
-            Pour exercer ces droits, contactez-nous à <span className="font-medium text-foreground">privacy@thetok.ch</span>. Nous répondrons dans un délai de 30 jours.
+            Nous ne vendons pas vos données personnelles nominatives. Les restaurants peuvent recevoir des statistiques agrégées sur leurs contenus et campagnes, comme impressions, clics, sauvegardes, partages, conversions et coût global.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">8. Suppression du compte</h2>
+          <h2 className="text-2xl font-semibold">6. Sécurité, notifications et session</h2>
+          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
+            <li>Les communications sont chiffrées en transit par HTTPS/TLS.</li>
+            <li>Les accès aux données sont restreints par des contrôles de rôle, des politiques RLS et des vérifications serveur.</li>
+            <li>Les notifications sont limitées au destinataire, rôle ou restaurant concerné.</li>
+            <li>À la déconnexion, TOK peut nettoyer le panier local, les brouillons de checkout et les jetons push de la session courante.</li>
+            <li>Les mots de passe sont gérés par le système d'authentification et ne sont pas stockés en clair.</li>
+            <li>Les clés serveur et secrets de paiement ne sont jamais exposés dans le navigateur.</li>
+          </ul>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">7. Durées de conservation</h2>
+          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
+            <li><span className="font-medium text-foreground">Compte :</span> pendant la vie du compte, puis suppression ou anonymisation selon les délais techniques et légaux applicables.</li>
+            <li><span className="font-medium text-foreground">Commandes, paiements et factures :</span> pendant les durées nécessaires aux obligations comptables, fiscales, anti-fraude et de preuve.</li>
+            <li><span className="font-medium text-foreground">Actualités, interactions et recommandations :</span> pendant la durée utile à l'expérience utilisateur, à la modération et à la mesure des performances.</li>
+            <li><span className="font-medium text-foreground">Support, sinistres et audit :</span> pendant la durée nécessaire au traitement, à la sécurité et à la défense des droits de TOK ou des utilisateurs.</li>
+            <li><span className="font-medium text-foreground">Jetons push et données locales :</span> supprimés, désactivés ou remplacés lors de la déconnexion, du changement de compte ou du retrait de consentement lorsque cela est possible.</li>
+          </ul>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">8. Vos droits</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Vous pouvez demander la suppression de votre compte et de toutes vos données personnelles à tout moment en nous contactant à <span className="font-medium text-foreground">privacy@thetok.ch</span> ou depuis les paramètres de votre profil dans l'application.
+            Conformément à la LPD et, lorsque applicable, au RGPD, vous pouvez demander l'accès, la rectification, l'effacement, la limitation, la portabilité ou l'opposition au traitement de vos données. Vous pouvez aussi retirer un consentement donné, par exemple pour la géolocalisation, les notifications ou certains cookies.
           </p>
           <p className="text-foreground/80 leading-relaxed">
-            La suppression sera effective dans un délai de 30 jours. Certaines données pourront être conservées au-delà si la loi l'exige (données de facturation, obligations fiscales).
+            Pour exercer vos droits, contactez <span className="font-medium text-foreground">privacy@thetok.ch</span>. Nous pouvons vous demander une vérification d'identité avant de répondre, afin de protéger votre compte.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">9. Cookies et technologies similaires</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Nous utilisons des cookies strictement nécessaires au fonctionnement de la plateforme (authentification, panier, préférences). Aucun cookie publicitaire tiers n'est utilisé sans votre consentement préalable.
+            TOK utilise des cookies et stockages locaux nécessaires à l'authentification, au panier, à la sécurité, aux préférences et au fonctionnement de l'application. Les cookies ou technologies non essentiels, notamment analytiques ou marketing, sont soumis au consentement lorsque la loi l'exige.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">10. Mineurs</h2>
+          <h2 className="text-2xl font-semibold">10. Suppression du compte</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Nos services ne s'adressent pas aux personnes de moins de 16 ans. Nous ne collectons pas sciemment de données personnelles de mineurs. Si vous êtes parent ou tuteur et pensez que votre enfant nous a fourni des données, contactez-nous pour que nous les supprimions.
+            Vous pouvez demander la suppression de votre compte depuis l'application ou en nous contactant. Certaines données peuvent être conservées lorsqu'une obligation légale, une transaction en cours, un litige, une facture, un remboursement ou une mesure anti-fraude l'exige.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">11. Modifications</h2>
+          <h2 className="text-2xl font-semibold">11. Mineurs</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Nous nous réservons le droit de modifier cette politique de confidentialité. En cas de modification substantielle, vous serez informé par notification dans l'application ou par email. La date de dernière mise à jour est indiquée en haut de cette page.
+            TOK ne s'adresse pas aux personnes de moins de 16 ans. Si vous pensez qu'un mineur nous a transmis des données sans autorisation, contactez-nous afin que nous puissions prendre les mesures appropriées.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">12. Modifications</h2>
+          <p className="text-foreground/80 leading-relaxed">
+            Cette politique peut être mise à jour lorsque la plateforme, nos prestataires, nos traitements ou la réglementation évoluent. La date de dernière mise à jour figure en haut de cette page.
           </p>
         </section>
 
         <section className="space-y-4 border-t pt-8 mt-8">
-          <h2 className="text-2xl font-semibold">12. Contact</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Pour toute question relative à cette politique de confidentialité ou à vos données personnelles :
-          </p>
+          <h2 className="text-2xl font-semibold">13. Contact</h2>
           <ul className="list-none space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Email :</span> privacy@thetok.ch</li>
+            <li><span className="font-medium text-foreground">Email confidentialité :</span> privacy@thetok.ch</li>
             <li><span className="font-medium text-foreground">Formulaire :</span> via notre <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>
-            <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide Tok</Link></li>
+            <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide TOK</Link></li>
           </ul>
         </section>
-
       </div>
     </div>
   );

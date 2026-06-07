@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  BarChart3,
   CalendarDays,
   CheckCircle2,
   Edit2,
@@ -15,6 +16,8 @@ import {
   Target,
   Timer,
   Trash2,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 
 import {
@@ -40,6 +43,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -121,8 +125,66 @@ const EMPTY_CONVERSIONS: ConversionByType = {
   total: 0,
 };
 
+type CampaignRecord = Record<string, any>;
+
 function formatChf(value: number, digits = 2) {
   return `${Number(value || 0).toFixed(digits)} CHF`;
+}
+
+function formatPercent(value: number, digits = 1) {
+  return `${Number(value || 0).toFixed(digits)}%`;
+}
+
+function isCampaignEnded(campaign: CampaignRecord) {
+  const status = String(campaign.status || "").toLowerCase();
+  if (["ended", "closed", "cancelled", "canceled"].includes(status)) return true;
+
+  const endsAt = Date.parse(String(campaign.ends_at || campaign.end_date || ""));
+  return Number.isFinite(endsAt) && endsAt < Date.now() && status !== "active" && status !== "paused";
+}
+
+function getCampaignPortfolioMetrics(campaigns: CampaignRecord[]) {
+  const impressions = campaigns.reduce((sum, campaign) => sum + Number(campaign.impressions || 0), 0);
+  const clicks = campaigns.reduce((sum, campaign) => sum + Number(campaign.clicks || 0), 0);
+  const conversions = campaigns.reduce((sum, campaign) => sum + Number(campaign.conversions || 0), 0);
+  const spent = campaigns.reduce((sum, campaign) => sum + Number(campaign.spent || 0), 0);
+  const totalBudget = campaigns.reduce((sum, campaign) => sum + Number(campaign.total_budget || 0), 0);
+  const observed = getCampaignObservedMetrics({ impressions, clicks, conversions, spent });
+
+  return {
+    impressions,
+    clicks,
+    conversions,
+    spent,
+    totalBudget,
+    ctr: impressions > 0 ? (clicks / impressions) * 100 : 0,
+    conversionRate: clicks > 0 ? (conversions / clicks) * 100 : 0,
+    ...observed,
+  };
+}
+
+function getCampaignPacingStatus(campaign: CampaignRecord): { label: string; className: string } {
+  const totalBudget = Number(campaign.total_budget || 0);
+  const spent = Number(campaign.spent || 0);
+  if (totalBudget <= 0 || !campaign.starts_at || !campaign.ends_at) {
+    return { label: "N/A", className: "text-muted-foreground" };
+  }
+
+  const startsAt = Date.parse(campaign.starts_at);
+  const endsAt = Date.parse(campaign.ends_at);
+  const now = Date.now();
+  if (!Number.isFinite(startsAt) || !Number.isFinite(endsAt) || endsAt <= startsAt) {
+    return { label: "N/A", className: "text-muted-foreground" };
+  }
+
+  const timeProgression = Math.min(1, Math.max(0, now - startsAt) / (endsAt - startsAt));
+  if (timeProgression === 0) return { label: "Pas démarrée", className: "text-muted-foreground" };
+
+  const budgetProgression = spent / totalBudget;
+  const ratio = budgetProgression / timeProgression;
+  if (ratio < 0.8) return { label: "En retard", className: "text-orange-600" };
+  if (ratio > 1.2) return { label: "En avance", className: "text-blue-600" };
+  return { label: "Dans les temps", className: "text-green-600" };
 }
 
 function getRecordStrategy(record?: Record<string, unknown> | null) {
@@ -169,6 +231,7 @@ export default function DashboardCampagnes() {
   const [editing, setEditing] = useState<any>(null);
   const [periodDays, setPeriodDays] = useState<"7" | "30" | "90">("30");
   const [paidCampaign, setPaidCampaign] = useState<any>(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const conversionWindowStart = useMemo(() => {
@@ -300,6 +363,27 @@ export default function DashboardCampagnes() {
     staleTime: 30_000,
   });
   const conversionsByType = conversionsByTypeRaw || EMPTY_CONVERSIONS;
+  const campaignRows = useMemo(() => (campaigns || []) as CampaignRecord[], [campaigns]);
+  const campaignsInProgress = useMemo(
+    () => campaignRows.filter((campaign) => !isCampaignEnded(campaign)),
+    [campaignRows],
+  );
+  const endedCampaigns = useMemo(
+    () => campaignRows.filter((campaign) => isCampaignEnded(campaign)),
+    [campaignRows],
+  );
+  const activeCampaigns = useMemo(
+    () => campaignRows.filter((campaign) => campaign.status === "active"),
+    [campaignRows],
+  );
+  const portfolioMetrics = useMemo(
+    () => getCampaignPortfolioMetrics(campaignRows),
+    [campaignRows],
+  );
+  const selectedCampaign = useMemo(
+    () => campaignRows.find((campaign) => campaign.id === selectedCampaignId) || null,
+    [campaignRows, selectedCampaignId],
+  );
 
   const updateStatus = async (id: string, status: string) => {
     if (!selectedId) return;
@@ -320,6 +404,7 @@ export default function DashboardCampagnes() {
       return;
     }
     queryClient.invalidateQueries({ queryKey: ["dashboard-campaigns", selectedId] });
+    setSelectedCampaignId((current) => (current === id ? null : current));
     toast({ title: "Campagne supprimée" });
   };
 
@@ -468,6 +553,28 @@ export default function DashboardCampagnes() {
           )}
         />
 
+        <section className="space-y-4">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Vue globale des campagnes
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Synthèse consolidée de toutes les campagnes du restaurant, avec coût, impressions, clics, conversions et ratios observés.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-8">
+            <CampaignMetricTile icon={Megaphone} label="Campagnes actives" value={activeCampaigns.length} />
+            <CampaignMetricTile icon={Wallet} label="Coût global" value={formatChf(portfolioMetrics.spent)} />
+            <CampaignMetricTile icon={Eye} label="Impressions" value={portfolioMetrics.impressions.toLocaleString("fr-CH")} />
+            <CampaignMetricTile icon={MousePointer} label="Clics" value={portfolioMetrics.clicks.toLocaleString("fr-CH")} />
+            <CampaignMetricTile icon={ShoppingCart} label="Conversions" value={portfolioMetrics.conversions.toLocaleString("fr-CH")} />
+            <CampaignMetricTile icon={BarChart3} label="CPC moyen" value={portfolioMetrics.effectiveCpc > 0 ? formatChf(portfolioMetrics.effectiveCpc) : "-"} />
+            <CampaignMetricTile icon={TrendingUp} label="CTR" value={formatPercent(portfolioMetrics.ctr)} />
+            <CampaignMetricTile icon={Target} label="CPA moyen" value={portfolioMetrics.effectiveCpa > 0 ? formatChf(portfolioMetrics.effectiveCpa) : "-"} />
+          </div>
+        </section>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card>
             <CardContent className="py-4">
@@ -512,8 +619,25 @@ export default function DashboardCampagnes() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {campaigns.map((campaign: any) => {
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+            <Tabs defaultValue="active" className="min-w-0">
+              <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <TabsList className="w-full justify-start sm:w-auto">
+                  <TabsTrigger value="active" className="flex-1 sm:flex-none">
+                    Campagnes actives ({campaignsInProgress.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="flex-1 sm:flex-none">
+                    Historique des campagnes ({endedCampaigns.length})
+                  </TabsTrigger>
+                </TabsList>
+                <p className="text-xs text-muted-foreground">
+                  Cliquez sur une campagne pour afficher ses métriques détaillées.
+                </p>
+              </div>
+
+              <TabsContent value="active" className="mt-0">
+                <div className="space-y-3">
+            {campaignsInProgress.map((campaign: any) => {
               const status = STATUS_MAP[campaign.status] || STATUS_MAP.draft;
               const paymentStatus = PAYMENT_STATUS_MAP[campaign.payment_status || "unpaid"] || PAYMENT_STATUS_MAP.unpaid;
               const pages = Array.isArray(campaign.target_pages) ? campaign.target_pages : [];
@@ -528,10 +652,22 @@ export default function DashboardCampagnes() {
                 conversions: campaign.conversions,
                 spent: campaign.spent,
               });
+              const isSelected = selectedCampaignId === campaign.id;
 
               return (
-                <Card key={campaign.id}>
-                  <CardContent className="py-4 space-y-3">
+                <Card key={campaign.id} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
+                  <CardContent
+                    className="py-4 space-y-3"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedCampaignId(campaign.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedCampaignId(campaign.id);
+                      }
+                    }}
+                  >
                     <div className="flex items-start gap-4">
                       {campaign.image_url ? (
                         <img src={campaign.image_url} alt={campaign.title} className="w-20 h-14 rounded-lg object-cover shrink-0" />
@@ -628,10 +764,228 @@ export default function DashboardCampagnes() {
                 </Card>
               );
             })}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="history" className="mt-0">
+                <CampaignHistoryList
+                  campaigns={endedCampaigns}
+                  selectedCampaignId={selectedCampaignId}
+                  onSelect={setSelectedCampaignId}
+                />
+              </TabsContent>
+            </Tabs>
+
+            <CampaignDetailPanel campaign={selectedCampaign} />
           </div>
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+function CampaignMetricTile({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <Card>
+      <CardContent className="py-4">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Icon className="h-3.5 w-3.5" />
+          <span>{label}</span>
+        </div>
+        <p className="mt-2 text-xl font-bold">{value}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CampaignHistoryList({
+  campaigns,
+  selectedCampaignId,
+  onSelect,
+}: {
+  campaigns: CampaignRecord[];
+  selectedCampaignId: string | null;
+  onSelect: (campaignId: string) => void;
+}) {
+  if (!campaigns.length) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center text-sm text-muted-foreground">
+          Aucune campagne terminée pour le moment.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {campaigns.map((campaign) => {
+        const metrics = getCampaignPortfolioMetrics([campaign]);
+        const status = STATUS_MAP[campaign.status] || STATUS_MAP.ended;
+        const isSelected = selectedCampaignId === campaign.id;
+
+        return (
+          <Card key={campaign.id} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
+            <CardContent
+              className="space-y-3 py-4"
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelect(campaign.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onSelect(campaign.id);
+                }
+              }}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{campaign.title || "Campagne terminée"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {campaign.starts_at ? new Date(campaign.starts_at).toLocaleDateString("fr-CH") : "-"}
+                    {" -> "}
+                    {campaign.ends_at ? new Date(campaign.ends_at).toLocaleDateString("fr-CH") : "-"}
+                  </p>
+                </div>
+                <Badge variant={status.variant} className="text-[10px]">{status.label}</Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                <span>{metrics.impressions.toLocaleString("fr-CH")} impressions</span>
+                <span>{metrics.clicks.toLocaleString("fr-CH")} clics</span>
+                <span>{metrics.conversions.toLocaleString("fr-CH")} conversions</span>
+                <span>{formatChf(metrics.spent)} dépensés</span>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function CampaignDetailPanel({ campaign }: { campaign: CampaignRecord | null }) {
+  if (!campaign) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center text-sm text-muted-foreground">
+          <p className="font-semibold text-foreground">Détail de campagne</p>
+          <p className="mt-2">Sélectionnez une campagne active ou terminée pour voir ses données détaillées.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const metrics = getCampaignPortfolioMetrics([campaign]);
+  const pricingStrategy = getRecordStrategy(campaign);
+  const strategyConfig = getCampaignStrategyConfig(pricingStrategy);
+  const pricing = getRecordPricing(campaign);
+  const pacing = getCampaignPacingStatus(campaign);
+  const status = STATUS_MAP[campaign.status] || STATUS_MAP.draft;
+  const paymentStatus = PAYMENT_STATUS_MAP[campaign.payment_status || "unpaid"] || PAYMENT_STATUS_MAP.unpaid;
+  const pages = Array.isArray(campaign.target_pages) ? campaign.target_pages : [];
+  const targetingParts = summarizeAudienceCriteria(campaign.target_criteria || DEFAULT_AUDIENCE_CRITERIA);
+  const totalBudget = Number(campaign.total_budget || 0);
+  const spent = Number(campaign.spent || 0);
+  const remaining = Math.max(0, totalBudget - spent);
+  const budgetProgress = totalBudget > 0 ? Math.min(100, (spent / totalBudget) * 100) : 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const dailySpent = String(campaign.daily_spent_date || "") === today ? Number(campaign.daily_spent || 0) : 0;
+  const dailyBudget = Number(campaign.budget_daily || 0);
+
+  return (
+    <Card className="xl:sticky xl:top-6 xl:self-start">
+      <CardContent className="space-y-4 py-5">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Détail de campagne
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="min-w-0 flex-1 break-words text-lg font-bold">{campaign.title || "Campagne"}</h3>
+            <Badge variant={status.variant}>{status.label}</Badge>
+            <Badge variant={paymentStatus.variant}>{paymentStatus.label}</Badge>
+          </div>
+          {campaign.body ? <p className="text-sm text-muted-foreground">{campaign.body}</p> : null}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <CampaignDetailMetric label="Impressions" value={metrics.impressions.toLocaleString("fr-CH")} />
+          <CampaignDetailMetric label="Clics" value={metrics.clicks.toLocaleString("fr-CH")} />
+          <CampaignDetailMetric label="Conversions" value={metrics.conversions.toLocaleString("fr-CH")} />
+          <CampaignDetailMetric label="Coût global" value={formatChf(metrics.spent)} />
+          <CampaignDetailMetric label="CPC moyen" value={metrics.effectiveCpc > 0 ? formatChf(metrics.effectiveCpc) : "-"} />
+          <CampaignDetailMetric label="CPA moyen" value={metrics.effectiveCpa > 0 ? formatChf(metrics.effectiveCpa) : "-"} />
+          <CampaignDetailMetric label="CTR" value={formatPercent(metrics.ctr)} />
+          <CampaignDetailMetric label="Taux conv." value={formatPercent(metrics.conversionRate)} />
+        </div>
+
+        <div className="space-y-2 rounded-xl border bg-muted/25 p-3 text-sm">
+          <div className="flex justify-between gap-3">
+            <span className="text-muted-foreground">Budget restant</span>
+            <span className="font-medium">{formatChf(remaining)}</span>
+          </div>
+          <div className="h-2 rounded-full bg-muted">
+            <div className="h-2 rounded-full bg-primary" style={{ width: `${budgetProgress}%` }} />
+          </div>
+          <div className="flex justify-between gap-3 text-xs text-muted-foreground">
+            <span>{formatChf(spent)} dépensés</span>
+            <span>{formatChf(totalBudget)} budget</span>
+          </div>
+          {dailyBudget > 0 ? (
+            <div className="flex justify-between gap-3 text-xs">
+              <span className="text-muted-foreground">Aujourd'hui</span>
+              <span className="font-medium">{formatChf(dailySpent)} / {formatChf(dailyBudget)}</span>
+            </div>
+          ) : null}
+          <div className="flex justify-between gap-3 text-xs">
+            <span className="text-muted-foreground">Pacing</span>
+            <span className={`font-medium ${pacing.className}`}>{pacing.label}</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border bg-muted/25 p-3">
+          <p className="text-xs font-semibold">{strategyConfig.label}</p>
+          <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+            <span>{formatChf(pricing.cpmRate)} / 1k impressions</span>
+            <span>{formatChf(pricing.cpcRate)} / clic</span>
+            <span>{formatChf(pricing.conversionRate)} / conversion</span>
+          </div>
+        </div>
+
+        {pages.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {pages.map((page: string) => (
+              <Badge key={page} variant="secondary" className="text-[10px]">
+                {TARGET_PAGES.find((targetPage) => targetPage.value === page)?.label || page}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap gap-1">
+          {targetingParts.length > 0
+            ? targetingParts.map((part) => <Badge key={part} variant="outline" className="text-[10px]">{part}</Badge>)
+            : <span className="text-xs text-muted-foreground">Diffusion large sans ciblage supplémentaire.</span>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CampaignDetailMetric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl bg-muted/35 p-3">
+      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-base font-semibold">{value}</p>
+    </div>
   );
 }
 

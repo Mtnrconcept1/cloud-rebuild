@@ -1,7 +1,12 @@
-import { useEffect, useState, useCallback, ReactNode } from "react";
+import { useEffect, useState, useCallback, useRef, ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 import { setMonitoringUser } from "@/lib/monitoring";
+import {
+  clearAuthenticatedBrowserState,
+  disablePushForCurrentSession,
+} from "@/lib/sessionCleanup";
 import {
   canSwitchRoles,
   getDefaultActiveRole,
@@ -12,13 +17,20 @@ import { AuthContext, type UserRole } from "@/lib/auth-context";
 const ACTIVE_ROLE_KEY = "miamz-active-role";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [initialSessionReceived, setInitialSessionReceived] = useState(false);
+  const lastSessionUserIdRef = useRef<string | null>(null);
   const userId = user?.id ?? null;
+
+  const clearLocalAuthenticatedState = useCallback(() => {
+    clearAuthenticatedBrowserState();
+    queryClient.clear();
+  }, [queryClient]);
 
   const resolveRolesWithFallback = useCallback(async (userId: string) => {
     const supabase = getSupabase();
@@ -107,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setMonitoringUser(session?.user ?? null);
+        lastSessionUserIdRef.current = session?.user?.id ?? null;
         setInitialSessionReceived(true);
       })
       .catch(async (error) => {
@@ -119,17 +132,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (cancelled) return;
+        clearLocalAuthenticatedState();
         setSession(null);
         setUser(null);
         setMonitoringUser(null);
         setRoles([]);
         setActiveRole(null);
+        lastSessionUserIdRef.current = null;
         setInitialSessionReceived(true);
       });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         if (cancelled) return;
+        const previousUserId = lastSessionUserIdRef.current;
+        const nextUserId = session?.user?.id ?? null;
+
+        if (
+          event === "SIGNED_OUT"
+          || (previousUserId && (!nextUserId || previousUserId !== nextUserId))
+        ) {
+          clearLocalAuthenticatedState();
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         setMonitoringUser(session?.user ?? null);
@@ -137,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRoles([]);
           setActiveRole(null);
         }
+        lastSessionUserIdRef.current = nextUserId;
         setInitialSessionReceived(true);
       }
     );
@@ -145,7 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [clearLocalAuthenticatedState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -179,12 +205,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [applyRoles, fetchRoles, userId, initialSessionReceived]);
 
   const signOut = async () => {
+    const signedOutUserId = user?.id ?? session?.user?.id ?? null;
+    if (signedOutUserId) {
+      try {
+        await disablePushForCurrentSession(signedOutUserId);
+      } catch (error) {
+        console.warn("[auth] failed to disable current push token during sign out", error);
+      }
+    }
+
+    clearLocalAuthenticatedState();
     await getSupabase().auth.signOut();
     setUser(null);
     setSession(null);
     setMonitoringUser(null);
     setRoles([]);
     setActiveRole(null);
+    lastSessionUserIdRef.current = null;
     localStorage.removeItem(ACTIVE_ROLE_KEY);
   };
 

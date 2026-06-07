@@ -1,4 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AuthProvider } from "@/lib/auth";
@@ -33,6 +35,22 @@ function AuthProbe() {
   );
 }
 
+function renderWithQueryClient(ui: ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {ui}
+    </QueryClientProvider>,
+  );
+}
+
 describe("AuthProvider", () => {
   it("clears a broken local session when the initial Supabase session refresh fails", async () => {
     signOut.mockResolvedValue({ error: null });
@@ -45,7 +63,7 @@ describe("AuthProvider", () => {
       },
     });
 
-    render(
+    renderWithQueryClient(
       <AuthProvider>
         <AuthProbe />
       </AuthProvider>,

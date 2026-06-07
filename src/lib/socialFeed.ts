@@ -4,14 +4,45 @@ export type SocialFeedRankInput = {
   followedRestaurantIds?: string[] | null;
   favoriteRestaurantIds?: string[] | null;
   interactedRestaurantIds?: string[] | null;
+  interestWeights?: SocialFeedInterestWeights | null;
   nowIso?: string;
 };
+
+export type SocialFeedInterestWeights = {
+  restaurants?: Record<string, number> | null;
+  cuisines?: Record<string, number> | null;
+  cities?: Record<string, number> | null;
+  postTypes?: Record<string, number> | null;
+  sponsored?: Record<string, number> | null;
+};
+
+export const SOCIAL_FEED_SIGNAL_WEIGHTS = {
+  view3s: 1,
+  click: 3,
+  like: 5,
+  comment: 8,
+  share: 12,
+  reservation: 20,
+  order: 25,
+  hidePost: -20,
+  notInterested: -30,
+  showMore: 20,
+  showLess: -20,
+} as const;
+
+export const SOCIAL_FEED_SCORE_MIX = {
+  personalInterest: 0.4,
+  proximity: 0.25,
+  engagement: 0.2,
+  sponsored: 0.15,
+} as const;
 
 export const SOCIAL_FEED_SCOPES = [
   { value: "for_you", label: "Pour vous" },
   { value: "followed", label: "Suivis" },
   { value: "nearby", label: "À proximité" },
   { value: "offers", label: "Offres" },
+  { value: "saved", label: "Sauvegardés" },
 ] as const;
 
 export type SocialFeedScope = (typeof SOCIAL_FEED_SCOPES)[number]["value"];
@@ -133,6 +164,8 @@ export type SocialFeedRankableItem = {
   commentsCount?: number | null;
   repostsCount?: number | null;
   sharesCount?: number | null;
+  isSponsored?: boolean | null;
+  sponsoredScore?: number | null;
 };
 
 export type SocialFeedRankedItem<T extends SocialFeedRankableItem = SocialFeedRankableItem> = T & {
@@ -438,6 +471,20 @@ function buildNormalizedSet(values?: string[] | null) {
   return new Set((values || []).map(normalizeToken).filter(Boolean));
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getWeight(weights: Record<string, number> | null | undefined, key?: string | null, normalize = true) {
+  if (!weights || !key) return 0;
+  const direct = Number(weights[key] ?? 0);
+  if (Number.isFinite(direct) && direct !== 0) return direct;
+
+  const normalized = normalize ? normalizeToken(key) : key;
+  const normalizedValue = Number(weights[normalized] ?? 0);
+  return Number.isFinite(normalizedValue) ? normalizedValue : 0;
+}
+
 function getItemCuisine(item: SocialFeedRankableItem | SocialFeedPost) {
   return item.cuisineType || ("restaurant" in item ? item.restaurant.cuisineType : null);
 }
@@ -466,23 +513,59 @@ function getEngagementScore(item: SocialFeedRankableItem) {
   return Math.min(25, raw);
 }
 
-export function getSocialFeedScore(item: SocialFeedRankableItem, input: SocialFeedRankInput = {}) {
+function getEngagementComponent(item: SocialFeedRankableItem, input: SocialFeedRankInput) {
+  const engagement = (getEngagementScore(item) / 25) * 100;
+  const freshness = (getRecencyScore(item.createdAt, input.nowIso) / 32) * 100;
+  return clamp(engagement * 0.72 + freshness * 0.28, 0, 100);
+}
+
+function getPersonalInterestComponent(item: SocialFeedRankableItem, input: SocialFeedRankInput) {
   const followedRestaurantIds = buildSet(input.followedRestaurantIds);
   const favoriteRestaurantIds = buildSet(input.favoriteRestaurantIds);
   const interactedRestaurantIds = buildSet(input.interactedRestaurantIds);
-  const favoriteCuisines = new Set((input.favoriteCuisines || []).map(normalizeToken).filter(Boolean));
+  const favoriteCuisines = buildNormalizedSet(input.favoriteCuisines);
   const cuisine = normalizeToken(getItemCuisine(item));
   const city = normalizeToken(getItemCity(item));
+  const weights = input.interestWeights || {};
+
+  let score = 0;
+  if (followedRestaurantIds.has(item.restaurantId)) score += 35;
+  if (favoriteRestaurantIds.has(item.restaurantId)) score += 30;
+  if (interactedRestaurantIds.has(item.restaurantId)) score += 25;
+  if (cuisine && favoriteCuisines.has(cuisine)) score += 25;
+  if (item.postType === "promo") score += 8;
+
+  score += getWeight(weights.restaurants, item.restaurantId, false);
+  score += getWeight(weights.cuisines, cuisine);
+  score += getWeight(weights.cities, city);
+  score += getWeight(weights.postTypes, item.postType, false);
+
+  return clamp(score, -100, 100);
+}
+
+function getProximityComponent(item: SocialFeedRankableItem, input: SocialFeedRankInput) {
+  const city = normalizeToken(getItemCity(item));
   const viewerCity = normalizeToken(input.viewerCity);
+  if (city && viewerCity && city === viewerCity) return 100;
 
-  let score = getRecencyScore(item.createdAt, input.nowIso) + getEngagementScore(item);
+  const interestCityScore = getWeight(input.interestWeights?.cities, city);
+  if (interestCityScore > 0) return clamp(interestCityScore, 0, 70);
 
-  if (followedRestaurantIds.has(item.restaurantId)) score += 100;
-  if (favoriteRestaurantIds.has(item.restaurantId)) score += 16;
-  if (interactedRestaurantIds.has(item.restaurantId)) score += 18;
-  if (cuisine && favoriteCuisines.has(cuisine)) score += 35;
-  if (city && viewerCity && city === viewerCity) score += 22;
-  if (item.postType === "promo") score += 6;
+  return 0;
+}
+
+function getSponsoredComponent(item: SocialFeedRankableItem, input: SocialFeedRankInput) {
+  const explicitScore = Number(item.sponsoredScore ?? getWeight(input.interestWeights?.sponsored, item.id, false));
+  if (Number.isFinite(explicitScore) && explicitScore > 0) return clamp(explicitScore, 0, 100);
+  return item.isSponsored ? 75 : 0;
+}
+
+export function getSocialFeedScore(item: SocialFeedRankableItem, input: SocialFeedRankInput = {}) {
+  const score =
+    getPersonalInterestComponent(item, input) * SOCIAL_FEED_SCORE_MIX.personalInterest +
+    getProximityComponent(item, input) * SOCIAL_FEED_SCORE_MIX.proximity +
+    getEngagementComponent(item, input) * SOCIAL_FEED_SCORE_MIX.engagement +
+    getSponsoredComponent(item, input) * SOCIAL_FEED_SCORE_MIX.sponsored;
 
   return Math.round(score * 100) / 100;
 }

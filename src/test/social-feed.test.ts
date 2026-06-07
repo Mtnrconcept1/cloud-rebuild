@@ -65,8 +65,8 @@ describe("rankSocialFeedItems", () => {
 
     expect(ranked.map((item) => item.id)).toEqual([
       "followed-local",
-      "recent-match",
       "favorite-older",
+      "recent-match",
       "generic-popular",
     ]);
     expect(ranked[0].score).toBeGreaterThan(ranked[1].score);

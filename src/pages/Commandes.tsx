@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -21,6 +21,7 @@ import {
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import TokAiSupportChat from "@/components/support/TokAiSupportChat";
+import SortControls from "@/components/list/SortControls";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +37,8 @@ import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
-import { buildCustomerOrderGroups } from "@/lib/customerOrders";
+import { buildCustomerOrderGroups, type CustomerOrderGroup } from "@/lib/customerOrders";
+import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
 import { cancelOrderByCustomer } from "@/lib/orderMutations";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { parseStripeReturnSearch } from "@/lib/stripeReturn";
@@ -175,9 +177,21 @@ function getCheckoutSessionId(order: any) {
   return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
+type CustomerOrderSortKey = "created_at" | "order_number" | "restaurant" | "amount" | "status";
+
+const CUSTOMER_ORDER_SORT_COLUMNS: SortColumn<CustomerOrderGroup, CustomerOrderSortKey>[] = [
+  { key: "created_at", label: "Date", type: "date", getValue: (group) => group.mainOrder?.created_at },
+  { key: "order_number", label: "Numero", type: "text", getValue: (group) => group.mainOrder?.order_number || group.title || group.groupKey },
+  { key: "restaurant", label: "Nom du restaurant", type: "text", getValue: (group) => group.restaurantsLabel },
+  { key: "amount", label: "Montant", type: "number", getValue: (group) => group.totalAmount },
+  { key: "status", label: "Statut", type: "text", getValue: (group) => getDisplayStatus(group.mainOrder) },
+];
+
 export default function Commandes() {
   const { user } = useAuth();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [sortKey, setSortKey] = useState<CustomerOrderSortKey>("created_at");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -246,8 +260,15 @@ export default function Commandes() {
     },
   });
 
-  const orders = (ordersData || []).filter((order) => (order.metadata as any)?.feature !== "zero-attente");
-  const orderGroups = buildCustomerOrderGroups(orders);
+  const orders = useMemo(() => (
+    (ordersData || []).filter((order) => (order.metadata as any)?.feature !== "zero-attente")
+  ), [ordersData]);
+  const orderGroups = useMemo(() => (
+    sortByColumn(buildCustomerOrderGroups(orders), CUSTOMER_ORDER_SORT_COLUMNS, {
+      key: sortKey,
+      direction: sortDirection,
+    })
+  ), [orders, sortDirection, sortKey]);
   const hasExpandedGroups = expandedGroups.size > 0;
 
   const toggleGroup = (groupKey: string) => {
@@ -266,20 +287,30 @@ export default function Commandes() {
   return (
     <CustomerDashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <h1 className="font-display text-3xl font-bold">Mes commandes</h1>
-          {hasExpandedGroups ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setExpandedGroups(new Set())}
-              className="self-start sm:self-auto"
-            >
-              <ChevronDown className="mr-2 h-4 w-4" />
-              Tout replier
-            </Button>
-          ) : null}
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end lg:w-auto">
+            <SortControls
+              columns={CUSTOMER_ORDER_SORT_COLUMNS}
+              sortKey={sortKey}
+              direction={sortDirection}
+              onSortKeyChange={setSortKey}
+              onDirectionChange={setSortDirection}
+              className="w-full sm:w-[440px]"
+            />
+            {hasExpandedGroups ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setExpandedGroups(new Set())}
+                className="self-start sm:self-end"
+              >
+                <ChevronDown className="mr-2 h-4 w-4" />
+                Tout replier
+              </Button>
+            ) : null}
+          </div>
         </div>
         {isLoading ? (
           <div className="space-y-4">

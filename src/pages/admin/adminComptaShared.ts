@@ -14,7 +14,7 @@ import {
   getTokCoveredMiamzAmount,
   type CommissionBaseTotals,
 } from "@/lib/comptaCommissionSources";
-import { buildTokAccountingSummary, buildTokRevenueSummary } from "@/lib/comptaFlow";
+import { buildTokAccountingSummary, buildTokRevenueSummary, calculateTokCommission } from "@/lib/comptaFlow";
 import {
   buildAccountingExportEntries,
   type AccountingExportEntry,
@@ -465,7 +465,7 @@ function buildAdminPayableAccrualSummary(input: {
     if (billedSourceLookup.orderCommissionIds.has(order.id)) return;
 
     const commissionBase = getNetOrderCommissionBase(order);
-    const commissionAmount = commissionBase * 0.1;
+    const commissionAmount = calculateTokCommission(commissionBase);
     if (commissionAmount <= 0) return;
 
     summary.orderCommissionAmount += commissionAmount;
@@ -475,7 +475,7 @@ function buildAdminPayableAccrualSummary(input: {
   input.reservationPayments.forEach((reservation) => {
     if (billedSourceLookup.reservationCommissionIds.has(reservation.id)) return;
 
-    const commissionAmount = getNetReservationCommissionBase(reservation) * 0.1;
+    const commissionAmount = calculateTokCommission(getNetReservationCommissionBase(reservation));
     if (commissionAmount <= 0) return;
 
     summary.reservationCommissionAmount += commissionAmount;

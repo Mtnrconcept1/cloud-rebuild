@@ -77,7 +77,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
 
 export default function Panier() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId, cartMetadata, orderMode, setOrderMode, addItem } = useCart();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -516,7 +516,7 @@ export default function Panier() {
           "Le rafraîchissement de session prend trop de temps. Reconnectez-vous puis réessayez.",
         );
       } catch {
-        await supabase.auth.signOut();
+        await signOut();
         toast({ title: "Session expirée", description: "Veuillez vous reconnecter.", variant: "destructive" });
         return navigate("/auth");
       }

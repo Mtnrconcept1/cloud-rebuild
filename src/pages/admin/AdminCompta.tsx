@@ -413,7 +413,7 @@ export default function AdminCompta() {
                 icon: Percent,
                 label: "Part developpeur",
                 value: formatAmount(developerReservedShare),
-                helper: "6% du revenu Tok affiche.",
+                helper: "6% du CA Tok encaissé.",
               },
               {
                 tone: "violet",

@@ -13,6 +13,7 @@ import {
   Sparkles,
   Store,
   Target,
+  ThumbsDown,
   TriangleAlert,
   Trash2,
   UserPlus,
@@ -567,6 +568,16 @@ export default function SocialPostCard({
               >
                 <Sparkles className="h-4 w-4" />
                 Plus comme ça
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 rounded-xl text-muted-foreground"
+                onClick={() => feedback.mutate({ post, feedbackType: "not_interested", reason: "Moins comme ca" })}
+                disabled={feedback.isPending}
+              >
+                <ThumbsDown className="h-4 w-4" />
+                Moins comme ça
               </Button>
               <Button
                 variant="ghost"
