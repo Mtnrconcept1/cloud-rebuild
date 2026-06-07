@@ -20,6 +20,7 @@ const CONVERSION_WINDOW_MS = 24 * 60 * 60 * 1000;
 const SPONSORED_EVENT_SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000;
 const VALID_EVENT_TYPES = new Set(["impression", "click", "conversion"]);
 const VALID_CONVERSION_TYPES = new Set(["order", "reservation", "zero-attente"]);
+const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero-attente"]);
 
 type SponsoredEventPayload = {
   eventType?: string;
@@ -31,6 +32,7 @@ type SponsoredEventPayload = {
   conversionType?: string;
   entityId?: string;
   paymentMethod?: string;
+  journeyType?: string;
   eventId?: string;
   eventSignature?: string;
   signedAt?: string;
@@ -180,6 +182,7 @@ Deno.serve(async (req) => {
     const page = String(payload.page || "");
     const entityId = String(payload.entityId || "");
     const paymentMethod = String(payload.paymentMethod || "");
+    const journeyType = normalizeText(payload.journeyType);
     const eventId = String(payload.eventId || "").trim();
     const eventSignature = String(payload.eventSignature || "").trim();
     const signedAt = String(payload.signedAt || "").trim();
@@ -199,6 +202,9 @@ Deno.serve(async (req) => {
     }
     if (eventType === "conversion" && conversionType && !VALID_CONVERSION_TYPES.has(conversionType)) {
       throw new HttpError(400, "Type de conversion invalide");
+    }
+    if (journeyType && !VALID_JOURNEY_TYPES.has(journeyType)) {
+      throw new HttpError(400, "Parcours de conversion invalide");
     }
 
     const adminClient = createAdminClient();
@@ -300,14 +306,18 @@ Deno.serve(async (req) => {
       return jsonResponse({ recorded: false, deduped: false, ignored: true, reason: "campaign_not_eligible" }, 200, corsHeaders);
     }
 
-    const dedupeKey = eventId
-      ? await sha256(JSON.stringify({
+    let dedupeKey: string;
+    if (eventType === "conversion" && entityId) {
+      dedupeKey = await sha256(`actualites|${campaignId}|${conversionType || "conversion"}|${entityId}`);
+    } else if (eventId) {
+      dedupeKey = await sha256(JSON.stringify({
         campaignId,
         restaurantId: campaign.restaurant_id,
         eventType,
         eventId,
-      }))
-      : await sha256(JSON.stringify({
+      }));
+    } else {
+      dedupeKey = await sha256(JSON.stringify({
         campaignId,
         restaurantId: campaign.restaurant_id,
         eventType,
@@ -321,6 +331,7 @@ Deno.serve(async (req) => {
         source,
         page,
       }));
+    }
 
     const { data: recorded, error: recordError } = await adminClient.rpc(
       "record_ad_campaign_event",
@@ -337,6 +348,7 @@ Deno.serve(async (req) => {
           viewer_id: viewerId,
           entity_id: entityId || null,
           payment_method: paymentMethod || null,
+          journey_type: journeyType || null,
           event_id: eventId || null,
         },
       },

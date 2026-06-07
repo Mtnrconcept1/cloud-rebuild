@@ -18,6 +18,11 @@ import {
   orderWeightedCampaigns,
   type WeightedCampaignRotationState,
 } from "@/lib/sponsoredPlacement";
+import {
+  clearSponsoredAttributions,
+  getValidSponsoredAttributions,
+  rememberSponsoredAttribution,
+} from "@/lib/sponsoredAttribution";
 
 export type AnalyticsEventType =
   | "page_view"
@@ -44,8 +49,6 @@ interface TrackEventParams {
 
 let currentUserId: string | null = null;
 
-const SPONSORED_ATTRIBUTION_KEY = "miamz-sponsored-attribution-v1";
-const SPONSORED_ATTRIBUTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const SPONSORED_ROTATION_KEY = "miamz-sponsored-rotation-v1";
 const ANALYTICS_VIEWER_KEY = "miamz-analytics-viewer-v1";
 const SPONSORED_AUDIENCE_CACHE_MS = 5 * 60 * 1000;
@@ -59,12 +62,6 @@ const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "refused"]);
 
 type SponsoredRotationStore = Record<string, WeightedCampaignRotationState>;
 
-interface SponsoredAttribution {
-  campaignId: string;
-  clickedAt: string;
-}
-
-type SponsoredAttributionMap = Record<string, SponsoredAttribution>;
 type SponsoredTrackResult = {
   recorded: boolean;
   deduped: boolean;
@@ -77,27 +74,6 @@ let sponsoredAudienceSnapshotCache:
 let audienceEstimateRpcUnavailable = false;
 let audienceEstimateRpcWarned = false;
 const sponsoredDisplayLedger = new Map<string, number>();
-
-function readSponsoredAttributions(): SponsoredAttributionMap {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(SPONSORED_ATTRIBUTION_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeSponsoredAttributions(attributions: SponsoredAttributionMap) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(SPONSORED_ATTRIBUTION_KEY, JSON.stringify(attributions));
-  } catch {
-    // Silent fail
-  }
-}
 
 function getOrCreateAnalyticsViewerId() {
   if (typeof window === "undefined") return "server-render";
@@ -154,30 +130,6 @@ export function createSponsoredImpressionEventId(placementKey: string) {
 
   sponsoredDisplayLedger.set(placementKey, now);
   return createClientEventId();
-}
-
-function rememberSponsoredAttribution(campaignId: string, restaurantId: string) {
-  const attributions = readSponsoredAttributions();
-  attributions[restaurantId] = {
-    campaignId,
-    clickedAt: new Date().toISOString(),
-  };
-  writeSponsoredAttributions(attributions);
-}
-
-function getValidSponsoredCampaignId(restaurantId: string): string | null {
-  const attributions = readSponsoredAttributions();
-  const attribution = attributions[restaurantId];
-  if (!attribution?.campaignId || !attribution.clickedAt) return null;
-
-  const clickedAtMs = Date.parse(attribution.clickedAt);
-  if (!Number.isFinite(clickedAtMs) || (Date.now() - clickedAtMs) > SPONSORED_ATTRIBUTION_MAX_AGE_MS) {
-    delete attributions[restaurantId];
-    writeSponsoredAttributions(attributions);
-    return null;
-  }
-
-  return attribution.campaignId;
 }
 
 let sponsoredRotationMemoryStore: SponsoredRotationStore = {};
@@ -612,6 +564,7 @@ async function trackSponsoredEvent(input: {
   conversionType?: SponsoredConversionType;
   entityId?: string | null;
   paymentMethod?: string | null;
+  journeyType?: SponsoredJourneyType | null;
   eventId?: string | null;
   eventSignature?: string | null;
   signedAt?: string | null;
@@ -631,6 +584,7 @@ async function trackSponsoredEvent(input: {
         conversionType: input.conversionType || null,
         entityId: input.entityId || null,
         paymentMethod: input.paymentMethod || null,
+        journeyType: input.journeyType || null,
         eventId: input.eventId || null,
         eventSignature: input.eventSignature || null,
         signedAt: input.signedAt || null,
@@ -719,38 +673,52 @@ export async function trackCheckoutEvent(orderId: string, eventType: string, pay
 }
 
 type SponsoredConversionType = "order" | "reservation" | "zero-attente";
+type SponsoredJourneyType = "delivery" | "takeaway" | "reservation" | "zero-attente";
 
 interface TrackSponsoredConversionOptions {
   conversionType?: SponsoredConversionType;
   entityId?: string | null;
   paymentMethod?: string | null;
+  journeyType?: SponsoredJourneyType | null;
 }
 
 export async function trackSponsoredConversion(
   restaurantId: string,
   options?: TrackSponsoredConversionOptions
 ) {
-  const campaignId = getValidSponsoredCampaignId(restaurantId);
-  if (!campaignId) return false;
+  const attributions = getValidSponsoredAttributions(restaurantId);
+  if (attributions.length === 0) return false;
 
-  const result = await trackSponsoredEvent({
-    eventType: "conversion",
-    campaignId,
-    restaurantId,
-    source: "sponsored_conversion",
-    conversionType: options?.conversionType || "order",
-    entityId: options?.entityId || null,
-    paymentMethod: options?.paymentMethod || null,
-  });
+  const results = await Promise.allSettled(
+    attributions.map(async (attribution) => {
+      const result = await trackSponsoredEvent({
+        eventType: "conversion",
+        campaignId: attribution.campaignId,
+        restaurantId,
+        source: "sponsored_conversion",
+        conversionType: options?.conversionType || "order",
+        entityId: options?.entityId || null,
+        paymentMethod: options?.paymentMethod || null,
+        journeyType: options?.journeyType || null,
+      });
 
-  if (!result.recorded && !result.deduped && !result.ignored) {
+      return {
+        campaignId: attribution.campaignId,
+        accepted: result.recorded || result.deduped || result.ignored || false,
+      };
+    }),
+  );
+
+  const acceptedCampaignIds = results
+    .filter((result): result is PromiseFulfilledResult<{ campaignId: string; accepted: boolean }> => result.status === "fulfilled")
+    .filter((result) => result.value.accepted)
+    .map((result) => result.value.campaignId);
+
+  if (acceptedCampaignIds.length === 0) {
     return false;
   }
 
-  const attributions = readSponsoredAttributions();
-  delete attributions[restaurantId];
-  writeSponsoredAttributions(attributions);
-
+  clearSponsoredAttributions(restaurantId, acceptedCampaignIds);
   return true;
 }
 

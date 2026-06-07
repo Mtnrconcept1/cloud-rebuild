@@ -317,6 +317,7 @@ export default function ReservationDialog({
     await trackSponsoredConversion(restaurantId, {
       conversionType: "reservation",
       entityId: reservationId || null,
+      journeyType: "reservation",
     });
 
     try {

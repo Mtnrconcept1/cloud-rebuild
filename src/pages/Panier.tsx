@@ -888,6 +888,7 @@ export default function Panier() {
             conversionType: "order",
             entityId: orderId,
             paymentMethod,
+            journeyType: orderMode === "delivery" ? "delivery" : "takeaway",
           });
         }
 
@@ -936,6 +937,7 @@ export default function Panier() {
           conversionType: "order",
           entityId: orderId || null,
           paymentMethod,
+          journeyType: orderMode === "delivery" ? "delivery" : "takeaway",
         });
       }
 

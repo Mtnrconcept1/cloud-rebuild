@@ -522,6 +522,7 @@ export default function ZeroAttente() {
             conversionType: "zero-attente",
             entityId: reservationIdValue || null,
             paymentMethod: (metadata.payment_method as PaymentMethodId) || paymentMethod,
+            journeyType: "zero-attente",
           });
         } catch (trackingError) {
           console.error("Zéro-attente conversion tracking failed:", trackingError);

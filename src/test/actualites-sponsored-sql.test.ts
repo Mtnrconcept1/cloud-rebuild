@@ -53,14 +53,29 @@ describe("Actualites sponsored SQL safety guards", () => {
   });
 
   it("attributes sponsored conversions only after completed order or reservation activity", () => {
-    const sql = readMigration("actualites_weighted_rotation_and_conversion_attribution");
+    const triggerSql = readMigration("actualites_weighted_rotation_and_conversion_attribution");
+    const attributionSql = readMigration("actualites_multi_campaign_attribution");
 
-    expect(sql).toContain("record_actualites_sponsored_conversion");
-    expect(sql).toContain("record_actualites_order_conversion_on_orders");
-    expect(sql).toContain("record_actualites_reservation_conversion_on_reservations");
-    expect(sql).toContain("e.created_at >= now() - interval '24 hours'");
-    expect(sql).toContain("e.event_type IN ('cta_click', 'click')");
-    expect(sql).toContain("record_ad_campaign_event(");
+    expect(triggerSql).toContain("record_actualites_order_conversion_on_orders");
+    expect(triggerSql).toContain("record_actualites_reservation_conversion_on_reservations");
+    expect(attributionSql).toContain("record_actualites_sponsored_conversion");
+    expect(attributionSql).toContain("FOR v_event IN");
+    expect(attributionSql).toContain("SELECT DISTINCT ON (e.campaign_id)");
+    expect(attributionSql).toContain("e.created_at >= now() - interval '24 hours'");
+    expect(attributionSql).toContain("e.event_type IN ('cta_click', 'click')");
+    expect(attributionSql).toContain("record_ad_campaign_event(");
+    expect(attributionSql).toContain("'journey_type', v_journey_type");
+    expect(attributionSql).toContain("'payment_method', v_payment_method");
+  });
+
+  it("records Actualites impressions and clicks for every eligible campaign on a post", () => {
+    const sql = readMigration("actualites_multi_campaign_attribution");
+
+    expect(sql).toContain("FOR v_campaign IN");
+    expect(sql).toContain("SELECT DISTINCT ON (spp.campaign_id)");
+    expect(sql).toContain("v_campaign_count := v_campaign_count + 1");
+    expect(sql).toContain("CASE WHEN v_campaign_count > 0 AND p_event_type = 'impression' THEN v_campaign_count ELSE 0 END");
+    expect(sql).not.toContain("INTO v_promotion_id, v_campaign_id");
   });
 
   it("allows public reads and anonymous impression/click tracking without opening social write actions", () => {

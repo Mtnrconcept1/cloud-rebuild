@@ -19,10 +19,15 @@ describe("sponsored event signing", () => {
     expect(edgeFunction).toContain("eventSignature");
     expect(edgeFunction).toContain("signedAt");
     expect(edgeFunction).toContain("signature_required");
+    expect(edgeFunction).toContain("VALID_JOURNEY_TYPES");
+    expect(edgeFunction).toContain("journey_type: journeyType || null");
+    expect(edgeFunction).toContain("sha256(`actualites|${campaignId}|${conversionType || \"conversion\"}|${entityId}`)");
 
     expect(analytics).toContain("eventSignature?: string | null");
     expect(analytics).toContain("signedAt?: string | null");
+    expect(analytics).toContain("journeyType?: SponsoredJourneyType | null");
     expect(analytics).toContain("eventSignature: input.eventSignature || null");
     expect(analytics).toContain("signedAt: input.signedAt || null");
+    expect(analytics).toContain("journeyType: input.journeyType || null");
   });
 });

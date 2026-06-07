@@ -30,9 +30,9 @@ function readSmokeSql() {
 describe("Supabase critical RPC contracts", () => {
   it("keeps the current critical Actualites and campaign RPC definitions in migrations", () => {
     const feedSql = readMigration("actualites_budget_pacing_delivery_score");
-    const socialEventSql = readMigration("ignore_internal_actualites_organic_metrics");
+    const socialEventSql = readMigration("actualites_multi_campaign_attribution");
     const campaignSql = readMigration("actualites_budget_pacing_delivery_score");
-    const conversionSql = readMigration("actualites_conversion_insights_hardening");
+    const conversionSql = readMigration("actualites_multi_campaign_attribution");
 
     expect(feedSql).toContain("DROP FUNCTION IF EXISTS public.get_social_feed_v2(integer, timestamptz, text);");
     expect(feedSql).toContain("CREATE FUNCTION public.get_social_feed_v2(");
@@ -82,7 +82,7 @@ describe("Supabase critical RPC contracts", () => {
   });
 
   it("keeps social event tracking safe for anonymous users and internal actors", () => {
-    const socialEventSql = readMigration("ignore_internal_actualites_organic_metrics");
+    const socialEventSql = readMigration("actualites_multi_campaign_attribution");
 
     expect(socialEventSql).toContain(
       "IF p_event_type NOT IN ('impression', 'click', 'cta_click', 'reaction', 'comment', 'share', 'save', 'follow', 'repost') THEN",
@@ -91,9 +91,11 @@ describe("Supabase critical RPC contracts", () => {
     expect(socialEventSql).toContain("v_is_internal_actor := public.is_restaurant_internal_actor(v_auth_user_id, v_restaurant_id)");
     expect(socialEventSql).toContain("is_internal_actor");
     expect(socialEventSql).toContain("IF v_is_internal_actor THEN");
-    expect(socialEventSql).toContain("RETURN v_event_id;");
+    expect(socialEventSql).toContain("RETURN v_first_event_id;");
     expect(socialEventSql).toContain("SELECT public.record_ad_campaign_event(");
     expect(socialEventSql).toContain("CASE WHEN p_event_type = 'cta_click' THEN 'click' ELSE p_event_type END");
+    expect(socialEventSql).toContain("FOR v_campaign IN");
+    expect(socialEventSql).toContain("SELECT DISTINCT ON (spp.campaign_id)");
   });
 
   it("keeps campaign metrics append-only, deduplicated, and protected from owner inflation", () => {
@@ -122,15 +124,19 @@ describe("Supabase critical RPC contracts", () => {
   });
 
   it("keeps sponsored conversions attributed only from valid recent paid clicks", () => {
-    const conversionSql = readMigration("actualites_conversion_insights_hardening");
+    const conversionSql = readMigration("actualites_multi_campaign_attribution");
 
     expect(conversionSql).toContain("IF p_conversion_type NOT IN ('order', 'reservation', 'zero-attente') THEN");
     expect(conversionSql).toContain("AND e.event_type IN ('cta_click', 'click')");
     expect(conversionSql).toContain("AND COALESCE(e.is_internal_actor, false) = false");
     expect(conversionSql).toContain("AND e.created_at >= now() - interval '24 hours'");
     expect(conversionSql).toContain("AND ac.payment_status = 'paid'");
-    expect(conversionSql).toContain("v_dedupe_key := encode(digest(concat_ws('|', 'actualites'");
+    expect(conversionSql).toContain("SELECT DISTINCT ON (e.campaign_id)");
+    expect(conversionSql).toContain("v_dedupe_key := encode(");
+    expect(conversionSql).toContain("concat_ws('|', 'actualites', v_event.campaign_id::text, p_conversion_type, p_entity_id::text)");
     expect(conversionSql).toContain("SELECT public.record_ad_campaign_event(");
+    expect(conversionSql).toContain("'journey_type', v_journey_type");
+    expect(conversionSql).toContain("'payment_method', v_payment_method");
     expect(conversionSql).toContain("'attribution_window_hours', 24");
     expect(conversionSql).toContain("campaign_conversions_count");
   });
