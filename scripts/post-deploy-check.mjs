@@ -18,11 +18,18 @@ const DEFAULT_TARGETS = [
   },
   {
     url: "https://www.thetok.ch/sitemap.xml",
-    expect: ["https://www.thetok.ch/restaurateurs/geneve"],
+    expect: [
+      "https://www.thetok.ch/restaurateurs/geneve",
+      "https://www.thetok.ch/restaurateurs/google-business",
+    ],
   },
   {
     url: "https://www.thetok.ch/restaurateurs/geneve",
     expect: ["Remplissez vos tables", "Demander une démo"],
+  },
+  {
+    url: "https://www.thetok.ch/restaurateurs/google-business",
+    expect: ["Remplacer le bouton", "Audit gratuit de ma fiche Google"],
   },
 ];
 

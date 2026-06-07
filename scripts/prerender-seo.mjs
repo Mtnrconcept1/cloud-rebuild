@@ -201,6 +201,7 @@ const PUBLIC_SEO_PAGES = [
       ],
       links: [
         { href: "/packs-restaurateur", label: "Voir les packs" },
+        { href: "/restaurateurs/google-business", label: "Audit Google Business" },
         { href: "/zero-attente", label: "Découvrir zéro attente" },
         { href: "/miamz-solidaires", label: "Comprendre les Miamz solidaires" },
       ],
@@ -250,6 +251,111 @@ const PUBLIC_SEO_PAGES = [
             acceptedAnswer: {
               "@type": "Answer",
               text: "TOK vise surtout à réduire la dépendance, garder la relation client côté restaurant et activer réservations, offres et photos sans exploser les commissions.",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/restaurateurs/google-business",
+    title: "Remplacer le bouton Google Business par TOK | Restaurants Genève",
+    description:
+      "Comparez un modèle de réservation facturé au couvert avec le modèle TOK à 5 CHF par table, puis préparez l'audit de votre fiche Google Business.",
+    priority: "0.8",
+    changefreq: "weekly",
+    staticContent: {
+      heading: "Remplacer le bouton de réservation Google Business.",
+      paragraphs: [
+        "Vos clients vous trouvent déjà sur Google. TOK aide les restaurants à convertir cette intention en réservation directe tout en gardant une relation client exploitable.",
+        "Modèle par couvert vs tarif fixe par table: comparez vous-même les hypothèses, puis documentez le bouton actuel, le lien TOK et la date de bascule.",
+      ],
+      sections: [
+        {
+          heading: "Simulateur Google Business",
+          items: [
+            "Tables générées par mois",
+            "Couverts moyens par table",
+            "Commission par couvert comparée",
+            "5 CHF par table + pack TOK",
+          ],
+        },
+        {
+          heading: "Audit gratuit de ma fiche Google",
+          items: [
+            "Lien fiche Google",
+            "Bouton actuel: plateforme, site propre ou aucun",
+            "Économie mensuelle estimée",
+            "Tracker bouton changé",
+          ],
+        },
+        {
+          heading: "Guide de bascule",
+          items: [
+            "Auditer le bouton actuel",
+            "Préparer le lien TOK",
+            "Modifier la fiche Google Business",
+            "Suivre les réservations issues de Google",
+          ],
+        },
+      ],
+      links: [
+        { href: "/restaurateurs/geneve", label: "Voir l'offre restaurateur" },
+        { href: "/packs-restaurateur", label: "Comparer les packs" },
+        { href: "/contact", label: "Contacter TOK" },
+      ],
+    },
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: "Audit Google Business pour restaurants",
+        provider: { "@type": "Organization", name: "TOK", url: CANONICAL_ORIGIN },
+        areaServed: { "@type": "City", name: "Genève", addressCountry: "CH" },
+        serviceType: "Audit du bouton de réservation Google Business et comparaison de coûts",
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Accueil",
+            item: `${CANONICAL_ORIGIN}/`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Restaurateurs Genève",
+            item: `${CANONICAL_ORIGIN}/restaurateurs/geneve`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: "Google Business",
+            item: `${CANONICAL_ORIGIN}/restaurateurs/google-business`,
+          },
+        ],
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "Puis-je remplacer le bouton de réservation Google Business ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Le restaurateur peut choisir les liens affichés sur sa fiche selon les options disponibles dans Google Business Profile. TOK aide à comparer les coûts et à préparer un lien de réservation direct.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Que compare le simulateur TOK ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Le simulateur compare une hypothèse de commission par couvert avec un tarif TOK fixe de 5 CHF par table et un pack mensuel optionnel.",
             },
           },
         ],
