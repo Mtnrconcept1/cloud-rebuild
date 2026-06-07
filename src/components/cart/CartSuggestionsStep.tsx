@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, Plus, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { CartItem } from "@/lib/cart-context";
 import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
@@ -197,46 +196,46 @@ export default function CartSuggestionsStep({
           Recherche de produits pertinents...
         </div>
       ) : suggestions.length > 0 ? (
-        <ScrollArea className="w-full whitespace-nowrap pb-3">
-          <div className="flex w-max gap-4">
-            {suggestions.map((item) => (
-              <div key={item.id} className="flex w-[180px] shrink-0 flex-col overflow-hidden rounded-xl border bg-background">
-                <div className="flex aspect-square items-center justify-center bg-muted">
-                  {item.image_url ? (
-                    <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-2xl">TOK</span>
-                  )}
-                </div>
-                <div className="flex min-h-[150px] flex-1 flex-col gap-3 p-3">
-                  <div className="min-w-0 space-y-1">
-                    <p className="truncate text-sm font-semibold">{item.name}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{item.reason}</p>
-                    <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="mt-auto w-full"
-                    variant={addedIds.has(item.id) ? "secondary" : "default"}
-                    disabled={addedIds.has(item.id)}
-                    onClick={() => handleAdd(item)}
-                  >
-                    {addedIds.has(item.id) ? (
-                      "Ajoute"
-                    ) : (
-                      <>
-                        <Plus className="mr-1 h-4 w-4" />
-                        Ajouter
-                      </>
-                    )}
-                  </Button>
-                </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 grid-cols-[minmax(0,1fr)]">
+          {suggestions.map((item) => (
+            <div
+              key={item.id}
+              className="grid min-w-0 grid-cols-[76px_minmax(0,1fr)] overflow-hidden rounded-xl border bg-background sm:flex sm:flex-col"
+            >
+              <div className="flex h-full min-h-[76px] items-center justify-center bg-muted sm:aspect-[4/3] sm:min-h-0 sm:w-full">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-base font-bold text-muted-foreground sm:text-2xl">TOK</span>
+                )}
               </div>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+              <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
+                <div className="min-w-0 space-y-1">
+                  <p className="line-clamp-2 break-words text-sm font-semibold">{item.name}</p>
+                  <p className="line-clamp-2 break-words text-xs text-muted-foreground">{item.reason}</p>
+                  <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="mt-auto w-full"
+                  variant={addedIds.has(item.id) ? "secondary" : "default"}
+                  disabled={addedIds.has(item.id)}
+                  onClick={() => handleAdd(item)}
+                >
+                  {addedIds.has(item.id) ? (
+                    "Ajoute"
+                  ) : (
+                    <>
+                      <Plus className="mr-1 h-4 w-4" />
+                      Ajouter
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="rounded-xl border border-dashed p-5 text-sm text-muted-foreground">
           Aucun produit supplementaire pertinent pour ce panier. Vous pouvez passer directement au paiement.

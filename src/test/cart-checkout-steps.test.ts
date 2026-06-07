@@ -45,4 +45,12 @@ describe("cart checkout steps", () => {
     expect(suggestionsSource).toContain("missingForFreeDelivery");
     expect(suggestionsSource).toContain("Proche des produits deja choisis");
   });
+
+  it("keeps the suggestions step readable on mobile and desktop", () => {
+    expect(suggestionsSource).toContain("grid gap-3 sm:grid-cols-2 xl:grid-cols-3");
+    expect(suggestionsSource).toContain("minmax(0,1fr)");
+    expect(suggestionsSource).toContain("break-words");
+    expect(suggestionsSource).not.toContain("w-max");
+    expect(suggestionsSource).not.toContain("w-[180px]");
+  });
 });
