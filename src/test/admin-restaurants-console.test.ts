@@ -80,6 +80,11 @@ describe("admin restaurants console", () => {
     expect(source).not.toContain('.from("restaurants").update');
     expect(source).toContain("RestaurantDetailPanel");
     expect(source).toContain("Fiche restaurant");
+    expect(source).toContain("DialogContent");
+    expect(source).toContain("max-w-6xl");
+    expect(source).toContain("min-h-0 flex-1 overflow-y-auto overscroll-contain");
+    expect(source).toContain("onOpenChange={(open) => {");
+    expect(source).not.toContain("selectedRestaurantId ? (\n        <RestaurantDetailPanel");
     expect(source).toContain("Santé paiement");
     expect(source).toContain("Historique");
     expect(source).toContain("Demander correction");
