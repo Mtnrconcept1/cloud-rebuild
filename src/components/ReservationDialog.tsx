@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { trackGoogleBookingEvent } from "@/hooks/useGoogleBusinessBooking";
 import { trackSponsoredConversion } from "@/lib/analytics";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
@@ -278,6 +279,10 @@ export default function ReservationDialog({
       restaurant_confirmation_required: serviceSettings.restaurant_confirmation_required,
       confirmation_deadline_minutes: serviceSettings.confirmation_deadline_minutes,
       deposit_amount_chf: serviceSettings.deposit_amount_chf,
+      acquisition_source:
+        typeof window !== "undefined" && new URLSearchParams(window.location.search).get("utm_source") === "google_business"
+          ? "google_business"
+          : null,
     };
 
     const offerPrefix = selectedPromo
@@ -313,6 +318,17 @@ export default function ReservationDialog({
     }
 
     const reservationId = reservationResult.reservationId;
+
+    if (typeof window !== "undefined") {
+      const currentSearchParams = new URLSearchParams(window.location.search);
+      if (currentSearchParams.get("utm_source") === "google_business") {
+        await trackGoogleBookingEvent(restaurantId, "google_booking_reservation_completed", {
+          reservation_id: reservationId,
+          source: "google_business",
+          medium: currentSearchParams.get("utm_medium") || "booking_button",
+        });
+      }
+    }
 
     await trackSponsoredConversion(restaurantId, {
       conversionType: "reservation",

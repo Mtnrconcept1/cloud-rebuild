@@ -55,6 +55,14 @@ const ADMIN_TOOLS = [
     color: "text-primary",
   },
   {
+    title: "Boutons Google Business",
+    description: "Suivre les liens de réservation TOK installés sur les fiches Google.",
+    icon: MapPin,
+    href: "/admin/restaurants/google-business",
+    feature: "admin-restaurants",
+    color: "text-orange-500",
+  },
+  {
     title: "Comptabilite",
     description: "Gérer les reversements et les parts TOK.",
     icon: Calculator,

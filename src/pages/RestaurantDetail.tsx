@@ -15,6 +15,7 @@ import AntiWasteCard from "@/components/AntiWasteCard";
 import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/lib/cart-context";
+import { trackGoogleBookingEvent } from "@/hooks/useGoogleBusinessBooking";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useRef } from "react";
@@ -144,6 +145,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
   const [activeTab, setActiveTab] = useState("menu");
   const impressionTracked = useRef(false);
+  const googleBookingStartTrackedRef = useRef(false);
   const deliveryEnabled = activeFeatures.has("livraison");
   const takeawayEnabled = activeFeatures.has("emporter");
   const reservationEnabled = activeFeatures.has("reservation");
@@ -154,12 +156,28 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const authRedirectTarget = buildAuthRedirectTarget(location.pathname, location.search);
 
   useEffect(() => {
-    if (searchParams.get("reserve") === "true" && reservationEnabled) {
+    const openParam = searchParams.get("open");
+    const shouldOpenReservation = searchParams.get("reserve") === "true" || openParam === "reservation";
+
+    if (shouldOpenReservation && reservationEnabled) {
       const timeParam = searchParams.get("time");
       if (timeParam) setReservationDefaults({ date: new Date(), time: timeParam, partySize: 2 });
       setReservationOpen(true);
+
+      if (
+        openParam === "reservation"
+        && searchParams.get("utm_source") === "google_business"
+        && restaurantId
+        && !googleBookingStartTrackedRef.current
+      ) {
+        googleBookingStartTrackedRef.current = true;
+        void trackGoogleBookingEvent(restaurantId, "google_booking_reservation_started", {
+          source: "google_business",
+          medium: searchParams.get("utm_medium") || "booking_button",
+        });
+      }
     }
-  }, [reservationEnabled, searchParams]);
+  }, [reservationEnabled, restaurantId, searchParams]);
 
   const { data: restaurant } = useQuery({
     queryKey: ["restaurant", restaurantId],

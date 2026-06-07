@@ -630,7 +630,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Expose la gestion admin des restaurants.",
     defaultEnabled: true,
     group: "admin_tools",
-    routeTargets: ["/admin/restaurants"],
+    routeTargets: ["/admin/restaurants", "/admin/restaurants/google-business"],
   },
   {
     name: "admin-utilisateurs",

@@ -29,6 +29,7 @@ import Auth from "./pages/Auth";
 const Recherche = lazy(() => import("./pages/Recherche"));
 const LocalRestaurants = lazy(() => import("./pages/LocalRestaurants"));
 const RestaurantDetail = lazy(() => import("./pages/RestaurantDetail"));
+const RestaurantBookingRedirect = lazy(() => import("./pages/RestaurantBookingRedirect"));
 const AntiGaspi = lazy(() => import("./pages/AntiGaspi"));
 const Panier = lazy(() => import("./pages/Panier"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -101,6 +102,7 @@ const CourierProfile = lazy(() => import("./pages/courier/CourierProfile"));
 
 const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
 const AdminRestaurants = lazy(() => import("./pages/admin/AdminRestaurants"));
+const AdminGoogleBusiness = lazy(() => import("./pages/admin/AdminGoogleBusiness"));
 const AdminUtilisateurs = lazy(() => import("./pages/admin/AdminUtilisateurs"));
 const AdminAvis = lazy(() => import("./pages/admin/AdminAvis"));
 const AdminCatalog = lazy(() => import("./pages/admin/AdminCatalog"));
@@ -343,6 +345,7 @@ function AppShell() {
           <Route path="/recherche" element={<Recherche />} />
           <Route path="/restaurants/:city" element={<LocalRestaurants />} />
           <Route path="/restaurants/:city/:category" element={<LocalRestaurants />} />
+          <Route path="/r/:slug" element={<RestaurantBookingRedirect />} />
           <Route path="/restaurant/:id" element={<RestaurantDetail />} />
           <Route path="/anti-gaspi" element={<FeatureSwitch enabled={antiWasteEnabled}><AntiGaspi /></FeatureSwitch>} />
           <Route path="/panier" element={<Panier />} />
@@ -404,6 +407,7 @@ function AppShell() {
           <Route path="/admin" element={<AdminDashboardRoute />} />
           <Route path="/admin/platform" element={<AdminProtectedRoute><FeatureSwitch enabled={adminPlatformConfigEnabled} fallback="/admin"><AdminPlatformConfig /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/restaurants" element={<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminRestaurants /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/restaurants/google-business" element={<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback="/admin"><AdminGoogleBusiness /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/utilisateurs" element={<AdminProtectedRoute><FeatureSwitch enabled={adminUtilisateursEnabled} fallback="/admin"><AdminUtilisateurs /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/avis" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAvisEnabled} fallback="/admin"><AdminAvis /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/catalog" element={<AdminProtectedRoute><FeatureSwitch enabled={adminCatalogEnabled} fallback="/admin"><AdminCatalog /></FeatureSwitch></AdminProtectedRoute>} />

@@ -16,19 +16,30 @@ const migrationSource = readFileSync(
 );
 
 describe("Tok One Stripe test mode", () => {
-  it("keeps the Tok One Stripe test key server-side and scoped to Edge Functions", () => {
+  it("keeps Tok One Stripe secrets server-side and uses the live/default key for new client checkout", () => {
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_SECRET_KEY");
+    expect(stripeClientSource).toContain("STRIPE_TOK_ONE_SECRET_KEY");
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET");
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET");
     expect(stripeClientSource).toContain('kind === "tok-one"');
-    expect(stripeClientSource).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY"]');
-    expect(stripeClientSource).toContain('purpose: "Tok One Stripe test secret"');
-    expect(stripeClientSource).toContain('expectedMode: "test"');
+    expect(stripeClientSource).toContain('names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY"]');
+    expect(stripeClientSource).toContain('purpose: "Tok One Stripe secret"');
     expect(stripeClientSource).toContain("getTokOneStripeRuntimeForCheckoutSession");
     expect(stripeClientSource).toContain('sessionId.startsWith("cs_test_")');
     expect(stripeClientSource).toContain('sessionId.startsWith("cs_live_")');
     expect(stripeClientSource).toContain("inferStripeRuntimeMode");
     expect(stripeClientSource).not.toContain("VITE_STRIPE_TOK_ONE_TEST_SECRET_KEY");
+  });
+
+  it("keeps test checkout-session sync pinned to a test Stripe runtime", () => {
+    const testRuntimeBlock = stripeClientSource.slice(
+      stripeClientSource.indexOf('if (mode === "test")'),
+      stripeClientSource.indexOf('if (mode === "live")'),
+    );
+
+    expect(testRuntimeBlock).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY"]');
+    expect(testRuntimeBlock).toContain('purpose: "Tok One Stripe test secret"');
+    expect(testRuntimeBlock).toContain('expectedMode: "test"');
   });
 
   it("creates Tok One Checkout sessions with the dedicated runtime and records the Stripe mode", () => {
@@ -74,5 +85,16 @@ describe("Tok One Stripe test mode", () => {
     expect(migrationSource).toMatch(/CHECK \(stripe_mode IN \('live', 'test'\)\)/i);
     expect(migrationSource).toMatch(/ADD COLUMN IF NOT EXISTS stripe_checkout_session_id text/i);
     expect(migrationSource).toContain("idx_tok_one_subscriptions_stripe_checkout_session_id");
+  });
+
+  it("renders Tok One benefit cards as accessible expandable controls keyed by benefit id", () => {
+    expect(tokOnePageSource).toContain('id: "free_delivery"');
+    expect(tokOnePageSource).toContain("details:");
+    expect(tokOnePageSource).toContain("aria-expanded={isExpanded}");
+    expect(tokOnePageSource).toContain("aria-controls={detailsId}");
+    expect(tokOnePageSource).toContain("aria-hidden={!isExpanded}");
+    expect(tokOnePageSource).toContain("benefit.details.map");
+    expect(tokOnePageSource).toContain("key={benefit.id}");
+    expect(tokOnePageSource).toContain("expandedBenefit === benefit.id");
   });
 });

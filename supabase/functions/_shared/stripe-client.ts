@@ -87,9 +87,8 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
   const kind = normalizeCheckoutKind(checkoutKind);
   if (kind === "tok-one") {
     return selectRuntime({
-      names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY"],
-      purpose: "Tok One Stripe test secret",
-      expectedMode: "test",
+      names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY"],
+      purpose: "Tok One Stripe secret",
       isolatedTokOneKey: true,
     });
   }

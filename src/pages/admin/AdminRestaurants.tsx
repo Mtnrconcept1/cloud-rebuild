@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -709,6 +710,15 @@ export default function AdminRestaurants() {
           { label: "Catalogues OK", value: stats.catalogReady, icon: Sparkles },
         ]}
       />
+
+      <div className="flex justify-end">
+        <Button asChild variant="outline" className="gap-2">
+          <Link to="/admin/restaurants/google-business">
+            <ClipboardCheck className="h-4 w-4" />
+            Boutons Google Business
+          </Link>
+        </Button>
+      </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <Card>

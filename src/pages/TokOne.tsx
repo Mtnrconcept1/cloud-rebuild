@@ -43,50 +43,83 @@ const supabase = getSupabase();
 const HERO_IMAGE = "/images/octopus-fine-dining.jpeg";
 
 type BenefitCard = {
+  id: string;
   title: string;
   description: string;
+  details: string[];
   icon: LucideIcon;
   tone: string;
 };
 
+type BenefitPresentation = Omit<BenefitCard, "id">;
+
 const CORE_BENEFITS: BenefitCard[] = [
   {
+    id: "free_delivery",
     title: "Livraison offerte",
     description:
       "Les frais de livraison TOK disparaissent sur les commandes éligibles selon votre formule active.",
+    details: [
+      "Le seuil d'éligibilité est lu depuis votre formule Tok One.",
+      "L'avantage s'applique automatiquement au panier quand le restaurant et la zone sont couverts.",
+      "Le récapitulatif de commande distingue toujours les frais économisés des autres coûts.",
+    ],
     icon: Truck,
     tone: "orange",
   },
   {
+    id: "priority_access",
     title: "Accès prioritaire",
     description:
       "Les tables VIP, créneaux rares et drops partenaires remontent plus tôt dans votre expérience.",
+    details: [
+      "Les tables VIP La Table du Chef sont mises en avant avant les créneaux standards.",
+      "Les drops limités et créneaux Zéro Attente peuvent être proposés plus haut dans le parcours.",
+      "La priorité reste dépendante des disponibilités réelles du restaurant.",
+    ],
     icon: Crown,
     tone: "pink",
   },
   {
+    id: "reserved_discounts",
     title: "Réductions réservées",
     description:
       "Des avantages privés s'appliquent sur des restaurants, ventes flash et opérations locales.",
+    details: [
+      "Les remises configurées par TOK ou le partenaire sont appliquées sans code promo.",
+      "Les avantages peuvent varier selon le restaurant, le canal et la campagne active.",
+      "Le taux maximum affiché est recalculé depuis la formule sélectionnée.",
+    ],
     icon: Gift,
     tone: "emerald",
   },
   {
+    id: "priority_support",
     title: "Support prioritaire",
     description:
       "Vos demandes liées aux commandes, réservations et remboursements passent en file prioritaire.",
+    details: [
+      "Les dossiers liés aux commandes, réservations et paiements sont triés avec priorité Tok One.",
+      "Le support conserve l'historique de la demande pour éviter les relances inutiles.",
+      "Les remboursements restent soumis aux règles du paiement et du restaurant concerné.",
+    ],
     icon: Headphones,
     tone: "sky",
   },
 ];
 
-const ENTITLEMENT_BENEFITS: Record<string, BenefitCard> = {
+const ENTITLEMENT_BENEFITS: Record<string, BenefitPresentation> = {
   free_delivery: CORE_BENEFITS[0],
   discount_percentage: CORE_BENEFITS[2],
   chef_table_priority: {
     title: "Priorité La Table du Chef",
     description:
       "Accédez plus tôt aux expériences gastronomiques et tables rares proposées par les partenaires TOK.",
+    details: [
+      "Les expériences VIP compatibles avec votre niveau remontent plus haut dans les sélections.",
+      "Les disponibilités limitées restent bloquées par la capacité réelle du restaurant.",
+      "Les droits Tok One sont relus au moment de la réservation.",
+    ],
     icon: Utensils,
     tone: "pink",
   },
@@ -94,6 +127,11 @@ const ENTITLEMENT_BENEFITS: Record<string, BenefitCard> = {
     title: "Ventes flash en avance",
     description:
       "Recevez les meilleures offres limitées avant leur diffusion générale dans l'application.",
+    details: [
+      "Les ventes flash éligibles peuvent être proposées en priorité dans le feed et les listes.",
+      "Les quantités restent limitées et diminuent à chaque commande confirmée.",
+      "Les avantages de prix sont recalculés côté serveur avant paiement.",
+    ],
     icon: Sparkles,
     tone: "orange",
   },
@@ -102,6 +140,11 @@ const ENTITLEMENT_BENEFITS: Record<string, BenefitCard> = {
     title: "Attentions partenaires",
     description:
       "Profitez d'invitations, attentions et avantages ponctuels selon les campagnes actives.",
+    details: [
+      "Les attentions dépendent des restaurants et opérations locales ouvertes au moment de la visite.",
+      "TOK peut cibler les offres selon votre usage et votre niveau Tok One.",
+      "Les conditions sont affichées avant confirmation quand une action est requise.",
+    ],
     icon: Gift,
     tone: "emerald",
   },
@@ -291,12 +334,15 @@ function BenefitTile({
 }) {
   const Icon = benefit.icon;
   const tone = benefitToneClasses[benefit.tone] ?? benefitToneClasses.orange;
+  const detailsId = `tok-one-benefit-${benefit.id}`;
 
   return (
     <button
       type="button"
       onClick={onToggle}
-      className={`group flex h-full min-h-[190px] w-full flex-col rounded-lg border p-5 text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 ${tone.panel} ${tone.ring}`}
+      aria-expanded={isExpanded}
+      aria-controls={detailsId}
+      className={`group flex h-full min-h-[220px] w-full flex-col rounded-lg border p-5 text-left transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 ${tone.panel} ${tone.ring}`}
     >
       <span
         className={`mb-5 inline-flex h-11 w-11 items-center justify-center rounded-lg ${tone.icon}`}
@@ -312,6 +358,27 @@ function BenefitTile({
         }`}
       >
         {benefit.description}
+      </span>
+      <span
+        id={detailsId}
+        aria-hidden={!isExpanded}
+        className={`grid transition-all duration-300 ${
+          isExpanded ? "mt-4 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <span className="overflow-hidden">
+          <span className="block rounded-lg border border-white/70 bg-white/70 p-3 text-sm leading-6 text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-white/70">
+            {benefit.details.map((detail) => (
+              <span key={detail} className="flex gap-2 py-1">
+                <Check
+                  className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300"
+                  aria-hidden="true"
+                />
+                <span>{detail}</span>
+              </span>
+            ))}
+          </span>
+        </span>
       </span>
       <span className="mt-auto flex items-center gap-1 pt-5 text-sm font-semibold text-orange-700 dark:text-orange-200">
         {isExpanded ? "Réduire" : "Voir le détail"}
@@ -529,10 +596,16 @@ export default function TokOne() {
     .filter((benefit) => benefit.enabled)
     .map<BenefitCard>((benefit, index) => {
       const presentation = ENTITLEMENT_BENEFITS[benefit.id];
-      if (presentation) return presentation;
+      if (presentation) return { ...presentation, id: benefit.id };
       return {
+        id: benefit.id,
         title: benefit.label,
         description: benefit.description || "Avantage Tok One actif.",
+        details: [
+          "Cet avantage est configuré dans votre formule Tok One active.",
+          "TOK vérifie son éligibilité au moment de l'action concernée.",
+          "Les conditions exactes peuvent dépendre du restaurant ou de l'opération.",
+        ],
         icon: benefits[index] ? getBenefitIcon(benefits[index]) : Sparkles,
         tone: CORE_BENEFITS[index % CORE_BENEFITS.length].tone,
       };
@@ -806,12 +879,12 @@ export default function TokOne() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {displayedBenefits.map((benefit) => (
               <BenefitTile
-                key={benefit.title}
+                key={benefit.id}
                 benefit={benefit}
-                isExpanded={expandedBenefit === benefit.title}
+                isExpanded={expandedBenefit === benefit.id}
                 onToggle={() =>
                   setExpandedBenefit((current) =>
-                    current === benefit.title ? null : benefit.title,
+                    current === benefit.id ? null : benefit.id,
                   )
                 }
               />

@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import GoogleBusinessBookingCard from "@/components/dashboard/GoogleBusinessBookingCard";
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -261,6 +262,8 @@ export default function Dashboard() {
           title="Dossier de vérification restaurateur"
           emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
         />
+
+        <GoogleBusinessBookingCard restaurantId={restaurant.id} />
 
         <div className="space-y-4">
           <DashboardStatCard
