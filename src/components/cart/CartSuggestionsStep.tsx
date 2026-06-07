@@ -200,38 +200,40 @@ export default function CartSuggestionsStep({
           {suggestions.map((item) => (
             <div
               key={item.id}
-              className="grid min-w-0 grid-cols-[88px_minmax(0,1fr)] items-start overflow-hidden rounded-xl border bg-background sm:flex sm:h-full sm:flex-col"
+              className="grid min-w-0 grid-cols-[76px_minmax(0,1fr)] overflow-hidden rounded-xl border bg-background sm:flex sm:h-full sm:flex-col"
             >
-              <div className="relative flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden bg-muted sm:aspect-[4/3] sm:h-auto sm:w-full">
+              <div className="relative flex h-full min-h-[104px] w-[76px] shrink-0 items-center justify-center overflow-hidden bg-muted sm:aspect-[4/3] sm:h-auto sm:min-h-0 sm:w-full">
                 {item.image_url ? (
                   <img src={item.image_url} alt={item.name} className="absolute inset-0 h-full w-full object-cover" />
                 ) : (
                   <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-muted-foreground sm:text-2xl">TOK</span>
                 )}
               </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
+              <div className="flex min-w-0 flex-1 flex-col gap-2 p-2.5 sm:p-3">
                 <div className="min-w-0 space-y-1">
-                  <p className="line-clamp-2 break-words text-sm font-semibold">{item.name}</p>
-                  <p className="line-clamp-2 break-words text-xs text-muted-foreground">{item.reason}</p>
-                  <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
+                  <p className="line-clamp-1 break-words text-sm font-semibold sm:line-clamp-2">{item.name}</p>
+                  <p className="line-clamp-1 break-words text-xs text-muted-foreground sm:line-clamp-2">{item.reason}</p>
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="mt-auto w-full"
-                  variant={addedIds.has(item.id) ? "secondary" : "default"}
-                  disabled={addedIds.has(item.id)}
-                  onClick={() => handleAdd(item)}
-                >
-                  {addedIds.has(item.id) ? (
-                    "Ajoute"
-                  ) : (
-                    <>
-                      <Plus className="mr-1 h-4 w-4" />
-                      Ajouter
-                    </>
-                  )}
-                </Button>
+                <div className="mt-auto flex items-center gap-2 sm:flex-col sm:items-stretch">
+                  <p className="min-w-0 flex-1 text-sm font-bold text-primary sm:flex-none">{Number(item.price).toFixed(2)} CHF</p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 shrink-0 px-3 sm:h-9 sm:w-full"
+                    variant={addedIds.has(item.id) ? "secondary" : "default"}
+                    disabled={addedIds.has(item.id)}
+                    onClick={() => handleAdd(item)}
+                  >
+                    {addedIds.has(item.id) ? (
+                      "Ajoute"
+                    ) : (
+                      <>
+                        <Plus className="mr-1 h-4 w-4" />
+                        Ajouter
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
