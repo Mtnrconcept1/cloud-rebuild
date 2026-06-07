@@ -39,6 +39,7 @@ const ALLOWED_EVENT_PAYLOAD_KEYS = new Set([
 const MAX_EVENT_PAYLOAD_KEYS = 12;
 const MAX_EVENT_PAYLOAD_BYTES = 2_048;
 const MAX_EVENT_PAYLOAD_STRING_LENGTH = 160;
+const MAX_BATCH_EVENTS = 20;
 
 type AnalyticsPayload = {
   kind?: string;
@@ -52,6 +53,10 @@ type AnalyticsPayload = {
   locationLng?: number | null;
   source?: string | null;
   impressionId?: string | null;
+};
+
+type AnalyticsBatchPayload = AnalyticsPayload & {
+  events?: AnalyticsPayload[];
 };
 
 function normalizeText(value: unknown) {
@@ -105,6 +110,33 @@ function sanitizeEventPayload(value: unknown) {
 
 function isAllowedEvent(entityType: string, eventName: string) {
   return Boolean(TRACKABLE_EVENT_NAMES_BY_ENTITY.get(entityType)?.has(eventName));
+}
+
+function buildBatchEventDedupeKey(input: AnalyticsPayload) {
+  return JSON.stringify({
+    kind: normalizeKind(input.kind),
+    entityType: normalizeKind(input.entityType),
+    entityId: normalizeText(input.entityId),
+    eventName: normalizeKind(input.eventName),
+    searchQuery: normalizeText(input.searchQuery),
+    impressionId: normalizeText(input.impressionId),
+    source: normalizeText(input.source),
+  });
+}
+
+function dedupeBatchEvents(events: AnalyticsPayload[]) {
+  const seen = new Set<string>();
+  const deduped: AnalyticsPayload[] = [];
+
+  for (const event of events.slice(0, MAX_BATCH_EVENTS)) {
+    if (!event || typeof event !== "object" || Array.isArray(event)) continue;
+    const dedupeKey = buildBatchEventDedupeKey(event);
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    deduped.push(event);
+  }
+
+  return deduped;
 }
 
 function getClientIp(req: Request) {
@@ -182,7 +214,7 @@ Deno.serve(async (req) => {
       throw new HttpError(405, "Method not allowed");
     }
 
-    const input: AnalyticsPayload = await req.json();
+    const input: AnalyticsBatchPayload = await req.json();
     kind = normalizeKind(input.kind);
     userId = await maybeResolveUserId(req);
     const limiter = createRateLimiter(adminClient, "track-analytics");
@@ -194,60 +226,122 @@ Deno.serve(async (req) => {
       await limiter.consume(`user:${userId}`, { maxRequests: 600, windowSeconds: 300 });
     }
 
+    const recordEvent = async (input: AnalyticsPayload) => {
+      const entityId = normalizeText(input.entityId);
+      const entityType = normalizeKind(input.entityType);
+      const eventName = normalizeKind(input.eventName);
+      rejectedEventType = entityType;
+      rejectedEventName = eventName;
+
+      if (!isUuid(entityId)) {
+        throw new HttpError(400, "entityId invalide");
+      }
+      if (!TRACKABLE_ENTITY_TYPES.has(entityType)) {
+        throw new HttpError(400, "entityType invalide");
+      }
+      if (!isAllowedEvent(entityType, eventName)) {
+        throw new HttpError(400, "eventName invalide");
+      }
+      const safePayload = sanitizeEventPayload(input.payload);
+
+      const { error } = await adminClient.from("event_store").insert({
+        entity_id: entityId,
+        entity_type: entityType,
+        event_name: eventName,
+        payload: {
+          ...safePayload,
+          user_id: userId,
+        },
+      });
+
+      if (error) {
+        throw new HttpError(500, error.message);
+      }
+    };
+
+    const recordSearch = async (input: AnalyticsPayload) => {
+      const searchQuery = normalizeText(input.searchQuery);
+      if (!searchQuery) {
+        throw new HttpError(400, "searchQuery requis");
+      }
+
+      const { error } = await adminClient.from("search_logs").insert({
+        user_id: userId,
+        search_query: searchQuery,
+        results_count: asOptionalNumber(input.resultsCount),
+        location_lat: asOptionalNumber(input.locationLat),
+        location_lng: asOptionalNumber(input.locationLng),
+      });
+
+      if (error) {
+        throw new HttpError(500, error.message);
+      }
+    };
+
+    const recordClick = async (input: AnalyticsPayload) => {
+      const entityType = normalizeKind(input.entityType);
+      const entityId = normalizeText(input.entityId);
+      const impressionId = normalizeText(input.impressionId);
+
+      if (!TRACKABLE_ENTITY_TYPES.has(entityType)) {
+        throw new HttpError(400, "entityType invalide");
+      }
+      if (!isUuid(entityId)) {
+        throw new HttpError(400, "entityId invalide");
+      }
+
+      const { error } = await adminClient.from("clicks").insert({
+        user_id: userId,
+        entity_type: entityType,
+        entity_id: entityId,
+        impression_id: isUuid(impressionId) ? impressionId : null,
+      });
+
+      if (error) {
+        throw new HttpError(500, error.message);
+      }
+    };
+
     switch (kind) {
+      case "batch": {
+        if (!Array.isArray(input.events)) {
+          throw new HttpError(400, "events requis");
+        }
+        if (input.events.length > MAX_BATCH_EVENTS) {
+          throw new HttpError(400, "batch trop volumineux");
+        }
+
+        const events = dedupeBatchEvents(input.events);
+        let recordedCount = 0;
+
+        for (const event of events) {
+          const eventKind = normalizeKind(event.kind);
+          if (eventKind === "event") {
+            await recordEvent(event);
+          } else if (eventKind === "search") {
+            await recordSearch(event);
+          } else if (eventKind === "click") {
+            await recordClick(event);
+          } else {
+            throw new HttpError(400, "Type de tracking invalide");
+          }
+          recordedCount += 1;
+        }
+
+        return jsonResponse({
+          recorded: true,
+          count: recordedCount,
+          deduped: input.events.length - events.length,
+        }, 200, corsHeaders);
+      }
+
       case "event": {
-        const entityId = normalizeText(input.entityId);
-        const entityType = normalizeKind(input.entityType);
-        const eventName = normalizeKind(input.eventName);
-        rejectedEventType = entityType;
-        rejectedEventName = eventName;
-
-        if (!isUuid(entityId)) {
-          throw new HttpError(400, "entityId invalide");
-        }
-        if (!TRACKABLE_ENTITY_TYPES.has(entityType)) {
-          throw new HttpError(400, "entityType invalide");
-        }
-        if (!isAllowedEvent(entityType, eventName)) {
-          throw new HttpError(400, "eventName invalide");
-        }
-        const safePayload = sanitizeEventPayload(input.payload);
-
-        const { error } = await adminClient.from("event_store").insert({
-          entity_id: entityId,
-          entity_type: entityType,
-          event_name: eventName,
-          payload: {
-            ...safePayload,
-            user_id: userId,
-          },
-        });
-
-        if (error) {
-          throw new HttpError(500, error.message);
-        }
-
+        await recordEvent(input);
         return jsonResponse({ recorded: true }, 200, corsHeaders);
       }
 
       case "search": {
-        const searchQuery = normalizeText(input.searchQuery);
-        if (!searchQuery) {
-          throw new HttpError(400, "searchQuery requis");
-        }
-
-        const { error } = await adminClient.from("search_logs").insert({
-          user_id: userId,
-          search_query: searchQuery,
-          results_count: asOptionalNumber(input.resultsCount),
-          location_lat: asOptionalNumber(input.locationLat),
-          location_lng: asOptionalNumber(input.locationLng),
-        });
-
-        if (error) {
-          throw new HttpError(500, error.message);
-        }
-
+        await recordSearch(input);
         return jsonResponse({ recorded: true }, 200, corsHeaders);
       }
 
@@ -277,28 +371,7 @@ Deno.serve(async (req) => {
       }
 
       case "click": {
-        const entityType = normalizeKind(input.entityType);
-        const entityId = normalizeText(input.entityId);
-        const impressionId = normalizeText(input.impressionId);
-
-        if (!TRACKABLE_ENTITY_TYPES.has(entityType)) {
-          throw new HttpError(400, "entityType invalide");
-        }
-        if (!isUuid(entityId)) {
-          throw new HttpError(400, "entityId invalide");
-        }
-
-        const { error } = await adminClient.from("clicks").insert({
-          user_id: userId,
-          entity_type: entityType,
-          entity_id: entityId,
-          impression_id: isUuid(impressionId) ? impressionId : null,
-        });
-
-        if (error) {
-          throw new HttpError(500, error.message);
-        }
-
+        await recordClick(input);
         return jsonResponse({ recorded: true }, 200, corsHeaders);
       }
 
@@ -314,7 +387,7 @@ Deno.serve(async (req) => {
       log.error("track-analytics error", { message: logMessage });
     }
 
-    if (kind === "event" && isClientRejection) {
+    if ((kind === "event" || kind === "batch") && isClientRejection && (rejectedEventType || rejectedEventName)) {
       await auditRejectedEvent({
         adminClient,
         req,

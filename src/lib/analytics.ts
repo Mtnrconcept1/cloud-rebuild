@@ -526,10 +526,11 @@ export async function flushAnalyticsQueue() {
   const batch = analyticsQueue.splice(0, ANALYTICS_MAX_BATCH_SIZE);
   if (batch.length === 0) return;
 
-  for (const item of batch) {
-    const result = await invokeAnalyticsIngest(item.body);
-    item.resolve(result);
-  }
+  const result = await invokeAnalyticsIngest({
+    kind: "batch",
+    events: batch.map((item) => item.body),
+  });
+  batch.forEach((item) => item.resolve(result));
 
   if (analyticsQueue.length > 0) {
     scheduleAnalyticsFlush();
@@ -651,6 +652,8 @@ async function trackSponsoredEvent(input: {
   entityId?: string | null;
   paymentMethod?: string | null;
   eventId?: string | null;
+  eventSignature?: string | null;
+  signedAt?: string | null;
 }): Promise<SponsoredTrackResult> {
   if (_sponsoredTrackingDisabled) return { recorded: false, deduped: false };
 
@@ -668,6 +671,8 @@ async function trackSponsoredEvent(input: {
         entityId: input.entityId || null,
         paymentMethod: input.paymentMethod || null,
         eventId: input.eventId || null,
+        eventSignature: input.eventSignature || null,
+        signedAt: input.signedAt || null,
       },
     });
 

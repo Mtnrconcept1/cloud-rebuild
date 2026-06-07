@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
+import { buildRestaurantSeoPath, slugifyRestaurantSegment } from "@/lib/restaurantSlugs";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
+import RestaurantDetail from "./RestaurantDetail";
 
 const supabase = getSupabase();
 
@@ -48,6 +50,7 @@ function toCardProps(restaurant: any) {
   const categoryNames = Array.isArray(restaurant?.category_names) ? restaurant.category_names : [];
   return {
     id: restaurant.id,
+    slug: restaurant.slug || null,
     name: restaurant.name,
     cuisine: formatRestaurantCategorySummary(categoryNames, restaurant.cuisine_type || ""),
     rating: restaurant.rating || 0,
@@ -72,44 +75,71 @@ function buildRestaurantJsonLd(restaurants: any[], city: string, category: strin
     "@type": "ItemList",
     name: getPageName(city, category, district),
     url: buildCanonicalUrl(path),
-    itemListElement: restaurants.slice(0, 24).map((restaurant, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      item: {
-        "@type": "Restaurant",
-        "@id": buildCanonicalUrl(`/restaurant/${restaurant.id}`),
-        name: restaurant.name,
-        servesCuisine: restaurant.cuisine_type || category || undefined,
-        image: restaurant.image_url || undefined,
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: restaurant.address || undefined,
-          addressLocality: restaurant.city || city,
-          addressCountry: "CH",
+    itemListElement: restaurants.slice(0, 24).map((restaurant, index) => {
+      const restaurantPath = buildRestaurantSeoPath(restaurant);
+      return {
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": "Restaurant",
+          "@id": buildCanonicalUrl(restaurantPath),
+          name: restaurant.name,
+          servesCuisine: restaurant.cuisine_type || category || undefined,
+          image: restaurant.image_url || undefined,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: restaurant.address || undefined,
+            addressLocality: restaurant.city || city,
+            addressCountry: "CH",
+          },
+          aggregateRating: restaurant.rating
+            ? {
+              "@type": "AggregateRating",
+              ratingValue: Number(restaurant.rating),
+              reviewCount: Number(restaurant.review_count || 0),
+            }
+            : undefined,
+          url: buildCanonicalUrl(restaurantPath),
         },
-        aggregateRating: restaurant.rating
-          ? {
-            "@type": "AggregateRating",
-            ratingValue: Number(restaurant.rating),
-            reviewCount: Number(restaurant.review_count || 0),
-          }
-          : undefined,
-        url: buildCanonicalUrl(`/restaurant/${restaurant.id}`),
-      },
-    })),
+      };
+    }),
   };
 }
 
 export default function LocalRestaurants() {
   const params = useParams();
   const city = slugToLabel(params.city, CITY_LABELS);
-  const district = slugToLabel(params.category, DISTRICT_LABELS);
-  const category = district ? "" : slugToLabel(params.category, CATEGORY_LABELS);
+  const routeSegment = String(params.category || "").trim().toLowerCase();
+  const knownDistrictSegment = Boolean(routeSegment && DISTRICT_LABELS[routeSegment]);
+  const knownCategorySegment = Boolean(routeSegment && CATEGORY_LABELS[routeSegment]);
+  const slugCandidate = Boolean(routeSegment && !knownDistrictSegment && !knownCategorySegment);
+  const { data: restaurantBySlug, isLoading: isSlugLoading } = useQuery({
+    queryKey: ["restaurant-slug", city, routeSegment],
+    enabled: Boolean(city && slugCandidate),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("id, city, slug")
+        .eq("slug", routeSegment)
+        .eq("is_active", true)
+        .limit(10);
+
+      if (error) throw error;
+
+      const citySlug = slugifyRestaurantSegment(params.city);
+      return (data || []).find((restaurant: any) =>
+        slugifyRestaurantSegment(restaurant.city) === citySlug
+      ) || (data || [])[0] || null;
+    },
+  });
+  const resolvedRestaurantId = restaurantBySlug?.id ? String(restaurantBySlug.id) : "";
+  const district = knownDistrictSegment ? slugToLabel(params.category, DISTRICT_LABELS) : "";
+  const category = district || resolvedRestaurantId ? "" : slugToLabel(params.category, CATEGORY_LABELS);
   const path = params.category ? `/restaurants/${params.city}/${params.category}` : `/restaurants/${params.city}`;
 
   const { data: restaurants = [], isLoading } = useQuery({
     queryKey: ["local-restaurants", city, category, district],
-    enabled: Boolean(city),
+    enabled: Boolean(city) && !resolvedRestaurantId && !(slugCandidate && isSlugLoading),
     queryFn: async () => {
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
         p_query: district || null,
@@ -142,6 +172,20 @@ export default function LocalRestaurants() {
   );
 
   useSeoMeta({ title, description, path, jsonLd });
+
+  if (slugCandidate && isSlugLoading) {
+    return (
+      <main className="min-h-screen bg-background">
+        <div className="container py-8">
+          <div className="h-[360px] animate-pulse rounded-2xl bg-muted" />
+        </div>
+      </main>
+    );
+  }
+
+  if (resolvedRestaurantId) {
+    return <RestaurantDetail resolvedRestaurantId={resolvedRestaurantId} canonicalPath={path} />;
+  }
 
   return (
     <main className="min-h-screen bg-background">

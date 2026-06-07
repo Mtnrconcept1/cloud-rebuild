@@ -74,12 +74,14 @@ function RestaurantGalleryImageFrame({ photo, alt }: { photo: RestaurantGalleryP
 function buildRestaurantDetailJsonLd({
   restaurant,
   restaurantId,
+  canonicalPath,
   heroImage,
   averageRating,
   reviewCount,
 }: {
   restaurant: any | null | undefined;
   restaurantId: string | undefined;
+  canonicalPath?: string;
   heroImage: string;
   averageRating: string;
   reviewCount: number;
@@ -88,11 +90,12 @@ function buildRestaurantDetailJsonLd({
 
   const imageUrl = heroImage.startsWith("http") ? heroImage : buildCanonicalUrl(heroImage);
   const priceRange = "$".repeat(Math.max(1, Math.min(Number(restaurant.price_range || 2), 4)));
+  const restaurantPath = canonicalPath || `/restaurant/${restaurantId}`;
 
   return {
     "@context": "https://schema.org",
     "@type": "Restaurant",
-    "@id": buildCanonicalUrl(`/restaurant/${restaurantId}`),
+    "@id": buildCanonicalUrl(restaurantPath),
     name: restaurant.name,
     description: restaurant.description || `Restaurant ${restaurant.name} sur TOK`,
     image: imageUrl,
@@ -114,12 +117,18 @@ function buildRestaurantDetailJsonLd({
         worstRating: 1,
       }
       : undefined,
-    url: buildCanonicalUrl(`/restaurant/${restaurantId}`),
+    url: buildCanonicalUrl(restaurantPath),
   };
 }
 
-export default function RestaurantDetail() {
+type RestaurantDetailProps = {
+  resolvedRestaurantId?: string;
+  canonicalPath?: string;
+};
+
+export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }: RestaurantDetailProps = {}) {
   const { id } = useParams<{ id: string }>();
+  const restaurantId = resolvedRestaurantId || id;
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -153,96 +162,96 @@ export default function RestaurantDetail() {
   }, [reservationEnabled, searchParams]);
 
   const { data: restaurant } = useQuery({
-    queryKey: ["restaurant", id],
-    queryFn: async () => { const { data } = await supabase.from("restaurants").select("*").eq("id", id!).single(); return data; },
-    enabled: !!id,
+    queryKey: ["restaurant", restaurantId],
+    queryFn: async () => { const { data } = await supabase.from("restaurants").select("*").eq("id", restaurantId!).single(); return data; },
+    enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: mediaPhotos } = useQuery({
-    queryKey: ["restaurant-media", id],
+    queryKey: ["restaurant-media", restaurantId],
     queryFn: async () => {
       const { data } = await supabase
         .from("restaurant_media")
         .select("id, media_url, alt_text, is_cover, position, media_type")
-        .eq("restaurant_id", id!)
+        .eq("restaurant_id", restaurantId!)
         .in("media_type", ["photo", "photo_ai_tok"])
         .order("position", { ascending: true })
         .limit(RESTAURANT_MEDIA_LIMIT);
       return (data || []) as RestaurantGalleryPhoto[];
     },
-    enabled: !!id,
+    enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   useEffect(() => {
-    if (id && restaurant && !impressionTracked.current) {
+    if (restaurantId && restaurant && !impressionTracked.current) {
       impressionTracked.current = true;
-      trackImpression("restaurant", id, "restaurant_detail");
+      trackImpression("restaurant", restaurantId, "restaurant_detail");
       trackEvent({
         eventType: "page_view",
         eventData: { page: "restaurant_detail", restaurant_name: restaurant.name },
-        restaurantId: id
+        restaurantId,
       });
     }
-  }, [id, restaurant]);
+  }, [restaurantId, restaurant]);
 
   const { data: menuItems } = useQuery({
-    queryKey: ["menu-items", id],
-    queryFn: async () => { const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", id!).eq("is_available", true).order("category").limit(RESTAURANT_MENU_ITEMS_LIMIT); return data || []; },
-    enabled: !!id,
+    queryKey: ["menu-items", restaurantId],
+    queryFn: async () => { const { data } = await supabase.from("menu_items").select("*").eq("restaurant_id", restaurantId!).eq("is_available", true).order("category").limit(RESTAURANT_MENU_ITEMS_LIMIT); return data || []; },
+    enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: reviews } = useQuery({
-    queryKey: ["reviews", id],
-    queryFn: async () => { const { data } = await supabase.from("reviews").select("*").eq("restaurant_id", id!).order("created_at", { ascending: false }).limit(RESTAURANT_REVIEWS_LIMIT); return data || []; },
-    enabled: !!id,
+    queryKey: ["reviews", restaurantId],
+    queryFn: async () => { const { data } = await supabase.from("reviews").select("*").eq("restaurant_id", restaurantId!).order("created_at", { ascending: false }).limit(RESTAURANT_REVIEWS_LIMIT); return data || []; },
+    enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: formulas } = useQuery({
-    queryKey: ["restaurant-formulas", id],
-    queryFn: async () => { const { data } = await supabase.from("meal_formulas").select("*, meal_formula_categories(*)").eq("restaurant_id", id!).eq("is_active", true).limit(RESTAURANT_FORMULAS_LIMIT); return data || []; },
-    enabled: !!id,
+    queryKey: ["restaurant-formulas", restaurantId],
+    queryFn: async () => { const { data } = await supabase.from("meal_formulas").select("*, meal_formula_categories(*)").eq("restaurant_id", restaurantId!).eq("is_active", true).limit(RESTAURANT_FORMULAS_LIMIT); return data || []; },
+    enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: flashSales } = useQuery({
-    queryKey: ["restaurant-flash-sales", id],
+    queryKey: ["restaurant-flash-sales", restaurantId],
     queryFn: async () => {
-      const { data } = await supabase.from("flash_sales").select("*").eq("restaurant_id", id!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
+      const { data } = await supabase.from("flash_sales").select("*").eq("restaurant_id", restaurantId!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
       return data || [];
     },
-    enabled: !!id,
+    enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: antiWasteOffers } = useQuery({
-    queryKey: ["restaurant-anti-waste", id],
+    queryKey: ["restaurant-anti-waste", restaurantId],
     queryFn: async () => {
-      const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", id!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
+      const { data } = await supabase.from("anti_waste_offers").select("*").eq("restaurant_id", restaurantId!).eq("is_active", true).gt("quantity_available", 0).order("created_at", { ascending: false }).limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
       return data || [];
     },
-    enabled: !!id,
+    enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
   const { data: isFavorite } = useQuery({
-    queryKey: ["favorite", id, user?.id],
+    queryKey: ["favorite", restaurantId, user?.id],
     queryFn: async () => {
       if (!user) return false;
-      const { data } = await supabase.from("favorites").select("id").eq("restaurant_id", id!).eq("user_id", user.id).maybeSingle();
+      const { data } = await supabase.from("favorites").select("id").eq("restaurant_id", restaurantId!).eq("user_id", user.id).maybeSingle();
       return !!data;
     },
-    enabled: !!id,
+    enabled: !!restaurantId,
   });
 
   const toggleFavorite = async () => {
     if (!user) return toast({ title: "Connectez-vous", variant: "destructive" });
-    if (isFavorite) await supabase.from("favorites").delete().eq("restaurant_id", id!).eq("user_id", user.id);
-    else await supabase.from("favorites").insert({ restaurant_id: id!, user_id: user.id });
-    queryClient.invalidateQueries({ queryKey: ["favorite", id] });
+    if (isFavorite) await supabase.from("favorites").delete().eq("restaurant_id", restaurantId!).eq("user_id", user.id);
+    else await supabase.from("favorites").insert({ restaurant_id: restaurantId!, user_id: user.id });
+    queryClient.invalidateQueries({ queryKey: ["favorite", restaurantId] });
   };
 
   const ratingDistribution = useMemo(() => {
@@ -279,8 +288,8 @@ export default function RestaurantDetail() {
     ? undefined
     : "Commande indisponible: livraison et emporter sont désactivés pour ce restaurant.";
   const cartItemsForCurrentRestaurant = useMemo(
-    () => cartItems.filter((item) => item.restaurantId === id),
-    [cartItems, id],
+    () => cartItems.filter((item) => item.restaurantId === restaurantId),
+    [cartItems, restaurantId],
   );
   const cartCountForCurrentRestaurant = useMemo(
     () => cartItemsForCurrentRestaurant.reduce((acc, item) => acc + item.quantity, 0),
@@ -299,18 +308,19 @@ export default function RestaurantDetail() {
   const restaurantJsonLd = useMemo(
     () => buildRestaurantDetailJsonLd({
       restaurant,
-      restaurantId: id,
+      restaurantId,
+      canonicalPath,
       heroImage,
       averageRating: avgRating,
       reviewCount,
     }),
-    [avgRating, heroImage, id, restaurant, reviewCount],
+    [avgRating, canonicalPath, heroImage, restaurantId, restaurant, reviewCount],
   );
 
   useSeoMeta({
     title: seoTitle,
     description: seoDescription,
-    path: `/restaurant/${id || ""}`,
+    path: canonicalPath || `/restaurant/${restaurantId || ""}`,
     image: heroImage,
     jsonLd: restaurantJsonLd,
   });
@@ -447,7 +457,7 @@ export default function RestaurantDetail() {
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
                         <div><p className="font-semibold text-sm">Réservation classique</p><p className="text-xs text-muted-foreground">Réserver avec promos</p></div>
                       </button>
-                      <button onClick={() => { setShowReserveChoice(false); navigate(`/zero-attente?restaurant=${id}`); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-500/5 transition-all text-left group border-2 border-indigo-500/20">
+                      <button onClick={() => { setShowReserveChoice(false); navigate(`/zero-attente?restaurant=${restaurantId}`); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-500/5 transition-all text-left group border-2 border-indigo-500/20">
                         <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0"><Zap className="h-5 w-5 text-indigo-500" /></div>
                         <div><p className="font-semibold text-sm text-indigo-600 dark:text-indigo-400">Zéro Attente</p><p className="text-xs text-muted-foreground">Précommandez, tout sera prêt</p></div>
                       </button>
@@ -663,7 +673,7 @@ export default function RestaurantDetail() {
                                   menuItemId: `flash-${sale.id}`,
                                   name: `[Flash] ${sale.title}`,
                                   price: Number(sale.discounted_price),
-                                  restaurantId: id!,
+                                  restaurantId: restaurantId!,
                                   restaurantName: restaurant.name,
                                   metadata: { is_flash_sale: true, flash_sale_id: sale.id, delivery_available: showDelivery && !!sale.delivery_available, takeaway_available: takeawayAvailable && !!sale.takeaway_available },
                                 });
@@ -687,7 +697,7 @@ export default function RestaurantDetail() {
                           key={offer.id}
                           title={offer.title}
                           restaurant={restaurant.name}
-                          restaurantId={id}
+                          restaurantId={restaurantId}
                           originalPrice={Number(offer.original_price)}
                           discountedPrice={Number(offer.discounted_price)}
                           pickupStart={offer.pickup_start}
@@ -762,7 +772,7 @@ export default function RestaurantDetail() {
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-6">
-                    {user && <ReviewForm restaurantId={id!} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ["reviews", id] }); }} />}
+                    {user && <ReviewForm restaurantId={restaurantId!} onSuccess={() => { queryClient.invalidateQueries({ queryKey: ["reviews", restaurantId] }); }} />}
                     <div className="space-y-4">
                       {reviews?.map((review) => (
                         <div key={review.id} className="p-4 border rounded-xl bg-card space-y-3">
@@ -810,7 +820,7 @@ export default function RestaurantDetail() {
           <div className="w-full lg:w-80 shrink-0">
             <div className="sticky top-24 space-y-4">
               {reservationAvailable ? (
-                <ReservationWidget restaurantId={id!} restaurantName={restaurant.name} onReserve={handleWidgetReserve} />
+                <ReservationWidget restaurantId={restaurantId!} restaurantName={restaurant.name} onReserve={handleWidgetReserve} />
               ) : (
                 <div className="rounded-2xl border border-dashed bg-card p-4 text-sm text-muted-foreground">
                   Les réservations sont actuellement indisponibles pour ce restaurant.
@@ -829,7 +839,7 @@ export default function RestaurantDetail() {
         </div>
       ) : null}
       {reservationAvailable ? (
-        <ReservationDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurantId={id!} restaurantName={restaurant.name} initialDate={reservationDefaults?.date} initialTime={reservationDefaults?.time} initialPartySize={reservationDefaults?.partySize} />
+        <ReservationDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurantId={restaurantId!} restaurantName={restaurant.name} initialDate={reservationDefaults?.date} initialTime={reservationDefaults?.time} initialPartySize={reservationDefaults?.partySize} />
       ) : null}
 
       {/* Photo gallery lightbox */}

@@ -13,6 +13,7 @@ import {
   getPurchaseStatusLabel,
   computePackProgress,
   formatServiceDetail,
+  formatLaunchPackAiQuota,
   type ServiceFulfillment,
   type LaunchPack,
   type PackService,
@@ -92,6 +93,8 @@ function PackSelectionCard({
   onSelect: (pack: LaunchPack) => void;
   featured: boolean;
 }) {
+  const aiQuota = formatLaunchPackAiQuota(pack);
+
   return (
     <div
       className={`relative flex flex-col rounded-2xl border p-5 ${
@@ -109,6 +112,11 @@ function PackSelectionCard({
       <p className="text-2xl font-bold mt-2">
         {pack.price_chf.toLocaleString("fr-CH")} <span className="text-sm text-muted-foreground font-normal">CHF</span>
       </p>
+      {aiQuota ? (
+        <p className="mt-2 rounded-lg bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
+          Credits IA inclus: {aiQuota}
+        </p>
+      ) : null}
       <ul className="space-y-1.5 mt-3 flex-1">
         {(pack.services as PackService[]).map((svc) => {
           const detail = formatServiceDetail(svc);
@@ -150,6 +158,7 @@ function CheckoutDialog({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("card");
 
   if (!selectedPack) return null;
+  const aiQuota = formatLaunchPackAiQuota(selectedPack);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -176,6 +185,11 @@ function CheckoutDialog({
                 </li>
               ))}
             </ul>
+            {aiQuota ? (
+              <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
+                Credits IA inclus: {aiQuota}
+              </p>
+            ) : null}
           </div>
 
           {/* Payment method */}
@@ -394,6 +408,11 @@ export default function DashboardPack() {
                     {restaurantPack.launch_packs.description}
                   </p>
                 )}
+                {formatLaunchPackAiQuota(restaurantPack.launch_packs) ? (
+                  <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
+                    Credits IA inclus: {formatLaunchPackAiQuota(restaurantPack.launch_packs)}
+                  </p>
+                ) : null}
 
                 {/* Progress bar */}
                 {fulfillments.length > 0 && (

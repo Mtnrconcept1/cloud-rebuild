@@ -38,6 +38,9 @@ export type LaunchPack = {
   name: string;
   description: string | null;
   price_chf: number;
+  monthly_ai_image_limit?: number | null;
+  monthly_ai_premium_image_limit?: number | null;
+  ai_monthly_budget_chf?: number | string | null;
   is_active: boolean;
   position: number;
   badge_label: string | null;
@@ -174,4 +177,30 @@ export function formatServiceDetail(svc: PackService): string | null {
     return `+ ${svc.months_management} mois de gestion`;
   }
   return null;
+}
+
+export function formatLaunchPackAiQuota(
+  pack: Pick<
+    LaunchPack,
+    "monthly_ai_image_limit" | "monthly_ai_premium_image_limit" | "ai_monthly_budget_chf"
+  >,
+): string | null {
+  const standardLimit = Number(pack.monthly_ai_image_limit || 0);
+  const premiumLimit = Number(pack.monthly_ai_premium_image_limit || 0);
+  const monthlyBudget = Number(pack.ai_monthly_budget_chf || 0);
+
+  if (standardLimit <= 0 && premiumLimit <= 0 && monthlyBudget <= 0) return null;
+
+  const parts: string[] = [];
+  if (standardLimit > 0) {
+    parts.push(`${standardLimit} visuels IA/mois`);
+  }
+  if (premiumLimit > 0) {
+    parts.push(`${premiumLimit} retouches premium`);
+  }
+  if (monthlyBudget > 0) {
+    parts.push(`budget cap ${monthlyBudget.toLocaleString("fr-CH")} CHF/mois`);
+  }
+
+  return parts.join(" - ");
 }

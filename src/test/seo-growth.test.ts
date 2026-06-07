@@ -100,7 +100,8 @@ describe("SEO growth readiness", () => {
     expect(restaurantDetail).toContain("useSeoMeta");
     expect(restaurantDetail).toContain("buildRestaurantDetailJsonLd");
     expect(restaurantDetail).toContain('"@type": "Restaurant"');
-    expect(restaurantDetail).toContain("buildCanonicalUrl(`/restaurant/${restaurantId}`)");
+    expect(restaurantDetail).toContain("const restaurantPath = canonicalPath || `/restaurant/${restaurantId}`");
+    expect(restaurantDetail).toContain("buildCanonicalUrl(restaurantPath)");
     expect(seo).toContain("link[rel='canonical']");
     expect(seo).toContain("property='og:url'");
     expect(seo).toContain("https://www.thetok.ch");

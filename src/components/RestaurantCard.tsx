@@ -12,6 +12,7 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import { useToast } from "@/hooks/use-toast";
 import { SponsoredBadge, SponsoredContextPill } from "@/components/campaigns/SponsoredVisual";
 import { useSponsoredImpressionOnView } from "@/hooks/useSponsoredImpressionOnView";
+import { buildRestaurantSeoPath } from "@/lib/restaurantSlugs";
 import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
@@ -27,6 +28,7 @@ interface RestaurantCardProps {
   deliveryAvailable: boolean;
   city: string;
   address?: string;
+  slug?: string | null;
   sponsoredCampaignId?: string;
   sponsoredPromoImage?: string;
   sponsoredCampaignTitle?: string;
@@ -156,6 +158,7 @@ export default function RestaurantCard({
   deliveryAvailable,
   city,
   address,
+  slug,
   sponsoredCampaignId,
   sponsoredPromoImage,
   sponsoredCampaignTitle,
@@ -245,7 +248,7 @@ export default function RestaurantCard({
     } else {
       trackClick("restaurant", id);
     }
-    navigate(`/restaurant/${id}`);
+    navigate(buildRestaurantSeoPath({ id, name, city, slug }));
   };
 
   const handleViewClick = (e: React.MouseEvent) => {

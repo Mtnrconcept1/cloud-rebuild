@@ -373,6 +373,17 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function buildRestaurantSeoPath(restaurant) {
+  const citySlug = slugify(restaurant.city || "geneve");
+  const restaurantSlug = slugify(restaurant.slug || restaurant.name);
+
+  if (citySlug && restaurantSlug) {
+    return `/restaurants/${citySlug}/${restaurantSlug}`;
+  }
+
+  return `/restaurant/${restaurant.id}`;
+}
+
 function dedupePages(pages) {
   const byPath = new Map();
   for (const page of pages) {
@@ -419,7 +430,7 @@ async function collectDynamicRestaurantPages() {
     });
     const { data, error } = await supabase
       .from("restaurants")
-      .select("id, name, city, cuisine_type, image_url, rating, review_count, updated_at")
+      .select("id, name, slug, city, cuisine_type, image_url, rating, review_count, updated_at")
       .eq("is_active", true)
       .order("updated_at", { ascending: false, nullsFirst: false })
       .limit(MAX_DYNAMIC_RESTAURANTS);
@@ -434,6 +445,7 @@ async function collectDynamicRestaurantPages() {
         const citySlug = slugify(city);
         const cuisine = String(restaurant.cuisine_type || "").trim();
         const cuisineSlug = slugify(cuisine);
+        const restaurantPath = buildRestaurantSeoPath(restaurant);
         if (citySlug) {
           cityCategoryPages.set(`/restaurants/${citySlug}`, {
             path: `/restaurants/${citySlug}`,
@@ -456,7 +468,7 @@ async function collectDynamicRestaurantPages() {
         }
         return [
           {
-            path: `/restaurant/${restaurant.id}`,
+            path: restaurantPath,
             title: `${restaurant.name} | Restaurant sur TOK`,
             description: `${restaurant.name} sur TOK : ${cuisine || "restaurant"} à ${city}, réservation, commande et offres locales.`,
             priority: "0.7",
@@ -466,7 +478,7 @@ async function collectDynamicRestaurantPages() {
             jsonLd: {
               "@context": "https://schema.org",
               "@type": "Restaurant",
-              "@id": canonicalUrl(`/restaurant/${restaurant.id}`),
+              "@id": canonicalUrl(restaurantPath),
               name: restaurant.name,
               image: restaurant.image_url || undefined,
               servesCuisine: cuisine || undefined,
@@ -482,7 +494,7 @@ async function collectDynamicRestaurantPages() {
                   reviewCount: Number(restaurant.review_count || 0),
                 }
                 : undefined,
-              url: canonicalUrl(`/restaurant/${restaurant.id}`),
+              url: canonicalUrl(restaurantPath),
             },
           },
         ];

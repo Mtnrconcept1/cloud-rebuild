@@ -5,6 +5,7 @@ import { useLaunchPacks } from "@/hooks/useLaunchPack";
 import {
   getServiceIcon,
   formatServiceDetail,
+  formatLaunchPackAiQuota,
   type LaunchPack,
   type PackService,
   type LaunchPackServiceSlug,
@@ -79,6 +80,8 @@ function PackCard({
   onSelect: (pack: LaunchPack) => void;
   loading: boolean;
 }) {
+  const aiQuota = formatLaunchPackAiQuota(pack);
+
   return (
     <div
       className={`relative flex flex-col rounded-2xl border p-6 ${
@@ -104,6 +107,12 @@ function PackCard({
           <span className="text-muted-foreground ml-1">CHF</span>
           <p className="text-xs text-muted-foreground mt-1">Paiement unique</p>
         </div>
+
+        {aiQuota ? (
+          <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
+            Credits IA inclus: {aiQuota}
+          </div>
+        ) : null}
 
         <ul className="space-y-3 pt-4">
           {(pack.services as PackService[]).map((svc) => {
@@ -185,6 +194,14 @@ function ComparisonTable({ packs }: { packs: LaunchPack[] }) {
               })}
             </tr>
           ))}
+          <tr className="border-b">
+            <td className="py-3 px-4 font-medium">Credits IA</td>
+            {packs.map((pack) => (
+              <td key={pack.id} className="text-center py-3 px-4 text-xs text-muted-foreground">
+                {formatLaunchPackAiQuota(pack) || "-"}
+              </td>
+            ))}
+          </tr>
           <tr className="border-t-2 font-bold">
             <td className="py-3 px-4">Prix</td>
             {packs.map((pack) => (
@@ -253,6 +270,7 @@ function CheckoutDialog({
   }, [restaurants, selectedRestaurant]);
 
   if (!selectedPack) return null;
+  const aiQuota = formatLaunchPackAiQuota(selectedPack);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -297,6 +315,11 @@ function CheckoutDialog({
                 </li>
               ))}
             </ul>
+            {aiQuota ? (
+              <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs font-medium text-primary">
+                Credits IA inclus: {aiQuota}
+              </p>
+            ) : null}
           </div>
 
           {/* Payment method */}

@@ -345,6 +345,7 @@ Server/Edge Function variables may include:
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_WEBHOOK_SIGNING_SECRET`
 - `INTERNAL_CRON_SECRET`
+- `SPONSORED_EVENT_SIGNING_SECRET` optional, enables HMAC verification for billable sponsored tracking events.
 - `RESEND_API_KEY`
 - `EMAIL_FROM`
 - `ALLOWED_ORIGINS`

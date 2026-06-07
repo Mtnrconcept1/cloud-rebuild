@@ -5088,6 +5088,7 @@ export type Database = {
           rating_count: number | null
           review_count: number | null
           search_vector: unknown
+          slug: string | null
           status: string | null
           stripe_account_id: string | null
           supports_dinein: boolean | null
@@ -5131,6 +5132,7 @@ export type Database = {
           rating_count?: number | null
           review_count?: number | null
           search_vector?: unknown
+          slug?: string | null
           status?: string | null
           stripe_account_id?: string | null
           supports_dinein?: boolean | null
@@ -5174,6 +5176,7 @@ export type Database = {
           rating_count?: number | null
           review_count?: number | null
           search_vector?: unknown
+          slug?: string | null
           status?: string | null
           stripe_account_id?: string | null
           supports_dinein?: boolean | null

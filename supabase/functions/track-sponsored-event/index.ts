@@ -17,6 +17,7 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 const IMPRESSION_WINDOW_MS = 30 * 60 * 1000;
 const CLICK_WINDOW_MS = 5 * 60 * 1000;
 const CONVERSION_WINDOW_MS = 24 * 60 * 60 * 1000;
+const SPONSORED_EVENT_SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000;
 const VALID_EVENT_TYPES = new Set(["impression", "click", "conversion"]);
 const VALID_CONVERSION_TYPES = new Set(["order", "reservation", "zero-attente"]);
 
@@ -31,6 +32,8 @@ type SponsoredEventPayload = {
   entityId?: string;
   paymentMethod?: string;
   eventId?: string;
+  eventSignature?: string;
+  signedAt?: string;
 };
 
 function normalizeText(value: unknown) {
@@ -61,6 +64,79 @@ async function sha256(value: string) {
   return Array.from(new Uint8Array(digest))
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
+}
+
+function base64UrlToBytes(value: string) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+function signaturePayload(input: {
+  campaignId: string;
+  restaurantId: string;
+  eventType: string;
+  viewerId: string;
+  eventId: string;
+  conversionType: string;
+  entityId: string;
+  source: string;
+  page: string;
+  signedAt: string;
+}) {
+  return JSON.stringify({
+    campaignId: input.campaignId,
+    restaurantId: input.restaurantId,
+    eventType: input.eventType,
+    viewerId: input.viewerId,
+    eventId: input.eventId || null,
+    conversionType: input.conversionType || null,
+    entityId: input.entityId || null,
+    source: input.source || null,
+    page: input.page || null,
+    signedAt: input.signedAt,
+  });
+}
+
+async function verifySponsoredEventSignature({
+  signingSecret,
+  eventSignature,
+  signedAt,
+  payload,
+}: {
+  signingSecret: string;
+  eventSignature: string;
+  signedAt: string;
+  payload: string;
+}) {
+  if (!signingSecret) return true;
+  if (!eventSignature || !signedAt) {
+    throw new HttpError(401, "signature_required");
+  }
+
+  const signedAtMs = Date.parse(signedAt);
+  if (!Number.isFinite(signedAtMs) || Math.abs(Date.now() - signedAtMs) > SPONSORED_EVENT_SIGNATURE_MAX_AGE_MS) {
+    throw new HttpError(401, "signature_expired");
+  }
+
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(signingSecret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"],
+    );
+    return await crypto.subtle.verify(
+      "HMAC",
+      key,
+      base64UrlToBytes(eventSignature),
+      new TextEncoder().encode(payload),
+    );
+  } catch {
+    return false;
+  }
 }
 
 async function maybeResolveUserId(req: Request) {
@@ -105,6 +181,8 @@ Deno.serve(async (req) => {
     const entityId = String(payload.entityId || "");
     const paymentMethod = String(payload.paymentMethod || "");
     const eventId = String(payload.eventId || "").trim();
+    const eventSignature = String(payload.eventSignature || "").trim();
+    const signedAt = String(payload.signedAt || "").trim();
     const conversionType = normalizeText(payload.conversionType);
 
     if (!VALID_EVENT_TYPES.has(eventType)) {
@@ -150,6 +228,28 @@ Deno.serve(async (req) => {
 
     if (restaurantIdInput && restaurantIdInput !== campaign.restaurant_id) {
       throw new HttpError(400, "Restaurant de campagne invalide");
+    }
+
+    const signingSecret = Deno.env.get("SPONSORED_EVENT_SIGNING_SECRET") || "";
+    const signatureIsValid = await verifySponsoredEventSignature({
+      signingSecret,
+      eventSignature,
+      signedAt,
+      payload: signaturePayload({
+        campaignId,
+        restaurantId: campaign.restaurant_id,
+        eventType,
+        viewerId,
+        eventId,
+        conversionType,
+        entityId,
+        source,
+        page,
+        signedAt,
+      }),
+    });
+    if (!signatureIsValid) {
+      throw new HttpError(401, "signature_invalid");
     }
 
     const now = Date.now();
