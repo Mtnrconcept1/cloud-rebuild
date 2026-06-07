@@ -5,7 +5,7 @@ Projet Supabase: `wwcrtyoueexyxkkikaos`
 Advisor: `anon_security_definer_function_executable`
 Remediation Supabase: https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable
 
-Cet audit formalise le traitement des alertes Supabase Advisor remontees le 7 juin 2026. Les revocations sont livrees dans la migration `20260607033000_platform_finance_sales_governance.sql` et doivent etre appliquees par le workflow habituel du repo.
+Cet audit formalise le traitement des alertes Supabase Advisor remontees le 7 juin 2026. Les revocations sont livrees dans les migrations `20260607033000_platform_finance_sales_governance.sql` et `20260607041441_plan2_sensitive_rpc_execute_hardening.sql`, et doivent etre appliquees par le workflow habituel du repo.
 
 ## Regle
 
@@ -35,7 +35,15 @@ Une fonction `SECURITY DEFINER` ne doit etre executable par `anon` que si elle e
 | `ensure_guest_profile(uuid, uuid, text)` | mutation interne profil/marketing | a revoquer pour `anon` et `authenticated`, reserver a `service_role` | Cree ou complete un profil invite; usage direct public trop large. |
 | `estimate_campaign_audience(uuid, jsonb)` | estimation restaurateur via Edge Function | a revoquer pour `anon`, conserver pour `authenticated` | Utilisee par `campaign-portal` avec utilisateur connecte; ne doit pas etre callable anonymement. |
 | `get_customer_orders_dashboard()` | dashboard client authentifie | a revoquer pour `anon`, conserver pour `authenticated` | Retourne les commandes du client courant; aucun acces anonyme. |
+| `get_order_customers(uuid)` | donnees clients restaurant | a revoquer pour `anon`, conserver pour `authenticated` | Retourne noms et telephones de clients lies aux commandes d'un restaurant; usage reserve au restaurateur proprietaire et au service role. |
+| `get_reservation_customers(uuid)` | donnees clients restaurant | a revoquer pour `anon`, conserver pour `authenticated` | Retourne noms et telephones de clients lies aux reservations d'un restaurant; usage reserve au restaurateur proprietaire et au service role. |
 | `get_match_group_public_feed()` | publique volontaire | conserver pour `anon` et `authenticated` | Flux public Match Groupes sans mutation. L'exception doit rester surveillee par tests et monitoring. |
+| `get_restaurant_reservation_slot_availability(uuid, date)` | publique volontaire | conserver pour `anon` et `authenticated` | Necessaire aux pages publiques de reservation pour afficher les disponibilites sans exposer les donnees nominatives de reservations. |
+| `get_total_donated_meals()` | publique volontaire | conserver pour `anon` et `authenticated` | Statistique agreggee Miamz/solidarite affichee sur la vitrine; aucune donnee personnelle ni mutation. |
+| `get_total_donated_points()` | publique volontaire | conserver pour `anon` et `authenticated` | Statistique agreggee Miamz/solidarite affichee sur la vitrine; aucune donnee personnelle ni mutation. |
+| `has_role(uuid, public.app_role)` | helper RLS authentifie | a revoquer pour `anon`, conserver pour `authenticated` | Helper de policies et de controles admin; l'execution directe anonyme n'est pas necessaire. |
+| `is_feature_flag_active(text)` | helper infrastructure authentifie | a revoquer pour `anon`, conserver pour `authenticated` | Helper de decisions serveur et routes connectees; les snapshots publics passent par les services applicatifs existants. |
+| `log_audit()` | trigger interne audit | a revoquer pour `anon` et `authenticated`, reserver a `service_role` | Fonction trigger qui ecrit dans `audit_log`; elle ne doit pas etre appelee directement par les clients. |
 
 ## Migration appliquee
 
@@ -46,6 +54,12 @@ La migration `20260607033000_platform_finance_sales_governance.sql` contient :
 - `REVOKE EXECUTE` sur `enqueue_deliveries(uuid)` et `ensure_guest_profile(uuid, uuid, text)` pour `PUBLIC`, `anon` et `authenticated`, puis `GRANT` a `service_role`.
 - `GRANT EXECUTE` conserve pour `authenticated` quand la fonction est encore necessaire aux flows connectes.
 - `GRANT EXECUTE` explicite pour `get_match_group_public_feed()` a `anon` et `authenticated`, car cette fonction est classee publique volontaire.
+
+La migration complementaire `20260607041441_plan2_sensitive_rpc_execute_hardening.sql` contient :
+
+- `REVOKE EXECUTE` sur `get_order_customers(uuid)`, `get_reservation_customers(uuid)`, `has_role(uuid, public.app_role)` et `is_feature_flag_active(text)` pour `PUBLIC` et `anon`, puis `GRANT` a `authenticated` et `service_role`.
+- `REVOKE EXECUTE` sur `log_audit()` pour `PUBLIC`, `anon` et `authenticated`, puis `GRANT` a `service_role`.
+- Aucun changement sur `get_total_donated_meals()`, `get_total_donated_points()` et `get_restaurant_reservation_slot_availability(uuid, date)`, car ces fonctions sont classees publiques volontaires.
 
 ## Prochaine passe Supabase Advisor
 
