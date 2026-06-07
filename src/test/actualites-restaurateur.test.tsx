@@ -15,16 +15,35 @@ vi.mock("@/lib/auth-context", () => ({
 
 vi.mock("@/pages/dashboard/useOwnerRestaurants", () => ({
   useOwnerRestaurants: () => ({
-    restaurants: [{ id: "restaurant-1", name: "Restaurant Test", disabled_dashboard_features: [] }],
+    restaurants: [{
+      id: "restaurant-1",
+      name: "Restaurant Test",
+      disabled_dashboard_features: [],
+      socialLinks: {
+        instagram: "https://www.instagram.com/restauranttest",
+        facebook: "https://www.facebook.com/restauranttest",
+        tiktok: "https://www.tiktok.com/@restauranttest",
+      },
+    }],
     loading: false,
     error: null,
   }),
 }));
 
 vi.mock("@/components/social/SocialComposer", () => ({
-  default: ({ restaurantId, restaurantName }: { restaurantId: string | null; restaurantName?: string | null }) => (
+  default: ({
+    restaurantId,
+    restaurantName,
+    socialLinks,
+  }: {
+    restaurantId: string | null;
+    restaurantName?: string | null;
+    socialLinks?: Record<string, string | null>;
+  }) => (
     <div data-testid="social-composer">
       Composer {restaurantId} {restaurantName}
+      {" "}
+      {Object.keys(socialLinks || {}).join(" ")}
     </div>
   ),
 }));
@@ -66,6 +85,7 @@ describe("Actualites restaurateur access", () => {
     renderActualites();
 
     expect(screen.getByTestId("social-composer")).toHaveTextContent("restaurant-1 Restaurant Test");
+    expect(screen.getByTestId("social-composer")).toHaveTextContent("instagram facebook tiktok");
     expect(screen.queryByRole("link", { name: /Gerer les posts/i })).not.toBeInTheDocument();
   });
 });

@@ -169,7 +169,11 @@ export default function Actualites() {
                       ))}
                     </div>
                   ) : null}
-                  <SocialComposer restaurantId={composerRestaurant?.id || null} restaurantName={composerRestaurant?.name || null} />
+                  <SocialComposer
+                    restaurantId={composerRestaurant?.id || null}
+                    restaurantName={composerRestaurant?.name || null}
+                    socialLinks={composerRestaurant?.socialLinks || null}
+                  />
                 </>
               ) : (
                 <div className="rounded-2xl border bg-background/90 p-5 text-sm text-muted-foreground shadow-sm">

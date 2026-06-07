@@ -132,7 +132,11 @@ export default function DashboardActualites() {
         {selectedRestaurant ? (
           <div className="grid gap-6 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
             <div className="space-y-4">
-              <SocialComposer restaurantId={selectedRestaurant.id} restaurantName={selectedRestaurant.name} />
+              <SocialComposer
+                restaurantId={selectedRestaurant.id}
+                restaurantName={selectedRestaurant.name}
+                socialLinks={selectedRestaurant.socialLinks || null}
+              />
               <Card className="rounded-lg">
                 <CardContent className="space-y-4 p-4">
                   <div className="flex items-center justify-between gap-3">
