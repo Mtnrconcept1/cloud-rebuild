@@ -86,11 +86,13 @@ describe("SEO growth readiness", () => {
 
     expect(prerender).toContain("staticContent");
     expect(prerender).toContain('id="tok-prerendered-content"');
+    expect(prerender).toContain('<noscript><section id="tok-prerendered-content"');
     expect(prerender).toContain("Remplissez vos tables sans exploser vos commissions.");
     expect(prerender).toContain("Simulateur de marge");
     expect(prerender).toContain("TOK vs plateformes classiques");
     expect(prerender).toContain("Nom du restaurant");
     expect(prerender).toContain("BreadcrumbList");
+    expect(prerender).not.toContain('document.getElementById("tok-prerendered-content")');
     expect(prerender).not.toContain(
       '<noscript><main><h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.description)}</p></main></noscript>',
     );
