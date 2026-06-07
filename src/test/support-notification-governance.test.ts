@@ -78,4 +78,39 @@ describe("support and notification governance", () => {
     expect(sql).toContain("INSERT INTO public.audit_log");
     expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
   });
+
+  it("signals support tickets and incidents to admins through in-app notifications", () => {
+    const sharedNotifications = read("supabase/functions/_shared/notifications.ts");
+    const aiSupport = read("supabase/functions/ai-client-support/index.ts");
+    const contactSupport = read("supabase/functions/contact-support/index.ts");
+
+    expect(sharedNotifications).toContain("export async function notifyAdmins");
+    expect(aiSupport).toContain("notifyAdminsOfSupportTicket");
+    expect(aiSupport).toContain("supportTicketWasCreated");
+    expect(aiSupport).toContain("/admin/sinistres?ticket=");
+    expect(aiSupport).toContain("ai_support_ticket_id: input.supportTicketId");
+    expect(aiSupport).toContain("supportIncidentId");
+    expect(contactSupport).toContain("notifyAdmins({");
+    expect(contactSupport).toContain("/admin/sinistres?incident=");
+    expect(contactSupport).toContain("support_incident_id: incidentId");
+  });
+
+  it("keeps critical order and dispatch events backed by role-targeted notifications", () => {
+    const validateOrder = read("supabase/functions/validate-order/index.ts");
+    const orderCheckout = read("supabase/functions/_shared/order-checkout.ts");
+    const restaurantOrderStatus = read("supabase/functions/restaurant-order-status/index.ts");
+    const dispatchOrder = read("supabase/functions/dispatch-order/index.ts");
+    const notificationSql = readMigration("notification_system_completion");
+
+    expect(validateOrder).toContain("enqueueNotification({");
+    expect(validateOrder).toContain("Nouvelle commande");
+    expect(orderCheckout).toContain("enqueueNotification({");
+    expect(orderCheckout).toContain("Nouvelle commande");
+    expect(notificationSql).toContain("CREATE OR REPLACE FUNCTION public.trigger_reservation_notifications");
+    expect(notificationSql).toContain("CREATE OR REPLACE FUNCTION public.trigger_order_status_notification");
+    expect(restaurantOrderStatus).toContain("notifyAdmins({");
+    expect(restaurantOrderStatus).toContain("Dispatch à reprendre");
+    expect(dispatchOrder).toContain("notifyAdmins({");
+    expect(dispatchOrder).not.toContain('.eq("role", "admin")');
+  });
 });

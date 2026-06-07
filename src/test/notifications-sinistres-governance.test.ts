@@ -126,7 +126,7 @@ describe("notifications and chat sinistres governance", () => {
       const source = readProjectFile(`supabase/functions/${fn}/index.ts`);
 
       expect(source).toContain("support_incident_messages");
-      expect(source).toContain("enqueue_notification");
+      expect(source).toContain(fn === "ai-client-support" ? "notifyAdmins" : "enqueue_notification");
       expect(source).toContain("/admin/sinistres?incident=");
       expect(source).toContain("conversation_id");
     }

@@ -7,6 +7,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { notifyAdmins } from "../_shared/notifications.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   OPENAI_API_KEY,
@@ -207,34 +208,58 @@ async function notifyAdminsOfSupportIncident(
     restaurantId: string | null;
   },
 ) {
-  const { data: admins, error } = await actor.adminClient
-    .from("user_roles")
-    .select("user_id")
-    .eq("role", "admin");
+  await notifyAdmins({
+    adminClient: actor.adminClient,
+    title: "Nouveau sinistre chat",
+    body: `${input.priority.toUpperCase()} - ${input.title || input.summary || "Plainte client remontée par le chat"}`.slice(0, 240),
+    type: "support_incident",
+    category: "system",
+    data: {
+      url: `/admin/sinistres?incident=${input.incidentId}`,
+      support_incident_id: input.incidentId,
+      conversation_id: input.conversationId,
+      ai_support_ticket_id: input.supportTicketId,
+      order_id: input.orderId,
+      reservation_id: input.reservationId,
+      restaurant_id: input.restaurantId,
+      source: FUNCTION_NAME,
+    },
+    requestedChannels: { in_app: true, push: true, email: false },
+  });
+}
 
-  if (error) throw error;
-
-  const adminIds = Array.from(new Set((admins || []).map((row: { user_id?: string | null }) => row.user_id).filter(Boolean))) as string[];
-  await Promise.all(adminIds.map((adminUserId) =>
-    actor.adminClient.rpc("enqueue_notification", {
-      p_user_id: adminUserId,
-      p_title: "Nouveau sinistre chat",
-      p_body: `${input.priority.toUpperCase()} - ${input.title || input.summary || "Plainte client remontée par le chat"}`.slice(0, 240),
-      p_type: "support_incident",
-      p_category: "system",
-      p_data: {
-        url: `/admin/sinistres?incident=${input.incidentId}`,
-        support_incident_id: input.incidentId,
-        conversation_id: input.conversationId,
-        ai_support_ticket_id: input.supportTicketId,
-        order_id: input.orderId,
-        reservation_id: input.reservationId,
-        restaurant_id: input.restaurantId,
-        source: FUNCTION_NAME,
-        requested_channels: { in_app: true, push: true, email: false },
-      },
-    })
-  ));
+async function notifyAdminsOfSupportTicket(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  input: {
+    supportTicketId: string;
+    conversationId: string;
+    title: string;
+    summary: string;
+    priority: string;
+    status: string;
+    orderId: string | null;
+    reservationId: string | null;
+    restaurantId: string | null;
+  },
+) {
+  await notifyAdmins({
+    adminClient: actor.adminClient,
+    title: "Nouveau ticket support IA",
+    body: `${input.priority.toUpperCase()} - ${input.title || input.summary || "Demande support IA ouverte"}`.slice(0, 240),
+    type: "ai_support_ticket",
+    category: "system",
+    data: {
+      url: `/admin/sinistres?ticket=${input.supportTicketId}`,
+      ai_support_ticket_id: input.supportTicketId,
+      conversation_id: input.conversationId,
+      order_id: input.orderId,
+      reservation_id: input.reservationId,
+      restaurant_id: input.restaurantId,
+      status: input.status,
+      source: FUNCTION_NAME,
+    },
+    requestedChannels: { in_app: true, push: true, email: false },
+  });
 }
 
 Deno.serve(async (req) => {
@@ -434,13 +459,21 @@ Reponds en francais clair et court.`;
 
     const { data: existingSupportTicket, error: existingSupportTicketError } = await actor.adminClient
       .from("ai_support_tickets")
-      .select("id")
+      .select("id, status")
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (existingSupportTicketError) throw new HttpError(500, existingSupportTicketError.message);
+
+    const supportTicketWasCreated = !existingSupportTicket?.id;
+    const supportTicketNeedsAdminAttention = finalStatus !== "resolved";
+    const supportTicketStatusChanged = Boolean(
+      existingSupportTicket?.id
+        && existingSupportTicket.status !== finalStatus
+        && supportTicketNeedsAdminAttention,
+    );
 
     const supportTicketQuery = existingSupportTicket?.id
       ? actor.adminClient
@@ -514,6 +547,24 @@ Reponds en francais clair et court.`;
       } else if (incidentError) {
         log.warn("support_incident_create_failed", { message: incidentError.message });
       }
+    }
+
+    if ((supportTicketWasCreated || supportTicketStatusChanged) && supportTicketNeedsAdminAttention && !supportIncidentId) {
+      await notifyAdminsOfSupportTicket(actor, {
+        supportTicketId,
+        conversationId,
+        title: result.ticket_title,
+        summary: result.ticket_summary,
+        priority: result.priority,
+        status: finalStatus,
+        orderId,
+        reservationId,
+        restaurantId,
+      }).catch((notificationError) => {
+        log.warn("support_ticket_admin_notification_failed", {
+          message: notificationError instanceof Error ? notificationError.message : "unknown",
+        });
+      });
     }
 
     await actor.adminClient.from("ai_messages").insert({

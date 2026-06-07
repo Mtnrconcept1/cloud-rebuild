@@ -37,6 +37,17 @@ describe("vercel config", () => {
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("https://router.project-osrm.org");
+  });
+
+  it("keeps delivery map routing compatible with production CSP and Leaflet cleanup", () => {
+    const mapPath = path.resolve(process.cwd(), "src/components/DeliveryMap.tsx");
+    const mapSource = readFileSync(mapPath, "utf8");
+
+    expect(mapSource).toContain("zoomAnimation: false");
+    expect(mapSource).toContain("markerZoomAnimation: false");
+    expect(mapSource).toContain("map.stop()");
+    expect(mapSource).toContain("animate: false");
   });
 
   it("deploys production through GitHub Actions instead of a canceled Vercel Git hook", () => {

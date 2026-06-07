@@ -151,7 +151,10 @@ export default function DeliveryMap({
     const map = L.map(mapRef.current, {
       zoomControl: true,
       scrollWheelZoom: false,
-    }).setView([centerLat, centerLng], 13);
+      zoomAnimation: false,
+      fadeAnimation: false,
+      markerZoomAnimation: false,
+    }).setView([centerLat, centerLng], 13, { animate: false });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -161,6 +164,7 @@ export default function DeliveryMap({
     mapInstance.current = map;
 
     return () => {
+      map.stop();
       map.remove();
       mapInstance.current = null;
       layersRef.current = null;
@@ -212,7 +216,7 @@ export default function DeliveryMap({
       });
 
       if (boundsPoints.length > 0) {
-        map.fitBounds(L.latLngBounds(boundsPoints), { padding: [36, 36] });
+        map.fitBounds(L.latLngBounds(boundsPoints), { padding: [36, 36], animate: false });
       }
     };
 

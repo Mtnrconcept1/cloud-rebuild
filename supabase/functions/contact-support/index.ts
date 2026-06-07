@@ -9,6 +9,7 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
+import { notifyAdmins } from "../_shared/notifications.ts";
 
 type SupportSource = "public_contact" | "restaurant_dashboard";
 
@@ -205,6 +206,27 @@ Deno.serve(async (req) => {
     });
 
     if (emailError) throw new HttpError(500, emailError.message);
+
+    await notifyAdmins({
+      adminClient,
+      title: incidentId ? "Nouveau sinistre support" : "Nouveau message support",
+      body: `${source === "public_contact" ? (name || email) : (restaurantName || "Restaurant")} - ${subject}`.slice(0, 240),
+      type: incidentId ? "support_incident" : "support_contact",
+      category: "system",
+      data: {
+        url: incidentId ? `/admin/sinistres?incident=${incidentId}` : "/admin/notifications",
+        support_incident_id: incidentId,
+        restaurant_id: restaurantId,
+        restaurant_name: restaurantName || null,
+        source,
+        subject,
+      },
+      requestedChannels: { in_app: true, push: true, email: false },
+    }).catch((notificationError) => {
+      log.warn("support_admin_notification_failed", {
+        message: notificationError instanceof Error ? notificationError.message : "unknown",
+      });
+    });
 
     await writeAuditLog({
       adminClient,

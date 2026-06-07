@@ -10,6 +10,19 @@ const MAX_PUBLIC_RASTER_BYTES = 2_500_000;
 const MAX_SUPABASE_FETCHED_ROWS = 500;
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx"]);
 const PUBLIC_RASTER_RE = /\.(png|jpe?g|webp|avif)$/i;
+const SKIPPED_WALK_DIRS = new Set([
+  ".git",
+  ".pnpm-store",
+  ".tmp",
+  ".vercel",
+  ".vs",
+  "dist",
+  "node_modules",
+  "outputs",
+  "screenshots",
+  "tmp",
+  "tmp-screenshots",
+]);
 
 export function inspectFrontendReadiness(options = {}) {
   const root = options.root || process.cwd();
@@ -42,7 +55,7 @@ export function inspectFrontendReadiness(options = {}) {
 
 function listProjectFiles(root) {
   try {
-    const output = execFileSync("git", ["-C", root, "ls-files"], {
+    const output = execFileSync("git", ["-c", `safe.directory=${root}`, "-C", root, "ls-files"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     });
@@ -54,7 +67,7 @@ function listProjectFiles(root) {
 
   return walk(root)
     .map((file) => path.relative(root, file).replace(/\\/g, "/"))
-    .filter((file) => !file.startsWith("node_modules/") && !file.startsWith("dist/") && !file.startsWith(".git/"));
+    .filter((file) => !SKIPPED_WALK_DIRS.has(file.split("/")[0]));
 }
 
 function walk(directory) {
@@ -65,6 +78,7 @@ function walk(directory) {
   for (const entry of entries) {
     const absolute = path.join(directory, entry.name);
     if (entry.isDirectory()) {
+      if (SKIPPED_WALK_DIRS.has(entry.name)) continue;
       files.push(...walk(absolute));
     } else {
       files.push(absolute);

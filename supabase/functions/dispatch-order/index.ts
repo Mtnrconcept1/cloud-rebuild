@@ -10,6 +10,7 @@ import {
 import { getDeliveryDispatchConfig } from "../_shared/delivery-dispatch.ts";
 import {
   enqueueNotification,
+  notifyAdmins,
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
@@ -375,20 +376,28 @@ Deno.serve(async (req) => {
           .update({ status: "no_courier", updated_at: new Date().toISOString() })
           .eq("id", jobId);
 
-        const { data: admins } = await supabaseAdmin
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "admin")
-          .limit(5);
-
-        for (const admin of admins || []) {
-          await queueCourierNotification(supabaseAdmin, {
-            userId: admin.user_id,
-            title: "Aucun livreur disponible",
-            body: `Commande de ${restaurant.name} - aucun livreur trouve apres ${round} tentatives.`,
-            data: { order_id, dispatch_job_id: jobId, status: "no_courier" },
+        await notifyAdmins({
+          adminClient: supabaseAdmin,
+          title: "Aucun livreur disponible",
+          body: `Commande de ${restaurant.name} - aucun livreur trouve apres ${round} tentatives.`,
+          type: "dispatch",
+          category: "transactional",
+          data: {
+            order_id: order_id || job.order_id || null,
+            dispatch_job_id: jobId,
+            status: "no_courier",
+            restaurant_id: restaurantId,
+            restaurant_name: restaurant.name,
+            url: order_id
+              ? `/admin/commandes-reservations?tab=orders&operation=${order_id}`
+              : "/admin/commandes-reservations?tab=orders",
+          },
+          requestedChannels: { in_app: true, push: true, email: false },
+        }).catch((error) => {
+          log.error("dispatch-order admin no-courier notification failed", {
+            message: error instanceof Error ? error.message : "unknown",
           });
-        }
+        });
 
         if (restaurant?.owner_id) {
           await enqueueNotification({

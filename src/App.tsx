@@ -10,6 +10,7 @@ import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import MobileLogoIntro from "@/components/MobileLogoIntro";
+import FooterSection from "@/components/home/FooterSection";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -189,6 +190,10 @@ function shouldShowPublicNavbar(pathname: string) {
   );
 }
 
+function shouldShowPublicFooter(pathname: string) {
+  return shouldShowPublicNavbar(pathname);
+}
+
 const adminBackButtonPortalStyle: CSSProperties = {
   left: "calc(env(safe-area-inset-left, 0px) + 0.75rem)",
   top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
@@ -313,6 +318,8 @@ function AppShell() {
   const adminActualitesEnabled = hasFeature("admin-actualites");
   const adminPlatformConfigEnabled = hasFeature("admin-platform-config");
   const adminOperationsCenterEnabled = hasFeature("admin-operations-center");
+  const deliveryEnabled = hasFeature("livraison");
+  const showPublicFooter = shouldShowPublicFooter(pathname);
 
   return (
     <>
@@ -416,6 +423,7 @@ function AppShell() {
         <SupportChat />
         <OrderConflictDialog />
       </Suspense>
+      {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
     </>
   );
 }

@@ -13,7 +13,6 @@ import CuisineCategoryStrip from "@/components/home/CuisineCategoryStrip";
 import SolidaritySection from "@/components/home/SolidaritySection";
 import RestaurantSection from "@/components/home/RestaurantSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
-import FooterSection from "@/components/home/FooterSection";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
@@ -621,9 +620,6 @@ export default function Index() {
 
         <motion.div variants={sectionBounce}>
           <FeaturesSection activeFeatures={activeFeatures} />
-        </motion.div>
-        <motion.div variants={sectionBounce}>
-          <FooterSection deliveryEnabled={deliveryEnabled} />
         </motion.div>
       </motion.div>
     </main>

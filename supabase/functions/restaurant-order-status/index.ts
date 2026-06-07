@@ -15,7 +15,7 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getEdgeErrorDiagnostic, getEdgeErrorPayload } from "../_shared/error-diagnostics.ts";
 import { makeLogger } from "../_shared/logging.ts";
-import { triggerNotificationDispatch } from "../_shared/notifications.ts";
+import { notifyAdmins, triggerNotificationDispatch } from "../_shared/notifications.ts";
 
 const ALLOWED_STATUSES = new Set([
   "pending",
@@ -167,6 +167,30 @@ async function upsertDispatchRetryAlert(input: {
         recommended_action: "Relancer dispatch-order depuis Operations Center ou assigner un livreur.",
       },
     });
+
+  const actionUrl = dispatchJobId
+    ? `/admin/commandes-reservations?dispatch=${dispatchJobId}`
+    : `/admin/commandes-reservations?tab=orders&operation=${input.orderId}`;
+
+  await notifyAdmins({
+    adminClient: input.adminClient,
+    title: "Dispatch à reprendre",
+    body: note.slice(0, 240),
+    type: "dispatch_alert",
+    category: "system",
+    data: {
+      url: actionUrl,
+      action_url: actionUrl,
+      order_id: input.orderId,
+      order_number: input.orderNumber,
+      dispatch_job_id: dispatchJobId,
+      status: "dispatch_retry_required",
+      source: "restaurant-order-status",
+    },
+    requestedChannels: { in_app: true, push: true, email: false },
+  }).catch((error) => {
+    console.warn("[restaurant-order-status] dispatch retry admin notification failed", error);
+  });
 }
 
 Deno.serve(async (req) => {

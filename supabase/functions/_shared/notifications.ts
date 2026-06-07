@@ -18,6 +18,10 @@ type EnqueueNotificationInput = {
   requestedChannels?: NotificationChannels;
 };
 
+type NotifyAdminsInput = Omit<EnqueueNotificationInput, "userId"> & {
+  limit?: number;
+};
+
 type TriggerDispatchInput = {
   push?: boolean;
   email?: boolean;
@@ -52,6 +56,51 @@ export async function enqueueNotification(input: EnqueueNotificationInput) {
 
   if (error) throw error;
   return data as string | null;
+}
+
+export async function getAdminNotificationRecipients(
+  adminClient: ReturnType<typeof createClient>,
+  limit?: number,
+) {
+  const baseQuery = adminClient
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin");
+  const { data, error } = await (limit && limit > 0 ? baseQuery.limit(limit) : baseQuery);
+
+  if (error) throw error;
+
+  return Array.from(
+    new Set(
+      (data || [])
+        .map((row: { user_id?: string | null }) => row.user_id)
+        .filter((userId): userId is string => Boolean(userId)),
+    ),
+  );
+}
+
+export async function notifyAdmins(input: NotifyAdminsInput) {
+  const adminUserIds = await getAdminNotificationRecipients(input.adminClient, input.limit);
+  const notificationIds = await Promise.all(
+    adminUserIds.map((adminUserId) =>
+      enqueueNotification({
+        adminClient: input.adminClient,
+        userId: adminUserId,
+        title: input.title,
+        body: input.body,
+        type: input.type,
+        category: input.category,
+        data: input.data,
+        requestedChannels: input.requestedChannels,
+      })
+    ),
+  );
+
+  return {
+    adminUserIds,
+    notificationIds,
+    count: notificationIds.length,
+  };
 }
 
 async function callDispatcher(
