@@ -1,5 +1,6 @@
 interface CardWithId {
   id?: string | number | null;
+  restaurant_id?: string | number | null;
   campaign_id?: string | number | null;
   sponsoredCampaignId?: string | number | null;
 }
@@ -228,18 +229,22 @@ function getSponsoredCardKey(card: CardWithId) {
   return card.campaign_id ?? card.sponsoredCampaignId ?? card.id ?? null;
 }
 
+function getRestaurantCardKey(card: CardWithId) {
+  return card.restaurant_id ?? card.id ?? null;
+}
+
 export function prioritizeSponsoredCards<T extends CardWithId>(
   organicCards: T[],
   sponsoredCards: T[],
   options: SponsoredPlacementOptions = {},
 ): T[] {
-  const topSlots = Math.max(0, options.topSlots ?? 3);
+  const topSlots = Math.min(3, Math.max(0, options.topSlots ?? 3));
   const maxItems = typeof options.maxItems === "number" ? Math.max(0, options.maxItems) : undefined;
 
   const organic = (organicCards || []) as T[];
   const sponsored = (sponsoredCards || []) as T[];
 
-  if (!sponsored.length) {
+  if (!sponsored.length || topSlots === 0) {
     return typeof maxItems === "number" ? organic.slice(0, maxItems) : organic;
   }
 
@@ -253,22 +258,28 @@ export function prioritizeSponsoredCards<T extends CardWithId>(
     return true;
   });
 
-  const sponsoredRestaurantIds = new Set(
-    uniqueSponsored
-      .map((card) => card.id)
-      .filter((id): id is string | number => id !== undefined && id !== null),
-  );
+  const sponsoredRestaurantIds = new Set<string | number>();
+  const prioritizedSponsored: T[] = [];
+
+  for (const card of uniqueSponsored) {
+    const restaurantKey = getRestaurantCardKey(card);
+    if (restaurantKey !== undefined && restaurantKey !== null) {
+      if (sponsoredRestaurantIds.has(restaurantKey)) continue;
+      sponsoredRestaurantIds.add(restaurantKey);
+    }
+
+    prioritizedSponsored.push(card);
+    if (prioritizedSponsored.length >= topSlots) break;
+  }
 
   const organicWithoutSponsored = organic.filter((card) => {
     if (card == null) return false;
-    const { id } = card;
-    if (id === undefined || id === null) return true;
-    return !sponsoredRestaurantIds.has(id);
+    const restaurantKey = getRestaurantCardKey(card);
+    if (restaurantKey === undefined || restaurantKey === null) return true;
+    return !sponsoredRestaurantIds.has(restaurantKey);
   });
 
-  const prioritizedSponsored = uniqueSponsored.slice(0, topSlots);
-  const overflowSponsored = uniqueSponsored.slice(topSlots);
-  const merged = [...prioritizedSponsored, ...organicWithoutSponsored, ...overflowSponsored];
+  const merged = [...prioritizedSponsored, ...organicWithoutSponsored];
 
   return typeof maxItems === "number" ? merged.slice(0, maxItems) : merged;
 }

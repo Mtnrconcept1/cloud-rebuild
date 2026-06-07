@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import PromoCarousel from "@/components/PromoCarousel";
-import CampaignBanner from "@/components/CampaignBanner";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import HeroSection from "@/components/home/HeroSection";
 import CuisineCategoryStrip from "@/components/home/CuisineCategoryStrip";
@@ -292,28 +291,23 @@ export default function Index() {
     })
     .filter(Boolean) as any[];
 
-  const lunchCards = prioritizeSponsoredCards(lunchRail as any[], sponsoredCards, {
-    topSlots: 2,
-    maxItems: lunchRail.length || undefined,
-  });
-  const dinnerCards = prioritizeSponsoredCards(dinnerRail as any[], sponsoredCards, {
-    topSlots: 2,
-    maxItems: dinnerRail.length || undefined,
-  });
-  const offersCards = prioritizeSponsoredCards(offersRail as any[], sponsoredCards, {
-    topSlots: 2,
-    maxItems: offersRail.length || undefined,
-  });
-  const trendingCards = prioritizeSponsoredCards(trendingRail as any[], sponsoredCards, {
+  const currentHour = new Date().getHours();
+  const lunchFocus = currentHour < 16;
+  const organicLunchCards = lunchRail as any[];
+  const organicDinnerCards = dinnerRail as any[];
+  const primaryBaseCards = lunchFocus ? organicLunchCards : organicDinnerCards;
+  const primarySponsoredCards = prioritizeSponsoredCards(primaryBaseCards, sponsoredCards, {
     topSlots: 3,
-    maxItems: trendingRail.length || undefined,
+    maxItems: primaryBaseCards.length || undefined,
   });
+  const lunchCards = lunchFocus ? primarySponsoredCards : organicLunchCards;
+  const dinnerCards = lunchFocus ? organicDinnerCards : primarySponsoredCards;
+  const offersCards = offersRail as any[];
+  const trendingCards = trendingRail as any[];
   const personalCards = (userContext?.personalRestaurants || []) as any[];
   const hasSavedCity = Boolean(userContext?.city);
   const hasProfileName = Boolean(userContext?.fullName);
   const profileNeedsAttention = Boolean(user && (!hasSavedCity || !hasProfileName));
-  const currentHour = new Date().getHours();
-  const lunchFocus = currentHour < 16;
   const primaryRail = lunchFocus
     ? {
       title: "Pour ce midi",
@@ -534,7 +528,6 @@ export default function Index() {
                 </div>
               </div>
               <div className="space-y-4">
-                <CampaignBanner page="home" maxBanners={1} />
                 <PromoCarousel />
               </div>
             </div>

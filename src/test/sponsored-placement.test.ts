@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,6 +11,10 @@ import {
 } from "@/lib/sponsoredPlacement";
 
 const NOW = new Date("2026-06-07T00:00:00.000Z");
+
+function readSource(path: string) {
+  return readFileSync(resolve(process.cwd(), path), "utf8");
+}
 
 describe("pickWeightedCampaign", () => {
   it("distributes selections according to daily pacing weights", () => {
@@ -153,16 +159,67 @@ describe("getCampaignDeliveryScore", () => {
 });
 
 describe("prioritizeSponsoredCards", () => {
-  it("keeps several paid placements from the same restaurant when campaigns differ", () => {
+  it("keeps only one visible sponsored campaign per restaurant in the top slots", () => {
     const cards = prioritizeSponsoredCards(
-      [{ id: "r1", name: "Organic" }, { id: "r2", name: "Other" }],
+      [
+        { id: "r1", name: "Organic R1" },
+        { id: "r2", name: "Organic R2" },
+        { id: "r3", name: "Organic R3" },
+        { id: "r4", name: "Organic R4" },
+      ],
       [
         { id: "r1", campaign_id: "campaign-a", name: "Campaign A" },
         { id: "r1", campaign_id: "campaign-b", name: "Campaign B" },
+        { id: "r2", campaign_id: "campaign-c", name: "Campaign C" },
+        { id: "r3", campaign_id: "campaign-d", name: "Campaign D" },
+        { id: "r4", campaign_id: "campaign-e", name: "Campaign E" },
       ] as any[],
       { topSlots: 3 },
     );
 
-    expect(cards.map((card: any) => card.campaign_id || "organic")).toEqual(["campaign-a", "campaign-b", "organic"]);
+    const visibleCampaigns = cards.filter((card: any) => card.campaign_id);
+
+    expect(cards.slice(0, 3).map((card: any) => card.campaign_id)).toEqual(["campaign-a", "campaign-c", "campaign-d"]);
+    expect(visibleCampaigns.map((card: any) => card.campaign_id)).toEqual(["campaign-a", "campaign-c", "campaign-d"]);
+    expect(new Set(visibleCampaigns.map((card: any) => card.id)).size).toBe(3);
+    expect(cards.some((card: any) => card.campaign_id === "campaign-b")).toBe(false);
+    expect(cards.some((card: any) => card.campaign_id === "campaign-e")).toBe(false);
+  });
+
+  it("caps sponsored top slots to three even when a caller asks for more", () => {
+    const cards = prioritizeSponsoredCards(
+      [{ id: "r4" }, { id: "r5" }],
+      [
+        { id: "r1", campaign_id: "campaign-a" },
+        { id: "r2", campaign_id: "campaign-b" },
+        { id: "r3", campaign_id: "campaign-c" },
+        { id: "r4", campaign_id: "campaign-d" },
+      ] as any[],
+      { topSlots: 10 },
+    );
+
+    expect(cards.filter((card: any) => card.campaign_id).map((card: any) => card.campaign_id))
+      .toEqual(["campaign-a", "campaign-b", "campaign-c"]);
+  });
+
+  it("keeps a page organic when sponsored top slots are disabled", () => {
+    const cards = prioritizeSponsoredCards(
+      [{ id: "r1", name: "Organic" }],
+      [{ id: "r2", campaign_id: "campaign-a" }] as any[],
+      { topSlots: 0 },
+    );
+
+    expect(cards).toEqual([{ id: "r1", name: "Organic" }]);
+  });
+
+  it("keeps home and search sponsored inventory inside the first restaurant cards", () => {
+    const homePage = readSource("src/pages/Index.tsx");
+    const searchPage = readSource("src/pages/Recherche.tsx");
+
+    expect(homePage).toContain("primarySponsoredCards = prioritizeSponsoredCards");
+    expect(homePage).toContain("topSlots: 3");
+    expect(homePage).not.toContain('<CampaignBanner page="home"');
+    expect(searchPage).toContain("prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3 })");
+    expect(searchPage).not.toContain('<CampaignBanner page="search"');
   });
 });
