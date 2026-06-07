@@ -47,6 +47,7 @@ const PolitiqueConfidentialite = lazy(() => import("./pages/PolitiqueConfidentia
 const APropos = lazy(() => import("./pages/APropos"));
 const PacksRestaurateur = lazy(() => import("./pages/PacksRestaurateur"));
 const RestaurateursGeneve = lazy(() => import("./pages/RestaurateursGeneve"));
+const AlternativeCommissionCouvert = lazy(() => import("./pages/AlternativeCommissionCouvert"));
 const MiamzSolidaires = lazy(() => import("./pages/MiamzSolidaires"));
 const Aide = lazy(() => import("./pages/Aide"));
 const CreneauxGarantis = lazy(() => import("./pages/CreneauxGarantis"));
@@ -418,6 +419,7 @@ function AppShell() {
           <Route path="/a-propos" element={<APropos />} />
           <Route path="/packs-restaurateur" element={<PacksRestaurateur />} />
           <Route path="/restaurateurs/geneve" element={<RestaurateursGeneve />} />
+          <Route path="/restaurateurs/alternative-commission-couvert" element={<AlternativeCommissionCouvert />} />
           <Route path="/aide" element={<Aide />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
