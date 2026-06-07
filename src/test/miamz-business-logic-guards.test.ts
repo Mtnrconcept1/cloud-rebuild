@@ -52,6 +52,14 @@ describe("Miamz business logic guards", () => {
     expect(createCheckoutSource).toContain("miamz_benefits_applied");
   });
 
+  it("enforces VIP Table du Chef Miamz thresholds server-side during Stripe checkout", () => {
+    expect(migrationsSource).toContain("required_miamz_points");
+    expect(migrationsSource).toContain("chef_table_drops_vip_miamz_check");
+    expect(createCheckoutSource).toContain("required_miamz_points");
+    expect(createCheckoutSource).toContain("loyalty_points");
+    expect(createCheckoutSource).toContain("Ce drop VIP La Table du Chef");
+  });
+
   it("exposes active Miamz actions and operational priority badges in the UI", () => {
     expect(loyaltyStatusSource).toContain("claim_miamz_birthday_bonus");
     expect(reservationQueueSource).toContain("getReservationMiamzPriority");

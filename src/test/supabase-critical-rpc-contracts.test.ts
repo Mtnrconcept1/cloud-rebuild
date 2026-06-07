@@ -29,9 +29,9 @@ function readSmokeSql() {
 
 describe("Supabase critical RPC contracts", () => {
   it("keeps the current critical Actualites and campaign RPC definitions in migrations", () => {
-    const feedSql = readMigration("actualites_weighted_rotation_and_conversion_attribution");
+    const feedSql = readMigration("actualites_budget_pacing_delivery_score");
     const socialEventSql = readMigration("ignore_internal_actualites_organic_metrics");
-    const campaignSql = readMigration("actualites_internal_campaign_guard");
+    const campaignSql = readMigration("actualites_budget_pacing_delivery_score");
     const conversionSql = readMigration("actualites_conversion_insights_hardening");
 
     expect(feedSql).toContain("DROP FUNCTION IF EXISTS public.get_social_feed_v2(integer, timestamptz, text);");
@@ -63,13 +63,20 @@ describe("Supabase critical RPC contracts", () => {
   });
 
   it("keeps sponsored feed selection budget weighted, rotating, and jsonb-safe", () => {
-    const feedSql = readMigration("actualites_weighted_rotation_and_conversion_attribution");
+    const feedSql = readMigration("actualites_budget_pacing_delivery_score");
 
     expect(feedSql).toContain("jsonb_target_pages_has_actualites");
     expect(feedSql).toContain("public.jsonb_target_pages_has_actualites(ac.target_pages)");
     expect(feedSql).toContain("sponsored_weight");
     expect(feedSql).toContain("budget_daily");
     expect(feedSql).toContain("daily_spent");
+    expect(feedSql).toContain("remaining_budget");
+    expect(feedSql).toContain("days_remaining");
+    expect(feedSql).toContain("daily_budget_plan");
+    expect(feedSql).toContain("daily_budget_remaining");
+    expect(feedSql).toContain("budget_pacing_score");
+    expect(feedSql).toContain("least(weighted.daily_budget_remaining, weighted.remaining_budget / greatest(weighted.days_remaining, 1))");
+    expect(feedSql).toContain("WHERE diversified.sponsored_weight > 0 OR diversified.restaurant_rank <=");
     expect(feedSql).toContain("floor(extract(epoch from now()) / 900)");
     expect(feedSql).toContain("-ln(greatest(0.000001, weighted.sponsored_random_u)) / greatest(weighted.sponsored_weight, 1)");
   });
@@ -90,7 +97,7 @@ describe("Supabase critical RPC contracts", () => {
   });
 
   it("keeps campaign metrics append-only, deduplicated, and protected from owner inflation", () => {
-    const campaignSql = readMigration("actualites_internal_campaign_guard");
+    const campaignSql = readMigration("actualites_budget_pacing_delivery_score");
     const metricWriteSql = readMigration("allow_internal_campaign_metric_writes");
 
     expect(campaignSql).toContain("IF p_event_type NOT IN ('impression', 'click', 'conversion') THEN");
@@ -102,6 +109,9 @@ describe("Supabase critical RPC contracts", () => {
     expect(campaignSql).toContain("impressions = COALESCE(impressions, 0) + CASE WHEN p_event_type = 'impression' THEN 1 ELSE 0 END");
     expect(campaignSql).toContain("clicks = COALESCE(clicks, 0) + CASE WHEN p_event_type = 'click' THEN 1 ELSE 0 END");
     expect(campaignSql).toContain("conversions = COALESCE(conversions, 0) + CASE WHEN p_event_type = 'conversion' THEN 1 ELSE 0 END");
+    expect(campaignSql).toContain("spent = COALESCE(spent, 0) + v_cost");
+    expect(campaignSql).toContain("daily_spent = CASE");
+    expect(campaignSql).toContain("ROUND(COALESCE(v_campaign.cpm_rate, 9.50) / 1000.0, 6)");
 
     expect(metricWriteSql).toContain("current_setting('tok.internal_campaign_metric_write', true)");
     expect(metricWriteSql).toContain("IF TG_OP = 'UPDATE' AND v_internal_metric_write THEN");
@@ -127,7 +137,7 @@ describe("Supabase critical RPC contracts", () => {
 
   it("locks critical RPC grants to the intended client or service roles", () => {
     const publicTrackingSql = readMigration("public_actualites_and_anonymous_tracking");
-    const campaignSql = readMigration("actualites_internal_campaign_guard");
+    const campaignSql = readMigration("actualites_budget_pacing_delivery_score");
     const internalActorSql = readMigration("actualites_internal_actor_helper");
     const grantsSql = readMigration("security_rpc_grants_hardening");
 

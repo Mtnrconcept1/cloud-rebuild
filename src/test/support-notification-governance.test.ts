@@ -85,6 +85,7 @@ describe("support and notification governance", () => {
     const contactSupport = read("supabase/functions/contact-support/index.ts");
 
     expect(sharedNotifications).toContain("export async function notifyAdmins");
+    expect(sharedNotifications).toContain("apikey: serviceRoleKey");
     expect(aiSupport).toContain("notifyAdminsOfSupportTicket");
     expect(aiSupport).toContain("supportTicketWasCreated");
     expect(aiSupport).toContain("/admin/sinistres?ticket=");

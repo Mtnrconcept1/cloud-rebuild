@@ -24,4 +24,19 @@ describe("Actualites responsive guards", () => {
     expect(card).toContain("TriangleAlert");
     expect(card).not.toContain("MoreHorizontal");
   });
+
+  it("keeps the restaurant dashboard composer controls inside their column", () => {
+    const dashboard = read("src/pages/dashboard/DashboardActualites.tsx");
+    const composer = read("src/components/social/SocialComposer.tsx");
+
+    expect(dashboard).toContain("flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between");
+    expect(dashboard).toContain("flex flex-wrap items-center gap-x-3 gap-y-2");
+
+    expect(composer).toContain("flex flex-col gap-4 sm:flex-row");
+    expect(composer).toContain("2xl:flex-row");
+    expect(composer).toContain("flex w-full min-w-0 flex-wrap items-center gap-2");
+    expect(composer).toContain("basis-[13rem]");
+    expect(composer).not.toContain("flex shrink-0 flex-wrap items-center gap-2");
+    expect(composer).not.toContain("flex min-w-[230px]");
+  });
 });

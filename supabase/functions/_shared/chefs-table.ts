@@ -36,6 +36,8 @@ type ChefTableDropRow = {
   original_price: number | null;
   drop_time: string;
   remaining_portions: number;
+  is_vip?: boolean | null;
+  required_miamz_points?: number | null;
   restaurants?: {
     owner_id?: string | null;
     name?: string | null;
@@ -158,6 +160,8 @@ function buildChefTableLineItems(lineItems: Stripe.ApiList<Stripe.LineItem>) {
       const restaurantId = String(productMetadata.restaurant_id || "");
       const serviceDate = dropTime ? dropTime.slice(0, 10) : "";
       const serviceTime = dropTime ? dropTime.slice(11, 16) : "";
+      const isVip = String(productMetadata.is_vip || "") === "true";
+      const requiredMiamzPoints = Math.max(0, Number(productMetadata.required_miamz_points || 0));
 
       return {
         dropId,
@@ -168,6 +172,8 @@ function buildChefTableLineItems(lineItems: Stripe.ApiList<Stripe.LineItem>) {
         quantity,
         unitPrice: unitAmount,
         name: lineItem.description || product?.name || "Experience La Table du Chef",
+        isVip,
+        requiredMiamzPoints,
       };
     })
     .filter((item) => item.dropId && item.restaurantId && item.serviceDate && item.serviceTime);
@@ -330,7 +336,7 @@ export async function finalizeChefsTableCheckout(input: {
   const dropIds = Array.from(new Set(reservationItems.map((item) => item.dropId)));
   const { data: dropsRaw, error: dropsError } = await adminClient
     .from("chef_table_drops")
-    .select("id, restaurant_id, chef_name, dish_name, description, price, original_price, drop_time, remaining_portions, restaurants(owner_id, name)")
+    .select("id, restaurant_id, chef_name, dish_name, description, price, original_price, drop_time, remaining_portions, is_vip, required_miamz_points, restaurants(owner_id, name)")
     .in("id", dropIds);
 
   if (dropsError) throw dropsError;
@@ -374,6 +380,11 @@ export async function finalizeChefsTableCheckout(input: {
         chef_name: drop.chef_name,
         drop_time: drop.drop_time,
         restaurant_id: drop.restaurant_id,
+        is_vip: drop.is_vip === true || item.isVip === true,
+        required_miamz_points: Math.max(
+          0,
+          Number(drop.required_miamz_points || item.requiredMiamzPoints || 0),
+        ),
       },
     };
 
@@ -503,6 +514,14 @@ export async function finalizeChefsTableCheckout(input: {
         paid: true,
         card_brand: cardBrand || null,
         card_last4: cardLast4 || null,
+        has_vip_table: group.preorderItems.some((item) => {
+          const metadata = item.metadata as Record<string, unknown> | undefined;
+          return metadata?.is_vip === true;
+        }),
+        required_miamz_points: group.preorderItems.reduce((max, item) => {
+          const metadata = item.metadata as Record<string, unknown> | undefined;
+          return Math.max(max, Number(metadata?.required_miamz_points || 0));
+        }, 0),
         order_reference: String(session.metadata?.order_reference || `CT-${Date.now()}`),
         stripe_payment_intent: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null,
       };

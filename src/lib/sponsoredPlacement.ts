@@ -1,17 +1,33 @@
 interface CardWithId {
   id?: string | number | null;
+  campaign_id?: string | number | null;
+  sponsoredCampaignId?: string | number | null;
 }
 
 export interface WeightedCampaignLike {
   id?: string | number | null;
   restaurant_id?: string | null;
-  total_budget?: number | null;
-  budget_daily?: number | null;
+  total_budget?: number | string | null;
+  budget_daily?: number | string | null;
+  budget_amount?: number | string | null;
+  spent?: number | string | null;
+  daily_spent?: number | string | null;
+  daily_spent_date?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  boost_weight?: number | string | null;
+  relevance_score?: number | string | null;
+  distance_score?: number | string | null;
+  engagement_score?: number | string | null;
 }
 
 interface SponsoredPlacementOptions {
   topSlots?: number;
   maxItems?: number;
+}
+
+interface CampaignWeightOptions {
+  now?: Date | number | string;
 }
 
 export interface WeightedCampaignRotationState {
@@ -20,22 +36,100 @@ export interface WeightedCampaignRotationState {
   sequence: number;
 }
 
-export function getCampaignBudgetWeight(campaign: WeightedCampaignLike): number {
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function toFiniteNumber(value: unknown) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function toPositiveNumber(value: unknown) {
+  return Math.max(0, toFiniteNumber(value));
+}
+
+function toMultiplier(value: unknown, fallback = 1) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, numeric);
+}
+
+function resolveNow(options?: CampaignWeightOptions) {
+  if (options?.now instanceof Date) return options.now;
+  if (typeof options?.now === "number" || typeof options?.now === "string") {
+    const parsed = new Date(options.now);
+    if (Number.isFinite(parsed.getTime())) return parsed;
+  }
+  return new Date();
+}
+
+function parseDate(value: unknown) {
+  if (!value) return null;
+  const parsed = new Date(String(value));
+  return Number.isFinite(parsed.getTime()) ? parsed : null;
+}
+
+function getRemainingDays(campaign: WeightedCampaignLike, now: Date) {
+  const endsAt = parseDate(campaign.ends_at);
+  if (!endsAt) return null;
+  if (endsAt.getTime() <= now.getTime()) return 0;
+  return Math.max(1, Math.ceil((endsAt.getTime() - now.getTime()) / MS_PER_DAY));
+}
+
+function getTodayKey(now: Date) {
+  return now.toISOString().slice(0, 10);
+}
+
+export function getCampaignDeliveryScore(campaign: WeightedCampaignLike, options?: CampaignWeightOptions): number {
+  const now = resolveNow(options);
+  const remainingDays = getRemainingDays(campaign, now);
+  if (remainingDays === 0) return 0;
+
+  const totalBudget = toPositiveNumber(campaign.total_budget);
+  const fallbackBudget = toPositiveNumber(campaign.budget_amount);
+  const dailyBudget = toPositiveNumber(campaign.budget_daily);
+  const spent = toPositiveNumber(campaign.spent);
+  const remainingBudget = totalBudget > 0
+    ? Math.max(0, totalBudget - spent)
+    : Math.max(fallbackBudget, dailyBudget);
+
+  if ((totalBudget > 0 || fallbackBudget > 0 || dailyBudget > 0) && remainingBudget <= 0) {
+    return 0;
+  }
+
+  const pacingBudget = remainingDays && remainingBudget > 0
+    ? remainingBudget / remainingDays
+    : remainingBudget;
+  const dailyBudgetPlan = dailyBudget > 0 ? dailyBudget : pacingBudget;
+  const dailySpent = campaign.daily_spent_date === getTodayKey(now) ? toPositiveNumber(campaign.daily_spent) : 0;
+  const dailyBudgetRemaining = dailyBudgetPlan > 0 ? Math.max(0, dailyBudgetPlan - dailySpent) : pacingBudget;
+
+  if ((dailyBudget > 0 || dailyBudgetPlan > 0) && dailyBudgetRemaining <= 0) {
+    return 0;
+  }
+
+  const baseScore = Math.max(0, Math.min(
+    pacingBudget > 0 ? pacingBudget : Number.POSITIVE_INFINITY,
+    dailyBudgetRemaining > 0 ? dailyBudgetRemaining : Number.POSITIVE_INFINITY,
+  ));
+  const normalizedBaseScore = Number.isFinite(baseScore) && baseScore > 0 ? baseScore : 1;
+  const boostWeight = Math.max(0.1, toMultiplier(campaign.boost_weight, 1));
+  const relevance = toMultiplier(campaign.relevance_score, 1);
+  const distance = toMultiplier(campaign.distance_score, 1);
+  const engagement = toMultiplier(campaign.engagement_score, 1);
+
+  return normalizedBaseScore * boostWeight * relevance * distance * engagement;
+}
+
+export function getCampaignBudgetWeight(campaign: WeightedCampaignLike, options?: CampaignWeightOptions): number {
   const poolWeight = Number((campaign as Record<string, unknown>).__poolWeight || 0);
   if (poolWeight > 0) return poolWeight;
-
-  const totalBudget = Number(campaign?.total_budget || 0);
-  if (totalBudget > 0) return totalBudget;
-
-  const dailyBudget = Number(campaign?.budget_daily || 0);
-  if (dailyBudget > 0) return dailyBudget;
-
-  return 1;
+  return getCampaignDeliveryScore(campaign, options);
 }
 
 export function pickWeightedCampaign<T extends WeightedCampaignLike>(
   campaigns: T[],
   state?: WeightedCampaignRotationState,
+  options?: CampaignWeightOptions,
 ): { campaign: T | null; state: WeightedCampaignRotationState } {
   const normalizedState: WeightedCampaignRotationState = {
     counts: { ...(state?.counts || {}) },
@@ -44,7 +138,10 @@ export function pickWeightedCampaign<T extends WeightedCampaignLike>(
   };
 
   const eligibleCampaigns = (campaigns || []).filter((campaign): campaign is T => {
-    return campaign != null && campaign.id !== undefined && campaign.id !== null;
+    return campaign != null
+      && campaign.id !== undefined
+      && campaign.id !== null
+      && getCampaignBudgetWeight(campaign, options) > 0;
   });
 
   if (eligibleCampaigns.length === 0) {
@@ -65,15 +162,15 @@ export function pickWeightedCampaign<T extends WeightedCampaignLike>(
     return sum + (normalizedState.counts[campaignId] || 0);
   }, 0);
 
-  const totalWeight = eligibleCampaigns.reduce((sum, campaign) => sum + getCampaignBudgetWeight(campaign), 0) || 1;
+  const totalWeight = eligibleCampaigns.reduce((sum, campaign) => sum + getCampaignBudgetWeight(campaign, options), 0) || 1;
 
   const sortedCandidates = [...eligibleCampaigns].sort((left, right) => {
     const leftId = String(left.id);
     const rightId = String(right.id);
     const leftCount = normalizedState.counts[leftId] || 0;
     const rightCount = normalizedState.counts[rightId] || 0;
-    const leftWeight = getCampaignBudgetWeight(left);
-    const rightWeight = getCampaignBudgetWeight(right);
+    const leftWeight = getCampaignBudgetWeight(left, options);
+    const rightWeight = getCampaignBudgetWeight(right, options);
     const leftShare = leftWeight / totalWeight;
     const rightShare = rightWeight / totalWeight;
     const leftDeficit = ((totalShows + 1) * leftShare) - leftCount;
@@ -99,6 +196,38 @@ export function pickWeightedCampaign<T extends WeightedCampaignLike>(
   return { campaign, state: normalizedState };
 }
 
+export function orderWeightedCampaigns<T extends WeightedCampaignLike>(
+  campaigns: T[],
+  state?: WeightedCampaignRotationState,
+  options?: CampaignWeightOptions,
+): { campaigns: T[]; state: WeightedCampaignRotationState } {
+  let nextState: WeightedCampaignRotationState = {
+    counts: { ...(state?.counts || {}) },
+    lastShownOrder: { ...(state?.lastShownOrder || {}) },
+    sequence: Number(state?.sequence || 0),
+  };
+  const remaining = [...(campaigns || [])];
+  const ordered: T[] = [];
+
+  while (remaining.length > 0) {
+    const result = pickWeightedCampaign(remaining, nextState, options);
+    nextState = result.state;
+    if (!result.campaign) break;
+
+    ordered.push(result.campaign);
+    const selectedId = String(result.campaign.id);
+    const selectedIndex = remaining.findIndex((campaign) => String(campaign.id) === selectedId);
+    if (selectedIndex === -1) break;
+    remaining.splice(selectedIndex, 1);
+  }
+
+  return { campaigns: ordered, state: nextState };
+}
+
+function getSponsoredCardKey(card: CardWithId) {
+  return card.campaign_id ?? card.sponsoredCampaignId ?? card.id ?? null;
+}
+
 export function prioritizeSponsoredCards<T extends CardWithId>(
   organicCards: T[],
   sponsoredCards: T[],
@@ -117,14 +246,14 @@ export function prioritizeSponsoredCards<T extends CardWithId>(
   const seenSponsoredIds = new Set<string | number>();
   const uniqueSponsored = sponsored.filter((card) => {
     if (card == null) return false;
-    const { id } = card;
-    if (id === undefined || id === null) return true;
-    if (seenSponsoredIds.has(id)) return false;
-    seenSponsoredIds.add(id);
+    const key = getSponsoredCardKey(card);
+    if (key === undefined || key === null) return true;
+    if (seenSponsoredIds.has(key)) return false;
+    seenSponsoredIds.add(key);
     return true;
   });
 
-  const sponsoredIds = new Set(
+  const sponsoredRestaurantIds = new Set(
     uniqueSponsored
       .map((card) => card.id)
       .filter((id): id is string | number => id !== undefined && id !== null),
@@ -134,7 +263,7 @@ export function prioritizeSponsoredCards<T extends CardWithId>(
     if (card == null) return false;
     const { id } = card;
     if (id === undefined || id === null) return true;
-    return !sponsoredIds.has(id);
+    return !sponsoredRestaurantIds.has(id);
   });
 
   const prioritizedSponsored = uniqueSponsored.slice(0, topSlots);

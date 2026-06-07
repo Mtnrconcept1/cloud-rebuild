@@ -121,6 +121,24 @@ describe("notifications and chat sinistres governance", () => {
     expect(page).toContain("Transcription IA");
   });
 
+  it("keeps incident detail closing single-click and exposes triage status actions before closure", () => {
+    const page = readProjectFile("src/pages/admin/AdminSinistres.tsx");
+
+    expect(page).toContain("suppressedAutoOpenTargetRef");
+    expect(page).toContain("closeIncidentDetail");
+    expect(page).toContain("onOpenChange={(open) => {");
+    expect(page).toContain("closeIncidentDetail();");
+    expect(page).toContain("ADMIN_INCIDENT_STATUS_ACTIONS");
+    expect(page).toContain('label: "En cours"');
+    expect(page).toContain('label: "En attente client"');
+    expect(page).toContain('label: "En attente restaurant"');
+    expect(page).toContain('label: "Résolu"');
+    expect(page).toContain("updateIncidentStatus");
+    expect(page).toContain('.from("support_incidents")');
+    expect(page).toContain('.from("ai_support_tickets")');
+    expect(page).not.toContain('label: "Classer"');
+  });
+
   it("persists AI chat complaints into support incidents and notifies admins", () => {
     for (const fn of ["ai-client-chat", "ai-client-support"]) {
       const source = readProjectFile(`supabase/functions/${fn}/index.ts`);

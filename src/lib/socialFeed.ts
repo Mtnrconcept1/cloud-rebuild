@@ -197,6 +197,9 @@ export type SocialFeedPost = {
   visibility?: "public" | "followers" | "unlisted" | null;
   campaignGoal?: SocialMarketingGoal | null;
   campaignName?: string | null;
+  isSponsored?: boolean;
+  promotionStatus?: string | null;
+  promotionPaymentStatus?: string | null;
   audienceSegment?: SocialAudienceSegment | null;
   offerCode?: string | null;
   utmCampaign?: string | null;

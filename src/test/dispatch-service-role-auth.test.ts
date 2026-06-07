@@ -9,6 +9,7 @@ const deliveryDispatchSource = readFileSync(resolve(root, "supabase/functions/_s
 
 describe("dispatch service-role callback", () => {
   it("lets restaurant-order-status trigger dispatch-order with the service-role callback token", () => {
+    expect(deliveryDispatchSource).toContain("apikey: serviceRoleKey");
     expect(deliveryDispatchSource).toContain('Authorization: `Bearer ${serviceRoleKey}`');
     expect(dispatchOrderSource).toContain("authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true })");
   });

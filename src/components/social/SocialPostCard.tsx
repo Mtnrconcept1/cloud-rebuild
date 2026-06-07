@@ -421,7 +421,7 @@ export default function SocialPostCard({
             <div className="min-w-0">
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <h3 className="truncate text-base font-bold leading-tight text-slate-950">{post.restaurant.name}</h3>
-                {post.campaignName ? (
+                {post.isSponsored ? (
                   <Badge className="rounded-full bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50">
                     Sponsorisé
                   </Badge>

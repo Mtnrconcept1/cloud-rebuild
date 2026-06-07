@@ -20,14 +20,20 @@ function latestMigrationContaining(pattern: RegExp) {
   return readFileSync(resolve(migrationsDir, match), "utf8");
 }
 
+const migrationsSource = readdirSync(migrationsDir)
+  .filter((name) => name.endsWith(".sql"))
+  .sort()
+  .map((name) => readFileSync(resolve(migrationsDir, name), "utf8"))
+  .join("\n");
+
 describe("admin Chef Table drops governance", () => {
   it("adds audited save/archive RPCs and blocks editing sold drops", () => {
     const sql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_save_chef_table_drop/i);
 
-    expect(sql).toMatch(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+archived_at/i);
+    expect(migrationsSource).toMatch(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+archived_at/i);
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_save_chef_table_drop/i);
-    expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_archive_chef_table_drop/i);
-    expect(sql).toMatch(/REVOKE\s+INSERT,\s*UPDATE,\s*DELETE\s+ON\s+public\.chef_table_drops\s+FROM\s+authenticated/i);
+    expect(migrationsSource).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_archive_chef_table_drop/i);
+    expect(migrationsSource).toMatch(/REVOKE\s+INSERT,\s*UPDATE,\s*DELETE\s+ON\s+public\.chef_table_drops\s+FROM\s+authenticated/i);
     expect(sql).toMatch(/already sold; archive it instead of editing/i);
     expect(sql).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
   });

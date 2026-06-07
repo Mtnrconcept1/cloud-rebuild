@@ -3,11 +3,11 @@ project_id = "wwcrtyoueexyxkkikaos"
 # -----------------------------------------------------------------------------
 # Edge function auth policy.
 #
-# Supabase documents that platform-level `verify_jwt` is incompatible with the
-# new JWT Signing Keys flow. This project now validates Authorization headers in
-# the handler itself (`authenticateRequest`, `auth.getUser()`, scheduler secret,
-# Stripe webhook signature, etc.), so every function below explicitly opts out
-# of the legacy gateway JWT verification layer.
+# User-authenticated functions keep Supabase gateway JWT verification enabled so
+# unauthenticated requests are rejected before the handler runs. Webhooks, cron
+# jobs, service-to-service dispatchers, and intentionally public collectors keep
+# `verify_jwt = false` and must validate their own signature or secret inside the
+# handler.
 # -----------------------------------------------------------------------------
 
 [functions.ai-admin-support]
@@ -35,10 +35,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.authorize-match-group-order]
-verify_jwt = false
+verify_jwt = true
 
 [functions.campaign-portal]
-verify_jwt = false
+verify_jwt = true
 
 [functions.capture-due-match-groups]
 verify_jwt = false
@@ -50,22 +50,22 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.complete-order-checkout]
-verify_jwt = false
+verify_jwt = true
 
 [functions.courier-portal]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-checkout]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-chefs-table-reservation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-zero-attente-reservation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.delete-account]
-verify_jwt = false
+verify_jwt = true
 
 [functions.dispatch-order]
 verify_jwt = false
@@ -80,22 +80,22 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.floorplan-ai]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-campaign]
-verify_jwt = false
+verify_jwt = true
 
 [functions.notification-dispatch]
 verify_jwt = false
 
 [functions.process-refund]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-invoices]
 verify_jwt = false
 
 [functions.manage-tok-one-subscription]
-verify_jwt = false
+verify_jwt = true
 
 [functions.reconcile-match-group-authorizations]
 verify_jwt = false
@@ -104,13 +104,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.restaurant-advisor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.restaurant-order-status]
-verify_jwt = false
+verify_jwt = true
 
 [functions.restaurant-media-governance]
-verify_jwt = false
+verify_jwt = true
 
 [functions.scrape-restaurants]
 verify_jwt = false
@@ -122,7 +122,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.stripe-connect-onboard]
-verify_jwt = false
+verify_jwt = true
 
 [functions.track-analytics]
 verify_jwt = false
@@ -131,4 +131,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.validate-order]
-verify_jwt = false
+verify_jwt = true

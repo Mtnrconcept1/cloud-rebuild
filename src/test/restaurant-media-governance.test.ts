@@ -47,7 +47,9 @@ describe("restaurant media governance", () => {
     const migration = findMigration();
 
     expect(config).toContain("[functions.restaurant-media-governance]");
-    expect(config).toContain("verify_jwt = false");
+    expect(config).toMatch(
+      /\[functions\.restaurant-media-governance\]\s+verify_jwt\s*=\s*true/i,
+    );
     expect(client).toContain('"restaurant-media-governance"');
     expect(client).toContain('action: "delete_media"');
     expect(dashboardPhotos).toContain("deleteRestaurantMedia");

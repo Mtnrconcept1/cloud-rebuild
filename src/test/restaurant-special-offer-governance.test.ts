@@ -23,7 +23,9 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("restaurant special offer governance", () => {
   it("adds audited RPCs for Anti-Gaspi and Flash Sale writes", () => {
-    const sql = latestMigrationContaining(/restaurant_upsert_anti_waste_offer/i);
+    const sql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_upsert_anti_waste_offer/i,
+    );
 
     expect(sql).toMatch(/ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+archived_at/i);
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_upsert_anti_waste_offer/i);

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bot, CalendarClock, ClipboardList, MessageSquareText, Search, ShieldAlert, Store, User } from "lucide-react";
 
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -89,6 +90,93 @@ type AiMessageRow = {
   created_at: string;
 };
 
+type IncidentStatusAction = {
+  value: string;
+  label: string;
+  description: string;
+  supportIncident: boolean;
+  aiTicket: boolean;
+};
+
+const SUPPORT_INCIDENT_STATUS_VALUES = new Set([
+  "open",
+  "waiting_customer",
+  "waiting_restaurant",
+  "waiting_admin",
+  "resolved",
+]);
+
+const AI_SUPPORT_TICKET_STATUS_VALUES = new Set([
+  "open",
+  "waiting_restaurant",
+  "waiting_tok",
+  "resolved",
+  "escalated",
+]);
+
+const ADMIN_INCIDENT_STATUS_ACTIONS: IncidentStatusAction[] = [
+  {
+    value: "open",
+    label: "En cours",
+    description: "Le dossier est pris en charge sans etre classe.",
+    supportIncident: true,
+    aiTicket: true,
+  },
+  {
+    value: "waiting_admin",
+    label: "A traiter",
+    description: "Une action de l'equipe TOK est requise.",
+    supportIncident: true,
+    aiTicket: false,
+  },
+  {
+    value: "waiting_tok",
+    label: "En attente TOK",
+    description: "Le ticket IA attend une decision interne TOK.",
+    supportIncident: false,
+    aiTicket: true,
+  },
+  {
+    value: "waiting_customer",
+    label: "En attente client",
+    description: "Le client doit fournir une reponse ou un justificatif.",
+    supportIncident: true,
+    aiTicket: false,
+  },
+  {
+    value: "waiting_restaurant",
+    label: "En attente restaurant",
+    description: "Le restaurant doit repondre avant resolution.",
+    supportIncident: true,
+    aiTicket: true,
+  },
+  {
+    value: "escalated",
+    label: "Escalade",
+    description: "Le ticket IA necessite une attention prioritaire.",
+    supportIncident: false,
+    aiTicket: true,
+  },
+  {
+    value: "resolved",
+    label: "Résolu",
+    description: "Le sinistre est resolu, sans fermeture definitive.",
+    supportIncident: true,
+    aiTicket: true,
+  },
+];
+
+const STATUS_LABELS: Record<string, string> = {
+  open: "En cours",
+  waiting_admin: "A traiter",
+  waiting_tok: "Attente TOK",
+  waiting_customer: "Attente client",
+  waiting_restaurant: "Attente restaurant",
+  escalated: "Escalade",
+  resolved: "Résolu",
+  closed: "Fermé",
+};
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -124,8 +212,13 @@ function statusClass(status: string) {
   if (["closed", "resolved"].includes(status)) return "bg-emerald-100 text-emerald-800";
   if (status === "waiting_customer") return "bg-sky-100 text-sky-800";
   if (status === "waiting_restaurant") return "bg-violet-100 text-violet-800";
-  if (status === "waiting_tok" || status === "waiting_admin" || status === "escalated") return "bg-red-100 text-red-800";
-  return "bg-red-100 text-red-800";
+  if (status === "waiting_tok" || status === "waiting_admin") return "bg-amber-100 text-amber-800";
+  if (status === "escalated") return "bg-red-100 text-red-800";
+  return "bg-slate-100 text-slate-800";
+}
+
+function formatStatus(status: string) {
+  return STATUS_LABELS[status] || status;
 }
 
 function isChatIncident(row: SupportIncidentRow) {
@@ -144,6 +237,19 @@ function getTicketSummary(metadata: Record<string, unknown>, fallback: string | 
 
 function getItemActivityDate(item: SupportIncidentRow) {
   return item.last_message_at || item.updated_at || item.created_at;
+}
+
+function getIncidentTargetKey(incident: SupportIncidentRow | null) {
+  if (!incident) return null;
+  return incident.record_kind === "ai_ticket"
+    ? incident.support_ticket_id || incident.id
+    : incident.support_incident_id || incident.id;
+}
+
+function getIncidentStatusActions(incident: SupportIncidentRow) {
+  return ADMIN_INCIDENT_STATUS_ACTIONS.filter((action) =>
+    incident.record_kind === "ai_ticket" ? action.aiTicket : action.supportIncident
+  );
 }
 
 function mapSupportIncident(row: SupportIncidentRow): SupportIncidentRow {
@@ -377,12 +483,52 @@ async function fetchIncidentConversation(incident: SupportIncidentRow | null) {
   };
 }
 
+async function updateIncidentStatus({ incident, status }: { incident: SupportIncidentRow; status: string }) {
+  const now = new Date().toISOString();
+
+  if (incident.record_kind === "ai_ticket" && !incident.support_incident_id) {
+    if (!AI_SUPPORT_TICKET_STATUS_VALUES.has(status)) {
+      throw new Error("Statut non autorise pour ce ticket IA.");
+    }
+
+    const payload: Record<string, unknown> = {
+      status,
+      ...(status === "resolved" ? { resolved_at: now } : {}),
+    };
+    const { error } = await (supabase as any)
+      .from("ai_support_tickets")
+      .update(payload)
+      .eq("id", incident.support_ticket_id || incident.id);
+
+    if (error) throw error;
+    return;
+  }
+
+  if (!SUPPORT_INCIDENT_STATUS_VALUES.has(status)) {
+    throw new Error("Statut non autorise pour ce sinistre.");
+  }
+
+  const payload: Record<string, unknown> = {
+    status,
+    ...(status === "resolved" ? { resolved_at: now } : {}),
+  };
+  const { error } = await (supabase as any)
+    .from("support_incidents")
+    .update(payload)
+    .eq("id", incident.support_incident_id || incident.id);
+
+  if (error) throw error;
+}
+
 export default function AdminSinistres() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("open");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [selectedIncident, setSelectedIncident] = useState<SupportIncidentRow | null>(null);
+  const suppressedAutoOpenTargetRef = useRef<string | null>(null);
 
   const { data: incidents = [], isLoading, error } = useQuery({
     queryKey: ["admin-chat-sinistres"],
@@ -395,11 +541,39 @@ export default function AdminSinistres() {
     enabled: Boolean(selectedIncident?.id),
   });
 
+  const statusMutation = useMutation({
+    mutationFn: updateIncidentStatus,
+    onSuccess: (_data, variables) => {
+      const updatedAt = new Date().toISOString();
+      setSelectedIncident((current) => {
+        if (!current || current.id !== variables.incident.id) return current;
+        return { ...current, status: variables.status, updated_at: updatedAt };
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-chat-sinistres"] });
+      toast({
+        title: "Statut mis a jour",
+        description: "Le sinistre reste dans la file avec son nouveau statut de suivi.",
+      });
+    },
+    onError: (mutationError: Error) => {
+      toast({
+        title: "Statut non modifie",
+        description: mutationError.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     const incidentId = searchParams.get("incident");
     const ticketId = searchParams.get("ticket");
     const targetId = incidentId || ticketId;
-    if (!targetId || selectedIncident?.id === targetId || incidents.length === 0) return;
+    if (!targetId) {
+      suppressedAutoOpenTargetRef.current = null;
+      return;
+    }
+    if (suppressedAutoOpenTargetRef.current === targetId) return;
+    if (getIncidentTargetKey(selectedIncident) === targetId || selectedIncident?.id === targetId || incidents.length === 0) return;
 
     const incident = incidents.find((row) =>
       ticketId
@@ -407,7 +581,7 @@ export default function AdminSinistres() {
         : row.support_incident_id === incidentId || row.id === incidentId
     );
     if (incident) setSelectedIncident(incident);
-  }, [incidents, searchParams, selectedIncident?.id]);
+  }, [incidents, searchParams, selectedIncident]);
 
   const filteredIncidents = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -447,6 +621,7 @@ export default function AdminSinistres() {
   }), [incidents]);
 
   const openIncident = (incident: SupportIncidentRow) => {
+    suppressedAutoOpenTargetRef.current = null;
     setSelectedIncident(incident);
     setSearchParams((current) => {
       const next = new URLSearchParams(current);
@@ -459,6 +634,23 @@ export default function AdminSinistres() {
       }
       return next;
     });
+  };
+
+  const closeIncidentDetail = () => {
+    const targetId = searchParams.get("incident") || searchParams.get("ticket") || getIncidentTargetKey(selectedIncident);
+    suppressedAutoOpenTargetRef.current = targetId;
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete("incident");
+      next.delete("ticket");
+      return next;
+    });
+    setSelectedIncident(null);
+  };
+
+  const handleStatusChange = (incident: SupportIncidentRow, status: string) => {
+    if (incident.status === status || statusMutation.isPending) return;
+    statusMutation.mutate({ incident, status });
   };
 
   return (
@@ -557,7 +749,7 @@ export default function AdminSinistres() {
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge className={priorityClass(incident.priority)}>{incident.priority}</Badge>
-                          <Badge className={statusClass(incident.status)}>{incident.status}</Badge>
+                          <Badge className={statusClass(incident.status)}>{formatStatus(incident.status)}</Badge>
                           <Badge variant="outline">{incident.category}</Badge>
                           <Badge variant="outline">
                             {incident.record_kind === "ai_ticket" ? "Ticket IA" : "Sinistre"}
@@ -601,13 +793,7 @@ export default function AdminSinistres() {
         open={Boolean(selectedIncident)}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedIncident(null);
-            setSearchParams((current) => {
-              const next = new URLSearchParams(current);
-              next.delete("incident");
-              next.delete("ticket");
-              return next;
-            });
+            closeIncidentDetail();
           }
         }}
       >
@@ -635,12 +821,38 @@ export default function AdminSinistres() {
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Statut</p>
                   <div className="mt-1 flex flex-wrap gap-2">
                     <Badge className={priorityClass(selectedIncident.priority)}>{selectedIncident.priority}</Badge>
-                    <Badge className={statusClass(selectedIncident.status)}>{selectedIncident.status}</Badge>
+                    <Badge className={statusClass(selectedIncident.status)}>{formatStatus(selectedIncident.status)}</Badge>
                   </div>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Dernière activité</p>
                   <p className="font-medium">{formatDateTime(getItemActivityDate(selectedIncident))}</p>
+                </div>
+                <div className="rounded-xl border bg-background p-3 md:col-span-2">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold">Suivi du sinistre</p>
+                      <p className="text-xs text-muted-foreground">
+                        Modifiez le statut sans classer le dossier definitivement.
+                      </p>
+                    </div>
+                    <Badge variant="outline">{selectedIncident.record_kind === "ai_ticket" ? "Ticket IA" : "Sinistre"}</Badge>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {getIncidentStatusActions(selectedIncident).map((action) => (
+                      <Button
+                        key={action.value}
+                        type="button"
+                        size="sm"
+                        variant={selectedIncident.status === action.value ? "default" : "outline"}
+                        disabled={selectedIncident.status === action.value || statusMutation.isPending}
+                        title={action.description}
+                        onClick={() => handleStatusChange(selectedIncident, action.value)}
+                      >
+                        {action.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

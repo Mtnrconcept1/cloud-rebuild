@@ -236,9 +236,9 @@ export default function DashboardActualites() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="font-display text-xl font-semibold">Posts</h2>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1"><Eye className="h-4 w-4" /> {insights?.impressions ?? 0}</span>
                   <span className="inline-flex items-center gap-1"><MousePointerClick className="h-4 w-4" /> {insights?.clicks ?? 0}</span>
                   <span className="inline-flex items-center gap-1"><Repeat2 className="h-4 w-4" /> {posts.reduce((sum, post) => sum + post.repostsCount, 0)}</span>

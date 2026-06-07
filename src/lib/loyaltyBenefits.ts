@@ -62,6 +62,9 @@ export const LOYALTY_TIERS: Record<LoyaltyTierId, {
   },
 };
 
+export const MIAMZ_VIP_TABLE_ACCESS_BENEFIT_ID = "vip_table_access";
+export const MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD = LOYALTY_TIERS.platinum.threshold;
+
 export const LOYALTY_BENEFITS: LoyaltyBenefit[] = [
   {
     id: "welcome_miamz",
@@ -146,7 +149,7 @@ export const LOYALTY_BENEFITS: LoyaltyBenefit[] = [
     highlight: true,
   },
   {
-    id: "vip_table_access",
+    id: MIAMZ_VIP_TABLE_ACCESS_BENEFIT_ID,
     title: "Accès tables VIP",
     description: "Profitez d'un accès prioritaire aux tables rares et expériences premium ouvertes par les partenaires.",
     appliesFrom: "platinum",

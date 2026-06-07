@@ -236,6 +236,18 @@ BEGIN
     RAISE EXCEPTION 'direct campaign impression must be recorded';
   END IF;
 
+  SELECT count(*)
+  INTO v_count
+  FROM public.ad_campaigns
+  WHERE id = v_campaign_id
+    AND spent > 0
+    AND daily_spent > 0
+    AND daily_spent_date = current_date;
+
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'campaign impression must debit total and daily spend';
+  END IF;
+
   v_result := public.record_ad_campaign_event(
     v_campaign_id,
     v_restaurant_id,

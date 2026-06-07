@@ -361,14 +361,25 @@ Deno.serve(async (req) => {
 
       const { data: dropRows, error: dropsError } = await actor.adminClient
         .from("chef_table_drops")
-        .select("id, restaurant_id, chef_name, dish_name, price, original_price, drop_time, remaining_portions, is_active, restaurants(name)")
+        .select("id, restaurant_id, chef_name, dish_name, price, original_price, drop_time, remaining_portions, is_active, is_vip, required_miamz_points, restaurants(name)")
         .in("id", dropIds);
 
       if (dropsError) throw new HttpError(500, dropsError.message);
 
+      const { data: profileRow, error: profileError } = await actor.adminClient
+        .from("profiles")
+        .select("loyalty_points")
+        .eq("user_id", actor.userId)
+        .maybeSingle();
+
+      if (profileError) throw new HttpError(500, profileError.message);
+
+      const userMiamzPoints = Math.max(0, Number(profileRow?.loyalty_points || 0));
       const dropMap = new Map((dropRows || []).map((row: any) => [row.id, row]));
       let authoritativeTotal = 0;
       let totalPartySize = 0;
+      let vipDropCount = 0;
+      let maxRequiredMiamzPoints = 0;
 
       for (const item of items as CheckoutItem[]) {
         const dropId = String(item?.metadata?.chef_table_drop_id || "");
@@ -383,6 +394,19 @@ Deno.serve(async (req) => {
         }
         if (Number(drop.remaining_portions || 0) < quantity) {
           throw new HttpError(409, "Le nombre de portions disponibles a change pour ce drop.");
+        }
+
+        const isVipDrop = drop.is_vip === true;
+        const requiredMiamzPoints = Math.max(1, Number(drop.required_miamz_points || 0));
+        if (isVipDrop) {
+          vipDropCount += 1;
+          maxRequiredMiamzPoints = Math.max(maxRequiredMiamzPoints, requiredMiamzPoints);
+          if (userMiamzPoints < requiredMiamzPoints) {
+            throw new HttpError(
+              403,
+              `Ce drop VIP La Table du Chef demande ${requiredMiamzPoints} Miamz.`,
+            );
+          }
         }
 
         const unitAmount = Math.round(Number(drop.price || 0) * 100);
@@ -404,6 +428,8 @@ Deno.serve(async (req) => {
                 drop_time: String(drop.drop_time || ""),
                 party_size: String(quantity),
                 source: "chef_table_drop",
+                is_vip: isVipDrop ? "true" : "false",
+                required_miamz_points: isVipDrop ? String(requiredMiamzPoints) : "0",
               },
             },
             unit_amount: unitAmount,
@@ -420,6 +446,8 @@ Deno.serve(async (req) => {
         restaurant_id: String(order_metadata?.restaurant_id || ""),
         authoritative_total: authoritativeTotal.toFixed(2),
         party_size: String(totalPartySize),
+        chef_table_vip_drop_count: String(vipDropCount),
+        chef_table_vip_required_miamz_points: String(maxRequiredMiamzPoints),
       };
     } else {
       const primaryRestaurantId = String(order_metadata?.restaurant_id || "");

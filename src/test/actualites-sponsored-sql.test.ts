@@ -39,12 +39,15 @@ describe("Actualites sponsored SQL safety guards", () => {
   });
 
   it("keeps the sponsored feed ranking budget-weighted and rotating", () => {
-    const sql = readMigration("actualites_weighted_rotation_and_conversion_attribution");
+    const sql = readMigration("actualites_budget_pacing_delivery_score");
 
     expect(sql).toContain("jsonb_target_pages_has_actualites");
     expect(sql).toContain("sponsored_weight");
     expect(sql).toContain("budget_daily");
     expect(sql).toContain("daily_spent");
+    expect(sql).toContain("remaining_budget");
+    expect(sql).toContain("budget_pacing_score");
+    expect(sql).toContain("WHERE diversified.sponsored_weight > 0 OR diversified.restaurant_rank <=");
     expect(sql).toContain("floor(extract(epoch from now()) / 900)");
     expect(sql).toContain("-ln(greatest(0.000001, weighted.sponsored_random_u)) / greatest(weighted.sponsored_weight, 1)");
   });
@@ -72,7 +75,7 @@ describe("Actualites sponsored SQL safety guards", () => {
 
   it("does not let restaurant owners or admins inflate campaign metrics", () => {
     const helperSql = readMigration("actualites_internal_actor_helper");
-    const campaignSql = readMigration("actualites_internal_campaign_guard");
+    const campaignSql = readMigration("actualites_budget_pacing_delivery_score");
     const organicSql = readMigration("ignore_internal_actualites_organic_metrics");
 
     expect(helperSql).toContain("is_restaurant_internal_actor");

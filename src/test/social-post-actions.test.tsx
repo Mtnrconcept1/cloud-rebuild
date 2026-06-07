@@ -113,4 +113,24 @@ describe("SocialPostCard actions", () => {
       reason: "Contenu inapproprie",
     });
   });
+
+  it("does not label an organic marketing post as sponsored before paid boost activation", () => {
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={{ ...post, campaignName: "Booster midi", isSponsored: false } as any} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText(/Sponsoris/i)).not.toBeInTheDocument();
+  });
+
+  it("labels a post as sponsored only when a paid boost is active", () => {
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={{ ...post, campaignName: "Booster midi", isSponsored: true } as any} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText(/Sponsoris/i)).toBeInTheDocument();
+  });
 });

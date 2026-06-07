@@ -152,6 +152,24 @@ type CreateSocialPostInput = {
   utmCampaign?: string | null;
 };
 
+type SocialPostPromotionRow = {
+  post_id?: string | null;
+  campaign_id?: string | null;
+  status?: string | null;
+};
+
+type AdCampaignPaymentRow = {
+  id?: string | null;
+  status?: string | null;
+  payment_status?: string | null;
+};
+
+type SponsoredPostState = {
+  isSponsored: boolean;
+  promotionStatus: string | null;
+  promotionPaymentStatus: string | null;
+};
+
 type SetPostReactionInput = {
   post: SocialFeedPost;
   reaction: SocialReactionType | null;
@@ -208,6 +226,22 @@ function parseRecommendationReasons(value: unknown) {
   return [];
 }
 
+function normalizeStatus(value: unknown) {
+  return String(value || "").trim().toLocaleLowerCase("fr-CH");
+}
+
+function normalizeSearchText(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toLocaleLowerCase("fr-CH")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function hasSponsoredRecommendation(reasons: string[]) {
+  return reasons.some((reason) => normalizeSearchText(reason).includes("sponsor"));
+}
+
 function updateReactionCounts(
   counts: SocialReactionCounts,
   previousReaction: SocialReactionType | null | undefined,
@@ -221,6 +255,8 @@ function updateReactionCounts(
 
 function mapSocialPost(row: SocialFeedRpcRow): SocialFeedPost {
   const reactionCounts = normalizeReactionCounts(row.reaction_counts);
+  const recommendationReasons = parseRecommendationReasons(row.recommendation_reasons);
+  const isSponsored = hasSponsoredRecommendation(recommendationReasons);
   return {
     id: row.post_id,
     activityId: row.activity_id,
@@ -253,10 +289,13 @@ function mapSocialPost(row: SocialFeedRpcRow): SocialFeedPost {
     visibility: row.visibility || "public",
     campaignGoal: normalizeSocialMarketingGoal(row.campaign_goal),
     campaignName: row.campaign_name || null,
+    isSponsored,
+    promotionStatus: isSponsored ? "active" : null,
+    promotionPaymentStatus: isSponsored ? "paid" : null,
     audienceSegment: normalizeSocialAudienceSegment(row.audience_segment),
     offerCode: row.offer_code || null,
     utmCampaign: row.utm_campaign || null,
-    recommendationReasons: parseRecommendationReasons(row.recommendation_reasons),
+    recommendationReasons,
   };
 }
 
@@ -312,6 +351,9 @@ function mapRestaurantPostRow(row: any): SocialFeedPost {
     visibility: row.visibility || "public",
     campaignGoal: normalizeSocialMarketingGoal(row.campaign_goal),
     campaignName: row.campaign_name || null,
+    isSponsored: Boolean(row.is_sponsored),
+    promotionStatus: row.promotion_status || null,
+    promotionPaymentStatus: row.promotion_payment_status || null,
     audienceSegment: normalizeSocialAudienceSegment(row.audience_segment),
     offerCode: row.offer_code || null,
     utmCampaign: row.utm_campaign || null,
@@ -356,6 +398,66 @@ function removeSocialPost(queryClient: QueryClient, postId: string) {
       })),
     };
   });
+}
+
+async function getSponsoredStateByPostId(postIds: string[]) {
+  const uniquePostIds = Array.from(new Set(postIds.filter(Boolean)));
+  const stateByPostId = new Map<string, SponsoredPostState>();
+  if (uniquePostIds.length === 0) return stateByPostId;
+
+  const { data: promotions, error: promotionsError } = await (supabase.from("social_post_promotions" as any) as any)
+    .select("post_id,campaign_id,status")
+    .in("post_id", uniquePostIds);
+
+  if (promotionsError) {
+    if (!isMissingSocialMarketingSchemaError(promotionsError) && !isMissingRpc(promotionsError)) {
+      console.warn("Sponsored post promotion metadata unavailable", promotionsError);
+    }
+    return stateByPostId;
+  }
+
+  const promotionRows = (promotions || []) as SocialPostPromotionRow[];
+  const campaignIds = Array.from(new Set(promotionRows.map((promotion) => promotion.campaign_id).filter(Boolean))) as string[];
+  if (campaignIds.length === 0) return stateByPostId;
+
+  const { data: campaigns, error: campaignsError } = await (supabase.from("ad_campaigns" as any) as any)
+    .select("id,status,payment_status")
+    .in("id", campaignIds);
+
+  if (campaignsError) {
+    if (!isMissingSocialMarketingSchemaError(campaignsError) && !isMissingRpc(campaignsError)) {
+      console.warn("Sponsored campaign payment metadata unavailable", campaignsError);
+    }
+    return stateByPostId;
+  }
+
+  const campaignById = new Map<string, AdCampaignPaymentRow>(
+    ((campaigns || []) as AdCampaignPaymentRow[])
+      .filter((campaign) => Boolean(campaign.id))
+      .map((campaign) => [campaign.id as string, campaign]),
+  );
+
+  for (const promotion of promotionRows) {
+    const postId = promotion.post_id;
+    const campaign = promotion.campaign_id ? campaignById.get(promotion.campaign_id) : null;
+    if (!postId) continue;
+
+    const promotionStatus = normalizeStatus(promotion.status);
+    const campaignStatus = normalizeStatus(campaign?.status);
+    const paymentStatus = normalizeStatus(campaign?.payment_status);
+    const isSponsored = promotionStatus === "active" && campaignStatus === "active" && paymentStatus === "paid";
+    const current = stateByPostId.get(postId);
+
+    if (!current || isSponsored || (!current.isSponsored && promotionStatus === "active")) {
+      stateByPostId.set(postId, {
+        isSponsored,
+        promotionStatus: promotionStatus || null,
+        promotionPaymentStatus: paymentStatus || null,
+      });
+    }
+  }
+
+  return stateByPostId;
 }
 
 async function assertRestaurantAccess(restaurantId: string, userId: string) {
@@ -496,7 +598,18 @@ export function useRestaurantSocialPosts(restaurantId?: string | null) {
         .limit(RESTAURANT_SOCIAL_POSTS_LIMIT);
 
       if (error) throw error;
-      return (data || []).map(mapRestaurantPostRow);
+      const rows = data || [];
+      const sponsoredStateByPostId = await getSponsoredStateByPostId(rows.map((row: any) => row.id).filter(Boolean));
+
+      return rows.map((row: any) => {
+        const sponsoredState = sponsoredStateByPostId.get(row.id);
+        return mapRestaurantPostRow({
+          ...row,
+          is_sponsored: sponsoredState?.isSponsored ?? false,
+          promotion_status: sponsoredState?.promotionStatus ?? null,
+          promotion_payment_status: sponsoredState?.promotionPaymentStatus ?? null,
+        });
+      });
     },
     enabled: !!restaurantId,
   });

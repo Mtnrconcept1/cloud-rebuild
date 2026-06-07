@@ -578,7 +578,7 @@ export default function Recherche() {
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {mergedCards.map((restaurant: any) => (
-                <RestaurantCard key={restaurant.id} {...toCardProps(restaurant)} />
+                <RestaurantCard key={`${restaurant.id}-${restaurant.campaign_id || "organic"}`} {...toCardProps(restaurant)} />
               ))}
             </div>
           </div>

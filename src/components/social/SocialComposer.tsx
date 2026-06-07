@@ -170,7 +170,7 @@ export default function SocialComposer({
 
   return (
     <section className="rounded-[1.75rem] border border-orange-200/80 bg-white p-4 shadow-xl shadow-orange-100/60">
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <div className="hidden pt-2 sm:block">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-lg shadow-orange-500/30">
             <Plus className="h-7 w-7" />
@@ -256,7 +256,7 @@ export default function SocialComposer({
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
             <div className="flex flex-wrap gap-2">
               {SOCIAL_MARKETING_TEMPLATES.map((template) => (
                 <Button
@@ -279,8 +279,8 @@ export default function SocialComposer({
               ))}
             </div>
 
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
-              <div className="flex min-w-[230px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            <div className="flex w-full min-w-0 flex-wrap items-center gap-2 2xl:w-auto 2xl:shrink-0 2xl:justify-end">
+              <div className="flex min-w-0 flex-1 basis-[13rem] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
                 <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
                 <div className="min-w-0 flex-1">
                   <Label htmlFor="social-post-scheduled-at" className="sr-only">Programmer la publication</Label>
@@ -310,7 +310,7 @@ export default function SocialComposer({
                 type="button"
                 variant="outline"
                 size="icon"
-                className="h-11 w-11 rounded-xl border-slate-200 bg-white shadow-sm"
+                className="h-11 w-11 shrink-0 rounded-xl border-slate-200 bg-white shadow-sm"
                 onClick={() => inputRef.current?.click()}
                 aria-label="Ajouter un média"
                 title={mediaLabel}
@@ -319,7 +319,7 @@ export default function SocialComposer({
               </Button>
               <Button
                 type="button"
-                className="h-11 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700"
+                className="h-11 min-w-[8rem] flex-1 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 sm:flex-none"
                 disabled={!canSubmit}
                 onClick={submit}
               >

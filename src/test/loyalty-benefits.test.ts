@@ -4,7 +4,10 @@ import {
   getLockedTierBenefits,
   getLoyaltyStatus,
   getTierBenefits,
+  LOYALTY_TIERS,
   LOYALTY_TIER_ORDER,
+  MIAMZ_VIP_TABLE_ACCESS_BENEFIT_ID,
+  MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD,
 } from "@/lib/loyaltyBenefits";
 
 describe("loyaltyBenefits", () => {
@@ -26,6 +29,18 @@ describe("loyaltyBenefits", () => {
 
     expect(getTierBenefits("gold").map((benefit) => benefit.id)).toContain("priority_support");
     expect(getTierBenefits("platinum").map((benefit) => benefit.id)).toContain("vip_table_access");
+  });
+
+  it("binds VIP Table du Chef access to the Platinum Miamz threshold", () => {
+    const platinumBenefits = getTierBenefits("platinum");
+
+    expect(MIAMZ_VIP_TABLE_ACCESS_BENEFIT_ID).toBe("vip_table_access");
+    expect(MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD).toBe(LOYALTY_TIERS.platinum.threshold);
+    expect(MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD).toBe(5000);
+    expect(platinumBenefits.find((benefit) => benefit.id === MIAMZ_VIP_TABLE_ACCESS_BENEFIT_ID)).toMatchObject({
+      appliesFrom: "platinum",
+      highlight: true,
+    });
   });
 
   it("applies admin-configured Miamz benefit activation and text per tier", () => {

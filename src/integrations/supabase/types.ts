@@ -482,9 +482,11 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean | null
+          is_vip: boolean
           original_price: number | null
           price: number
           remaining_portions: number
+          required_miamz_points: number
           restaurant_id: string | null
           total_portions: number
           updated_at: string | null
@@ -498,9 +500,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_vip?: boolean
           original_price?: number | null
           price: number
           remaining_portions: number
+          required_miamz_points?: number
           restaurant_id?: string | null
           total_portions: number
           updated_at?: string | null
@@ -514,9 +518,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_vip?: boolean
           original_price?: number | null
           price?: number
           remaining_portions?: number
+          required_miamz_points?: number
           restaurant_id?: string | null
           total_portions?: number
           updated_at?: string | null

@@ -13,7 +13,11 @@ import {
   listRestaurantCampaigns,
   saveRestaurantCampaign,
 } from "@/lib/campaigns";
-import { pickWeightedCampaign, type WeightedCampaignRotationState } from "@/lib/sponsoredPlacement";
+import {
+  getCampaignDeliveryScore,
+  orderWeightedCampaigns,
+  type WeightedCampaignRotationState,
+} from "@/lib/sponsoredPlacement";
 
 export type AnalyticsEventType =
   | "page_view"
@@ -202,63 +206,20 @@ function writeSponsoredRotationStore(store: SponsoredRotationStore) {
   }
 }
 
-function computePacingFactor(campaign: any): number {
-  const startsAt = campaign.starts_at ? Date.parse(String(campaign.starts_at)) : NaN;
-  const endsAt = campaign.ends_at ? Date.parse(String(campaign.ends_at)) : NaN;
-  const now = Date.now();
-
-  if (!Number.isFinite(startsAt) || !Number.isFinite(endsAt) || endsAt <= startsAt) {
-    return 1.0;
-  }
-
-  const totalDuration = endsAt - startsAt;
-  const elapsed = Math.max(0, now - startsAt);
-  const timeProgression = Math.min(1, elapsed / totalDuration);
-
-  const totalBudget = Number(campaign.total_budget || 0);
-  const spent = Number(campaign.spent || 0);
-  if (totalBudget <= 0 || timeProgression === 0) return 1.0;
-
-  const budgetProgression = spent / totalBudget;
-  const ratio = budgetProgression / timeProgression;
-  return Math.max(0.2, Math.min(3.0, 1 / Math.max(ratio, 0.01)));
-}
-
-function getRemainingBudget(campaign: any): number {
-  const totalBudget = Number(campaign.total_budget || 0);
-  const spent = Number(campaign.spent || 0);
-  if (totalBudget <= 0) {
-    return Math.max(Number(campaign.budget_daily || 0), 1);
-  }
-  return Math.max(0, totalBudget - spent);
-}
-
 function selectPoolWeightedCampaigns(campaigns: any[], page: string): any[] {
   if (!campaigns || campaigns.length === 0) return [];
-  if (campaigns.length === 1) return campaigns;
 
-  const pool = campaigns.map((c) => ({
-    campaign: c,
-    budgetRestant: getRemainingBudget(c),
-    pacingFactor: computePacingFactor(c),
-  }));
-
-  const sumBudgetRestant = pool.reduce((s, p) => s + p.budgetRestant, 0);
-  if (sumBudgetRestant <= 0) return [];
-
-  const weighted = pool.map((p) => ({
-    ...p,
-    scoreFinal: (p.budgetRestant / sumBudgetRestant)
-      * p.pacingFactor
-      * getCampaignStrategyPlacementBoost((p.campaign as Record<string, unknown>)?.pricing_strategy, page),
-  }));
-
-  const totalScore = weighted.reduce((s, w) => s + w.scoreFinal, 0) || 1;
-
-  const campaignsWithWeight = weighted.map((w) => ({
-    ...w.campaign,
-    __poolWeight: w.scoreFinal / totalScore,
-  }));
+  const campaignsWithWeight = campaigns
+    .map((campaign) => {
+      const score = getCampaignDeliveryScore(campaign)
+        * getCampaignStrategyPlacementBoost((campaign as Record<string, unknown>)?.pricing_strategy, page);
+      return {
+        ...campaign,
+        __poolWeight: score,
+      };
+    })
+    .filter((campaign) => Number(campaign.__poolWeight || 0) > 0);
+  if (campaignsWithWeight.length === 0) return [];
 
   const rotationStore = readSponsoredRotationStore();
   const stateKey = `pool:${page}`;
@@ -272,11 +233,11 @@ function selectPoolWeightedCampaigns(campaigns: any[], page: string): any[] {
     Object.entries(state.lastShownOrder || {}).filter(([id]) => activeIds.has(id))
   );
 
-  const { campaign, state: newState } = pickWeightedCampaign(campaignsWithWeight, state);
+  const { campaigns: orderedCampaigns, state: newState } = orderWeightedCampaigns(campaignsWithWeight, state);
   rotationStore[stateKey] = newState;
   writeSponsoredRotationStore(rotationStore);
 
-  return campaign ? [campaign] : [];
+  return orderedCampaigns;
 }
 
 function isInvalidOrderStatus(status: unknown) {

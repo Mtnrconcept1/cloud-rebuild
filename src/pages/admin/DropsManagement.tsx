@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, UtensilsCrossed, Pencil } from "lucide-react";
+import { MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD } from "@/lib/loyaltyBenefits";
+import { Crown, Plus, Trash2, UtensilsCrossed, Pencil } from "lucide-react";
 
 const supabase = getSupabase();
 
@@ -23,6 +24,8 @@ const EMPTY_DROP = {
   total_portions: "20",
   drop_time: new Date(Date.now() + 3600000).toISOString().slice(0, 16),
   is_active: true,
+  is_vip: false,
+  required_miamz_points: String(MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD),
 };
 
 export default function DropsManagement() {
@@ -97,6 +100,8 @@ export default function DropsManagement() {
       return;
     }
 
+    const requiredMiamzPoints = Math.max(0, Math.floor(Number(form.required_miamz_points || 0)));
+
     createOrUpdateMutation.mutate({
       restaurant_id: form.restaurant_id,
       chef_name: form.chef_name,
@@ -109,6 +114,10 @@ export default function DropsManagement() {
       remaining_portions: editingId ? undefined : Number(form.total_portions || 0),
       drop_time: new Date(form.drop_time).toISOString(),
       is_active: form.is_active,
+      is_vip: form.is_vip,
+      required_miamz_points: form.is_vip
+        ? (requiredMiamzPoints || MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD)
+        : 0,
     });
   };
 
@@ -125,6 +134,8 @@ export default function DropsManagement() {
       total_portions: String(drop.total_portions ?? 0),
       drop_time: new Date(drop.drop_time).toISOString().slice(0, 16),
       is_active: drop.is_active ?? true,
+      is_vip: drop.is_vip ?? false,
+      required_miamz_points: String(drop.required_miamz_points || MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD),
     });
   };
 
@@ -233,6 +244,43 @@ export default function DropsManagement() {
                 onChange={(event) => setForm({ ...form, image_url: event.target.value })}
               />
             </div>
+            <label className="flex items-start gap-3 rounded-lg border px-3 py-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={form.is_vip}
+                onChange={() => {
+                  const nextIsVip = !form.is_vip;
+                  setForm({
+                    ...form,
+                    is_vip: nextIsVip,
+                    required_miamz_points: nextIsVip
+                      ? (form.required_miamz_points || String(MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD))
+                      : "0",
+                  });
+                }}
+              />
+              <span>
+                <span className="block font-medium">Table VIP</span>
+                <span className="block text-xs text-muted-foreground">
+                  Reservee aux clients ayant assez de Miamz pour debloquer l'acces VIP.
+                </span>
+              </span>
+            </label>
+            <div className="space-y-2">
+              <Label>Seuil Miamz VIP</Label>
+              <Input
+                type="number"
+                min={form.is_vip ? 1 : 0}
+                step="1"
+                value={form.required_miamz_points}
+                disabled={!form.is_vip}
+                onChange={(event) => setForm({ ...form, required_miamz_points: event.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Par defaut, l'acces VIP correspond au palier Platinum ({MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD} Miamz).
+              </p>
+            </div>
             <div className="md:col-span-2 space-y-2">
               <Label>Description</Label>
               <Textarea
@@ -290,6 +338,12 @@ export default function DropsManagement() {
                     Restant: {drop.remaining_portions}/{drop.total_portions} | Date:{" "}
                     {new Date(drop.drop_time).toLocaleString()}
                   </p>
+                  {drop.is_vip ? (
+                    <p className="inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+                      <Crown className="h-3 w-3" />
+                      Table VIP dès {Number(drop.required_miamz_points || MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD).toLocaleString("fr-CH")} Miamz
+                    </p>
+                  ) : null}
                   <p className="text-xs text-muted-foreground">{drop.is_active ? "Active" : "Inactive"}</p>
                 </div>
               </div>

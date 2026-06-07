@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   ChefHat,
   Clock3,
+  Crown,
   MapPin,
   ShoppingCart,
   Sparkles,
@@ -28,6 +29,7 @@ import {
   getServiceSettings,
   type ServiceSettingsMap,
 } from "@/lib/serviceSettings";
+import { MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD } from "@/lib/loyaltyBenefits";
 import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
@@ -54,6 +56,8 @@ interface FlashDrop {
   serviceTimeLabel: string;
   dropMomentLabel: string;
   hasDiscount: boolean;
+  isVip: boolean;
+  requiredMiamzPoints: number;
   serviceSettings: ServiceSettingsMap;
   quickTimeSlots: string[];
 }
@@ -64,6 +68,9 @@ interface ChefTableDropCardProps {
   isReserved: boolean;
   selectedTime: string | null;
   selectedPartySize: number | null;
+  hasUser: boolean;
+  authLoading: boolean;
+  loyaltyPoints: number;
   onToggleReserve: (drop: FlashDrop) => void;
   onQuickTimeSelect: (drop: FlashDrop, time: string) => void;
 }
@@ -105,6 +112,10 @@ function formatCurrency(value: number) {
   return `${currencyFormatter.format(value)} CHF`;
 }
 
+function formatMiamzPoints(value: number) {
+  return Math.max(0, Math.floor(value)).toLocaleString("fr-CH");
+}
+
 function buildRestaurantAddress(restaurant?: { address?: string | null; city?: string | null }) {
   const parts = [restaurant?.address, restaurant?.city].filter(Boolean);
   return parts.length > 0 ? parts.join(", ") : "Adresse communiquee après réservation";
@@ -120,10 +131,22 @@ function ChefTableDropCard({
   isReserved,
   selectedTime,
   selectedPartySize,
+  hasUser,
+  authLoading,
+  loyaltyPoints,
   onToggleReserve,
   onQuickTimeSelect,
 }: ChefTableDropCardProps) {
   const isAlmostSoldOut = drop.remaining <= Math.max(2, Math.ceil(drop.totalPortions * 0.25));
+  const requiredVipPoints = Math.max(1, drop.requiredMiamzPoints || MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD);
+  const hasVipAccess = !drop.isVip || (!authLoading && hasUser && loyaltyPoints >= requiredVipPoints);
+  const vipButtonLabel = authLoading
+    ? "Verification Miamz"
+    : !hasUser
+      ? "Connexion requise VIP"
+      : hasVipAccess
+        ? "Choisir creneau VIP"
+        : `VIP dès ${formatMiamzPoints(requiredVipPoints)} Miamz`;
 
   return (
     <motion.article
@@ -150,6 +173,12 @@ function ChefTableDropCard({
             <Badge className="border-none bg-black/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-md">
               La Table du Chef
             </Badge>
+            {drop.isVip ? (
+              <Badge className="gap-1 border-none bg-amber-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-950 shadow-lg">
+                <Crown className="h-3 w-3" />
+                Acces VIP Miamz
+              </Badge>
+            ) : null}
             <Badge className="border-none bg-white/20 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md">
               {drop.cuisine}
             </Badge>
@@ -230,6 +259,12 @@ function ChefTableDropCard({
           <p className="text-sm leading-6 text-muted-foreground dark:text-slate-100/90">{drop.description}</p>
 
           <div className="flex flex-wrap gap-2">
+            {drop.isVip ? (
+              <Badge className="rounded-full border-none bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-500/10 dark:bg-amber-300/20 dark:text-amber-100">
+                <Crown className="mr-1 h-3 w-3" />
+                Table VIP dès {formatMiamzPoints(requiredVipPoints)} Miamz
+              </Badge>
+            ) : null}
             <Badge
               variant="outline"
               className="rounded-full border-amber-200 bg-amber-50/80 px-3 py-1 text-xs font-medium text-amber-800 dark:border-amber-300/30 dark:bg-amber-400/20 dark:text-amber-100"
@@ -282,6 +317,14 @@ function ChefTableDropCard({
                 </span>
               </div>
             ) : null}
+            {drop.isVip ? (
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Acces VIP</span>
+                <span className={cn("font-medium", hasVipAccess ? "text-emerald-600" : "text-amber-700")}>
+                  {hasVipAccess ? "Debloque" : `${formatMiamzPoints(requiredVipPoints)} Miamz requis`}
+                </span>
+              </div>
+            ) : null}
           </div>
 
           {drop.quickTimeSlots.length > 0 ? (
@@ -330,8 +373,14 @@ function ChefTableDropCard({
               </>
             ) : (
               <>
-                <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
-                <span className="min-w-0">Choisir créneau et convives</span>
+                {drop.isVip ? (
+                  <Crown className="mr-2 h-4 w-4 shrink-0" />
+                ) : (
+                  <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
+                )}
+                <span className="min-w-0">
+                  {drop.isVip ? vipButtonLabel : "Choisir créneau et convives"}
+                </span>
               </>
             )}
           </Button>
@@ -357,12 +406,26 @@ export default function ChefsTable() {
   const [slotDialogPresetPartySize, setSlotDialogPresetPartySize] = useState<number | null>(null);
   const attemptedFinalizationRef = useRef<Set<string>>(new Set());
 
+  const { data: profile } = useQuery({
+    queryKey: ["chefs-table-profile-loyalty", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles" as any)
+        .select("loyalty_points")
+        .eq("user_id", user!.id)
+        .single();
+      return data as { loyalty_points?: number | null } | null;
+    },
+    enabled: !!user,
+  });
+  const loyaltyPoints = Math.max(0, Number(profile?.loyalty_points || 0));
+
   const { data: drops = [] } = useQuery({
     queryKey: ["chefs-table-drops"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("chef_table_drops" as any)
-        .select("*, restaurants (name, rating, cuisine_type, image_url, address, city, opening_hours)")
+        .select("id, restaurant_id, chef_name, dish_name, description, image_url, price, original_price, total_portions, remaining_portions, drop_time, is_active, is_vip, required_miamz_points, restaurants (name, rating, cuisine_type, image_url, address, city, opening_hours)")
         .eq("is_active", true)
         .order("drop_time", { ascending: true })
         .limit(CHEFS_TABLE_DROPS_LIMIT);
@@ -410,6 +473,11 @@ export default function ChefsTable() {
           serviceTimeLabel: serviceTimeFormatter.format(dropTime),
           dropMomentLabel: dropMomentFormatter.format(dropTime),
           hasDiscount: savingsAmount > 0,
+          isVip: drop.is_vip === true,
+          requiredMiamzPoints: Math.max(
+            0,
+            Math.floor(Number(drop.required_miamz_points || 0)),
+          ),
           serviceSettings,
           quickTimeSlots,
         } as FlashDrop;
@@ -623,6 +691,40 @@ export default function ChefsTable() {
     return false;
   };
 
+  const ensureVipMiamzAccess = (drop: FlashDrop) => {
+    if (!drop.isVip) return true;
+    const requiredVipPoints = Math.max(1, drop.requiredMiamzPoints || MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD);
+
+    if (authLoading) {
+      toast({
+        title: "Acces VIP Miamz",
+        description: "Verification de votre solde Miamz en cours.",
+      });
+      return false;
+    }
+
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: `Ce drop VIP La Table du Chef est reserve aux clients ayant ${formatMiamzPoints(requiredVipPoints)} Miamz.`,
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return false;
+    }
+
+    if (loyaltyPoints < requiredVipPoints) {
+      toast({
+        title: "Acces VIP Miamz",
+        description: `Ce drop VIP La Table du Chef demande ${formatMiamzPoints(requiredVipPoints)} Miamz. Votre solde actuel est de ${formatMiamzPoints(loyaltyPoints)} Miamz.`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const upsertDropInCart = (drop: FlashDrop, selectedIso: string, partySize: number) => {
     const menuItemId = buildChefTableMenuItemId(drop.id);
     const selectedDate = new Date(selectedIso);
@@ -652,6 +754,8 @@ export default function ChefsTable() {
         drop_time: selectedIso,
         restaurant_address: drop.restaurantAddress,
         cuisine: drop.cuisine,
+        is_vip: drop.isVip,
+        required_miamz_points: drop.requiredMiamzPoints,
       },
     });
     toast({
@@ -661,8 +765,6 @@ export default function ChefsTable() {
   };
 
   const handleToggleReserve = (drop: FlashDrop) => {
-    if (!ensureCartIsAvailable()) return;
-
     const menuItemId = buildChefTableMenuItemId(drop.id);
 
     if (selectedDropIds.has(drop.id)) {
@@ -674,12 +776,16 @@ export default function ChefsTable() {
       return;
     }
 
+    if (!ensureVipMiamzAccess(drop)) return;
+    if (!ensureCartIsAvailable()) return;
+
     setSlotDialogPresetTime(null);
     setSlotDialogPresetPartySize(selectedPartySizeByDropId.get(drop.id) ?? null);
     setSlotDialogDrop(drop);
   };
 
   const handleQuickTimeSelect = (drop: FlashDrop, time: string) => {
+    if (!ensureVipMiamzAccess(drop)) return;
     if (!ensureCartIsAvailable()) return;
     setSlotDialogPresetTime(time);
     setSlotDialogPresetPartySize(selectedPartySizeByDropId.get(drop.id) ?? null);
@@ -813,6 +919,9 @@ export default function ChefsTable() {
                       isReserved={selectedDropIds.has(drop.id)}
                       selectedTime={selectedTimeByDropId.get(drop.id) ?? null}
                       selectedPartySize={selectedPartySizeByDropId.get(drop.id) ?? null}
+                      hasUser={!!user}
+                      authLoading={authLoading}
+                      loyaltyPoints={loyaltyPoints}
                       onToggleReserve={handleToggleReserve}
                       onQuickTimeSelect={handleQuickTimeSelect}
                     />
