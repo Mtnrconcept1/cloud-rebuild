@@ -8,6 +8,7 @@ import {
   orderWeightedCampaigns,
   pickWeightedCampaign,
   prioritizeSponsoredCards,
+  selectSponsoredCampaignPlacements,
 } from "@/lib/sponsoredPlacement";
 
 const NOW = new Date("2026-06-07T00:00:00.000Z");
@@ -159,6 +160,34 @@ describe("getCampaignDeliveryScore", () => {
 });
 
 describe("prioritizeSponsoredCards", () => {
+  it("rotates multiple active campaigns from the same restaurant across sponsored placements", () => {
+    const campaigns = [
+      { id: "quirinale-lunch", restaurant_id: "quirinale", total_budget: 50, budget_daily: 10 },
+      { id: "quirinale-dinner", restaurant_id: "quirinale", total_budget: 50, budget_daily: 10 },
+    ];
+
+    let store = {};
+    const firstPlacement = selectSponsoredCampaignPlacements(campaigns, store, {
+      page: "home",
+      maxSlots: 3,
+      now: NOW,
+    });
+    store = firstPlacement.store;
+
+    const secondPlacement = selectSponsoredCampaignPlacements(campaigns, store, {
+      page: "flash_sales",
+      maxSlots: 3,
+      now: NOW,
+    });
+
+    expect(firstPlacement.campaigns).toHaveLength(1);
+    expect(secondPlacement.campaigns).toHaveLength(1);
+    expect(new Set([
+      firstPlacement.campaigns[0].id,
+      secondPlacement.campaigns[0].id,
+    ])).toEqual(new Set(["quirinale-lunch", "quirinale-dinner"]));
+  });
+
   it("keeps only one visible sponsored campaign per restaurant in the top slots", () => {
     const cards = prioritizeSponsoredCards(
       [

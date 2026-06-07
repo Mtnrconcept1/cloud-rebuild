@@ -34,6 +34,21 @@ describe("homepage positioning guards", () => {
     expect(packs).toContain('checkout_kind: "launch-pack"');
   });
 
+  it("exposes the restaurateur B2B funnel from public entry points", () => {
+    const navbar = read("src/components/Navbar.tsx");
+    const hero = read("src/components/home/HeroSection.tsx");
+    const footer = read("src/components/home/FooterSection.tsx");
+
+    expect(navbar).toContain('to="/restaurateurs/geneve"');
+    expect(navbar).toContain("Restaurateurs");
+    expect(navbar).toContain("Devenir partenaire");
+    expect(hero).toContain('navigate("/restaurateurs/geneve")');
+    expect(footer).toContain('to="/restaurateurs/geneve"');
+    expect(footer).toContain('to="/packs-restaurateur"');
+    expect(footer).toContain('to="/restaurateurs/google-business"');
+    expect(footer).toContain('to="/restaurateurs/alternative-commission-couvert"');
+  });
+
   it("keeps reduced-motion support for the animated public experience", () => {
     const css = read("src/index.css");
 

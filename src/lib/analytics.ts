@@ -14,8 +14,7 @@ import {
   saveRestaurantCampaign,
 } from "@/lib/campaigns";
 import {
-  getCampaignDeliveryScore,
-  orderWeightedCampaigns,
+  selectSponsoredCampaignPlacements,
   type WeightedCampaignRotationState,
 } from "@/lib/sponsoredPlacement";
 import {
@@ -161,35 +160,22 @@ function writeSponsoredRotationStore(store: SponsoredRotationStore) {
 function selectPoolWeightedCampaigns(campaigns: any[], page: string): any[] {
   if (!campaigns || campaigns.length === 0) return [];
 
-  const campaignsWithWeight = campaigns
-    .map((campaign) => {
-      const score = getCampaignDeliveryScore(campaign)
-        * getCampaignStrategyPlacementBoost((campaign as Record<string, unknown>)?.pricing_strategy, page);
-      return {
-        ...campaign,
-        __poolWeight: score,
-      };
-    })
-    .filter((campaign) => Number(campaign.__poolWeight || 0) > 0);
-  if (campaignsWithWeight.length === 0) return [];
-
   const rotationStore = readSponsoredRotationStore();
-  const stateKey = `pool:${page}`;
-  const state = rotationStore[stateKey] || { counts: {}, lastShownOrder: {}, sequence: 0 };
-
-  const activeIds = new Set(campaignsWithWeight.map((c) => String(c.id)));
-  state.counts = Object.fromEntries(
-    Object.entries(state.counts || {}).filter(([id]) => activeIds.has(id))
+  const { campaigns: selectedCampaigns, store: nextRotationStore } = selectSponsoredCampaignPlacements(
+    campaigns,
+    rotationStore,
+    {
+      page,
+      maxSlots: 3,
+      getPlacementBoost: (campaign, placementPage) => getCampaignStrategyPlacementBoost(
+        (campaign as Record<string, unknown>)?.pricing_strategy,
+        placementPage,
+      ),
+    },
   );
-  state.lastShownOrder = Object.fromEntries(
-    Object.entries(state.lastShownOrder || {}).filter(([id]) => activeIds.has(id))
-  );
+  writeSponsoredRotationStore(nextRotationStore);
 
-  const { campaigns: orderedCampaigns, state: newState } = orderWeightedCampaigns(campaignsWithWeight, state);
-  rotationStore[stateKey] = newState;
-  writeSponsoredRotationStore(rotationStore);
-
-  return orderedCampaigns;
+  return selectedCampaigns;
 }
 
 function isInvalidOrderStatus(status: unknown) {

@@ -31,11 +31,19 @@ interface CampaignWeightOptions {
   now?: Date | number | string;
 }
 
+export interface SponsoredCampaignPlacementOptions extends CampaignWeightOptions {
+  page?: string;
+  maxSlots?: number;
+  getPlacementBoost?: (campaign: WeightedCampaignLike, page: string) => number;
+}
+
 export interface WeightedCampaignRotationState {
   counts: Record<string, number>;
   lastShownOrder: Record<string, number>;
   sequence: number;
 }
+
+export type SponsoredCampaignPlacementStore = Record<string, WeightedCampaignRotationState>;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -78,6 +86,36 @@ function getRemainingDays(campaign: WeightedCampaignLike, now: Date) {
 
 function getTodayKey(now: Date) {
   return now.toISOString().slice(0, 10);
+}
+
+function normalizeRotationState(state?: WeightedCampaignRotationState): WeightedCampaignRotationState {
+  return {
+    counts: { ...(state?.counts || {}) },
+    lastShownOrder: { ...(state?.lastShownOrder || {}) },
+    sequence: Number(state?.sequence || 0),
+  };
+}
+
+function pruneRotationStateToIds(
+  state: WeightedCampaignRotationState | undefined,
+  activeIds: Set<string>,
+): WeightedCampaignRotationState {
+  const normalized = normalizeRotationState(state);
+
+  return {
+    counts: Object.fromEntries(
+      Object.entries(normalized.counts).filter(([id]) => activeIds.has(id)),
+    ),
+    lastShownOrder: Object.fromEntries(
+      Object.entries(normalized.lastShownOrder).filter(([id]) => activeIds.has(id)),
+    ),
+    sequence: normalized.sequence,
+  };
+}
+
+function getCampaignRestaurantGroupKey(campaign: WeightedCampaignLike) {
+  const relationId = (campaign as Record<string, any>)?.restaurants?.id;
+  return campaign.restaurant_id ?? relationId ?? campaign.id ?? null;
 }
 
 export function getCampaignDeliveryScore(campaign: WeightedCampaignLike, options?: CampaignWeightOptions): number {
@@ -223,6 +261,111 @@ export function orderWeightedCampaigns<T extends WeightedCampaignLike>(
   }
 
   return { campaigns: ordered, state: nextState };
+}
+
+export function selectSponsoredCampaignPlacements<T extends WeightedCampaignLike>(
+  campaigns: T[],
+  store: SponsoredCampaignPlacementStore = {},
+  options: SponsoredCampaignPlacementOptions = {},
+): { campaigns: Array<T & { __poolWeight?: number }>; store: SponsoredCampaignPlacementStore } {
+  const maxSlots = Math.min(3, Math.max(0, options.maxSlots ?? 3));
+  const page = options.page || "default";
+  const nextStore: SponsoredCampaignPlacementStore = { ...(store || {}) };
+
+  if (!campaigns?.length || maxSlots === 0) {
+    return { campaigns: [], store: nextStore };
+  }
+
+  const weightedCampaigns = campaigns
+    .map((campaign) => {
+      const placementBoost = options.getPlacementBoost
+        ? Number(options.getPlacementBoost(campaign, page))
+        : 1;
+      const safePlacementBoost = Number.isFinite(placementBoost) ? Math.max(0, placementBoost) : 1;
+      const score = getCampaignDeliveryScore(campaign, options) * safePlacementBoost;
+
+      return {
+        ...campaign,
+        __poolWeight: score,
+      };
+    })
+    .filter((campaign): campaign is T & { __poolWeight: number } => {
+      return campaign != null
+        && campaign.id !== undefined
+        && campaign.id !== null
+        && Number(campaign.__poolWeight || 0) > 0;
+    });
+
+  if (weightedCampaigns.length === 0) {
+    return { campaigns: [], store: nextStore };
+  }
+
+  const groupedByRestaurant = new Map<string, Array<T & { __poolWeight: number }>>();
+  for (const campaign of weightedCampaigns) {
+    const key = getCampaignRestaurantGroupKey(campaign);
+    if (key === undefined || key === null) continue;
+    const restaurantKey = String(key);
+    const group = groupedByRestaurant.get(restaurantKey) || [];
+    group.push(campaign);
+    groupedByRestaurant.set(restaurantKey, group);
+  }
+
+  const candidates: Array<{
+    restaurantKey: string;
+    restaurantStateKey: string;
+    campaign: T & { __poolWeight: number };
+    nextRestaurantState: WeightedCampaignRotationState;
+  }> = [];
+
+  for (const [restaurantKey, group] of groupedByRestaurant.entries()) {
+    const restaurantStateKey = `restaurant:${restaurantKey}`;
+    const result = pickWeightedCampaign(group, nextStore[restaurantStateKey], options);
+    if (!result.campaign) continue;
+
+    candidates.push({
+      restaurantKey,
+      restaurantStateKey,
+      campaign: result.campaign,
+      nextRestaurantState: result.state,
+    });
+  }
+
+  if (candidates.length === 0) {
+    return { campaigns: [], store: nextStore };
+  }
+
+  const candidateIds = new Set(candidates.map((candidate) => String(candidate.campaign.id)));
+  const poolStateKey = `pool:${page}`;
+  let poolState = pruneRotationStateToIds(nextStore[poolStateKey], candidateIds);
+  const remaining = [...candidates];
+  const visible: typeof candidates = [];
+
+  while (remaining.length > 0 && visible.length < maxSlots) {
+    const result = pickWeightedCampaign(
+      remaining.map((candidate) => candidate.campaign),
+      poolState,
+      options,
+    );
+    poolState = result.state;
+    if (!result.campaign) break;
+
+    const selectedId = String(result.campaign.id);
+    const selectedIndex = remaining.findIndex((candidate) => String(candidate.campaign.id) === selectedId);
+    if (selectedIndex === -1) break;
+
+    visible.push(remaining[selectedIndex]);
+    remaining.splice(selectedIndex, 1);
+  }
+
+  nextStore[poolStateKey] = poolState;
+  for (const selected of visible) {
+    nextStore[selected.restaurantStateKey] = selected.nextRestaurantState;
+  }
+
+  return {
+    campaigns: visible.map((selected) => selected.campaign),
+    store: nextStore,
+  };
 }
 
 function getSponsoredCardKey(card: CardWithId) {

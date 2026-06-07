@@ -210,7 +210,7 @@ export default function Navbar() {
       {showClientSurface ? (
         <div className="hidden w-full border-b border-border/60 bg-muted/40 dark:border-white/10 dark:bg-slate-950/75 lg:block">
           <div className="container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground">
-            <Link to="/auth?type=restaurateur" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
+            <Link to="/restaurateurs/geneve" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
               <Store className="h-3.5 w-3.5" />
               Pour les restaurateurs
             </Link>
@@ -234,6 +234,12 @@ export default function Navbar() {
                   <Link to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     <Search className="h-4 w-4" />
                     Explorer
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link to="/restaurateurs/geneve" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                    <Store className="h-4 w-4" />
+                    Restaurateurs
                   </Link>
                 </NavigationMenuItem>
                 {antiWasteEnabled ? (
@@ -517,9 +523,9 @@ export default function Navbar() {
 
                   {showClientSurface ? (
                     <div className="mt-2 border-t pt-4">
-                      <Link to="/auth?type=restaurateur" className="flex items-center gap-2 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
+                      <Link to="/restaurateurs/geneve" className="flex items-center gap-2 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
                         <Store className="h-4 w-4" />
-                        Pour les restaurateurs
+                        Devenir partenaire
                       </Link>
                     </div>
                   ) : null}

@@ -137,7 +137,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigate("/packs-restaurateur")}
+                  onClick={() => navigate("/restaurateurs/geneve")}
                   className="flex h-[46px] items-center justify-center gap-1.5 rounded-full bg-white px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.04em] text-[#26344c] shadow-[0_8px_18px_rgba(25,12,5,0.16)] transition hover:bg-[#fff7f1] active:translate-y-px min-[390px]:h-[48px] min-[390px]:text-[0.74rem]"
                 >
                   <ChefHat className="h-3.5 w-3.5 shrink-0 text-[#ff6418]" />
@@ -255,7 +255,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/packs-restaurateur")}
+                onClick={() => navigate("/restaurateurs/geneve")}
                 className="h-[68px] rounded-full border border-white/90 bg-white px-6 text-base font-extrabold uppercase tracking-[0.05em] text-[#25354e] shadow-[0_18px_40px_rgba(104,70,29,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#fff7f1] active:translate-y-0 dark:border-orange-200/30 dark:bg-slate-950/90 dark:text-white"
               >
                 <span className="inline-flex items-center justify-center gap-2">

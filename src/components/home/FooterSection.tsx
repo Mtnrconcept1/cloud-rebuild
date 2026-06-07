@@ -69,7 +69,10 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
             <div className="space-y-3">
               <h4 className="font-display font-bold text-sm">Restaurateur</h4>
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <Link to="/auth?type=restaurateur" className="hover:text-foreground transition-colors">Devenir partenaire</Link>
+                <Link to="/restaurateurs/geneve" className="hover:text-foreground transition-colors">Devenir partenaire</Link>
+                <Link to="/packs-restaurateur" className="hover:text-foreground transition-colors">Voir les packs</Link>
+                <Link to="/restaurateurs/google-business" className="hover:text-foreground transition-colors">Audit Google Business</Link>
+                <Link to="/restaurateurs/alternative-commission-couvert" className="hover:text-foreground transition-colors">Comparer les commissions</Link>
                 <Link to="/dashboard" className="hover:text-foreground transition-colors">Espace pro</Link>
               </nav>
               <div className="pt-2 space-y-2">
