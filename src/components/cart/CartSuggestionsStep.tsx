@@ -200,13 +200,13 @@ export default function CartSuggestionsStep({
           {suggestions.map((item) => (
             <div
               key={item.id}
-              className="grid min-w-0 grid-cols-[76px_minmax(0,1fr)] overflow-hidden rounded-xl border bg-background sm:flex sm:flex-col"
+              className="grid min-w-0 grid-cols-[88px_minmax(0,1fr)] items-start overflow-hidden rounded-xl border bg-background sm:flex sm:h-full sm:flex-col"
             >
-              <div className="flex h-full min-h-[76px] items-center justify-center bg-muted sm:aspect-[4/3] sm:min-h-0 sm:w-full">
+              <div className="relative flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden bg-muted sm:aspect-[4/3] sm:h-auto sm:w-full">
                 {item.image_url ? (
-                  <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
+                  <img src={item.image_url} alt={item.name} className="absolute inset-0 h-full w-full object-cover" />
                 ) : (
-                  <span className="text-base font-bold text-muted-foreground sm:text-2xl">TOK</span>
+                  <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-muted-foreground sm:text-2xl">TOK</span>
                 )}
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">

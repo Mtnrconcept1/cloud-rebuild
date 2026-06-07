@@ -49,7 +49,13 @@ describe("cart checkout steps", () => {
   it("keeps the suggestions step readable on mobile and desktop", () => {
     expect(suggestionsSource).toContain("grid gap-3 sm:grid-cols-2 xl:grid-cols-3");
     expect(suggestionsSource).toContain("minmax(0,1fr)");
+    expect(suggestionsSource).toContain("grid-cols-[88px_minmax(0,1fr)]");
+    expect(suggestionsSource).toContain("h-[88px] w-[88px]");
+    expect(suggestionsSource).toContain("sm:h-auto sm:w-full");
+    expect(suggestionsSource).toContain("relative");
+    expect(suggestionsSource).toContain("absolute inset-0 h-full w-full object-cover");
     expect(suggestionsSource).toContain("break-words");
+    expect(suggestionsSource).not.toContain("h-full min-h-[76px]");
     expect(suggestionsSource).not.toContain("w-max");
     expect(suggestionsSource).not.toContain("w-[180px]");
   });
