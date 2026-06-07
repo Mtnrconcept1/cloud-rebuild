@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarClock, ImagePlus, Lightbulb, Plus, Send, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import { CalendarClock, Facebook, ImagePlus, Instagram, Lightbulb, Music2, Plus, Send, Share2, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateSocialPost } from "@/hooks/useSocialFeed";
+import { useCreateSocialPost, useRecordExternalShare } from "@/hooks/useSocialFeed";
 import {
   SOCIAL_MARKETING_TEMPLATES,
+  getSocialPostShareUrl,
   getVisibilityForAudienceSegment,
   validateSocialPostDraft,
   type SocialAudienceSegment,
@@ -16,7 +18,36 @@ import {
   type SocialPostCtaType,
   type SocialPostType,
 } from "@/lib/socialFeed";
+import {
+  SOCIAL_CROSS_POST_LABELS,
+  buildSocialCrossPostActions,
+  getAvailableSocialCrossPostPlatforms,
+  type RestaurantSocialLinks,
+  type SocialCrossPostPlatform,
+} from "@/lib/socialCrossPosting";
 import { SOCIAL_MEDIA_ACCEPT } from "@/lib/uploadSecurity";
+
+const SOCIAL_CROSS_POST_ICONS: Record<SocialCrossPostPlatform, ComponentType<{ className?: string }>> = {
+  instagram: Instagram,
+  facebook: Facebook,
+  tiktok: Music2,
+};
+
+async function copySocialCrossPostText(text: string) {
+  if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) return false;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function openSocialCrossPostUrl(url: string) {
+  if (typeof window === "undefined") return;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
 
 function getMinimumScheduledAtInputValue() {
   const minimum = new Date(Date.now() + 5 * 60_000);
@@ -27,9 +58,11 @@ function getMinimumScheduledAtInputValue() {
 export default function SocialComposer({
   restaurantId,
   restaurantName,
+  socialLinks,
 }: {
   restaurantId: string | null;
   restaurantName?: string | null;
+  socialLinks?: RestaurantSocialLinks | null;
 }) {
   const [body, setBody] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -40,9 +73,16 @@ export default function SocialComposer({
   const [campaignName, setCampaignName] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [previews, setPreviews] = useState<Array<{ file: File; url: string }>>([]);
+  const [selectedCrossPostPlatforms, setSelectedCrossPostPlatforms] = useState<SocialCrossPostPlatform[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const createPost = useCreateSocialPost();
+  const recordExternalShare = useRecordExternalShare();
   const minimumScheduledAt = useMemo(() => getMinimumScheduledAtInputValue(), []);
+  const availableCrossPostPlatforms = useMemo(
+    () => getAvailableSocialCrossPostPlatforms(socialLinks),
+    [socialLinks],
+  );
+  const canCrossPostNow = availableCrossPostPlatforms.length > 0 && !scheduledAt;
 
   useEffect(() => {
     const nextPreviews = files.slice(0, 10).map((file) => ({ file, url: URL.createObjectURL(file) }));
@@ -51,6 +91,12 @@ export default function SocialComposer({
       nextPreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
     };
   }, [files]);
+
+  useEffect(() => {
+    setSelectedCrossPostPlatforms((current) =>
+      current.filter((platform) => availableCrossPostPlatforms.includes(platform)),
+    );
+  }, [availableCrossPostPlatforms]);
 
   const validationErrors = useMemo(
     () =>
@@ -79,8 +125,9 @@ export default function SocialComposer({
   const submit = async () => {
     if (!restaurantId || !canSubmit) return;
     const scheduledIso = scheduledAt ? new Date(scheduledAt).toISOString() : null;
+    const crossPostPlatforms = scheduledIso ? [] : selectedCrossPostPlatforms;
 
-    await createPost.mutateAsync({
+    const postId = await createPost.mutateAsync({
       restaurantId,
       body,
       files,
@@ -94,6 +141,22 @@ export default function SocialComposer({
       offerCode: null,
       utmCampaign,
     });
+
+    const crossPostActions = buildSocialCrossPostActions({
+      body,
+      postUrl: getSocialPostShareUrl(postId),
+      selectedPlatforms: crossPostPlatforms,
+      socialLinks,
+    });
+
+    if (crossPostActions.length > 0) {
+      await copySocialCrossPostText(crossPostActions[0].clipboardText);
+      crossPostActions.forEach((action) => {
+        openSocialCrossPostUrl(action.url);
+        recordExternalShare.mutate({ postId, channel: action.platform });
+      });
+    }
+
     setBody("");
     setFiles([]);
     setPostType("annonce");
@@ -142,6 +205,54 @@ export default function SocialComposer({
                   </button>
                 </div>
               ))}
+            </div>
+          ) : null}
+
+          {availableCrossPostPlatforms.length > 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <Share2 className="h-4 w-4 text-primary" />
+                  <span>Partager aussi</span>
+                </div>
+                {scheduledAt ? (
+                  <span className="text-xs text-muted-foreground">Disponible pour une publication immediate.</span>
+                ) : null}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {availableCrossPostPlatforms.map((platform) => {
+                  const Icon = SOCIAL_CROSS_POST_ICONS[platform];
+                  const label = SOCIAL_CROSS_POST_LABELS[platform];
+                  const checkboxId = `social-cross-post-${platform}`;
+                  const checked = selectedCrossPostPlatforms.includes(platform);
+
+                  return (
+                    <label
+                      key={platform}
+                      htmlFor={checkboxId}
+                      className="flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-orange-200 hover:bg-orange-50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60"
+                    >
+                      <Checkbox
+                        id={checkboxId}
+                        checked={checked}
+                        disabled={!canCrossPostNow}
+                        aria-label={label}
+                        onCheckedChange={(value) => {
+                          setSelectedCrossPostPlatforms((current) => {
+                            if (value === true) return current.includes(platform) ? current : [...current, platform];
+                            return current.filter((item) => item !== platform);
+                          });
+                        }}
+                      />
+                      <Icon className="h-4 w-4 text-primary" />
+                      <span>{label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Facebook ouvre le partage de l'actualite Tok. Instagram et TikTok copient le texte puis ouvrent le profil pour finaliser la publication.
+              </p>
             </div>
           ) : null}
 
