@@ -363,6 +363,111 @@ const PUBLIC_SEO_PAGES = [
     ],
   },
   {
+    path: "/restaurateurs/alternative-commission-couvert",
+    title: "Alternative aux commissions par couvert pour restaurants | TOK",
+    description:
+      "Comparez les modèles facturés au couvert avec TOK, une alternative lisible pour les restaurants qui veulent protéger leur marge, remplir leurs tables et garder la relation client.",
+    priority: "0.8",
+    changefreq: "weekly",
+    staticContent: {
+      heading: "Alternative aux commissions par couvert pour restaurants",
+      paragraphs: [
+        "TOK permet aux restaurateurs de comparer les modèles facturés au couvert avec une approche plus prévisible, centrée sur les tables, les offres et la relation client.",
+        "Comparez vos coûts avant de changer d'outil : commencez par mesurer le volume, le budget mensuel et la marge avant de déplacer un canal existant.",
+      ],
+      sections: [
+        {
+          heading: "Modèle par couvert vs tarif fixe par table",
+          items: [
+            "Coût variable selon le nombre de couverts",
+            "Tarif par table plus simple à simuler",
+            "Budget restaurateur plus lisible avant le service",
+          ],
+        },
+        {
+          heading: "Canal complémentaire",
+          items: [
+            "Page publique restaurateur",
+            "Actualités, ventes flash et offres anti-gaspi",
+            "Relation client et données utiles côté restaurant",
+          ],
+        },
+        {
+          heading: "Demander une comparaison",
+          items: [
+            "Nom du restaurant",
+            "Ville",
+            "Tables par mois",
+            "Couverts moyens par table",
+            "Coût actuel estimé par couvert",
+          ],
+        },
+      ],
+      links: [
+        { href: "/restaurateurs/geneve", label: "Voir l'offre restaurateur TOK" },
+        { href: "/packs-restaurateur", label: "Comparer les packs" },
+        { href: "/contact", label: "Demander une comparaison" },
+      ],
+    },
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: "Alternative aux commissions par couvert pour restaurants",
+        provider: { "@type": "Organization", name: "TOK", url: CANONICAL_ORIGIN },
+        areaServed: ["Genève", "Lausanne", "Suisse romande"],
+        serviceType: "Réservation restaurant, marketing local et outils restaurateur",
+        url: `${CANONICAL_ORIGIN}/restaurateurs/alternative-commission-couvert`,
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Accueil",
+            item: `${CANONICAL_ORIGIN}/`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Restaurateurs",
+            item: `${CANONICAL_ORIGIN}/restaurateurs/geneve`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: "Alternative commission par couvert",
+            item: `${CANONICAL_ORIGIN}/restaurateurs/alternative-commission-couvert`,
+          },
+        ],
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "Pourquoi comparer le coût par couvert ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Un modèle facturé au couvert varie avec le volume. Une alternative par table permet de simuler plus tôt le budget mensuel et l'impact sur la marge.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "TOK doit-il remplacer immédiatement un outil existant ?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Non. TOK peut être testé comme canal complémentaire afin de mesurer les réservations, les offres et la relation client avant toute décision opérationnelle.",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
     path: "/zero-attente",
     title: "Zéro attente restaurant | TOK",
     description:

@@ -54,6 +54,7 @@ describe("SEO growth readiness", () => {
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/eaux-vives");
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/plainpalais");
     expect(sitemap).toContain("https://www.thetok.ch/restaurateurs/geneve");
+    expect(sitemap).toContain("https://www.thetok.ch/restaurateurs/alternative-commission-couvert");
     expect(sitemap).toContain("https://www.thetok.ch/miamz-solidaires");
     expect(sitemap).toContain("https://www.thetok.ch/aide");
     expect(sitemap).toContain("https://www.thetok.ch/contact");
@@ -76,6 +77,8 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain('type="application/ld+json"');
     expect(prerender).toContain("SearchAction");
     expect(prerender).toContain("FAQPage");
+    expect(prerender).toContain("Alternative aux commissions par couvert pour restaurants");
+    expect(prerender).toContain("modèles facturés au couvert");
     expect(prerender).toContain("Solution de réservation et marketing pour restaurants à Genève");
     expect(prerender).toContain("Réservation, marketing local, offres restaurant et outils opérationnels");
     expect(prerender).not.toMatch(/SERVICE_ROLE|SUPABASE_SERVICE_ROLE_KEY|service_role/i);
@@ -90,6 +93,8 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain("Remplissez vos tables sans exploser vos commissions.");
     expect(prerender).toContain("Simulateur de marge");
     expect(prerender).toContain("TOK vs plateformes classiques");
+    expect(prerender).toContain("Modèle par couvert vs tarif fixe par table");
+    expect(prerender).toContain("Comparez vos coûts avant de changer d'outil");
     expect(prerender).toContain("Nom du restaurant");
     expect(prerender).toContain("BreadcrumbList");
     expect(prerender).not.toContain('document.getElementById("tok-prerendered-content")');
@@ -107,6 +112,7 @@ describe("SEO growth readiness", () => {
     expect(app).toContain('/restaurants/:city');
     expect(app).toContain('/restaurants/:city/:category');
     expect(app).toContain('/restaurateurs/geneve');
+    expect(app).toContain('/restaurateurs/alternative-commission-couvert');
     expect(app).toContain('/miamz-solidaires');
     expect(page).toContain('"@type": "Restaurant"');
     expect(page).toContain('"@type": "ItemList"');
