@@ -31,13 +31,13 @@ describe("Tok One Stripe test mode", () => {
     expect(stripeClientSource).not.toContain("VITE_STRIPE_TOK_ONE_TEST_SECRET_KEY");
   });
 
-  it("keeps test checkout-session sync pinned to a test Stripe runtime", () => {
+  it("keeps test checkout-session sync pinned to a test Stripe runtime with the regular test key as fallback", () => {
     const testRuntimeBlock = stripeClientSource.slice(
       stripeClientSource.indexOf('if (mode === "test")'),
       stripeClientSource.indexOf('if (mode === "live")'),
     );
 
-    expect(testRuntimeBlock).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY"]');
+    expect(testRuntimeBlock).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY"]');
     expect(testRuntimeBlock).toContain('purpose: "Tok One Stripe test secret"');
     expect(testRuntimeBlock).toContain('expectedMode: "test"');
   });
