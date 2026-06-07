@@ -19,6 +19,7 @@ import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navi
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
@@ -239,6 +240,7 @@ export function AdminRouteFrame({
       {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
         <ChefHelpButton surface="admin" compact className="hidden w-auto md:flex" />
+        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
       </div>
       <AdminMobileNavigation />

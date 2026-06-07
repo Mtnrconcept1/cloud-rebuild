@@ -13,7 +13,6 @@ import {
   Leaf,
   LogOut,
   Menu,
-  Moon,
   Newspaper,
   Repeat,
   Route,
@@ -24,7 +23,6 @@ import {
   ShoppingCart,
   Sparkles,
   Store,
-  Sun,
   Timer,
   User,
   Users,
@@ -34,6 +32,7 @@ import {
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
+import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { LOGO_URL } from "@/lib/constants";
@@ -199,11 +198,6 @@ export default function Navbar() {
     setAccountMenuOpen(open);
   };
 
-  const handleThemeToggle = () => {
-    document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
-  };
-
   return (
     <>
       {/* ─── Top utility bar ─── */}
@@ -323,18 +317,11 @@ export default function Navbar() {
               </Button>
             ) : null}
 
-            <Button
-              variant="ghost"
-              size="icon"
+            <ThemeToggleButton
               aria-label="Mode sombre"
               onMouseDown={preserveNavbarActionScrollPosition}
-              onClick={handleThemeToggle}
-              className={`${isMobileHomeHeader ? "hidden lg:inline-flex" : ""} text-muted-foreground hover:text-foreground`}
-            >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Mode sombre</span>
-            </Button>
+              className={isMobileHomeHeader ? "text-slate-950 hover:bg-transparent hover:text-slate-950 dark:text-slate-950" : undefined}
+            />
 
             {showCartShortcut ? (
               <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className={`${isMobileHomeHeader ? "hidden lg:inline-flex" : ""} relative`}>
