@@ -58,6 +58,14 @@ export type FeatureFlagAuditLog = {
   created_at: string;
 };
 
+export const FEATURE_FLAGS_CACHE_TTL_MS = 180_000;
+
+let featureFlagsCache: { isAdmin: boolean; fetchedAt: number; flags: FeatureFlag[] } | null = null;
+
+export function invalidateFeatureFlagsCache() {
+  featureFlagsCache = null;
+}
+
 export const FEATURE_FLAG_PRESETS: FeatureFlagPreset[] = [
   {
     name: "production stable",
@@ -170,6 +178,14 @@ async function seedMissingDefaultsViaRpc(definitions: FeatureFlagDefinition[]) {
 }
 
 async function fetchFlags(isAdmin = false): Promise<FeatureFlag[]> {
+  if (
+    featureFlagsCache &&
+    featureFlagsCache.isAdmin === isAdmin &&
+    (Date.now() - featureFlagsCache.fetchedAt) < FEATURE_FLAGS_CACHE_TTL_MS
+  ) {
+    return featureFlagsCache.flags;
+  }
+
   try {
     const { data, error } = await getSupabase()
       .from("feature_flags")
@@ -188,7 +204,13 @@ async function fetchFlags(isAdmin = false): Promise<FeatureFlag[]> {
       await seedMissingDefaultsViaRpc(missingDefaults);
     }
 
-    return resolveFlags(rows);
+    const resolvedFlags = resolveFlags(rows);
+    featureFlagsCache = {
+      isAdmin,
+      fetchedAt: Date.now(),
+      flags: resolvedFlags,
+    };
+    return resolvedFlags;
   } catch {
     return buildSafeFallbackFlags();
   }
@@ -237,6 +259,7 @@ async function applyPresetViaRpc(
 }
 
 function notifyFlagChange() {
+  invalidateFeatureFlagsCache();
   window.dispatchEvent(new Event("feature-flags-changed"));
 }
 
@@ -311,6 +334,7 @@ export function useFeatureFlags(isAdmin = false) {
     const result = await applyPresetViaRpc(presetName, reason);
     if (!result.success) return result;
 
+    invalidateFeatureFlagsCache();
     const loadedFlags = await fetchFlags(isAdmin);
     setFlags(loadedFlags);
     await refreshAuditLogs();

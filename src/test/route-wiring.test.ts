@@ -41,6 +41,7 @@ const CORE_ROUTES = new Set([
   "/a-propos",
   "/packs-restaurateur",
   "/restaurateurs/geneve",
+  "/miamz-solidaires",
   "/aide",
   "/admin",
 ]);

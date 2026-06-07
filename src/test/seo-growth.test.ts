@@ -51,7 +51,10 @@ describe("SEO growth readiness", () => {
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve");
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/lausanne");
     expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/pizza");
+    expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/eaux-vives");
+    expect(sitemap).toContain("https://www.thetok.ch/restaurants/geneve/plainpalais");
     expect(sitemap).toContain("https://www.thetok.ch/restaurateurs/geneve");
+    expect(sitemap).toContain("https://www.thetok.ch/miamz-solidaires");
     expect(sitemap).toContain("https://www.thetok.ch/aide");
     expect(sitemap).toContain("https://www.thetok.ch/contact");
     expect(sitemap).not.toMatch(
@@ -87,8 +90,10 @@ describe("SEO growth readiness", () => {
     expect(app).toContain('/restaurants/:city');
     expect(app).toContain('/restaurants/:city/:category');
     expect(app).toContain('/restaurateurs/geneve');
+    expect(app).toContain('/miamz-solidaires');
     expect(page).toContain('"@type": "Restaurant"');
     expect(page).toContain('"@type": "ItemList"');
+    expect(page).toContain("DISTRICT_LABELS");
     expect(page).toContain("Restaurants à");
     expect(page).toContain("Découvrez");
     expect(page).toContain("search_restaurants_catalog");

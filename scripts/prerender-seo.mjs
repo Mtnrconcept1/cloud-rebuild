@@ -19,6 +19,11 @@ const STATIC_LOCAL_PAGES = [
   ["geneve/sushi", "Sushi à Genève"],
   ["geneve/burger", "Burger à Genève"],
   ["geneve/kebab", "Kebab à Genève"],
+  ["geneve/eaux-vives", "Restaurants aux Eaux-Vives"],
+  ["geneve/plainpalais", "Restaurants à Plainpalais"],
+  ["geneve/paquis", "Restaurants aux Pâquis"],
+  ["geneve/carouge", "Restaurants à Carouge"],
+  ["geneve/champel", "Restaurants à Champel"],
   ["lausanne/italien", "Restaurants italiens à Lausanne"],
   ["lausanne/asiatique", "Restaurants asiatiques à Lausanne"],
 ];
@@ -104,6 +109,37 @@ const PUBLIC_SEO_PAGES = [
       "Découvrez Tok One, l'abonnement TOK pour profiter d'avantages food, d'offres locales et de Miamz solidaires.",
     priority: "0.7",
     changefreq: "weekly",
+  },
+  {
+    path: "/miamz-solidaires",
+    title: "Miamz solidaires - fidélité, cadeaux et dons food | TOK",
+    description:
+      "Comprenez comment fonctionnent les Miamz TOK : points de fidélité, réductions, cadeaux et dons solidaires pour transformer chaque repas en impact local.",
+    priority: "0.8",
+    changefreq: "weekly",
+    image: `${CANONICAL_ORIGIN}/Miamz2.webp`,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Les Miamz sont-ils une monnaie ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Non. Les Miamz sont des points de fidélité TOK utilisables selon les conditions affichées dans l'application.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Peut-on donner ses Miamz ?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Oui. Les utilisateurs peuvent reverser des Miamz à une cagnotte solidaire suivie par TOK.",
+          },
+        },
+      ],
+    },
   },
   {
     path: "/packs-restaurateur",

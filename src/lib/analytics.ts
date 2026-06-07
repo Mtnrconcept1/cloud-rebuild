@@ -456,6 +456,19 @@ type AnalyticsIngestResponse = {
 };
 
 let _analyticsTrackingDisabled = false;
+const ANALYTICS_BATCH_FLUSH_MS = 1_500;
+const ANALYTICS_DEDUPE_TTL_MS = 3_000;
+const ANALYTICS_MAX_BATCH_SIZE = 20;
+
+type QueuedAnalyticsEvent = {
+  body: Record<string, unknown>;
+  dedupeKey: string;
+  resolve: (value: AnalyticsIngestResponse | null) => void;
+};
+
+const analyticsQueue: QueuedAnalyticsEvent[] = [];
+const analyticsDedupeLedger = new Map<string, number>();
+let analyticsFlushTimer: ReturnType<typeof setTimeout> | null = null;
 
 async function invokeAnalyticsIngest(body: Record<string, unknown>): Promise<AnalyticsIngestResponse | null> {
   if (_analyticsTrackingDisabled) return null;
@@ -477,6 +490,83 @@ async function invokeAnalyticsIngest(body: Record<string, unknown>): Promise<Ana
   }
 }
 
+function pruneAnalyticsDedupeLedger(now = Date.now()) {
+  for (const [key, timestamp] of analyticsDedupeLedger.entries()) {
+    if ((now - timestamp) > ANALYTICS_DEDUPE_TTL_MS) {
+      analyticsDedupeLedger.delete(key);
+    }
+  }
+}
+
+function buildAnalyticsDedupeKey(body: Record<string, unknown>) {
+  return JSON.stringify({
+    kind: body.kind || null,
+    entityType: body.entityType || null,
+    entityId: body.entityId || null,
+    eventName: body.eventName || null,
+    searchQuery: body.searchQuery || null,
+    impressionId: body.impressionId || null,
+    source: body.source || null,
+  });
+}
+
+function scheduleAnalyticsFlush() {
+  if (analyticsFlushTimer || typeof window === "undefined") return;
+  analyticsFlushTimer = window.setTimeout(() => {
+    analyticsFlushTimer = null;
+    void flushAnalyticsQueue();
+  }, ANALYTICS_BATCH_FLUSH_MS);
+}
+
+function canUseAnalyticsBeacon() {
+  return typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function";
+}
+
+export async function flushAnalyticsQueue() {
+  const batch = analyticsQueue.splice(0, ANALYTICS_MAX_BATCH_SIZE);
+  if (batch.length === 0) return;
+
+  for (const item of batch) {
+    const result = await invokeAnalyticsIngest(item.body);
+    item.resolve(result);
+  }
+
+  if (analyticsQueue.length > 0) {
+    scheduleAnalyticsFlush();
+  }
+}
+
+export function queueAnalyticsEvent(body: Record<string, unknown>): Promise<AnalyticsIngestResponse | null> {
+  if (_analyticsTrackingDisabled) return Promise.resolve(null);
+
+  const now = Date.now();
+  pruneAnalyticsDedupeLedger(now);
+  const dedupeKey = buildAnalyticsDedupeKey(body);
+  const lastQueuedAt = analyticsDedupeLedger.get(dedupeKey);
+  if (lastQueuedAt && (now - lastQueuedAt) < ANALYTICS_DEDUPE_TTL_MS) {
+    return Promise.resolve(null);
+  }
+
+  analyticsDedupeLedger.set(dedupeKey, now);
+
+  return new Promise((resolve) => {
+    analyticsQueue.push({ body, dedupeKey, resolve });
+    if (analyticsQueue.length >= ANALYTICS_MAX_BATCH_SIZE) {
+      void flushAnalyticsQueue();
+      return;
+    }
+    scheduleAnalyticsFlush();
+  });
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden" && canUseAnalyticsBeacon()) {
+      void flushAnalyticsQueue();
+    }
+  });
+}
+
 export async function trackEvent({
   eventType,
   eventData = {},
@@ -485,7 +575,7 @@ export async function trackEvent({
   if (!restaurantId) return;
 
   try {
-    await invokeAnalyticsIngest({
+    await queueAnalyticsEvent({
       kind: "event",
       entityId: restaurantId,
       entityType: "restaurant",
@@ -503,7 +593,7 @@ export async function trackSearch(
   location?: { lat: number; lng: number }
 ) {
   try {
-    await invokeAnalyticsIngest({
+    await queueAnalyticsEvent({
       kind: "search",
       searchQuery: query,
       resultsCount,
@@ -539,7 +629,7 @@ export async function trackClick(
   impressionId?: string
 ) {
   try {
-    await invokeAnalyticsIngest({
+    await queueAnalyticsEvent({
       kind: "click",
       entityType,
       entityId,

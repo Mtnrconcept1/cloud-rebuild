@@ -46,6 +46,8 @@ const CGU = lazy(() => import("./pages/CGU"));
 const PolitiqueConfidentialite = lazy(() => import("./pages/PolitiqueConfidentialite"));
 const APropos = lazy(() => import("./pages/APropos"));
 const PacksRestaurateur = lazy(() => import("./pages/PacksRestaurateur"));
+const RestaurateursGeneve = lazy(() => import("./pages/RestaurateursGeneve"));
+const MiamzSolidaires = lazy(() => import("./pages/MiamzSolidaires"));
 const Aide = lazy(() => import("./pages/Aide"));
 const CreneauxGarantis = lazy(() => import("./pages/CreneauxGarantis"));
 const FlexPrixBas = lazy(() => import("./pages/FlexPrixBas"));
@@ -353,6 +355,7 @@ function AppShell() {
           <Route path="/budget-auto" element={<FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch>} />
           <Route path="/abonnement" element={<FeatureSwitch enabled={abonnementEnabled}><Abonnement /></FeatureSwitch>} />
           <Route path="/tok-one" element={<FeatureSwitch enabled={tokOneEnabled}><TokOne /></FeatureSwitch>} />
+          <Route path="/miamz-solidaires" element={<MiamzSolidaires />} />
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />
           <Route path="/actualites" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch>} />
@@ -414,7 +417,7 @@ function AppShell() {
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/a-propos" element={<APropos />} />
           <Route path="/packs-restaurateur" element={<PacksRestaurateur />} />
-          <Route path="/restaurateurs/geneve" element={<PacksRestaurateur />} />
+          <Route path="/restaurateurs/geneve" element={<RestaurateursGeneve />} />
           <Route path="/aide" element={<Aide />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

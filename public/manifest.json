@@ -1,8 +1,8 @@
 {
-  "name": "Tok — Commandez malin, mangez bien",
-  "short_name": "Tok",
-  "description": "Livraison de restaurants, offres anti-gaspi, programme fidélité et dons solidaires.",
-  "start_url": "/",
+  "name": "TOK — Réservez, commandez, profitez à Genève",
+  "short_name": "TOK",
+  "description": "Réservez, commandez, profitez d'offres locales et cumulez des Miamz solidaires.",
+  "start_url": "/?source=pwa",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
@@ -26,6 +26,52 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/fond3.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "TOK sur desktop"
+    },
+    {
+      "src": "/mockup.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "TOK sur mobile"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Réserver",
+      "short_name": "Réserver",
+      "description": "Trouver une table à Genève",
+      "url": "/recherche?mode=reservation",
+      "icons": [{ "src": "/iconeapp.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Offres",
+      "short_name": "Offres",
+      "description": "Voir les offres locales",
+      "url": "/ventes-flash",
+      "icons": [{ "src": "/iconeapp.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Miamz",
+      "short_name": "Miamz",
+      "description": "Suivre les Miamz solidaires",
+      "url": "/points-cadeau",
+      "icons": [{ "src": "/iconeapp.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Restaurateurs",
+      "short_name": "Pros",
+      "description": "Demander une démo restaurateur",
+      "url": "/restaurateurs/geneve",
+      "icons": [{ "src": "/iconeapp.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

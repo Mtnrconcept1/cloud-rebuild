@@ -37,4 +37,11 @@ describe("ui overlay layering", () => {
       expect(floatingLayer, `${componentPath} should render above dialogs`).toBeGreaterThan(dialogLayer);
     }
   });
+
+  it("passes an explicit z-index to Radix select content so the Popper wrapper inherits the dialog-safe layer", () => {
+    const selectSource = readProjectFile("src/components/ui/select.tsx");
+
+    expect(selectSource).toContain("SELECT_CONTENT_Z_INDEX");
+    expect(selectSource).toMatch(/style=\{\{\s*zIndex:\s*SELECT_CONTENT_Z_INDEX,/s);
+  });
 });

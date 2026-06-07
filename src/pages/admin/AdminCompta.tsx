@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, FileDown, FileText, HandCoins, Loader2, Lock, Megaphone, Percent, Receipt, Store, Unlock, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Coins, FileDown, FileText, HandCoins, Loader2, Lock, Megaphone, Percent, Receipt, Store, Target, Unlock, Wallet } from "lucide-react";
 
 import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import {
@@ -75,6 +75,19 @@ export default function AdminCompta() {
 
   const totalPayableOpen = summary.inflow.payableOutstanding + payableAccruals.totalAmount;
   const netOpen = totalPayableOpen - summary.outflow.payoutsOutstanding;
+  const marketingBudgetAuthorized = totalRevenue * 0.6;
+  const commercialBudgetCap = totalRevenue * 0.12;
+  const aiBudgetCap = totalRevenue * 0.04;
+  const reserveMinimum = totalRevenue * 0.07;
+  const estimatedControllableEnvelope = Math.max(
+    0,
+    totalRevenue - marketingBudgetAuthorized - commercialBudgetCap - aiBudgetCap - reserveMinimum,
+  );
+  const commercialGoalCapacity = [10, 15, 25, 30, 50].map((restaurantsSigned) => ({
+    label: `${restaurantsSigned} restaurants signes`,
+    value: formatAmount(commercialBudgetCap / restaurantsSigned),
+    helper: "Commission moyenne disponible par restaurant signe, avant bonus d'activation.",
+  }));
   const selectedRestaurantName = selectedRestaurant === "all"
     ? "Tous les restaurateurs"
     : restaurants.find((restaurant) => restaurant.id === selectedRestaurant)?.name || "Restaurateur";
@@ -418,6 +431,66 @@ export default function AdminCompta() {
               },
             ]}
           />
+
+          <AccountingPanel
+            tone="violet"
+            icon={Megaphone}
+            title="Budget marketing 60 %"
+            description="Pilotage du modèle TOK : les dépenses restent plafonnées sur le CA réellement encaissé, avec garde-fous commerciaux, IA et réserve."
+            value={formatAmount(marketingBudgetAuthorized)}
+            valueLabel="Marketing autorise"
+          >
+            <AccountingFactList
+              tone="violet"
+              items={[
+                {
+                  label: "CA encaissé TOK",
+                  value: formatAmount(totalRevenue),
+                  helper: "Base utilisée pour calculer les plafonds opérationnels.",
+                },
+                {
+                  label: "Commerciaux max 12 %",
+                  value: formatAmount(commercialBudgetCap),
+                  helper: "Commissions payables uniquement sur revenus encaissés et non remboursés.",
+                },
+                {
+                  label: "OpenAI max 4 %",
+                  value: formatAmount(aiBudgetCap),
+                  helper: "Photos IA, campagnes et assistants doivent rester dans cette enveloppe.",
+                },
+                {
+                  label: "Réserve minimum 7 %",
+                  value: formatAmount(reserveMinimum),
+                },
+                {
+                  label: "Reste pilotable",
+                  value: formatAmount(estimatedControllableEnvelope),
+                  helper: "Hébergement, outils, support, admin, juridique et marge nette.",
+                },
+              ]}
+            />
+          </AccountingPanel>
+
+          <AccountingPanel
+            tone="amber"
+            icon={Target}
+            title="Dashboard commercial"
+            description="Objectifs 10/15/25/30/50 restaurants et commissions plafonnees sur les revenus vraiment encaisses."
+            value={formatAmount(commercialBudgetCap)}
+            valueLabel="Plafond commercial 12 %"
+          >
+            <AccountingFactList
+              tone="amber"
+              items={[
+                {
+                  label: "Regle de paiement",
+                  value: "CA encaisse",
+                  helper: "Pas de commission sur restaurant non paye, rembourse ou en litige.",
+                },
+                ...commercialGoalCapacity,
+              ]}
+            />
+          </AccountingPanel>
 
           <div className="grid gap-4 xl:grid-cols-2">
             <AccountingPanel

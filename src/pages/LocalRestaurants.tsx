@@ -29,6 +29,15 @@ const CATEGORY_LABELS: Record<string, string> = {
   asiatique: "asiatique",
 };
 
+const DISTRICT_LABELS: Record<string, string> = {
+  "eaux-vives": "Eaux-Vives",
+  plainpalais: "Plainpalais",
+  paquis: "Pâquis",
+  carouge: "Carouge",
+  champel: "Champel",
+  jonction: "Jonction",
+};
+
 function slugToLabel(slug: string | undefined, labels: Record<string, string>) {
   const normalized = String(slug || "").trim().toLowerCase();
   if (!normalized) return "";
@@ -51,11 +60,17 @@ function toCardProps(restaurant: any) {
   };
 }
 
-function buildRestaurantJsonLd(restaurants: any[], city: string, category: string, path: string) {
+function getPageName(city: string, category: string, district: string) {
+  if (district) return `Restaurants aux ${district}, ${city}`;
+  if (category) return `Restaurants ${category} à ${city}`;
+  return `Restaurants à ${city}`;
+}
+
+function buildRestaurantJsonLd(restaurants: any[], city: string, category: string, district: string, path: string) {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: category ? `Restaurants ${category} à ${city}` : `Restaurants à ${city}`,
+    name: getPageName(city, category, district),
     url: buildCanonicalUrl(path),
     itemListElement: restaurants.slice(0, 24).map((restaurant, index) => ({
       "@type": "ListItem",
@@ -88,15 +103,16 @@ function buildRestaurantJsonLd(restaurants: any[], city: string, category: strin
 export default function LocalRestaurants() {
   const params = useParams();
   const city = slugToLabel(params.city, CITY_LABELS);
-  const category = slugToLabel(params.category, CATEGORY_LABELS);
-  const path = category ? `/restaurants/${params.city}/${params.category}` : `/restaurants/${params.city}`;
+  const district = slugToLabel(params.category, DISTRICT_LABELS);
+  const category = district ? "" : slugToLabel(params.category, CATEGORY_LABELS);
+  const path = params.category ? `/restaurants/${params.city}/${params.category}` : `/restaurants/${params.city}`;
 
   const { data: restaurants = [], isLoading } = useQuery({
-    queryKey: ["local-restaurants", city, category],
+    queryKey: ["local-restaurants", city, category, district],
     enabled: Boolean(city),
     queryFn: async () => {
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
-        p_query: null,
+        p_query: district || null,
         p_city: city,
         p_cuisine: category || null,
         p_price_range: null,
@@ -113,15 +129,16 @@ export default function LocalRestaurants() {
     },
   });
 
-  const title = category
-    ? `Restaurants ${category} à ${city} | Tok`
-    : `Restaurants à ${city} | Tok`;
-  const description = category
-    ? `Découvrez les restaurants ${category} disponibles à ${city} sur Tok : commande, réservation, offres locales et adresses indexables.`
-    : `Découvrez les restaurants disponibles à ${city} sur Tok : livraison, réservation, anti-gaspi, ventes flash et adresses locales.`;
+  const pageName = getPageName(city, category, district);
+  const title = `${pageName} | Tok`;
+  const description = district
+    ? `Découvrez les restaurants proches de ${district} à ${city} sur Tok : réservation, commande, offres locales, Miamz et bonnes adresses de quartier.`
+    : category
+      ? `Découvrez les restaurants ${category} disponibles à ${city} sur Tok : commande, réservation, offres locales et adresses indexables.`
+      : `Découvrez les restaurants disponibles à ${city} sur Tok : livraison, réservation, anti-gaspi, ventes flash et adresses locales.`;
   const jsonLd = useMemo(
-    () => buildRestaurantJsonLd(restaurants, city, category, path),
-    [category, city, path, restaurants],
+    () => buildRestaurantJsonLd(restaurants, city, category, district, path),
+    [category, city, district, path, restaurants],
   );
 
   useSeoMeta({ title, description, path, jsonLd });
@@ -135,17 +152,16 @@ export default function LocalRestaurants() {
               <MapPin className="h-3.5 w-3.5" />
               {city || "Suisse romande"}
             </Badge>
+            {district ? <Badge variant="outline">Quartier {district}</Badge> : null}
             {category ? <Badge variant="outline">{category}</Badge> : null}
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
-              <h1 className="font-display text-3xl font-bold md:text-4xl">
-                {category ? `Restaurants ${category} à ${city}` : `Restaurants à ${city}`}
-              </h1>
+              <h1 className="font-display text-3xl font-bold md:text-4xl">{pageName}</h1>
               <p className="max-w-2xl text-muted-foreground">{description}</p>
             </div>
             <Button asChild variant="outline" className="gap-2 lg:self-end">
-              <Link to={`/recherche?city=${encodeURIComponent(city)}${category ? `&cuisine=${encodeURIComponent(category)}` : ""}`}>
+              <Link to={`/recherche?city=${encodeURIComponent(city)}${category ? `&cuisine=${encodeURIComponent(category)}` : district ? `&q=${encodeURIComponent(district)}` : ""}`}>
                 <Search className="h-4 w-4" />
                 Affiner la recherche
               </Link>
@@ -168,7 +184,7 @@ export default function LocalRestaurants() {
         ) : (
           <section className="rounded-2xl border border-dashed p-10 text-center">
             <p className="font-semibold">Aucun restaurant trouvé pour cette page locale.</p>
-            <p className="mt-2 text-sm text-muted-foreground">Essayez une autre ville ou une autre cuisine depuis la recherche.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Essayez une autre ville, un autre quartier ou une autre cuisine depuis la recherche.</p>
           </section>
         )}
       </div>

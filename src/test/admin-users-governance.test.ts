@@ -34,7 +34,7 @@ function extractFunction(sql: string, functionName: string) {
 
 describe("admin users governance", () => {
   it("adds audited admin RPCs for roles, account status, user details and anomalies", () => {
-    const sql = latestMigrationContaining(/admin_user_account_states/i);
+    const sql = latestMigrationContaining(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_user_account_states/i);
     const listFn = extractFunction(sql, "admin_list_users");
     const rolesFn = extractFunction(sql, "admin_set_user_roles");
     const statusFn = extractFunction(sql, "admin_set_user_account_status");
