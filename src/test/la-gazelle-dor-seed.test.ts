@@ -25,7 +25,7 @@ function readLatestMigrationContaining(pattern: string) {
 
 describe("La Gazelle d'Or public restaurant page", () => {
   it("seeds the restaurant as an active reservable Geneva listing with a stable slug", () => {
-    const sql = readLatestMigrationContaining("La Gazelle d''Or");
+    const sql = readLatestMigrationContaining("Seed La Gazelle d'Or as a public");
 
     expect(sql).toContain("https://www.thefork.ch/restaurant/la-gazelle-d-or-r849111");
     expect(sql).toContain("La Gazelle d''Or");
@@ -41,7 +41,7 @@ describe("La Gazelle d'Or public restaurant page", () => {
   });
 
   it("adds the public menu anchors and the visible restaurant offer", () => {
-    const sql = readLatestMigrationContaining("La Gazelle d''Or");
+    const sql = readLatestMigrationContaining("Seed La Gazelle d'Or as a public");
 
     expect(sql).toContain("Sambusa fait maison");
     expect(sql).toContain("Sambusa végétarienne");
@@ -52,6 +52,16 @@ describe("La Gazelle d'Or public restaurant page", () => {
     expect(sql).toContain("promotion_value");
     expect(sql).toContain("30.00");
     expect(sql).toContain("Gazelle d''Or -30% réservation");
+  });
+
+  it("links the restaurant dashboard ownership to the rbarman restaurateur account", () => {
+    const sql = readLatestMigrationContaining("link_la_gazelle_dor_to_rbarman");
+
+    expect(sql).toContain("WHERE email = 'rbarman@hotmail.ch'");
+    expect(sql).toContain("INSERT INTO public.user_roles (user_id, role)");
+    expect(sql).toContain("'restaurateur'::public.app_role");
+    expect(sql).toContain("SET owner_id = v_rbarman_user_id");
+    expect(sql).toContain("lower(COALESCE(r.slug, '')) = 'la-gazelle-d-or'");
   });
 
   it("keeps the existing restaurant detail route available for the seeded slug target", () => {
