@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const readProjectFile = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
-const scaleMigration = readProjectFile("supabase/migrations/20260602120000_scale_readiness_indexes_and_guards.sql");
+const scaleMigration = readProjectFile("supabase/migrations/20260607053000_scale_readiness_indexes_and_guards.sql");
 const scaleScript = readProjectFile("scripts/scale-readiness-check.mjs");
 const packageJson = JSON.parse(readProjectFile("package.json"));
 

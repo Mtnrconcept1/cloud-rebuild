@@ -60,7 +60,7 @@ describe("plan 2 sensitive SECURITY DEFINER RPC grants", () => {
       "utf8",
     );
 
-    expect(audit).toContain("20260607041441_plan2_sensitive_rpc_execute_hardening.sql");
+    expect(audit).toContain("20260607053200_plan2_sensitive_rpc_execute_hardening.sql");
 
     for (const sensitiveRpc of [
       "get_order_customers(uuid)",

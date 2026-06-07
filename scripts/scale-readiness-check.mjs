@@ -23,7 +23,7 @@ const createCheckoutPath = "supabase/functions/create-checkout/index.ts";
 const stripeWebhookPath = "supabase/functions/stripe-webhook/index.ts";
 const orderCheckoutPath = "supabase/functions/_shared/order-checkout.ts";
 const paymentAnomaliesPath = "supabase/migrations/20260531165000_payment_integrity_anomaly_rpc.sql";
-const scaleMigrationPath = "supabase/migrations/20260602120000_scale_readiness_indexes_and_guards.sql";
+const scaleMigrationPath = "supabase/migrations/20260607053000_scale_readiness_indexes_and_guards.sql";
 
 addCheck(
   "Stripe Checkout sessions carry reconciliation metadata",

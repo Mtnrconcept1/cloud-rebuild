@@ -5,7 +5,7 @@ Projet Supabase: `wwcrtyoueexyxkkikaos`
 Advisor: `anon_security_definer_function_executable`
 Remediation Supabase: https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable
 
-Cet audit formalise le traitement des alertes Supabase Advisor remontees le 7 juin 2026. Les revocations sont livrees dans les migrations `20260607033000_platform_finance_sales_governance.sql` et `20260607041441_plan2_sensitive_rpc_execute_hardening.sql`, et doivent etre appliquees par le workflow habituel du repo.
+Cet audit formalise le traitement des alertes Supabase Advisor remontees le 7 juin 2026. Les revocations sont livrees dans les migrations `20260607033000_platform_finance_sales_governance.sql` et `20260607053200_plan2_sensitive_rpc_execute_hardening.sql`, et doivent etre appliquees par le workflow habituel du repo.
 
 ## Regle
 
@@ -55,7 +55,7 @@ La migration `20260607033000_platform_finance_sales_governance.sql` contient :
 - `GRANT EXECUTE` conserve pour `authenticated` quand la fonction est encore necessaire aux flows connectes.
 - `GRANT EXECUTE` explicite pour `get_match_group_public_feed()` a `anon` et `authenticated`, car cette fonction est classee publique volontaire.
 
-La migration complementaire `20260607041441_plan2_sensitive_rpc_execute_hardening.sql` contient :
+La migration complementaire `20260607053200_plan2_sensitive_rpc_execute_hardening.sql` contient :
 
 - `REVOKE EXECUTE` sur `get_order_customers(uuid)`, `get_reservation_customers(uuid)`, `has_role(uuid, public.app_role)` et `is_feature_flag_active(text)` pour `PUBLIC` et `anon`, puis `GRANT` a `authenticated` et `service_role`.
 - `REVOKE EXECUTE` sur `log_audit()` pour `PUBLIC`, `anon` et `authenticated`, puis `GRANT` a `service_role`.
