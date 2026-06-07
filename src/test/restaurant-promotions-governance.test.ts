@@ -38,4 +38,17 @@ describe("restaurant promotion governance", () => {
     expect(page).toContain('promoType === "free_delivery" ? 0 : Number(promoValue)');
     expect(page).toContain('disabled={promoType === "free_delivery"}');
   });
+
+  it("keeps La Gazelle d'Or seed promotions compatible with production constraints", () => {
+    const seed = read("supabase/migrations/20260607212249_seed_la_gazelle_dor_restaurant.sql");
+
+    expect(seed).toContain("promotion_type = 'percentage'");
+    expect(seed).toContain("'percentage',");
+    expect(seed).toContain("target = 'all'");
+    expect(seed).toContain("'all',");
+    expect(seed).not.toContain("promotion_type = 'percent'");
+    expect(seed).not.toContain("'percent',");
+    expect(seed).not.toContain("target = 'reservation'");
+    expect(seed).not.toContain("'reservation',");
+  });
 });

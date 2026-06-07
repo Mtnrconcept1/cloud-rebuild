@@ -345,9 +345,9 @@ BEGIN
 
   UPDATE public.restaurant_promotions AS rp
   SET
-    promotion_type = 'percent',
+    promotion_type = 'percentage',
     promotion_value = 30.00,
-    target = 'reservation',
+    target = 'all',
     start_at = now(),
     end_at = now() + interval '180 days',
     active = true
@@ -367,9 +367,9 @@ BEGIN
   SELECT
     v_restaurant_id,
     'Gazelle d''Or -30% réservation',
-    'percent',
+    'percentage',
     30.00,
-    'reservation',
+    'all',
     now(),
     now() + interval '180 days',
     true
