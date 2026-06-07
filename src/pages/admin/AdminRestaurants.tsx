@@ -20,6 +20,7 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -256,32 +257,48 @@ function RestaurantDetailPanel({
 }: RestaurantDetailPanelProps) {
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="space-y-3 py-6">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <DialogHeader className="shrink-0 border-b px-5 py-5 pr-14 text-left sm:px-6">
+          <DialogTitle>Fiche restaurant</DialogTitle>
+          <DialogDescription>Chargement des contrôles restaurant, paiements et historique.</DialogDescription>
+        </DialogHeader>
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
           <div className="h-5 w-48 rounded bg-muted animate-pulse" />
           <div className="grid gap-3 md:grid-cols-3">
             {[1, 2, 3].map((index) => (
               <div key={index} className="h-24 rounded-lg bg-muted animate-pulse" />
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
-  if (!detail) return null;
+  if (!detail) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <DialogHeader className="shrink-0 border-b px-5 py-5 pr-14 text-left sm:px-6">
+          <DialogTitle>Fiche restaurant</DialogTitle>
+          <DialogDescription>Aucune donnée détaillée n'est disponible pour ce restaurant.</DialogDescription>
+        </DialogHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 text-sm text-muted-foreground sm:px-6">
+          Fermez la fiche puis réessayez depuis la liste.
+        </div>
+      </div>
+    );
+  }
 
   const missingFields = detail.quality?.missing_fields || [];
   const checks = detail.quality?.checks || {};
   const paymentHealth = detail.payment_health || {};
 
   return (
-    <Card>
-      <CardHeader className="space-y-3">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <DialogHeader className="shrink-0 space-y-3 border-b px-5 py-5 pr-14 text-left sm:px-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <CardTitle className="text-lg">Fiche restaurant</CardTitle>
+              <DialogTitle className="text-lg">Fiche restaurant</DialogTitle>
               <Badge variant={statusBadgeVariant(detail.restaurant.is_active)}>
                 {detail.restaurant.is_active ? "Actif" : "Inactif"}
               </Badge>
@@ -290,9 +307,9 @@ function RestaurantDetailPanel({
             </div>
             <div>
               <p className="text-sm font-semibold">{detail.restaurant.name}</p>
-              <p className="text-xs text-muted-foreground">
+              <DialogDescription className="text-xs text-muted-foreground">
                 {[detail.restaurant.city, detail.restaurant.cuisine_type].filter(Boolean).join(" | ") || "Informations incomplètes"}
-              </p>
+              </DialogDescription>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -305,8 +322,8 @@ function RestaurantDetailPanel({
             </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-5">
+      </DialogHeader>
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
         <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
           <section className="space-y-3">
             <div className="flex items-center justify-between gap-3">
@@ -450,8 +467,8 @@ function RestaurantDetailPanel({
             </div>
           </div>
         </section>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -636,6 +653,18 @@ export default function AdminRestaurants() {
     toast({ title: successTitle });
   };
 
+  const openRestaurantDetail = (restaurantId: string) => {
+    setOverrideReason("");
+    setActionReason("");
+    setSelectedRestaurantId(restaurantId);
+  };
+
+  const closeRestaurantDetail = () => {
+    setSelectedRestaurantId(null);
+    setOverrideReason("");
+    setActionReason("");
+  };
+
   const handleActivateOverride = () => {
     if (!selectedRestaurant) return;
     const reason = overrideReason.trim();
@@ -756,28 +785,35 @@ export default function AdminRestaurants() {
         </CardContent>
       </Card>
 
-      {selectedRestaurantId ? (
-        <RestaurantDetailPanel
-          detail={restaurantDetail}
-          isLoading={isDetailLoading}
-          overrideReason={overrideReason}
-          actionReason={actionReason}
-          onOverrideReasonChange={setOverrideReason}
-          onActionReasonChange={setActionReason}
-          onClose={() => setSelectedRestaurantId(null)}
-          onRefresh={() => refetchRestaurantDetail()}
-          onSuspend={() =>
-            selectedRestaurant &&
-            updateRestaurant(selectedRestaurant, { is_active: false, status: "suspended" }, "Restaurant suspendu", {
-              reason: actionReason.trim() || null,
-            })
-          }
-          onActivateOverride={handleActivateOverride}
-          onRequestCorrection={() => recordRestaurantAction("request_correction", "Demande de correction journalisée", true)}
-          onReindexCatalog={() => recordRestaurantAction("reindex_catalog", "Réindexation catalogue journalisée")}
-          onSendNotification={() => recordRestaurantAction("send_notification", "Notification restaurant envoyée", true)}
-        />
-      ) : null}
+      <Dialog
+        open={Boolean(selectedRestaurantId)}
+        onOpenChange={(open) => {
+          if (!open) closeRestaurantDetail();
+        }}
+      >
+        <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:h-[min(880px,calc(100dvh-2rem))] sm:max-h-[calc(100dvh-2rem)]">
+          <RestaurantDetailPanel
+            detail={restaurantDetail}
+            isLoading={isDetailLoading}
+            overrideReason={overrideReason}
+            actionReason={actionReason}
+            onOverrideReasonChange={setOverrideReason}
+            onActionReasonChange={setActionReason}
+            onClose={closeRestaurantDetail}
+            onRefresh={() => refetchRestaurantDetail()}
+            onSuspend={() =>
+              selectedRestaurant &&
+              updateRestaurant(selectedRestaurant, { is_active: false, status: "suspended" }, "Restaurant suspendu", {
+                reason: actionReason.trim() || null,
+              })
+            }
+            onActivateOverride={handleActivateOverride}
+            onRequestCorrection={() => recordRestaurantAction("request_correction", "Demande de correction journalisée", true)}
+            onReindexCatalog={() => recordRestaurantAction("reindex_catalog", "Réindexation catalogue journalisée")}
+            onSendNotification={() => recordRestaurantAction("send_notification", "Notification restaurant envoyée", true)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {isLoading ? (
         <div className="space-y-3">
@@ -884,7 +920,7 @@ export default function AdminRestaurants() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setSelectedRestaurantId(restaurant.id)}>
+                  <Button variant="outline" size="sm" onClick={() => openRestaurantDetail(restaurant.id)}>
                     <ClipboardCheck className="mr-2 h-4 w-4" />
                     Fiche
                   </Button>
