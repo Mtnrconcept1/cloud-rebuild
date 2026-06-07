@@ -106,6 +106,12 @@ export default function RestaurateursGeneve() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
+              <Button asChild size="lg" variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                <Link to="/restaurateurs/google-business">
+                  Audit Google Business
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
             </div>
           </div>
 

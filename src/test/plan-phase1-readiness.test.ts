@@ -78,6 +78,28 @@ describe("phase 1 launch audit plan readiness", () => {
     }
   });
 
+  it("adds a Google Business B2B acquisition page with a per-cover savings simulator", () => {
+    const app = readProjectFile("src/App.tsx");
+    const page = readProjectFile("src/pages/RestaurateursGoogleBusiness.tsx");
+    const economics = readProjectFile("src/lib/googleBusinessEconomics.ts");
+    const sitemap = readProjectFile("public/sitemap.xml");
+    const prerender = readProjectFile("scripts/prerender-seo.mjs");
+    const postDeployCheck = readProjectFile("scripts/post-deploy-check.mjs");
+
+    expect(app).toContain('const RestaurateursGoogleBusiness = lazy(() => import("./pages/RestaurateursGoogleBusiness"))');
+    expect(app).toContain('<Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />');
+    expect(page).toContain("Remplacer le bouton de réservation Google Business");
+    expect(page).toContain("5 CHF par table");
+    expect(page).toContain("commission par couvert");
+    expect(page).toContain("Audit gratuit de ma fiche Google");
+    expect(page).toContain("calculateGoogleBusinessSavings");
+    expect(economics).toContain("calculateGoogleBusinessSavings");
+    expect(sitemap).toContain("https://www.thetok.ch/restaurateurs/google-business");
+    expect(prerender).toContain("/restaurateurs/google-business");
+    expect(prerender).toContain("Modèle par couvert vs tarif fixe par table");
+    expect(postDeployCheck).toContain("https://www.thetok.ch/restaurateurs/google-business");
+  });
+
   it("adds business finance, sales and AI cost governance tables with RLS", () => {
     const migration = latestMigrationContaining("platform_revenue_entries");
     const adminCompta = readProjectFile("src/pages/admin/AdminCompta.tsx");
