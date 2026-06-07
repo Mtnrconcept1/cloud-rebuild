@@ -43,16 +43,41 @@ CREATE INDEX IF NOT EXISTS idx_payment_transactions_stripe_payment_intent
   WHERE stripe_payment_intent_id IS NOT NULL;
 
 -- Partial unique guard: one succeeded charge transaction per Stripe checkout
--- session and checkout kind. Uses COALESCE because non-order checkouts store
--- the kind in metadata.
-CREATE UNIQUE INDEX IF NOT EXISTS ux_payment_transactions_succeeded_charge_session_kind
-  ON public.payment_transactions (
-    stripe_checkout_session_id,
-    COALESCE(metadata->>'checkout_kind', 'order')
-  )
-  WHERE stripe_checkout_session_id IS NOT NULL
-    AND type = 'charge'
-    AND status = 'succeeded';
+-- session and checkout kind. Historical preview/production data may already
+-- contain duplicate succeeded charge rows, so preflight the data before adding
+-- a uniqueness constraint that would otherwise block the whole release.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM (
+      SELECT
+        stripe_checkout_session_id,
+        COALESCE(metadata->>'checkout_kind', 'order') AS checkout_kind
+      FROM public.payment_transactions
+      WHERE stripe_checkout_session_id IS NOT NULL
+        AND type = 'charge'
+        AND status = 'succeeded'
+      GROUP BY stripe_checkout_session_id, COALESCE(metadata->>'checkout_kind', 'order')
+      HAVING COUNT(*) > 1
+      LIMIT 1
+    ) duplicate_succeeded_charges
+  ) THEN
+    EXECUTE $sql$
+      CREATE UNIQUE INDEX IF NOT EXISTS ux_payment_transactions_succeeded_charge_session_kind
+        ON public.payment_transactions (
+          stripe_checkout_session_id,
+          COALESCE(metadata->>'checkout_kind', 'order')
+        )
+        WHERE stripe_checkout_session_id IS NOT NULL
+          AND type = 'charge'
+          AND status = 'succeeded'
+    $sql$;
+  ELSE
+    RAISE NOTICE 'Skipping ux_payment_transactions_succeeded_charge_session_kind because duplicate succeeded charge rows already exist.';
+  END IF;
+END
+$$;
 
 -- Reservation screens and admin support need fast filtering by restaurant,
 -- status and freshness. The generic created_at index is intentionally broad
@@ -81,8 +106,16 @@ COMMENT ON INDEX public.idx_orders_restaurant_status_created_at IS
   'Scale readiness: restaurant dashboard and support order filtering by status and recency.';
 COMMENT ON INDEX public.idx_orders_pending_payment_watchdog IS
   'Scale readiness: fast detection of stale pending online checkout orders.';
-COMMENT ON INDEX public.ux_payment_transactions_succeeded_charge_session_kind IS
-  'Scale readiness: prevents duplicate succeeded charge records for one Stripe checkout session and checkout kind.';
+DO $$
+BEGIN
+  IF to_regclass('public.ux_payment_transactions_succeeded_charge_session_kind') IS NOT NULL THEN
+    EXECUTE $sql$
+      COMMENT ON INDEX public.ux_payment_transactions_succeeded_charge_session_kind IS
+        'Scale readiness: prevents duplicate succeeded charge records for one Stripe checkout session and checkout kind.'
+    $sql$;
+  END IF;
+END
+$$;
 
 COMMIT;
 

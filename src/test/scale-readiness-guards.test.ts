@@ -31,6 +31,8 @@ describe("production scale readiness guards", () => {
     expect(scaleMigration).toContain("idx_payment_transactions_stripe_payment_intent");
     expect(scaleMigration).toContain("ux_payment_transactions_succeeded_charge_session_kind");
     expect(scaleMigration).toContain("CREATE UNIQUE INDEX IF NOT EXISTS ux_payment_transactions_succeeded_charge_session_kind");
+    expect(scaleMigration).toContain("HAVING COUNT(*) > 1");
+    expect(scaleMigration).toContain("Skipping ux_payment_transactions_succeeded_charge_session_kind");
     expect(scaleMigration).toContain("status = 'succeeded'");
     expect(scaleMigration).toContain("type = 'charge'");
   });
