@@ -49,8 +49,11 @@ describe("admin restaurants console", () => {
     const correctionSql = latestMigrationContaining(
       /CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.restaurant_admin_correction_requests/i,
     );
+    const markCorrectionDoneSql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_mark_admin_correction_done[\s\S]*Correction restaurant effectuée/i,
+    );
     const actionFn = extractFunction(actionSql, "admin_record_restaurant_admin_action");
-    const markCorrectionDoneFn = extractFunction(correctionSql, "restaurant_mark_admin_correction_done");
+    const markCorrectionDoneFn = extractFunction(markCorrectionDoneSql, "restaurant_mark_admin_correction_done");
 
     expect(detailFn).toMatch(/public\.has_role\(v_actor_id,\s*'admin'\)/i);
     expect(detailFn).toMatch(/quality[\s\S]*missing_fields[\s\S]*publishable/i);
@@ -83,10 +86,12 @@ describe("admin restaurants console", () => {
     expect(markCorrectionDoneFn).toMatch(/status\s*=\s*'completed'/i);
     expect(markCorrectionDoneFn).toMatch(/UPDATE\s+public\.notifications[\s\S]*read_at/i);
     expect(markCorrectionDoneFn).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
+    expect(markCorrectionDoneFn).toMatch(/public\.enqueue_notification/i);
+    expect(markCorrectionDoneFn).toMatch(/Correction restaurant effectuée/i);
     expect(detailSql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_get_restaurant_admin_detail\(uuid\)\s+FROM\s+anon/i);
     expect(updateSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_update_restaurant_admin_state/i);
     expect(actionSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_record_restaurant_admin_action/i);
-    expect(correctionSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.restaurant_mark_admin_correction_done/i);
+    expect(markCorrectionDoneSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.restaurant_mark_admin_correction_done/i);
   });
 
   it("uses the audited RPCs and exposes the restaurant detail operations console", () => {
