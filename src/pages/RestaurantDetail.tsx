@@ -223,7 +223,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
   const { data: reviews } = useQuery({
     queryKey: ["reviews", restaurantId],
-    queryFn: async () => { const { data } = await supabase.from("reviews").select("*").eq("restaurant_id", restaurantId!).order("created_at", { ascending: false }).limit(RESTAURANT_REVIEWS_LIMIT); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from("reviews").select("*").eq("restaurant_id", restaurantId!).eq("status", "published").order("created_at", { ascending: false }).limit(RESTAURANT_REVIEWS_LIMIT); return data || []; },
     enabled: !!restaurantId,
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });

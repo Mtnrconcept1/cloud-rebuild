@@ -6,6 +6,7 @@ import {
   Megaphone,
   Map,
   UserCheck,
+  MessageSquareReply,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,6 +18,7 @@ export type LaunchPackServiceSlug =
   | "social_media_setup"
   | "advertising_campaign"
   | "floor_plan_design"
+  | "ai_review_replies"
   | "account_manager";
 
 // ── Pack service (from JSONB) ──
@@ -110,6 +112,7 @@ const SERVICE_ICONS: Record<LaunchPackServiceSlug, LucideIcon> = {
   social_media_setup: Share2,
   advertising_campaign: Megaphone,
   floor_plan_design: Map,
+  ai_review_replies: MessageSquareReply,
   account_manager: UserCheck,
 };
 
@@ -175,6 +178,9 @@ export function formatServiceDetail(svc: PackService): string | null {
   }
   if (svc.service === "social_media_setup" && svc.months_management) {
     return `+ ${svc.months_management} mois de gestion`;
+  }
+  if (svc.service === "ai_review_replies") {
+    return svc.quantity ? `${svc.quantity} réponses IA/mois` : "Réponses IA paramétrables";
   }
   return null;
 }

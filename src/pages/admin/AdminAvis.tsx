@@ -9,7 +9,7 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { EyeOff, MessageSquareText, Search, ShieldAlert, Trash2 } from "lucide-react";
+import { CheckCircle2, EyeOff, Flag, MessageSquareText, Search, ShieldAlert, Trash2 } from "lucide-react";
 
 const supabase = getSupabase();
 
@@ -18,6 +18,16 @@ type ReviewReply = {
   reply_text: string;
   author_type: string | null;
   created_at: string;
+};
+
+type ReviewReport = {
+  id: string;
+  reason: string;
+  status: string;
+  admin_decision: string | null;
+  admin_note: string | null;
+  created_at: string;
+  reviewed_at: string | null;
 };
 
 type AdminReview = {
@@ -34,9 +44,12 @@ type AdminReview = {
   comment: string | null;
   tags: string[] | null;
   status: string | null;
+  reported_at: string | null;
+  report_reason: string | null;
   created_at: string;
   restaurants?: { name: string | null } | null;
   review_replies?: ReviewReply[] | null;
+  review_reports?: ReviewReport[] | null;
 };
 
 const STATUS_OPTIONS = [
@@ -48,13 +61,28 @@ const STATUS_OPTIONS = [
 
 const REQUIRED_REASON_STATUSES = new Set(["hidden", "flagged", "archived"]);
 
+function isSchemaDriftError(error: { message?: string; code?: string } | null | undefined) {
+  const message = (error?.message || "").toLowerCase();
+  return (
+    error?.code === "PGRST200" ||
+    error?.code === "PGRST204" ||
+    error?.code === "PGRST205" ||
+    message.includes("schema cache") ||
+    message.includes("could not find the table") ||
+    message.includes("could not find a relationship") ||
+    message.includes("column")
+  );
+}
+
 function moderationPriority(review: AdminReview) {
   const rating = Number(review.rating || review.restaurant_rating || 0);
   const comment = (review.comment || "").toLowerCase();
   const status = review.status || "published";
   const riskWords = ["danger", "intoxication", "fraude", "arnaque", "insulte", "menace", "hygiene"];
   let score = 0;
+  const hasOpenReport = review.review_reports?.some((report) => report.status === "open");
 
+  if (hasOpenReport) score += 100;
   if (status === "flagged") score += 80;
   if (rating > 0 && rating <= 2) score += 35;
   if (riskWords.some((word) => comment.includes(word))) score += 30;
@@ -78,12 +106,27 @@ export default function AdminAvis() {
   const { data: reviews = [], isLoading, error } = useQuery({
     queryKey: ["admin-reviews"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("reviews")
-        .select("id, user_id, restaurant_id, rating, quality_rating, service_rating, speed_rating, restaurant_rating, food_rating, courier_rating, comment, tags, status, created_at, restaurants(name), review_replies(id, reply_text, author_type, created_at)")
+      const { data, error } = await (supabase.from as any)("reviews")
+        .select("id, user_id, restaurant_id, rating, quality_rating, service_rating, speed_rating, restaurant_rating, food_rating, courier_rating, comment, tags, status, reported_at, report_reason, created_at, restaurants(name), review_replies(id, reply_text, author_type, created_at), review_reports(id, reason, status, admin_decision, admin_note, created_at, reviewed_at)")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        if (!isSchemaDriftError(error)) throw error;
+
+        const { data: legacyData, error: legacyError } = await (supabase.from as any)("reviews")
+          .select("id, user_id, restaurant_id, rating, quality_rating, service_rating, speed_rating, restaurant_rating, food_rating, courier_rating, comment, tags, status, created_at, restaurants(name), review_replies(id, reply_text, author_type, created_at)")
+          .order("created_at", { ascending: false });
+
+        if (legacyError) throw legacyError;
+
+        return ((legacyData || []) as Array<Omit<AdminReview, "reported_at" | "report_reason" | "review_reports">>).map((review) => ({
+          ...review,
+          reported_at: null,
+          report_reason: null,
+          review_reports: [],
+        })) as AdminReview[];
+      }
+
       return (data || []) as AdminReview[];
     },
   });
@@ -109,6 +152,7 @@ export default function AdminAvis() {
       published: reviews.filter((review) => (review.status || "published") === "published").length,
       hidden: reviews.filter((review) => (review.status || "published") === "hidden").length,
       flagged: reviews.filter((review) => (review.status || "published") === "flagged").length,
+      reported: reviews.filter((review) => review.review_reports?.some((report) => report.status === "open")).length,
     };
   }, [reviews]);
 
@@ -225,7 +269,7 @@ export default function AdminAvis() {
         stats={[
           { label: "Avis", value: stats.total, icon: MessageSquareText },
           { label: "Masqués", value: stats.hidden, icon: EyeOff },
-          { label: "À revoir", value: stats.flagged, icon: ShieldAlert },
+          { label: "Signalements", value: stats.reported, icon: Flag },
         ]}
       />
 
@@ -313,6 +357,8 @@ export default function AdminAvis() {
             const existingReply = review.review_replies?.[0];
             const replyValue = replyDrafts[review.id] ?? existingReply?.reply_text ?? "";
             const priority = moderationPriority(review);
+            const reports = review.review_reports || [];
+            const openReports = reports.filter((report) => report.status === "open");
             return (
               <Card key={review.id}>
                 <CardContent className="space-y-4 py-4">
@@ -344,6 +390,36 @@ export default function AdminAvis() {
                         </div>
                       ) : null}
 
+                      {reports.length > 0 || review.report_reason ? (
+                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
+                          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                            <p className="flex items-center gap-2 font-medium text-amber-900">
+                              <Flag className="h-4 w-4" />
+                              Signalements restaurateur
+                            </p>
+                            <Badge variant={openReports.length > 0 ? "destructive" : "outline"}>
+                              {openReports.length > 0 ? `${openReports.length} ouvert(s)` : "Traité"}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2">
+                            {reports.length > 0 ? reports.map((report) => (
+                              <div key={report.id} className="rounded-lg bg-white/70 p-2">
+                                <p className="text-amber-950">{report.reason}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  Statut {report.status} - {new Date(report.created_at).toLocaleString("fr-FR")}
+                                  {report.admin_decision ? ` - Décision ${report.admin_decision}` : ""}
+                                </p>
+                                {report.admin_note ? (
+                                  <p className="mt-1 text-xs text-muted-foreground">Note admin: {report.admin_note}</p>
+                                ) : null}
+                              </div>
+                            )) : (
+                              <p className="text-amber-950">{review.report_reason}</p>
+                            )}
+                          </div>
+                        </div>
+                      ) : null}
+
                       <p className="text-sm">{review.comment || "Sans commentaire"}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(review.created_at).toLocaleDateString("fr-FR", {
@@ -365,6 +441,18 @@ export default function AdminAvis() {
                         }
                         placeholder="Raison obligatoire"
                       />
+                      {openReports.length > 0 || effectiveStatus === "flagged" ? (
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          <Button size="sm" variant="outline" onClick={() => updateReviewStatus(review.id, "published")}>
+                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                            Restaurer l'avis
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(review.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Archiver l'avis
+                          </Button>
+                        </div>
+                      ) : null}
                       <div className="flex flex-wrap items-center gap-2">
                         {STATUS_OPTIONS.map((option) => (
                           <Button

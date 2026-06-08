@@ -36,6 +36,7 @@ const ALL_SERVICES: { slug: LaunchPackServiceSlug; label: string }[] = [
   { slug: "social_media_setup", label: "Réseaux sociaux" },
   { slug: "advertising_campaign", label: "Campagne publicitaire" },
   { slug: "floor_plan_design", label: "Plan de salle" },
+  { slug: "ai_review_replies", label: "Réponses IA aux avis" },
   { slug: "account_manager", label: "Account manager dédié" },
 ];
 

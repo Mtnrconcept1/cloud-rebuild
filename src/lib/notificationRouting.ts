@@ -78,6 +78,16 @@ export function getNotificationTarget(notification: RoutableNotification, role: 
     return `/courier/jobs${dispatchJobId ? `?job=${encodeURIComponent(dispatchJobId)}` : ""}`;
   }
 
+  if (notification.type === "review") {
+    if (role === "admin") return "/admin/avis";
+    if (role === "restaurateur") return "/dashboard/avis";
+    return normalizedExplicitTarget || getNotificationCenterPathForRole(role, fallback);
+  }
+
+  if (notification.type === "review_report") {
+    return "/admin/avis";
+  }
+
   const entityType = firstString(data.entity_type, data.target_entity_type, data.resource_type);
   if (entityType) {
     const normalizedEntityType = entityType.toLowerCase();

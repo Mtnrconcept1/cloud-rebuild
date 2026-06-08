@@ -5,6 +5,7 @@ export type LaunchPackServiceSlug =
   | "social_media_setup"
   | "advertising_campaign"
   | "floor_plan_design"
+  | "ai_review_replies"
   | "account_manager";
 
 export const ALL_GATABLE_FEATURES = [
@@ -53,6 +54,7 @@ const SERVICE_TO_FEATURES: Record<LaunchPackServiceSlug, string[]> = {
   social_media_setup: ["dashboard-reseaux-sociaux", "dashboard-actualites"],
   advertising_campaign: ["dashboard-campagne-overview", "dashboard-campagnes"],
   floor_plan_design: ["dashboard-plan-salle"],
+  ai_review_replies: ["dashboard-avis", "dashboard-advisor"],
   account_manager: [
     "dashboard-advisor",
     "dashboard-performances",
