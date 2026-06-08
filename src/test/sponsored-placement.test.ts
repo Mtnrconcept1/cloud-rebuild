@@ -251,4 +251,16 @@ describe("prioritizeSponsoredCards", () => {
     expect(searchPage).toContain("prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3 })");
     expect(searchPage).not.toContain('<CampaignBanner page="search"');
   });
+
+  it("keeps the sponsored restaurant badge readable over restaurant photos", () => {
+    const visual = readSource("src/components/campaigns/SponsoredVisual.tsx");
+    const theme = readSource("src/components/campaigns/sponsoredVisualTheme.ts");
+    const restaurantCard = readSource("src/components/RestaurantCard.tsx");
+
+    expect(visual).toContain("backdrop-blur-xl");
+    expect(visual).toContain("ring-white/35");
+    expect(theme).toContain("ring-2 ring-white/80");
+    expect(theme).toContain("bg-slate-950/82 text-white");
+    expect(restaurantCard).toContain("absolute left-3 right-14 top-3");
+  });
 });

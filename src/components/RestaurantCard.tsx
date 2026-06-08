@@ -301,7 +301,7 @@ export default function RestaurantCard({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent dark:from-slate-950/80 dark:via-slate-950/25" />
 
-          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+          <div className="absolute left-3 right-14 top-3 flex flex-wrap items-start gap-1.5">
             {isSponsored ? (
               <>
                 <SponsoredBadge tone="restaurant" />
