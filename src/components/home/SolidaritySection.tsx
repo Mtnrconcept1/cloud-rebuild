@@ -17,7 +17,7 @@ export default function SolidaritySection({ donatedMeals, donatedPoints }: Solid
   const progressPercent = Math.min(100, Math.round((progressValue / NEXT_GOAL_POINTS) * 100));
 
   return (
-    <section className="border-b border-pink-500/10 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.16),rgba(255,255,255,0.86)_48%,rgba(255,255,255,0.98))] py-5 dark:bg-pink-500/10 md:py-6">
+    <section className="border-y border-pink-500/10 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.16),rgba(255,255,255,0.86)_48%,rgba(255,255,255,0.98))] py-5 dark:bg-pink-500/10 md:py-6">
       <div className="container">
         <div
           data-testid="solidarity-card"

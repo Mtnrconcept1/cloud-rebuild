@@ -19,7 +19,7 @@ function latestMigrationContaining(pattern: RegExp) {
   return readFileSync(resolve(migrationsDir, match), "utf8");
 }
 
-describe("Chef Table VIP Miamz access", () => {
+describe("Chef Table VIP access", () => {
   it("stores audited VIP access requirements on chef table drops", () => {
     const sql = latestMigrationContaining(/required_miamz_points/i);
 
@@ -41,13 +41,36 @@ describe("Chef Table VIP Miamz access", () => {
     expect(page).toContain("admin_save_chef_table_drop");
   });
 
-  it("surfaces and blocks VIP drops in the client flow before checkout", () => {
+  it("surfaces and blocks VIP drops through Tok One before checkout", () => {
     const page = read("src/pages/ChefsTable.tsx");
+    const checkout = read("supabase/functions/create-checkout/index.ts");
 
     expect(page).toContain("is_vip");
     expect(page).toContain("required_miamz_points");
-    expect(page).toContain("Acces VIP Miamz");
-    expect(page).toContain("ensureVipMiamzAccess");
-    expect(page).toContain("loyalty_points");
+    expect(page).toContain("useIsTokOneMember");
+    expect(page).toContain("ensureVipTokOneAccess");
+    expect(page).toContain("Table VIP cadenassee");
+    expect(page).toContain("Reserve Tok One");
+    expect(page).not.toContain("ensureVipMiamzAccess");
+    expect(page).not.toContain("loyalty_points");
+    expect(checkout).toContain("getLatestTokOneSubscription");
+    expect(checkout).toContain("hasActiveTokOneSubscription");
+    expect(checkout).toContain("reserve aux abonnes Tok One actifs");
+    expect(checkout).not.toContain('.select("loyalty_points")');
+  });
+
+  it("notifies Tok One members through in-app and push when offers go live", () => {
+    const sql = latestMigrationContaining(/notify_tok_one_members_new_offer/i);
+
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.notify_tok_one_members_new_offer");
+    expect(sql).toContain("public.tok_one_subscriptions");
+    expect(sql).toContain("'active', 'trialing'");
+    expect(sql).toContain("'tok_one_offer'");
+    expect(sql).toContain("'requested_channels'");
+    expect(sql).toContain("'push', true");
+    expect(sql).toContain("public.queue_notification_deliveries");
+    expect(sql).toContain("public.trigger_flash_sale_subscription_alert");
+    expect(sql).toContain("public.trigger_anti_gaspi_subscription_alert");
+    expect(sql).toContain("public.trigger_chefs_table_subscription_alert");
   });
 });

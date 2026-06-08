@@ -34,6 +34,32 @@ describe("homepage positioning guards", () => {
     expect(packs).toContain('checkout_kind: "launch-pack"');
   });
 
+  it("keeps homepage content rails visually separated", () => {
+    const index = read("src/pages/Index.tsx");
+    const restaurantSection = read("src/components/home/RestaurantSection.tsx");
+    const cuisineStrip = read("src/components/home/CuisineCategoryStrip.tsx");
+    const solidarity = read("src/components/home/SolidaritySection.tsx");
+    const features = read("src/components/home/FeaturesSection.tsx");
+
+    expect(restaurantSection).toContain("border-y border-border/70");
+    expect(restaurantSection).toContain("accentClassName");
+    expect(restaurantSection).toContain("headerClassName");
+    expect(restaurantSection).toContain("bg-primary/10");
+    expect(cuisineStrip).toContain("border-primary/15 bg-primary/10");
+    expect(index).toContain("bg-rose-50/70");
+    expect(index).toContain("bg-pink-500/10");
+    expect(index).toContain("bg-sky-50/75");
+    expect(index).toContain("bg-sky-500/10");
+    expect(index).toContain("bg-indigo-50/70");
+    expect(index).toContain("bg-indigo-500/10");
+    expect(index).toContain("bg-orange-50/70");
+    expect(index).toContain("bg-emerald-50/75");
+    expect(index).toContain("bg-emerald-500/10");
+    expect(solidarity).toContain("border-y border-pink-500/10");
+    expect(features).toContain("border-y border-border/70");
+    expect(features).toContain("border-primary/15 bg-primary/10");
+  });
+
   it("exposes the restaurateur B2B funnel from public entry points", () => {
     const navbar = read("src/components/Navbar.tsx");
     const hero = read("src/components/home/HeroSection.tsx");

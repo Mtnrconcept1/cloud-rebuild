@@ -485,6 +485,9 @@ export default function Index() {
             icon={Heart}
             iconColor="text-pink-500"
             restaurants={personalCards}
+            bgClass="bg-rose-50/70 dark:bg-rose-950/10"
+            accentClassName="bg-pink-500/80"
+            headerClassName="border-pink-500/15 bg-pink-500/10 dark:border-pink-300/20 dark:bg-pink-500/15"
             linkText="Retrouver vos favoris"
             linkTo="/profil?tab=favoris"
           />
@@ -497,7 +500,9 @@ export default function Index() {
             icon={MapPinned}
             iconColor="text-sky-500"
             restaurants={cityRail as any[]}
-            bgClass="bg-secondary/10"
+            bgClass="bg-sky-50/75 dark:bg-sky-950/10"
+            accentClassName="bg-sky-500/80"
+            headerClassName="border-sky-500/15 bg-sky-500/10 dark:border-sky-300/20 dark:bg-sky-500/15"
             linkText="Explorer votre ville"
             linkTo={buildSearchLink({ city: userContext?.city || null })}
           />
@@ -510,15 +515,20 @@ export default function Index() {
             icon={primaryRail.icon}
             iconColor={primaryRail.iconColor}
             restaurants={primaryRail.restaurants}
+            bgClass={lunchFocus ? "bg-amber-50/70 dark:bg-amber-950/10" : "bg-indigo-50/70 dark:bg-indigo-950/10"}
+            accentClassName={lunchFocus ? "bg-amber-500/80" : "bg-indigo-500/80"}
+            headerClassName={lunchFocus ? "border-amber-500/15 bg-amber-500/10 dark:border-amber-300/20 dark:bg-amber-500/15" : "border-indigo-500/15 bg-indigo-500/10 dark:border-indigo-300/20 dark:bg-indigo-500/15"}
             linkText={primaryRail.linkText}
             linkTo={primaryRail.linkTo}
           />
         </motion.div>
 
         <motion.div variants={sectionBounce}>
-          <section className="bg-miamz-warm/10 py-8 md:py-10">
-            <div className="container space-y-4">
-              <div className="flex items-center gap-2">
+          <section className="relative isolate overflow-hidden border-y border-border/70 bg-orange-50/70 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-orange-950/10 md:py-12">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
+            <div className="pointer-events-none absolute bottom-0 left-0 top-0 w-1.5 bg-primary/80" aria-hidden="true" />
+            <div className="container relative space-y-5">
+              <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/10 px-4 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-orange-300/20 dark:bg-orange-500/15">
                 <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                   <Sparkles className="h-4 w-4" />
                 </div>
@@ -541,6 +551,9 @@ export default function Index() {
             icon={BadgePercent}
             iconColor="text-emerald-500"
             restaurants={offersCards}
+            bgClass="bg-emerald-50/75 dark:bg-emerald-950/10"
+            accentClassName="bg-emerald-500/80"
+            headerClassName="border-emerald-500/15 bg-emerald-500/10 dark:border-emerald-300/20 dark:bg-emerald-500/15"
             linkText="Voir toutes les offres"
             linkTo={buildSearchLink({ sort: "promotion", promo: true, city: userContext?.city || null })}
           />
@@ -554,7 +567,9 @@ export default function Index() {
               icon={secondaryRail.icon}
               iconColor={secondaryRail.iconColor}
               restaurants={secondaryRail.restaurants}
-              bgClass="bg-secondary/10"
+              bgClass={lunchFocus ? "bg-indigo-50/70 dark:bg-indigo-950/10" : "bg-amber-50/70 dark:bg-amber-950/10"}
+              accentClassName={lunchFocus ? "bg-indigo-500/80" : "bg-amber-500/80"}
+              headerClassName={lunchFocus ? "border-indigo-500/15 bg-indigo-500/10 dark:border-indigo-300/20 dark:bg-indigo-500/15" : "border-amber-500/15 bg-amber-500/10 dark:border-amber-300/20 dark:bg-amber-500/15"}
               linkText={secondaryRail.linkText}
               linkTo={secondaryRail.linkTo}
             />
@@ -569,22 +584,27 @@ export default function Index() {
               icon={TrendingUp}
               iconColor="text-primary"
               restaurants={trendingCards}
+              bgClass="bg-slate-50/90 dark:bg-slate-900/30"
+              accentClassName="bg-primary/80"
+              headerClassName="border-primary/15 bg-primary/10 dark:border-orange-300/20 dark:bg-orange-500/15"
               linkTo={buildSearchLink({ sort: "note", city: userContext?.city || null })}
             />
           </motion.div>
         ) : null}
 
         <motion.div variants={sectionBounce}>
-          <section ref={mapSectionRef} className="py-10 md:py-14">
-            <div className="container space-y-5">
-              <div className="flex items-center justify-between">
+          <section ref={mapSectionRef} className="relative isolate overflow-hidden border-y border-border/70 bg-blue-50/60 py-12 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-blue-950/10 md:py-16">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
+            <div className="pointer-events-none absolute bottom-0 left-0 top-0 w-1.5 bg-blue-500/80" aria-hidden="true" />
+            <div className="container relative space-y-6">
+              <div className="flex flex-col gap-4 rounded-xl border border-blue-500/15 bg-blue-500/10 px-4 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-blue-300/20 dark:bg-blue-500/15 sm:flex-row sm:items-end sm:justify-between">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
                     <MapPinned className="h-4 w-4 text-blue-500" />
                   </div>
                   <h2 className="font-display text-xl font-semibold md:text-2xl">Restaurants à proximité</h2>
                 </div>
-                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" asChild>
+                <Button variant="ghost" size="sm" className="w-fit gap-1 text-muted-foreground" asChild>
                   <Link to={buildSearchLink({ city: userContext?.city || null })}>
                     Voir la liste <ChevronRight className="h-4 w-4" />
                   </Link>

@@ -13,6 +13,7 @@ import {
   ChefHat,
   Clock3,
   Crown,
+  LockKeyhole,
   MapPin,
   ShoppingCart,
   Sparkles,
@@ -24,12 +25,12 @@ import { useNavigate } from "react-router-dom";
 import { FeatureWizard, WizardNextButton } from "@/components/FeatureWizard";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import ChefTableSlotDialog from "@/components/ChefTableSlotDialog";
+import { useIsTokOneMember } from "@/hooks/useTokOne";
 import {
   generateDailyTimeSlots,
   getServiceSettings,
   type ServiceSettingsMap,
 } from "@/lib/serviceSettings";
-import { MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD } from "@/lib/loyaltyBenefits";
 import { cn } from "@/lib/utils";
 
 const supabase = getSupabase();
@@ -70,7 +71,8 @@ interface ChefTableDropCardProps {
   selectedPartySize: number | null;
   hasUser: boolean;
   authLoading: boolean;
-  loyaltyPoints: number;
+  isTokOneMember: boolean;
+  tokOneLoading: boolean;
   onToggleReserve: (drop: FlashDrop) => void;
   onQuickTimeSelect: (drop: FlashDrop, time: string) => void;
 }
@@ -112,10 +114,6 @@ function formatCurrency(value: number) {
   return `${currencyFormatter.format(value)} CHF`;
 }
 
-function formatMiamzPoints(value: number) {
-  return Math.max(0, Math.floor(value)).toLocaleString("fr-CH");
-}
-
 function buildRestaurantAddress(restaurant?: { address?: string | null; city?: string | null }) {
   const parts = [restaurant?.address, restaurant?.city].filter(Boolean);
   return parts.length > 0 ? parts.join(", ") : "Adresse communiquee après réservation";
@@ -133,20 +131,24 @@ function ChefTableDropCard({
   selectedPartySize,
   hasUser,
   authLoading,
-  loyaltyPoints,
+  isTokOneMember,
+  tokOneLoading,
   onToggleReserve,
   onQuickTimeSelect,
 }: ChefTableDropCardProps) {
   const isAlmostSoldOut = drop.remaining <= Math.max(2, Math.ceil(drop.totalPortions * 0.25));
-  const requiredVipPoints = Math.max(1, drop.requiredMiamzPoints || MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD);
-  const hasVipAccess = !drop.isVip || (!authLoading && hasUser && loyaltyPoints >= requiredVipPoints);
+  const isCheckingVipAccess = authLoading || tokOneLoading;
+  const hasVipAccess = !drop.isVip || (!isCheckingVipAccess && hasUser && isTokOneMember);
+  const isVipLocked = drop.isVip && !hasVipAccess;
   const vipButtonLabel = authLoading
-    ? "Verification Miamz"
+    ? "Verification du compte"
     : !hasUser
-      ? "Connexion requise VIP"
+      ? "Connexion requise"
+      : tokOneLoading
+      ? "Verification Tok One"
       : hasVipAccess
-        ? "Choisir creneau VIP"
-        : `VIP dès ${formatMiamzPoints(requiredVipPoints)} Miamz`;
+      ? "Choisir creneau VIP"
+      : "Reserve Tok One";
 
   return (
     <motion.article
@@ -175,8 +177,8 @@ function ChefTableDropCard({
             </Badge>
             {drop.isVip ? (
               <Badge className="gap-1 border-none bg-amber-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-950 shadow-lg">
-                <Crown className="h-3 w-3" />
-                Acces VIP Miamz
+                {isVipLocked ? <LockKeyhole className="h-3 w-3" /> : <Crown className="h-3 w-3" />}
+                Reserve Tok One
               </Badge>
             ) : null}
             <Badge className="border-none bg-white/20 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md">
@@ -258,11 +260,23 @@ function ChefTableDropCard({
 
           <p className="text-sm leading-6 text-muted-foreground dark:text-slate-100/90">{drop.description}</p>
 
+          {isVipLocked ? (
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-300/70 bg-amber-50/90 p-4 text-sm text-amber-900 dark:border-amber-300/35 dark:bg-amber-400/15 dark:text-amber-100">
+              <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <p className="font-semibold">Table VIP cadenassee</p>
+                <p className="mt-1 text-xs leading-5 text-amber-800/80 dark:text-amber-100/75">
+                  Cette experience est indisponible sans abonnement Tok One actif.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex flex-wrap gap-2">
             {drop.isVip ? (
               <Badge className="rounded-full border-none bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-500/10 dark:bg-amber-300/20 dark:text-amber-100">
-                <Crown className="mr-1 h-3 w-3" />
-                Table VIP dès {formatMiamzPoints(requiredVipPoints)} Miamz
+                {isVipLocked ? <LockKeyhole className="mr-1 h-3 w-3" /> : <Crown className="mr-1 h-3 w-3" />}
+                Table VIP Tok One
               </Badge>
             ) : null}
             <Badge
@@ -321,7 +335,7 @@ function ChefTableDropCard({
               <div className="flex items-center justify-between gap-4">
                 <span className="text-muted-foreground">Acces VIP</span>
                 <span className={cn("font-medium", hasVipAccess ? "text-emerald-600" : "text-amber-700")}>
-                  {hasVipAccess ? "Debloque" : `${formatMiamzPoints(requiredVipPoints)} Miamz requis`}
+                  {hasVipAccess ? "Tok One actif" : "Abonnement requis"}
                 </span>
               </div>
             ) : null}
@@ -339,9 +353,11 @@ function ChefTableDropCard({
                     <button
                       key={`${drop.id}-${time}`}
                       type="button"
+                      disabled={isVipLocked}
                       onClick={() => onQuickTimeSelect(drop, time)}
                       className={cn(
                         "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                        isVipLocked && "cursor-not-allowed opacity-50",
                         isActive
                           ? "border-amber-500 bg-amber-500 text-white shadow dark:border-amber-300 dark:text-slate-950"
                           : "border-amber-200 bg-white text-amber-700 hover:bg-amber-50 dark:border-amber-200/40 dark:bg-amber-100/10 dark:text-amber-100 dark:hover:bg-amber-400/20",
@@ -358,11 +374,13 @@ function ChefTableDropCard({
 
           <Button
             onClick={() => onToggleReserve(drop)}
-            variant={isReserved ? "outline" : "default"}
+            variant={isReserved || isVipLocked ? "outline" : "default"}
             className={cn(
               "min-h-11 h-auto w-full whitespace-normal rounded-xl px-3 py-2 text-center text-sm font-semibold leading-tight",
               isReserved
                 ? "border-amber-400 text-amber-700 hover:bg-amber-50 dark:border-amber-300/60 dark:bg-amber-400/20 dark:text-amber-100 dark:hover:bg-amber-400/20"
+                : isVipLocked
+                ? "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-300/50 dark:bg-amber-400/15 dark:text-amber-100 dark:hover:bg-amber-400/25"
                 : "bg-amber-500 text-white shadow-[0_18px_40px_-24px_rgba(245,158,11,1)] hover:bg-amber-600 dark:bg-amber-400 dark:text-slate-950 dark:shadow-[0_0_28px_rgba(245,158,11,0.26)] dark:hover:bg-amber-300",
             )}
           >
@@ -373,7 +391,9 @@ function ChefTableDropCard({
               </>
             ) : (
               <>
-                {drop.isVip ? (
+                {isVipLocked ? (
+                  <LockKeyhole className="mr-2 h-4 w-4 shrink-0" />
+                ) : drop.isVip ? (
                   <Crown className="mr-2 h-4 w-4 shrink-0" />
                 ) : (
                   <ShoppingCart className="mr-2 h-4 w-4 shrink-0" />
@@ -405,20 +425,7 @@ export default function ChefsTable() {
   const [slotDialogPresetTime, setSlotDialogPresetTime] = useState<string | null>(null);
   const [slotDialogPresetPartySize, setSlotDialogPresetPartySize] = useState<number | null>(null);
   const attemptedFinalizationRef = useRef<Set<string>>(new Set());
-
-  const { data: profile } = useQuery({
-    queryKey: ["chefs-table-profile-loyalty", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles" as any)
-        .select("loyalty_points")
-        .eq("user_id", user!.id)
-        .single();
-      return data as { loyalty_points?: number | null } | null;
-    },
-    enabled: !!user,
-  });
-  const loyaltyPoints = Math.max(0, Number(profile?.loyalty_points || 0));
+  const { isMember: isTokOneMember, isLoading: tokOneLoading } = useIsTokOneMember();
 
   const { data: drops = [] } = useQuery({
     queryKey: ["chefs-table-drops"],
@@ -691,14 +698,13 @@ export default function ChefsTable() {
     return false;
   };
 
-  const ensureVipMiamzAccess = (drop: FlashDrop) => {
+  const ensureVipTokOneAccess = (drop: FlashDrop) => {
     if (!drop.isVip) return true;
-    const requiredVipPoints = Math.max(1, drop.requiredMiamzPoints || MIAMZ_VIP_TABLE_DEFAULT_THRESHOLD);
 
-    if (authLoading) {
+    if (authLoading || tokOneLoading) {
       toast({
-        title: "Acces VIP Miamz",
-        description: "Verification de votre solde Miamz en cours.",
+        title: "Acces VIP Tok One",
+        description: "Verification de votre abonnement Tok One en cours.",
       });
       return false;
     }
@@ -706,19 +712,20 @@ export default function ChefsTable() {
     if (!user) {
       toast({
         title: "Connexion requise",
-        description: `Ce drop VIP La Table du Chef est reserve aux clients ayant ${formatMiamzPoints(requiredVipPoints)} Miamz.`,
+        description: "Connectez-vous pour acceder aux tables VIP reservees aux abonnes Tok One.",
         variant: "destructive",
       });
       navigate("/auth");
       return false;
     }
 
-    if (loyaltyPoints < requiredVipPoints) {
+    if (!isTokOneMember) {
       toast({
-        title: "Acces VIP Miamz",
-        description: `Ce drop VIP La Table du Chef demande ${formatMiamzPoints(requiredVipPoints)} Miamz. Votre solde actuel est de ${formatMiamzPoints(loyaltyPoints)} Miamz.`,
+        title: "Reserve Tok One",
+        description: "Cette table VIP est indisponible sans abonnement Tok One actif.",
         variant: "destructive",
       });
+      navigate("/tok-one");
       return false;
     }
 
@@ -776,7 +783,7 @@ export default function ChefsTable() {
       return;
     }
 
-    if (!ensureVipMiamzAccess(drop)) return;
+    if (!ensureVipTokOneAccess(drop)) return;
     if (!ensureCartIsAvailable()) return;
 
     setSlotDialogPresetTime(null);
@@ -785,7 +792,7 @@ export default function ChefsTable() {
   };
 
   const handleQuickTimeSelect = (drop: FlashDrop, time: string) => {
-    if (!ensureVipMiamzAccess(drop)) return;
+    if (!ensureVipTokOneAccess(drop)) return;
     if (!ensureCartIsAvailable()) return;
     setSlotDialogPresetTime(time);
     setSlotDialogPresetPartySize(selectedPartySizeByDropId.get(drop.id) ?? null);
@@ -921,7 +928,8 @@ export default function ChefsTable() {
                       selectedPartySize={selectedPartySizeByDropId.get(drop.id) ?? null}
                       hasUser={!!user}
                       authLoading={authLoading}
-                      loyaltyPoints={loyaltyPoints}
+                      isTokOneMember={isTokOneMember}
+                      tokOneLoading={tokOneLoading}
                       onToggleReserve={handleToggleReserve}
                       onQuickTimeSelect={handleQuickTimeSelect}
                     />

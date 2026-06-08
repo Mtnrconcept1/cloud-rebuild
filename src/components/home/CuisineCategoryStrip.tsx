@@ -142,7 +142,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
   return (
     <section className="relative overflow-hidden bg-background py-4 dark:bg-[radial-gradient(circle_at_20%_0%,rgba(249,115,22,0.10),transparent_24rem)] md:py-6">
       <div className="container px-4">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-primary/15 bg-primary/10 px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-orange-300/20 dark:bg-orange-500/15">
           <h2 className="font-display text-base font-bold text-foreground dark:text-white md:text-xl">Explorer par cuisine</h2>
           <div className="hidden items-center gap-1.5 md:flex">
             <button

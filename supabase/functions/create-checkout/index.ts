@@ -13,7 +13,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
-import { isTokOneEntitledStatus } from "../_shared/tok-one.ts";
+import { getLatestTokOneSubscription, isTokOneEntitledStatus } from "../_shared/tok-one.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   assertPaymentMethodAllowed,
@@ -366,15 +366,16 @@ Deno.serve(async (req) => {
 
       if (dropsError) throw new HttpError(500, dropsError.message);
 
-      const { data: profileRow, error: profileError } = await actor.adminClient
-        .from("profiles")
-        .select("loyalty_points")
-        .eq("user_id", actor.userId)
-        .maybeSingle();
-
-      if (profileError) throw new HttpError(500, profileError.message);
-
-      const userMiamzPoints = Math.max(0, Number(profileRow?.loyalty_points || 0));
+      const tokOneSubscription = await getLatestTokOneSubscription(actor.adminClient, actor.userId);
+      const tokOnePeriodEnd = tokOneSubscription?.current_period_end
+        ? new Date(tokOneSubscription.current_period_end)
+        : null;
+      const hasActiveTokOneSubscription = Boolean(
+        tokOneSubscription &&
+        isTokOneEntitledStatus(tokOneSubscription.status) &&
+        tokOnePeriodEnd &&
+        tokOnePeriodEnd > new Date(),
+      );
       const dropMap = new Map((dropRows || []).map((row: any) => [row.id, row]));
       let authoritativeTotal = 0;
       let totalPartySize = 0;
@@ -401,10 +402,10 @@ Deno.serve(async (req) => {
         if (isVipDrop) {
           vipDropCount += 1;
           maxRequiredMiamzPoints = Math.max(maxRequiredMiamzPoints, requiredMiamzPoints);
-          if (userMiamzPoints < requiredMiamzPoints) {
+          if (!hasActiveTokOneSubscription) {
             throw new HttpError(
               403,
-              `Ce drop VIP La Table du Chef demande ${requiredMiamzPoints} Miamz.`,
+              "Ce drop VIP La Table du Chef est reserve aux abonnes Tok One actifs.",
             );
           }
         }
@@ -429,6 +430,7 @@ Deno.serve(async (req) => {
                 party_size: String(quantity),
                 source: "chef_table_drop",
                 is_vip: isVipDrop ? "true" : "false",
+                vip_access: isVipDrop ? "tok_one" : "standard",
                 required_miamz_points: isVipDrop ? String(requiredMiamzPoints) : "0",
               },
             },
@@ -447,7 +449,9 @@ Deno.serve(async (req) => {
         authoritative_total: authoritativeTotal.toFixed(2),
         party_size: String(totalPartySize),
         chef_table_vip_drop_count: String(vipDropCount),
+        chef_table_vip_access: vipDropCount > 0 ? "tok_one" : "",
         chef_table_vip_required_miamz_points: String(maxRequiredMiamzPoints),
+        tok_one_member: hasActiveTokOneSubscription ? "true" : "false",
       };
     } else {
       const primaryRestaurantId = String(order_metadata?.restaurant_id || "");

@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RestaurantCard from "@/components/RestaurantCard";
 import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RestaurantSectionProps {
   title: string;
@@ -11,6 +12,8 @@ interface RestaurantSectionProps {
   iconColor: string;
   restaurants: any[];
   bgClass?: string;
+  accentClassName?: string;
+  headerClassName?: string;
   linkText?: string;
   linkTo?: string;
 }
@@ -22,15 +25,29 @@ export default function RestaurantSection({
   iconColor,
   restaurants,
   bgClass = "bg-background",
+  accentClassName = "bg-primary/70",
+  headerClassName = "border-primary/15 bg-primary/10 dark:border-orange-300/20 dark:bg-orange-500/15",
   linkText = "Voir tout",
   linkTo = "/recherche",
 }: RestaurantSectionProps) {
   if (restaurants.length === 0) return null;
 
   return (
-    <section className={`py-12 dark:bg-[radial-gradient(circle_at_88%_10%,rgba(34,211,238,0.08),transparent_22rem)] md:py-16 ${bgClass}`}>
-      <div className="container space-y-6 md:space-y-8">
-        <div className="flex items-center justify-between">
+    <section
+      className={cn(
+        "relative isolate overflow-hidden border-y border-border/70 py-12 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-[radial-gradient(circle_at_88%_10%,rgba(34,211,238,0.08),transparent_22rem)] md:py-16",
+        bgClass,
+      )}
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
+      <div className={cn("pointer-events-none absolute bottom-0 left-0 top-0 w-1.5", accentClassName)} aria-hidden="true" />
+      <div className="container relative space-y-7 md:space-y-9">
+        <div
+          className={cn(
+            "flex flex-col gap-4 rounded-xl border px-4 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)] md:flex-row md:items-end md:justify-between",
+            headerClassName,
+          )}
+        >
           <div className="space-y-1">
             <div className={`flex items-center gap-2 ${iconColor} font-bold text-xs uppercase tracking-widest`}>
               <Icon className="h-3.5 w-3.5 fill-current" />
@@ -38,7 +55,7 @@ export default function RestaurantSection({
             </div>
             <h2 className="font-display text-2xl font-bold dark:text-white md:text-3xl">{title}</h2>
           </div>
-          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-primary dark:text-slate-300 dark:hover:text-orange-300" asChild>
+          <Button variant="ghost" size="sm" className="w-fit gap-1 text-muted-foreground hover:text-primary dark:text-slate-300 dark:hover:text-orange-300" asChild>
             <Link to={linkTo}>{linkText} <ChevronRight className="h-4 w-4" /></Link>
           </Button>
         </div>

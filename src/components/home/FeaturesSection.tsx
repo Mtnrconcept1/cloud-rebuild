@@ -60,9 +60,9 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
   const visibleFeatures = SECONDARY_FEATURES.filter((feature) => activeFeatures.has(feature.feature));
 
   return (
-    <section className="bg-gradient-to-b from-background to-secondary/20 py-10 dark:from-background dark:via-slate-950/40 dark:to-orange-950/10 md:py-14">
+    <section className="border-y border-border/70 bg-gradient-to-b from-background to-secondary/20 py-10 dark:border-white/10 dark:from-background dark:via-slate-950/40 dark:to-orange-950/10 md:py-14">
       <div className="container space-y-6">
-        <div className="space-y-2 text-center">
+        <div className="space-y-2 rounded-xl border border-primary/15 bg-primary/10 px-4 py-4 text-center shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-orange-300/20 dark:bg-orange-500/15">
           <div className="flex items-center justify-center gap-2">
             <Sparkles className="h-5 w-5 text-primary dark:drop-shadow-[0_0_16px_rgba(249,115,22,0.55)]" />
             <h2 className="font-display text-2xl font-bold dark:text-white md:text-3xl">Trois raisons de choisir TOK</h2>
