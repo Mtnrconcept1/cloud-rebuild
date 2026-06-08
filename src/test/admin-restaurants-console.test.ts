@@ -79,6 +79,11 @@ describe("admin restaurants console", () => {
     expect(source).toContain("admin_record_restaurant_admin_action");
     expect(source).not.toContain('.from("restaurants").update');
     expect(source).toContain("RestaurantDetailPanel");
+    expect(source).toContain("buildFallbackRestaurantAdminDetail");
+    expect(source).toContain("fallbackRestaurant");
+    expect(source).toContain("restaurantDetailError");
+    expect(source).toContain("Données détaillées indisponibles");
+    expect(source).toContain("isLoading && !detail");
     expect(source).toContain("Fiche restaurant");
     expect(source).toContain("DialogContent");
     expect(source).toContain("max-w-6xl");

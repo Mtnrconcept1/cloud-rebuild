@@ -129,6 +129,7 @@ const STATUS_OPTIONS = [
 ];
 
 const DEFAULT_PAYMENT_METHODS = ["card", "cash", "twint"];
+const CATALOG_QUALITY_KEYS = ["image", "address", "coordinates", "opening_hours", "menu", "payment_methods", "cuisine"];
 const CATALOG_MISSING_FIELD_LABELS: Record<string, string> = {
   image: "image",
   address: "adresse",
@@ -155,6 +156,66 @@ function getCatalogQuality(restaurant: AdminRestaurant) {
     payment_methods: getEnabledPaymentMethods(restaurant),
     cuisine_type: restaurant.cuisine_type,
   });
+}
+
+function getCatalogQualityChecks(missingFields: string[]) {
+  const missingFieldSet = new Set(missingFields);
+  return Object.fromEntries(CATALOG_QUALITY_KEYS.map((key) => [key, !missingFieldSet.has(key)])) as Record<string, boolean>;
+}
+
+function buildFallbackRestaurantAdminDetail(restaurant: AdminRestaurant): RestaurantAdminDetail {
+  const quality = getCatalogQuality(restaurant);
+
+  return {
+    restaurant: {
+      id: restaurant.id,
+      name: restaurant.name,
+      city: restaurant.city,
+      address: restaurant.address,
+      cuisine_type: restaurant.cuisine_type,
+      image_url: restaurant.image_url,
+      is_active: restaurant.is_active ?? true,
+      is_featured: restaurant.is_featured ?? false,
+      status: restaurant.status || "active",
+      supports_pickup: restaurant.supports_pickup ?? true,
+      supports_dinein: restaurant.supports_dinein ?? false,
+      supports_reservation: restaurant.supports_reservation ?? false,
+    },
+    quality: {
+      score: quality.score,
+      publishable: quality.publishable,
+      missing_fields: quality.missingFields,
+      menu_items_count: restaurant.menu_items_count || 0,
+      checks: getCatalogQualityChecks(quality.missingFields),
+    },
+    orders_summary: { total: 0, active: 0, revenue_chf: 0 },
+    reservations_summary: { total: 0 },
+    reviews_summary: { total: restaurant.rating_count || 0, average_rating: restaurant.avg_rating || 0 },
+    campaigns_summary: { total: 0, active: 0 },
+    invoices_summary: { total: 0, open: 0, unpaid_chf: 0 },
+    incidents_summary: { total: 0, open: 0 },
+    payment_health: {
+      stripe_account_id: null,
+      stripe_connect_configured: false,
+      payout_schedule: null,
+      commission_rate: 0,
+      invoice_settings_configured: false,
+      iban_configured: false,
+      last_failed_payment_at: null,
+      payouts_pending: 0,
+    },
+    recent_history: [],
+  };
+}
+
+function getQueryErrorMessage(error: unknown) {
+  if (!error) return null;
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    return typeof message === "string" ? message : null;
+  }
+  return null;
 }
 
 function formatMissingFields(fields: string[]) {
@@ -227,6 +288,8 @@ function MetricTile({ label, value }: { label: string; value: string | number })
 
 type RestaurantDetailPanelProps = {
   detail: RestaurantAdminDetail | null | undefined;
+  fallbackRestaurant: AdminRestaurant | null;
+  detailError: unknown;
   isLoading: boolean;
   overrideReason: string;
   actionReason: string;
@@ -242,7 +305,9 @@ type RestaurantDetailPanelProps = {
 };
 
 function RestaurantDetailPanel({
-  detail,
+  detail: loadedDetail,
+  fallbackRestaurant,
+  detailError,
   isLoading,
   overrideReason,
   actionReason,
@@ -256,7 +321,12 @@ function RestaurantDetailPanel({
   onReindexCatalog,
   onSendNotification,
 }: RestaurantDetailPanelProps) {
-  if (isLoading) {
+  const fallbackDetail = fallbackRestaurant ? buildFallbackRestaurantAdminDetail(fallbackRestaurant) : null;
+  const detail = loadedDetail?.restaurant?.id ? loadedDetail : fallbackDetail;
+  const isFallbackDetail = Boolean(!loadedDetail?.restaurant?.id && fallbackDetail);
+  const detailErrorMessage = getQueryErrorMessage(detailError);
+
+  if (isLoading && !detail) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
         <DialogHeader className="shrink-0 border-b px-5 py-5 pr-14 text-left sm:px-6">
@@ -325,6 +395,21 @@ function RestaurantDetailPanel({
         </div>
       </DialogHeader>
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+        {isFallbackDetail || detailError ? (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
+            <div>
+              <p className="font-medium">
+                {detailError ? "Données détaillées indisponibles" : "Chargement des données détaillées"}
+              </p>
+              <p>
+                La fiche affiche les informations principales déjà chargées depuis la liste des restaurants.
+              </p>
+              {detailErrorMessage ? <p className="mt-1 text-xs">Détail technique: {detailErrorMessage}</p> : null}
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
           <section className="space-y-3">
             <div className="flex items-center justify-between gap-3">
@@ -525,12 +610,17 @@ export default function AdminRestaurants() {
 
   const {
     data: restaurantDetail,
+    error: restaurantDetailError,
     isFetching: isDetailLoading,
     refetch: refetchRestaurantDetail,
   } = useQuery({
     queryKey: ["admin-restaurant-detail", selectedRestaurantId],
     enabled: Boolean(selectedRestaurantId),
     queryFn: async () => {
+      if (!selectedRestaurantId) {
+        throw new Error("Restaurant requis pour charger la fiche.");
+      }
+
       const { data, error } = await (supabase.rpc as any)("admin_get_restaurant_admin_detail", {
         p_restaurant_id: selectedRestaurantId,
       });
@@ -804,6 +894,8 @@ export default function AdminRestaurants() {
         <DialogContent className="flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0 sm:h-[min(880px,calc(100dvh-2rem))] sm:max-h-[calc(100dvh-2rem)]">
           <RestaurantDetailPanel
             detail={restaurantDetail}
+            fallbackRestaurant={selectedRestaurant}
+            detailError={restaurantDetailError}
             isLoading={isDetailLoading}
             overrideReason={overrideReason}
             actionReason={actionReason}
