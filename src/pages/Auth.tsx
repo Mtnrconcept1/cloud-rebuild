@@ -167,7 +167,7 @@ export default function Auth() {
   const [showRolePicker, setShowRolePicker] = useState(false);
   const [documents, setDocuments] = useState<Partial<Record<SignupDocumentType, File | null>>>({});
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
@@ -542,26 +542,24 @@ export default function Auth() {
                   <div className="relative">
                     <Input
                       id="password"
-                      type={!isLogin && showSignupPassword ? "text" : "password"}
+                      type={showPassword ? "text" : "password"}
                       value={signupForm.password}
                       onChange={(event) => updateSignupField("password", event.target.value)}
                       placeholder="********"
                       required
                       minLength={6}
                       autoComplete={isLogin ? "current-password" : "new-password"}
-                      className={!isLogin ? "pr-11" : undefined}
+                      className="pr-11"
                     />
-                    {!isLogin ? (
-                      <button
-                        type="button"
-                        aria-label={showSignupPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                        aria-pressed={showSignupPassword}
-                        onClick={() => setShowSignupPassword((current) => !current)}
-                        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      >
-                        {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    ) : null}
+                    <button
+                      type="button"
+                      aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                      aria-pressed={showPassword}
+                      onClick={() => setShowPassword((current) => !current)}
+                      className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 

@@ -121,6 +121,20 @@ describe("Auth signup form", () => {
     expect(emailInput).toHaveValue("client@example.com");
   });
 
+  it("lets sign in users reveal and hide the password before submitting", () => {
+    renderAuth("/auth?type=client");
+
+    const passwordInput = screen.getByLabelText("Mot de passe");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    fireEvent.click(screen.getByRole("button", { name: "Afficher le mot de passe" }));
+    expect(passwordInput).toHaveAttribute("type", "text");
+
+    fireEvent.click(screen.getByRole("button", { name: "Masquer le mot de passe" }));
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
+  });
+
   it("lets signup users reveal and hide the password before submitting", () => {
     renderAuth("/auth?type=client");
 
