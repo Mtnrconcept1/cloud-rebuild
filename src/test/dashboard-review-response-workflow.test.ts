@@ -42,6 +42,22 @@ describe("restaurant dashboard review response workflow", () => {
     expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
   });
 
+  it("drops existing admin review RPCs before redefining them to avoid return type drift", () => {
+    const sql = latestMigrationContaining(/restaurant_report_review/i);
+    const adminRpcSignatures = [
+      "public.admin_update_review_status(uuid, text, text)",
+      "public.admin_delete_review(uuid, text)",
+      "public.admin_reply_review(uuid, text)",
+    ];
+
+    for (const signature of adminRpcSignatures) {
+      const dropIndex = sql.indexOf(`DROP FUNCTION IF EXISTS ${signature}`);
+      const createIndex = sql.indexOf(`CREATE OR REPLACE FUNCTION ${signature.replace(/\(.*$/, "(")}`);
+      expect(dropIndex, `${signature} should be dropped before recreation`).toBeGreaterThanOrEqual(0);
+      expect(createIndex, `${signature} should be recreated`).toBeGreaterThan(dropIndex);
+    }
+  });
+
   it("lets restaurateurs filter, sort, read, reply, generate AI replies and report reviews", () => {
     const dashboard = readProjectFile("src/pages/dashboard/DashboardAvis.tsx");
     const aiClient = readProjectFile("src/lib/ai/tokAiClient.ts");

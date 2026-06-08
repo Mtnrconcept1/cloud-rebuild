@@ -422,6 +422,7 @@ AFTER INSERT ON public.review_reports
 FOR EACH ROW
 EXECUTE FUNCTION public.trigger_review_report_admin_notification();
 
+DROP FUNCTION IF EXISTS public.admin_update_review_status(uuid, text, text);
 CREATE OR REPLACE FUNCTION public.admin_update_review_status(
   p_review_id uuid,
   p_status text,
@@ -507,6 +508,7 @@ BEGIN
 END;
 $$;
 
+DROP FUNCTION IF EXISTS public.admin_delete_review(uuid, text);
 CREATE OR REPLACE FUNCTION public.admin_delete_review(
   p_review_id uuid,
   p_reason text
@@ -580,6 +582,7 @@ BEGIN
 END;
 $$;
 
+DROP FUNCTION IF EXISTS public.admin_reply_review(uuid, text);
 CREATE OR REPLACE FUNCTION public.admin_reply_review(
   p_review_id uuid,
   p_reply_text text
