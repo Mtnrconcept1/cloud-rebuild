@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ComponentType } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -7,10 +7,12 @@ import GoogleBusinessBookingCard from "@/components/dashboard/GoogleBusinessBook
 import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
-import { ArrowRight, CalendarDays, FileText, LayoutDashboard, MoonStar, ShoppingCart, SunMedium, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarDays, CheckCircle2, FileText, LayoutDashboard, MoonStar, ShoppingCart, SunMedium, TrendingUp } from "lucide-react";
 import { normalizeOrderStatus } from "@/lib/orderStatus";
 import { useSignupApplication } from "@/hooks/useSignupApplication";
+import { useToast } from "@/hooks/use-toast";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,14 @@ type UpcomingReservationRow = {
   party_size: number;
   status: string;
   metadata: unknown;
+};
+
+type AdminCorrectionRequestRow = {
+  id: string;
+  restaurant_id: string;
+  reason: string;
+  status: string;
+  requested_at: string;
 };
 
 type DashboardTone = "violet" | "orange" | "emerald" | "amber" | "sky";
@@ -111,7 +121,16 @@ function DashboardStatCard({
   );
 }
 
+function formatDashboardDateTime(value: string) {
+  return new Intl.DateTimeFormat("fr-CH", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export default function Dashboard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { selectedId } = useDashboardRestaurant();
   const { data: signupApplication } = useSignupApplication("restaurateur");
   const today = new Date().toISOString().split("T")[0];
@@ -210,6 +229,48 @@ export default function Dashboard() {
     enabled: !!restaurant,
   });
 
+  const { data: adminCorrectionRequests = [] } = useQuery({
+    queryKey: ["restaurant-admin-correction-requests", restaurant?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from as any)("restaurant_admin_correction_requests")
+        .select("id, restaurant_id, reason, status, requested_at")
+        .eq("restaurant_id", restaurant!.id)
+        .eq("status", "open")
+        .order("requested_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return (data || []) as AdminCorrectionRequestRow[];
+    },
+    enabled: !!restaurant?.id,
+  });
+
+  const markAdminCorrectionDone = useMutation({
+    mutationFn: async (requestId: string) => {
+      const { error } = await (supabase.rpc as any)("restaurant_mark_admin_correction_done", {
+        p_request_id: requestId,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["restaurant-admin-correction-requests", restaurant?.id] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["navbar-notifications"] });
+      toast({
+        title: "Modification confirmée",
+        description: "TOK est informé que la correction demandée a été effectuée.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Confirmation impossible",
+        description: error instanceof Error ? error.message : "La modification n'a pas pu être confirmée.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const typedUpcomingReservations = upcomingReservations as UpcomingReservationRow[];
 
   const todayServiceCounts = typedUpcomingReservations.reduce(
@@ -262,6 +323,42 @@ export default function Dashboard() {
           title="Dossier de vérification restaurateur"
           emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
         />
+
+        {adminCorrectionRequests.length > 0 ? (
+          <Card className="tok-dashboard-section rounded-3xl border border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-50">
+            <CardHeader className="space-y-2">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-100">
+                  <AlertTriangle className="h-6 w-6" />
+                </span>
+                Demande de correction TOK
+              </CardTitle>
+              <p className="text-sm text-amber-800 dark:text-amber-100/80">
+                Une modification est demandée par l'équipe TOK pour garder votre fiche restaurant prête à être publiée.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {adminCorrectionRequests.map((request) => (
+                <div key={request.id} className="rounded-2xl border border-amber-200 bg-background/80 p-4 text-sm shadow-sm dark:border-amber-400/20 dark:bg-[#07142b]/80">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="space-y-2">
+                      <p className="font-semibold">Correction demandée le {formatDashboardDateTime(request.requested_at)}</p>
+                      <p className="text-amber-900 dark:text-amber-50/90">{request.reason}</p>
+                    </div>
+                    <Button
+                      onClick={() => markAdminCorrectionDone.mutate(request.id)}
+                      disabled={markAdminCorrectionDone.isPending}
+                      className="shrink-0 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Modification effectuée
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ) : null}
 
         <GoogleBusinessBookingCard restaurantId={restaurant.id} />
 
