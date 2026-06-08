@@ -17,7 +17,7 @@ function latestMigrationContaining(pattern: RegExp) {
 
 describe("admin review moderation governance", () => {
   it("adds audited admin RPCs for review moderation", () => {
-    const sql = latestMigrationContaining(/admin_review_action_history/i);
+    const sql = latestMigrationContaining(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_review_action_history/i);
 
     expect(sql).toMatch(/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+public\.admin_review_action_history/i);
     expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_update_review_status/i);
@@ -37,6 +37,12 @@ describe("admin review moderation governance", () => {
     expect(page).toContain("admin_delete_review");
     expect(page).toContain("admin_reply_review");
     expect(page).toContain("moderationPriority");
+    expect(page).toContain("getReviewReplies");
+    expect(page).toContain("getRestaurantReply");
+    expect(page).toContain("getAdminReply");
+    expect(page).toContain("Réponse restaurateur");
+    expect(page).toContain('author_type === "restaurant_staff"');
+    expect(page).toContain('author_type === "admin"');
     expect(page).toContain("Raison obligatoire");
     expect(page).toContain("Priorite");
     expect(page).not.toContain('.from("reviews").update');

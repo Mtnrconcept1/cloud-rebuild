@@ -58,6 +58,18 @@ describe("restaurant dashboard review response workflow", () => {
     }
   });
 
+  it("keeps restaurant and admin review replies separated by author type", () => {
+    const sql = latestMigrationContaining(/review_replies_review_author_type_unique_idx/i);
+
+    expect(sql).toContain("DROP CONSTRAINT");
+    expect(sql).toContain("review_replies_review_author_type_unique_idx");
+    expect(sql).toContain("ON public.review_replies (review_id, author_type)");
+    expect(sql).toContain("AND author_type = 'restaurant_staff'");
+    expect(sql).toContain("AND author_type = 'admin'");
+    expect(sql).toContain("DROP FUNCTION IF EXISTS public.restaurant_reply_review(uuid, text)");
+    expect(sql).toContain("DROP FUNCTION IF EXISTS public.admin_reply_review(uuid, text)");
+  });
+
   it("lets restaurateurs filter, sort, read, reply, generate AI replies and report reviews", () => {
     const dashboard = readProjectFile("src/pages/dashboard/DashboardAvis.tsx");
     const aiClient = readProjectFile("src/lib/ai/tokAiClient.ts");

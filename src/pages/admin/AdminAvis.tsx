@@ -48,7 +48,7 @@ type AdminReview = {
   report_reason: string | null;
   created_at: string;
   restaurants?: { name: string | null } | null;
-  review_replies?: ReviewReply[] | null;
+  review_replies?: ReviewReply[] | ReviewReply | null;
   review_reports?: ReviewReport[] | null;
 };
 
@@ -91,6 +91,19 @@ function moderationPriority(review: AdminReview) {
   if (score >= 80) return { score, label: "Critique", variant: "destructive" as const };
   if (score >= 35) return { score, label: "Haute", variant: "secondary" as const };
   return { score, label: "Normale", variant: "outline" as const };
+}
+
+function getReviewReplies(review: AdminReview) {
+  if (!review.review_replies) return [];
+  return Array.isArray(review.review_replies) ? review.review_replies : [review.review_replies];
+}
+
+function getRestaurantReply(review: AdminReview) {
+  return getReviewReplies(review).find((reply) => reply.author_type === "restaurant_staff") || null;
+}
+
+function getAdminReply(review: AdminReview) {
+  return getReviewReplies(review).find((reply) => reply.author_type === "admin") || null;
 }
 
 export default function AdminAvis() {
@@ -157,7 +170,7 @@ export default function AdminAvis() {
   }, [reviews]);
 
   const setReplyDraft = (review: AdminReview) => {
-    const existingReply = review.review_replies?.[0]?.reply_text || "";
+    const existingReply = getAdminReply(review)?.reply_text || "";
     setReplyDrafts((current) => ({
       ...current,
       [review.id]: current[review.id] ?? existingReply,
@@ -199,7 +212,8 @@ export default function AdminAvis() {
   };
 
   const saveReply = async (review: AdminReview) => {
-    const replyText = (replyDrafts[review.id] ?? review.review_replies?.[0]?.reply_text ?? "").trim();
+    const adminReply = getAdminReply(review);
+    const replyText = (replyDrafts[review.id] ?? adminReply?.reply_text ?? "").trim();
     if (!replyText) {
       toast({ title: "Réponse vide", description: "Saisissez une réponse avant d'enregistrer.", variant: "destructive" });
       return;
@@ -210,7 +224,6 @@ export default function AdminAvis() {
     }
 
     setSavingReplyId(review.id);
-    const existingReply = review.review_replies?.[0];
     const response = await (supabase.rpc as any)("admin_reply_review", {
       p_review_id: review.id,
       p_reply_text: replyText,
@@ -224,7 +237,7 @@ export default function AdminAvis() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
-    toast({ title: existingReply ? "Réponse mise à jour" : "Réponse publiée" });
+    toast({ title: adminReply ? "Réponse mise à jour" : "Réponse publiée" });
   };
 
   const handleDelete = async (id: string) => {
@@ -354,8 +367,9 @@ export default function AdminAvis() {
         <div className="space-y-3">
           {filteredReviews.map((review) => {
             const effectiveStatus = review.status || "published";
-            const existingReply = review.review_replies?.[0];
-            const replyValue = replyDrafts[review.id] ?? existingReply?.reply_text ?? "";
+            const restaurantReply = getRestaurantReply(review);
+            const adminReply = getAdminReply(review);
+            const replyValue = replyDrafts[review.id] ?? adminReply?.reply_text ?? "";
             const priority = moderationPriority(review);
             const reports = review.review_reports || [];
             const openReports = reports.filter((report) => report.status === "open");
@@ -428,6 +442,24 @@ export default function AdminAvis() {
                           year: "numeric",
                         })}
                       </p>
+
+                      {restaurantReply ? (
+                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm">
+                          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                            <p className="flex items-center gap-2 font-medium text-emerald-950">
+                              <MessageSquareText className="h-4 w-4" />
+                              Réponse restaurateur
+                            </p>
+                            <Badge variant="outline" className="border-emerald-300 bg-white/70 text-emerald-800">
+                              Visible client
+                            </Badge>
+                          </div>
+                          <p className="whitespace-pre-wrap text-emerald-950">{restaurantReply.reply_text}</p>
+                          <p className="mt-2 text-xs text-emerald-800">
+                            Répondu le {new Date(restaurantReply.created_at).toLocaleString("fr-FR")}
+                          </p>
+                        </div>
+                      ) : null}
                     </div>
 
                     <div className="flex w-full min-w-0 flex-col gap-2 md:w-auto md:min-w-[260px]">
@@ -474,9 +506,9 @@ export default function AdminAvis() {
                   <div className="rounded-xl border p-3 space-y-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-medium">Réponse admin</p>
-                      {existingReply ? (
+                      {adminReply ? (
                         <span className="text-xs text-muted-foreground">
-                          Derniere mise à jour le {new Date(existingReply.created_at).toLocaleDateString("fr-FR")}
+                          Derniere mise à jour le {new Date(adminReply.created_at).toLocaleDateString("fr-FR")}
                         </span>
                       ) : null}
                     </div>
@@ -493,7 +525,7 @@ export default function AdminAvis() {
                     />
                     <div className="flex justify-end">
                       <Button onClick={() => saveReply(review)} disabled={savingReplyId === review.id}>
-                        {savingReplyId === review.id ? "Enregistrement..." : existingReply ? "Mettre à jour la réponse" : "Publier la réponse"}
+                        {savingReplyId === review.id ? "Enregistrement..." : adminReply ? "Mettre à jour la réponse" : "Publier la réponse"}
                       </Button>
                     </div>
                   </div>
