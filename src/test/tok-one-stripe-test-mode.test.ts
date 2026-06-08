@@ -16,13 +16,13 @@ const migrationSource = readFileSync(
 );
 
 describe("Tok One Stripe test mode", () => {
-  it("keeps Tok One Stripe secrets server-side and uses the live/default key for new client checkout", () => {
+  it("keeps Tok One Stripe secrets server-side and prefers dedicated Tok One keys for new checkout", () => {
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_SECRET_KEY");
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_SECRET_KEY");
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SECRET");
     expect(stripeClientSource).toContain("STRIPE_TOK_ONE_TEST_WEBHOOK_SIGNING_SECRET");
     expect(stripeClientSource).toContain('kind === "tok-one"');
-    expect(stripeClientSource).toContain('names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY"]');
+    expect(stripeClientSource).toContain('names: ["STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY"]');
     expect(stripeClientSource).toContain('purpose: "Tok One Stripe secret"');
     expect(stripeClientSource).toContain("getTokOneStripeRuntimeForCheckoutSession");
     expect(stripeClientSource).toContain('sessionId.startsWith("cs_test_")');
@@ -31,13 +31,13 @@ describe("Tok One Stripe test mode", () => {
     expect(stripeClientSource).not.toContain("VITE_STRIPE_TOK_ONE_TEST_SECRET_KEY");
   });
 
-  it("keeps test checkout-session sync pinned to a test Stripe runtime with the regular test key as fallback", () => {
+  it("keeps test checkout-session sync pinned to a test Stripe runtime with compatible fallbacks", () => {
     const testRuntimeBlock = stripeClientSource.slice(
       stripeClientSource.indexOf('if (mode === "test")'),
       stripeClientSource.indexOf('if (mode === "live")'),
     );
 
-    expect(testRuntimeBlock).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_SECRET_KEY"]');
+    expect(testRuntimeBlock).toContain('names: ["STRIPE_TOK_ONE_TEST_SECRET_KEY", "STRIPE_TOK_ONE_SECRET_KEY", "STRIPE_SECRET_KEY"]');
     expect(testRuntimeBlock).toContain('purpose: "Tok One Stripe test secret"');
     expect(testRuntimeBlock).toContain('expectedMode: "test"');
   });
