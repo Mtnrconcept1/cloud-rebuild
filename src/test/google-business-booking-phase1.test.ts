@@ -162,4 +162,13 @@ describe("Google Business booking button phase 1", () => {
     expect(hooks).toContain("queryClient.setQueryData");
     expect(hooks).toContain("queryClient.setQueriesData");
   });
+
+  it("hides restaurateur Google Business setup buttons once configured", () => {
+    const dashboardCard = read("src/components/dashboard/GoogleBusinessBookingCard.tsx");
+
+    expect(dashboardCard).toContain('const isConfigured = status === "configured"');
+    expect(dashboardCard).toContain("{!isConfigured ? (");
+    expect(dashboardCard).toContain("disabled={isConfigured}");
+    expect(dashboardCard).toContain("configuration est confirmée");
+  });
 });

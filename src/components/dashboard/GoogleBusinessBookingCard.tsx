@@ -91,8 +91,9 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
     setPreviousProvider(setup.previous_booking_provider || "unknown");
   }, [setup]);
 
-  const isBusy = updateSetup.isPending || pendingAction !== null;
   const status = setup?.google_booking_status || "not_configured";
+  const isConfigured = status === "configured";
+  const isBusy = updateSetup.isPending || pendingAction !== null;
 
   function validateUrls() {
     if (!isHttpsUrl(googleBusinessUrl)) {
@@ -205,16 +206,26 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
             <Label>Lien TOK à copier</Label>
             <Input value={setup.tok_booking_url} readOnly className="font-mono text-sm" />
           </div>
-          <Button onClick={handleCopy} disabled={isBusy} className="gap-2">
-            {pendingAction === "copy" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clipboard className="h-4 w-4" />}
-            {pendingAction === "copy" ? "Copie..." : "Copier mon lien TOK"}
-          </Button>
+          {!isConfigured ? (
+            <Button onClick={handleCopy} disabled={isBusy} className="gap-2">
+              {pendingAction === "copy" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clipboard className="h-4 w-4" />}
+              {pendingAction === "copy" ? "Copie..." : "Copier mon lien TOK"}
+            </Button>
+          ) : (
+            <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+              La configuration est confirmée.
+            </p>
+          )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <Label>Ancien fournisseur</Label>
-            <Select value={previousProvider || "unknown"} onValueChange={(value) => setPreviousProvider(value as PreviousBookingProvider)}>
+            <Select
+              value={previousProvider || "unknown"}
+              onValueChange={(value) => setPreviousProvider(value as PreviousBookingProvider)}
+              disabled={isConfigured}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -232,6 +243,7 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
             <Input
               value={googleBusinessUrl}
               onChange={(event) => setGoogleBusinessUrl(event.target.value)}
+              disabled={isConfigured}
               placeholder="https://www.google.com/maps/..."
             />
           </div>
@@ -242,74 +254,77 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
           <Input
             value={confirmationScreenshotUrl}
             onChange={(event) => setConfirmationScreenshotUrl(event.target.value)}
+            disabled={isConfigured}
             placeholder="https://.../capture-google-business.png"
           />
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" onClick={() => mutate("save")} disabled={isBusy} className="gap-2">
-            {pendingAction === "save" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {pendingAction === "save" ? "Enregistrement..." : "Enregistrer"}
-          </Button>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <HelpCircle className="h-4 w-4" />
-                Voir le guide Google Business
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Comment remplacer votre bouton de réservation Google par TOK</DialogTitle>
-                <DialogDescription>
-                  TOK ne modifie pas automatiquement votre fiche Google à cette étape. Vous gardez le contrôle :
-                  vous ajoutez vous-même votre lien TOK ou vous demandez l'aide de notre équipe.
-                </DialogDescription>
-              </DialogHeader>
-              <ol className="space-y-3">
-                {GUIDE_STEPS.map((step, index) => (
-                  <li key={step} className="flex gap-3 rounded-2xl border border-border/70 bg-background/70 p-3 text-sm">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-primary-foreground">
-                      {index + 1}
-                    </span>
-                    <span>{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </DialogContent>
-          </Dialog>
-
-          <Button
-            variant="outline"
-            onClick={() => mutate("configured")} // action: "configured"
-            disabled={isBusy}
-            className="gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-            aria-label="J'ai configure mon bouton Google"
-          >
-            {pendingAction === "configured" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-            {pendingAction === "configured" ? "Confirmation..." : "J'ai configuré mon bouton Google"}
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => mutate("help")} // action: "help"
-            disabled={isBusy}
-            className="gap-2 border-amber-200 text-amber-800 hover:bg-amber-50"
-          >
-            {pendingAction === "help" ? <Loader2 className="h-4 w-4 animate-spin" /> : <LifeBuoy className="h-4 w-4" />}
-            {pendingAction === "help" ? "Demande..." : "Demander l'aide de TOK"}
-          </Button>
-
-          {googleBusinessUrl ? (
-            <Button variant="ghost" asChild className="gap-2">
-              <a href={googleBusinessUrl} target="_blank" rel="noreferrer">
-                <ExternalLink className="h-4 w-4" />
-                Ouvrir la fiche Google
-              </a>
+        {!isConfigured ? (
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={() => mutate("save")} disabled={isBusy} className="gap-2">
+              {pendingAction === "save" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {pendingAction === "save" ? "Enregistrement..." : "Enregistrer"}
             </Button>
-          ) : null}
-        </div>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <HelpCircle className="h-4 w-4" />
+                  Voir le guide Google Business
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Comment remplacer votre bouton de réservation Google par TOK</DialogTitle>
+                  <DialogDescription>
+                    TOK ne modifie pas automatiquement votre fiche Google à cette étape. Vous gardez le contrôle :
+                    vous ajoutez vous-même votre lien TOK ou vous demandez l'aide de notre équipe.
+                  </DialogDescription>
+                </DialogHeader>
+                <ol className="space-y-3">
+                  {GUIDE_STEPS.map((step, index) => (
+                    <li key={step} className="flex gap-3 rounded-2xl border border-border/70 bg-background/70 p-3 text-sm">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-primary-foreground">
+                        {index + 1}
+                      </span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </DialogContent>
+            </Dialog>
+
+            <Button
+              variant="outline"
+              onClick={() => mutate("configured")} // action: "configured"
+              disabled={isBusy}
+              className="gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              aria-label="J'ai configure mon bouton Google"
+            >
+              {pendingAction === "configured" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              {pendingAction === "configured" ? "Confirmation..." : "J'ai configuré mon bouton Google"}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => mutate("help")} // action: "help"
+              disabled={isBusy}
+              className="gap-2 border-amber-200 text-amber-800 hover:bg-amber-50"
+            >
+              {pendingAction === "help" ? <Loader2 className="h-4 w-4 animate-spin" /> : <LifeBuoy className="h-4 w-4" />}
+              {pendingAction === "help" ? "Demande..." : "Demander l'aide de TOK"}
+            </Button>
+
+            {googleBusinessUrl ? (
+              <Button variant="ghost" asChild className="gap-2">
+                <a href={googleBusinessUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  Ouvrir la fiche Google
+                </a>
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-xs text-muted-foreground dark:border-[#5f7aad]/25 dark:bg-[#07142b]/70">
           <BarChart3 className="h-4 w-4 text-primary" />

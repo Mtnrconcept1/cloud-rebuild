@@ -22,6 +22,7 @@ TOK est une application transactionnelle de réservation, commande directe, paie
 12. Préférer les patterns existants du repo aux nouvelles abstractions.
 13. Garder les modifications minimales, lisibles et auditées.
 14. Enregistrer tous les fichiers texte modifiés en UTF-8, sans conversion ANSI/Windows-1252, et vérifier les accents français pour éviter le mojibake.
+15. Quand une tâche de code est terminée, validée et publiable, terminer par un commit et un push de la branche demandée (main si l'utilisateur le demande). Ne pas pousser de fichiers hors périmètre, de secrets, ou de changements non vérifiés ; si le push est bloqué ou risqué, le signaler explicitement.
 
 ## Avant de finir une tâche
 
@@ -29,3 +30,4 @@ TOK est une application transactionnelle de réservation, commande directe, paie
 - Vérifier les impacts paiement, Supabase, RLS, rôles, SEO et performance.
 - Vérifier que les commandes `pnpm lint`, `pnpm test` et `pnpm build` restent applicables.
 - Vérifier qu'aucun fichier modifié n'a introduit de mojibake ou d'encodage non UTF-8.
+- Committer puis pousser la branche cible quand les validations sont passées et que la publication est autorisée.

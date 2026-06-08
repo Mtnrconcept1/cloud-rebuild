@@ -24,6 +24,7 @@ Bloquer les changements qui pourraient casser la production, perdre une commande
 14. Aucun changement de commande ne doit être fait sans état clair et traçable.
 15. Les migrations doivent être nouvelles, idempotentes quand possible, et ne doivent pas modifier l’historique déjà appliqué.
 16. Tous les fichiers texte modifiés doivent rester en UTF-8, sans mojibake dans les copies françaises.
+17. Une fois les validations terminées et le périmètre confirmé, publier la branche cible par `git push` en fin de tâche. Si le push est impossible, dangereux ou explicitement refusé, le déclarer dans le statut final.
 
 ## Points de blocage immédiat
 
@@ -49,3 +50,4 @@ Avant de proposer le merge, fournir :
 - les commandes exécutées ;
 - les commandes non exécutées et la raison ;
 - les points qui nécessitent une validation humaine.
+- le commit et le push effectués, ou la raison précise si la publication n'a pas été faite.
