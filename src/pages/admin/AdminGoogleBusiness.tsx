@@ -25,6 +25,14 @@ import {
 import { cn } from "@/lib/utils";
 
 type StatusFilter = GoogleBookingStatus | "all";
+type AdminGoogleBookingAction = "copy" | "reminder" | "note" | "in_progress" | "configured" | "problem";
+type AdminRestaurantUpdatePatch = {
+  status?: GoogleBookingStatus;
+  adminNotes?: string | null;
+  lastAdminContactAt?: string | null;
+  needsGoogleHelp?: boolean | null;
+  confirmationScreenshotUrl?: string | null;
+};
 
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: "all", label: "Tous les statuts" },
@@ -35,6 +43,40 @@ const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
 ];
 
 const HELP_ONLY_LABEL = "Aide demandee";
+const ADMIN_ACTION_FEEDBACK: Record<AdminGoogleBookingAction, { title: string; description: string }> = {
+  copy: {
+    title: "Lien TOK copié",
+    description: "Le lien de réservation TOK est dans le presse-papiers.",
+  },
+  reminder: {
+    title: "Relance enregistrée",
+    description: "La date de dernière relance est mise à jour.",
+  },
+  note: {
+    title: "Note enregistrée",
+    description: "La note admin est sauvegardée.",
+  },
+  in_progress: {
+    title: "Marquage en cours",
+    description: "Le suivi Google Business passe en configuration en cours.",
+  },
+  configured: {
+    title: "Restaurant marqué comme configuré",
+    description: "Le statut est configuré et l'aide demandée est levée.",
+  },
+  problem: {
+    title: "Problème Google Business signalé",
+    description: "Le statut passe en problème pour reprise admin.",
+  },
+};
+
+function getPendingAction(row: AdminGoogleBusinessBookingSetup, action: AdminGoogleBookingAction) {
+  return `${row.restaurant_id}:${action}`;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Réessayez dans quelques instants.";
+}
 
 function providerLabel(value: string | null) {
   switch (value) {
@@ -72,6 +114,7 @@ export default function AdminGoogleBusiness() {
   const [helpOnly, setHelpOnly] = useState(false);
   const [search, setSearch] = useState("");
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const updateSetup = useAdminUpdateGoogleBookingSetup();
   const { data: setups = [], isLoading, refetch } = useAdminGoogleBookingSetups({
     status,
@@ -95,29 +138,68 @@ export default function AdminGoogleBusiness() {
   }, [setups]);
 
   async function copyLink(row: AdminGoogleBusinessBookingSetup) {
+    const actionKey = getPendingAction(row, "copy");
+    setPendingAction(actionKey);
     try {
       await navigator.clipboard.writeText(row.tok_booking_url);
-      toast({ title: "Lien copié", description: row.restaurant_name });
-    } catch {
-      toast({ title: "Copie impossible", variant: "destructive" });
+      toast({ ...ADMIN_ACTION_FEEDBACK.copy, description: `${row.restaurant_name} - ${ADMIN_ACTION_FEEDBACK.copy.description}` });
+    } catch (error) {
+      toast({ title: "Copie impossible", description: getErrorMessage(error), variant: "destructive" });
+    } finally {
+      setPendingAction((current) => (current === actionKey ? null : current));
     }
   }
 
   async function updateRestaurant(
     row: AdminGoogleBusinessBookingSetup,
-    patch: {
-      status?: GoogleBookingStatus;
-      adminNotes?: string | null;
-      lastAdminContactAt?: string | null;
-      needsGoogleHelp?: boolean | null;
-      confirmationScreenshotUrl?: string | null;
-    },
+    action: AdminGoogleBookingAction,
+    patch: AdminRestaurantUpdatePatch,
+    feedback = ADMIN_ACTION_FEEDBACK[action],
   ) {
-    await updateSetup.mutateAsync({
-      restaurantId: row.restaurant_id,
-      ...patch,
+    const actionKey = getPendingAction(row, action);
+    setPendingAction(actionKey);
+    try {
+      await updateSetup.mutateAsync({
+        restaurantId: row.restaurant_id,
+        ...patch,
+      });
+      toast({ title: feedback.title, description: `${row.restaurant_name} - ${feedback.description}` });
+    } catch (error) {
+      toast({ title: "Mise à jour impossible", description: getErrorMessage(error), variant: "destructive" });
+    } finally {
+      setPendingAction((current) => (current === actionKey ? null : current));
+    }
+  }
+
+  async function handleLastReminder(row: AdminGoogleBusinessBookingSetup) {
+    const timestamp = new Date().toISOString();
+    await updateRestaurant(
+      row,
+      "reminder",
+      {
+        lastAdminContactAt: timestamp,
+        status: row.google_booking_status === "configured" ? undefined : "in_progress",
+      },
+      {
+        title: "Relance enregistrée",
+        description: `Dernier contact noté le ${formatGoogleBookingDate(timestamp)}. Le suivi reste ouvert côté admin.`,
+      },
+    );
+  }
+
+  async function handleStatusChange(row: AdminGoogleBusinessBookingSetup, nextStatus: Extract<GoogleBookingStatus, "in_progress" | "configured" | "problem">) {
+    await updateRestaurant(row, nextStatus, {
+      status: nextStatus,
+      needsGoogleHelp: nextStatus === "configured" ? false : undefined,
     });
-    toast({ title: "Suivi Google Business mis à jour", description: row.restaurant_name });
+  }
+
+  function isActionPending(row: AdminGoogleBusinessBookingSetup, action: AdminGoogleBookingAction) {
+    return pendingAction === getPendingAction(row, action);
+  }
+
+  function isRowBusy(row: AdminGoogleBusinessBookingSetup) {
+    return pendingAction?.startsWith(`${row.restaurant_id}:`) || false;
   }
 
   return (
@@ -226,6 +308,13 @@ export default function AdminGoogleBusiness() {
                 ) : (
                   setups.map((row) => {
                     const noteValue = noteDrafts[row.restaurant_id] ?? row.admin_notes ?? "";
+                    const rowBusy = isRowBusy(row);
+                    const copyPending = isActionPending(row, "copy");
+                    const reminderPending = isActionPending(row, "reminder");
+                    const notePending = isActionPending(row, "note");
+                    const inProgressPending = isActionPending(row, "in_progress");
+                    const configuredPending = isActionPending(row, "configured");
+                    const problemPending = isActionPending(row, "problem");
                     return (
                       <TableRow key={row.restaurant_id}>
                         <TableCell data-label="Restaurant">
@@ -244,9 +333,9 @@ export default function AdminGoogleBusiness() {
                         </TableCell>
                         <TableCell data-label="Ancien fournisseur">{providerLabel(row.previous_booking_provider)}</TableCell>
                         <TableCell data-label="Lien TOK">
-                          <Button variant="outline" size="sm" onClick={() => copyLink(row)} className="gap-2">
-                            <Clipboard className="h-4 w-4" />
-                            Copier lien TOK
+                          <Button variant="outline" size="sm" onClick={() => copyLink(row)} disabled={rowBusy} className="gap-2">
+                            {copyPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clipboard className="h-4 w-4" />}
+                            {copyPending ? "Copie..." : "Copier lien TOK"}
                           </Button>
                         </TableCell>
                         <TableCell data-label="URL fiche Google">
@@ -267,9 +356,13 @@ export default function AdminGoogleBusiness() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateRestaurant(row, { lastAdminContactAt: new Date().toISOString() })}
+                              onClick={() => handleLastReminder(row)}
+                              disabled={rowBusy}
+                              aria-label="Derniere relance"
+                              className="gap-2"
                             >
-                              Derniere relance
+                              {reminderPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                              {reminderPending ? "Relance..." : "Dernière relance"}
                             </Button>
                           </div>
                         </TableCell>
@@ -284,9 +377,12 @@ export default function AdminGoogleBusiness() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateRestaurant(row, { adminNotes: noteValue })}
+                              onClick={() => updateRestaurant(row, "note", { adminNotes: noteValue })}
+                              disabled={rowBusy}
+                              className="gap-2"
                             >
-                              Enregistrer note
+                              {notePending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                              {notePending ? "Enregistrement..." : "Enregistrer note"}
                             </Button>
                           </div>
                         </TableCell>
@@ -295,30 +391,44 @@ export default function AdminGoogleBusiness() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateRestaurant(row, { status: "in_progress" })}
+                              className={cn(
+                                "gap-2",
+                                row.google_booking_status === "in_progress" && "border-amber-200 bg-amber-50 text-amber-800",
+                              )}
+                              onClick={() => handleStatusChange(row, "in_progress")}
+                              disabled={rowBusy}
                               aria-label="Marquer comme en cours"
                             >
-                              Marquer comme en cours
+                              {inProgressPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                              {inProgressPending ? "Marquage en cours..." : "Marquer comme en cours"}
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                              onClick={() => updateRestaurant(row, { status: "configured", needsGoogleHelp: false })}
+                              className={cn(
+                                "border-emerald-200 text-emerald-700 hover:bg-emerald-50",
+                                row.google_booking_status === "configured" && "bg-emerald-50",
+                              )}
+                              onClick={() => handleStatusChange(row, "configured")}
+                              disabled={rowBusy}
                               aria-label="Marquer comme configure"
                             >
-                              <CheckCircle2 className="mr-2 h-4 w-4" />
-                              Marquer comme configuré
+                              {configuredPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                              {configuredPending ? "Configuration..." : "Marquer comme configuré"}
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-red-200 text-red-700 hover:bg-red-50"
-                              onClick={() => updateRestaurant(row, { status: "problem" })}
+                              className={cn(
+                                "border-red-200 text-red-700 hover:bg-red-50",
+                                row.google_booking_status === "problem" && "bg-red-50",
+                              )}
+                              onClick={() => handleStatusChange(row, "problem")}
+                              disabled={rowBusy}
                               aria-label="Marquer comme probleme"
                             >
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Marquer comme problème
+                              {problemPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                              {problemPending ? "Signalement..." : "Marquer comme problème"}
                             </Button>
                           </div>
                         </TableCell>

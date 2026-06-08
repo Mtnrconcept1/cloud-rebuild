@@ -72,7 +72,13 @@ export function useUpdateRestaurantGoogleBookingSetup() {
       if (error) throw error;
       return firstRow<GoogleBusinessBookingSetup>(data);
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
+      if (data) {
+        queryClient.setQueryData<GoogleBusinessBookingSetup | null>(
+          ["restaurant-google-booking-setup", variables.restaurantId],
+          data,
+        );
+      }
       queryClient.invalidateQueries({ queryKey: ["restaurant-google-booking-setup", variables.restaurantId] });
       queryClient.invalidateQueries({ queryKey: ["admin-google-booking-setups"] });
     },
@@ -112,8 +118,22 @@ export function useAdminUpdateGoogleBookingSetup() {
       if (error) throw error;
       return firstRow<AdminGoogleBusinessBookingSetup>(data);
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      if (data) {
+        queryClient.setQueriesData<AdminGoogleBusinessBookingSetup[]>(
+          { queryKey: ["admin-google-booking-setups"] },
+          (current) => {
+            if (!current) return current;
+            return current.map((row) => (row.restaurant_id === data.restaurant_id ? data : row));
+          },
+        );
+        queryClient.setQueryData<GoogleBusinessBookingSetup | null>(
+          ["restaurant-google-booking-setup", variables.restaurantId],
+          (current) => (current ? { ...current, ...data } : data),
+        );
+      }
       queryClient.invalidateQueries({ queryKey: ["admin-google-booking-setups"] });
+      queryClient.invalidateQueries({ queryKey: ["restaurant-google-booking-setup", variables.restaurantId] });
     },
   });
 }

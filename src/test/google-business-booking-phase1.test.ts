@@ -143,4 +143,23 @@ describe("Google Business booking button phase 1", () => {
     expect(adminPage).toContain("Derniere relance");
     expect(adminPage).toContain("Notes admin");
   });
+
+  it("gives visible feedback for Google Business actions and records a complete admin reminder", () => {
+    const adminPage = read("src/pages/admin/AdminGoogleBusiness.tsx");
+    const dashboardCard = read("src/components/dashboard/GoogleBusinessBookingCard.tsx");
+    const hooks = read("src/hooks/useGoogleBusinessBooking.ts");
+
+    expect(adminPage).toContain("pendingAction");
+    expect(adminPage).toContain("Relance enregistrée");
+    expect(adminPage).toContain("Marquage en cours");
+    expect(adminPage).toContain('status: row.google_booking_status === "configured" ? undefined : "in_progress"');
+    expect(adminPage).toContain("lastAdminContactAt: timestamp");
+
+    expect(dashboardCard).toContain("GOOGLE_BOOKING_ACTION_TOASTS");
+    expect(dashboardCard).toContain("Configuration confirmée");
+    expect(dashboardCard).toContain("Demande d'aide envoyée");
+
+    expect(hooks).toContain("queryClient.setQueryData");
+    expect(hooks).toContain("queryClient.setQueriesData");
+  });
 });

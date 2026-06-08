@@ -39,6 +39,33 @@ const GUIDE_STEPS = [
   "Revenez dans TOK et cliquez sur “J'ai configuré mon bouton Google”.",
 ];
 
+const GOOGLE_BOOKING_ACTION_TOASTS: Record<GoogleBookingAction, { title: string; description: string }> = {
+  save: {
+    title: "Paramètres enregistrés",
+    description: "Les informations Google Business sont sauvegardées.",
+  },
+  copy: {
+    title: "Lien copié",
+    description: "Ajoutez maintenant ce lien dans votre fiche Google Business.",
+  },
+  configured: {
+    title: "Configuration confirmée",
+    description: "TOK marque votre bouton Google comme configuré.",
+  },
+  help: {
+    title: "Demande d'aide envoyée",
+    description: "L'équipe TOK voit votre demande dans le suivi admin.",
+  },
+  problem: {
+    title: "Problème signalé",
+    description: "L'équipe TOK peut reprendre la configuration avec vous.",
+  },
+};
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Réessayez dans quelques instants.";
+}
+
 function MetricPill({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 dark:border-[#5f7aad]/25 dark:bg-[#07142b]/70">
@@ -55,6 +82,7 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
   const [googleBusinessUrl, setGoogleBusinessUrl] = useState("");
   const [confirmationScreenshotUrl, setConfirmationScreenshotUrl] = useState("");
   const [previousProvider, setPreviousProvider] = useState<PreviousBookingProvider | "">("unknown");
+  const [pendingAction, setPendingAction] = useState<GoogleBookingAction | null>(null);
 
   useEffect(() => {
     if (!setup) return;
@@ -63,7 +91,7 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
     setPreviousProvider(setup.previous_booking_provider || "unknown");
   }, [setup]);
 
-  const isBusy = updateSetup.isPending;
+  const isBusy = updateSetup.isPending || pendingAction !== null;
   const status = setup?.google_booking_status || "not_configured";
 
   function validateUrls() {
@@ -89,14 +117,28 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
   }
 
   async function mutate(action: GoogleBookingAction) {
-    if (!restaurantId || !validateUrls()) return;
-    await updateSetup.mutateAsync({
-      restaurantId,
-      googleBusinessUrl: normalizeOptionalHttpsUrl(googleBusinessUrl),
-      previousBookingProvider: previousProvider || "unknown",
-      confirmationScreenshotUrl: normalizeOptionalHttpsUrl(confirmationScreenshotUrl),
-      action,
-    });
+    if (!restaurantId || !validateUrls()) return false;
+    setPendingAction(action);
+    try {
+      await updateSetup.mutateAsync({
+        restaurantId,
+        googleBusinessUrl: normalizeOptionalHttpsUrl(googleBusinessUrl),
+        previousBookingProvider: previousProvider || "unknown",
+        confirmationScreenshotUrl: normalizeOptionalHttpsUrl(confirmationScreenshotUrl),
+        action,
+      });
+      toast(GOOGLE_BOOKING_ACTION_TOASTS[action]);
+      return true;
+    } catch (error) {
+      toast({
+        title: "Mise à jour impossible",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setPendingAction((current) => (current === action ? null : current));
+    }
   }
 
   async function handleCopy() {
@@ -104,18 +146,16 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
 
     try {
       await navigator.clipboard.writeText(setup.tok_booking_url);
-      await mutate("copy"); // action: "copy"
-      toast({
-        title: "Lien copié",
-        description: "Ajoutez maintenant ce lien dans votre fiche Google Business.",
-      });
     } catch (error) {
       toast({
         title: "Copie impossible",
         description: error instanceof Error ? error.message : "Copiez le lien manuellement.",
         variant: "destructive",
       });
+      return;
     }
+
+    await mutate("copy"); // action: "copy"
   }
 
   if (isLoading) {
@@ -166,8 +206,8 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
             <Input value={setup.tok_booking_url} readOnly className="font-mono text-sm" />
           </div>
           <Button onClick={handleCopy} disabled={isBusy} className="gap-2">
-            {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clipboard className="h-4 w-4" />}
-            Copier mon lien TOK
+            {pendingAction === "copy" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clipboard className="h-4 w-4" />}
+            {pendingAction === "copy" ? "Copie..." : "Copier mon lien TOK"}
           </Button>
         </div>
 
@@ -208,8 +248,8 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
 
         <div className="flex flex-wrap gap-3">
           <Button variant="outline" onClick={() => mutate("save")} disabled={isBusy} className="gap-2">
-            <Save className="h-4 w-4" />
-            Enregistrer
+            {pendingAction === "save" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {pendingAction === "save" ? "Enregistrement..." : "Enregistrer"}
           </Button>
 
           <Dialog>
@@ -247,8 +287,8 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
             className="gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
             aria-label="J'ai configure mon bouton Google"
           >
-            <CheckCircle2 className="h-4 w-4" />
-            J'ai configuré mon bouton Google
+            {pendingAction === "configured" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {pendingAction === "configured" ? "Confirmation..." : "J'ai configuré mon bouton Google"}
           </Button>
 
           <Button
@@ -257,8 +297,8 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
             disabled={isBusy}
             className="gap-2 border-amber-200 text-amber-800 hover:bg-amber-50"
           >
-            <LifeBuoy className="h-4 w-4" />
-            Demander l'aide de TOK
+            {pendingAction === "help" ? <Loader2 className="h-4 w-4 animate-spin" /> : <LifeBuoy className="h-4 w-4" />}
+            {pendingAction === "help" ? "Demande..." : "Demander l'aide de TOK"}
           </Button>
 
           {googleBusinessUrl ? (
