@@ -7,6 +7,7 @@ const stripeClientSource = readFileSync(resolve(root, "supabase/functions/_share
 const createCheckoutSource = readFileSync(resolve(root, "supabase/functions/create-checkout/index.ts"), "utf8");
 const stripeWebhookSource = readFileSync(resolve(root, "supabase/functions/stripe-webhook/index.ts"), "utf8");
 const manageTokOneSource = readFileSync(resolve(root, "supabase/functions/manage-tok-one-subscription/index.ts"), "utf8");
+const tokOneSharedSource = readFileSync(resolve(root, "supabase/functions/_shared/tok-one.ts"), "utf8");
 const tokOnePageSource = readFileSync(resolve(root, "src/pages/TokOne.tsx"), "utf8");
 const secretsScriptSource = readFileSync(resolve(root, "scripts/write-supabase-secrets-env.mjs"), "utf8");
 const workflowSource = readFileSync(resolve(root, ".github/workflows/deploy-production.yml"), "utf8");
@@ -85,6 +86,17 @@ describe("Tok One Stripe test mode", () => {
     expect(migrationSource).toMatch(/CHECK \(stripe_mode IN \('live', 'test'\)\)/i);
     expect(migrationSource).toMatch(/ADD COLUMN IF NOT EXISTS stripe_checkout_session_id text/i);
     expect(migrationSource).toContain("idx_tok_one_subscriptions_stripe_checkout_session_id");
+  });
+
+  it("syncs Tok One periods from Stripe Basil subscription items and trial dates", () => {
+    expect(tokOneSharedSource).toContain("resolveTokOneSubscriptionPeriod");
+    expect(tokOneSharedSource).toContain("subscription.items?.data");
+    expect(tokOneSharedSource).toContain("current_period_start");
+    expect(tokOneSharedSource).toContain("current_period_end");
+    expect(tokOneSharedSource).toContain("subscription.trial_end");
+    expect(tokOneSharedSource).toContain("period.currentPeriodStart");
+    expect(tokOneSharedSource).toContain("period.currentPeriodEnd");
+    expect(tokOneSharedSource).not.toContain("current_period_end: toIsoFromUnix(subscription.current_period_end, fallbackDate)");
   });
 
   it("renders Tok One benefit cards as accessible expandable controls keyed by benefit id", () => {

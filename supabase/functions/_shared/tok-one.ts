@@ -22,6 +22,56 @@ function toIsoFromUnix(timestamp: number | null | undefined, fallback: Date) {
   return new Date(timestamp * 1000).toISOString();
 }
 
+function toUnixSeconds(date: Date) {
+  return Math.floor(date.getTime() / 1000);
+}
+
+function finiteUnixTimestamp(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function resolveTokOneSubscriptionPeriod(subscription: Stripe.Subscription, fallbackDate: Date) {
+  const subscriptionItems = subscription.items?.data || [];
+  const itemPeriodStarts = subscriptionItems
+    .map((item) => finiteUnixTimestamp((item as { current_period_start?: unknown }).current_period_start))
+    .filter((value): value is number => value !== null);
+  const itemPeriodEnds = subscriptionItems
+    .map((item) => finiteUnixTimestamp((item as { current_period_end?: unknown }).current_period_end))
+    .filter((value): value is number => value !== null);
+
+  const currentPeriodStart =
+    finiteUnixTimestamp((subscription as { current_period_start?: unknown }).current_period_start) ||
+    (itemPeriodStarts.length > 0 ? Math.min(...itemPeriodStarts) : null) ||
+    finiteUnixTimestamp(subscription.trial_start) ||
+    finiteUnixTimestamp(subscription.start_date) ||
+    toUnixSeconds(fallbackDate);
+
+  const currentPeriodEnd =
+    finiteUnixTimestamp((subscription as { current_period_end?: unknown }).current_period_end) ||
+    (itemPeriodEnds.length > 0 ? Math.max(...itemPeriodEnds) : null) ||
+    finiteUnixTimestamp(subscription.trial_end) ||
+    null;
+
+  if (currentPeriodEnd && currentPeriodEnd > currentPeriodStart) {
+    return { currentPeriodStart, currentPeriodEnd };
+  }
+
+  if (!isTokOneEntitledStatus(subscription.status)) {
+    return { currentPeriodStart, currentPeriodEnd: toUnixSeconds(fallbackDate) };
+  }
+
+  const metadata = subscription.metadata || {};
+  const fallbackDays = subscription.status === "trialing"
+    ? 14
+    : metadata.billing_period === "yearly"
+    ? 366
+    : 31;
+  return {
+    currentPeriodStart,
+    currentPeriodEnd: currentPeriodStart + fallbackDays * 24 * 60 * 60,
+  };
+}
+
 async function findExistingTokOneSubscription(input: {
   adminClient: AdminClient;
   stripeSubscriptionId?: string | null;
@@ -111,12 +161,13 @@ export async function syncTokOneSubscriptionRecord(input: {
   }
 
   const fallbackDate = new Date();
+  const period = resolveTokOneSubscriptionPeriod(subscription, fallbackDate);
   const payload = {
     user_id: userId,
     plan_id: planId,
     status: normalizeTokOneStatus(subscription.status),
-    current_period_start: toIsoFromUnix(subscription.current_period_start, fallbackDate),
-    current_period_end: toIsoFromUnix(subscription.current_period_end, fallbackDate),
+    current_period_start: toIsoFromUnix(period.currentPeriodStart, fallbackDate),
+    current_period_end: toIsoFromUnix(period.currentPeriodEnd, fallbackDate),
     cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
     stripe_subscription_id: subscription.id,
     stripe_mode: stripeMode === "test" ? "test" : stripeMode === "live" ? "live" : (existing?.stripe_mode || "live"),
