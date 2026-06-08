@@ -34,12 +34,15 @@ function extractFunction(sql: string, functionName: string) {
 
 describe("admin restaurants console", () => {
   it("adds audited admin RPCs for restaurant detail, critical updates and action history", () => {
-    const sql = latestMigrationContaining(
+    const detailSql = latestMigrationContaining(
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_get_restaurant_admin_detail/i,
     );
+    const updateSql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_update_restaurant_admin_state/i,
+    );
 
-    const detailFn = extractFunction(sql, "admin_get_restaurant_admin_detail");
-    const updateFn = extractFunction(sql, "admin_update_restaurant_admin_state");
+    const detailFn = extractFunction(detailSql, "admin_get_restaurant_admin_detail");
+    const updateFn = extractFunction(updateSql, "admin_update_restaurant_admin_state");
     const actionSql = latestMigrationContaining(
       /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_record_restaurant_admin_action[\s\S]*public\.enqueue_notification/i,
     );
@@ -53,6 +56,8 @@ describe("admin restaurants console", () => {
     expect(detailFn).toMatch(/campaigns_summary/i);
     expect(detailFn).toMatch(/payment_health/i);
     expect(detailFn).toMatch(/recent_history/i);
+    expect(detailFn).toMatch(/p\.recipient_id\s*=\s*p_restaurant_id\s+AND/i);
+    expect(detailFn).not.toMatch(/p\.recipient_id\s*=\s*p_restaurant_id::text/i);
 
     expect(updateFn).toMatch(/public\.has_role\(v_actor_id,\s*'admin'\)/i);
     expect(updateFn).toMatch(/jsonb_object_keys\(p_patch\)/i);
@@ -66,8 +71,8 @@ describe("admin restaurants console", () => {
     expect(actionFn).toMatch(/SELECT[\s\S]*owner_id[\s\S]*INTO[\s\S]*v_owner_id/i);
     expect(actionFn).toMatch(/public\.enqueue_notification/i);
     expect(actionFn).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
-    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_get_restaurant_admin_detail\(uuid\)\s+FROM\s+anon/i);
-    expect(sql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_update_restaurant_admin_state/i);
+    expect(detailSql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_get_restaurant_admin_detail\(uuid\)\s+FROM\s+anon/i);
+    expect(updateSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_update_restaurant_admin_state/i);
     expect(actionSql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_record_restaurant_admin_action/i);
   });
 
@@ -83,6 +88,7 @@ describe("admin restaurants console", () => {
     expect(source).toContain("fallbackRestaurant");
     expect(source).toContain("restaurantDetailError");
     expect(source).toContain("Données détaillées indisponibles");
+    expect(source).not.toContain("Détail technique");
     expect(source).toContain("isLoading && !detail");
     expect(source).toContain("Fiche restaurant");
     expect(source).toContain("DialogContent");

@@ -208,16 +208,6 @@ function buildFallbackRestaurantAdminDetail(restaurant: AdminRestaurant): Restau
   };
 }
 
-function getQueryErrorMessage(error: unknown) {
-  if (!error) return null;
-  if (error instanceof Error) return error.message;
-  if (typeof error === "object" && error && "message" in error) {
-    const message = (error as { message?: unknown }).message;
-    return typeof message === "string" ? message : null;
-  }
-  return null;
-}
-
 function formatMissingFields(fields: string[]) {
   return fields.map((field) => CATALOG_MISSING_FIELD_LABELS[field] || field).join(", ");
 }
@@ -324,7 +314,6 @@ function RestaurantDetailPanel({
   const fallbackDetail = fallbackRestaurant ? buildFallbackRestaurantAdminDetail(fallbackRestaurant) : null;
   const detail = loadedDetail?.restaurant?.id ? loadedDetail : fallbackDetail;
   const isFallbackDetail = Boolean(!loadedDetail?.restaurant?.id && fallbackDetail);
-  const detailErrorMessage = getQueryErrorMessage(detailError);
 
   if (isLoading && !detail) {
     return (
@@ -405,7 +394,6 @@ function RestaurantDetailPanel({
               <p>
                 La fiche affiche les informations principales déjà chargées depuis la liste des restaurants.
               </p>
-              {detailErrorMessage ? <p className="mt-1 text-xs">Détail technique: {detailErrorMessage}</p> : null}
             </div>
           </div>
         ) : null}
