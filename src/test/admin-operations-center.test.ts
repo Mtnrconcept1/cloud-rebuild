@@ -37,6 +37,7 @@ describe("admin operations center", () => {
     expect(component).toContain("admin_get_marketplace_alerts");
     expect(component).toContain("admin_reconcile_marketplace_alerts");
     expect(component).toContain("admin_update_marketplace_alert");
+    expect(component).toContain("admin_take_marketplace_alert");
     expect(component).toContain("sourceWhitelist");
     expect(component).toContain("statusFilter");
     expect(component).not.toContain("refetchInterval");
@@ -47,5 +48,10 @@ describe("admin operations center", () => {
     expect(component).toContain("getAdminUrgentActionsErrorMessage");
     expect(component).toContain("Accès admin requis pour charger les actions urgentes.");
     expect(component).toContain("Note admin obligatoire pour résoudre/ignorer");
+    expect(component).toContain("Alerte prise en charge");
+    expect(component).toContain("Pris par moi");
+    expect(component).toContain("Déjà pris");
+    expect(component).toContain("isTakenByOtherAdmin");
+    expect(component).toContain("actionDisabledByClaim");
   });
 });

@@ -76,10 +76,38 @@ describe("admin marketplace alerts RPC", () => {
     expect(fn).toMatch(/public\.has_role\(v_actor_id,\s*'admin'\)/i);
     expect(fn).toMatch(/v_status\s+NOT\s+IN\s+\('new',\s*'in_progress',\s*'resolved',\s*'ignored'\)/i);
     expect(fn).toMatch(/v_status\s+IN\s+\('resolved',\s*'ignored'\)\s+AND\s+v_note\s+IS\s+NULL/i);
+    expect(fn).toMatch(/v_previous_handler\s+uuid/i);
+    expect(fn).toMatch(/Marketplace alert is already taken by another admin/i);
     expect(fn).toMatch(/INSERT\s+INTO\s+public\.marketplace_alert_states/i);
     expect(fn).toMatch(/ON\s+CONFLICT\s+\(alert_key\)\s+DO\s+UPDATE/i);
     expect(fn).toMatch(/INSERT\s+INTO\s+public\.marketplace_alert_state_history/i);
     expect(fn).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
+  });
+
+  it("provides a dedicated audited take action for marketplace alerts", () => {
+    const sql = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_take_marketplace_alert/i,
+    );
+    const fn = extractFunction(sql, "admin_take_marketplace_alert");
+
+    expect(fn).toMatch(/RETURNS\s+jsonb/i);
+    expect(fn).toMatch(/v_actor_id\s+IS\s+NULL\s+OR\s+NOT\s+public\.has_role\(v_actor_id,\s*'admin'\)/i);
+    expect(fn).toMatch(/FOR\s+UPDATE/i);
+    expect(fn).toMatch(/v_previous_status\s+=\s+'in_progress'/i);
+    expect(fn).toMatch(/v_previous_handler\s+IS\s+NOT\s+NULL/i);
+    expect(fn).toMatch(/v_previous_handler\s+<>\s+v_actor_id/i);
+    expect(fn).toMatch(/USING\s+ERRCODE\s+=\s+'55000'/i);
+    expect(fn).toMatch(/INSERT\s+INTO\s+public\.marketplace_alert_states/i);
+    expect(fn).toMatch(/ON\s+CONFLICT\s+\(alert_key\)\s+DO\s+UPDATE/i);
+    expect(fn).toMatch(/WHERE\s+public\.marketplace_alert_states\.status\s+NOT\s+IN\s+\('resolved',\s*'ignored'\)/i);
+    expect(fn).toMatch(/public\.marketplace_alert_states\.handled_by\s+=\s+EXCLUDED\.handled_by/i);
+    expect(fn).toMatch(/IF\s+v_claimed_by\s+IS\s+NULL\s+OR\s+v_claimed_by\s+<>\s+v_actor_id/i);
+    expect(fn).toMatch(/INSERT\s+INTO\s+public\.marketplace_alert_state_history/i);
+    expect(fn).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
+    expect(fn).toMatch(/jsonb_build_object\([\s\S]*'status',\s*'in_progress'[\s\S]*'handled_by',\s*v_actor_id/i);
+    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_take_marketplace_alert\(text\)\s+FROM\s+PUBLIC/i);
+    expect(sql).toMatch(/REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_take_marketplace_alert\(text\)\s+FROM\s+anon/i);
+    expect(sql).toMatch(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_take_marketplace_alert\(text\)\s+TO\s+authenticated,\s*service_role/i);
   });
 
   it("auto-resolves technical error alerts when the current signal disappears", () => {

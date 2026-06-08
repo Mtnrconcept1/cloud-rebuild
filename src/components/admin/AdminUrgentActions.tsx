@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Clock, ExternalLink, Loader2, ShieldAlert } from "lucide-react";
+import { CheckCircle2, Clock, ExternalLink, Loader2, ShieldAlert, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth-context";
 
 const supabase = getSupabase();
 
@@ -67,6 +68,15 @@ function formatDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleString("fr-CH", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+function getMetadataString(metadata: Record<string, unknown> | null, key: string) {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function isClosedAlertStatus(status: string) {
+  return status === "resolved" || status === "ignored";
 }
 
 function getErrorMessage(error: unknown) {
@@ -128,6 +138,7 @@ export default function AdminUrgentActions({
 }: AdminUrgentActionsProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
@@ -135,6 +146,7 @@ export default function AdminUrgentActions({
   const [statusFilter, setStatusFilter] = useState("open");
   const [includeResolved, setIncludeResolved] = useState(false);
   const [noteByAlert, setNoteByAlert] = useState<Record<string, string>>({});
+  const [takingAlertKey, setTakingAlertKey] = useState<string | null>(null);
 
   const { data: alerts = [], isLoading, error } = useQuery({
     queryKey: ["admin-marketplace-alerts", includeResolved],
@@ -157,6 +169,28 @@ export default function AdminUrgentActions({
     },
     onError: (mutationError: Error) => {
       toast({ title: "Action impossible", description: mutationError.message, variant: "destructive" });
+    },
+  });
+
+  const takeAlertMutation = useMutation({
+    mutationFn: async ({ alertKey }: { alertKey: string }) => {
+      const { error: rpcError } = await (supabase.rpc as any)("admin_take_marketplace_alert", {
+        p_alert_key: alertKey,
+      });
+      if (rpcError) throw rpcError;
+    },
+    onMutate: ({ alertKey }) => {
+      setTakingAlertKey(alertKey);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-marketplace-alerts"] });
+      toast({ title: "Alerte prise en charge", description: "L'alerte est maintenant marquée en cours à votre nom." });
+    },
+    onError: (mutationError: Error) => {
+      toast({ title: "Prise impossible", description: mutationError.message, variant: "destructive" });
+    },
+    onSettled: () => {
+      setTakingAlertKey(null);
     },
   });
 
@@ -206,6 +240,11 @@ export default function AdminUrgentActions({
     }
 
     updateAlertMutation.mutate({ alertKey: alert.alert_key, status, note });
+  }
+
+  function takeAlert(alert: MarketplaceAlert) {
+    if (isClosedAlertStatus(alert.status)) return;
+    takeAlertMutation.mutate({ alertKey: alert.alert_key });
   }
 
   const visibleAlerts = filteredAlerts.slice(0, maxItems ?? (compact ? 6 : 20));
@@ -299,6 +338,24 @@ export default function AdminUrgentActions({
           <div className={compact ? "grid gap-3" : "grid gap-3 xl:grid-cols-2"}>
             {visibleAlerts.map((alert, index) => {
               const note = noteByAlert[alert.alert_key] || "";
+              const handledBy = alert.status === "in_progress" ? getMetadataString(alert.metadata, "handled_by") : null;
+              const handledAt = alert.status === "in_progress" ? getMetadataString(alert.metadata, "handled_at") : null;
+              const isTakenByCurrentAdmin = Boolean(handledBy && user?.id && handledBy === user.id);
+              const isTakenByOtherAdmin = Boolean(handledBy && (!user?.id || handledBy !== user.id));
+              const isTakingThisAlert = takingAlertKey === alert.alert_key && takeAlertMutation.isPending;
+              const takeButtonLabel = isTakingThisAlert
+                ? "Prise..."
+                : isTakenByCurrentAdmin
+                  ? "Pris"
+                  : isTakenByOtherAdmin
+                    ? "Déjà pris"
+                    : "Prendre";
+              const takeStatusLabel = isTakenByCurrentAdmin
+                ? `Pris par moi${handledAt ? ` le ${formatDateTime(handledAt)}` : ""}`
+                : isTakenByOtherAdmin
+                  ? `Pris par un autre admin${handledAt ? ` le ${formatDateTime(handledAt)}` : ""}`
+                  : null;
+              const actionDisabledByClaim = isTakenByOtherAdmin || updateAlertMutation.isPending;
               return (
                 <div key={`${alert.alert_key}-${index}`} className={`rounded-xl border p-4 ${severityClass(alert.severity)}`}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -316,6 +373,11 @@ export default function AdminUrgentActions({
                       <p className="flex items-center gap-1 text-xs opacity-70">
                         <Clock className="h-3 w-3" /> Dernier signal : {formatDateTime(alert.last_seen_at)}
                       </p>
+                      {takeStatusLabel ? (
+                        <p className="flex items-center gap-1 text-xs font-medium opacity-80">
+                          <UserCheck className="h-3 w-3" /> {takeStatusLabel}
+                        </p>
+                      ) : null}
                     </div>
                     {alert.action_url ? (
                       <Button type="button" size="sm" variant="secondary" onClick={() => navigate(alert.action_url || "/admin")} className="gap-2">
@@ -329,13 +391,20 @@ export default function AdminUrgentActions({
                       onChange={(event) => setNoteByAlert((previous) => ({ ...previous, [alert.alert_key]: event.target.value }))}
                       placeholder="Note admin obligatoire pour résoudre/ignorer"
                     />
-                    <Button type="button" variant="outline" onClick={() => updateAlert(alert, "in_progress")}>
-                      Prendre
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => takeAlert(alert)}
+                      disabled={isTakingThisAlert || isTakenByCurrentAdmin || isTakenByOtherAdmin || isClosedAlertStatus(alert.status)}
+                      className="gap-2"
+                    >
+                      {isTakingThisAlert ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserCheck className="h-3 w-3" />}
+                      {takeButtonLabel}
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => updateAlert(alert, "ignored")} disabled={!note.trim()}>
+                    <Button type="button" variant="outline" onClick={() => updateAlert(alert, "ignored")} disabled={!note.trim() || actionDisabledByClaim}>
                       Ignorer
                     </Button>
-                    <Button type="button" onClick={() => updateAlert(alert, "resolved")} disabled={!note.trim()}>
+                    <Button type="button" onClick={() => updateAlert(alert, "resolved")} disabled={!note.trim() || actionDisabledByClaim}>
                       Résoudre
                     </Button>
                   </div>
