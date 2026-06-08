@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 const cartPageSource = readFileSync(resolve(root, "src/pages/Panier.tsx"), "utf8");
 const suggestionsSource = readFileSync(resolve(root, "src/components/cart/CartSuggestionsStep.tsx"), "utf8");
+const suggestionsLogicSource = readFileSync(resolve(root, "src/lib/cartSuggestions.ts"), "utf8");
 
 describe("cart checkout steps", () => {
   it("splits the classic cart into summary, address, suggestions and payment steps", () => {
@@ -40,10 +41,12 @@ describe("cart checkout steps", () => {
     expect(cartPageSource).toContain("CartSuggestionsStep");
     expect(cartPageSource).toContain("handleAddSuggestedItem");
     expect(cartPageSource).not.toContain("<UpsellModal");
-    expect(suggestionsSource).toContain("buildCartSignals");
-    expect(suggestionsSource).toContain("scoreSuggestion");
+    expect(suggestionsLogicSource).toContain("buildCartSignals");
+    expect(suggestionsLogicSource).toContain("scoreSuggestion");
+    expect(suggestionsLogicSource).toContain("Deja commande dans ce restaurant");
+    expect(suggestionsSource).toContain("cart-suggestions-order-history");
     expect(suggestionsSource).toContain("missingForFreeDelivery");
-    expect(suggestionsSource).toContain("Proche des produits deja choisis");
+    expect(suggestionsLogicSource).toContain("Proche des produits deja choisis");
   });
 
   it("keeps the suggestions step readable on mobile and desktop", () => {

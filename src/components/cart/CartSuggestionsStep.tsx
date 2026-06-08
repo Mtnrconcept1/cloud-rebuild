@@ -4,25 +4,16 @@ import { Loader2, Plus, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import type { CartItem } from "@/lib/cart-context";
+import {
+  buildCartSuggestions,
+  type HistoricalOrderForSuggestions,
+  type SuggestedMenuItem,
+} from "@/lib/cartSuggestions";
 import { PUBLIC_MENU_ITEMS_LIMIT } from "@/lib/queryLimits";
 
 const supabase = getSupabase();
-
-type SuggestedMenuItem = {
-  id: string;
-  restaurant_id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  category: string | null;
-  image_url: string | null;
-};
-
-type ScoredSuggestion = SuggestedMenuItem & {
-  score: number;
-  reason: string;
-};
 
 interface CartSuggestionsStepProps {
   restaurantId: string | null;
@@ -31,107 +22,13 @@ interface CartSuggestionsStepProps {
   onAdd: (item: SuggestedMenuItem) => void;
 }
 
-function normalizeText(value: unknown) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function tokenize(value: unknown) {
-  return normalizeText(value)
-    .split(/[^a-z0-9]+/)
-    .filter((token) => token.length >= 4);
-}
-
-function itemSignalText(item: CartItem) {
-  const metadata = item.metadata && typeof item.metadata === "object" ? item.metadata : {};
-  return [
-    item.name,
-    item.restaurantName,
-    metadata.category,
-    metadata.category_name,
-    metadata.cuisine,
-    metadata.cuisine_type,
-    Array.isArray(metadata.tags) ? metadata.tags.join(" ") : "",
-  ].filter(Boolean).join(" ");
-}
-
-function buildCartSignals(items: CartItem[]) {
-  const tokens = new Set<string>();
-  const categories = new Set<string>();
-
-  for (const item of items) {
-    for (const token of tokenize(itemSignalText(item))) {
-      tokens.add(token);
-    }
-
-    const metadata = item.metadata && typeof item.metadata === "object" ? item.metadata : {};
-    const category = normalizeText(metadata.category || metadata.category_name);
-    if (category) categories.add(category);
-  }
-
-  return { tokens, categories };
-}
-
-function getSuggestionReason(item: SuggestedMenuItem, scoreParts: {
-  fillsFreeDelivery: boolean;
-  categoryMatch: boolean;
-  tokenMatches: number;
-  isDessert: boolean;
-  isDrink: boolean;
-}) {
-  if (scoreParts.fillsFreeDelivery) return "Aide a atteindre la livraison offerte";
-  if (scoreParts.categoryMatch || scoreParts.tokenMatches > 0) return "Proche des produits deja choisis";
-  if (scoreParts.isDessert) return "Dessert souvent ajoute en fin de commande";
-  if (scoreParts.isDrink) return "Boisson pratique avec votre repas";
-  return item.category ? `Suggestion ${item.category}` : "Suggestion du restaurant";
-}
-
-function scoreSuggestion(
-  item: SuggestedMenuItem,
-  signals: ReturnType<typeof buildCartSignals>,
-  missingForFreeDelivery: number | null,
-): ScoredSuggestion {
-  const itemText = `${item.name} ${item.description || ""} ${item.category || ""}`;
-  const itemTokens = tokenize(itemText);
-  const itemCategory = normalizeText(item.category);
-  const tokenMatches = itemTokens.filter((token) => signals.tokens.has(token)).length;
-  const categoryMatch = Boolean(itemCategory && signals.categories.has(itemCategory));
-  const isDessert = /dessert|glace|tiramisu|gateau|chocolat|fruit|sweet/.test(normalizeText(itemText));
-  const isDrink = /boisson|drink|coca|soda|eau|jus|the|cafe/.test(normalizeText(itemText));
-  const fillsFreeDelivery = Boolean(missingForFreeDelivery && Number(item.price) >= missingForFreeDelivery);
-  const price = Number(item.price) || 0;
-
-  const score = [
-    fillsFreeDelivery ? 45 : 0,
-    categoryMatch ? 35 : 0,
-    Math.min(tokenMatches * 12, 36),
-    isDessert ? 14 : 0,
-    isDrink ? 12 : 0,
-    price > 0 && price <= 8 ? 8 : 0,
-    price > 8 && price <= 18 ? 4 : 0,
-  ].reduce((sum, value) => sum + value, 0);
-
-  return {
-    ...item,
-    score,
-    reason: getSuggestionReason(item, {
-      fillsFreeDelivery,
-      categoryMatch,
-      tokenMatches,
-      isDessert,
-      isDrink,
-    }),
-  };
-}
-
 export default function CartSuggestionsStep({
   restaurantId,
   currentItems,
   missingForFreeDelivery,
   onAdd,
 }: CartSuggestionsStepProps) {
+  const { user } = useAuth();
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
   const { data: menuItems = [], isLoading } = useQuery({
@@ -151,19 +48,36 @@ export default function CartSuggestionsStep({
     staleTime: 60_000,
   });
 
-  const suggestions = useMemo(() => {
-    const currentItemIds = new Set(currentItems.map((item) => item.menuItemId));
-    const signals = buildCartSignals(currentItems);
+  const { data: orderHistory = [], isLoading: isHistoryLoading } = useQuery({
+    queryKey: ["cart-suggestions-order-history", restaurantId, user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, created_at, status, payment_status, order_items(menu_item_id, quantity, metadata)")
+        .eq("restaurant_id", restaurantId!)
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
 
-    return menuItems
-      .filter((item) => !currentItemIds.has(item.id))
-      .map((item) => scoreSuggestion(item, signals, missingForFreeDelivery))
-      .sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        return Number(a.price) - Number(b.price);
-      })
-      .slice(0, 6);
-  }, [currentItems, menuItems, missingForFreeDelivery]);
+      if (error) {
+        console.warn("[cart-suggestions] order history unavailable", error.message);
+        return [];
+      }
+
+      return (data || []) as HistoricalOrderForSuggestions[];
+    },
+    enabled: Boolean(restaurantId && user?.id),
+    staleTime: 60_000,
+  });
+
+  const suggestions = useMemo(() => {
+    return buildCartSuggestions({
+      currentItems,
+      menuItems,
+      orderHistory,
+      missingForFreeDelivery,
+    });
+  }, [currentItems, menuItems, orderHistory, missingForFreeDelivery]);
 
   const handleAdd = (item: SuggestedMenuItem) => {
     setAddedIds((previous) => new Set(previous).add(item.id));
@@ -190,7 +104,7 @@ export default function CartSuggestionsStep({
         </div>
       ) : null}
 
-      {isLoading ? (
+      {isLoading || isHistoryLoading ? (
         <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           Recherche de produits pertinents...
