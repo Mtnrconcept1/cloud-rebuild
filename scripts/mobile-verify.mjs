@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 
@@ -60,7 +60,7 @@ function buildWeb() {
 }
 
 function syncCapacitor(platforms = ["android", "ios"]) {
-  run("npx", ["cap", "sync", ...platforms]);
+  run("pnpm", ["exec", "cap", "sync", ...platforms]);
 }
 
 function buildAndroid(variant) {
@@ -91,6 +91,57 @@ function buildIosRelease() {
   ]);
 }
 
+function readProjectFile(relativePath) {
+  const absolutePath = path.join(workspaceRoot, relativePath);
+  if (!existsSync(absolutePath)) {
+    console.error(`Missing required iOS file: ${relativePath}`);
+    process.exit(1);
+  }
+
+  return readFileSync(absolutePath, "utf8");
+}
+
+function assertIncludes(source, expected, label) {
+  if (!source.includes(expected)) {
+    console.error(`iOS readiness check failed: ${label}`);
+    console.error(`Expected to find: ${expected}`);
+    process.exit(1);
+  }
+}
+
+function checkIosAppStoreReadiness() {
+  const infoPlist = readProjectFile("ios/App/App/Info.plist");
+  const entitlements = readProjectFile("ios/App/App/App.entitlements");
+  const privacyManifest = readProjectFile("ios/App/App/PrivacyInfo.xcprivacy");
+  const xcodeProject = readProjectFile("ios/App/App.xcodeproj/project.pbxproj");
+
+  assertIncludes(infoPlist, "<key>CFBundleURLSchemes</key>", "custom URL scheme is declared");
+  assertIncludes(infoPlist, "<string>tok</string>", "tok URL scheme is declared");
+  assertIncludes(infoPlist, "<key>ITSAppUsesNonExemptEncryption</key>", "export compliance key is declared");
+  assertIncludes(infoPlist, "<key>NSLocationWhenInUseUsageDescription</key>", "location permission copy is declared");
+  assertIncludes(infoPlist, "<key>NSCameraUsageDescription</key>", "camera permission copy is declared");
+  assertIncludes(infoPlist, "<key>NSPhotoLibraryUsageDescription</key>", "photo library permission copy is declared");
+
+  assertIncludes(entitlements, "<string>$(APS_ENVIRONMENT)</string>", "APNs environment uses per-configuration build setting");
+  assertIncludes(entitlements, "applinks:www.thetok.ch", "public Universal Link domain is declared");
+  assertIncludes(entitlements, "applinks:admin.thetok.ch", "admin Universal Link domain is declared");
+
+  assertIncludes(privacyManifest, "<key>NSPrivacyTracking</key>", "privacy tracking declaration exists");
+  assertIncludes(privacyManifest, "<false/>", "tracking is declared off");
+  assertIncludes(privacyManifest, "NSPrivacyAccessedAPICategoryUserDefaults", "UserDefaults required-reason API is declared");
+  assertIncludes(privacyManifest, "<string>CA92.1</string>", "UserDefaults app-specific reason is declared");
+  assertIncludes(privacyManifest, "NSPrivacyCollectedDataTypeEmailAddress", "privacy manifest documents account data");
+  assertIncludes(privacyManifest, "NSPrivacyCollectedDataTypePreciseLocation", "privacy manifest documents location data");
+  assertIncludes(privacyManifest, "NSPrivacyCollectedDataTypePurchaseHistory", "privacy manifest documents order data");
+
+  assertIncludes(xcodeProject, "CODE_SIGN_ENTITLEMENTS = App/App.entitlements;", "Xcode target signs entitlements");
+  assertIncludes(xcodeProject, "APS_ENVIRONMENT = development;", "Debug APNs environment is development");
+  assertIncludes(xcodeProject, "APS_ENVIRONMENT = production;", "Release APNs environment is production");
+  assertIncludes(xcodeProject, "PrivacyInfo.xcprivacy in Resources", "privacy manifest is copied into the iOS app bundle");
+
+  console.log("iOS App Store readiness checks passed.");
+}
+
 switch (command) {
   case "sync":
     buildWeb();
@@ -104,6 +155,9 @@ switch (command) {
     break;
   case "ios-release":
     buildIosRelease();
+    break;
+  case "ios-readiness":
+    checkIosAppStoreReadiness();
     break;
   case "verify":
     buildAndroid("Debug");

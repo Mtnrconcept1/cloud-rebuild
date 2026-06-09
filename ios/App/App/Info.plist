@@ -10,6 +10,17 @@
         <string>Tok</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.tok.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>tok</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -43,18 +54,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Tok utilise votre position pour trouver les restaurants proches et suivre vos livraisons.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Tok utilise la camera pour la preuve de livraison.</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>tok</string>
-			</array>
-		</dict>
-	</array>
+	<string>Tok utilise la caméra pour ajouter des photos et confirmer certaines livraisons.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Tok utilise votre photothèque uniquement lorsque vous ajoutez une photo à votre profil, à un restaurant ou à une preuve de livraison.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Tok peut enregistrer une image seulement si vous choisissez explicitement cette action.</string>
 </dict>
 </plist>
