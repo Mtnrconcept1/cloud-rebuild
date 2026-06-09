@@ -44,7 +44,10 @@ export default function CGU() {
             <li>Les interfaces restaurateur, coursier et administrateur, incluant commandes, réservations, menus, campagnes, factures, support, notifications, sinistres et outils de pilotage.</li>
           </ul>
           <p className="text-foreground/80 leading-relaxed">
-            TOK agit principalement comme intermédiaire technique et commercial entre le client et le restaurant. Sauf mention contraire, la préparation, la qualité, la conformité et la disponibilité des plats relèvent du restaurant concerné.
+            TOK agit principalement comme intermédiaire technique et commercial entre le client et le restaurant. Sauf mention contraire, la préparation, la qualité, la conformité, les allergènes, les ingrédients, les valeurs nutritionnelles, les contaminations croisées, les obligations sanitaires et la disponibilité des plats relèvent du restaurant concerné.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            TOK peut activer, désactiver, modifier, suspendre ou supprimer tout ou partie des fonctionnalités, parcours, avantages, offres ou interfaces à tout moment, notamment pour des raisons de lancement progressif, sécurité, conformité, maintenance, disponibilité locale ou stratégie commerciale, sans garantie de maintien permanent d'une fonctionnalité.
           </p>
         </section>
 
@@ -59,6 +62,9 @@ export default function CGU() {
           <p className="text-foreground/80 leading-relaxed">
             À la déconnexion, TOK peut effacer les données locales liées à la session, comme le panier, certains brouillons de checkout et les jetons de notification push, afin d'éviter qu'elles persistent pour un autre utilisateur du même appareil.
           </p>
+          <p className="text-foreground/80 leading-relaxed">
+            TOK peut suspendre, limiter ou supprimer un compte, une réservation, une commande, une campagne, un avantage, un code promotionnel ou un accès en cas de fraude, abus, tentative d'accès non autorisé, faux avis, réservation fictive, manipulation des campagnes, exploitation automatisée, usage de robots, contournement technique, impayé, comportement illicite ou atteinte à la sécurité de la plateforme.
+          </p>
         </section>
 
         <section className="space-y-4">
@@ -71,6 +77,12 @@ export default function CGU() {
           </p>
           <p className="text-foreground/80 leading-relaxed">
             L'annulation d'une commande dépend de son état de préparation. Les réservations peuvent être soumises à des délais d'annulation et à des règles spécifiques, notamment pour Zéro Attente, La Table du Chef et les expériences limitées. Les remboursements acceptés sont effectués sur le moyen de paiement d'origine ou sous forme de crédit TOK lorsque cela est proposé.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            En cas de client absent, de retard important, de réservation non honorée, d'annulation tardive, de restaurant fermé, de refus de service, d'erreur de prix manifeste, d'indisponibilité de stock ou de litige sur une prestation, TOK peut appliquer les règles affichées dans le parcours concerné, demander des justificatifs, arbitrer techniquement le dossier et décider d'un remboursement total, partiel, d'un crédit TOK ou d'un refus de remboursement lorsque les circonstances le justifient.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Lorsqu'un paiement est traité par un prestataire tiers comme Stripe, les délais de capture, remboursement, annulation, contestation ou reversement dépendent également des règles et délais de ce prestataire. TOK ne garantit pas l'absence d'incident bancaire, de double autorisation temporaire, de retard de traitement ou de blocage lié au moyen de paiement utilisé.
           </p>
         </section>
 
@@ -137,6 +149,12 @@ export default function CGU() {
           <p className="text-foreground/80 leading-relaxed">
             En publiant un contenu sur TOK, vous accordez à TOK une licence non exclusive, mondiale, gratuite et limitée au fonctionnement, à la promotion, à la modération, à l'hébergement et à l'affichage du service. Vous garantissez disposer des droits nécessaires, y compris pour les photos générées ou retouchées par IA, qui ne doivent pas induire les utilisateurs en erreur.
           </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les contenus, photos, vidéos, menus, textes et campagnes fournis par un restaurant restent, sauf accord contraire, la propriété du restaurant ou de ses ayants droit. Les outils, interfaces, modèles, algorithmes, prompts, systèmes de recommandation, métriques internes, rapports agrégés, bases de données et méthodes de traitement développés par TOK restent la propriété de TOK ou de ses partenaires.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Les fonctionnalités d'intelligence artificielle peuvent produire des résultats inexacts, incomplets, approximatifs, non conformes à l'identité du restaurant ou juridiquement inadaptés. Le restaurateur ou l'utilisateur qui valide un contenu généré ou retouché par IA reste responsable de sa vérification avant publication, notamment pour les prix, ingrédients, allergènes, visuels de plats, promotions et messages publicitaires.
+          </p>
         </section>
 
         <section className="space-y-4">
@@ -160,6 +178,15 @@ export default function CGU() {
           <p className="text-foreground/80 leading-relaxed">
             TOK ne peut être tenu responsable des informations inexactes fournies par un restaurant, d'une indisponibilité de stock, d'un retard lié à la préparation ou à la livraison, d'une panne d'un prestataire tiers ou d'un usage non conforme de votre compte.
           </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Dans les limites autorisées par le droit applicable, TOK exclut toute responsabilité pour les dommages indirects, pertes de bénéfice, pertes de chiffre d'affaires, pertes d'exploitation, pertes d'opportunité commerciale, pertes de clientèle, atteintes à l'image, pertes de données, interruptions d'activité ou conséquences économiques liées à l'utilisation ou à l'impossibilité d'utiliser la plateforme.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            Lorsque la responsabilité de TOK devait malgré tout être retenue, elle est limitée, dans la mesure permise par le droit impératif, au montant effectivement payé par l'utilisateur à TOK pour le service directement concerné au cours des trois mois précédant l'événement dommageable. Cette limitation ne s'applique pas en cas de faute intentionnelle ou lorsque le droit impératif suisse l'interdit.
+          </p>
+          <p className="text-foreground/80 leading-relaxed">
+            TOK ne répond pas des événements échappant raisonnablement à son contrôle, notamment panne d'internet, panne de réseau mobile, incident Stripe, indisponibilité Supabase, Vercel, OpenAI ou autre prestataire, cyberattaque majeure, grève, décision administrative, catastrophe naturelle, interruption d'énergie ou événement de force majeure affectant la plateforme, un restaurant, un coursier ou un prestataire tiers.
+          </p>
         </section>
 
         <section className="space-y-4">
@@ -172,7 +199,7 @@ export default function CGU() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">14. Droit applicable et juridiction</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Les présentes CGU sont régies par le droit suisse. En cas de litige, les parties rechercheront d'abord une solution amiable. À défaut, les tribunaux compétents suisses seront saisis, sous réserve des dispositions impératives applicables aux consommateurs.
+            Les présentes CGU sont régies par le droit suisse. En cas de litige, les parties rechercheront d'abord une solution amiable. À défaut, et sous réserve des dispositions impératives applicables aux consommateurs, le for exclusif est Genève, Suisse.
           </p>
         </section>
 
