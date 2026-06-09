@@ -153,6 +153,8 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
           theme="orange"
           className="mb-4"
           titleClassName="text-3xl sm:text-4xl md:text-5xl"
+          illustrationClassName="-right-4 sm:-right-8 md:-right-6"
+          imageClassName="-translate-x-14 sm:-translate-x-10 md:-translate-x-8"
           actions={
             <div className="hidden items-center gap-1.5 md:flex">
               <button

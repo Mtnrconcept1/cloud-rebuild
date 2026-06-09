@@ -1,0 +1,525 @@
+Voici le nouvel audit complet de TOK au 7 juin 2026, en tenant compte de l’état actuel du dépôt, du déploiement Vercel, de Supabase et de la production publique.
+
+Verdict général : **TOK a beaucoup progressé techniquement, mais il reste encore plusieurs chantiers avant un lancement commercial sérieux**. Le site public est maintenant bien mieux pré-rendu, le SEO de base est nettement plus propre, les headers de sécurité sont présents en production, et le projet Supabase est actif. En revanche, la page B2B restaurateur est encore trop faible, le manifest PWA est encore ancien, Supabase remonte beaucoup d’avertissements de sécurité/performance, le modèle commercial/commission n’est pas encore intégré dans l’application, et l’infrastructure Vercel reste confuse avec deux projets proches.
+
+Ma note actuelle : **7,3/10**.
+Potentiel après corrections prioritaires : **8,5/10**.
+
+## 1. Synthèse des points bloquants
+
+| Domaine              | État actuel                                                                                  | Niveau d’urgence | Ce qu’il reste à faire                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------- | ---------------: | ---------------------------------------------------------------------------------------- |
+| Production Vercel    | Le vrai domaine `thetok.ch` pointe sur `cloud-rebuild-recovered`, pas sur `cloud-rebuild`.   |            Élevé | Clarifier définitivement quel projet Vercel est officiel et désactiver/archiver l’autre. |
+| SEO public           | La home est maintenant pré-rendue avec title, meta, JSON-LD et noscript.                     |            Moyen | Enrichir le contenu HTML pré-rendu au-delà du simple noscript.                           |
+| PWA / manifest       | Le manifest garde l’ancien message « Commandez malin, mangez bien ».                         |            Élevé | Mettre à jour nom, description, short_name et screenshots PWA.                           |
+| Page restaurateurs   | `/restaurateurs/geneve` existe en SEO, mais route vers `PacksRestaurateur`.                  |       Très élevé | Créer une vraie landing B2B dédiée.                                                      |
+| Business model       | Les tableaux financiers existent dans la réflexion, mais pas dans le produit/admin.          |       Très élevé | Ajouter module finance : CA, enveloppes 60 %, commissions, coûts IA, marge.              |
+| Commerciaux          | Aucun modèle de commission intégré trouvé.                                                   |       Très élevé | Ajouter tables Supabase + dashboard commercial + règles de paiement.                     |
+| Supabase sécurité    | Advisors Supabase remontent encore de nombreux `SECURITY DEFINER` exécutables par anon.      |         Critique | Auditer/revoquer ou justifier chaque fonction.                                           |
+| Supabase performance | Nombreux foreign keys sans index.                                                            |            Élevé | Ajouter migrations d’index sur FK critiques.                                             |
+| Analytics            | `track-analytics` fonctionne mais logs Edge montrent des exécutions répétées proches de 2 s. |      Moyen/Élevé | Réduire appels doublons, batcher, dédupliquer.                                           |
+| UX client            | Hero clair, mais la home reste fonctionnellement dense.                                      |            Moyen | Réduire à 3 promesses principales : zéro attente, offres, Miamz.                         |
+| UX restaurateur      | Trop orienté packs, pas assez “résultat business”.                                           |            Élevé | Démo, rappel, simulateur de rentabilité, avant/après photos.                             |
+| Paiement             | Return URL et sécurité checkout semblent mieux cadrés.                                       |            Moyen | Ajouter monitoring paiement, reporting d’échecs, réconciliation mensuelle.               |
+| OpenAI               | Fonctionnalité centrale, mais budget et quotas business pas encore visibles.                 |            Élevé | Quotas IA par pack, coût par image, alerte dépassement.                                  |
+| Juridique            | CGU/confidentialité présentes, mais modèle Miamz/solidarité doit être béton.                 |            Élevé | Conditions Miamz, dons, remboursements, responsabilité restaurants.                      |
+| QA / release         | Scripts existent, production prête, mais deux projets Vercel créent un risque.               |            Élevé | Checklist release unique + tests avant déploiement.                                      |
+
+## 2. Production et Vercel
+
+Le vrai site public est actuellement servi par le projet Vercel **`cloud-rebuild-recovered`**, qui contient les domaines `www.thetok.ch`, `admin.thetok.ch`, `thetok.ch` et dont le dernier déploiement production est `READY`. 
+
+Le projet Vercel **`cloud-rebuild`** existe aussi, mais son dernier déploiement est en erreur (`readyState: ERROR`) et n’a pas les domaines TOK principaux. 
+
+C’est un risque opérationnel. Tant que deux projets Vercel coexistent avec des noms quasi identiques, tu peux déployer au mauvais endroit, croire qu’un correctif est en ligne alors qu’il ne l’est pas, ou perdre du temps à débugger le mauvais projet.
+
+À faire :
+
+| Action                                                                                              | Priorité |
+| --------------------------------------------------------------------------------------------------- | -------: |
+| Renommer `cloud-rebuild-recovered` en nom définitif clair, par exemple `tok-production`.            |    Haute |
+| Archiver ou désactiver le projet `cloud-rebuild` s’il n’est plus utilisé.                           |    Haute |
+| Documenter dans le repo : “Projet Vercel officiel = cloud-rebuild-recovered / domains = thetok.ch”. |    Haute |
+| Vérifier que les secrets Vercel production sont sur le bon projet uniquement.                       |    Haute |
+| Ajouter une note dans `README_DEPLOY.md` avec procédure de déploiement unique.                      |  Moyenne |
+
+Bon point : la production sert maintenant bien le nouveau title SEO, les meta, les assets buildés, le JSON-LD Organization/WebSite et un fallback noscript. 
+
+Très bon point aussi : les headers de sécurité sont bien envoyés en production, notamment CSP, Permissions-Policy, Referrer-Policy, HSTS, `X-Content-Type-Options` et `X-Frame-Options`. 
+
+## 3. SEO et indexation
+
+Le SEO a clairement progressé. Le fichier `index.html` du dépôt contient désormais un titre ciblé sur Genève et les offres food : **« TOK - Réservez, commandez et profitez des meilleures offres food à Genève »**. Il contient aussi une meta-description orientée réservation, commande, offres locales et Miamz. 
+
+Le build production lance maintenant `vite build --mode production && node ./scripts/prerender-seo.mjs`, avec des scripts dédiés au pré-rendu et au sitemap.  C’est une très bonne correction pour une application React/Vite.
+
+La production `/robots.txt` autorise l’indexation, bloque les routes privées et indique le sitemap. 
+
+Le sitemap public est aussi bien plus complet : il inclut la home, pages institutionnelles, pages fonctionnalités, fiches restaurants, villes, catégories, et `/restaurateurs/geneve`. 
+
+Ce qu’il reste à faire :
+
+| Sujet SEO        | Problème restant                                                          | Action recommandée                                                                                    |
+| ---------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| URLs restaurants | Les fiches sont encore en UUID dans le sitemap.                           | Ajouter un champ `slug` et passer à `/restaurants/geneve/nom-restaurant`.                             |
+| Pré-rendu        | Le HTML pré-rendu contient surtout les meta + noscript.                   | Ajouter du vrai contenu statique : H1, paragraphes, FAQ, liens internes, listes de villes/catégories. |
+| Pages locales    | Genève est bien couverte, mais il faut renforcer quartiers et intentions. | Créer `/restaurants/geneve/eaux-vives`, `/restaurants/geneve/plainpalais`, etc.                       |
+| Pages B2B        | `/restaurateurs/geneve` existe SEO mais pas comme vraie page produit.     | Créer une landing B2B dédiée.                                                                         |
+| Schema.org       | Organization, WebSite, Service existent.                                  | Ajouter BreadcrumbList, FAQPage détaillée, LocalBusiness/Restaurant enrichi.                          |
+| Maillage interne | Encore insuffisant.                                                       | Liens entre home, Genève, offres, anti-gaspi, zéro attente, restaurateurs.                            |
+| Miamz            | Pas encore assez fort SEO.                                                | Page dédiée `/miamz-solidaires`.                                                                      |
+| Tables du Chef   | Potentiel fort.                                                           | Page dédiée optimisée avec offres et FAQ.                                                             |
+
+Score SEO actuel : **8/10 côté technique**, mais **6,8/10 côté contenu pré-rendu réel**.
+
+## 4. PWA et mobile
+
+Le manifest est un des derniers gros éléments non alignés. Il contient encore :
+
+**« Tok — Commandez malin, mangez bien »**
+et
+**« Livraison de restaurants, offres anti-gaspi, programme fidélité et dons solidaires. »** 
+
+La production sert le même manifest ancien. 
+
+Ce qu’il faut changer :
+
+| Champ         | Actuel                             | Recommandé                                                                      |
+| ------------- | ---------------------------------- | ------------------------------------------------------------------------------- |
+| `name`        | Tok — Commandez malin, mangez bien | TOK — Réservez, commandez, profitez à Genève                                    |
+| `short_name`  | Tok                                | TOK                                                                             |
+| `description` | Livraison de restaurants…          | Réservez, commandez, profitez d’offres locales et cumulez des Miamz solidaires. |
+| `start_url`   | `/`                                | `/` ou `/?source=pwa`                                                           |
+| Screenshots   | absent                             | Ajouter screenshots mobile/desktop pour PWA install                             |
+| Icons         | OK de base                         | Vérifier vraies tailles 192/512/maskable                                        |
+
+À faire aussi :
+
+| Action mobile/PWA                                                         | Priorité |
+| ------------------------------------------------------------------------- | -------: |
+| Tester ajout écran d’accueil iPhone et Android.                           |    Haute |
+| Vérifier safe-area sur iPhone 16 Pro Max.                                 |    Haute |
+| Tester le hero mobile sur petits écrans type iPhone SE.                   |  Moyenne |
+| Ajouter `screenshots` au manifest.                                        |  Moyenne |
+| Ajouter `shortcuts` PWA : “Réserver”, “Offres”, “Miamz”, “Restaurateurs”. |  Moyenne |
+
+Score mobile/PWA : **7/10**.
+
+## 5. UX client
+
+Le hero client est maintenant beaucoup plus clair : rechercher un restaurant, réserver, commander, profiter d’offres food à Genève. C’est la bonne direction.
+
+Ce qui reste à faire côté client :
+
+| Zone                | Ce qu’il manque                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| Première impression | Montrer immédiatement 3 promesses simples : zéro attente, offres locales, Miamz solidaires. |
+| Preuve              | Afficher de vrais restaurants partenaires avec photos très premium.                         |
+| Réassurance         | Montrer “local Genève”, paiement sécurisé, annulation, support.                             |
+| Miamz               | Expliquer en 3 étapes : je mange, je gagne, je donne/utilise.                               |
+| Recherche           | Ajouter filtres rapides : Réserver, Commander, Offres, Anti-gaspi, Zéro attente.            |
+| Fiche restaurant    | Renforcer photos, offres, créneaux, avis, CTA réservation/précommande.                      |
+| Conversion          | Ajouter “commencer sans compte” si possible, puis création de compte après intention forte. |
+| Performance perçue  | Skeletons plus beaux, pas seulement loaders.                                                |
+| Actualités          | Le fil social doit devenir un vrai argument restaurateur/client, pas un module secondaire.  |
+
+La priorité UX client : **réduire le bruit**. TOK a trop de fonctionnalités. En home, il faut afficher trois piliers, pas dix.
+
+Score UX client : **7,2/10**.
+
+## 6. UX restaurateur et B2B
+
+C’est actuellement le chantier le plus important après la sécurité Supabase.
+
+La route `/restaurateurs/geneve` pointe encore vers `PacksRestaurateur`, pas vers une vraie page B2B dédiée.  Dans `App.tsx`, on voit seulement `PacksRestaurateur` importé, pas de composant `RestaurateursGeneve`. 
+
+La production `/restaurateurs/geneve` a bien les bonnes meta SEO et le JSON-LD Service, mais le contenu HTML pré-rendu reste minimal : title, description, JSON-LD, noscript.  C’est bon pour le SEO technique, insuffisant pour vendre.
+
+Ce qu’il faut créer :
+
+| Élément B2B                   | Contenu attendu                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| Landing restaurateur dédiée   | H1 : “Remplissez vos tables sans exploser vos commissions.”                  |
+| Simulateur de marge           | Entrées : tables/mois, pack, abonnement, coût marketing, revenu estimé.      |
+| Modèle économique             | 5 CHF/table, abonnements, packs, photos IA, sponsorisation.                  |
+| Comparatif                    | TOK vs plateformes classiques : commission, contrôle, photos, data, offres.  |
+| Section photos IA             | Avant/après, gain visuel, quotas par pack.                                   |
+| Section zéro attente          | Comment ça améliore rotation et expérience client.                           |
+| Section offres heures creuses | Remplir mardi midi, dimanche soir, etc.                                      |
+| CTA principal                 | “Demander une démo” et non “acheter un pack” directement.                    |
+| CTA secondaire                | “Voir les packs”.                                                            |
+| Formulaire lead               | Nom restaurant, ville, téléphone, email, nombre de tables, besoin principal. |
+| CRM admin                     | Statut lead : nouveau, contacté, démo, signé, activé, perdu.                 |
+
+Score B2B : **5,8/10** actuellement, potentiel **8,5/10** après landing dédiée.
+
+## 7. Business model et finance
+
+Tu as défini une règle forte : **ne jamais avoir plus de charges que de produits**, avec **60 % du CA réinjecté dans le marketing**, puis le reste pour OpenAI, commerciaux, hébergement, outils, support, admin, réserve et marge.
+
+Ce modèle est stratégique, mais il n’est pas encore intégré au produit.
+
+Ce qu’il faut construire :
+
+| Module finance                   | Description                                                                      |
+| -------------------------------- | -------------------------------------------------------------------------------- |
+| Table `platform_revenue_entries` | Stocker chaque revenu encaissé : pack, abonnement, table, photo, sponsorisation. |
+| Table `platform_cost_entries`    | Stocker coûts : OpenAI, Stripe, Vercel, Supabase, commercial, support.           |
+| Table `marketing_budget_periods` | Calcul automatique des 60 % du CA encaissé.                                      |
+| Table `commercial_commissions`   | Commissions calculées uniquement sur encaissement réel.                          |
+| Table `ai_usage_costs`           | Coût OpenAI par restaurant, image, génération, mois.                             |
+| Dashboard admin finance          | CA encaissé, marketing autorisé, marketing dépensé, reste disponible, marge.     |
+| Alertes                          | Bloquer dépenses si elles dépassent l’enveloppe autorisée.                       |
+| Export comptable                 | Mensuel, CSV/PDF, par restaurant et par poste.                                   |
+
+Règle opérationnelle à intégrer dans l’admin :
+
+| Poste                   |         Plafond recommandé |
+| ----------------------- | -------------------------: |
+| Marketing               |        60 % du CA encaissé |
+| Commerciaux             | 10–12 % max du CA encaissé |
+| OpenAI                  |              4 % max du CA |
+| Hébergement/outils      |                  3–4 % max |
+| Paiements               |                  3–4 % max |
+| Admin/support/juridique |                  6–7 % max |
+| Réserve                 |                7 % minimum |
+| Marge nette             |                     5–10 % |
+
+Tant que ces règles sont dans des tableaux de discussion et pas dans l’admin, le risque est humain : tu peux dépasser sans le voir.
+
+Score finance : **4,5/10 en produit**, **8/10 en stratégie**.
+
+## 8. Modèle commerciaux
+
+Le modèle commercial doit devenir un module opérationnel, pas seulement un tableau.
+
+Tu veux gérer des commerciaux capables de signer 10, 15, 25, 30 ou 50 restaurants par mois. Il faut donc :
+
+| Élément                               | À faire                                                               |
+| ------------------------------------- | --------------------------------------------------------------------- |
+| Table `sales_representatives`         | Commercial, statut, zone, taux, objectifs.                            |
+| Table `restaurant_leads`              | Prospects restaurants, source, commercial assigné, étape pipeline.    |
+| Table `restaurant_deals`              | Pack vendu, abonnement, montant encaissé, date, statut.               |
+| Table `commercial_commissions`        | Commission pack, bonus activation, bonus palier, état paiement.       |
+| Table `restaurant_activation_metrics` | Menu publié, nombre de tables, date seuil 10/30/60, actif 90 jours.   |
+| Dashboard commercial                  | Objectifs 10/15/25/30/50, commissions estimées, commissions validées. |
+| Dashboard admin                       | Plafond 12 % CA, commissions à payer, reports, litiges.               |
+| Règle de paiement                     | Le 10 du mois suivant, uniquement encaissé, hors remboursement.       |
+
+Barème à intégrer :
+
+| Restaurants signés/mois | Bonus palier |
+| ----------------------: | -----------: |
+|                      10 |      250 CHF |
+|                      15 |      500 CHF |
+|                      25 |    1’000 CHF |
+|                      30 |    1’500 CHF |
+|                      50 |    3’000 CHF |
+
+Et par restaurant :
+
+| Action                   | Commission |
+| ------------------------ | ---------: |
+| Pack Croissance encaissé |        7 % |
+| Fiche + menu publié      |     25 CHF |
+| 10 premières tables      |     50 CHF |
+| 30 tables en 60 jours    |     75 CHF |
+| 60 tables en 90 jours    |    100 CHF |
+| Actif après 90 jours     |     50 CHF |
+
+Point clé : **pas de commission sur restaurant non payé**.
+
+Score commercial : **3,5/10 en produit**, car rien ne semble encore matérialisé côté code/base.
+
+## 9. Supabase : sécurité
+
+Le projet Supabase TOK est actif et sain côté statut global. 
+
+Il y a eu un bon durcissement dans le code : les RPC financières sensibles `generate_restaurant_payout_invoice`, `generate_restaurant_payout_invoice_rpc` et `compute_restaurant_reservation_fees` sont révoquées de `PUBLIC`, `anon` et `authenticated`, puis réservées au `service_role`. 
+
+Le stockage public a aussi été durci : limites de taille/MIME sur les buckets `images` et `invoice-logos`, puis politiques d’upload/update/delete par dossier utilisateur ou restaurant.  
+
+Mais Supabase Advisors remonte encore de nombreux avertissements de sécurité : plusieurs fonctions `SECURITY DEFINER` restent exécutables par le rôle `anon`, comme `auth_can_access_cart`, `auth_can_access_order`, `auth_can_manage_dish`, `donate_points_for_meal`, etc. 
+
+Ce point est **critique**. Certaines fonctions peuvent être volontairement publiques si elles ne retournent qu’un booléen non sensible, mais il faut auditer une par une. Le fait qu’elles soient `SECURITY DEFINER` + exécutables par `anon` doit être justifié explicitement.
+
+À faire :
+
+| Action Supabase sécurité                                                                                    |   Priorité |
+| ----------------------------------------------------------------------------------------------------------- | ---------: |
+| Exporter la liste complète des warnings `anon_security_definer_function_executable`.                        |   Critique |
+| Classer chaque fonction : publique volontaire / à révoquer / à passer en invoker / à déplacer schema privé. |   Critique |
+| Révoquer `EXECUTE` de `anon` sur toutes les fonctions non strictement nécessaires.                          |   Critique |
+| Ajouter tests SQL/RPC : anon ne peut pas exécuter mutations sensibles.                                      |   Critique |
+| Vérifier RLS sur toutes les nouvelles tables business/commerciales.                                         |   Critique |
+| Auditer `donate_points_for_meal` en priorité.                                                               | Très élevé |
+| Ajouter monitoring des appels RPC publics.                                                                  |      Élevé |
+
+Score sécurité Supabase : **6,5/10**, surtout à cause des advisors encore ouverts.
+
+## 10. Supabase : performance
+
+Supabase Advisors remonte aussi beaucoup d’alertes de performance sur des foreign keys non indexées, par exemple `ad_campaign_events_user_id_fkey`, `ad_campaigns_restaurant_id_fkey`, `ai_generated_assets_user_id_fkey` et beaucoup d’autres tables IA/support/admin. 
+
+Ce n’est pas forcément bloquant à très faible trafic, mais dès que tu lances marketing + restaurants + analytics, ça peut dégrader les dashboards et les fonctions admin.
+
+À faire :
+
+| Action performance DB                                                                                                | Priorité |
+| -------------------------------------------------------------------------------------------------------------------- | -------: |
+| Ajouter index sur toutes les FK utilisées dans dashboards, analytics, IA, commandes, réservations.                   |    Haute |
+| Prioriser `ad_campaign_events`, `ad_campaigns`, `ai_usage_logs`, `ai_generated_assets`, `reservations`, `orders`.    |    Haute |
+| Ajouter index composés pour recherches fréquentes : restaurant_id + created_at, user_id + created_at, status + date. |    Haute |
+| Mesurer requêtes lentes Postgres sur 24 h.                                                                           |  Moyenne |
+| Réduire les appels répétés `feature_flags`.                                                                          |  Moyenne |
+
+Score performance DB : **6/10**.
+
+## 11. Logs Supabase et analytics
+
+Les logs API montrent de nombreux appels `feature_flags`, restaurants, ad_campaigns, favorites, reservations, orders, etc., souvent groupés autour d’une même session. 
+
+Les logs Edge montrent beaucoup d’appels `track-analytics`, avec plusieurs exécutions autour de **1,9 à 2,0 secondes**, ce qui est lourd pour un endpoint de tracking. 
+
+Ce qu’il faut faire :
+
+| Sujet          | Action                                                           |
+| -------------- | ---------------------------------------------------------------- |
+| Feature flags  | Cache local côté frontend pendant 60–300 secondes.               |
+| Analytics      | Batcher les événements au lieu d’envoyer trop de POST immédiats. |
+| Tracking       | Dédupliquer côté client et côté serveur.                         |
+| Edge Function  | Réduire coût d’écriture, éviter service-role si pas nécessaire.  |
+| Coût Supabase  | Surveiller nombre d’appels REST/Edge après campagne marketing.   |
+| Sponsorisation | Signer les événements facturables pour éviter fraude.            |
+
+Score analytics : **6/10**.
+
+## 12. Vercel et DevOps
+
+La production est actuellement en bon état : dernier déploiement `READY`, headers en place, domaine OK. 
+
+Le problème principal reste la confusion entre les projets et la discipline de release.
+
+À faire :
+
+| DevOps                                                                                    | Priorité |
+| ----------------------------------------------------------------------------------------- | -------: |
+| Déclarer `cloud-rebuild-recovered` comme projet officiel.                                 |    Haute |
+| Mettre à jour docs internes et README.                                                    |    Haute |
+| Vérifier toutes les variables d’environnement production sur ce projet.                   |    Haute |
+| Supprimer ou renommer l’autre projet `cloud-rebuild`.                                     |  Moyenne |
+| Ajouter check CI : build, lint, tests, prerender, sitemap, robots.                        |    Haute |
+| Ajouter check post-deploy : fetch home, manifest, robots, sitemap, /restaurateurs/geneve. |    Haute |
+| Ajouter monitoring Vercel runtime + alertes 4xx/5xx.                                      |  Moyenne |
+
+Score DevOps : **7/10**, mais risque humain élevé.
+
+## 13. OpenAI et coûts IA
+
+TOK veut utiliser l’IA comme avantage différenciant : photos IA, campagnes, assistant, retouches. C’est stratégique, mais il manque une couche de gouvernance business.
+
+À faire :
+
+| Élément IA          | Action                                                                  |
+| ------------------- | ----------------------------------------------------------------------- |
+| Quotas par pack     | Starter 10 images, Croissance 30, Premium 80 par exemple.               |
+| Coût par génération | Stocker modèle, qualité, tokens, coût estimé, restaurant_id.            |
+| Budget IA mensuel   | Max 4 % du CA encaissé.                                                 |
+| Alerte dépassement  | Blocage ou facturation extra si quota dépassé.                          |
+| Logs IA             | Dashboard admin coût IA par restaurant, par mois, par fonctionnalité.   |
+| Qualité image       | Tests avant/après, scoring interne, validation restaurateur.            |
+| Sécurité image      | Ne jamais générer logos/texte dans image, watermark externe uniquement. |
+| Batch               | Utiliser batch ou queue pour tâches non urgentes.                       |
+
+Score IA produit : **7/10 côté idée**, **5,5/10 côté gouvernance coût**.
+
+## 14. Paiements et facturation
+
+Le site contient des parcours Stripe, packs, Tok One, facturation, reservations/commandes. La sécurité return URL a été corrigée dans le code précédemment, et c’est positif. Mais il faut une couche finance plus stricte.
+
+À faire :
+
+| Paiement/facturation                                         | Priorité |
+| ------------------------------------------------------------ | -------: |
+| Réconciliation mensuelle Stripe/Supabase.                    |    Haute |
+| Dashboard factures restaurateurs clair.                      |    Haute |
+| Statut paiement : pending, paid, failed, refunded, disputed. |    Haute |
+| Gestion remboursements + Miamz.                              |    Haute |
+| Factures commissions par table.                              |    Haute |
+| Export fiduciaire.                                           |  Moyenne |
+| Alertes paiements échoués Tok One / packs.                   |  Moyenne |
+| Politique claire d’annulation/réservation.                   |    Haute |
+
+Score paiement : **6,8/10**.
+
+## 15. Produit client : fonctionnalités à stabiliser
+
+TOK a beaucoup de modules : recherche, réservations, commandes, anti-gaspi, ventes flash, Miamz, Tok One, actualités, dashboard, admin, coursiers. Le risque est la dispersion.
+
+Priorité produit recommandée :
+
+| Priorité | Fonction                     | Pourquoi                                      |
+| -------: | ---------------------------- | --------------------------------------------- |
+|        1 | Recherche restaurants Genève | Base acquisition client.                      |
+|        2 | Fiche restaurant premium     | Conversion.                                   |
+|        3 | Réservation simple           | Différenciation immédiate.                    |
+|        4 | Zéro attente / précommande   | Signature TOK.                                |
+|        5 | Miamz                        | Fidélité + solidarité.                        |
+|        6 | Offres restaurateur          | Revenus B2B.                                  |
+|        7 | Photos IA                    | Argument de vente restaurateur.               |
+|        8 | Actualités                   | Marketing / sponsorisation.                   |
+|        9 | Tok One                      | Plus tard, quand l’offre est suffisante.      |
+|       10 | Livraison complète           | À repousser si opérationnellement trop lourd. |
+
+À éviter : lancer trop fort la livraison interne avant d’avoir l’écosystème restaurants + réservations + offres.
+
+## 16. Produit restaurateur : fonctionnalités à finir
+
+| Fonction restaurateur       | Statut souhaité avant lancement |
+| --------------------------- | ------------------------------- |
+| Création fiche restaurant   | Obligatoire                     |
+| Menu complet                | Obligatoire                     |
+| Upload photos + retouche IA | Obligatoire                     |
+| Offres / Tables du Chef     | Obligatoire                     |
+| Réservations                | Obligatoire                     |
+| Zéro attente                | Très recommandé                 |
+| Dashboard performances      | Recommandé                      |
+| Facturation                 | Obligatoire                     |
+| Pack / abonnement           | Obligatoire                     |
+| Plan de salle               | Peut venir après                |
+| Actualités / réseau social  | Recommandé après activation     |
+
+Le restaurateur doit comprendre en 30 secondes :
+
+**Je paie combien ? Je gagne quoi ? Combien de clients/tables ça peut m’apporter ? Qui m’aide à configurer ?**
+
+## 17. Marketing
+
+Tu veux réinjecter 60 % du CA dans le marketing. C’est agressif mais cohérent si les dépenses sont plafonnées sur le CA encaissé.
+
+À faire avant d’investir 60 % :
+
+| Marketing                                                | Action                                          |
+| -------------------------------------------------------- | ----------------------------------------------- |
+| Définir CAC restaurant cible                             | < 200 CHF au lancement si pack vendu.           |
+| Définir CAC client cible                                 | À mesurer par réservation/offre utilisée.       |
+| Créer landing `/restaurateurs/geneve`                    | Prioritaire.                                    |
+| Créer flyer QR restaurateur                              | Appel démo + photos IA.                         |
+| Créer campagne “Votre table vous attend. Pas l’inverse.” | Pour clients.                                   |
+| Créer campagne “Gardez votre marge.”                     | Pour restaurateurs.                             |
+| Créer campagne Miamz solidaire                           | Emotion / PR local.                             |
+| Tracking complet                                         | Source, campagne, conversion, restaurant signé. |
+| Budget dynamique                                         | 60 % du CA encaissé, pas du CA espéré.          |
+
+Règle marketing à implémenter dans l’admin :
+
+**Budget marketing disponible = 60 % du CA encaissé sur 30 jours − marketing déjà dépensé.**
+
+## 18. Juridique et conformité
+
+TOK touche à plusieurs sujets sensibles : paiements, réservations, commissions, données clients, données restaurants, Miamz, dons solidaires, photos IA, campagnes sponsorisées.
+
+À faire :
+
+| Domaine juridique         | Action                                                          |
+| ------------------------- | --------------------------------------------------------------- |
+| CGU client                | Vérifier annulation, remboursement, responsabilité restaurant.  |
+| CGU restaurateur          | Commissions, packs, abonnements, photos IA, résiliation.        |
+| Politique confidentialité | Données client, géoloc, analytics, IA, notifications.           |
+| Miamz                     | Conditions précises : valeur, non-monnaie, expiration, dons.    |
+| Solidarité                | Clarifier partenaires, mécanisme, preuve de redistribution.     |
+| Publicités sponsorisées   | Mention “sponsorisé” obligatoire.                               |
+| Photos IA                 | Droits d’utilisation, responsabilité, retouches non trompeuses. |
+| Commercials               | Contrat commission, plafond, paiement sur encaissé.             |
+| TVA/facturation           | Clarifier HT/TTC, taux, export fiduciaire.                      |
+
+Score juridique : **5,5/10** tant que ces documents ne sont pas revus autour du modèle final.
+
+## 19. Tests et qualité
+
+Des tests SEO existent, et c’est un bon point. Le dépôt vérifie la présence du canonical, des URLs Open Graph, du sitemap/robots, des pages locales, du pré-rendu, du JSON-LD et l’absence de mojibake.  
+
+Mais il faut élargir les tests avant lancement.
+
+À ajouter :
+
+| Test                                                 | Priorité |
+| ---------------------------------------------------- | -------: |
+| Test checkout retour URL invalide                    | Critique |
+| Test anon ne peut pas exécuter RPC sensibles         | Critique |
+| Test RLS restaurant ownership                        | Critique |
+| Test upload image hors dossier refusé                | Critique |
+| Test sitemap ne contient aucune route privée         |    Haute |
+| Test `/restaurateurs/geneve` rend un composant dédié |    Haute |
+| Test manifest aligné avec brand TOK                  |  Moyenne |
+| Test Lighthouse mobile minimum                       |    Haute |
+| Test inscription restaurateur complète               |    Haute |
+| Test génération image IA avec quota                  |    Haute |
+| Test commission commercial sur CA encaissé           |    Haute |
+| Test remboursement annule commission                 |    Haute |
+
+Score QA : **6,5/10**.
+
+## 20. Roadmap recommandée
+
+### Phase 1 — À faire immédiatement, avant vente massive
+
+| Action                                                                                 | Domaine      |
+| -------------------------------------------------------------------------------------- | ------------ |
+| Mettre à jour `manifest.json`.                                                         | PWA / marque |
+| Créer vraie page `/restaurateurs/geneve`.                                              | B2B          |
+| Remplacer route `/restaurateurs/geneve` pour ne plus pointer vers `PacksRestaurateur`. | UX / code    |
+| Auditer toutes les fonctions Supabase `SECURITY DEFINER` exécutables par anon.         | Sécurité     |
+| Ajouter migration de révocation ou justification par fonction.                         | Sécurité     |
+| Créer tables commissions/commerciaux/leads/deals.                                      | Business     |
+| Créer dashboard admin finance 60 % marketing.                                          | Finance      |
+| Clarifier projet Vercel officiel.                                                      | DevOps       |
+| Ajouter post-deploy checks.                                                            | DevOps       |
+| Réduire appels analytics/feature flags.                                                | Performance  |
+
+### Phase 2 — Avant campagne Genève
+
+| Action                               | Domaine            |
+| ------------------------------------ | ------------------ |
+| Ajouter slugs restaurants.           | SEO                |
+| Ajouter pages quartiers Genève.      | SEO                |
+| Ajouter page Miamz solidaires.       | Marque / juridique |
+| Ajouter simulateur restaurateur.     | B2B                |
+| Ajouter onboarding restaurant guidé. | Produit            |
+| Ajouter quotas OpenAI par pack.      | IA / finance       |
+| Ajouter exports fiduciaires.         | Finance            |
+| Ajouter contrats commerciaux.        | Juridique          |
+| Lancer 10 restaurants pilotes.       | Opérations         |
+| Mesurer coût acquisition restaurant. | Marketing          |
+
+### Phase 3 — Croissance
+
+| Action                                              | Domaine        |
+| --------------------------------------------------- | -------------- |
+| Sponsorisation restaurant avec event tokens signés. | Ads / sécurité |
+| Tableau de bord commercial 10/15/25/30/50 restos.   | Sales          |
+| Réconciliation Stripe avancée.                      | Finance        |
+| Pages SEO par catégorie/quartier.                   | SEO            |
+| Programme ambassadeurs/restaurants.                 | Marketing      |
+| Tok One seulement si offre suffisante.              | Produit        |
+| Automatisation support IA + humain.                 | Support        |
+| Monitoring coût OpenAI/Supabase/Vercel.             | Infra          |
+
+## 21. Conclusion opérationnelle
+
+TOK est maintenant **techniquement plus crédible** qu’au premier audit. La production sert le bon title, les bons headers, le sitemap, le pré-rendu et le JSON-LD. Le projet Supabase est actif et la base sécurité financière a été durcie.   
+
+Mais le prochain palier n’est pas seulement technique. Il faut maintenant transformer TOK en **machine commerciale contrôlée** :
+
+1. une vraie landing restaurateur ;
+2. un modèle finance intégré à l’admin ;
+3. un module commerciaux/commissions ;
+4. un contrôle strict des dépenses selon CA encaissé ;
+5. un audit Supabase sécurité complet ;
+6. des pages SEO plus riches ;
+7. une promesse client plus simple ;
+8. un onboarding restaurant très guidé.
+
+Le plus important à retenir :
+
+**TOK ne doit plus seulement montrer qu’il sait faire beaucoup de choses. TOK doit prouver qu’il peut signer, activer et rentabiliser des restaurants sans dépasser ses revenus.**

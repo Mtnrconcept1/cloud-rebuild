@@ -1,0 +1,504 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e4]:
+    - link "Pour les restaurateurs" [ref=e5] [cursor=pointer]:
+      - /url: /restaurateurs/geneve
+      - img [ref=e6]
+      - text: Pour les restaurateurs
+    - generic [ref=e11]: "|"
+    - link "Aide" [ref=e12] [cursor=pointer]:
+      - /url: /aide
+  - banner [ref=e13]:
+    - generic [ref=e14]:
+      - link "Tok" [ref=e15] [cursor=pointer]:
+        - /url: /
+        - img "Tok" [ref=e16]
+      - navigation "Main" [ref=e17]:
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - link "Explorer" [ref=e21] [cursor=pointer]:
+              - /url: /recherche
+              - img [ref=e22]
+              - text: Explorer
+          - listitem [ref=e25]:
+            - link "Restaurateurs" [ref=e26] [cursor=pointer]:
+              - /url: /restaurateurs/geneve
+              - img [ref=e27]
+              - text: Restaurateurs
+      - generic [ref=e32]:
+        - button "Mode sombre" [ref=e33] [cursor=pointer]:
+          - img
+          - img
+          - generic [ref=e34]: Mode sombre
+        - link "Panier" [ref=e35] [cursor=pointer]:
+          - /url: /panier
+          - img
+          - generic [ref=e36]: Panier
+        - button "Notifications" [ref=e37] [cursor=pointer]:
+          - img
+          - generic [ref=e38]: Notifications
+        - button "Help ! Ouvrir le chat IA" [ref=e39] [cursor=pointer]:
+          - img [ref=e42]
+          - generic [ref=e45]: Help !
+        - button "Compte" [ref=e46] [cursor=pointer]:
+          - img
+          - generic [ref=e47]: COMPTE
+  - main [ref=e48]:
+    - generic [ref=e49]:
+      - generic [ref=e51]:
+        - img "Tok" [ref=e52]
+        - generic [ref=e53]:
+          - heading "Réservez, commandez et profitez des meilleures offres food à Genève" [level=1] [ref=e54]:
+            - generic [ref=e55]: Réservez, commandez et profitez
+            - generic [ref=e56]: des meilleures offres food à Genève
+          - paragraph [ref=e57]: Gagnez du temps, cumulez des Miamz et transformez vos repas en impact solidaire.
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - img [ref=e60]
+            - textbox "Votre ville..." [ref=e65]: Genève
+          - generic [ref=e66]:
+            - img [ref=e67]
+            - textbox "Cuisine, nom de restaurant..." [ref=e70]
+          - generic [ref=e71]:
+            - button "Je veux manger" [ref=e72] [cursor=pointer]:
+              - generic [ref=e73]:
+                - img [ref=e74]
+                - text: Je veux manger
+            - button "Je suis restaurateur" [ref=e77] [cursor=pointer]:
+              - generic [ref=e78]:
+                - img [ref=e79]
+                - text: Je suis restaurateur
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - img [ref=e84]
+            - generic [ref=e86]: 4.8/5
+          - generic [ref=e87]:
+            - img [ref=e89]
+            - generic [ref=e92]: Restaurants locaux partenaires
+      - generic [ref=e94]:
+        - paragraph [ref=e95]:
+          - text: Abonnez-vous à notre newsletter et recevez 500 Miamz.
+          - button "Conditions applicables." [ref=e96] [cursor=pointer]
+        - generic [ref=e97]:
+          - button "Inscrivez-vous" [ref=e98] [cursor=pointer]
+          - button "Fermer" [ref=e99] [cursor=pointer]:
+            - img [ref=e100]
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - heading "Explorer par cuisine" [level=2] [ref=e106]
+        - generic [ref=e107]:
+          - button "Défiler à gauche" [ref=e108] [cursor=pointer]:
+            - img [ref=e109]
+          - button "Défiler à droite" [ref=e111] [cursor=pointer]:
+            - img [ref=e112]
+      - generic [ref=e114]:
+        - button "Africain" [ref=e115] [cursor=pointer]:
+          - generic [ref=e116]:
+            - img [ref=e118]
+            - generic:
+              - generic: Africain
+          - generic [ref=e121]: Africain
+        - button "Américain" [ref=e122] [cursor=pointer]:
+          - generic [ref=e123]:
+            - img [ref=e125]
+            - generic:
+              - generic: Américain
+          - generic [ref=e128]: Américain
+        - button "Bistro" [ref=e129] [cursor=pointer]:
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - generic:
+              - generic: Bistro
+          - generic [ref=e135]: Bistro
+        - button "Boulangerie" [ref=e136] [cursor=pointer]:
+          - generic [ref=e137]:
+            - img [ref=e139]
+            - generic:
+              - generic: Boulangerie
+          - generic [ref=e142]: Boulangerie
+        - button "Brunch" [ref=e143] [cursor=pointer]:
+          - generic [ref=e144]:
+            - img [ref=e146]
+            - generic:
+              - generic: Brunch
+          - generic [ref=e149]: Brunch
+        - button "Burger" [ref=e150] [cursor=pointer]:
+          - generic [ref=e151]:
+            - img [ref=e153]
+            - generic:
+              - generic: Burger
+          - generic [ref=e156]: Burger
+        - button "Café" [ref=e157] [cursor=pointer]:
+          - generic [ref=e158]:
+            - img [ref=e160]
+            - generic:
+              - generic: Café
+          - generic [ref=e163]: Café
+        - button "Chinois" [ref=e164] [cursor=pointer]:
+          - generic [ref=e165]:
+            - img [ref=e167]
+            - generic:
+              - generic: Chinois
+          - generic [ref=e170]: Chinois
+        - button "Créole" [ref=e171] [cursor=pointer]:
+          - generic [ref=e172]:
+            - img [ref=e174]
+            - generic:
+              - generic: Créole
+          - generic [ref=e177]: Créole
+        - button "Desserts" [ref=e178] [cursor=pointer]:
+          - generic [ref=e179]:
+            - img [ref=e181]
+            - generic:
+              - generic: Desserts
+          - generic [ref=e184]: Desserts
+        - button "Fondue Suisse" [ref=e185] [cursor=pointer]:
+          - generic [ref=e186]:
+            - img [ref=e188]
+            - generic:
+              - generic: Fondue Suisse
+          - generic [ref=e191]: Fondue Suisse
+        - button "Français" [ref=e192] [cursor=pointer]:
+          - generic [ref=e193]:
+            - img [ref=e195]
+            - generic:
+              - generic: Français
+          - generic [ref=e198]: Français
+        - button "Gastronomique" [ref=e199] [cursor=pointer]:
+          - generic [ref=e200]:
+            - img [ref=e202]
+            - generic:
+              - generic: Gastronomique
+          - generic [ref=e205]: Gastronomique
+        - button "Grillades" [ref=e206] [cursor=pointer]:
+          - generic [ref=e207]:
+            - img [ref=e209]
+            - generic:
+              - generic: Grillades
+          - generic [ref=e212]: Grillades
+        - button "Halal" [ref=e213] [cursor=pointer]:
+          - generic [ref=e214]:
+            - img [ref=e216]
+            - generic:
+              - generic: Halal
+          - generic [ref=e219]: Halal
+        - button "Healthy" [ref=e220] [cursor=pointer]:
+          - generic [ref=e221]:
+            - img [ref=e223]
+            - generic:
+              - generic: Healthy
+          - generic [ref=e226]: Healthy
+        - button "Indien" [ref=e227] [cursor=pointer]:
+          - generic [ref=e228]:
+            - img [ref=e230]
+            - generic:
+              - generic: Indien
+          - generic [ref=e233]: Indien
+        - button "Italien" [ref=e234] [cursor=pointer]:
+          - generic [ref=e235]:
+            - img [ref=e237]
+            - generic:
+              - generic: Italien
+          - generic [ref=e240]: Italien
+        - button "Japonais" [ref=e241] [cursor=pointer]:
+          - generic [ref=e242]:
+            - img [ref=e244]
+            - generic:
+              - generic: Japonais
+          - generic [ref=e247]: Japonais
+        - button "Kebab" [ref=e248] [cursor=pointer]:
+          - generic [ref=e249]:
+            - img [ref=e251]
+            - generic:
+              - generic: Kebab
+          - generic [ref=e254]: Kebab
+        - button "Libanais" [ref=e255] [cursor=pointer]:
+          - generic [ref=e256]:
+            - img [ref=e258]
+            - generic:
+              - generic: Libanais
+          - generic [ref=e261]: Libanais
+        - button "Marocain" [ref=e262] [cursor=pointer]:
+          - generic [ref=e263]:
+            - img [ref=e265]
+            - generic:
+              - generic: Marocain
+          - generic [ref=e268]: Marocain
+        - button "Méditerranéen" [ref=e269] [cursor=pointer]:
+          - generic [ref=e270]:
+            - img [ref=e272]
+            - generic:
+              - generic: Méditerranéen
+          - generic [ref=e275]: Méditerranéen
+        - button "Mexicain" [ref=e276] [cursor=pointer]:
+          - generic [ref=e277]:
+            - img [ref=e279]
+            - generic:
+              - generic: Mexicain
+          - generic [ref=e282]: Mexicain
+        - button "Pakistanais" [ref=e283] [cursor=pointer]:
+          - generic [ref=e284]:
+            - img [ref=e286]
+            - generic:
+              - generic: Pakistanais
+          - generic [ref=e289]: Pakistanais
+        - button "Pâtes" [ref=e290] [cursor=pointer]:
+          - generic [ref=e291]:
+            - img [ref=e293]
+            - generic:
+              - generic: Pâtes
+          - generic [ref=e296]: Pâtes
+        - button "Pâtisserie" [ref=e297] [cursor=pointer]:
+          - generic [ref=e298]:
+            - img [ref=e300]
+            - generic:
+              - generic: Pâtisserie
+          - generic [ref=e303]: Pâtisserie
+        - button "Petit-déjeuner" [ref=e304] [cursor=pointer]:
+          - generic [ref=e305]:
+            - img [ref=e307]
+            - generic:
+              - generic: Petit-déjeuner
+          - generic [ref=e310]: Petit-déjeuner
+        - button "Pizza" [ref=e311] [cursor=pointer]:
+          - generic [ref=e312]:
+            - img [ref=e314]
+            - generic:
+              - generic: Pizza
+          - generic [ref=e317]: Pizza
+        - button "Poké" [ref=e318] [cursor=pointer]:
+          - generic [ref=e319]:
+            - img [ref=e321]
+            - generic:
+              - generic: Poké
+          - generic [ref=e324]: Poké
+        - button "Ramen" [ref=e325] [cursor=pointer]:
+          - generic [ref=e326]:
+            - img [ref=e328]
+            - generic:
+              - generic: Ramen
+          - generic [ref=e331]: Ramen
+        - button "Salades" [ref=e332] [cursor=pointer]:
+          - generic [ref=e333]:
+            - img [ref=e335]
+            - generic:
+              - generic: Salades
+          - generic [ref=e338]: Salades
+        - button "Sandwich" [ref=e339] [cursor=pointer]:
+          - generic [ref=e340]:
+            - img [ref=e342]
+            - generic:
+              - generic: Sandwich
+          - generic [ref=e345]: Sandwich
+        - button "Street-food" [ref=e346] [cursor=pointer]:
+          - generic [ref=e347]:
+            - img [ref=e349]
+            - generic:
+              - generic: Street-food
+          - generic [ref=e352]: Street-food
+        - button "Sushi" [ref=e353] [cursor=pointer]:
+          - generic [ref=e354]:
+            - img [ref=e356]
+            - generic:
+              - generic: Sushi
+          - generic [ref=e359]: Sushi
+        - button "Thaï" [ref=e360] [cursor=pointer]:
+          - generic [ref=e361]:
+            - img [ref=e363]
+            - generic:
+              - generic: Thaï
+          - generic [ref=e366]: Thaï
+        - button "Turc" [ref=e367] [cursor=pointer]:
+          - generic [ref=e368]:
+            - img [ref=e370]
+            - generic:
+              - generic: Turc
+          - generic [ref=e373]: Turc
+        - button "Vegan" [ref=e374] [cursor=pointer]:
+          - generic [ref=e375]:
+            - img [ref=e377]
+            - generic:
+              - generic: Vegan
+          - generic [ref=e380]: Vegan
+        - button "Végétarien" [ref=e381] [cursor=pointer]:
+          - generic [ref=e382]:
+            - img [ref=e384]
+            - generic:
+              - generic: Végétarien
+          - generic [ref=e387]: Végétarien
+    - generic [ref=e388]:
+      - generic [ref=e391]:
+        - generic [ref=e392]:
+          - generic [ref=e393]:
+            - img [ref=e395]
+            - generic [ref=e398]:
+              - paragraph [ref=e399]: Personnalisation
+              - heading "Choisissez votre ville" [level=2] [ref=e400]
+          - paragraph [ref=e401]: Ajoutez votre ville pour voir plus vite les bonnes adresses autour de vous.
+          - link "Compléter mon profil" [ref=e403] [cursor=pointer]:
+            - /url: /profil?tab=infos
+            - text: Compléter mon profil
+            - img
+        - generic [ref=e404]:
+          - generic [ref=e405]:
+            - img [ref=e407]
+            - generic [ref=e410]:
+              - paragraph [ref=e411]: Découverte
+              - heading "Lancez votre première sélection" [level=2] [ref=e412]
+          - paragraph [ref=e413]: Commencez par une recherche simple. Le reste du parcours restera ensuite beaucoup plus personnalisé.
+          - link "Explorer les restaurants" [ref=e415] [cursor=pointer]:
+            - /url: /recherche
+            - text: Explorer les restaurants
+            - img
+      - generic [ref=e420]:
+        - generic [ref=e421]:
+          - img [ref=e423]
+          - generic [ref=e425]:
+            - paragraph [ref=e426]: À ne pas manquer
+            - heading "Promotions et activations du moment" [level=2] [ref=e427]
+        - generic [ref=e429]:
+          - generic [ref=e432]:
+            - img "Programme Fidélité" [ref=e434]
+            - generic [ref=e435]:
+              - generic [ref=e437]:
+                - img [ref=e438]
+                - text: Nouveau
+              - generic [ref=e440]:
+                - heading "Programme Fidélité" [level=2] [ref=e441]
+                - paragraph [ref=e442]: Gagnez des Miamz à chaque commande.
+              - link "En savoir plus" [ref=e444] [cursor=pointer]:
+                - /url: /profil
+          - button [ref=e445] [cursor=pointer]:
+            - img [ref=e446]
+          - button [ref=e448] [cursor=pointer]:
+            - img [ref=e449]
+      - generic [ref=e456]:
+        - generic [ref=e457]:
+          - img [ref=e459]
+          - heading "Restaurants à proximité" [level=2] [ref=e463]
+        - link "Voir la liste" [ref=e464] [cursor=pointer]:
+          - /url: /recherche
+          - text: Voir la liste
+          - img
+      - generic [ref=e469]:
+        - heading "Impact Solidaire Tok" [level=2] [ref=e470]
+        - paragraph [ref=e471]: Grâce à vos dons de Miamz, nous offrons ensemble des repas nutritifs à ceux qui en ont le plus besoin.
+        - generic:
+          - img "Miamz solidaire Tok"
+        - generic [ref=e473]:
+          - generic [ref=e474]: 0 repas distribués
+          - generic [ref=e475]:
+            - generic [ref=e476]:
+              - paragraph [ref=e477]: Points récoltés
+              - generic [ref=e478]:
+                - generic [ref=e479]: "0"
+                - generic [ref=e480]: pts
+            - generic [ref=e482]:
+              - paragraph [ref=e483]: Prochain objectif
+              - generic [ref=e484]:
+                - generic [ref=e485]:
+                  - generic [ref=e486]: 5 000
+                  - generic [ref=e487]: pts
+                - paragraph [ref=e488]: objectif solidaire du mois
+          - progressbar "Progression vers le prochain objectif" [ref=e490]:
+            - generic [ref=e491]: Miamz
+      - generic [ref=e494]:
+        - generic [ref=e495]:
+          - generic [ref=e496]:
+            - img [ref=e497]
+            - heading "Trois raisons de choisir TOK" [level=2] [ref=e499]
+          - paragraph [ref=e500]: "Une lecture simple : moins d'attente, plus d'offres locales, plus d'impact solidaire."
+        - generic [ref=e501]:
+          - link "Zéro attente Réservez, choisissez, payez, arrivez, mangez." [ref=e502] [cursor=pointer]:
+            - /url: /zero-attente
+            - img [ref=e504]
+            - generic [ref=e507]:
+              - heading "Zéro attente" [level=3] [ref=e508]
+              - paragraph [ref=e509]: Réservez, choisissez, payez, arrivez, mangez.
+          - link "Offres anti-gaspi & Tables du Chef Des offres fortes, limitées et utiles aux restaurants." [ref=e510] [cursor=pointer]:
+            - /url: /anti-gaspi
+            - img [ref=e512]
+            - generic [ref=e514]:
+              - heading "Offres anti-gaspi & Tables du Chef" [level=3] [ref=e515]
+              - paragraph [ref=e516]: Des offres fortes, limitées et utiles aux restaurants.
+          - link "Miamz solidaires Chaque repas peut produire un impact concret." [ref=e517] [cursor=pointer]:
+            - /url: /tok-one
+            - img [ref=e519]
+            - generic [ref=e521]:
+              - heading "Miamz solidaires" [level=3] [ref=e522]
+              - paragraph [ref=e523]: Chaque repas peut produire un impact concret.
+  - contentinfo [ref=e524]:
+    - generic [ref=e525]:
+      - generic [ref=e526]:
+        - generic [ref=e527]:
+          - img "Tok" [ref=e528]
+          - paragraph [ref=e529]: Le réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.
+          - generic [ref=e530]:
+            - link [ref=e531] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e532]
+            - link [ref=e534] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e535]
+            - link [ref=e537] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e538]
+        - generic [ref=e540]:
+          - heading "Découvrir" [level=4] [ref=e541]
+          - navigation [ref=e542]:
+            - link "Restaurants" [ref=e543] [cursor=pointer]:
+              - /url: /recherche
+            - link "Anti-gaspi" [ref=e544] [cursor=pointer]:
+              - /url: /anti-gaspi
+            - link "Ventes flash" [ref=e545] [cursor=pointer]:
+              - /url: /ventes-flash
+            - link "La Table du Chef" [ref=e546] [cursor=pointer]:
+              - /url: /chefs-table
+            - link "Tok One" [ref=e547] [cursor=pointer]:
+              - /url: /tok-one
+        - generic [ref=e548]:
+          - heading "Informations" [level=4] [ref=e549]
+          - navigation [ref=e550]:
+            - link "À propos" [ref=e551] [cursor=pointer]:
+              - /url: /a-propos
+            - link "Contact" [ref=e552] [cursor=pointer]:
+              - /url: /contact
+            - link "Centre d'aide" [ref=e553] [cursor=pointer]:
+              - /url: /aide
+            - link "CGU" [ref=e554] [cursor=pointer]:
+              - /url: /cgu
+            - link "Confidentialité" [ref=e555] [cursor=pointer]:
+              - /url: /politique-confidentialite
+        - generic [ref=e556]:
+          - heading "Restaurateur" [level=4] [ref=e557]
+          - navigation [ref=e558]:
+            - link "Devenir partenaire" [ref=e559] [cursor=pointer]:
+              - /url: /restaurateurs/geneve
+            - link "Voir les packs" [ref=e560] [cursor=pointer]:
+              - /url: /packs-restaurateur
+            - link "Audit Google Business" [ref=e561] [cursor=pointer]:
+              - /url: /restaurateurs/google-business
+            - link "Comparer les commissions" [ref=e562] [cursor=pointer]:
+              - /url: /restaurateurs/alternative-commission-couvert
+            - link "Espace pro" [ref=e563] [cursor=pointer]:
+              - /url: /dashboard
+          - generic [ref=e564]:
+            - paragraph [ref=e565]: Bientôt disponible
+            - generic [ref=e566]:
+              - generic [ref=e567]:
+                - img [ref=e568]
+                - text: App Store
+              - generic [ref=e570]:
+                - img [ref=e571]
+                - text: Google Play
+      - generic [ref=e573]:
+        - paragraph [ref=e574]: © 2026 Tok. Tous droits réservés.
+        - generic [ref=e575]:
+          - link "Conditions" [ref=e576] [cursor=pointer]:
+            - /url: /cgu
+          - link "Confidentialité" [ref=e577] [cursor=pointer]:
+            - /url: /politique-confidentialite
+          - link "Cookies" [ref=e578] [cursor=pointer]:
+            - /url: /cgu

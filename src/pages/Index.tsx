@@ -544,15 +544,19 @@ export default function Index() {
             <div className="pointer-events-none absolute bottom-0 left-0 top-0 w-1.5 bg-primary/80" aria-hidden="true" />
             <div className="container relative space-y-6">
               <SectionShowcaseHeader
-                title="Promotions et activations du moment"
+                title={"Promotions\u00a0et activations\u00a0du moment"}
                 subtitle="À ne pas manquer"
                 icon={Sparkles}
                 iconColor="text-primary"
                 imageSrc={SECTION_HEADER_IMAGES.promo}
                 theme="orange"
+                className="-mx-4 min-h-[222px] pb-16 pt-5 sm:mx-0 sm:min-h-[258px] sm:pb-20 sm:pt-7 md:min-h-[286px] md:pb-20 md:pt-8"
                 linkText="Voir les actualités"
                 linkTo="/actualites"
-                titleClassName="text-3xl sm:text-4xl md:text-5xl"
+                contentClassName="z-30 max-w-[13rem] pr-0 sm:max-w-sm sm:pr-36 md:z-20 md:max-w-2xl md:pr-56"
+                illustrationClassName="z-[60] -right-16 -top-8 w-72 sm:-right-12 sm:-top-10 sm:w-[26rem] md:-right-8 md:-top-10 md:w-[31rem]"
+                imageClassName="-right-5 h-72 w-72 translate-x-12 sm:right-0 sm:h-80 sm:w-80 sm:translate-x-2 md:h-[26rem] md:w-[26rem] md:translate-x-0"
+                titleClassName="text-[1.9rem] leading-[1.05] sm:text-4xl md:text-5xl"
               />
               <div className="space-y-4">
                 <PromoCarousel />

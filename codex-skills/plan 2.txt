@@ -1,0 +1,401 @@
+Voici l’audit complet mis à jour. L’état a encore évolué positivement depuis le dernier audit : la production est maintenant plus propre, la page restaurateur est mieux pré-rendue, le manifest est corrigé dans le dépôt, et la route `/restaurateurs/geneve` utilise maintenant un composant dédié côté code. Il reste cependant plusieurs chantiers importants, surtout **Supabase sécurité/performance**, **modèle commercial intégré**, **Google Business / sortie TheFork**, **tracking des commissions**, et **discipline financière 60 % marketing**.
+
+## Verdict global
+
+Je mettrais aujourd’hui TOK à **7,8/10**.
+
+Le socle public est désormais crédible : le site `www.thetok.ch` répond en 200, sert le bon title SEO, une meta-description alignée, du JSON-LD Organization/WebSite, du contenu pré-rendu public et des headers de sécurité solides.  
+
+Le projet Vercel officiel semble être `cloud-rebuild-recovered`, framework Vite, avec dernier déploiement production `READY`, domaines `www.thetok.ch`, `auth.thetok.ch`, `admin.thetok.ch` et `thetok.ch`.  
+
+Le point faible majeur reste le back-office business : il faut maintenant transformer les bonnes idées commerciales en **modules mesurables dans l’admin** : coûts, commissions, commerciaux, leads, budget marketing, Google Business, économies réalisées pour les restaurants.
+
+## 1. Production, Vercel et déploiement
+
+Le déploiement production est sain : `cloud-rebuild-recovered` est le projet Vercel qui porte les domaines TOK, et son dernier déploiement est en état `READY`. 
+
+Le HTML de la home est bien pré-rendu : title, description, canonical, Open Graph, Twitter Card, JSON-LD Organization/WebSite et contenu pré-rendu public sont présents. 
+
+Les headers de sécurité sont bons : CSP, HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Permissions-Policy`, `Referrer-Policy`. 
+
+Ce qu’il reste à faire côté Vercel/production :
+
+| Priorité | Action                                                                                                           | Pourquoi                                     |
+| -------: | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+|    Haute | Renommer officiellement `cloud-rebuild-recovered` en `tok-production` ou documenter qu’il est le projet officiel | Éviter toute confusion de déploiement        |
+|    Haute | Vérifier que toutes les variables sensibles sont uniquement dans le bon projet Vercel                            | Éviter de modifier le mauvais projet         |
+|    Haute | Ajouter un post-deploy check automatique : home, robots, sitemap, manifest, `/restaurateurs/geneve`, `/admin`    | Éviter les déploiements partiellement cassés |
+|  Moyenne | Ajouter une page `/status` interne ou protégée                                                                   | Contrôler version, commit, build, env        |
+|  Moyenne | Mettre en place alertes Vercel sur 4xx/5xx et build failed                                                       | Réagir vite en production                    |
+
+Score production : **8,2/10**.
+
+## 2. SEO public et pré-rendu
+
+Très net progrès. La home a un title cohérent : **« TOK - Réservez, commandez et profitez des meilleures offres food à Genève »**, une description orientée restaurants, réservation, commande, offres locales et Miamz solidaires. 
+
+Le pré-rendu a été amélioré : il ne se limite plus à un simple `<noscript>`. Il inclut maintenant une section `tok-prerendered-content` avec H1, paragraphe et un script qui supprime cette section après hydratation React.  C’est mieux pour Google, mais ce n’est pas encore idéal : le contenu pré-rendu de la home reste très court.
+
+La page `/restaurateurs/geneve` est mieux pré-rendue : elle contient un H1 fort, des paragraphes, des sections “Simulateur de marge”, “TOK vs plateformes classiques”, “Demander une démo”, et du JSON-LD Service + BreadcrumbList + FAQPage. 
+
+Ce qu’il reste à faire côté SEO :
+
+| Priorité | Action                                                                                                     | Détail                                                                            |
+| -------: | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+|    Haute | Créer des URLs lisibles pour les restaurants                                                               | Passer de `/restaurant/uuid` à `/restaurants/geneve/nom-du-restaurant`            |
+|    Haute | Enrichir le pré-rendu de la home                                                                           | Ajouter sections statiques : zéro attente, 5 CHF/table, Miamz, restaurants Genève |
+|    Haute | Créer `/restaurateurs/google-business`                                                                     | Page SEO + commerciale sur le remplacement du bouton Google Business              |
+|    Haute | Créer `/restaurateurs/quitter-thefork` ou version prudente `/restaurateurs/alternative-commission-couvert` | Attaquer l’intention “moins de commission par couvert”                            |
+|    Haute | Créer `/miamz-solidaires`                                                                                  | Le manifest pointe vers Miamz et le sitemap doit porter l’histoire solidaire      |
+|  Moyenne | Ajouter pages quartiers Genève                                                                             | Carouge, Plainpalais, Eaux-Vives, Pâquis, Grottes, Chêne-Bougeries                |
+|  Moyenne | Ajouter FAQ enrichie par page locale                                                                       | “Comment réserver à Genève ?”, “Combien coûte TOK ?”                              |
+|  Moyenne | Ajouter maillage interne structuré                                                                         | Home → restaurateurs → Google Business → packs → zéro attente                     |
+
+Score SEO : **8/10 côté technique**, **7/10 côté contenu**.
+
+## 3. Manifest, PWA et mobile
+
+Bonne correction côté dépôt : le manifest contient maintenant **« TOK — Réservez, commandez, profitez à Genève »**, short name `TOK`, description alignée, `start_url` avec `?source=pwa`, screenshots et shortcuts Réserver, Offres, Miamz, Restaurateurs.    
+
+Je n’ai pas pu revalider le contenu du manifest servi via l’outil Vercel lors de ce passage, car l’appel spécifique au manifest a échoué côté outil, mais le dépôt est maintenant corrigé. La home continue bien à référencer `/manifest.json`. 
+
+Ce qu’il reste à faire côté PWA/mobile :
+
+| Priorité | Action                                                                           |
+| -------: | -------------------------------------------------------------------------------- |
+|    Haute | Vérifier manuellement `https://www.thetok.ch/manifest.json` dans navigateur      |
+|    Haute | Tester installation iPhone et Android                                            |
+|    Haute | Vérifier que `/mockup.png` existe bien et correspond au format annoncé `390x844` |
+|  Moyenne | Ajouter screenshots spécifiques restaurateur/client                              |
+|  Moyenne | Tester les shortcuts PWA                                                         |
+|  Moyenne | Ajouter icône maskable réellement safe-zone                                      |
+
+Score PWA : **7,7/10**.
+
+## 4. Page restaurateurs et stratégie anti-TheFork
+
+Très bon pivot stratégique : l’angle **“5 CHF par table, pas par couvert”** est le meilleur angle commercial actuel. Il donne une promesse claire, financière et vérifiable.
+
+Techniquement, la route `/restaurateurs/geneve` utilise maintenant bien un composant dédié `RestaurateursGeneve`, et non plus `PacksRestaurateur`.  
+
+La page pré-rendue parle déjà de marge, de 5 CHF par table, de packs, de photos IA et d’offres locales. 
+
+Ce qu’il reste à faire pour transformer cet angle en machine de vente :
+
+| Priorité | Action                                                                 | Objectif                                        |
+| -------: | ---------------------------------------------------------------------- | ----------------------------------------------- |
+| Critique | Créer un simulateur “coût par couvert vs TOK”                          | Montrer l’économie instantanément               |
+| Critique | Ajouter une page dédiée “Remplacer le bouton Google Business”          | Ton vrai cheval de Troie commercial             |
+| Critique | Générer un rapport PDF par restaurant prospecté                        | “Votre fiche Google peut vous coûter trop cher” |
+|    Haute | Ajouter un guide étape par étape pour modifier le lien Google Business | Aider le restaurateur à basculer                |
+|    Haute | Ajouter un CTA “Audit gratuit de ma fiche Google”                      | Générer des leads qualifiés                     |
+|    Haute | Ajouter un champ “lien de réservation actuel” dans CRM lead            | Identifier TheFork/autre                        |
+|    Haute | Ajouter tracking “bouton Google Business modifié”                      | Mesurer l’adoption réelle                       |
+|  Moyenne | Préparer scripts d’appel commercial                                    | Standardiser la vente                           |
+|  Moyenne | Préparer objection handling                                            | “Et si TheFork m’apporte des clients ?”         |
+
+Message à marteler :
+
+**5 CHF par table. Pas par couvert.**
+
+Version commerciale :
+
+**Vos clients vous trouvent déjà sur Google. Pourquoi payer une commission par couvert pour récupérer une réservation venue de votre propre fiche ?**
+
+Score B2B actuel : **7/10**, potentiel **9/10** après simulateur et page Google Business.
+
+## 5. UX client
+
+La home est claire côté metadata, mais en expérience visuelle le projet reste ambitieux et potentiellement dense. Il faut éviter que TOK apparaisse comme “une app avec 25 fonctionnalités” au lieu d’une promesse simple.
+
+Je recommande de ramener la home à trois piliers visibles :
+
+| Pilier           | Message                                                    |
+| ---------------- | ---------------------------------------------------------- |
+| Zéro attente     | Réservez, précommandez, arrivez au bon moment              |
+| Offres locales   | Tables du Chef, anti-gaspi, ventes flash                   |
+| Miamz solidaires | Gagnez des points et soutenez les restaurants / solidarité |
+
+Ce qu’il reste à faire côté UX client :
+
+| Priorité | Action                                                          |
+| -------: | --------------------------------------------------------------- |
+|    Haute | Ajouter une section claire “Comment TOK marche en 3 étapes”     |
+|    Haute | Améliorer explication Miamz : points, valeur, utilisation, don  |
+|    Haute | Montrer vrais restaurants partenaires avec photos premium       |
+|    Haute | Ajouter preuve locale : Genève, quartiers, restaurants genevois |
+|  Moyenne | Réduire les fonctionnalités secondaires sur home                |
+|  Moyenne | Créer un onboarding client simple                               |
+|  Moyenne | Tester recherche → fiche → réservation sur mobile réel          |
+|  Moyenne | Ajouter microcopies rassurantes paiement/réservation            |
+
+Score UX client : **7,2/10**.
+
+## 6. UX restaurateur
+
+La page restaurateur est enfin sur la bonne voie, mais elle doit devenir un outil de conversion terrain.
+
+À faire :
+
+| Priorité | Action                                                      |
+| -------: | ----------------------------------------------------------- |
+| Critique | Simulateur économie “commission par couvert vs 5 CHF/table” |
+| Critique | Formulaire lead restaurateur complet                        |
+|    Haute | “Audit Google gratuit” avec téléchargement d’un rapport     |
+|    Haute | Avant/après photos IA                                       |
+|    Haute | Section “Comment changer votre bouton Google Business”      |
+|    Haute | Section “Ce que vous économisez sur 100 tables”             |
+|    Haute | Témoignages pilotes ou exemples fictifs clairement marqués  |
+|  Moyenne | CTA sticky mobile “Demander une démo”                       |
+|  Moyenne | Comparatif visuel TOK / modèle par couvert                  |
+
+Score UX restaurateur : **7,1/10**.
+
+## 7. Supabase sécurité
+
+Le projet Supabase TOK est actif. Les anciens correctifs critiques sur certaines fonctions financières et sur le stockage existent côté migration, notamment la révocation des RPC de payout/frais de réservation pour `PUBLIC`, `anon` et `authenticated`, avec accès réservé au `service_role`. 
+
+Le durcissement des buckets `images` et `invoice-logos` est également présent : limites MIME/taille et politiques basées sur dossier utilisateur/restaurant.   
+
+Mais les advisors Supabase sécurité remontent encore plusieurs warnings importants : fonctions avec `search_path` mutable dans le schéma `stripe`, et fonctions `SECURITY DEFINER` exécutables par `anon`, dont `get_order_customers`, `get_reservation_customers`, `get_restaurant_reservation_slot_availability`, `get_total_donated_meals`, `get_total_donated_points`, `has_role`, `is_feature_flag_active`, `log_audit`, etc. 
+
+C’est le plus gros chantier technique restant.
+
+À faire :
+
+| Priorité | Action                                                                              |
+| -------: | ----------------------------------------------------------------------------------- |
+| Critique | Exporter la liste complète des fonctions `SECURITY DEFINER` exécutables par `anon`  |
+| Critique | Révoquer `anon` sur tout ce qui retourne données clients/restaurants                |
+| Critique | Auditer en priorité `get_order_customers` et `get_reservation_customers`            |
+| Critique | Auditer `has_role` exposée à `anon`                                                 |
+|    Haute | Pour les fonctions publiques légitimes, documenter pourquoi elles restent publiques |
+|    Haute | Ajouter tests SQL : anon ne peut pas appeler les RPC sensibles                      |
+|    Haute | Fixer `search_path` des fonctions `stripe` si possible                              |
+|  Moyenne | Centraliser les fonctions publiques dans une liste allowlistée                      |
+|  Moyenne | Ajouter monitoring des appels RPC publics                                           |
+
+Score sécurité Supabase : **6,3/10** tant que les warnings ne sont pas triés.
+
+## 8. Supabase performance
+
+Les advisors performance montrent encore beaucoup de foreign keys non indexées : par exemple `carts.restaurant_id`, `chef_table_checkout_holds.drop_id/user_id`, `chef_table_drops.restaurant_id`, `clicks.impression_id/user_id`, `commercial_commissions.restaurant_id`, etc. 
+
+Le fait que `commercial_commissions_restaurant_id_fkey` apparaisse dans les advisors est intéressant : cela indique qu’une partie du modèle commercial/commissions existe probablement déjà côté base, mais il faut ajouter les index et vérifier les dashboards. 
+
+À faire :
+
+| Priorité | Action                                                                                                       |
+| -------: | ------------------------------------------------------------------------------------------------------------ |
+|    Haute | Ajouter index sur toutes les FK critiques                                                                    |
+|    Haute | Prioriser `commercial_commissions`, `carts`, `clicks`, `chef_table_*`, `favorites`, `orders`, `reservations` |
+|    Haute | Ajouter index composés `restaurant_id + created_at`, `user_id + created_at`, `status + created_at`           |
+|  Moyenne | Analyser requêtes lentes après 24h de trafic                                                                 |
+|  Moyenne | Réduire fréquence des appels `feature_flags`                                                                 |
+|  Moyenne | Batcher les analytics                                                                                        |
+
+Score performance DB : **6,4/10**.
+
+## 9. Modèle commercial et commissions
+
+Le modèle de commissions doit être complètement intégré dans l’admin si tu veux piloter les commerciaux sérieusement.
+
+Objectif : gérer des commerciaux qui signent 10, 15, 25, 30 ou 50 restaurants/mois, tout en respectant la règle **aucune charge avant encaissement**.
+
+Ce qu’il faut vérifier/créer :
+
+| Module                          | À faire                                                            |
+| ------------------------------- | ------------------------------------------------------------------ |
+| `sales_representatives`         | Profil commercial, statut, zone, objectifs                         |
+| `restaurant_leads`              | Prospect, source, fiche Google, fournisseur actuel, étape pipeline |
+| `restaurant_deals`              | Pack vendu, abonnement, montant, statut paiement                   |
+| `commercial_commissions`        | Commission pack, bonus activation, bonus palier, paiement          |
+| `restaurant_activation_metrics` | Menu publié, lien Google changé, tables générées                   |
+| Dashboard commercial            | Objectifs 10/15/25/30/50, commissions estimées/validées            |
+| Dashboard admin                 | Plafond 12 %, commissions à payer, reports                         |
+| Audit trail                     | Qui a modifié une commission, quand, pourquoi                      |
+
+Règles à intégrer :
+
+| Règle                |           Valeur |
+| -------------------- | ---------------: |
+| Commission pack      |     7 % encaissé |
+| Bonus menu publié    |           25 CHF |
+| Bonus 10 tables      |           50 CHF |
+| Bonus 30 tables      |           75 CHF |
+| Bonus 60 tables      |          100 CHF |
+| Bonus 90 jours actif |           50 CHF |
+| Bonus 10 restos/mois |          250 CHF |
+| Bonus 15 restos/mois |          500 CHF |
+| Bonus 25 restos/mois |        1’000 CHF |
+| Bonus 30 restos/mois |        1’500 CHF |
+| Bonus 50 restos/mois |        3’000 CHF |
+| Plafond immédiat     | 12 % CA encaissé |
+
+Score commercial produit : **5,5/10** si les tables existent seulement partiellement, **8/10** après dashboard complet.
+
+## 10. Finance et règle 60 % marketing
+
+Ta stratégie est : **60 % du CA réinjecté dans le marketing**, et le reste réparti entre OpenAI, commissions commerciaux, hébergement, support, frais bancaires, admin, juridique, réserve et marge.
+
+Ce modèle doit devenir une fonctionnalité admin. Sinon, tu piloteras à la main et tu risques de dépasser.
+
+À faire :
+
+| Priorité | Action                                                                                 |
+| -------: | -------------------------------------------------------------------------------------- |
+| Critique | Dashboard “CA encaissé 30 jours”                                                       |
+| Critique | Calcul automatique “Budget marketing autorisé = 60 % CA encaissé − dépenses marketing” |
+| Critique | Calcul “Commissions commerciaux dues mais plafonnées”                                  |
+|    Haute | Suivi OpenAI en % du CA                                                                |
+|    Haute | Suivi Vercel/Supabase/outils en % du CA                                                |
+|    Haute | Blocage visuel si dépense > enveloppe                                                  |
+|    Haute | Export mensuel comptable                                                               |
+|  Moyenne | Graphique marge nette, réserve, marketing disponible                                   |
+|  Moyenne | Prévision 30/60/90 jours                                                               |
+
+Score finance produit : **5,5/10**.
+
+## 11. OpenAI et IA photo
+
+L’IA est un argument B2B très fort, mais elle doit être gouvernée par quotas et coût réel.
+
+À faire :
+
+| Priorité | Action                                                        |
+| -------: | ------------------------------------------------------------- |
+|    Haute | Stocker coût estimé par génération image                      |
+|    Haute | Quotas par pack : Starter, Croissance, Premium                |
+|    Haute | Bloquer les générations si quota dépassé ou facturer en extra |
+|    Haute | Dashboard coût IA par restaurant                              |
+|  Moyenne | Mesure qualité avant/après                                    |
+|  Moyenne | Prompts protégés contre changement de produit                 |
+|  Moyenne | Watermark externe TOK, pas généré dans l’image                |
+|  Moyenne | Queue/batch pour génération lourde                            |
+
+Score IA : **7/10 en produit**, **5,8/10 en gouvernance coût**.
+
+## 12. Google Business et stratégie de vente
+
+C’est ton angle de vente le plus fort. Il faut le transformer en système.
+
+À faire :
+
+| Priorité | Action                                                              |
+| -------: | ------------------------------------------------------------------- |
+| Critique | Page `/restaurateurs/google-business`                               |
+| Critique | Simulateur économie : couverts × commission actuelle vs 5 CHF/table |
+| Critique | Rapport PDF “audit fiche Google”                                    |
+|    Haute | Guide visuel : comment changer le bouton réservation Google         |
+|    Haute | CRM : champ “bouton actuel = TheFork/autre/site propre/aucun”       |
+|    Haute | Tracker “bouton changé le”                                          |
+|    Haute | Tracker réservations issues de Google Business                      |
+|    Haute | Argumentaire commercial imprimable                                  |
+|  Moyenne | Script appel + script objections                                    |
+|  Moyenne | QR code pour audit gratuit                                          |
+
+Le message doit rester juridiquement prudent :
+
+**Modèle par couvert vs tarif fixe par table. Comparez vous-même.**
+
+Évite les attaques trop frontales du type “ils vous volent”. Utilise plutôt :
+
+**Les modèles facturés au couvert peuvent peser lourd sur la marge. TOK propose 5 CHF par table, quel que soit le nombre de couverts.**
+
+Score stratégie commerciale : **8,5/10**, mais score implémentation : **4,5/10**.
+
+## 13. Juridique et conformité
+
+Avec l’angle TheFork/Google Business, il faut verrouiller les formulations.
+
+À faire :
+
+| Sujet                      | Action                                                                             |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| Comparatif concurrents     | Ne jamais affirmer sans preuve non vérifiée publiquement                           |
+| “Jusqu’à 6.20 CHF/couvert” | À documenter commercialement ou formuler “certains modèles peuvent aller jusqu’à…” |
+| Google Business            | Vérifier la conformité avec les règles Google Business Profile                     |
+| Contrat restaurateur       | Tarifs, frais, annulation, litiges, délai de paiement                              |
+| Commercials                | Contrat commission, paiement sur encaissé, report si plafond dépassé               |
+| Miamz                      | Statut non monétaire, expiration, dons, remboursements                             |
+| Photos IA                  | Non-tromperie, droits d’usage, responsabilités                                     |
+| Don solidaire              | Transparence sur bénéficiaires, preuves, conditions                                |
+
+Score juridique : **5,8/10**.
+
+## 14. Tests, QA et release
+
+Le site est en production, mais il faut renforcer les tests autour du nouveau modèle commercial.
+
+À ajouter :
+
+| Test                                            | Priorité |
+| ----------------------------------------------- | -------: |
+| `/restaurateurs/geneve` rend le composant dédié |    Haute |
+| Manifest contient le nouveau nom TOK            |    Haute |
+| Simulateur économie calcule correctement        |    Haute |
+| Commission commercial = 7 % pack encaissé       |    Haute |
+| Aucun paiement commission si facture impayée    | Critique |
+| Bonus palier ne dépasse pas plafond 12 % CA     | Critique |
+| Budget marketing = 60 % CA encaissé             | Critique |
+| RPC anon sensibles refusées                     | Critique |
+| FK indexes créés                                |  Moyenne |
+| Google Business lead pipeline                   |    Haute |
+
+Score QA : **6,8/10**.
+
+## 15. Roadmap priorisée
+
+### À faire cette semaine
+
+| Action                                                       | Domaine        |
+| ------------------------------------------------------------ | -------------- |
+| Auditer et corriger les `SECURITY DEFINER` exposées à `anon` | Sécurité       |
+| Ajouter index FK prioritaires                                | DB performance |
+| Créer page `/restaurateurs/google-business`                  | B2B            |
+| Ajouter simulateur économie couverts vs table                | B2B            |
+| Vérifier manifest en production                              | PWA            |
+| Ajouter tests manifest + restaurateurs page                  | QA             |
+| Ajouter post-deploy check Vercel                             | DevOps         |
+
+### À faire avant prospection massive
+
+| Action                                | Domaine            |
+| ------------------------------------- | ------------------ |
+| Module CRM leads restaurants          | Commercial         |
+| Module commissions commerciaux        | Finance/commercial |
+| Dashboard budget 60 % marketing       | Finance            |
+| Rapport PDF audit Google Business     | Vente terrain      |
+| Guide commercial imprimable/flyer QR  | Vente terrain      |
+| Contrat commercial + restaurateur     | Juridique          |
+| Quotas OpenAI par pack                | IA/finance         |
+| Tableau économie mensuelle restaurant | Rétention          |
+
+### À faire avant lancement public large
+
+| Action                                 | Domaine     |
+| -------------------------------------- | ----------- |
+| Slugs restaurants SEO                  | SEO         |
+| Pages quartiers Genève                 | SEO         |
+| Page Miamz solidaires                  | Marque      |
+| Tracking Google Business → réservation | Attribution |
+| Alertes coût Supabase/OpenAI/Vercel    | Finance     |
+| Monitoring erreurs paiement            | Paiement    |
+| Tests mobile complets                  | UX          |
+| Support restaurateur structuré         | Opérations  |
+
+## Conclusion
+
+TOK est beaucoup plus propre qu’au dernier audit. Les gros points positifs sont maintenant clairs : production Vercel prête, SEO pré-rendu, headers sécurité, route restaurateur dédiée, manifest corrigé côté dépôt, page B2B mieux pré-rendue, et un angle commercial très fort autour de **5 CHF par table, pas par couvert**.
+
+Le prochain vrai palier est moins “design” et plus “système d’exécution” :
+
+**1. sécuriser Supabase ;**
+**2. intégrer le modèle commercial et financier dans l’admin ;**
+**3. créer l’attaque Google Business ;**
+**4. outiller les commerciaux ;**
+**5. prouver aux restaurants l’économie réalisée mois après mois.**
+
+La priorité numéro 1 côté business : **/restaurateurs/google-business + simulateur d’économie + CRM commercial**.
+
+La priorité numéro 1 côté technique : **nettoyer les warnings Supabase `SECURITY DEFINER` exposés à `anon`**.
