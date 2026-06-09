@@ -45,7 +45,7 @@ describe("frontend 10k readiness", () => {
 
     expect(result.ok).toBe(true);
     expect(result.errors).toEqual([]);
-    expect(result.summary.maxPublicRasterBytes).toBeLessThanOrEqual(2_500_000);
+    expect(result.summary.maxBudgetedPublicRasterBytes).toBeLessThanOrEqual(2_500_000);
     expect(result.summary.maxSupabaseFetchedRows).toBeLessThanOrEqual(500);
     expect(result.summary.lazyRouteImports).toBeGreaterThanOrEqual(result.summary.pageFiles - 3);
   });
