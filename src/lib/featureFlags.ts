@@ -164,6 +164,53 @@ export function validateFeatureFlagPreset(preset: FeatureFlagPreset, flags: Feat
   return warnings;
 }
 
+function applyEffectiveAvailability(flags: FeatureFlag[]) {
+  const byName = new Map(flags.map((flag) => [flag.name, flag]));
+  const blocked = new Map<string, Set<string>>();
+
+  const ensureBlocked = (name: string) => {
+    const current = blocked.get(name) || new Set<string>();
+    blocked.set(name, current);
+    return current;
+  };
+
+  const link = (source: string, targets: string[]) => {
+    if (byName.get(source)?.effectiveEnabled !== false) return;
+    targets.forEach((target) => ensureBlocked(target).add(source));
+  };
+
+  link("livraison", [
+    "commandes",
+    "dashboard-commandes",
+    "espace-livreur",
+    "courier-home",
+    "courier-jobs",
+    "courier-earnings",
+    "courier-profile",
+    "creneaux-garantis",
+    "flex-prix-bas",
+    "match-groupes",
+    "multi-stop",
+    "multi-restaurant",
+    "garantie-qualite",
+    "abonnement",
+  ]);
+  link("commandes", ["dashboard-commandes", "multi-restaurant"]);
+  link("points-cadeau", ["miamz-solidaires"]);
+  link("campagnes-pub", ["dashboard-campagne-overview", "dashboard-reseaux-sociaux", "dashboard-campagnes", "ai_marketing_campaigns"]);
+
+  return flags.map((flag) => {
+    const extraBlockedBy = blocked.get(flag.name);
+    if (!extraBlockedBy || extraBlockedBy.size === 0) return flag;
+
+    return {
+      ...flag,
+      effectiveEnabled: false,
+      blockedBy: Array.from(new Set([...flag.blockedBy, ...extraBlockedBy])),
+    } satisfies FeatureFlag;
+  });
+}
+
 async function seedMissingDefaultsViaRpc(definitions: FeatureFlagDefinition[]) {
   if (definitions.length === 0) return;
 
@@ -204,7 +251,7 @@ async function fetchFlags(isAdmin = false): Promise<FeatureFlag[]> {
       await seedMissingDefaultsViaRpc(missingDefaults);
     }
 
-    const resolvedFlags = resolveFlags(rows);
+    const resolvedFlags = applyEffectiveAvailability(resolveFlags(rows));
     featureFlagsCache = {
       isAdmin,
       fetchedAt: Date.now(),
@@ -307,7 +354,7 @@ export function useFeatureFlags(isAdmin = false) {
 
     setFlags((previousFlags) => {
       const overrides = new Map<string, boolean>([[flag.name, nextExplicitState]]);
-      return resolveFlags(rehydrateFlagRows(previousFlags, overrides));
+      return applyEffectiveAvailability(resolveFlags(rehydrateFlagRows(previousFlags, overrides)));
     });
     void refreshAuditLogs();
     notifyFlagChange();
@@ -320,7 +367,7 @@ export function useFeatureFlags(isAdmin = false) {
 
     setFlags((previousFlags) => {
       const overrides = new Map(previousFlags.map((flag) => [flag.name, true]));
-      return resolveFlags(rehydrateFlagRows(previousFlags, overrides));
+      return applyEffectiveAvailability(resolveFlags(rehydrateFlagRows(previousFlags, overrides)));
     });
     void refreshAuditLogs();
     notifyFlagChange();
