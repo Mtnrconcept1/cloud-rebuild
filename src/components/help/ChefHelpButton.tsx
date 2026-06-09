@@ -1,6 +1,7 @@
 import { ChefHat } from "lucide-react";
 
 import { openHelpChat, type HelpChatSurface } from "@/lib/helpChat";
+import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
 
 type ChefHelpButtonProps = {
@@ -18,7 +19,11 @@ export default function ChefHelpButton({
   className,
   onOpen,
 }: ChefHelpButtonProps) {
+  const activeFeatures = useActiveFeatures();
+  const chatReady = activeFeatures.has("ai_support_chat");
+
   const handleClick = () => {
+    if (!chatReady) return;
     openHelpChat({ surface });
     onOpen?.();
   };
@@ -32,6 +37,7 @@ export default function ChefHelpButton({
         "group relative flex items-center gap-3 overflow-hidden border border-orange-300/70 bg-gradient-to-br from-white via-orange-50 to-amber-100 text-left font-extrabold text-orange-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-orange-400 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 dark:border-orange-400/35 dark:from-[#2a1207] dark:via-[#1a0b04] dark:to-[#2b1806] dark:text-orange-100",
         compact ? "w-auto rounded-[1.25rem] px-3 py-2 text-sm" : "w-full rounded-[1.45rem] px-3 py-3 text-sm",
         collapsed && "justify-center px-2",
+        !chatReady && "hidden",
         className,
       )}
     >
