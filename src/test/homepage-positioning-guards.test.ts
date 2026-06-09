@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -38,26 +38,56 @@ describe("homepage positioning guards", () => {
     const index = read("src/pages/Index.tsx");
     const restaurantSection = read("src/components/home/RestaurantSection.tsx");
     const cuisineStrip = read("src/components/home/CuisineCategoryStrip.tsx");
+    const showcaseHeader = read("src/components/home/SectionShowcaseHeader.tsx");
     const solidarity = read("src/components/home/SolidaritySection.tsx");
     const features = read("src/components/home/FeaturesSection.tsx");
 
     expect(restaurantSection).toContain("border-y border-border/70");
     expect(restaurantSection).toContain("accentClassName");
-    expect(restaurantSection).toContain("headerClassName");
-    expect(restaurantSection).toContain("bg-primary/10");
-    expect(cuisineStrip).toContain("border-primary/15 bg-primary/10");
+    expect(restaurantSection).toContain("SectionShowcaseHeader");
+    expect(restaurantSection).toContain("headerTheme");
+    expect(restaurantSection).toContain("headerImageSrc");
+    expect(showcaseHeader).toContain("SectionHeaderTheme");
+    expect(showcaseHeader).toContain("radial-gradient");
+    expect(showcaseHeader).toContain("linear-gradient");
+    expect(showcaseHeader).toContain("rounded-[100%]");
+    expect(restaurantSection).toContain("section-headers/gift-3d.png");
+    expect(cuisineStrip).toContain("SectionShowcaseHeader");
+    expect(cuisineStrip).toContain("section-headers/plate-3d.png");
     expect(index).toContain("bg-rose-50/70");
-    expect(index).toContain("bg-pink-500/10");
+    expect(index).toContain('headerTheme="rose"');
+    expect(index).toContain("SECTION_HEADER_IMAGES.personal");
     expect(index).toContain("bg-sky-50/75");
-    expect(index).toContain("bg-sky-500/10");
+    expect(index).toContain('headerTheme="sky"');
+    expect(index).toContain("SECTION_HEADER_IMAGES.local");
     expect(index).toContain("bg-indigo-50/70");
-    expect(index).toContain("bg-indigo-500/10");
+    expect(index).toContain("SECTION_HEADER_IMAGES.reservation");
     expect(index).toContain("bg-orange-50/70");
     expect(index).toContain("bg-emerald-50/75");
-    expect(index).toContain("bg-emerald-500/10");
+    expect(index).toContain('headerTheme="emerald"');
+    expect(index).toContain("SECTION_HEADER_IMAGES.offers");
+    expect(index).toContain("SECTION_HEADER_IMAGES.trending");
+    expect(index).toContain("SECTION_HEADER_IMAGES.nearby");
     expect(solidarity).toContain("border-y border-pink-500/10");
     expect(features).toContain("border-y border-border/70");
     expect(features).toContain("border-primary/15 bg-primary/10");
+  });
+
+  it("keeps locally hosted 3D PNG illustrations for homepage section headers", () => {
+    const requiredAssets = [
+      "public/images/section-headers/heart-3d.png",
+      "public/images/section-headers/pin-3d.png",
+      "public/images/section-headers/plate-3d.png",
+      "public/images/section-headers/calendar-3d.png",
+      "public/images/section-headers/shopping-bags-3d.png",
+      "public/images/section-headers/gift-3d.png",
+      "public/images/section-headers/fire-3d.png",
+      "public/images/section-headers/scooter-3d.png",
+    ];
+
+    for (const asset of requiredAssets) {
+      expect(existsSync(resolve(process.cwd(), asset))).toBe(true);
+    }
   });
 
   it("exposes the restaurateur B2B funnel from public entry points", () => {

@@ -1,7 +1,9 @@
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Utensils } from "lucide-react";
+
+import SectionShowcaseHeader from "@/components/home/SectionShowcaseHeader";
 
 type CuisineCategory = {
   slug: string;
@@ -142,27 +144,36 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
   return (
     <section className="relative overflow-hidden bg-background py-4 dark:bg-[radial-gradient(circle_at_20%_0%,rgba(249,115,22,0.10),transparent_24rem)] md:py-6">
       <div className="container px-4">
-        <div className="mb-4 flex items-center justify-between rounded-xl border border-primary/15 bg-primary/10 px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-orange-300/20 dark:bg-orange-500/15">
-          <h2 className="font-display text-base font-bold text-foreground dark:text-white md:text-xl">Explorer par cuisine</h2>
-          <div className="hidden items-center gap-1.5 md:flex">
-            <button
-              type="button"
-              onClick={() => scroll("left")}
-              className="neon-chip grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
-              aria-label="Défiler à gauche"
-            >
-              <ChevronLeft className="h-4.5 w-4.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scroll("right")}
-              className="neon-chip grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
-              aria-label="Défiler à droite"
-            >
-              <ChevronRight className="h-4.5 w-4.5" />
-            </button>
-          </div>
-        </div>
+        <SectionShowcaseHeader
+          title="Explorer par cuisine"
+          subtitle="À votre goût"
+          icon={Utensils}
+          iconColor="text-primary"
+          imageSrc="/images/section-headers/plate-3d.png"
+          theme="orange"
+          className="mb-4"
+          titleClassName="text-3xl sm:text-4xl md:text-5xl"
+          actions={
+            <div className="hidden items-center gap-1.5 md:flex">
+              <button
+                type="button"
+                onClick={() => scroll("left")}
+                className="neon-chip grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+                aria-label="Défiler à gauche"
+              >
+                <ChevronLeft className="h-4.5 w-4.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scroll("right")}
+                className="neon-chip grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+                aria-label="Défiler à droite"
+              >
+                <ChevronRight className="h-4.5 w-4.5" />
+              </button>
+            </div>
+          }
+        />
 
         <div
           ref={scrollRef}

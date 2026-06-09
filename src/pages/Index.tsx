@@ -11,6 +11,7 @@ import HeroSection from "@/components/home/HeroSection";
 import CuisineCategoryStrip from "@/components/home/CuisineCategoryStrip";
 import SolidaritySection from "@/components/home/SolidaritySection";
 import RestaurantSection from "@/components/home/RestaurantSection";
+import SectionShowcaseHeader from "@/components/home/SectionShowcaseHeader";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -23,6 +24,17 @@ import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 const supabase = getSupabase();
 const NearbyRestaurantsMap = lazy(() => import("@/components/NearbyRestaurantsMap"));
 const HOME_MAP_RESTAURANTS_LIMIT = 80;
+
+const SECTION_HEADER_IMAGES = {
+  personal: "/images/section-headers/heart-3d.png",
+  local: "/images/section-headers/pin-3d.png",
+  lunch: "/images/section-headers/plate-3d.png",
+  reservation: "/images/section-headers/calendar-3d.png",
+  promo: "/images/section-headers/shopping-bags-3d.png",
+  offers: "/images/section-headers/gift-3d.png",
+  trending: "/images/section-headers/fire-3d.png",
+  nearby: "/images/section-headers/scooter-3d.png",
+} as const;
 
 type SearchSort =
   | "pertinence"
@@ -487,7 +499,8 @@ export default function Index() {
             restaurants={personalCards}
             bgClass="bg-rose-50/70 dark:bg-rose-950/10"
             accentClassName="bg-pink-500/80"
-            headerClassName="border-pink-500/15 bg-pink-500/10 dark:border-pink-300/20 dark:bg-pink-500/15"
+            headerTheme="rose"
+            headerImageSrc={SECTION_HEADER_IMAGES.personal}
             linkText="Retrouver vos favoris"
             linkTo="/profil?tab=favoris"
           />
@@ -502,7 +515,8 @@ export default function Index() {
             restaurants={cityRail as any[]}
             bgClass="bg-sky-50/75 dark:bg-sky-950/10"
             accentClassName="bg-sky-500/80"
-            headerClassName="border-sky-500/15 bg-sky-500/10 dark:border-sky-300/20 dark:bg-sky-500/15"
+            headerTheme="sky"
+            headerImageSrc={SECTION_HEADER_IMAGES.local}
             linkText="Explorer votre ville"
             linkTo={buildSearchLink({ city: userContext?.city || null })}
           />
@@ -517,7 +531,8 @@ export default function Index() {
             restaurants={primaryRail.restaurants}
             bgClass={lunchFocus ? "bg-amber-50/70 dark:bg-amber-950/10" : "bg-indigo-50/70 dark:bg-indigo-950/10"}
             accentClassName={lunchFocus ? "bg-amber-500/80" : "bg-indigo-500/80"}
-            headerClassName={lunchFocus ? "border-amber-500/15 bg-amber-500/10 dark:border-amber-300/20 dark:bg-amber-500/15" : "border-indigo-500/15 bg-indigo-500/10 dark:border-indigo-300/20 dark:bg-indigo-500/15"}
+            headerTheme={lunchFocus ? "amber" : "indigo"}
+            headerImageSrc={lunchFocus ? SECTION_HEADER_IMAGES.lunch : SECTION_HEADER_IMAGES.reservation}
             linkText={primaryRail.linkText}
             linkTo={primaryRail.linkTo}
           />
@@ -527,16 +542,18 @@ export default function Index() {
           <section className="relative isolate overflow-hidden border-y border-border/70 bg-orange-50/70 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-orange-950/10 md:py-12">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
             <div className="pointer-events-none absolute bottom-0 left-0 top-0 w-1.5 bg-primary/80" aria-hidden="true" />
-            <div className="container relative space-y-5">
-              <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/10 px-4 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-orange-300/20 dark:bg-orange-500/15">
-                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">À ne pas manquer</p>
-                  <h2 className="font-display text-2xl font-bold">Promotions et activations du moment</h2>
-                </div>
-              </div>
+            <div className="container relative space-y-6">
+              <SectionShowcaseHeader
+                title="Promotions et activations du moment"
+                subtitle="À ne pas manquer"
+                icon={Sparkles}
+                iconColor="text-primary"
+                imageSrc={SECTION_HEADER_IMAGES.promo}
+                theme="orange"
+                linkText="Voir les actualités"
+                linkTo="/actualites"
+                titleClassName="text-3xl sm:text-4xl md:text-5xl"
+              />
               <div className="space-y-4">
                 <PromoCarousel />
               </div>
@@ -553,7 +570,8 @@ export default function Index() {
             restaurants={offersCards}
             bgClass="bg-emerald-50/75 dark:bg-emerald-950/10"
             accentClassName="bg-emerald-500/80"
-            headerClassName="border-emerald-500/15 bg-emerald-500/10 dark:border-emerald-300/20 dark:bg-emerald-500/15"
+            headerTheme="emerald"
+            headerImageSrc={SECTION_HEADER_IMAGES.offers}
             linkText="Voir toutes les offres"
             linkTo={buildSearchLink({ sort: "promotion", promo: true, city: userContext?.city || null })}
           />
@@ -569,7 +587,8 @@ export default function Index() {
               restaurants={secondaryRail.restaurants}
               bgClass={lunchFocus ? "bg-indigo-50/70 dark:bg-indigo-950/10" : "bg-amber-50/70 dark:bg-amber-950/10"}
               accentClassName={lunchFocus ? "bg-indigo-500/80" : "bg-amber-500/80"}
-              headerClassName={lunchFocus ? "border-indigo-500/15 bg-indigo-500/10 dark:border-indigo-300/20 dark:bg-indigo-500/15" : "border-amber-500/15 bg-amber-500/10 dark:border-amber-300/20 dark:bg-amber-500/15"}
+              headerTheme={lunchFocus ? "indigo" : "amber"}
+              headerImageSrc={lunchFocus ? SECTION_HEADER_IMAGES.reservation : SECTION_HEADER_IMAGES.lunch}
               linkText={secondaryRail.linkText}
               linkTo={secondaryRail.linkTo}
             />
@@ -586,7 +605,8 @@ export default function Index() {
               restaurants={trendingCards}
               bgClass="bg-slate-50/90 dark:bg-slate-900/30"
               accentClassName="bg-primary/80"
-              headerClassName="border-primary/15 bg-primary/10 dark:border-orange-300/20 dark:bg-orange-500/15"
+              headerTheme="orange"
+              headerImageSrc={SECTION_HEADER_IMAGES.trending}
               linkTo={buildSearchLink({ sort: "note", city: userContext?.city || null })}
             />
           </motion.div>
@@ -597,19 +617,17 @@ export default function Index() {
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
             <div className="pointer-events-none absolute bottom-0 left-0 top-0 w-1.5 bg-blue-500/80" aria-hidden="true" />
             <div className="container relative space-y-6">
-              <div className="flex flex-col gap-4 rounded-xl border border-blue-500/15 bg-blue-500/10 px-4 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-blue-300/20 dark:bg-blue-500/15 sm:flex-row sm:items-end sm:justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                    <MapPinned className="h-4 w-4 text-blue-500" />
-                  </div>
-                  <h2 className="font-display text-xl font-semibold md:text-2xl">Restaurants à proximité</h2>
-                </div>
-                <Button variant="ghost" size="sm" className="w-fit gap-1 text-muted-foreground" asChild>
-                  <Link to={buildSearchLink({ city: userContext?.city || null })}>
-                    Voir la liste <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
+              <SectionShowcaseHeader
+                title="Restaurants à proximité"
+                subtitle="Autour de vous"
+                icon={MapPinned}
+                iconColor="text-blue-500"
+                imageSrc={SECTION_HEADER_IMAGES.nearby}
+                theme="blue"
+                linkText="Voir la liste"
+                linkTo={buildSearchLink({ city: userContext?.city || null })}
+                titleClassName="text-3xl sm:text-4xl md:text-5xl"
+              />
               {shouldLoadMap ? (
                 <Suspense
                   fallback={
