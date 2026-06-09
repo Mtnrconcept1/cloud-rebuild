@@ -16,6 +16,10 @@ export function isDeliveryActive(source: FeatureFlagSource) {
   return toActiveFeatureSet(source).has("livraison");
 }
 
+export function isOrdersFlagActive(source: FeatureFlagSource) {
+  return toActiveFeatureSet(source).has("commandes");
+}
+
 export function getDisabledFeatureAssistantReply() {
   return "Information indisponible. Contactez le support.";
 }
