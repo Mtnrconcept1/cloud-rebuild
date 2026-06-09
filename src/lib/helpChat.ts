@@ -7,6 +7,7 @@ export type HelpChatOpenOptions = {
   surface?: HelpChatSurface;
 };
 
+// Public support surfaces must be wired through the active feature flags before opening chat.
 declare global {
   interface Window {
     openChat?: (options?: HelpChatOpenOptions) => void;
