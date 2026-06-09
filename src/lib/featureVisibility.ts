@@ -12,6 +12,10 @@ export function toActiveFeatureSet(source: FeatureFlagSource) {
   return new Set(Object.entries(source).filter(([, enabled]) => enabled).map(([name]) => name));
 }
 
+export function isDeliveryActive(source: FeatureFlagSource) {
+  return toActiveFeatureSet(source).has("livraison");
+}
+
 export function getDisabledFeatureAssistantReply() {
   return "Information indisponible. Contactez le support.";
 }
