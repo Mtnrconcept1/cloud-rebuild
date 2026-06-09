@@ -149,7 +149,7 @@ export default function CuisineCategoryStrip({ activeSlug }: { activeSlug?: stri
           subtitle="À votre goût"
           icon={Utensils}
           iconColor="text-primary"
-          imageSrc="/images/section-headers/plate-3d.png"
+          imageSrc="/desig app/assiette.png"
           theme="orange"
           className="mb-4"
           titleClassName="text-3xl sm:text-4xl md:text-5xl"

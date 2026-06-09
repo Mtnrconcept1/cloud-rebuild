@@ -51,9 +51,15 @@ describe("homepage positioning guards", () => {
     expect(showcaseHeader).toContain("radial-gradient");
     expect(showcaseHeader).toContain("linear-gradient");
     expect(showcaseHeader).toContain("rounded-[100%]");
+    expect(showcaseHeader).toContain("data-section-illustration");
+    expect(showcaseHeader).toContain("bottom-0 z-0 w-72 overflow-hidden");
+    expect(showcaseHeader).toContain("data-section-action-row");
+    expect(showcaseHeader).toContain("max-w-[calc(100%-9.5rem)]");
+    expect(showcaseHeader).toContain("z-20");
+    expect(showcaseHeader).toContain("-top-10 right-0");
     expect(restaurantSection).toContain("section-headers/gift-3d.png");
     expect(cuisineStrip).toContain("SectionShowcaseHeader");
-    expect(cuisineStrip).toContain("section-headers/plate-3d.png");
+    expect(cuisineStrip).toContain("/desig app/assiette.png");
     expect(index).toContain("bg-rose-50/70");
     expect(index).toContain('headerTheme="rose"');
     expect(index).toContain("SECTION_HEADER_IMAGES.personal");
@@ -62,12 +68,18 @@ describe("homepage positioning guards", () => {
     expect(index).toContain("SECTION_HEADER_IMAGES.local");
     expect(index).toContain("bg-indigo-50/70");
     expect(index).toContain("SECTION_HEADER_IMAGES.reservation");
+    expect(index).toContain('reservation: "/desig app/calendrier.png"');
+    expect(index).toContain('lunch: "/desig app/burger.png"');
     expect(index).toContain("bg-orange-50/70");
+    expect(index).toContain('promo: "/desig app/chefsection.png"');
     expect(index).toContain("bg-emerald-50/75");
     expect(index).toContain('headerTheme="emerald"');
     expect(index).toContain("SECTION_HEADER_IMAGES.offers");
+    expect(index).toContain('offers: "/desig app/cadeau.png"');
     expect(index).toContain("SECTION_HEADER_IMAGES.trending");
+    expect(index).toContain('trending: "/desig app/flamme.png"');
     expect(index).toContain("SECTION_HEADER_IMAGES.nearby");
+    expect(index).toContain('nearby: "/desig app/chefsection2.png"');
     expect(solidarity).toContain("border-y border-pink-500/10");
     expect(features).toContain("border-y border-border/70");
     expect(features).toContain("border-primary/15 bg-primary/10");
@@ -78,11 +90,15 @@ describe("homepage positioning guards", () => {
       "public/images/section-headers/heart-3d.png",
       "public/images/section-headers/pin-3d.png",
       "public/images/section-headers/plate-3d.png",
-      "public/images/section-headers/calendar-3d.png",
+      "public/desig app/burger.png",
+      "public/desig app/assiette.png",
+      "public/desig app/calendrier.png",
+      "public/desig app/chefsection.png",
+      "public/desig app/cadeau.png",
       "public/images/section-headers/shopping-bags-3d.png",
       "public/images/section-headers/gift-3d.png",
-      "public/images/section-headers/fire-3d.png",
-      "public/images/section-headers/scooter-3d.png",
+      "public/desig app/flamme.png",
+      "public/desig app/chefsection2.png",
     ];
 
     for (const asset of requiredAssets) {

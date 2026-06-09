@@ -119,16 +119,21 @@ export default function SectionShowcaseHeader({
     <div
       data-section-showcase-header
       className={cn(
-        "relative isolate min-h-[238px] overflow-hidden rounded-[2rem] border px-5 pb-20 pt-6 shadow-[0_24px_55px_rgba(15,23,42,0.10)] sm:min-h-[258px] sm:px-7 sm:pt-7 md:min-h-[286px] md:px-8 md:pt-8",
+        "relative isolate min-h-[238px] overflow-visible rounded-[2rem] border px-5 pb-20 pt-6 shadow-[0_24px_55px_rgba(15,23,42,0.10)] sm:min-h-[258px] sm:px-7 sm:pt-7 md:min-h-[286px] md:px-8 md:pt-8",
         palette.panel,
         className,
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78),rgba(255,255,255,0.18)_58%,rgba(255,255,255,0))] dark:bg-[linear-gradient(90deg,rgba(15,23,42,0.38),rgba(15,23,42,0.08)_58%,rgba(15,23,42,0))]" />
-      <div className="pointer-events-none absolute -bottom-24 left-1/2 z-0 h-40 w-[148%] -translate-x-1/2 rounded-[100%] bg-background shadow-[0_-16px_45px_rgba(255,255,255,0.62)] dark:bg-slate-950 dark:shadow-[0_-16px_45px_rgba(15,23,42,0.55)]" />
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[2rem]">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78),rgba(255,255,255,0.18)_58%,rgba(255,255,255,0))] dark:bg-[linear-gradient(90deg,rgba(15,23,42,0.38),rgba(15,23,42,0.08)_58%,rgba(15,23,42,0))]" />
+        <div className="absolute -bottom-24 left-1/2 h-40 w-[148%] -translate-x-1/2 rounded-[100%] bg-background shadow-[0_-16px_45px_rgba(255,255,255,0.62)] dark:bg-slate-950 dark:shadow-[0_-16px_45px_rgba(15,23,42,0.55)]" />
+      </div>
 
-      <div className="pointer-events-none absolute right-2 top-1/2 z-0 flex -translate-y-1/2 items-center justify-center sm:right-6 md:right-10">
-        <div className={cn("absolute h-36 w-36 rounded-full blur-2xl sm:h-44 sm:w-44 md:h-56 md:w-56", palette.glow)} />
+      <div
+        data-section-illustration
+        className="pointer-events-none absolute -right-10 -top-5 bottom-0 z-0 w-72 overflow-hidden rounded-br-[2rem] sm:-right-8 sm:-top-7 sm:w-96 md:-right-6 md:-top-8 md:w-[28rem]"
+      >
+        <div className={cn("absolute right-0 top-2 h-72 w-72 rounded-full blur-2xl sm:top-0 sm:h-80 sm:w-80 md:h-96 md:w-96", palette.glow)} />
         <img
           src={imageSrc}
           alt=""
@@ -136,7 +141,7 @@ export default function SectionShowcaseHeader({
           loading="lazy"
           decoding="async"
           className={cn(
-            "relative h-28 w-28 object-contain drop-shadow-[0_20px_28px_rgba(15,23,42,0.22)] sm:h-36 sm:w-36 md:h-44 md:w-44",
+            "absolute -top-10 right-0 h-56 w-56 object-contain drop-shadow-[0_24px_32px_rgba(15,23,42,0.24)] sm:top-0 sm:h-72 sm:w-72 md:h-[22rem] md:w-[22rem]",
             imageClassName,
           )}
         />
@@ -160,18 +165,21 @@ export default function SectionShowcaseHeader({
       </div>
 
       {hasFooterActions ? (
-        <div className="absolute bottom-5 left-5 right-5 z-10 flex items-center justify-end gap-2 sm:left-7 sm:right-7">
+        <div
+          data-section-action-row
+          className="absolute bottom-5 left-5 z-20 flex max-w-[calc(100%-9.5rem)] items-center justify-start gap-2 sm:left-7 sm:max-w-[calc(100%-13rem)] md:max-w-[calc(100%-24rem)]"
+        >
           {actions}
           {linkText && linkTo ? (
             <Button
               variant="ghost"
               size="sm"
-              className="h-11 rounded-full px-4 text-sm font-bold text-slate-950 hover:bg-white/70 hover:text-primary dark:text-white dark:hover:bg-white/10 dark:hover:text-orange-200"
+              className="h-11 max-w-full rounded-full bg-white/55 px-4 text-sm font-bold text-slate-950 shadow-sm backdrop-blur-sm hover:bg-white/80 hover:text-primary dark:bg-slate-950/35 dark:text-white dark:hover:bg-white/10 dark:hover:text-orange-200"
               asChild
             >
               <Link to={linkTo}>
-                {linkText}
-                <ChevronRight className="ml-1 h-4 w-4" />
+                <span className="min-w-0 truncate">{linkText}</span>
+                <ChevronRight className="ml-1 h-4 w-4 shrink-0" />
               </Link>
             </Button>
           ) : null}

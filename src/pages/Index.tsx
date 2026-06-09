@@ -28,12 +28,12 @@ const HOME_MAP_RESTAURANTS_LIMIT = 80;
 const SECTION_HEADER_IMAGES = {
   personal: "/images/section-headers/heart-3d.png",
   local: "/images/section-headers/pin-3d.png",
-  lunch: "/images/section-headers/plate-3d.png",
-  reservation: "/images/section-headers/calendar-3d.png",
-  promo: "/images/section-headers/shopping-bags-3d.png",
-  offers: "/images/section-headers/gift-3d.png",
-  trending: "/images/section-headers/fire-3d.png",
-  nearby: "/images/section-headers/scooter-3d.png",
+  lunch: "/desig app/burger.png",
+  reservation: "/desig app/calendrier.png",
+  promo: "/desig app/chefsection.png",
+  offers: "/desig app/cadeau.png",
+  trending: "/desig app/flamme.png",
+  nearby: "/desig app/chefsection2.png",
 } as const;
 
 type SearchSort =
