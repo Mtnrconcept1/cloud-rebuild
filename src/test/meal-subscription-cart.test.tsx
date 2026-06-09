@@ -1,32 +1,34 @@
+Voici le fichier complet modifié :
+
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import Abonnement from "@/pages/Abonnement";
 import { getMealSubscriptionOccurrenceDates } from "@/lib/mealSubscription";
-
 const TEST_SUBSCRIPTION_END_DATE = "2026-06-15";
-
+const TEST_MULTI_RESTAURANT_SUBSCRIPTION_END_DATE = "2026-06-16";
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
-
-function expectedOccurrences(day: string, deliveryTime = "12:00") {
+function expectedOccurrences(day: string, deliveryTime = "12:00", endDate = TEST_SUBSCRIPTION_END_DATE) {
   return getMealSubscriptionOccurrenceDates(day, {
-    endDate: TEST_SUBSCRIPTION_END_DATE,
+    endDate,
     deliveryTime,
   }).length;
 }
-
-function expectedTotal(slots: Array<{ day: string; price: number; time?: string }>) {
-  return slots.reduce((sum, slot) => sum + (slot.price * expectedOccurrences(slot.day, slot.time || "12:00")), 0);
+function expectedTotal(
+  slots: Array<{ day: string; price: number; time?: string }>,
+  endDate = TEST_SUBSCRIPTION_END_DATE,
+) {
+  return slots.reduce(
+    (sum, slot) => sum + slot.price * expectedOccurrences(slot.day, slot.time || "12:00", endDate),
+    0,
+  );
 }
-
 function summaryRegex(label: string, total: number) {
   return new RegExp(`${escapeRegExp(label)} - ${escapeRegExp(total.toFixed(2))} CHF`, "i");
 }
-
 const cartMocks = vi.hoisted(() => ({
   addItem: vi.fn(),
   clearCart: vi.fn(),
@@ -34,7 +36,6 @@ const cartMocks = vi.hoisted(() => ({
   setOrderMode: vi.fn(),
   updateCartMetadata: vi.fn(),
 }));
-
 const subscriptionRows = vi.hoisted(() => ({
   rows: [
     {
@@ -48,17 +49,14 @@ const subscriptionRows = vi.hoisted(() => ({
     },
   ],
 }));
-
 const restaurantRows = vi.hoisted(() => ({
   rows: [] as any[],
 }));
-
 vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({
     user: { id: "user-1", email: "client@example.com" },
   }),
 }));
-
 vi.mock("@/lib/cart-context", () => ({
   useCart: () => ({
     addItem: cartMocks.addItem,
@@ -68,19 +66,16 @@ vi.mock("@/lib/cart-context", () => ({
     updateCartMetadata: cartMocks.updateCartMetadata,
   }),
 }));
-
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
 }));
-
 vi.mock("@/integrations/supabase/client", () => ({
   getSupabase: () => ({
     from: (table: string) => createSupabaseTableMock(table),
   }),
 }));
-
 function createSupabaseTableMock(table: string) {
   if (table === "user_subscriptions") {
     return {
@@ -100,7 +95,6 @@ function createSupabaseTableMock(table: string) {
       delete: vi.fn(),
     };
   }
-
   if (table === "user_meal_subscription_settings") {
     return {
       select: () => ({
@@ -114,7 +108,6 @@ function createSupabaseTableMock(table: string) {
       upsert: vi.fn(),
     };
   }
-
   if (table === "restaurants") {
     return {
       select: () => ({
@@ -128,7 +121,6 @@ function createSupabaseTableMock(table: string) {
       }),
     };
   }
-
   return {
     select: () => ({
       eq: () => ({
@@ -141,14 +133,12 @@ function createSupabaseTableMock(table: string) {
     }),
   };
 }
-
 function renderAbonnement() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
     },
   });
-
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={["/abonnement"]}>
@@ -160,7 +150,6 @@ function renderAbonnement() {
     </QueryClientProvider>,
   );
 }
-
 describe("Abonnement cart sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -178,21 +167,17 @@ describe("Abonnement cart sync", () => {
       },
     ];
   });
-
   it("rebuilds the cart from an existing active subscription before opening the cart", async () => {
     const lundiOccurrences = expectedOccurrences("Lundi", "12:00");
     const lundiTotal = expectedTotal([{ day: "Lundi", price: 16, time: "12:00" }]);
-
     renderAbonnement();
-
-    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: TEST_SUBSCRIPTION_END_DATE } });
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), {
+      target: { value: TEST_SUBSCRIPTION_END_DATE },
+    });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
     fireEvent.click(cartButton);
-
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
-
     const [cartItems, cartMetadata, orderMode] = cartMocks.replaceCartItems.mock.calls[0];
-
     expect(cartItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -225,23 +210,21 @@ describe("Abonnement cart sync", () => {
     );
     expect(orderMode).toBe("delivery");
   });
-
   it("shows empty days as free days before any meal is selected", async () => {
     subscriptionRows.rows = [];
-
     renderAbonnement();
-
     expect(await screen.findByText("0 repas planifiés")).toBeInTheDocument();
     expect(screen.getAllByText("Jour libre")).toHaveLength(7);
     expect(screen.getByRole("button", { name: /S'abonner - 0\.00 CHF/i })).toBeDisabled();
   });
-
   it("syncs several subscription meals from different restaurants into one multi-restaurant cart", async () => {
-    const expectedSubscriptionTotal = expectedTotal([
-      { day: "Lundi", price: 16, time: "12:00" },
-      { day: "Mardi", price: 18, time: "12:30" },
-    ]);
-
+    const expectedSubscriptionTotal = expectedTotal(
+      [
+        { day: "Lundi", price: 16, time: "12:00" },
+        { day: "Mardi", price: 18, time: "12:30" },
+      ],
+      TEST_MULTI_RESTAURANT_SUBSCRIPTION_END_DATE,
+    );
     subscriptionRows.rows = [
       {
         id: "slot-1",
@@ -262,16 +245,14 @@ describe("Abonnement cart sync", () => {
         restaurants: { id: "restaurant-2", name: "Green Test" },
       },
     ];
-
     renderAbonnement();
-
-    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: TEST_SUBSCRIPTION_END_DATE } });
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), {
+      target: { value: TEST_MULTI_RESTAURANT_SUBSCRIPTION_END_DATE },
+    });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
     expect(screen.getByText(summaryRegex("2 repas/semaine - 2 restaurants", expectedSubscriptionTotal))).toBeInTheDocument();
     fireEvent.click(cartButton);
-
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
-
     expect(cartMocks.replaceCartItems).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
@@ -291,18 +272,17 @@ describe("Abonnement cart sync", () => {
         restaurant_count: 2,
         weeklyTotal: 34,
         subscription_total: expectedSubscriptionTotal,
+        subscription_end_date: TEST_MULTI_RESTAURANT_SUBSCRIPTION_END_DATE,
         planDays: ["Lundi", "Mardi"],
       }),
       "delivery",
     );
   });
-
   it("syncs several meals from the same restaurant on the same day", async () => {
     const expectedSubscriptionTotal = expectedTotal([
       { day: "Lundi", price: 16, time: "12:00" },
       { day: "Lundi", price: 8, time: "12:00" },
     ]);
-
     subscriptionRows.rows = [
       {
         id: "slot-1",
@@ -323,16 +303,14 @@ describe("Abonnement cart sync", () => {
         restaurants: { id: "restaurant-1", name: "Tok Test" },
       },
     ];
-
     renderAbonnement();
-
-    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), { target: { value: TEST_SUBSCRIPTION_END_DATE } });
+    fireEvent.change(await screen.findByLabelText("Date de fin de l'abonnement"), {
+      target: { value: TEST_SUBSCRIPTION_END_DATE },
+    });
     const cartButton = await screen.findByRole("button", { name: /Voir le panier/i });
     expect(screen.getByText(summaryRegex("2 repas/semaine - 1 restaurant", expectedSubscriptionTotal))).toBeInTheDocument();
     fireEvent.click(cartButton);
-
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
-
     expect(cartMocks.replaceCartItems).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
@@ -357,7 +335,6 @@ describe("Abonnement cart sync", () => {
       "delivery",
     );
   });
-
   it("lets the customer change the delivery time for all meals of a day", async () => {
     subscriptionRows.rows = [
       {
@@ -379,15 +356,11 @@ describe("Abonnement cart sync", () => {
         restaurants: { id: "restaurant-1", name: "Tok Test" },
       },
     ];
-
     renderAbonnement();
-
     fireEvent.click(await screen.findByRole("button", { name: /Lundi/i }));
     fireEvent.change(screen.getByLabelText("Heure de livraison Lundi"), { target: { value: "12:45" } });
     fireEvent.click(screen.getByRole("button", { name: /Voir le panier/i }));
-
     await waitFor(() => expect(screen.getByText("Panier cible")).toBeInTheDocument());
-
     expect(cartMocks.replaceCartItems).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
@@ -403,7 +376,6 @@ describe("Abonnement cart sync", () => {
       "delivery",
     );
   });
-
   it("grays and disables restaurants closed at the selected day and time", async () => {
     restaurantRows.rows = [
       {
@@ -421,12 +393,9 @@ describe("Abonnement cart sync", () => {
         opening_hours: { lundi: [{ open: "11:30", close: "16:00" }] },
       },
     ];
-
     renderAbonnement();
-
     fireEvent.click(await screen.findByRole("button", { name: /Lundi/i }));
     fireEvent.change(screen.getByLabelText("Heure de livraison Lundi"), { target: { value: "15:00" } });
-
     expect(await screen.findByRole("button", { name: /Cafe ferme/i })).toBeDisabled();
     expect(screen.getByText("Ferme a 15:00")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Cafe ouvert/i })).not.toBeDisabled();
