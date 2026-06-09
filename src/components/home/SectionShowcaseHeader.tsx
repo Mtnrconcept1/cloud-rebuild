@@ -105,8 +105,8 @@ export default function SectionShowcaseHeader({
   const illustrationMotion = reduceMotion
     ? {}
     : {
-        initial: { y: 10, scale: 0.98 },
-        whileInView: { y: [10, -5, 2, 0], scale: [0.98, 1.018, 0.998, 1] },
+        initial: { y: 12, scale: 0.97 },
+        whileInView: { y: [12, -8, 3, 0], scale: [0.97, 1.035, 0.995, 1] },
         viewport: { once: false, amount: 0.45 },
         transition: { duration: 0.68, ease: [0.22, 1, 0.36, 1] },
       };
@@ -115,7 +115,7 @@ export default function SectionShowcaseHeader({
     <div
       data-section-showcase-header
       className={cn(
-        "relative isolate min-h-[238px] overflow-hidden rounded-[2rem] border px-5 pb-20 pt-6 shadow-[0_24px_55px_rgba(15,23,42,0.10)] sm:min-h-[258px] sm:px-7 sm:pt-7 md:min-h-[286px] md:px-8 md:pt-8",
+        "relative isolate min-h-[238px] overflow-visible rounded-[2rem] border px-5 pb-20 pt-6 shadow-[0_24px_55px_rgba(15,23,42,0.10)] sm:min-h-[258px] sm:px-7 sm:pt-7 md:min-h-[286px] md:px-8 md:pt-8",
         palette.panel,
         className,
       )}
@@ -128,7 +128,7 @@ export default function SectionShowcaseHeader({
       <motion.div
         data-section-illustration
         className={cn(
-          "pointer-events-none absolute inset-y-0 right-0 z-40 flex w-[48%] items-end justify-end overflow-hidden rounded-r-[2rem] sm:w-[50%] md:w-[48%]",
+          "pointer-events-none absolute -right-10 -top-6 bottom-0 z-40 w-56 overflow-visible rounded-br-[2rem] sm:-right-12 sm:-top-7 sm:w-96 md:-right-10 md:-top-8 md:w-[28rem]",
           illustrationClassName,
         )}
         {...illustrationMotion}
@@ -140,7 +140,7 @@ export default function SectionShowcaseHeader({
           loading="lazy"
           decoding="async"
           className={cn(
-            "max-h-full w-full max-w-full object-contain object-bottom-right drop-shadow-[0_18px_28px_rgba(15,23,42,0.12)]",
+            "absolute bottom-0 right-0 h-48 w-48 translate-x-3 object-contain object-bottom sm:h-72 sm:w-72 sm:translate-x-4 md:h-[22rem] md:w-[22rem] md:translate-x-2",
             imageClassName,
           )}
         />
