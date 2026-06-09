@@ -5,17 +5,18 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-npm run build
+pnpm run build
 if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
-npx cap sync android
+pnpm exec cap sync android
 if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
-$tmp = Join-Path (Get-Location) ".tmp"
+$tmpRoot = Join-Path ([System.IO.Path]::GetTempPath()) "tok-mobile-verify"
+$tmp = Join-Path $tmpRoot (Split-Path -Leaf (Get-Location))
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 
 $env:GRADLE_USER_HOME = Join-Path $tmp "gradle-home"

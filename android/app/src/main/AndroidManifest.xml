@@ -11,6 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="false"
         tools:targetApi="s">
 
         <meta-data
@@ -47,6 +48,7 @@
                 <data android:scheme="https" android:host="thetok.ch" />
                 <data android:scheme="https" android:host="www.thetok.ch" />
                 <data android:scheme="https" android:host="app.thetok.ch" />
+                <data android:scheme="https" android:host="admin.thetok.ch" />
             </intent-filter>
 
         </activity>

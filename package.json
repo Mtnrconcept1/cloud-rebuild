@@ -47,12 +47,15 @@
     "cap:dev:ios": "pnpm run build:dev && pnpm exec cap sync ios && pnpm exec cap open ios",
     "cap:dev:android": "pnpm run build:dev && pnpm exec cap sync android && pnpm exec cap open android",
     "mobile:sync": "pnpm run build && pnpm exec cap sync android ios",
-    "mobile:build:android:debug": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mobile-android-build.ps1 Debug",
-    "mobile:build:android:release": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mobile-android-build.ps1 Release",
+    "mobile:build:android:debug": "node ./scripts/mobile-verify.mjs android-debug",
+    "mobile:build:android:release": "node ./scripts/mobile-verify.mjs android-release",
+    "mobile:build:android:bundle": "node ./scripts/mobile-verify.mjs android-bundle",
     "mobile:build:ios:release": "node ./scripts/mobile-verify.mjs ios-release",
+    "mobile:android:readiness": "node ./scripts/mobile-verify.mjs android-readiness",
     "mobile:ios:readiness": "node ./scripts/mobile-verify.mjs ios-readiness",
+    "mobile:playstore:check": "pnpm run mobile:android:readiness && pnpm run build",
     "mobile:appstore:check": "pnpm run mobile:ios:readiness && pnpm run build",
-    "mobile:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mobile-android-build.ps1 Debug"
+    "mobile:verify": "node ./scripts/mobile-verify.mjs verify"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.0",
