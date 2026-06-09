@@ -3,189 +3,105 @@ import { SUPPORT_EMAIL } from "@/lib/contact";
 
 export default function CGU() {
   return (
-    <div className="container py-12 md:py-20 max-w-4xl space-y-12">
+    <div className="container max-w-4xl space-y-12 py-12 md:py-20">
       <div className="space-y-4">
         <h1 className="font-display text-4xl font-bold">Conditions Générales d'Utilisation</h1>
-        <p className="text-muted-foreground">Dernière mise à jour : 7 juin 2026</p>
+        <p className="text-muted-foreground">Dernière mise à jour : 9 juin 2026</p>
       </div>
 
       <div className="prose prose-foodhub max-w-none space-y-8">
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">1. Objet</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les présentes Conditions Générales d'Utilisation (« CGU ») définissent les modalités d'accès et d'utilisation de la plateforme TOK, accessible depuis le site, l'application web et les applications mobiles associées.
+          <p className="leading-relaxed text-foreground/80">
+            Les présentes Conditions Générales d'Utilisation définissent les modalités d'accès et d'utilisation de TOK, depuis le site, l'application web et les applications mobiles associées.
           </p>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK met en relation des clients, des restaurants partenaires, des coursiers et l'équipe d'administration de la plateforme pour faciliter la découverte de restaurants, les commandes, les réservations, les offres locales, la fidélité et les outils opérationnels proposés aux restaurateurs.
+          <p className="leading-relaxed text-foreground/80">
+            TOK met à disposition les parcours et outils effectivement affichés dans l'interface au moment de l'utilisation. La liste exacte des services accessibles dépend de la configuration active, de la zone, du rôle utilisateur et des droits attachés au compte.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">2. Acceptation des CGU</h2>
-          <p className="text-foreground/80 leading-relaxed">
+          <h2 className="text-2xl font-semibold">2. Acceptation</h2>
+          <p className="leading-relaxed text-foreground/80">
             L'utilisation de TOK implique l'acceptation pleine et entière des présentes CGU. Si vous n'acceptez pas ces conditions, vous devez cesser d'utiliser la plateforme.
           </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Des conditions complémentaires peuvent s'appliquer à certains services, notamment Tok One, les packs restaurateurs, les campagnes sponsorisées, les réservations Zéro Attente, La Table du Chef, les dons solidaires et les services de paiement.
+          <p className="leading-relaxed text-foreground/80">
+            Des conditions complémentaires peuvent s'appliquer à certains modules ou offres lorsqu'ils sont affichés dans l'interface.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">3. Services proposés</h2>
-          <p className="text-foreground/80 leading-relaxed">TOK peut proposer, selon les fonctionnalités activées et la zone de disponibilité :</p>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-            <li>La recherche de restaurants, la consultation de fiches, menus, médias, avis et offres.</li>
-            <li>La commande en livraison, à emporter, multi-restaurant, groupée ou planifiée.</li>
-            <li>La réservation classique, Zéro Attente et les expériences La Table du Chef, y compris des tables ou accès VIP liés à certains niveaux Miamz ou avantages Tok One.</li>
-            <li>Les offres Anti-gaspi, ventes flash, promotions, codes d'offre et dons solidaires.</li>
-            <li>Le programme Miamz, les cadeaux de points, les niveaux de fidélité et les avantages associés.</li>
-            <li>Le fil Actualités avec posts, commentaires, likes, partages, sauvegardes, signalements, boutons « Plus comme ça » et « Moins comme ça ».</li>
-            <li>Les contenus sponsorisés, campagnes publicitaires locales, rapports de performance et métriques marketing.</li>
-            <li>Les interfaces restaurateur, coursier et administrateur, incluant commandes, réservations, menus, campagnes, factures, support, notifications, sinistres et outils de pilotage.</li>
-          </ul>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK agit principalement comme intermédiaire technique et commercial entre le client et le restaurant. Sauf mention contraire, la préparation, la qualité, la conformité et la disponibilité des plats relèvent du restaurant concerné.
+          <h2 className="text-2xl font-semibold">3. Services affichés</h2>
+          <p className="leading-relaxed text-foreground/80">
+            TOK peut proposer différents parcours selon la configuration active. Un service non affiché dans l'interface ne doit pas être considéré comme disponible, même s'il a existé précédemment ou s'il est mentionné dans un ancien support de communication.
+          </p>
+          <p className="leading-relaxed text-foreground/80">
+            Les informations, prix, conditions, horaires, disponibilités, frais et limites présentés avant validation prévalent pour le parcours concerné.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">4. Comptes, rôles et sécurité</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Certains services nécessitent un compte. Vous devez fournir des informations exactes, maintenir vos coordonnées à jour et protéger vos identifiants. Un même utilisateur peut disposer de plusieurs rôles uniquement lorsque TOK l'autorise explicitement.
+          <p className="leading-relaxed text-foreground/80">
+            Certains services nécessitent un compte. Vous devez fournir des informations exactes, maintenir vos coordonnées à jour et protéger vos identifiants.
           </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les accès restaurateur, coursier et administrateur sont réservés aux personnes autorisées. Toute tentative d'accès à des données, notifications, paniers, commandes, réservations ou conversations qui ne vous sont pas destinés est interdite.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            À la déconnexion, TOK peut effacer les données locales liées à la session, comme le panier, certains brouillons de checkout et les jetons de notification push, afin d'éviter qu'elles persistent pour un autre utilisateur du même appareil.
+          <p className="leading-relaxed text-foreground/80">
+            Les accès client, restaurateur, partenaire ou administrateur sont réservés aux personnes autorisées. Toute tentative d'accès à des données qui ne vous sont pas destinées est interdite.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">5. Commandes, réservations et paiements</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les prix sont affichés en francs suisses (CHF), toutes taxes applicables comprises lorsque cela est indiqué. Les frais de livraison, de service, de garantie, de réservation ou de campagne sont présentés avant validation lorsque le service les prévoit.
+          <h2 className="text-2xl font-semibold">5. Paiements et validation</h2>
+          <p className="leading-relaxed text-foreground/80">
+            Les prix sont affichés en francs suisses (CHF). Les moyens de paiement disponibles sont ceux proposés dans l'interface au moment de la validation.
           </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Une commande, réservation payante, campagne ou souscription est validée lorsque le paiement est confirmé par le prestataire de paiement. Les moyens de paiement disponibles peuvent inclure carte, portefeuilles compatibles, TWINT, PostFinance ou tout moyen ajouté ultérieurement.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            L'annulation d'une commande dépend de son état de préparation. Les réservations peuvent être soumises à des délais d'annulation et à des règles spécifiques, notamment pour Zéro Attente, La Table du Chef et les expériences limitées. Les remboursements acceptés sont effectués sur le moyen de paiement d'origine ou sous forme de crédit TOK lorsque cela est proposé.
+          <p className="leading-relaxed text-foreground/80">
+            Une opération payante est validée lorsque le paiement est confirmé par le prestataire ou lorsque les conditions affichées prévoient un autre mode de confirmation.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">6. Miamz, Tok One et avantages VIP</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les Miamz ne constituent pas une monnaie, un instrument de paiement, un dépôt bancaire ou un actif financier. Ils sont sans valeur en espèces, non convertibles en espèces et utilisables uniquement dans les parcours TOK éligibles, selon les conditions affichées dans l'application.
+          <h2 className="text-2xl font-semibold">6. Contenus, avis et publications</h2>
+          <p className="leading-relaxed text-foreground/80">
+            Les contenus publiés par les utilisateurs ou partenaires doivent être authentiques, licites, respectueux et ne pas porter atteinte aux droits de tiers.
           </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les niveaux Bronze, Silver, Gold, Platinum ou tout autre niveau futur peuvent donner accès à des bonus, priorités de réservation, offres partenaires, avantages de livraison, support prioritaire, tables VIP ou expériences premium. Ces avantages peuvent dépendre du restaurant, de la disponibilité, du stock, de la zone, du niveau Miamz ou de l'abonnement Tok One.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Chaque avantage, cadeau ou contribution peut être soumis à une durée de validité, à des plafonds, à des conditions d'éligibilité ou à des restrictions communiquées avant utilisation. Les dons solidaires sont traités comme des contributions d'impact local, suivies séparément des paiements dus aux restaurants.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            En cas d'annulation, remboursement, fraude, abus ou erreur technique, TOK peut reprendre, ajuster ou neutraliser les Miamz associés afin de préserver la cohérence comptable et d'éviter tout avantage indu.
+          <p className="leading-relaxed text-foreground/80">
+            TOK peut modérer, masquer, restaurer ou supprimer un contenu lorsque cela est nécessaire pour protéger les utilisateurs, les partenaires ou la plateforme.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">7. Actualités, recommandations et contenus utilisateurs</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les utilisateurs peuvent interagir avec le fil Actualités par des vues, clics, likes, commentaires, partages, sauvegardes, reposts, signalements et préférences de type « Plus comme ça » ou « Moins comme ça ». Ces signaux peuvent améliorer ou réduire la visibilité de contenus similaires dans l'expérience utilisateur.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK peut classer les contenus selon des critères comme vos interactions, les tags du post, la proximité géographique, la popularité, l'engagement global, le statut sponsorisé et les réglages de modération. Ces recommandations visent à personnaliser le fil, sans garantir qu'un contenu soit exhaustif, neutre ou affiché dans un ordre chronologique strict.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les avis, commentaires, publications, photos, vidéos et signalements doivent être authentiques, respectueux, licites et ne pas porter atteinte aux droits de tiers. TOK peut masquer, déclasser, modérer, supprimer ou restaurer un contenu lorsque cela est nécessaire pour protéger la plateforme, les utilisateurs ou les restaurants.
+          <h2 className="text-2xl font-semibold">7. Partenaires</h2>
+          <p className="leading-relaxed text-foreground/80">
+            Les partenaires sont responsables des informations, prix, disponibilités, allergènes, horaires, images, offres et contenus qu'ils fournissent ou valident.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">8. Restaurants, réseaux sociaux et campagnes</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les restaurants sont responsables des informations, prix, disponibilités, allergènes, horaires, images, vidéos, offres, campagnes et publications qu'ils fournissent ou valident. Ils doivent disposer des droits nécessaires sur les contenus et respecter les règles applicables aux communications commerciales.
+          <h2 className="text-2xl font-semibold">8. Support et notifications</h2>
+          <p className="leading-relaxed text-foreground/80">
+            TOK peut proposer un support par email, centre d'aide ou interface dédiée selon la configuration active. Les notifications sont destinées au compte, rôle ou partenaire concerné.
           </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Lorsqu'un restaurateur connecte ou renseigne ses réseaux sociaux, il autorise TOK à préparer ou publier les contenus demandés vers les canaux sélectionnés, dans la limite des permissions accordées et des règles des plateformes tierces concernées. Le restaurateur reste responsable du message publié et des réponses reçues sur ces réseaux.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les campagnes sponsorisées sont diffusées selon un budget total, une durée, une zone ou audience cible et un rythme indicatif de dépense. À titre de logique produit, le budget quotidien correspond au budget total divisé par la durée, puis la diffusion peut être modulée par la pertinence, la distance et l'engagement. Les métriques comme impressions, clics, CPC, conversions et coût global sont indicatives et ne garantissent aucun chiffre d'affaires.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Un post ne doit être présenté comme sponsorisé qu'après validation du parcours prévu, notamment le paiement ou l'autorisation de mise en avant lorsque celle-ci est payante. TOK peut suspendre une campagne en cas d'erreur, litige, contenu trompeur, défaut de paiement ou risque pour les utilisateurs.
+          <p className="leading-relaxed text-foreground/80">
+            Contact : {SUPPORT_EMAIL}.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">9. Support, sinistres et notifications</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK peut proposer un support par chat, email, centre d'aide ou interface de suivi des sinistres. Un sinistre ou une conversation peut recevoir un statut comme « en attente », « en cours », « résolu » ou « clôturé » afin de suivre son traitement sans le classer automatiquement.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les notifications sont destinées au compte, rôle ou restaurant concerné. Vous ne devez pas transférer, exploiter ou conserver une notification qui ne vous est pas destinée.
+          <h2 className="text-2xl font-semibold">9. Propriété intellectuelle</h2>
+          <p className="leading-relaxed text-foreground/80">
+            Les marques, logos, textes, interfaces, bases de données, logiciels, visuels, modèles et documents appartiennent à TOK ou à ses partenaires. Toute exploitation non autorisée est interdite.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">10. Propriété intellectuelle</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les éléments de la plateforme, notamment marques, logos, textes, interfaces, bases de données, logiciels, visuels, modèles et documents, appartiennent à TOK ou à ses partenaires. Toute reproduction, extraction, modification ou exploitation non autorisée est interdite.
+          <h2 className="text-2xl font-semibold">10. Données personnelles</h2>
+          <p className="leading-relaxed text-foreground/80">
+            TOK traite les données personnelles conformément à la Loi fédérale suisse sur la protection des données et, lorsque applicable, au RGPD.
           </p>
-          <p className="text-foreground/80 leading-relaxed">
-            En publiant un contenu sur TOK, vous accordez à TOK une licence non exclusive, mondiale, gratuite et limitée au fonctionnement, à la promotion, à la modération, à l'hébergement et à l'affichage du service. Vous garantissez disposer des droits nécessaires, y compris pour les photos générées ou retouchées par IA, qui ne doivent pas induire les utilisateurs en erreur.
+          <p className="leading-relaxed text-foreground/80">
+            Pour plus d'informations, consultez notre <Link to="/politique-confidentialite" className="font-medium text-primary hover:underline">Politique de confidentialité</Link>.
           </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">11. Données personnelles et cookies</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK traite les données personnelles conformément à la Loi fédérale suisse sur la protection des données (LPD) et, lorsque applicable, au RGPD. Les données nécessaires aux commandes, réservations, paiements, notifications, campagnes, recommandations et services de support sont décrites dans notre Politique de confidentialité.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Les cookies et technologies similaires peuvent être utilisés pour l'authentification, le panier, les préférences, la sécurité, la mesure d'audience et, avec consentement lorsque requis, la personnalisation ou le marketing.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            Pour plus d'informations, consultez notre <Link to="/politique-confidentialite" className="text-primary hover:underline font-medium">Politique de confidentialité</Link>.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">12. Responsabilité</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK met en œuvre des moyens raisonnables pour assurer la disponibilité, la sécurité et la qualité de la plateforme, mais ne garantit pas un service ininterrompu, exempt d'erreurs ou compatible avec tous les appareils, navigateurs et réseaux.
-          </p>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK ne peut être tenu responsable des informations inexactes fournies par un restaurant, d'une indisponibilité de stock, d'un retard lié à la préparation ou à la livraison, d'une panne d'un prestataire tiers ou d'un usage non conforme de votre compte.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">13. Modification des CGU</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            TOK peut modifier les présentes CGU pour tenir compte de l'évolution du service, de la réglementation, de la sécurité ou de nouvelles fonctionnalités. En cas de modification substantielle, les utilisateurs peuvent être informés par email, notification ou affichage dans l'application.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">14. Droit applicable et juridiction</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Les présentes CGU sont régies par le droit suisse. En cas de litige, les parties rechercheront d'abord une solution amiable. À défaut, les tribunaux compétents suisses seront saisis, sous réserve des dispositions impératives applicables aux consommateurs.
-          </p>
-        </section>
-
-        <section className="space-y-4 border-t pt-8 mt-8">
-          <h2 className="text-2xl font-semibold">15. Contact</h2>
-          <p className="text-foreground/80 leading-relaxed">
-            Pour toute question relative aux présentes CGU :
-          </p>
-          <ul className="list-none space-y-2 text-foreground/80">
-            <li><span className="font-medium text-foreground">Email :</span> {SUPPORT_EMAIL}</li>
-            <li><span className="font-medium text-foreground">Formulaire :</span> via notre <Link to="/contact" className="text-primary hover:underline font-medium">page de contact</Link></li>
-            <li><span className="font-medium text-foreground">Centre d'aide :</span> <Link to="/aide" className="text-primary hover:underline font-medium">Centre d'aide TOK</Link></li>
-          </ul>
         </section>
       </div>
     </div>
