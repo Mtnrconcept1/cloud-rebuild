@@ -83,6 +83,94 @@ const themeClasses: Record<
   },
 };
 
+const HEART_HEADER_IMAGE = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="heartGlow" cx="33%" cy="22%" r="72%">
+      <stop offset="0%" stop-color="#ffd4e7"/>
+      <stop offset="33%" stop-color="#ff6fa4"/>
+      <stop offset="68%" stop-color="#f31573"/>
+      <stop offset="100%" stop-color="#c90e5f"/>
+    </radialGradient>
+    <linearGradient id="heartEdge" x1="18%" y1="8%" x2="88%" y2="92%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.82"/>
+      <stop offset="36%" stop-color="#ff9ac2" stop-opacity="0.55"/>
+      <stop offset="72%" stop-color="#b90057" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.28"/>
+    </linearGradient>
+    <filter id="softHeartShadow" x="-25%" y="-20%" width="150%" height="160%">
+      <feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#e11d67" flood-opacity="0.24"/>
+    </filter>
+    <filter id="pinkBlur" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+  <ellipse cx="294" cy="394" rx="154" ry="42" fill="#fb3d84" opacity="0.18" transform="rotate(-9 294 394)" filter="url(#pinkBlur)"/>
+  <path d="M256 420C165 344 92 289 92 199c0-58 42-101 96-101 34 0 61 17 76 45 15-28 43-45 80-45 54 0 96 43 96 101 0 90-77 145-184 221Z" fill="url(#heartGlow)" filter="url(#softHeartShadow)"/>
+  <path d="M256 420C165 344 92 289 92 199c0-58 42-101 96-101 34 0 61 17 76 45 15-28 43-45 80-45 54 0 96 43 96 101 0 90-77 145-184 221Z" fill="none" stroke="url(#heartEdge)" stroke-width="14" stroke-linejoin="round" opacity="0.8"/>
+  <path d="M149 173c14-37 56-54 94-34 12 6 20 14 27 26-16-12-43-24-76-11-27 10-42 31-45 56-2-13-4-25 0-37Z" fill="#ffffff" opacity="0.42"/>
+  <path d="M290 145c32-29 88-14 102 31 5 16 4 32 1 45-10-41-47-65-88-48-18 7-31 22-40 38 2-26 10-51 25-66Z" fill="#ffffff" opacity="0.28"/>
+  <path d="M160 139c30-31 83-29 113 8" fill="none" stroke="#ffffff" stroke-opacity="0.42" stroke-width="12" stroke-linecap="round"/>
+  <path d="M332 128c42 2 75 30 84 70" fill="none" stroke="#ffffff" stroke-opacity="0.28" stroke-width="10" stroke-linecap="round"/>
+  <path d="M173 355c43 28 103 40 160-3" fill="none" stroke="#9f0a52" stroke-opacity="0.18" stroke-width="16" stroke-linecap="round"/>
+  <path d="M368 348c38 4 64 17 72 28" fill="none" stroke="#ff8fbd" stroke-opacity="0.36" stroke-width="10" stroke-linecap="round"/>
+  <path d="M388 374l7 15 16 6-16 6-7 15-7-15-16-6 16-6 7-15Z" fill="#ffffff" opacity="0.92"/>
+  <circle cx="358" cy="407" r="5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="337" cy="422" r="3.5" fill="#ffffff" opacity="0.85"/>
+  <circle cx="319" cy="437" r="2.8" fill="#ffffff" opacity="0.72"/>
+</svg>`)} `;
+
+const PIN_HEADER_IMAGE = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="pinPink" cx="28%" cy="20%" r="78%">
+      <stop offset="0%" stop-color="#ffd0ee"/>
+      <stop offset="34%" stop-color="#ff4fb1"/>
+      <stop offset="70%" stop-color="#ec168d"/>
+      <stop offset="100%" stop-color="#b80b6e"/>
+    </radialGradient>
+    <linearGradient id="steel" x1="16%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="18%" stop-color="#cbd5df"/>
+      <stop offset="44%" stop-color="#59616d"/>
+      <stop offset="70%" stop-color="#f7fafc"/>
+      <stop offset="100%" stop-color="#424955"/>
+    </linearGradient>
+    <linearGradient id="pinGloss" x1="8%" y1="0%" x2="82%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="44%" stop-color="#ffffff" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="pinShadow" x="-30%" y="-30%" width="170%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#7f1d5a" flood-opacity="0.18"/>
+    </filter>
+    <filter id="grayBlur" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+  </defs>
+  <g transform="rotate(-29 256 256)" filter="url(#pinShadow)">
+    <ellipse cx="258" cy="438" rx="115" ry="26" fill="#111827" opacity="0.12" filter="url(#grayBlur)"/>
+    <path d="M244 305h32l-11 176c-1 15-16 24-28 16-7-5-10-13-8-22l15-170Z" fill="url(#steel)"/>
+    <path d="M259 310l-9 157" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+    <ellipse cx="260" cy="289" rx="106" ry="56" fill="url(#pinPink)"/>
+    <ellipse cx="260" cy="282" rx="88" ry="38" fill="#ff5bb8" opacity="0.32"/>
+    <path d="M168 280c19-31 105-46 165-24" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="13" stroke-linecap="round"/>
+    <rect x="215" y="139" width="90" height="156" rx="39" fill="url(#pinPink)"/>
+    <path d="M232 158c26-20 58-13 66 12" fill="none" stroke="#ffffff" stroke-opacity="0.42" stroke-width="12" stroke-linecap="round"/>
+    <path d="M237 204c18 40 55 43 67 10v58c-14 21-53 22-67 0v-68Z" fill="#a80867" opacity="0.18"/>
+    <ellipse cx="260" cy="123" rx="112" ry="62" fill="url(#pinPink)"/>
+    <ellipse cx="260" cy="112" rx="88" ry="42" fill="#ff62be" opacity="0.34"/>
+    <path d="M171 111c26-38 113-52 175-25" fill="none" stroke="#ffffff" stroke-opacity="0.62" stroke-width="14" stroke-linecap="round"/>
+    <path d="M206 93c32-19 81-20 113-4" fill="none" stroke="url(#pinGloss)" stroke-width="20" stroke-linecap="round" opacity="0.75"/>
+    <path d="M336 140c-18 36-78 55-139 36" fill="none" stroke="#9f075f" stroke-opacity="0.16" stroke-width="15" stroke-linecap="round"/>
+  </g>
+</svg>`)} `;
+
+const imageSrcOverrides: Record<string, string> = {
+  "/images/section-headers/heart-3d.png": HEART_HEADER_IMAGE.trim(),
+  "/images/section-headers/pin-3d.png": PIN_HEADER_IMAGE.trim(),
+};
+
 export default function SectionShowcaseHeader({
   title,
   subtitle,
@@ -100,6 +188,7 @@ export default function SectionShowcaseHeader({
   actions,
 }: SectionShowcaseHeaderProps) {
   const palette = themeClasses[theme];
+  const resolvedImageSrc = imageSrcOverrides[imageSrc] || imageSrc;
   const hasFooterActions = Boolean((linkText && linkTo) || actions);
   const reduceMotion = useReducedMotion();
   const illustrationMotion = reduceMotion
@@ -134,7 +223,7 @@ export default function SectionShowcaseHeader({
         {...illustrationMotion}
       >
         <img
-          src={imageSrc}
+          src={resolvedImageSrc}
           alt=""
           aria-hidden="true"
           loading="lazy"
