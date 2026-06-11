@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInfiniteSocialFeed, useToggleRestaurantFollow } from "@/hooks/useSocialFeed";
+import { createActualitesFeedOrderSeed, orderActualitesFeedPosts } from "@/lib/actualitesFeedOrdering";
 import { useAuth } from "@/lib/auth-context";
 import { SOCIAL_FEED_SCOPES, normalizeSocialFeedScope, type SocialFeedPost, type SocialFeedScope } from "@/lib/socialFeed";
 import { useOwnerRestaurants } from "@/pages/dashboard/useOwnerRestaurants";
@@ -32,12 +33,14 @@ export default function Actualites() {
   const { role, isSuperAdmin, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
+  const [feedOrderSeed] = useState(() => createActualitesFeedOrderSeed());
   const [composerRestaurantId, setComposerRestaurantId] = useState<string | null>(null);
   const highlightedPostId = searchParams.get("post");
   const feed = useInfiniteSocialFeed(scope, 12);
   const canManage = role === "restaurateur" || isSuperAdmin;
   const ownerRestaurants = useOwnerRestaurants({ enabled: canManage });
-  const posts = useMemo(() => feed.data?.pages.flatMap((page) => page.posts) || [], [feed.data]);
+  const rawPosts = useMemo(() => feed.data?.pages.flatMap((page) => page.posts) || [], [feed.data]);
+  const posts = useMemo(() => orderActualitesFeedPosts(rawPosts, `${feedOrderSeed}:${scope}`), [feedOrderSeed, rawPosts, scope]);
   const restaurants = useMemo(
     () => canManage ? ownerRestaurants.restaurants : [],
     [canManage, ownerRestaurants.restaurants],
