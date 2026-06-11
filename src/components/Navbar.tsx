@@ -230,13 +230,21 @@ export default function Navbar() {
                   <Link to="/recherche" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                     <Search className="h-4 w-4" />
                     Explorer
+                </Link>
+              </NavigationMenuItem>
+              {actualitesEnabled ? (
+                <NavigationMenuItem>
+                  <Link to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                    <Newspaper className="h-4 w-4" />
+                    Actualités
                   </Link>
                 </NavigationMenuItem>
-                {antiWasteEnabled ? (
-                  <NavigationMenuItem>
-                    <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
-                      <Leaf className="h-4 w-4" />
-                      Anti-gaspi
+              ) : null}
+              {antiWasteEnabled ? (
+                <NavigationMenuItem>
+                  <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
+                    <Leaf className="h-4 w-4" />
+                    Anti-gaspi
                     </Link>
                   </NavigationMenuItem>
                 ) : null}
@@ -245,19 +253,11 @@ export default function Navbar() {
                     <Link to="/ventes-flash" className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
-                    </Link>
-                  </NavigationMenuItem>
-                ) : null}
-                {actualitesEnabled ? (
-                  <NavigationMenuItem>
-                    <Link to="/actualites" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                      <Newspaper className="h-4 w-4" />
-                      Actualités
-                    </Link>
-                  </NavigationMenuItem>
-                ) : null}
-                {tokOneEnabled ? (
-                  <NavigationMenuItem>
+                  </Link>
+                </NavigationMenuItem>
+              ) : null}
+              {tokOneEnabled ? (
+                <NavigationMenuItem>
                     <Link to="/tok-one" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-violet-600 transition-colors hover:text-violet-500">
                       <Crown className="h-4 w-4" />
                       Tok One
