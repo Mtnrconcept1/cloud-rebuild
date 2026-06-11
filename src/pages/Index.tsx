@@ -553,9 +553,9 @@ export default function Index() {
                 className="-mx-4 min-h-[222px] pb-16 pt-5 sm:mx-0 sm:min-h-[258px] sm:pb-20 sm:pt-7 md:min-h-[286px] md:pb-20 md:pt-8"
                 linkText="Voir les actualités"
                 linkTo="/actualites"
-                contentClassName="z-30 max-w-[13rem] pr-0 sm:max-w-sm sm:pr-36 md:z-20 md:max-w-2xl md:pr-56"
-                illustrationClassName="z-[60] -right-16 -top-8 w-72 sm:-right-12 sm:-top-10 sm:w-[26rem] md:-right-8 md:-top-10 md:w-[31rem]"
-                imageClassName="-right-5 h-72 w-72 translate-x-12 sm:right-0 sm:h-80 sm:w-80 sm:translate-x-2 md:h-[26rem] md:w-[26rem] md:translate-x-0"
+                contentClassName="z-30 max-w-[12rem] pr-0 sm:max-w-xs sm:pr-20 md:z-30 md:max-w-lg md:pr-48"
+                illustrationClassName="z-[60] right-4 -top-6 w-44 sm:right-6 sm:-top-8 sm:w-72 md:right-8 md:-top-10 md:w-[26rem]"
+                imageClassName="right-0 h-44 w-44 translate-x-0 sm:h-72 sm:w-72 md:h-[26rem] md:w-[26rem]"
                 titleClassName="text-[1.9rem] leading-[1.05] sm:text-4xl md:text-5xl"
               />
               <div className="space-y-4">

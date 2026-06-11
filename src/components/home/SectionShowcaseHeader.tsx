@@ -217,8 +217,8 @@ export default function SectionShowcaseHeader({
       <motion.div
         data-section-illustration
         className={cn(
+          "pointer-events-none absolute bottom-0 right-5 -top-1 z-[55] w-[40%] min-w-[8rem] max-w-[14.5rem] overflow-visible rounded-br-[2rem] sm:right-8 sm:-top-2 sm:w-[41%] sm:max-w-[20rem] md:right-10 md:-top-3 md:w-[42%] md:max-w-[24rem]",
           illustrationClassName,
-          "pointer-events-none absolute bottom-0 right-2 top-2 z-40 w-[42%] min-w-[8.5rem] max-w-[16rem] overflow-visible rounded-br-[2rem] sm:right-4 sm:top-0 sm:w-[44%] sm:max-w-[22rem] md:right-6 md:-top-1 md:w-[45%] md:max-w-[26rem]",
         )}
         {...illustrationMotion}
       >
@@ -229,16 +229,16 @@ export default function SectionShowcaseHeader({
           loading="lazy"
           decoding="async"
           className={cn(
+            "absolute inset-y-0 right-0 h-full max-h-none w-full object-contain object-center",
             imageClassName,
-            "absolute bottom-0 right-0 h-full max-h-[13.5rem] w-full translate-x-0 object-contain object-bottom sm:right-0 sm:h-full sm:max-h-[18rem] sm:w-full sm:translate-x-0 md:right-0 md:h-full md:max-h-[22rem] md:w-full md:translate-x-0",
           )}
         />
       </motion.div>
 
       <div
         className={cn(
+          "relative z-50 max-w-[calc(100%-10.75rem)] pr-2 sm:max-w-[calc(100%-14.75rem)] sm:pr-4 md:max-w-[calc(100%-19.5rem)] md:pr-6",
           contentClassName,
-          "relative z-50 max-w-[calc(100%-10.5rem)] pr-2 sm:z-50 sm:max-w-[calc(100%-15.5rem)] sm:pr-4 md:z-50 md:max-w-[calc(100%-20rem)] md:pr-6",
         )}
       >
         <div className={cn("mb-5 flex w-fit items-center gap-2 font-bold text-xs uppercase tracking-[0.18em]", iconColor || palette.eyebrow)}>
@@ -255,7 +255,7 @@ export default function SectionShowcaseHeader({
       {hasFooterActions ? (
         <div
           data-section-action-row
-          className="absolute bottom-5 left-5 z-[60] flex max-w-[calc(100%-10.5rem)] items-center justify-start gap-2 sm:left-7 sm:max-w-[calc(100%-15.5rem)] md:max-w-[calc(100%-20rem)]"
+          className="absolute bottom-5 left-5 z-[60] flex max-w-[calc(100%-10.75rem)] items-center justify-start gap-2 sm:left-7 sm:max-w-[calc(100%-14.75rem)] md:max-w-[calc(100%-19.5rem)]"
         >
           {actions}
           {linkText && linkTo ? (
