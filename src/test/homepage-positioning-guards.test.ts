@@ -57,11 +57,11 @@ describe("homepage positioning guards", () => {
     expect(showcaseHeader).toContain("motion.div");
     expect(showcaseHeader).toContain("useReducedMotion");
     expect(showcaseHeader).toContain("whileInView");
-    expect(showcaseHeader).toContain("right-2 top-2 z-40 w-[42%] min-w-[8.5rem] max-w-[16rem] overflow-visible");
+    expect(showcaseHeader).toContain("bottom-0 right-5 -top-1 z-[55] w-[40%] min-w-[8rem] max-w-[14.5rem] overflow-visible");
     expect(showcaseHeader).toContain("data-section-action-row");
-    expect(showcaseHeader).toContain("max-w-[calc(100%-10.5rem)]");
+    expect(showcaseHeader).toContain("max-w-[calc(100%-10.75rem)]");
     expect(showcaseHeader).toContain("z-[60]");
-    expect(showcaseHeader).toContain("h-full max-h-[13.5rem] w-full translate-x-0 object-contain object-bottom");
+    expect(showcaseHeader).toContain("h-full max-h-none w-full object-contain object-center");
     expect(showcaseHeader).not.toContain("-right-10 -top-6 bottom-0 z-40 w-56 overflow-visible");
     expect(showcaseHeader).not.toContain("bottom-0 right-0 h-48 w-48 translate-x-3");
     expect(restaurantSection).toContain("section-headers/gift-3d.png");
@@ -81,9 +81,9 @@ describe("homepage positioning guards", () => {
     expect(index).toContain('promo: "/desig app/chefsection.png"');
     expect(index).toContain('title={"Promotions\\u00a0et activations\\u00a0du moment"}');
     expect(index).toContain("className=\"-mx-4 min-h-[222px] pb-16 pt-5");
-    expect(index).toContain("contentClassName=\"z-30 max-w-[13rem] pr-0");
-    expect(index).toContain("illustrationClassName=\"z-[60] -right-16 -top-8 w-72");
-    expect(index).toContain("imageClassName=\"-right-5 h-72 w-72 translate-x-12");
+    expect(index).toContain("contentClassName=\"z-30 max-w-[12rem] pr-0");
+    expect(index).toContain("illustrationClassName=\"z-[60] right-4 -top-6 w-44");
+    expect(index).toContain("imageClassName=\"right-0 h-44 w-44 translate-x-0");
     expect(index).toContain("bg-emerald-50/75");
     expect(index).toContain('headerTheme="emerald"');
     expect(index).toContain("SECTION_HEADER_IMAGES.offers");
