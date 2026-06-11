@@ -97,6 +97,15 @@ describe("homepage positioning guards", () => {
     expect(features).toContain("border-primary/15 bg-primary/10");
   });
 
+  it("keeps public discovery rails visible for signed-in users", () => {
+    const index = read("src/pages/Index.tsx");
+
+    expect(index).toContain("const showSecondaryRail = secondaryRail.restaurants.length > 0;");
+    expect(index).toContain("const showTrendingRail = trendingCards.length > 0;");
+    expect(index).not.toContain("const showSecondaryRail = secondaryRail.restaurants.length > 0 && (!user");
+    expect(index).not.toContain("const showTrendingRail = trendingCards.length > 0 && (!user");
+  });
+
   it("keeps locally hosted 3D PNG illustrations for homepage section headers", () => {
     const requiredAssets = [
       "public/images/section-headers/heart-3d.png",

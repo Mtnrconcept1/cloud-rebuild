@@ -373,8 +373,8 @@ export default function Index() {
         delivery: deliveryEnabled ? "true" : undefined,
       }),
     };
-  const showSecondaryRail = secondaryRail.restaurants.length > 0 && (!user || (!personalCards.length && !cityRail.length));
-  const showTrendingRail = trendingCards.length > 0 && (!user || personalCards.length < 3);
+  const showSecondaryRail = secondaryRail.restaurants.length > 0;
+  const showTrendingRail = trendingCards.length > 0;
   const focusCards = [
     itemCount > 0
       ? {
