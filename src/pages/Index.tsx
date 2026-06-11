@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import PromoCarousel from "@/components/PromoCarousel";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
+import CampaignBanner from "@/components/CampaignBanner";
 import HeroSection from "@/components/home/HeroSection";
 import CuisineCategoryStrip from "@/components/home/CuisineCategoryStrip";
 import SolidaritySection from "@/components/home/SolidaritySection";
@@ -150,7 +151,7 @@ export default function Index() {
 
   const { data: sponsoredCampaigns } = useQuery({
     queryKey: ["sponsored-home"],
-    queryFn: () => getActiveSponsoredRestaurants("home"),
+    queryFn: () => getActiveSponsoredRestaurants("home", "restaurant_cards"),
     enabled: campaignsEnabled,
   });
 
@@ -428,6 +429,9 @@ export default function Index() {
     <main className="min-h-screen pb-20">
       <HeroSection contentVisible={isVisible} />
       <CuisineCategoryStrip />
+      <section className="container py-4">
+        <CampaignBanner page="home" maxBanners={1} />
+      </section>
 
       <motion.div
         variants={sectionStagger}

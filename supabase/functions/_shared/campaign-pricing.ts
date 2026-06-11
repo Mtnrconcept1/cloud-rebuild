@@ -5,6 +5,8 @@ export type CampaignPricing = {
 };
 
 export type CampaignPricingStrategy = "visibility" | "traffic" | "conversion";
+export type CampaignPlacementOption = "banner" | "restaurant_cards";
+export type CampaignPlacementSelection = Record<CampaignPlacementOption, boolean>;
 
 export const CAMPAIGN_STRATEGY_PRICING: Record<CampaignPricingStrategy, CampaignPricing> = {
   visibility: {
@@ -25,10 +27,81 @@ export const CAMPAIGN_STRATEGY_PRICING: Record<CampaignPricingStrategy, Campaign
 };
 
 export const DEFAULT_CAMPAIGN_PRICING: CampaignPricing = CAMPAIGN_STRATEGY_PRICING.conversion;
+export const CAMPAIGN_PLACEMENT_PREMIUMS: Record<CampaignPlacementOption, number> = {
+  restaurant_cards: 0,
+  banner: 0.35,
+};
+
+export const DEFAULT_CAMPAIGN_PLACEMENTS: CampaignPlacementSelection = {
+  banner: false,
+  restaurant_cards: true,
+};
 
 function toPositiveNumber(value: unknown) {
   const numeric = Number(value);
   return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function readBoolean(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    if (typeof source[key] === "boolean") return source[key] as boolean;
+  }
+  return undefined;
+}
+
+function getDefaultPlacementsForType(type: unknown): CampaignPlacementSelection {
+  const normalizedType = String(type || "").trim().toLowerCase();
+  if (normalizedType === "banner") return { banner: true, restaurant_cards: false };
+  if (normalizedType === "push") return { banner: false, restaurant_cards: false };
+  return { ...DEFAULT_CAMPAIGN_PLACEMENTS };
+}
+
+function round(value: number, digits = 2) {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
+}
+
+export function normalizeCampaignPlacementSelection(
+  value: unknown,
+  campaignType?: unknown,
+): CampaignPlacementSelection {
+  const source = isRecord(value) ? value : {};
+  const defaults = getDefaultPlacementsForType(campaignType);
+  const banner = readBoolean(source, ["banner", "campaign_banner"]);
+  const restaurantCards = readBoolean(source, [
+    "restaurant_cards",
+    "restaurantCards",
+    "cards",
+    "sponsored_cards",
+  ]);
+  const normalized = {
+    banner: banner ?? defaults.banner,
+    restaurant_cards: restaurantCards ?? defaults.restaurant_cards,
+  };
+
+  if (!normalized.banner && !normalized.restaurant_cards) {
+    return campaignType === "push" ? normalized : { ...DEFAULT_CAMPAIGN_PLACEMENTS };
+  }
+
+  return normalized;
+}
+
+export function getCampaignPlacementCostMultiplier(placements: unknown, campaignType?: unknown) {
+  const normalized = normalizeCampaignPlacementSelection(placements, campaignType);
+  const premium = (Object.keys(CAMPAIGN_PLACEMENT_PREMIUMS) as CampaignPlacementOption[])
+    .reduce((sum, placement) => (
+      normalized[placement] ? sum + CAMPAIGN_PLACEMENT_PREMIUMS[placement] : sum
+    ), 0);
+  return round(1 + premium, 2);
+}
+
+export function calculateCampaignTotalCost(baseBudgetChf: unknown, placements: unknown, campaignType?: unknown) {
+  const baseBudget = Math.max(0, Number(baseBudgetChf) || 0);
+  return round(baseBudget * getCampaignPlacementCostMultiplier(placements, campaignType));
 }
 
 export function normalizeCampaignPricingStrategy(value: unknown, fallback: CampaignPricingStrategy = "conversion"): CampaignPricingStrategy {

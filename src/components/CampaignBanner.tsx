@@ -23,7 +23,7 @@ export default function CampaignBanner({ page, maxBanners = 2 }: CampaignBannerP
 
   const { data: campaigns } = useQuery({
     queryKey: ["campaign-banners", page],
-    queryFn: () => getActiveSponsoredRestaurants(page),
+    queryFn: () => getActiveSponsoredRestaurants(page, "banner"),
     enabled: campaignsEnabled,
   });
 

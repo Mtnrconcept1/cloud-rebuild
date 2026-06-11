@@ -1,14 +1,25 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_CAMPAIGN_PRICING,
+  calculateCampaignBaseBudget,
+  calculateCampaignTotalCost,
+  campaignSupportsPlacement,
   estimateCampaignPlan,
+  getCampaignPlacementCostMultiplier,
   getCampaignEventUnitCost,
   getCampaignObservedMetrics,
   getCampaignPricing,
+  normalizeCampaignPlacementSelection,
   projectCampaignBenchmarkOutcomes,
   recommendCampaignStrategy,
 } from "@/lib/campaignPricing";
+
+function readSource(path: string) {
+  return readFileSync(resolve(process.cwd(), path), "utf8");
+}
 
 describe("campaign pricing helpers", () => {
   it("falls back to strategy pricing when rates are absent", () => {
@@ -71,5 +82,35 @@ describe("campaign pricing helpers", () => {
     expect(recommendCampaignStrategy({ type: "banner", targetPages: ["home"] })).toBe("visibility");
     expect(recommendCampaignStrategy({ type: "boost", targetPages: ["search"] })).toBe("traffic");
     expect(recommendCampaignStrategy({ type: "boost", targetPages: ["flash_sales"] })).toBe("conversion");
+  });
+
+  it("normalizes placement options and prices banner premiums", () => {
+    const placements = normalizeCampaignPlacementSelection({
+      banner: true,
+      restaurant_cards: true,
+    }, "boost");
+
+    expect(placements).toEqual({ banner: true, restaurant_cards: true });
+    expect(getCampaignPlacementCostMultiplier(placements)).toBe(1.35);
+    expect(calculateCampaignTotalCost(100, placements)).toBe(135);
+    expect(calculateCampaignBaseBudget(135, placements)).toBe(100);
+  });
+
+  it("keeps legacy campaign type defaults for display placement support", () => {
+    expect(campaignSupportsPlacement({ type: "banner", channels: {} }, "banner")).toBe(true);
+    expect(campaignSupportsPlacement({ type: "boost", channels: {} }, "restaurant_cards")).toBe(true);
+    expect(campaignSupportsPlacement({ type: "push", channels: {} }, "restaurant_cards")).toBe(false);
+    expect(campaignSupportsPlacement({ type: "push", channels: { banner: true } }, "banner")).toBe(true);
+  });
+
+  it("keeps campaign portal authoritative for placement-priced campaign budgets", () => {
+    const portal = readSource("supabase/functions/campaign-portal/index.ts");
+    const sharedPricing = readSource("supabase/functions/_shared/campaign-pricing.ts");
+
+    expect(portal).toContain("sanitizeCampaignChannels");
+    expect(portal).toContain("calculateCampaignTotalCost(baseBudget, channels, type)");
+    expect(portal).toContain("channels,");
+    expect(sharedPricing).toContain("normalizeCampaignPlacementSelection");
+    expect(sharedPricing).toContain("banner: 0.35");
   });
 });

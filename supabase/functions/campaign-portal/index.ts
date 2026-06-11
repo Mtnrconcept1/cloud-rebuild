@@ -8,7 +8,9 @@ import {
 } from "../_shared/auth.ts";
 import {
   DEFAULT_CAMPAIGN_PRICING,
+  calculateCampaignTotalCost,
   getCampaignPricing,
+  normalizeCampaignPlacementSelection,
   normalizeCampaignPricingStrategy,
 } from "../_shared/campaign-pricing.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
@@ -70,6 +72,23 @@ function sanitizeAudienceCriteria(raw: unknown) {
   };
 }
 
+function sanitizeCampaignChannels(raw: unknown, type: string, existingChannels: unknown) {
+  const source = raw && typeof raw === "object" && !Array.isArray(raw)
+    ? raw as Record<string, unknown>
+    : {};
+  const existing = existingChannels && typeof existingChannels === "object" && !Array.isArray(existingChannels)
+    ? existingChannels as Record<string, unknown>
+    : {};
+  const placements = normalizeCampaignPlacementSelection(source, type);
+
+  return {
+    ...existing,
+    ...source,
+    banner: placements.banner,
+    restaurant_cards: placements.restaurant_cards,
+  };
+}
+
 function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string, unknown> | null) {
   const source = raw && typeof raw === "object" && !Array.isArray(raw)
     ? raw as Record<string, unknown>
@@ -79,8 +98,6 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
   const type = normalizeLower(source.type);
   const body = normalizeText(source.body) || null;
   const imageUrl = normalizeText(source.image_url) || null;
-  const totalBudget = clampNonNegativeNumber(source.total_budget);
-  const budgetDaily = clampNonNegativeNumber(source.budget_daily);
   const paymentMethod = normalizeLower(source.payment_method);
   const startsAt = normalizeText(source.starts_at) || null;
   const endsAt = normalizeText(source.ends_at) || null;
@@ -96,6 +113,17 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
   if (!VALID_CAMPAIGN_TYPES.has(type)) {
     throw new HttpError(400, "Type de campagne invalide");
   }
+
+  const channels = sanitizeCampaignChannels(source.channels, type, existingCampaign?.channels);
+  const hasBaseBudget = Object.prototype.hasOwnProperty.call(source, "base_budget");
+  const baseBudget = hasBaseBudget ? clampNonNegativeNumber(source.base_budget) : clampNonNegativeNumber(source.total_budget);
+  const totalBudget = hasBaseBudget
+    ? calculateCampaignTotalCost(baseBudget, channels, type)
+    : clampNonNegativeNumber(source.total_budget);
+  const hasBaseDailyBudget = Object.prototype.hasOwnProperty.call(source, "budget_daily_base");
+  const budgetDaily = hasBaseDailyBudget
+    ? calculateCampaignTotalCost(source.budget_daily_base, channels, type)
+    : clampNonNegativeNumber(source.budget_daily);
 
   let sanitizedPaymentMethod: string | null = null;
   if (paymentMethod) {
@@ -146,6 +174,7 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
     body,
     type,
     image_url: imageUrl,
+    channels,
     target_pages: sanitizeStringArray(source.target_pages, VALID_TARGET_PAGES),
     target_criteria: sanitizeAudienceCriteria(source.target_criteria),
     total_budget: totalBudget,

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import CampaignBanner from "@/components/CampaignBanner";
 import RestaurantCard from "@/components/RestaurantCard";
 import { trackSearch, getActiveSponsoredRestaurants } from "@/lib/analytics";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
@@ -327,7 +328,7 @@ export default function Recherche() {
 
   const { data: sponsoredCampaigns } = useQuery({
     queryKey: ["sponsored-search"],
-    queryFn: () => getActiveSponsoredRestaurants("search"),
+    queryFn: () => getActiveSponsoredRestaurants("search", "restaurant_cards"),
     enabled: campaignsEnabled,
   });
 
@@ -553,6 +554,8 @@ export default function Recherche() {
             ) : null}
           </div>
         </div>
+
+        <CampaignBanner page="search" maxBanners={1} />
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

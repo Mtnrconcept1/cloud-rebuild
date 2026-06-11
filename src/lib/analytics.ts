@@ -6,7 +6,12 @@ import {
   type AudienceCriteria,
   type AudienceSnapshot,
 } from "@/lib/campaignTargeting";
-import { getCampaignStrategyPlacementBoost } from "@/lib/campaignPricing";
+import {
+  campaignSupportsPlacement,
+  getCampaignStrategyPlacementBoost,
+  normalizeCampaignPlacementSelection,
+  type CampaignPlacementOption,
+} from "@/lib/campaignPricing";
 import { isCampaignVisibleForViewer } from "@/lib/campaignVisibility";
 import {
   estimateRestaurantCampaignAudience,
@@ -49,17 +54,23 @@ interface TrackEventParams {
 let currentUserId: string | null = null;
 
 const SPONSORED_ROTATION_KEY = "miamz-sponsored-rotation-v1";
+const SPONSORED_SELECTION_KEY = "miamz-sponsored-placement-selection-v1";
 const ANALYTICS_VIEWER_KEY = "miamz-analytics-viewer-v1";
 const SPONSORED_AUDIENCE_CACHE_MS = 5 * 60 * 1000;
+const SPONSORED_SELECTION_TTL_MS = 15 * 60 * 1000;
 const SPONSORED_DISPLAY_DEDUPE_TTL_MS = 1500;
 const MAX_SPONSORED_DISPLAY_KEYS = 300;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const SPONSORED_DISPLAY_TYPES = ["boost", "banner", "sponsored", "in_app"];
+const SPONSORED_DISPLAY_TYPES = ["boost", "banner", "sponsored", "in_app", "push"];
 
 const INVALID_ORDER_STATUSES = new Set(["cancelled", "refused", "payment_failed", "pending_payment"]);
 const INVALID_RESERVATION_STATUSES = new Set(["cancelled", "refused"]);
 
 type SponsoredRotationStore = Record<string, WeightedCampaignRotationState>;
+type SponsoredPlacementSelectionMemory = Record<string, Record<string, Partial<Record<CampaignPlacementOption, {
+  campaignId: string;
+  selectedAt: number;
+}>>>>;
 
 type SponsoredTrackResult = {
   recorded: boolean;
@@ -157,23 +168,137 @@ function writeSponsoredRotationStore(store: SponsoredRotationStore) {
   }
 }
 
-function selectPoolWeightedCampaigns(campaigns: any[], page: string): any[] {
+let sponsoredSelectionMemoryStore: SponsoredPlacementSelectionMemory = {};
+
+function readSponsoredSelectionMemory(now = Date.now()): SponsoredPlacementSelectionMemory {
+  const fallback = sponsoredSelectionMemoryStore;
+  let parsed = fallback;
+
+  if (typeof window !== "undefined") {
+    try {
+      const raw = window.localStorage.getItem(SPONSORED_SELECTION_KEY);
+      if (raw) {
+        const candidate = JSON.parse(raw);
+        if (candidate && typeof candidate === "object") parsed = candidate;
+      }
+    } catch {
+      parsed = fallback;
+    }
+  }
+
+  const pruned: SponsoredPlacementSelectionMemory = {};
+  for (const [page, restaurants] of Object.entries(parsed || {})) {
+    const nextRestaurants: Record<string, Partial<Record<CampaignPlacementOption, {
+      campaignId: string;
+      selectedAt: number;
+    }>>> = {};
+    for (const [restaurantId, placements] of Object.entries(restaurants || {})) {
+      const nextPlacements: Partial<Record<CampaignPlacementOption, { campaignId: string; selectedAt: number }>> = {};
+      for (const placement of ["banner", "restaurant_cards"] as CampaignPlacementOption[]) {
+        const value = placements?.[placement];
+        if (!value?.campaignId || !Number.isFinite(Number(value.selectedAt))) continue;
+        if ((now - Number(value.selectedAt)) > SPONSORED_SELECTION_TTL_MS) continue;
+        nextPlacements[placement] = {
+          campaignId: String(value.campaignId),
+          selectedAt: Number(value.selectedAt),
+        };
+      }
+      if (Object.keys(nextPlacements).length > 0) {
+        nextRestaurants[restaurantId] = nextPlacements;
+      }
+    }
+    if (Object.keys(nextRestaurants).length > 0) {
+      pruned[page] = nextRestaurants;
+    }
+  }
+
+  sponsoredSelectionMemoryStore = pruned;
+  return pruned;
+}
+
+function writeSponsoredSelectionMemory(store: SponsoredPlacementSelectionMemory) {
+  sponsoredSelectionMemoryStore = store;
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SPONSORED_SELECTION_KEY, JSON.stringify(store));
+  } catch {
+    // Silent fail
+  }
+}
+
+function getCampaignRestaurantId(campaign: any) {
+  return String(campaign?.restaurant_id || campaign?.restaurants?.id || "");
+}
+
+function avoidCompanionPlacementDuplicates(
+  campaigns: any[],
+  page: string,
+  placement: CampaignPlacementOption,
+  memory: SponsoredPlacementSelectionMemory,
+) {
+  const companionPlacement: CampaignPlacementOption = placement === "banner" ? "restaurant_cards" : "banner";
+  const selectedByRestaurant = memory[page] || {};
+
+  return campaigns.filter((campaign) => {
+    const restaurantId = getCampaignRestaurantId(campaign);
+    if (!restaurantId) return true;
+    const companionCampaignId = selectedByRestaurant[restaurantId]?.[companionPlacement]?.campaignId;
+    if (!companionCampaignId || String(campaign.id) !== companionCampaignId) return true;
+
+    return !campaigns.some((candidate) => (
+      getCampaignRestaurantId(candidate) === restaurantId &&
+      String(candidate.id) !== companionCampaignId
+    ));
+  });
+}
+
+function rememberPlacementSelections(
+  campaigns: any[],
+  page: string,
+  placement: CampaignPlacementOption,
+  memory: SponsoredPlacementSelectionMemory,
+  now = Date.now(),
+) {
+  const nextMemory: SponsoredPlacementSelectionMemory = { ...memory };
+  const pageMemory = { ...(nextMemory[page] || {}) };
+
+  for (const campaign of campaigns) {
+    const restaurantId = getCampaignRestaurantId(campaign);
+    if (!restaurantId || !campaign?.id) continue;
+    pageMemory[restaurantId] = {
+      ...(pageMemory[restaurantId] || {}),
+      [placement]: {
+        campaignId: String(campaign.id),
+        selectedAt: now,
+      },
+    };
+  }
+
+  nextMemory[page] = pageMemory;
+  writeSponsoredSelectionMemory(nextMemory);
+}
+
+function selectPoolWeightedCampaigns(campaigns: any[], page: string, placement: CampaignPlacementOption): any[] {
   if (!campaigns || campaigns.length === 0) return [];
 
   const rotationStore = readSponsoredRotationStore();
+  const selectionMemory = readSponsoredSelectionMemory();
+  const placementCampaigns = campaigns.filter((campaign) => campaignSupportsPlacement(campaign, placement));
+  const eligibleCampaigns = avoidCompanionPlacementDuplicates(placementCampaigns, page, placement, selectionMemory);
   const { campaigns: selectedCampaigns, store: nextRotationStore } = selectSponsoredCampaignPlacements(
-    campaigns,
+    eligibleCampaigns,
     rotationStore,
     {
-      page,
+      page: `${page}:${placement}`,
       maxSlots: 3,
       getPlacementBoost: (campaign, placementPage) => getCampaignStrategyPlacementBoost(
         (campaign as Record<string, unknown>)?.pricing_strategy,
-        placementPage,
+        String(placementPage).split(":")[0] || page,
       ),
     },
   );
   writeSponsoredRotationStore(nextRotationStore);
+  rememberPlacementSelections(selectedCampaigns, page, placement, selectionMemory);
 
   return selectedCampaigns;
 }
@@ -770,7 +895,10 @@ export async function getRestaurantCampaigns(restaurantId: string) {
   return (data || []) as any[];
 }
 
-export async function getActiveSponsoredRestaurants(page: string) {
+export async function getActiveSponsoredRestaurants(
+  page: string,
+  placement: CampaignPlacementOption = "restaurant_cards",
+) {
   const [campaignResponse, audienceSnapshot] = await Promise.all([
     getSupabase()
       .from("ad_campaigns" as any)
@@ -787,7 +915,7 @@ export async function getActiveSponsoredRestaurants(page: string) {
     viewerUserId: currentUserId,
   }));
 
-  return selectPoolWeightedCampaigns(activeCampaigns, page);
+  return selectPoolWeightedCampaigns(activeCampaigns, page, placement);
 }
 
 export async function createCampaign(campaign: {
@@ -806,11 +934,17 @@ export async function createCampaign(campaign: {
   starts_at?: string;
   ends_at?: string;
 }) {
+  const campaignChannels = campaign.channels && typeof campaign.channels === "object" && !Array.isArray(campaign.channels)
+    ? campaign.channels
+    : {};
   const { data, error } = await saveRestaurantCampaign(campaign.restaurant_id, {
     ...campaign,
     target_pages: campaign.target_pages || [],
     target_criteria: campaign.target_criteria || {},
-    channels: campaign.channels || {},
+    channels: {
+      ...campaignChannels,
+      ...normalizeCampaignPlacementSelection(campaignChannels, campaign.type),
+    },
     status: campaign.scheduled_at ? "scheduled" : "active",
   });
 

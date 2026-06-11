@@ -56,12 +56,18 @@ import {
 import {
   CAMPAIGN_STRATEGY_CONFIG,
   CAMPAIGN_MARKET_BENCHMARKS,
+  CAMPAIGN_PLACEMENT_CONFIG,
+  calculateCampaignBaseBudget,
+  calculateCampaignTotalCost,
   estimateCampaignPlan,
+  getCampaignPlacementCostMultiplier,
   getCampaignStrategyConfig,
   getCampaignObservedMetrics,
   getCampaignPricing,
+  normalizeCampaignPlacementSelection,
   normalizeCampaignPricingStrategy,
   recommendCampaignStrategy,
+  type CampaignPlacementOption,
   type CampaignPricingStrategy,
 } from "@/lib/campaignPricing";
 import {
@@ -1000,14 +1006,19 @@ function CampaignForm({
 }) {
   const { toast } = useToast();
   const activeFeatures = useActiveFeatures();
+  const initialPlacementSelection = normalizeCampaignPlacementSelection(initial?.channels, initial?.type);
+  const initialBaseBudget = initial?.total_budget
+    ? calculateCampaignBaseBudget(initial.total_budget, initialPlacementSelection, initial?.type).toString()
+    : "";
   const [title, setTitle] = useState(initial?.title || "");
   const [body, setBody] = useState(initial?.body || "");
   const [type, setType] = useState(initial?.type || "boost");
   const [imageUrl, setImageUrl] = useState(initial?.image_url || "");
+  const [placementSelection, setPlacementSelection] = useState(initialPlacementSelection);
   const [targetPages, setTargetPages] = useState<string[]>(
     Array.isArray(initial?.target_pages) ? initial.target_pages : ["home", "search"]
   );
-  const [totalBudget, setTotalBudget] = useState(initial?.total_budget?.toString() || "");
+  const [totalBudget, setTotalBudget] = useState(initialBaseBudget);
   const initialStartsAt = initial?.starts_at?.split("T")[0] || getDefaultCampaignStartDate();
   const initialEndsAt = initial?.ends_at?.split("T")[0] || addDaysToInputDate(initialStartsAt, 7);
   const [startsAt, setStartsAt] = useState(initialStartsAt);
@@ -1024,7 +1035,9 @@ function CampaignForm({
   const [aiLoading, setAiLoading] = useState(false);
 
   const isPaidCampaign = (initial?.payment_status || "unpaid") === "paid";
-  const totalBudgetValue = Math.max(0, Number(totalBudget) || 0);
+  const baseBudgetValue = Math.max(0, Number(totalBudget) || 0);
+  const placementMultiplier = getCampaignPlacementCostMultiplier(placementSelection, type);
+  const totalBudgetValue = calculateCampaignTotalCost(baseBudgetValue, placementSelection, type);
   const allowedPaymentMethods = useMemo(() => getAllowedPaymentMethods(activeFeatures, []), [activeFeatures]);
   const requiresCheckout = totalBudgetValue > 0 && !isPaidCampaign && paymentMethod !== "cash";
   const recommendedStrategy = useMemo(
@@ -1079,6 +1092,21 @@ function CampaignForm({
     );
   };
 
+  const togglePlacement = (placement: CampaignPlacementOption) => {
+    setPlacementSelection((previous) => {
+      const next = {
+        ...previous,
+        [placement]: !previous[placement],
+      };
+
+      if (!next.banner && !next.restaurant_cards) {
+        return previous;
+      }
+
+      return next;
+    });
+  };
+
   const handleAiGenerate = async () => {
     setAiLoading(true);
     try {
@@ -1126,6 +1154,13 @@ function CampaignForm({
     }
 
     setLoading(true);
+    const existingChannels = initial?.channels && typeof initial.channels === "object" && !Array.isArray(initial.channels)
+      ? initial.channels
+      : {};
+    const campaignChannels = {
+      ...existingChannels,
+      ...placementSelection,
+    };
     const payload = {
       restaurant_id: restaurantId,
       title,
@@ -1135,8 +1170,11 @@ function CampaignForm({
       image_url: imageUrl || null,
       target_pages: targetPages,
       target_criteria: normalizeAudienceCriteria(targetCriteria),
+      base_budget: baseBudgetValue,
       total_budget: totalBudgetValue,
+      budget_daily_base: Math.round((baseBudgetValue / Math.max(1, durationDays)) * 100) / 100,
       budget_daily: dailyBudgetValue,
+      channels: campaignChannels,
       starts_at: startsAt ? new Date(startsAt).toISOString() : null,
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
       payment_method: paymentMethod,
@@ -1245,6 +1283,37 @@ function CampaignForm({
         </Select>
       </div>
 
+      <div className="space-y-3">
+        <Label className="flex items-center gap-2">
+          <Megaphone className="h-4 w-4" /> Emplacements de diffusion
+        </Label>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {(Object.keys(CAMPAIGN_PLACEMENT_CONFIG) as CampaignPlacementOption[]).map((placement) => {
+            const config = CAMPAIGN_PLACEMENT_CONFIG[placement];
+            const checked = placementSelection[placement];
+            const premiumLabel = config.costPremium > 0 ? `+${Math.round(config.costPremium * 100)}%` : "Inclus";
+
+            return (
+              <label
+                key={placement}
+                className="flex min-h-[92px] cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors hover:bg-muted/40"
+              >
+                <Checkbox checked={checked} onCheckedChange={() => togglePlacement(placement)} />
+                <span className="space-y-1">
+                  <span className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                    {config.label}
+                    <Badge variant={config.costPremium > 0 ? "secondary" : "outline"} className="text-[10px]">
+                      {premiumLabel}
+                    </Badge>
+                  </span>
+                  <span className="block text-xs leading-5 text-muted-foreground">{config.description}</span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="rounded-2xl border bg-muted/20 p-4 space-y-4">
         <div className="space-y-1">
           <p className="text-sm font-semibold">Budget et objectif</p>
@@ -1256,7 +1325,7 @@ function CampaignForm({
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Budget total (CHF)</Label>
+              <Label>Budget de base (CHF)</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -1302,10 +1371,13 @@ function CampaignForm({
                 <p className="mt-1 text-lg font-semibold">{formatChf(dailyBudgetValue)}</p>
               </div>
               <div className="rounded-lg bg-muted/40 p-3 text-center">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Personnes touchées</p>
-                <p className="mt-1 text-lg font-semibold">{plannerEstimate.estimatedPeopleReached.toLocaleString()}</p>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Total à payer</p>
+                <p className="mt-1 text-lg font-semibold">{formatChf(totalBudgetValue)}</p>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Options d’affichage x{placementMultiplier.toFixed(2)} appliquées au budget de base.
+            </p>
           </div>
         </div>
 

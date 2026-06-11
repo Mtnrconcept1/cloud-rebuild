@@ -5,6 +5,8 @@ export type CampaignPricing = {
 };
 
 export type CampaignPricingStrategy = "visibility" | "traffic" | "conversion";
+export type CampaignPlacementOption = "banner" | "restaurant_cards";
+export type CampaignPlacementSelection = Record<CampaignPlacementOption, boolean>;
 
 export type CampaignBenchmarkSnapshot = {
   metaFoodCpmUsd: number;
@@ -39,6 +41,31 @@ export type CampaignPlannerEstimate = {
   blendedCostPerThousand: number;
   estimatedCpc: number;
   estimatedCpa: number;
+};
+
+export const CAMPAIGN_PLACEMENT_CONFIG: Record<CampaignPlacementOption, {
+  key: CampaignPlacementOption;
+  label: string;
+  description: string;
+  costPremium: number;
+}> = {
+  restaurant_cards: {
+    key: "restaurant_cards",
+    label: "Cartes restaurant",
+    description: "Affichage dans les resultats et les rails de restaurants.",
+    costPremium: 0,
+  },
+  banner: {
+    key: "banner",
+    label: "Banniere",
+    description: "Affichage dans une bannière sponsorisée visible sur la page ciblée.",
+    costPremium: 0.35,
+  },
+};
+
+export const DEFAULT_CAMPAIGN_PLACEMENTS: CampaignPlacementSelection = {
+  banner: false,
+  restaurant_cards: true,
 };
 
 export const CAMPAIGN_MARKET_BENCHMARKS: CampaignBenchmarkSnapshot = {
@@ -126,6 +153,92 @@ function toPositiveNumber(value: unknown) {
 function round(value: number, digits = 2) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function readBoolean(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    if (typeof source[key] === "boolean") return source[key] as boolean;
+  }
+  return undefined;
+}
+
+function getDefaultPlacementsForType(type: unknown): CampaignPlacementSelection {
+  const normalizedType = String(type || "").trim().toLowerCase();
+  if (normalizedType === "banner") {
+    return { banner: true, restaurant_cards: false };
+  }
+  if (normalizedType === "push") {
+    return { banner: false, restaurant_cards: false };
+  }
+  return { ...DEFAULT_CAMPAIGN_PLACEMENTS };
+}
+
+export function normalizeCampaignPlacementSelection(
+  value: unknown,
+  campaignType?: unknown,
+): CampaignPlacementSelection {
+  const source = isRecord(value) ? value : {};
+  const defaults = getDefaultPlacementsForType(campaignType);
+  const banner = readBoolean(source, ["banner", "campaign_banner"]);
+  const restaurantCards = readBoolean(source, [
+    "restaurant_cards",
+    "restaurantCards",
+    "cards",
+    "sponsored_cards",
+  ]);
+
+  const normalized = {
+    banner: banner ?? defaults.banner,
+    restaurant_cards: restaurantCards ?? defaults.restaurant_cards,
+  };
+
+  if (!normalized.banner && !normalized.restaurant_cards) {
+    return campaignType === "push" ? normalized : { ...DEFAULT_CAMPAIGN_PLACEMENTS };
+  }
+
+  return normalized;
+}
+
+export function campaignSupportsPlacement(
+  campaign: { channels?: unknown; type?: unknown } | null | undefined,
+  placement: CampaignPlacementOption,
+) {
+  return normalizeCampaignPlacementSelection(campaign?.channels, campaign?.type)[placement];
+}
+
+export function getCampaignPlacementCostMultiplier(
+  placements: unknown,
+  campaignType?: unknown,
+) {
+  const normalized = normalizeCampaignPlacementSelection(placements, campaignType);
+  const premium = (Object.keys(CAMPAIGN_PLACEMENT_CONFIG) as CampaignPlacementOption[])
+    .reduce((sum, placement) => (
+      normalized[placement] ? sum + CAMPAIGN_PLACEMENT_CONFIG[placement].costPremium : sum
+    ), 0);
+  return round(1 + premium, 2);
+}
+
+export function calculateCampaignTotalCost(
+  baseBudgetChf: unknown,
+  placements: unknown,
+  campaignType?: unknown,
+) {
+  const baseBudget = Math.max(0, Number(baseBudgetChf) || 0);
+  return round(baseBudget * getCampaignPlacementCostMultiplier(placements, campaignType));
+}
+
+export function calculateCampaignBaseBudget(
+  totalBudgetChf: unknown,
+  placements: unknown,
+  campaignType?: unknown,
+) {
+  const totalBudget = Math.max(0, Number(totalBudgetChf) || 0);
+  const multiplier = getCampaignPlacementCostMultiplier(placements, campaignType);
+  return multiplier > 0 ? round(totalBudget / multiplier) : totalBudget;
 }
 
 export function normalizeCampaignPricingStrategy(value: unknown, fallback: CampaignPricingStrategy = "conversion"): CampaignPricingStrategy {

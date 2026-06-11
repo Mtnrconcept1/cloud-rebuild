@@ -244,12 +244,19 @@ describe("prioritizeSponsoredCards", () => {
   it("keeps home and search sponsored inventory inside the first restaurant cards", () => {
     const homePage = readSource("src/pages/Index.tsx");
     const searchPage = readSource("src/pages/Recherche.tsx");
+    const banner = readSource("src/components/CampaignBanner.tsx");
+    const analytics = readSource("src/lib/analytics.ts");
 
     expect(homePage).toContain("primarySponsoredCards = prioritizeSponsoredCards");
     expect(homePage).toContain("topSlots: 3");
-    expect(homePage).not.toContain('<CampaignBanner page="home"');
+    expect(homePage).toContain('<CampaignBanner page="home" maxBanners={1} />');
+    expect(homePage).toContain('getActiveSponsoredRestaurants("home", "restaurant_cards")');
     expect(searchPage).toContain("prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3 })");
-    expect(searchPage).not.toContain('<CampaignBanner page="search"');
+    expect(searchPage).toContain('<CampaignBanner page="search" maxBanners={1} />');
+    expect(searchPage).toContain('getActiveSponsoredRestaurants("search", "restaurant_cards")');
+    expect(banner).toContain('getActiveSponsoredRestaurants(page, "banner")');
+    expect(analytics).toContain("avoidCompanionPlacementDuplicates");
+    expect(analytics).toContain("campaignSupportsPlacement(campaign, placement)");
   });
 
   it("keeps the sponsored restaurant badge readable over restaurant photos", () => {
