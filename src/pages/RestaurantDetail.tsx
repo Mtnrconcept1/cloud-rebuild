@@ -27,7 +27,7 @@ import {
 } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
-const TOK_GALLERY_LOGO_SRC = "/logo-watermark.png";
+const TOK_GALLERY_LOGO_SRC = "/logotok.png";
 const RESTAURANT_DETAIL_STALE_MS = 60_000;
 const RESTAURANT_MEDIA_LIMIT = 24;
 const RESTAURANT_MENU_ITEMS_LIMIT = 120;

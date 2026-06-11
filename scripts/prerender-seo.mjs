@@ -42,7 +42,7 @@ const PUBLIC_SEO_PAGES = [
         "@type": "Organization",
         name: "TOK",
         url: CANONICAL_ORIGIN,
-        logo: `${CANONICAL_ORIGIN}/logo.png`,
+        logo: `${CANONICAL_ORIGIN}/logotok.png`,
         areaServed: ["Genève", "Lausanne", "Suisse romande"],
       },
       {

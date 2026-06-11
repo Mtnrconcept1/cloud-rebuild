@@ -366,7 +366,7 @@ export function buildPayableInvoiceDocumentData(input: {
     invoice: input.invoice,
     sender: TOK_SENDER,
     recipient,
-    logoUrl: "/logo377.png",
+    logoUrl: "/logotok.png",
     periodLabel: formatPayablePeriod(input.invoice.period_start, input.invoice.period_end),
     createdAtLabel: formatPayableDate(input.invoice.created_at),
     dueAtLabel: formatPayableDate(input.invoice.due_at),

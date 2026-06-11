@@ -16,7 +16,7 @@ import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 
 const supabase = getSupabase();
 const STUDIO_BRIEF =
   "Améliore l'image en photographie culinaire de studio professionnel non brandée, avec un éclairage softbox premium, un fond propre et un joli flou de profondeur lorsque la scène le permet. Supprime tous les objets et éléments parasites: décor encombré, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants et arrière-plan confus. Améliore les formes et volumes par la lumière, la netteté, les textures et une retouche naturelle, en gardant le produit identique: mêmes aliments, même contenant, mêmes proportions, même packaging et mêmes inscriptions physiques. N'ajoute aucun logo, aucun macaron, aucune bulle de marque, aucun filigrane, aucun texte incrusté et aucune marque. Si un logo ou un filigrane existe déjà sur l'image source comme calque ou watermark, retire-le proprement de l'image générée.";
-const STUDIO_LOGO_SRC = "/logo-watermark.png";
+const STUDIO_LOGO_SRC = "/logotok.png";
 
 type Props = {
   restaurantId: string | null | undefined;

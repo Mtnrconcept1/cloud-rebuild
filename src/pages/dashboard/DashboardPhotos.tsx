@@ -17,7 +17,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { Star, Trash2, Pencil, Image as ImageIcon, Sparkles, Download, Maximize2 } from "lucide-react";
 
 const supabase = getSupabase();
-const TOK_LOGO_SRC = "/logo-watermark.png";
+const TOK_LOGO_SRC = "/logotok.png";
 
 type MediaItem = {
   id: string;

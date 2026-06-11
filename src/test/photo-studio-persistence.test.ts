@@ -79,7 +79,7 @@ describe("TOK photo studio persistence", () => {
     expect(dashboardPhotos).toContain('aria-label="Agrandir la photo de galerie"');
     expect(dashboardPhotos).toContain("downloadPhoto");
     expect(dashboardPhotos).toContain("buildGalleryPhotoDownloadFileName");
-    expect(dashboardPhotos).toContain('TOK_LOGO_SRC = "/logo-watermark.png"');
+    expect(dashboardPhotos).toContain('TOK_LOGO_SRC = "/logotok.png"');
     expect(dashboardPhotos).toContain("downloadImageWithWatermark");
     expect(dashboardPhotos).toContain("watermarkUrl: TOK_LOGO_SRC");
     expect(dashboardPhotos).not.toContain('item.media_type === "photo_ai_tok" ? <TokGalleryWatermark');
@@ -108,7 +108,7 @@ describe("TOK photo studio persistence", () => {
   });
 
   it("makes restaurant gallery photos public from the cover and includes raw and TOK studio photos", () => {
-    expect(restaurantDetail).toContain('TOK_GALLERY_LOGO_SRC = "/logo-watermark.png"');
+    expect(restaurantDetail).toContain('TOK_GALLERY_LOGO_SRC = "/logotok.png"');
     expect(restaurantDetail).toContain("RestaurantGalleryWatermark");
     expect(restaurantDetail).toContain("media_type");
     expect(restaurantDetail).toContain('.in("media_type", ["photo", "photo_ai_tok"])');
@@ -144,7 +144,7 @@ describe("TOK photo studio persistence", () => {
     expect(source).toContain("N'ajoute aucun logo");
     expect(source).toContain("calque transparent séparé");
     expect(source).toContain("TokLogoWatermark");
-    expect(source).toContain('STUDIO_LOGO_SRC = "/logo-watermark.png"');
+    expect(source).toContain('STUDIO_LOGO_SRC = "/logotok.png"');
     expect(source).toContain('data-testid="tok-logo-watermark-layer"');
     expect(source).toContain('className="left-4 top-4" sizeClassName="h-16 w-16"');
     expect(source).toContain('className="relative inline-flex max-h-full max-w-full items-center justify-center"');
