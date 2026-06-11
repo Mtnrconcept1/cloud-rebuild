@@ -1,4 +1,4 @@
-import { type MouseEvent, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Bell,
@@ -115,6 +115,8 @@ export default function Navbar() {
   const logoSrc = useTokLogoSrc();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
 
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const flashSalesEnabled = activeFeatures.has("ventes-flash");
@@ -169,6 +171,30 @@ export default function Navbar() {
   ];
   const hasDashboardAccess = dashboardAccessItems.length > 0;
 
+  useEffect(() => {
+    lastScrollYRef.current = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const previousScrollY = lastScrollYRef.current;
+      const scrollDelta = currentScrollY - previousScrollY;
+
+      lastScrollYRef.current = currentScrollY;
+
+      if (Math.abs(scrollDelta) < 8) return;
+
+      if (currentScrollY < 48 || scrollDelta < 0) {
+        setIsHeaderVisible(true);
+      } else if (scrollDelta > 0 && !menuOpen && !accountMenuOpen) {
+        setIsHeaderVisible(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [accountMenuOpen, menuOpen]);
+
   const renderDashboardAccessLink = (item: DashboardAccessItem, options?: { onClick?: () => void }) => {
     const Icon = item.icon;
     const className = "group flex w-full items-center gap-3 rounded-2xl border border-primary/15 bg-background/90 p-3 text-left shadow-sm transition-all hover:border-primary/35 hover:bg-primary/5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
@@ -217,7 +243,13 @@ export default function Navbar() {
       ) : null}
 
       {/* ─── Main header ─── */}
-      <header className={`fixed top-0 z-[70] w-full border-b shadow-sm safe-top md:sticky md:z-50 ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}>
+      <header
+        className={`fixed top-0 z-[70] w-full border-b shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out md:sticky md:z-50 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        style={{
+          opacity: isHeaderVisible ? 1 : 0,
+          transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
+        }}
+      >
         <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 ${isMobileHomeHeader ? "h-[66px] bg-white dark:bg-white" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
             <img src={logoSrc} alt="Tok" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />

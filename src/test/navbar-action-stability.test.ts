@@ -26,6 +26,17 @@ describe("navbar action stability", () => {
     expect(source).toContain("data-[state=closed]:hidden");
   });
 
+  it("fades the header out on downward scroll and back in on upward scroll", () => {
+    expect(source).toContain("const [isHeaderVisible, setIsHeaderVisible] = useState(true)");
+    expect(source).toContain("window.addEventListener(\"scroll\", handleScroll, { passive: true })");
+    expect(source).toContain("currentScrollY < 48 || scrollDelta < 0");
+    expect(source).toContain("scrollDelta > 0 && !menuOpen && !accountMenuOpen");
+    expect(source).toContain('transition-[opacity,transform] duration-300 ease-out');
+    expect(source).toContain('isHeaderVisible ? "" : "pointer-events-none"');
+    expect(source).toContain("opacity: isHeaderVisible ? 1 : 0");
+    expect(source).toContain('transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)"');
+  });
+
   it("keeps flash sales visibly distinct in desktop and mobile navigation", () => {
     expect(source).toContain("Zap,");
     expect(source).toContain('<Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />');
