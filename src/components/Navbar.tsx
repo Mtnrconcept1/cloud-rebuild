@@ -26,6 +26,7 @@ import {
   Timer,
   User,
   Users,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -231,12 +232,6 @@ export default function Navbar() {
                     Explorer
                   </Link>
                 </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link to="/restaurateurs/geneve" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                    <Store className="h-4 w-4" />
-                    Restaurateurs
-                  </Link>
-                </NavigationMenuItem>
                 {antiWasteEnabled ? (
                   <NavigationMenuItem>
                     <Link to="/anti-gaspi" className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
@@ -247,7 +242,8 @@ export default function Navbar() {
                 ) : null}
                 {flashSalesEnabled ? (
                   <NavigationMenuItem>
-                    <Link to="/ventes-flash" className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                    <Link to="/ventes-flash" className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
+                      <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                     </Link>
                   </NavigationMenuItem>
@@ -341,7 +337,14 @@ export default function Navbar() {
             <NotificationBell className={isMobileHomeHeader ? "text-slate-950 hover:bg-transparent" : undefined} />
 
             {showClientSurface ? (
-              <ChefHelpButton surface="client" compact className="hidden h-11 lg:flex" />
+              <Link
+                to="/restaurateurs/geneve"
+                onMouseDown={preserveNavbarActionScrollPosition}
+                className="hidden h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground lg:inline-flex"
+              >
+                <Store className="h-4 w-4" />
+                Restaurateurs
+              </Link>
             ) : null}
 
             {user ? (
@@ -454,6 +457,10 @@ export default function Navbar() {
               </Button>
             )}
 
+            {showClientSurface ? (
+              <ChefHelpButton surface="client" compact className="hidden h-20 w-20 lg:flex" />
+            ) : null}
+
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className={`${isMobileHomeHeader ? "order-2 text-slate-950 hover:bg-transparent" : ""} lg:hidden`}>
@@ -485,7 +492,8 @@ export default function Navbar() {
                     </Link>
                   ) : null}
                   {showClientSurface && flashSalesEnabled ? (
-                    <Link to="/ventes-flash" className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
+                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-semibold text-amber-600 hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300" onClick={() => setMenuOpen(false)}>
+                      <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                     </Link>
                   ) : null}
@@ -625,15 +633,17 @@ export default function Navbar() {
                     {showClientSurface ? (
                       <ChefHelpButton surface="client" onOpen={() => setMenuOpen(false)} />
                     ) : null}
-                    <Link to="/a-propos" className="text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
-                      À propos
-                    </Link>
-                    <Link to="/contact" className="text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
-                      Contact
-                    </Link>
-                    <Link to="/cgu" className="text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
-                      CGU
-                    </Link>
+                    <div className="flex flex-col items-start gap-2">
+                      <Link to="/a-propos" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
+                        À propos
+                      </Link>
+                      <Link to="/contact" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
+                        Contact
+                      </Link>
+                      <Link to="/cgu" className="block text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMenuOpen(false)}>
+                        CGU
+                      </Link>
+                    </div>
                   </div>
                 </nav>
               </SheetContent>

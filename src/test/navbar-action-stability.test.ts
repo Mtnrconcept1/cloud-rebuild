@@ -26,10 +26,35 @@ describe("navbar action stability", () => {
     expect(source).toContain("data-[state=closed]:hidden");
   });
 
+  it("keeps flash sales visibly distinct in desktop and mobile navigation", () => {
+    expect(source).toContain("Zap,");
+    expect(source).toContain('<Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />');
+    expect(source).toContain("text-amber-600 transition-colors hover:text-orange-600");
+    expect(source).toContain("text-amber-600 hover:text-orange-600");
+  });
+
   it("keeps the compact menu available through tablet widths before desktop navigation", () => {
     expect(source).toContain('<NavigationMenu className="hidden lg:flex">');
-    expect(source).toContain('className="hidden h-11 lg:flex"');
+    expect(source).toContain('className="hidden h-20 w-20 lg:flex"');
     expect(source).toContain("lg:hidden");
     expect(source).not.toContain('<NavigationMenu className="hidden md:flex">');
+  });
+
+  it("keeps the desktop Help button to the right of the account spaces CTA", () => {
+    const accountMenuIndex = source.indexOf('<DropdownMenu modal={false} open={accountMenuOpen}');
+    const compactHelpIndex = source.indexOf('<ChefHelpButton surface="client" compact className="hidden h-20 w-20 lg:flex" />');
+
+    expect(accountMenuIndex).toBeGreaterThan(-1);
+    expect(compactHelpIndex).toBeGreaterThan(accountMenuIndex);
+  });
+
+  it("keeps the desktop restaurants tab beside the notification actions", () => {
+    const notificationIndex = source.indexOf("<NotificationBell");
+    const restaurantsActionIndex = source.indexOf('className="hidden h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground lg:inline-flex"');
+    const accountMenuIndex = source.indexOf('<DropdownMenu modal={false} open={accountMenuOpen}');
+
+    expect(notificationIndex).toBeGreaterThan(-1);
+    expect(restaurantsActionIndex).toBeGreaterThan(notificationIndex);
+    expect(accountMenuIndex).toBeGreaterThan(restaurantsActionIndex);
   });
 });

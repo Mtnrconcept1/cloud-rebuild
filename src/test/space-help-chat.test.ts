@@ -12,7 +12,7 @@ function readProjectFile(path: string) {
 }
 
 describe("space Help chat access", () => {
-  it("adds a chef-hat Help button to client, restaurant, admin and courier menus", () => {
+  it("adds the image Help button to client, restaurant, admin and courier menus", () => {
     const button = readProjectFile("src/components/help/ChefHelpButton.tsx");
     const navbar = readProjectFile("src/components/Navbar.tsx");
     const dashboardLayout = readProjectFile("src/components/DashboardLayout.tsx");
@@ -20,11 +20,15 @@ describe("space Help chat access", () => {
     const courierLayout = readProjectFile("src/components/CourierDashboardLayout.tsx");
     const app = readProjectFile("src/App.tsx");
 
-    expect(button).toContain("ChefHat");
-    expect(button).toContain("Help !");
-    expect(button).toContain("Chat IA OpenAI");
+    expect(button).toContain('src="/help.png"');
+    expect(button).toContain('aria-label="Help ! Ouvrir le chat IA"');
+    expect(button).toContain("h-28 w-28 sm:h-32 sm:w-32");
+    expect(button).toContain("h-full max-h-20 w-full max-w-20");
+    expect(button).not.toContain("ChefHat");
+    expect(existsSync(resolve(root, "public/help.png"))).toBe(true);
     expect(button).toContain("openHelpChat({ surface })");
     expect(navbar).toContain('ChefHelpButton surface="client"');
+    expect(navbar).toContain('className="hidden h-20 w-20 lg:flex"');
     expect(dashboardLayout).toContain('ChefHelpButton surface="restaurant"');
     expect(adminNavigation).toContain('ChefHelpButton surface="admin"');
     expect(app).toContain('ChefHelpButton surface="admin" compact');
