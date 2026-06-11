@@ -1,0 +1,146 @@
+/*
+ * Responsive safety layer for TOK homepage section-header illustrations.
+ * The component still owns the design; this layer only keeps the artwork
+ * inside a reserved visual lane so it does not cross the text or get clipped.
+ */
+
+[data-section-showcase-header] {
+  overflow: visible !important;
+}
+
+[data-section-showcase-header] > .relative {
+  z-index: 60 !important;
+  max-width: calc(100% - 8.75rem) !important;
+  padding-right: 0 !important;
+}
+
+[data-section-showcase-header] [data-section-illustration] {
+  top: 0 !important;
+  right: 0.5rem !important;
+  bottom: 0 !important;
+  z-index: 45 !important;
+  width: 8.75rem !important;
+  overflow: visible !important;
+}
+
+[data-section-showcase-header] [data-section-illustration] > img {
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 10.25rem !important;
+  height: 10.25rem !important;
+  max-width: none !important;
+  transform: translateX(0) !important;
+  object-fit: contain !important;
+  object-position: bottom right !important;
+}
+
+[data-section-showcase-header] [data-section-action-row] {
+  z-index: 70 !important;
+  max-width: calc(100% - 8.75rem) !important;
+}
+
+@media (min-width: 640px) {
+  [data-section-showcase-header] > .relative {
+    max-width: calc(100% - 13rem) !important;
+  }
+
+  [data-section-showcase-header] [data-section-illustration] {
+    right: 1rem !important;
+    width: 13rem !important;
+  }
+
+  [data-section-showcase-header] [data-section-illustration] > img {
+    width: 16rem !important;
+    height: 16rem !important;
+  }
+
+  [data-section-showcase-header] [data-section-action-row] {
+    max-width: calc(100% - 13rem) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  [data-section-showcase-header] > .relative {
+    max-width: calc(100% - 18rem) !important;
+  }
+
+  [data-section-showcase-header] [data-section-illustration] {
+    right: 1.5rem !important;
+    width: 18rem !important;
+  }
+
+  [data-section-showcase-header] [data-section-illustration] > img {
+    width: 20rem !important;
+    height: 20rem !important;
+  }
+
+  [data-section-showcase-header] [data-section-action-row] {
+    max-width: calc(100% - 18rem) !important;
+  }
+}
+
+@supports selector(:has(*)) {
+  section:has([data-section-showcase-header]) {
+    overflow: visible !important;
+  }
+
+  [data-section-showcase-header]:has(a[href="/actualites"]) {
+    min-height: 260px !important;
+    padding-top: 1.5rem !important;
+  }
+
+  [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
+    max-width: calc(100% - 9.75rem) !important;
+  }
+
+  [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
+    right: 0.25rem !important;
+    z-index: 50 !important;
+    width: 9.75rem !important;
+  }
+
+  [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
+    width: 11.5rem !important;
+    height: 11.5rem !important;
+  }
+
+  @media (min-width: 640px) {
+    [data-section-showcase-header]:has(a[href="/actualites"]) {
+      min-height: 306px !important;
+    }
+
+    [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
+      max-width: calc(100% - 15rem) !important;
+    }
+
+    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
+      right: 0.75rem !important;
+      width: 15rem !important;
+    }
+
+    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
+      width: 18rem !important;
+      height: 18rem !important;
+    }
+  }
+
+  @media (min-width: 768px) {
+    [data-section-showcase-header]:has(a[href="/actualites"]) {
+      min-height: 356px !important;
+    }
+
+    [data-section-showcase-header]:has(a[href="/actualites"]) > .relative {
+      max-width: calc(100% - 22rem) !important;
+    }
+
+    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] {
+      right: 1.25rem !important;
+      width: 22rem !important;
+    }
+
+    [data-section-showcase-header]:has(a[href="/actualites"]) [data-section-illustration] > img {
+      width: 22rem !important;
+      height: 22rem !important;
+    }
+  }
+}
