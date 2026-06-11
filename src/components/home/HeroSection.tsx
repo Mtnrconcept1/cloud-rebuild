@@ -79,7 +79,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           <div className="relative z-10 flex h-full flex-col pt-[34px]">
             <div className="px-5 pb-2 pt-4">
               <motion.img
-                src="/logo.png"
+                src="/logotok.png"
                 alt="Tok"
                 variants={scaleIn}
                 className="relative -top-[40px] mx-auto h-[82px] w-auto object-contain drop-shadow-[0_12px_30px_rgba(30,18,9,0.28)] min-[390px]:h-[88px]"
@@ -196,7 +196,7 @@ export default function HeroSection({ contentVisible = true }: { contentVisible?
           animate={contentVisible ? "visible" : "hidden"}
         >
           <motion.img
-            src="/logo.png"
+            src="/logotok.png"
             alt="Tok"
             className="mb-2 h-36 w-auto object-contain drop-shadow-[0_14px_30px_rgba(122,73,25,0.18)] dark:drop-shadow-[0_0_36px_rgba(255,123,24,0.34)] lg:h-40"
             variants={fadeUp}

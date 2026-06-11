@@ -1,2 +1,2 @@
-export const LOGO_URL = "/logo3.png";
+export const LOGO_URL = "/logotok.png";
 export { SUPABASE_URL } from "@/lib/env";
