@@ -539,7 +539,7 @@ export default function Index() {
         </motion.div>
 
         <motion.div variants={sectionBounce}>
-          <section className="relative isolate overflow-hidden border-y border-border/70 bg-orange-50/70 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-orange-950/10 md:py-12">
+          <section className="relative isolate z-10 overflow-visible border-y border-border/70 bg-orange-50/70 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-white/10 dark:bg-orange-950/10 md:py-12">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
             <div className="pointer-events-none absolute bottom-0 left-0 top-0 w-1.5 bg-primary/80" aria-hidden="true" />
             <div className="container relative space-y-6">
