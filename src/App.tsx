@@ -24,6 +24,7 @@ import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
+import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
 
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -280,6 +281,7 @@ function AdminProtectedRoute({
 
 function AppShell() {
   const { pathname } = useLocation();
+  useTokLogoDocumentIcons();
   const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const hasFeature = (flagName: string) => (featureFlagsLoading ? null : activeFeatures.has(flagName));
   const commandesEnabled = hasFeature("commandes");

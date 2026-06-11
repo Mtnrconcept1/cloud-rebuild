@@ -50,3 +50,6 @@ android/keystore.properties
 eslint-output.json
 
 .vercel
+
+# Local source art used to generate optimized event logos.
+public/logotok_1_50_transparents/

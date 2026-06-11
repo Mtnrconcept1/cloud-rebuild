@@ -1,12 +1,15 @@
 import { Link } from "react-router-dom";
 import { Bike } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
 interface FooterSectionProps {
   deliveryEnabled?: boolean;
 }
 
 export default function FooterSection({ deliveryEnabled = true }: FooterSectionProps) {
+  const logoSrc = useTokLogoSrc();
+
   return (
     <>
       {/* Livraison CTA */}
@@ -32,7 +35,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
         <div className="container py-12 md:py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
             <div className="col-span-2 md:col-span-1 space-y-4">
-              <img src="/logotok.png" alt="Tok" className="h-10 w-auto object-contain" />
+              <img src={logoSrc} alt="Tok" className="h-10 w-auto object-contain" />
               <p className="text-sm text-muted-foreground leading-relaxed">Le réflexe food simple, rentable et solidaire. Commandez, réservez, et savourez.</p>
               <div className="flex gap-3">
                 <a href="#" className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">

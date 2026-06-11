@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 import type { Database, Json } from "@/integrations/supabase/types";
+import { getTokLogoForDate } from "@/lib/tokLogo";
 
 export type RestaurantInvoiceRowBase = Database["public"]["Tables"]["restaurant_invoices"]["Row"];
 export type RestaurantRowBase = Database["public"]["Tables"]["restaurants"]["Row"];
@@ -366,7 +367,7 @@ export function buildPayableInvoiceDocumentData(input: {
     invoice: input.invoice,
     sender: TOK_SENDER,
     recipient,
-    logoUrl: "/logotok.png",
+    logoUrl: getTokLogoForDate().src,
     periodLabel: formatPayablePeriod(input.invoice.period_start, input.invoice.period_end),
     createdAtLabel: formatPayableDate(input.invoice.created_at),
     dueAtLabel: formatPayableDate(input.invoice.due_at),

@@ -15,9 +15,9 @@ import { deleteRestaurantMedia, setRestaurantCoverMedia } from "@/lib/restaurant
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import ImageUpload from "@/components/ImageUpload";
 import { Star, Trash2, Pencil, Image as ImageIcon, Sparkles, Download, Maximize2 } from "lucide-react";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
 const supabase = getSupabase();
-const TOK_LOGO_SRC = "/logotok.png";
 
 type MediaItem = {
   id: string;
@@ -62,13 +62,15 @@ function buildGalleryPhotoDownloadFileName(item: MediaItem) {
 }
 
 function TokGalleryWatermark({ className = "", sizeClassName = "h-[180px] w-[180px]" }: { className?: string; sizeClassName?: string }) {
+  const logoSrc = useTokLogoSrc();
+
   return (
     <div
       className={`pointer-events-none absolute left-3 top-3 z-10 drop-shadow-[0_10px_24px_rgba(0,0,0,0.30)] ${className}`}
       aria-hidden="true"
       data-testid="tok-gallery-watermark-layer"
     >
-      <img src={TOK_LOGO_SRC} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
+      <img src={logoSrc} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
     </div>
   );
 }
@@ -92,6 +94,7 @@ function TokGalleryImageFrame({ item }: { item: MediaItem }) {
 export default function DashboardPhotos() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const logoSrc = useTokLogoSrc();
   const { selectedId, loading: loadingRestaurant } = useDashboardRestaurant();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,7 +178,7 @@ export default function DashboardPhotos() {
       await downloadImageWithWatermark({
         imageUrl: item.media_url,
         fileName: buildGalleryPhotoDownloadFileName(item),
-        watermarkUrl: TOK_LOGO_SRC,
+        watermarkUrl: logoSrc,
         watermarkSize: 180,
         watermarkMargin: 24,
       });

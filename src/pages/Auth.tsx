@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { LOGO_URL } from "@/lib/constants";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
 import { isCaptchaEnabled } from "@/lib/captcha";
@@ -153,6 +153,7 @@ function splitCourierName(fullName: string) {
 }
 
 export default function Auth() {
+  const logoSrc = useTokLogoSrc();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -406,7 +407,7 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4">
         <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="text-center space-y-2">
-            <img src={LOGO_URL} alt="Tok" className="mx-auto h-18 w-auto object-contain mb-2" />
+            <img src={logoSrc} alt="Tok" className="mx-auto h-18 w-auto object-contain mb-2" />
             <CardTitle className="font-display text-2xl">Bienvenue</CardTitle>
             <CardDescription>Choisissez votre espace pour continuer</CardDescription>
           </CardHeader>
@@ -441,7 +442,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4 py-10">
       <Card className="w-full max-w-3xl shadow-lg border-0">
         <CardHeader className="text-center space-y-3">
-          <img src={LOGO_URL} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
+          <img src={logoSrc} alt="Tok" className="mx-auto h-20 w-auto object-contain" />
           <CardTitle className="font-display text-2xl">
             {isLogin ? "Bon retour" : isClientSignup ? "Créer votre compte" : "Créer un compte vérifié"}
           </CardTitle>

@@ -35,9 +35,9 @@ import NotificationMenuBadge from "@/components/notifications/NotificationMenuBa
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
-import { LOGO_URL } from "@/lib/constants";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
 import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +111,7 @@ export default function Navbar() {
   const { itemCount } = useCart();
   const activeFeatures = useActiveFeatures();
   const { unreadNotifications } = useNotificationCenter(50);
+  const logoSrc = useTokLogoSrc();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
@@ -218,7 +219,7 @@ export default function Navbar() {
       <header className={`fixed top-0 z-[70] w-full border-b shadow-sm safe-top md:sticky md:z-50 ${isMobileHomeHeader ? "border-slate-200 bg-white backdrop-blur-none dark:border-slate-200 dark:bg-white" : "border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:border-white/20 dark:bg-slate-950/80 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}>
         <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 ${isMobileHomeHeader ? "h-[66px] bg-white dark:bg-white" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
-            <img src={LOGO_URL} alt="Tok" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
+            <img src={logoSrc} alt="Tok" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
           </Link>
 
           {showClientSurface ? (

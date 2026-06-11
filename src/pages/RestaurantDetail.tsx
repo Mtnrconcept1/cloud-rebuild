@@ -25,9 +25,9 @@ import {
   isAntiWasteOfferPubliclyVisible,
   isFlashSalePubliclyVisible,
 } from "@/lib/specialOffers";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
 const supabase = getSupabase();
-const TOK_GALLERY_LOGO_SRC = "/logotok.png";
 const RESTAURANT_DETAIL_STALE_MS = 60_000;
 const RESTAURANT_MEDIA_LIMIT = 24;
 const RESTAURANT_MENU_ITEMS_LIMIT = 120;
@@ -45,13 +45,15 @@ type RestaurantGalleryPhoto = {
 };
 
 function RestaurantGalleryWatermark({ className = "", sizeClassName = "h-12 w-12" }: { className?: string; sizeClassName?: string }) {
+  const logoSrc = useTokLogoSrc();
+
   return (
     <div
       className={`pointer-events-none absolute left-3 top-3 z-20 drop-shadow-[0_10px_24px_rgba(0,0,0,0.35)] ${className}`}
       aria-hidden="true"
       data-testid="restaurant-gallery-watermark-layer"
     >
-      <img src={TOK_GALLERY_LOGO_SRC} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
+      <img src={logoSrc} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
     </div>
   );
 }

@@ -12,11 +12,11 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { generateTokDishImage, type TokImageFormat, type TokImageGenerationResult } from "@/lib/ai/tokAiClient";
 import { downloadImageWithWatermark } from "@/lib/media/downloadImageWithWatermark";
 import { CheckCircle2, Download, Loader2, Maximize2, RotateCcw, Sparkles, Wand2 } from "lucide-react";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 
 const supabase = getSupabase();
 const STUDIO_BRIEF =
   "Améliore l'image en photographie culinaire de studio professionnel non brandée, avec un éclairage softbox premium, un fond propre et un joli flou de profondeur lorsque la scène le permet. Supprime tous les objets et éléments parasites: décor encombré, mains, couverts inutiles, miettes, taches, reflets sales, bords de table distrayants et arrière-plan confus. Améliore les formes et volumes par la lumière, la netteté, les textures et une retouche naturelle, en gardant le produit identique: mêmes aliments, même contenant, mêmes proportions, même packaging et mêmes inscriptions physiques. N'ajoute aucun logo, aucun macaron, aucune bulle de marque, aucun filigrane, aucun texte incrusté et aucune marque. Si un logo ou un filigrane existe déjà sur l'image source comme calque ou watermark, retire-le proprement de l'image générée.";
-const STUDIO_LOGO_SRC = "/logotok.png";
 
 type Props = {
   restaurantId: string | null | undefined;
@@ -85,19 +85,19 @@ function buildTokPhotoDownloadFileName(dishName: string) {
   return `${normalized || "visuel-tok"}-tok.png`;
 }
 
-function TokLogoWatermark({ className = "", sizeClassName = "h-[180px] w-[180px]" }: { className?: string; sizeClassName?: string }) {
+function TokLogoWatermark({ logoSrc, className = "", sizeClassName = "h-[180px] w-[180px]" }: { logoSrc: string; className?: string; sizeClassName?: string }) {
   return (
     <div
       className={`pointer-events-none absolute left-3 top-3 z-10 drop-shadow-[0_10px_24px_rgba(0,0,0,0.30)] ${className}`}
       aria-hidden="true"
       data-testid="tok-logo-watermark-layer"
     >
-      <img src={STUDIO_LOGO_SRC} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
+      <img src={logoSrc} alt="" className={`${sizeClassName} object-contain`} draggable={false} />
     </div>
   );
 }
 
-function TokLogoGenerationLoader() {
+function TokLogoGenerationLoader({ logoSrc }: { logoSrc: string }) {
   return (
     <div className="overflow-hidden rounded-2xl bg-black">
       <div className="relative isolate flex min-h-[260px] w-full items-center justify-center overflow-hidden px-6 py-8 text-white">
@@ -294,7 +294,7 @@ function TokLogoGenerationLoader() {
                 <div className="tok-shine absolute left-0 top-[-10%] h-[130%] w-[18%] bg-white/20 blur-[10px]" />
               </div>
               <img
-                src={STUDIO_LOGO_SRC}
+                src={logoSrc}
                 alt="Logo TOK"
                 className="tok-logo-glow relative z-10 h-[58%] w-[58%] object-contain"
                 draggable={false}
@@ -330,6 +330,7 @@ function TokLogoGenerationLoader() {
 
 export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoCount, onGalleryUpdated }: Props) {
   const { toast } = useToast();
+  const logoSrc = useTokLogoSrc();
   const storageKey = `tok-ai-photo-studio-v2:${restaurantId || "pending"}`;
   const [draft, setDraft, clearDraft] = useSessionStorageState<PhotoStudioDraft>(storageKey, DEFAULT_DRAFT);
   const [loading, setLoading] = useState(false);
@@ -405,7 +406,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
       await downloadImageWithWatermark({
         imageUrl: generatedImageUrl,
         fileName: downloadFileName,
-        watermarkUrl: STUDIO_LOGO_SRC,
+        watermarkUrl: logoSrc,
         watermarkSize: 180,
         watermarkMargin: 24,
       });
@@ -473,7 +474,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
           </div>
           <div className="rounded-2xl border bg-background p-4 text-sm text-muted-foreground shadow-sm">
             {loading ? (
-              <TokLogoGenerationLoader />
+              <TokLogoGenerationLoader logoSrc={logoSrc} />
             ) : (
               <>
                 <p className="mb-2 font-semibold text-foreground">Rendu attendu</p>
@@ -509,7 +510,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                       onClick={() => setPreviewOpen(true)}
                       className="group relative block aspect-video w-full overflow-hidden rounded-xl border bg-muted text-left"
                     >
-                      <TokLogoWatermark sizeClassName="h-16 w-16" />
+                      <TokLogoWatermark logoSrc={logoSrc} sizeClassName="h-16 w-16" />
                       <img
                         src={generatedImageUrl}
                         alt={result.alt_text || "Visuel TOK"}
@@ -552,7 +553,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
               {generatedImageUrl ? (
                 <div className="flex h-full w-full items-center justify-center">
                   <div className="relative inline-flex max-h-full max-w-full items-center justify-center">
-                    <TokLogoWatermark className="left-4 top-4" sizeClassName="h-16 w-16" />
+                    <TokLogoWatermark logoSrc={logoSrc} className="left-4 top-4" sizeClassName="h-16 w-16" />
                     <img
                       src={generatedImageUrl}
                       alt={result?.alt_text || "Visuel TOK"}
