@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./home-section-headers.css";
 import { initCapacitorPlugins } from "@/lib/capacitor-init";
 import { initMonitoring } from "@/lib/monitoring";
 import { isNative } from "@/lib/platform";
