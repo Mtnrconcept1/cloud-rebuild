@@ -217,8 +217,8 @@ export default function SectionShowcaseHeader({
       <motion.div
         data-section-illustration
         className={cn(
-          "pointer-events-none absolute -right-10 -top-6 bottom-0 z-40 w-56 overflow-visible rounded-br-[2rem] sm:-right-12 sm:-top-7 sm:w-96 md:-right-10 md:-top-8 md:w-[28rem]",
           illustrationClassName,
+          "pointer-events-none absolute bottom-0 right-2 top-2 z-40 w-[42%] min-w-[8.5rem] max-w-[16rem] overflow-visible rounded-br-[2rem] sm:right-4 sm:top-0 sm:w-[44%] sm:max-w-[22rem] md:right-6 md:-top-1 md:w-[45%] md:max-w-[26rem]",
         )}
         {...illustrationMotion}
       >
@@ -229,13 +229,18 @@ export default function SectionShowcaseHeader({
           loading="lazy"
           decoding="async"
           className={cn(
-            "absolute bottom-0 right-0 h-48 w-48 translate-x-3 object-contain object-bottom sm:h-72 sm:w-72 sm:translate-x-4 md:h-[22rem] md:w-[22rem] md:translate-x-2",
             imageClassName,
+            "absolute bottom-0 right-0 h-full max-h-[13.5rem] w-full translate-x-0 object-contain object-bottom sm:right-0 sm:h-full sm:max-h-[18rem] sm:w-full sm:translate-x-0 md:right-0 md:h-full md:max-h-[22rem] md:w-full md:translate-x-0",
           )}
         />
       </motion.div>
 
-      <div className={cn("relative z-10 max-w-[17rem] pr-24 sm:max-w-sm sm:pr-32 md:max-w-2xl md:pr-44", contentClassName)}>
+      <div
+        className={cn(
+          contentClassName,
+          "relative z-50 max-w-[calc(100%-10.5rem)] pr-2 sm:z-50 sm:max-w-[calc(100%-15.5rem)] sm:pr-4 md:z-50 md:max-w-[calc(100%-20rem)] md:pr-6",
+        )}
+      >
         <div className={cn("mb-5 flex w-fit items-center gap-2 font-bold text-xs uppercase tracking-[0.18em]", iconColor || palette.eyebrow)}>
           <span className={cn("grid h-8 w-8 place-items-center rounded-full", palette.iconBubble)}>
             <Icon className="h-4 w-4 fill-current" />
@@ -250,7 +255,7 @@ export default function SectionShowcaseHeader({
       {hasFooterActions ? (
         <div
           data-section-action-row
-          className="absolute bottom-5 left-5 z-50 flex max-w-[calc(100%-9.5rem)] items-center justify-start gap-2 sm:left-7 sm:max-w-[calc(100%-13rem)] md:max-w-[calc(100%-24rem)]"
+          className="absolute bottom-5 left-5 z-[60] flex max-w-[calc(100%-10.5rem)] items-center justify-start gap-2 sm:left-7 sm:max-w-[calc(100%-15.5rem)] md:max-w-[calc(100%-20rem)]"
         >
           {actions}
           {linkText && linkTo ? (
