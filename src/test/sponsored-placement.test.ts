@@ -8,6 +8,7 @@ import {
   orderWeightedCampaigns,
   pickWeightedCampaign,
   prioritizeSponsoredCards,
+  rotateSponsoredCardsWithinRestaurants,
   selectSponsoredCampaignPlacements,
 } from "@/lib/sponsoredPlacement";
 
@@ -160,6 +161,31 @@ describe("getCampaignDeliveryScore", () => {
 });
 
 describe("prioritizeSponsoredCards", () => {
+  it("rotates campaign ordering inside each restaurant group", () => {
+    const cards = rotateSponsoredCardsWithinRestaurants(
+      [
+        { id: "r1", campaign_id: "campaign-a" },
+        { id: "r1", campaign_id: "campaign-b" },
+        { id: "r2", campaign_id: "campaign-c" },
+      ],
+      1,
+    );
+
+    expect(cards.map((card: any) => card.campaign_id)).toEqual(["campaign-b", "campaign-a", "campaign-c"]);
+  });
+
+  it("rotates banner campaign objects grouped by their nested restaurant id", () => {
+    const campaigns = rotateSponsoredCardsWithinRestaurants(
+      [
+        { id: "campaign-a", restaurants: { id: "r1" }, title: "A" },
+        { id: "campaign-b", restaurants: { id: "r1" }, title: "B" },
+      ] as any[],
+      1,
+    );
+
+    expect(campaigns.map((campaign: any) => campaign.id)).toEqual(["campaign-b", "campaign-a"]);
+  });
+
   it("rotates multiple active campaigns from the same restaurant across sponsored placements", () => {
     const campaigns = [
       { id: "quirinale-lunch", restaurant_id: "quirinale", total_budget: 50, budget_daily: 10 },
@@ -215,6 +241,28 @@ describe("prioritizeSponsoredCards", () => {
     expect(cards.some((card: any) => card.campaign_id === "campaign-e")).toBe(false);
   });
 
+  it("can rotate the visible restaurant card campaign when one restaurant has several active campaigns", () => {
+    const firstPass = prioritizeSponsoredCards(
+      [{ id: "r2", name: "Organic R2" }],
+      [
+        { id: "r1", campaign_id: "campaign-a", name: "Campaign A" },
+        { id: "r1", campaign_id: "campaign-b", name: "Campaign B" },
+      ] as any[],
+      { topSlots: 1, rotationSeed: 0 },
+    );
+    const secondPass = prioritizeSponsoredCards(
+      [{ id: "r2", name: "Organic R2" }],
+      [
+        { id: "r1", campaign_id: "campaign-a", name: "Campaign A" },
+        { id: "r1", campaign_id: "campaign-b", name: "Campaign B" },
+      ] as any[],
+      { topSlots: 1, rotationSeed: 1 },
+    );
+
+    expect(firstPass[0]).toMatchObject({ id: "r1", campaign_id: "campaign-a" });
+    expect(secondPass[0]).toMatchObject({ id: "r1", campaign_id: "campaign-b" });
+  });
+
   it("caps sponsored top slots to three even when a caller asks for more", () => {
     const cards = prioritizeSponsoredCards(
       [{ id: "r4" }, { id: "r5" }],
@@ -251,10 +299,13 @@ describe("prioritizeSponsoredCards", () => {
     expect(homePage).toContain("topSlots: 3");
     expect(homePage).toContain('<CampaignBanner page="home" maxBanners={1} />');
     expect(homePage).toContain('getActiveSponsoredRestaurants("home", "restaurant_cards")');
-    expect(searchPage).toContain("prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3 })");
+    expect(searchPage).toContain("prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3, rotationSeed: sponsoredRotationSeed })");
+    expect(searchPage).toContain("rotationSeed: sponsoredRotationSeed");
     expect(searchPage).toContain('<CampaignBanner page="search" maxBanners={1} />');
     expect(searchPage).toContain('getActiveSponsoredRestaurants("search", "restaurant_cards")');
     expect(banner).toContain('getActiveSponsoredRestaurants(page, "banner")');
+    expect(banner).toContain("rotateSponsoredCardsWithinRestaurants");
+    expect(banner).toContain("rotationSeed");
     expect(analytics).toContain("avoidCompanionPlacementDuplicates");
     expect(analytics).toContain("campaignSupportsPlacement(campaign, placement)");
   });

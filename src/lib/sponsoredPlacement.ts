@@ -25,6 +25,7 @@ export interface WeightedCampaignLike {
 interface SponsoredPlacementOptions {
   topSlots?: number;
   maxItems?: number;
+  rotationSeed?: number;
 }
 
 interface CampaignWeightOptions {
@@ -373,7 +374,51 @@ function getSponsoredCardKey(card: CardWithId) {
 }
 
 function getRestaurantCardKey(card: CardWithId) {
-  return card.restaurant_id ?? card.id ?? null;
+  const relationId = (card as Record<string, any>)?.restaurants?.id;
+  return card.restaurant_id ?? relationId ?? card.id ?? null;
+}
+
+function getRotationOffset(length: number, seed?: number) {
+  if (length <= 1) return 0;
+  const numericSeed = Number(seed || 0);
+  if (!Number.isFinite(numericSeed)) return 0;
+  return Math.abs(Math.trunc(numericSeed)) % length;
+}
+
+export function rotateSponsoredCardsWithinRestaurants<T extends CardWithId>(
+  sponsoredCards: T[],
+  seed?: number,
+): T[] {
+  const grouped = new Map<string, T[]>();
+  const orderedGroupKeys: string[] = [];
+  const passthrough: T[] = [];
+
+  for (const card of sponsoredCards || []) {
+    if (card == null) continue;
+    const restaurantKey = getRestaurantCardKey(card);
+    if (restaurantKey === undefined || restaurantKey === null) {
+      passthrough.push(card);
+      continue;
+    }
+
+    const key = String(restaurantKey);
+    const group = grouped.get(key);
+    if (group) {
+      group.push(card);
+    } else {
+      grouped.set(key, [card]);
+      orderedGroupKeys.push(key);
+    }
+  }
+
+  return [
+    ...passthrough,
+    ...orderedGroupKeys.flatMap((key) => {
+      const group = grouped.get(key) || [];
+      const offset = getRotationOffset(group.length, seed);
+      return [...group.slice(offset), ...group.slice(0, offset)];
+    }),
+  ];
 }
 
 export function prioritizeSponsoredCards<T extends CardWithId>(
@@ -385,7 +430,7 @@ export function prioritizeSponsoredCards<T extends CardWithId>(
   const maxItems = typeof options.maxItems === "number" ? Math.max(0, options.maxItems) : undefined;
 
   const organic = (organicCards || []) as T[];
-  const sponsored = (sponsoredCards || []) as T[];
+  const sponsored = rotateSponsoredCardsWithinRestaurants((sponsoredCards || []) as T[], options.rotationSeed);
 
   if (!sponsored.length || topSlots === 0) {
     return typeof maxItems === "number" ? organic.slice(0, maxItems) : organic;

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, ChevronRight, MapPin } from "lucide-react";
@@ -11,6 +12,7 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import { getActiveSponsoredRestaurants, trackSponsoredClick } from "@/lib/analytics";
 import { useSponsoredImpressionOnView } from "@/hooks/useSponsoredImpressionOnView";
 import { cn } from "@/lib/utils";
+import { rotateSponsoredCardsWithinRestaurants } from "@/lib/sponsoredPlacement";
 
 interface CampaignBannerProps {
   page: "home" | "search" | "flash_sales" | "anti_waste";
@@ -20,6 +22,7 @@ interface CampaignBannerProps {
 export default function CampaignBanner({ page, maxBanners = 2 }: CampaignBannerProps) {
   const activeFeatures = useActiveFeatures();
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
+  const rotationSeed = useMemo(() => Math.floor(Math.random() * 1_000_000), []);
 
   const { data: campaigns } = useQuery({
     queryKey: ["campaign-banners", page],
@@ -27,8 +30,11 @@ export default function CampaignBanner({ page, maxBanners = 2 }: CampaignBannerP
     enabled: campaignsEnabled,
   });
 
-  const banners = (campaigns || [])
-    .filter((campaign: any) => campaign.image_url || campaign.body || campaign.title)
+  const banners = rotateSponsoredCardsWithinRestaurants(
+    (campaigns || [])
+      .filter((campaign: any) => campaign.image_url || campaign.body || campaign.title),
+    rotationSeed,
+  )
     .slice(0, maxBanners);
 
   if (!campaignsEnabled || !banners.length) return null;
@@ -140,3 +146,4 @@ function CampaignBannerItem({
     </div>
   );
 }
+

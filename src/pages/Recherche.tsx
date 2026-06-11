@@ -219,6 +219,7 @@ export default function Recherche() {
   const activeFeatures = useActiveFeatures();
   const deliveryEnabled = activeFeatures.has("livraison");
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
+  const sponsoredRotationSeed = useMemo(() => Math.floor(Math.random() * 1_000_000), []);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(activeQuery);
@@ -389,8 +390,8 @@ export default function Recherche() {
     .filter((r: any) => !!r && matchesSponsoredFilters(r)) as any[];
 
   const mergedCards = useMemo(
-    () => prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3 }),
-    [organicSearchResults, sponsoredCards],
+    () => prioritizeSponsoredCards(organicSearchResults as any[], sponsoredCards, { topSlots: 3, rotationSeed: sponsoredRotationSeed }),
+    [organicSearchResults, sponsoredCards, sponsoredRotationSeed],
   );
 
   const activeFilterLabels = useMemo(() => {
