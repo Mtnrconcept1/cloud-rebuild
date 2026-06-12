@@ -170,6 +170,7 @@ export default function Auth() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] = useState(false);
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
@@ -193,7 +194,7 @@ export default function Auth() {
   }, [canSwitchRole, postAuthRedirectTarget]);
 
   useEffect(() => {
-    if (!user || roles.length === 0) return;
+    if (!user || roles.length === 0 || privilegedSignupSubmitting) return;
 
     if (canSwitchRole) {
       if (!showRolePicker) setShowRolePicker(true);
@@ -202,7 +203,13 @@ export default function Auth() {
 
     const targetRole = role || getDefaultActiveRole(roles);
     navigate(getPostAuthTarget(targetRole), { replace: true });
-  }, [canSwitchRole, getPostAuthTarget, navigate, role, roles, showRolePicker, user]);
+  }, [canSwitchRole, getPostAuthTarget, navigate, privilegedSignupSubmitting, role, roles, showRolePicker, user]);
+
+  useEffect(() => {
+    if (!user && privilegedSignupSubmitting) {
+      setPrivilegedSignupSubmitting(false);
+    }
+  }, [privilegedSignupSubmitting, user]);
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     switchRole(selectedRole);
@@ -278,6 +285,7 @@ export default function Auth() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
+    let shouldSignOutPrivilegedSignupSession = false;
 
     try {
       if (isLogin) {
@@ -300,7 +308,10 @@ export default function Auth() {
         return;
       }
 
-      const validationError = getSignupValidationError(roleMode, signupForm);
+      const submittedRole = roleMode;
+      const submittedRequiredDocuments = getRequiredSignupDocuments(submittedRole, signupForm.vehicleType);
+      const isPrivilegedSignup = submittedRole !== "client";
+      const validationError = getSignupValidationError(submittedRole, signupForm);
       if (validationError) {
         throw new Error(validationError);
       }
@@ -308,9 +319,13 @@ export default function Auth() {
         throw new Error("Validation anti-abus requise.");
       }
 
-      const missingDocuments = getMissingSignupDocuments(requiredDocuments, documents);
+      const missingDocuments = getMissingSignupDocuments(submittedRequiredDocuments, documents);
       if (missingDocuments.length > 0) {
         throw new Error(`Documents manquants: ${missingDocuments.map((item) => item.label).join(", ")}.`);
+      }
+
+      if (isPrivilegedSignup) {
+        setPrivilegedSignupSubmitting(true);
       }
 
       const signUpResponse = await supabase.auth.signUp({
@@ -319,7 +334,7 @@ export default function Auth() {
         options: {
           data: {
             full_name: signupForm.fullName,
-            role: roleMode,
+            role: submittedRole,
           },
           emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
           captchaToken: captchaToken || undefined,
@@ -332,23 +347,27 @@ export default function Auth() {
 
       const activeUser = signUpResponse.data.user;
       const activeSession = signUpResponse.data.session;
+      shouldSignOutPrivilegedSignupSession = isPrivilegedSignup && Boolean(activeSession);
 
       if (!activeUser?.id || !activeSession) {
         toast({
           title: "Compte créé",
           description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
         });
+        if (isPrivilegedSignup) {
+          setPrivilegedSignupSubmitting(false);
+        }
         return;
       }
 
       const uploadedDocuments: UploadedSignupDocument[] = [];
-      for (const requirement of requiredDocuments) {
+      for (const requirement of submittedRequiredDocuments) {
         const file = documents[requirement.type];
         if (!file) continue;
 
         const uploadedDocument = await uploadVerificationDocument({
           userId: activeUser.id,
-          role: roleMode,
+          role: submittedRole,
           documentType: requirement.type,
           file,
         });
@@ -356,27 +375,27 @@ export default function Auth() {
       }
 
       const { error: syncError } = await supabase.rpc("sync_signup_application", {
-        p_requested_role: roleMode,
+        p_requested_role: submittedRole,
         p_full_name: signupForm.fullName,
         p_phone: signupForm.phone,
         p_city: signupForm.city,
         p_address: signupForm.address,
-        p_legal_name: roleMode === "restaurateur" ? signupForm.legalName : null,
-        p_business_name: roleMode === "restaurateur" ? signupForm.businessName : null,
+        p_legal_name: submittedRole === "restaurateur" ? signupForm.legalName : null,
+        p_business_name: submittedRole === "restaurateur" ? signupForm.businessName : null,
         p_business_registration_number:
-          roleMode === "restaurateur" ? signupForm.businessRegistrationNumber : null,
-        p_tax_id: roleMode === "restaurateur" ? signupForm.taxId : null,
-        p_restaurant_name: roleMode === "restaurateur" ? signupForm.restaurantName : null,
+          submittedRole === "restaurateur" ? signupForm.businessRegistrationNumber : null,
+        p_tax_id: submittedRole === "restaurateur" ? signupForm.taxId : null,
+        p_restaurant_name: submittedRole === "restaurateur" ? signupForm.restaurantName : null,
         p_restaurant_description:
-          roleMode === "restaurateur" ? signupForm.restaurantDescription : null,
-        p_vehicle_type: roleMode === "courier" ? signupForm.vehicleType : null,
-        p_license_plate: roleMode === "courier" ? signupForm.licensePlate : null,
+          submittedRole === "restaurateur" ? signupForm.restaurantDescription : null,
+        p_vehicle_type: submittedRole === "courier" ? signupForm.vehicleType : null,
+        p_license_plate: submittedRole === "courier" ? signupForm.licensePlate : null,
         p_iban:
-          roleMode === "courier" || roleMode === "restaurateur" ? signupForm.iban : null,
+          submittedRole === "courier" || submittedRole === "restaurateur" ? signupForm.iban : null,
         p_metadata:
-          roleMode === "courier"
+          submittedRole === "courier"
             ? splitCourierName(signupForm.fullName)
-            : roleMode === "restaurateur"
+            : submittedRole === "restaurateur"
               ? { onboarding_source: "auth_signup" }
               : { verification_source: "auth_signup" },
         p_documents: uploadedDocuments,
@@ -387,24 +406,37 @@ export default function Auth() {
       }
 
       toast({
-        title: roleMode === "client" ? "Compte crée" : "Inscription enregistrée",
+        title: submittedRole === "client" ? "Compte crée" : "Inscription enregistrée",
         description:
-          roleMode === "client"
+          submittedRole === "client"
             ? "Votre compte est actif. Vous pouvez continuer votre parcours."
-            : "Votre compte et votre dossier documentaire ont été transmis pour vérification.",
+            : "Votre compte et votre dossier documentaire ont été transmis pour vérification. Vous pourrez vous connecter à l’espace restaurateur après validation.",
       });
 
-      if (roleMode === "client") {
+      if (submittedRole === "client") {
         navigate(postAuthRedirectTarget || "/");
         return;
       }
 
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        throw signOutError;
+      }
+      setIsLogin(true);
       setDocuments({});
       setSignupForm((current) => ({
         ...EMPTY_SIGNUP_FORM,
         email: current.email,
       }));
     } catch (error) {
+      if (shouldSignOutPrivilegedSignupSession) {
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError) {
+          console.error("[auth] failed to close privileged signup session", signOutError);
+        }
+      } else {
+        setPrivilegedSignupSubmitting(false);
+      }
       const message = error instanceof Error ? error.message : "Une erreur est survenue.";
       toast({ title: "Erreur", description: message, variant: "destructive" });
     } finally {
@@ -446,7 +478,7 @@ export default function Auth() {
     );
   }
 
-  if (user && roles.length > 0) return null;
+  if (user && roles.length > 0 && !privilegedSignupSubmitting) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/10 px-4 py-10">

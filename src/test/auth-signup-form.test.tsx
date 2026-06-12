@@ -10,7 +10,9 @@ const supabaseMocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   signInWithOAuth: vi.fn(),
   signInWithPassword: vi.fn(),
+  signOut: vi.fn(),
   signUp: vi.fn(),
+  upload: vi.fn(),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -20,9 +22,15 @@ vi.mock("@/integrations/supabase/client", () => ({
       resetPasswordForEmail: supabaseMocks.resetPasswordForEmail,
       signInWithOAuth: supabaseMocks.signInWithOAuth,
       signInWithPassword: supabaseMocks.signInWithPassword,
+      signOut: supabaseMocks.signOut,
       signUp: supabaseMocks.signUp,
     },
     rpc: supabaseMocks.rpc,
+    storage: {
+      from: () => ({
+        upload: supabaseMocks.upload,
+      }),
+    },
   }),
 }));
 
@@ -98,6 +106,12 @@ describe("Auth signup form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabaseMocks.resend.mockResolvedValue({ error: null });
+    supabaseMocks.rpc.mockResolvedValue({ data: null, error: null });
+    supabaseMocks.signOut.mockResolvedValue({ error: null });
+    supabaseMocks.upload.mockResolvedValue({
+      data: { path: "doc.pdf" },
+      error: null,
+    });
     supabaseMocks.signUp.mockResolvedValue({
       data: {
         session: null,
@@ -162,7 +176,9 @@ describe("Auth signup form", () => {
     fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
     fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
-    fireEvent.change(screen.getByLabelText("Mot de passe"), { target: { value: "secret123" } });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), {
+      target: { value: "secret123" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Créer mon compte" }));
 
     await waitFor(() => {
@@ -182,6 +198,85 @@ describe("Auth signup form", () => {
       title: "Compte créé",
       description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
     });
+  });
+
+  it("logs out a restaurateur signup session after submitting the verification dossier", async () => {
+    supabaseMocks.signUp.mockResolvedValue({
+      data: {
+        session: { access_token: "signup-session" },
+        user: { id: "restaurant-user-id" },
+      },
+      error: null,
+    });
+
+    const { container } = renderAuth("/auth?type=restaurateur");
+
+    fireEvent.change(screen.getByLabelText("Nom du responsable"), {
+      target: { value: "Restaurateur Test" },
+    });
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "restaurant@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), {
+      target: { value: "secret123" },
+    });
+    fireEvent.change(screen.getByLabelText("Téléphone"), {
+      target: { value: "+41790000000" },
+    });
+    fireEvent.change(screen.getByLabelText("Ville"), {
+      target: { value: "Genève" },
+    });
+    fireEvent.change(screen.getByLabelText("Adresse"), {
+      target: { value: "Rue du Rhône 1" },
+    });
+    fireEvent.change(screen.getByLabelText("Nom commercial"), {
+      target: { value: "Table Tok" },
+    });
+    fireEvent.change(screen.getByLabelText("Raison sociale"), {
+      target: { value: "Table Tok Sàrl" },
+    });
+    fireEvent.change(screen.getByLabelText("Numéro d'immatriculation"), {
+      target: { value: "CHE-123.456.789" },
+    });
+    fireEvent.change(screen.getByLabelText("Nom du restaurant"), {
+      target: { value: "La Table Tok" },
+    });
+    fireEvent.change(screen.getByLabelText("IBAN de versement"), {
+      target: { value: "CH9300762011623852957" },
+    });
+
+    const documentFile = new File(["document"], "document.pdf", {
+      type: "application/pdf",
+    });
+    const fileInputs = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[type="file"]'),
+    );
+    expect(fileInputs).toHaveLength(3);
+    for (const input of fileInputs) {
+      fireEvent.change(input, { target: { files: [documentFile] } });
+    }
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Envoyer mon inscription vérifiée" }),
+    );
+
+    await waitFor(() => {
+      expect(supabaseMocks.rpc).toHaveBeenCalledWith(
+        "sync_signup_application",
+        expect.objectContaining({
+          p_requested_role: "restaurateur",
+          p_restaurant_name: "La Table Tok",
+        }),
+      );
+    });
+
+    expect(supabaseMocks.signOut).toHaveBeenCalledTimes(1);
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Inscription enregistrée",
+        description: expect.stringContaining("après validation"),
+      }),
+    );
   });
 
   it("lets users resend the signup confirmation email", async () => {
