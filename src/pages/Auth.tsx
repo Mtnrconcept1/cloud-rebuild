@@ -169,6 +169,7 @@ export default function Auth() {
   const [documents, setDocuments] = useState<Partial<Record<SignupDocumentType, File | null>>>({});
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
@@ -236,6 +237,33 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleResendConfirmationEmail = async () => {
+    const email = signupForm.email.trim();
+    if (!email) {
+      toast({ title: "Entrez votre email", variant: "destructive" });
+      return;
+    }
+
+    setResendLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
+      },
+    });
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      toast({
+        title: "Email envoyé",
+        description: "Vérifiez votre boite mail pour confirmer votre compte.",
+      });
+    }
+    setResendLoading(false);
+  };
+
   const updateSignupField = <K extends keyof SignupFormState>(key: K, value: SignupFormState[K]) => {
     setSignupForm((current) => ({ ...current, [key]: value }));
   };
@@ -293,7 +321,7 @@ export default function Auth() {
             full_name: signupForm.fullName,
             role: roleMode,
           },
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
           captchaToken: captchaToken || undefined,
         },
       });
@@ -302,31 +330,13 @@ export default function Auth() {
         throw signUpResponse.error;
       }
 
-      let activeUser = signUpResponse.data.user;
-      let activeSession = signUpResponse.data.session;
-
-      if (!activeSession && signupForm.email && signupForm.password) {
-        const signInAttempt = await supabase.auth.signInWithPassword({
-          email: signupForm.email,
-          password: signupForm.password,
-          options: {
-            captchaToken: captchaToken || undefined,
-          },
-        });
-
-        if (!signInAttempt.error) {
-          activeUser = signInAttempt.data.user;
-          activeSession = signInAttempt.data.session;
-        }
-      }
+      const activeUser = signUpResponse.data.user;
+      const activeSession = signUpResponse.data.session;
 
       if (!activeUser?.id || !activeSession) {
         toast({
-          title: "Compte crée",
-          description:
-            roleMode === "client"
-              ? "Confirmez votre email puis reconnectez-vous pour finaliser votre parcours."
-              : "Confirmez votre email puis reconnectez-vous pour finaliser l'envoi des documents de vérification.",
+          title: "Compte créé",
+          description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
         });
         return;
       }
@@ -511,7 +521,7 @@ export default function Auth() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">
+                  <Label htmlFor={isLogin ? "email-login" : "fullName"}>
                     {isLogin
                       ? "Email"
                       : roleMode === "restaurateur"
@@ -811,6 +821,23 @@ export default function Auth() {
 
               {isLogin && !forgotPassword ? (
                 <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full"
+                    onClick={handleResendConfirmationEmail}
+                    disabled={loading || resendLoading}
+                  >
+                    {resendLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Envoi...
+                      </>
+                    ) : (
+                      "Renvoyer l’email de confirmation"
+                    )}
+                  </Button>
+
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <span className="w-full border-t" />

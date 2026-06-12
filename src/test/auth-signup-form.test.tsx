@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Auth from "@/pages/Auth";
 
 const supabaseMocks = vi.hoisted(() => ({
+  resend: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   rpc: vi.fn(),
   signInWithOAuth: vi.fn(),
@@ -15,6 +16,7 @@ const supabaseMocks = vi.hoisted(() => ({
 vi.mock("@/integrations/supabase/client", () => ({
   getSupabase: () => ({
     auth: {
+      resend: supabaseMocks.resend,
       resetPasswordForEmail: supabaseMocks.resetPasswordForEmail,
       signInWithOAuth: supabaseMocks.signInWithOAuth,
       signInWithPassword: supabaseMocks.signInWithPassword,
@@ -32,9 +34,11 @@ vi.mock("@/lib/auth-context", () => ({
   }),
 }));
 
+const toastMock = vi.hoisted(() => vi.fn());
+
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({
-    toast: vi.fn(),
+    toast: toastMock,
   }),
 }));
 
@@ -93,10 +97,11 @@ function renderAuth(route: string) {
 describe("Auth signup form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    supabaseMocks.resend.mockResolvedValue({ error: null });
     supabaseMocks.signUp.mockResolvedValue({
       data: {
         session: null,
-        user: null,
+        user: { id: "new-user-id" },
       },
       error: null,
     });
@@ -151,7 +156,7 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
-  it("submits client signup with the typed email", async () => {
+  it("submits client signup with the confirmation redirect and does not auto-login without a session", async () => {
     renderAuth("/auth?type=client");
 
     fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
@@ -165,8 +170,34 @@ describe("Auth signup form", () => {
         expect.objectContaining({
           email: "client@example.com",
           password: "secret123",
+          options: expect.objectContaining({
+            emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
+          }),
         }),
       );
+    });
+
+    expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
+    expect(toastMock).toHaveBeenCalledWith({
+      title: "Compte créé",
+      description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
+    });
+  });
+
+  it("lets users resend the signup confirmation email", async () => {
+    renderAuth("/auth?type=client");
+
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Renvoyer l’email de confirmation" }));
+
+    await waitFor(() => {
+      expect(supabaseMocks.resend).toHaveBeenCalledWith({
+        type: "signup",
+        email: "client@example.com",
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
+        },
+      });
     });
   });
 
