@@ -131,11 +131,10 @@ function formatDashboardDateTime(value: string) {
 export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { selectedId } = useDashboardRestaurant();
+  const { selectedId, dashboardAccessLocked } = useDashboardRestaurant();
   const { data: signupApplication } = useSignupApplication("restaurateur");
   const today = new Date().toISOString().split("T")[0];
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-
   const { data: restaurant } = useQuery({
     queryKey: ["my-restaurant-detail", selectedId],
     queryFn: async () => {
@@ -144,6 +143,8 @@ export default function Dashboard() {
     },
     enabled: !!selectedId,
   });
+
+  const operationalQueriesEnabled = Boolean(restaurant?.id && !dashboardAccessLocked);
 
   const { data: recentOrders } = useQuery({
     queryKey: ["dashboard-recent-orders", restaurant?.id],
@@ -157,7 +158,7 @@ export default function Dashboard() {
         .limit(5);
       return data || [];
     },
-    enabled: !!restaurant,
+    enabled: operationalQueriesEnabled,
   });
 
   const { data: upcomingReservations = [] } = useQuery({
@@ -173,7 +174,7 @@ export default function Dashboard() {
         .limit(5);
       return data || [];
     },
-    enabled: !!restaurant,
+    enabled: operationalQueriesEnabled,
   });
 
   const { data: totalOrders = 0 } = useQuery({
@@ -186,7 +187,7 @@ export default function Dashboard() {
         .not("status", "in", INVALID_ORDER_STATUS_FILTER);
       return count || 0;
     },
-    enabled: !!restaurant,
+    enabled: operationalQueriesEnabled,
   });
 
   const { data: totalUpcomingReservations = 0 } = useQuery({
@@ -200,7 +201,7 @@ export default function Dashboard() {
         .not("status", "in", INVALID_RESERVATION_STATUS_FILTER);
       return count || 0;
     },
-    enabled: !!restaurant,
+    enabled: operationalQueriesEnabled,
   });
 
   const { data: monthlyRevenue = 0 } = useQuery({
@@ -226,7 +227,7 @@ export default function Dashboard() {
       const zaRevenue = (reservationsRes.data || []).reduce((sum, row) => sum + Number(row.total_amount), 0);
       return orderRevenue + zaRevenue;
     },
-    enabled: !!restaurant,
+    enabled: operationalQueriesEnabled,
   });
 
   const { data: adminCorrectionRequests = [] } = useQuery({
@@ -242,7 +243,7 @@ export default function Dashboard() {
       if (error) throw error;
       return (data || []) as AdminCorrectionRequestRow[];
     },
-    enabled: !!restaurant?.id,
+    enabled: operationalQueriesEnabled,
   });
 
   const markAdminCorrectionDone = useMutation({

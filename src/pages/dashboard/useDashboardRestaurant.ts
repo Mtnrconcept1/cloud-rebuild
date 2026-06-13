@@ -8,6 +8,16 @@ export interface DashboardContextValue {
   loading: boolean;
   error: string | null;
   disabledFeatures: Set<string>;
+  dashboardAccessLocked: boolean;
+  dashboardAccessLockReason: string | null;
+}
+
+export function isRestaurantDashboardAccessApproved(restaurant: OwnedRestaurant | null | undefined) {
+  const status = String(restaurant?.status || "").toLowerCase();
+  return Boolean(
+    restaurant?.is_active
+    && !["pending", "pending_review", "needs_changes", "rejected"].includes(status),
+  );
 }
 
 export const DashboardContext = createContext<DashboardContextValue | null>(null);

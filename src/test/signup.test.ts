@@ -76,22 +76,25 @@ describe("signup and admin moderation SQL", () => {
     expect(syncSignupApplication).toContain("IF array_length(v_required_docs, 1) IS NOT NULL THEN");
   });
 
-  it("does not grant privileged signup roles before admin approval", () => {
+  it("grants pending restaurateurs their dashboard role while keeping courier roles approval-only", () => {
     const syncSql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.sync_signup_application/i);
     const syncSignupApplication = extractFunction(syncSql, "sync_signup_application");
     const handleUserSql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.handle_new_user/i);
     const handleNewUser = extractFunction(handleUserSql, "handle_new_user");
 
-    expect(syncSignupApplication).not.toMatch(/INSERT\s+INTO\s+public\.user_roles[\s\S]*VALUES\s*\(\s*v_actor_id\s*,\s*p_requested_role\s*\)/i);
+    expect(syncSignupApplication).toContain("IF v_role_text = 'restaurateur' THEN");
+    expect(syncSignupApplication).toContain("VALUES (v_actor_id, 'restaurateur')");
+    expect(syncSignupApplication).not.toContain("VALUES (v_actor_id, 'courier')");
     expect(handleNewUser).not.toMatch(/v_requested_role\s+IN\s+\('restaurateur',\s*'courier'\)/i);
   });
 
-  it("grants and revokes the requested role from the admin review RPC", () => {
+  it("grants approved roles and only revokes courier roles from the admin review RPC", () => {
     const sql = latestMigrationContaining(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_review_signup_application/i);
     const reviewSignupApplication = extractFunction(sql, "admin_review_signup_application");
 
     expect(reviewSignupApplication).toMatch(/INSERT\s+INTO\s+public\.user_roles[\s\S]*VALUES\s*\(\s*v_application\.user_id\s*,\s*v_application\.requested_role\s*\)/i);
-    expect(reviewSignupApplication).toMatch(/DELETE\s+FROM\s+public\.user_roles[\s\S]*requested_role/i);
+    expect(reviewSignupApplication).toContain("ELSIF v_application.requested_role = 'courier' THEN");
+    expect(reviewSignupApplication).toMatch(/DELETE\s+FROM\s+public\.user_roles[\s\S]*role = v_application\.requested_role/i);
     expect(reviewSignupApplication).toContain("v_next_status = 'approved'");
   });
 

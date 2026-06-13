@@ -29,6 +29,7 @@ import {
   Store,
   Package,
   Lock,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -184,6 +185,7 @@ function NavItems({
   disabledFeatures,
   unreadNotifications,
   role,
+  dashboardAccessLocked = false,
 }: {
   pathname: string;
   sections: NavSection[];
@@ -191,6 +193,7 @@ function NavItems({
   disabledFeatures?: Set<string>;
   unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
   role: ReturnType<typeof useAuth>["role"];
+  dashboardAccessLocked?: boolean;
 }) {
   return (
     <>
@@ -198,14 +201,19 @@ function NavItems({
         <div key={section.title}>
           {!collapsed && <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground dark:text-slate-400">{section.title}</p>}
           {section.items.map((item) => {
-            const isLocked = !!(item.feature && disabledFeatures?.has(item.feature));
+            const isLocked = dashboardAccessLocked && item.to !== "/dashboard"
+              ? true
+              : !!(item.feature && disabledFeatures?.has(item.feature));
+            const lockTitle = dashboardAccessLocked
+              ? "Dossier restaurateur en attente de validation admin"
+              : "Non inclus dans votre pack";
 
             if (isLocked) {
               return (
                 <div
                   key={item.to}
                   className="flex items-center gap-3 rounded-xl px-3 py-2 opacity-40 cursor-not-allowed select-none"
-                  title="Non inclus dans votre pack"
+                  title={lockTitle}
                 >
                   <item.icon className="h-4 w-4" />
                   {!collapsed && (
@@ -249,7 +257,7 @@ function NavItems({
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
-  const { selectedId, disabledFeatures } = useDashboardRestaurant();
+  const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason } = useDashboardRestaurant();
   const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
   const { unreadNotifications } = useNotificationCenter(50);
@@ -357,6 +365,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             disabledFeatures={disabledFeatures}
             unreadNotifications={unreadNotifications}
             role={role}
+            dashboardAccessLocked={dashboardAccessLocked}
           />
         </nav>
       </aside>
@@ -417,6 +426,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   disabledFeatures={disabledFeatures}
                   unreadNotifications={unreadNotifications}
                   role={role}
+                  dashboardAccessLocked={dashboardAccessLocked}
                 />
               </nav>
             </div>
@@ -433,6 +443,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <div className="relative z-10 mx-auto w-full max-w-7xl">
           <BackNavigationButton fallback={backFallback} className="mb-4" />
+          {dashboardAccessLocked ? (
+            <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50/90 p-5 text-amber-950 shadow-sm dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-50">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-100">
+                  <ShieldCheck className="h-6 w-6" />
+                </span>
+                <div className="space-y-1">
+                  <p className="font-semibold">Dossier restaurateur en cours de validation</p>
+                  <p className="text-sm text-amber-800 dark:text-amber-100/80">
+                    {dashboardAccessLockReason}
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-100/70">
+                    Les onglets du dashboard restent volontairement grisés jusqu'à l'approbation du dossier par l'admin TOK.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
           {children}
         </div>
       </main>
