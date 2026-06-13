@@ -68,7 +68,7 @@ describe("La Gazelle d'Or public restaurant page", () => {
     const app = read("src/App.tsx");
     const slugHelper = read("src/lib/restaurantSlugs.ts");
 
-    expect(app).toContain('<Route path="/restaurant/:id" element={<RestaurantDetail />} />');
+    expect(app).toContain('<Route path="/restaurant/:id" element={<ClientSurfaceRoute><RestaurantDetail /></ClientSurfaceRoute>} />');
     expect(slugHelper).toContain("/restaurants/");
   });
 });

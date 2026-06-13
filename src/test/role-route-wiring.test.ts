@@ -29,6 +29,28 @@ describe("role route wiring", () => {
     expect(routesWithoutClientGuard).toEqual([]);
   });
 
+
+  it("keeps customer discovery and checkout surfaces behind ClientSurfaceRoute", () => {
+    const customerSurfaceRoutes = [
+      "/",
+      "/recherche",
+      "/restaurants/:city",
+      "/restaurants/:city/:category",
+      "/r/:slug",
+      "/restaurant/:id",
+      "/anti-gaspi",
+      "/panier",
+      "/commande/confirmation",
+      "/ventes-flash",
+    ];
+
+    const routesWithoutClientSurfaceGuard = customerSurfaceRoutes.filter((routePath) =>
+      !getRouteElement(routePath).includes("ClientSurfaceRoute")
+    );
+
+    expect(routesWithoutClientSurfaceGuard).toEqual([]);
+  });
+
   it("guards restaurant and courier notification history routes by role", () => {
     expect(getRouteElement("/dashboard/notifications")).toContain("DashboardRoute");
     expect(getRouteElement("/courier/notifications")).toContain('requiredRole="courier"');

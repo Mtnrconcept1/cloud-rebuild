@@ -8,6 +8,7 @@ import {
   canShowSocialFeedSurface,
   canShowClientSurface,
   canSwitchRoles,
+  canUseClientRole,
   getDefaultActiveRole,
   getEffectiveRoles,
   getRoleHomePath,
@@ -83,7 +84,7 @@ describe("role access policy", () => {
       requiredRole: "client",
       activeRole: "admin",
       roles: ["client", "admin", "restaurateur"],
-    })).toBe(true);
+    })).toBe(false);
 
     expect(canSwitchRoles(["client"])).toBe(false);
     expect(canSwitchRoles(["client", "restaurateur"])).toBe(false);
@@ -104,7 +105,10 @@ describe("role access policy", () => {
 
   it("shows shopping and customer navigation only to guests and the active client role", () => {
     expect(canShowClientSurface({ activeRole: null })).toBe(true);
-    expect(canShowClientSurface({ activeRole: "client" })).toBe(true);
+    expect(canShowClientSurface({ activeRole: "client", roles: ["client"] })).toBe(true);
+    expect(canShowClientSurface({ activeRole: "client", roles: ["client", "admin"] })).toBe(false);
+    expect(canShowClientSurface({ activeRole: "client", roles: ["client", "restaurateur"] })).toBe(false);
+    expect(canUseClientRole({ activeRole: "client", roles: ["client", "courier"] })).toBe(false);
     expect(canShowClientSurface({ activeRole: "restaurateur" })).toBe(false);
     expect(canShowClientSurface({ activeRole: "courier" })).toBe(false);
     expect(canShowClientSurface({ activeRole: "admin" })).toBe(false);
@@ -112,8 +116,9 @@ describe("role access policy", () => {
 
   it("shows the social feed to guests, clients and the active restaurateur role only", () => {
     expect(canShowSocialFeedSurface({ activeRole: null })).toBe(true);
-    expect(canShowSocialFeedSurface({ activeRole: "client" })).toBe(true);
-    expect(canShowSocialFeedSurface({ activeRole: "restaurateur" })).toBe(true);
+    expect(canShowSocialFeedSurface({ activeRole: "client", roles: ["client"] })).toBe(true);
+    expect(canShowSocialFeedSurface({ activeRole: "client", roles: ["client", "admin"] })).toBe(false);
+    expect(canShowSocialFeedSurface({ activeRole: "restaurateur", roles: ["client", "restaurateur"] })).toBe(true);
     expect(canShowSocialFeedSurface({ activeRole: "courier" })).toBe(false);
     expect(canShowSocialFeedSurface({ activeRole: "admin" })).toBe(false);
   });
