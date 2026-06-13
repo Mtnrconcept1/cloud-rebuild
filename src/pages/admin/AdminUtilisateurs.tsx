@@ -24,6 +24,7 @@ import {
   getSignupStatusMeta,
   getVerificationDocumentUrl,
   type SignupApplication,
+  type SignupApplicationDocument,
 } from "@/lib/signup";
 import { COURIER_APPROVAL_STATUS_META, COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import { Badge } from "@/components/ui/badge";
@@ -146,6 +147,53 @@ function formatDate(value: unknown) {
 
 function formatNumber(value: unknown) {
   return Number(value || 0).toLocaleString("fr-CH");
+}
+
+function isImageDocument(document: SignupApplicationDocument) {
+  const mimeType = String(document.mime_type || "").toLowerCase();
+  const fileName = String(document.file_name || document.file_path || "").toLowerCase();
+  return mimeType.startsWith("image/") || /\.(png|jpe?g|webp)$/i.test(fileName);
+}
+
+function SignupDocumentPreview({ document }: { document: SignupApplicationDocument }) {
+  const canPreviewImage = isImageDocument(document);
+  const { data: signedUrl, isLoading, error } = useQuery({
+    queryKey: ["admin-signup-document-preview", document.id, document.file_path],
+    enabled: canPreviewImage,
+    staleTime: 45 * 60 * 1000,
+    queryFn: () => getVerificationDocumentUrl(document.file_path),
+  });
+
+  if (!canPreviewImage) {
+    return (
+      <div className="flex h-36 items-center justify-center rounded-lg border border-dashed bg-muted/30 text-xs text-muted-foreground">
+        Aperçu image indisponible pour ce format.
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return <div className="h-36 rounded-lg bg-muted animate-pulse" />;
+  }
+
+  if (error || !signedUrl) {
+    return (
+      <div className="flex h-36 items-center justify-center rounded-lg border border-destructive/30 bg-destructive/5 text-xs text-destructive">
+        Image non prévisualisable.
+      </div>
+    );
+  }
+
+  return (
+    <a href={signedUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border bg-muted">
+      <img
+        src={signedUrl}
+        alt={`Aperçu du document ${getSignupDocumentLabel(document.document_type)}`}
+        className="h-36 w-full object-cover transition-transform hover:scale-[1.02]"
+        loading="lazy"
+      />
+    </a>
+  );
 }
 
 function csvEscape(value: unknown) {
@@ -491,6 +539,13 @@ export default function AdminUtilisateurs() {
     } as Record<string, number>);
   }, [applications]);
 
+
+  const pendingRestaurantApplicationsCount = useMemo(() => {
+    return applications.filter(
+      (application) => application.requested_role === "restaurateur" && application.status === "pending_review",
+    ).length;
+  }, [applications]);
+
   const filteredApplications = useMemo(() => {
     return applications.filter((application) => {
       if (applicationRoleFilter !== "all" && application.requested_role !== applicationRoleFilter) {
@@ -780,7 +835,17 @@ export default function AdminUtilisateurs() {
       <Tabs value={activeAdminTab} onValueChange={handleAdminTabChange} className="space-y-6">
         <TabsList className="grid w-full max-w-xl grid-cols-3">
           <TabsTrigger value="users">Comptes</TabsTrigger>
-          <TabsTrigger value="applications">Dossiers</TabsTrigger>
+          <TabsTrigger value="applications" className="relative gap-2">
+            Dossiers
+            {pendingRestaurantApplicationsCount > 0 ? (
+              <span
+                className="ml-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-none text-white shadow-sm"
+                aria-label={`${pendingRestaurantApplicationsCount} dossier restaurateur en attente`}
+              >
+                {pendingRestaurantApplicationsCount}
+              </span>
+            ) : null}
+          </TabsTrigger>
           <TabsTrigger value="couriers">Livreurs</TabsTrigger>
         </TabsList>
 
@@ -1200,6 +1265,7 @@ export default function AdminUtilisateurs() {
                                   </div>
                                   <Badge className={documentMeta.tone}>{documentMeta.label}</Badge>
                                 </div>
+                                <SignupDocumentPreview document={document} />
                                 {document.rejection_reason ? (
                                   <p className="text-xs text-destructive">{document.rejection_reason}</p>
                                 ) : null}

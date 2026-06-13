@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { getSupabase } from "@/integrations/supabase/client";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -37,6 +38,7 @@ type AdminNavItem = {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   feature?: string;
+  pendingSignupBadge?: boolean;
 };
 
 type AdminNavSection = {
@@ -54,7 +56,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
       { to: "/admin/restaurants/google-business", label: "Boutons Google", icon: MapPin, feature: "admin-restaurants" },
       { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, feature: "admin-utilisateurs" },
-      { to: "/admin/utilisateurs?tab=applications", label: "Dossiers d'inscription", icon: FileText, feature: "admin-utilisateurs" },
+      { to: "/admin/utilisateurs?tab=applications", label: "Dossiers d'inscription", icon: FileText, feature: "admin-utilisateurs", pendingSignupBadge: true },
       { to: "/admin/utilisateurs?tab=couriers", label: "Profils livreurs", icon: Bike, feature: "admin-utilisateurs" },
     ],
   },
@@ -116,11 +118,13 @@ function AdminNavItems({
   sections,
   unreadNotifications,
   role,
+  pendingSignupApplicationsCount,
 }: {
   activeTo?: string;
   sections: AdminNavSection[];
   unreadNotifications: ReturnType<typeof useNotificationCenter>["unreadNotifications"];
   role: ReturnType<typeof useAuth>["role"];
+  pendingSignupApplicationsCount: number;
 }) {
   return (
     <>
@@ -144,6 +148,14 @@ function AdminNavItems({
               >
                 <item.icon className="h-4 w-4" />
                 <span>{item.label}</span>
+                {item.pendingSignupBadge && pendingSignupApplicationsCount > 0 ? (
+                  <span
+                    className="ml-auto inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-none text-white"
+                    aria-label={`${pendingSignupApplicationsCount} dossier restaurateur en attente`}
+                  >
+                    {pendingSignupApplicationsCount}
+                  </span>
+                ) : null}
                 <NotificationMenuBadge route={item.to} role={role} unreadNotifications={unreadNotifications} />
               </Link>
             );
@@ -159,7 +171,36 @@ export default function AdminMobileNavigation() {
   const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
   const { unreadNotifications } = useNotificationCenter(50);
+  const [pendingSignupApplicationsCount, setPendingSignupApplicationsCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!activeFeatures.has("admin-utilisateurs")) {
+      setPendingSignupApplicationsCount(0);
+      return;
+    }
+
+    let cancelled = false;
+    getSupabase()
+      .from("signup_applications")
+      .select("id", { count: "exact", head: true })
+      .eq("requested_role", "restaurateur")
+      .eq("status", "pending_review")
+      .then(({ count, error }) => {
+        if (!cancelled && !error) {
+          setPendingSignupApplicationsCount(count || 0);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPendingSignupApplicationsCount(0);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeFeatures]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -236,6 +277,7 @@ export default function AdminMobileNavigation() {
                 sections={sections}
                 unreadNotifications={unreadNotifications}
                 role={role}
+                pendingSignupApplicationsCount={pendingSignupApplicationsCount}
               />
             </nav>
           </div>

@@ -106,4 +106,20 @@ describe("signup and admin moderation SQL", () => {
     expect(adminUsers).toContain("useSearchParams");
     expect(adminUsers).toContain("value={activeAdminTab}");
   });
+
+  it("keeps restaurateur dossiers visible with admin badges and image previews", () => {
+    const adminUsers = readFileSync(resolve(process.cwd(), "src/pages/admin/AdminUtilisateurs.tsx"), "utf8");
+    const mobileNav = readFileSync(resolve(process.cwd(), "src/components/admin/AdminMobileNavigation.tsx"), "utf8");
+    const submitFunction = readFileSync(resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"), "utf8");
+
+    expect(adminUsers).toContain("pendingRestaurantApplicationsCount");
+    expect(adminUsers).toContain("SignupDocumentPreview");
+    expect(adminUsers).toContain("bg-red-600");
+    expect(adminUsers).toContain("getVerificationDocumentUrl(document.file_path)");
+    expect(mobileNav).toContain("pendingSignupBadge: true");
+    expect(mobileNav).toContain("pendingSignupApplicationsCount");
+    expect(submitFunction).toContain("admin_submit_signup_application");
+    expect(submitFunction).toContain("verification-documents");
+    expect(submitFunction).toContain("missing_document");
+  });
 });
