@@ -39,6 +39,18 @@ describe("role separation, storage and audit security", () => {
     expect(migration).toContain("is_active = (v_next_status = 'approved')");
   });
 
+  it("assigns the chosen signup role before email-confirmation redirects choose a surface", () => {
+    const migration = read("supabase/migrations/20260613130000_auth_signup_role_routing.sql");
+
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.handle_new_user()");
+    expect(migration).toContain("NEW.raw_user_meta_data->>'role'");
+    expect(migration).toContain("WHEN v_requested_role = 'restaurateur' THEN 'restaurateur'::public.app_role");
+    expect(migration).toContain("WHEN v_requested_role IN ('courier', 'livreur') THEN 'courier'::public.app_role");
+    expect(migration).toContain("VALUES (NEW.id, v_signup_role)");
+    expect(migration).toContain("FROM auth.users u");
+    expect(migration).toContain("ON CONFLICT (user_id, role) DO NOTHING");
+  });
+
   it("audits sensitive Edge actions and restricts Storage buckets by ownership and MIME type", () => {
     const edgeAudit = read("supabase/migrations/20260312160000_search_audience_and_edge_audit.sql");
     const storageHardening = read("supabase/migrations/20260526152736_security_audit_hardening.sql");
