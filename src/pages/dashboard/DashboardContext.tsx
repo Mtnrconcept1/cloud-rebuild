@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { useOwnerRestaurants } from "./useOwnerRestaurants";
-import { DashboardContext } from "./useDashboardRestaurant";
+import { DashboardContext, isRestaurantDashboardAccessApproved } from "./useDashboardRestaurant";
 
 const STORAGE_KEY = "miamz-dashboard-restaurant";
 
@@ -40,13 +40,66 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, id);
   };
 
+  const selectedRestaurant = useMemo(
+    () => restaurants.find((r) => r.id === selectedId) || null,
+    [restaurants, selectedId],
+  );
+
+  const dashboardAccessLocked = useMemo(() => {
+    if (loading) return false;
+    return !isRestaurantDashboardAccessApproved(selectedRestaurant);
+  }, [loading, selectedRestaurant]);
+
+  const dashboardAccessLockReason = dashboardAccessLocked
+    ? "Votre dossier restaurateur doit être validé par l'admin TOK avant d'activer les onglets et fonctionnalités."
+    : null;
+
   const disabledFeatures = useMemo(() => {
-    const selected = restaurants.find((r) => r.id === selectedId);
-    return new Set<string>(selected?.disabled_dashboard_features || []);
-  }, [restaurants, selectedId]);
+    const lockedFeatures = new Set(selectedRestaurant?.disabled_dashboard_features || []);
+
+    if (dashboardAccessLocked) {
+      for (const feature of [
+        "dashboard-advisor",
+        "dashboard-commandes",
+        "dashboard-reservations",
+        "dashboard-performances",
+        "dashboard-comparaison",
+        "dashboard-avis",
+        "dashboard-campagnes",
+        "dashboard-promotions",
+        "dashboard-reseaux-sociaux",
+        "dashboard-actualites",
+        "dashboard-factures",
+        "dashboard-pack",
+        "dashboard-restaurant",
+        "dashboard-menu",
+        "dashboard-photos",
+        "dashboard-offres",
+        "dashboard-ventes-flash",
+        "dashboard-formules",
+        "dashboard-service",
+        "dashboard-plan-salle",
+        "dashboard-support",
+        "dashboard-notifications",
+      ]) {
+        lockedFeatures.add(feature);
+      }
+    }
+
+    return lockedFeatures;
+  }, [dashboardAccessLocked, selectedRestaurant]);
 
   return (
-    <DashboardContext.Provider value={{ restaurants, selectedId, setSelectedId, loading, error, disabledFeatures }}>
+    <DashboardContext.Provider value={{
+      restaurants,
+      selectedId,
+      setSelectedId,
+      loading,
+      error,
+      disabledFeatures,
+      dashboardAccessLocked,
+      dashboardAccessLockReason,
+    }}>
       {children}
     </DashboardContext.Provider>
   );

@@ -11,6 +11,8 @@ export type OwnedRestaurant = {
   name: string;
   opening_hours?: Json | null;
   disabled_dashboard_features: string[];
+  is_active: boolean | null;
+  status: string | null;
   socialLinks?: RestaurantSocialLinks;
 };
 
@@ -23,7 +25,7 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("id, name, opening_hours, disabled_dashboard_features")
+        .select("id, name, opening_hours, disabled_dashboard_features, is_active, status")
         .eq("owner_id", user!.id)
         .order("created_at", { ascending: true });
 

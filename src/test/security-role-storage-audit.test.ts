@@ -27,6 +27,18 @@ describe("role separation, storage and audit security", () => {
     expect(app).toContain('requiredRole="courier"');
   });
 
+
+  it("keeps pending restaurateur signups in the restaurateur role without activating the restaurant", () => {
+    const migration = read("supabase/migrations/20260613120000_restaurateur_pending_dashboard_access.sql");
+
+    expect(migration).toContain("IF v_role_text = 'restaurateur' THEN");
+    expect(migration).toContain("VALUES (v_actor_id, 'restaurateur')");
+    expect(migration).toContain("status IN ('pending_review', 'needs_changes', 'rejected')");
+    expect(migration).toContain("ELSIF v_application.requested_role = 'courier' THEN");
+    expect(migration).toContain("WHEN v_next_status = 'approved' THEN 'active'");
+    expect(migration).toContain("is_active = (v_next_status = 'approved')");
+  });
+
   it("audits sensitive Edge actions and restricts Storage buckets by ownership and MIME type", () => {
     const edgeAudit = read("supabase/migrations/20260312160000_search_audience_and_edge_audit.sql");
     const storageHardening = read("supabase/migrations/20260526152736_security_audit_hardening.sql");
