@@ -1,6 +1,7 @@
 import type { UserRole } from "@/lib/auth-context";
 
 const VALID_ROLES: UserRole[] = ["client", "restaurateur", "admin", "courier"];
+const PRIVILEGED_ROLES: UserRole[] = ["admin", "restaurateur", "courier"];
 const DEFAULT_ROLE_PRIORITY: UserRole[] = ["admin", "restaurateur", "courier", "client"];
 const ROLE_HOME_PATHS: Record<UserRole, string> = {
   client: "/",
@@ -26,6 +27,21 @@ export function getRoleHomePath(role: UserRole | null | undefined) {
   return role ? ROLE_HOME_PATHS[role] : "/";
 }
 
+export function hasPrivilegedRole(roles: UserRole[]) {
+  const effectiveRoles = getEffectiveRoles(roles);
+  return effectiveRoles.some((role) => PRIVILEGED_ROLES.includes(role));
+}
+
+export function canUseClientRole({
+  activeRole,
+  roles,
+}: {
+  activeRole: UserRole | null;
+  roles: UserRole[];
+}) {
+  return activeRole === "client" && !hasPrivilegedRole(roles);
+}
+
 export function canSwitchRoles(roles: UserRole[]) {
   const effectiveRoles = getEffectiveRoles(roles);
   return effectiveRoles.includes("admin") && effectiveRoles.length > 1;
@@ -41,6 +57,9 @@ export function canAccessRole({
   roles: UserRole[];
 }) {
   if (!requiredRole) return true;
+  if (requiredRole === "client") {
+    return canUseClientRole({ activeRole, roles });
+  }
   if (activeRole === requiredRole) return true;
 
   return canSwitchRoles(roles) && getEffectiveRoles(roles).includes(requiredRole);
@@ -63,16 +82,20 @@ export function canAccessAnyRole({
 
 export function canShowClientSurface({
   activeRole,
+  roles = [],
 }: {
   activeRole: UserRole | null;
+  roles?: UserRole[];
 }) {
-  return !activeRole || activeRole === "client";
+  return !activeRole || canUseClientRole({ activeRole, roles });
 }
 
 export function canShowSocialFeedSurface({
   activeRole,
+  roles = [],
 }: {
   activeRole: UserRole | null;
+  roles?: UserRole[];
 }) {
-  return !activeRole || activeRole === "client" || activeRole === "restaurateur";
+  return !activeRole || canUseClientRole({ activeRole, roles }) || activeRole === "restaurateur";
 }

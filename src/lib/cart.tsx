@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, ReactNode } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { useAuth } from "@/lib/auth-context";
+import { canUseClientRole, hasPrivilegedRole } from "@/lib/roleAccess";
 import { CartContext, type CartConflict, type CartInputItem, type CartItem } from "@/lib/cart-context";
 import { clearCartBrowserState } from "@/lib/sessionCleanup";
 
@@ -51,7 +52,7 @@ function cartFeatureAllowsCrossRestaurant(metadata: Record<string, any>) {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, role, roles = [] } = useAuth();
   const [orderMode, setOrderModeState] = useState<"delivery" | "takeaway">(() => {
     try {
       const stored = localStorage.getItem("miamz-order-mode");
@@ -113,6 +114,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     lastAuthenticatedUserIdRef.current = nextUserId;
   }, [resetCartState, user?.id]);
 
+  useEffect(() => {
+    if (user && hasPrivilegedRole(roles)) {
+      resetCartState();
+    }
+  }, [resetCartState, roles, user]);
+
   const setOrderMode = (mode: "delivery" | "takeaway", options?: { force?: boolean }) => {
     if (options?.force) {
       setOrderModeState(mode);
@@ -133,6 +140,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const restaurantId = items.length > 0 ? items[0].restaurantId : null;
 
   const addItem = (item: CartInputItem) => {
+    if (user && !canUseClientRole({ activeRole: role, roles })) {
+      console.warn("[cart] privileged roles cannot add customer cart items");
+      return;
+    }
+
     const existingCartIsChefTable = items.length > 0 && items.every((cartItem) => cartItem.metadata?.is_chefs_table);
     const incomingItemIsChefTable = !!item.metadata?.is_chefs_table;
     const allowCrossRestaurant = cartFeatureAllowsCrossRestaurant(cartMetadata)
@@ -199,6 +211,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     metadata: Record<string, any> = {},
     mode: "delivery" | "takeaway" = orderMode,
   ) => {
+    if (user && !canUseClientRole({ activeRole: role, roles })) {
+      console.warn("[cart] privileged roles cannot replace customer cart items");
+      return;
+    }
+
     const normalizedMode = mode === "takeaway" && (
       metadata.feature === "creneaux-garantis"
       || metadata.is_guaranteed_delivery_slot === true

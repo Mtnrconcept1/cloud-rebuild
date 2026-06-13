@@ -10,6 +10,7 @@ import {
 import {
   canSwitchRoles,
   getDefaultActiveRole,
+  hasPrivilegedRole,
   getEffectiveRoles,
 } from "@/lib/roleAccess";
 import { AuthContext, type UserRole } from "@/lib/auth-context";
@@ -104,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const switchRole = useCallback((role: UserRole) => {
     if (!user || !canSwitchRoles(roles) || !roles.includes(role)) return;
+    if (role === "client" && hasPrivilegedRole(roles)) return;
 
     setActiveRole(role);
     localStorage.setItem(ACTIVE_ROLE_KEY, role);

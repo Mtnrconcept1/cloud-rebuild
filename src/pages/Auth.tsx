@@ -5,7 +5,7 @@ import { Bike, ChefHat, Eye, EyeOff, FileText, Loader2, Shield, ShoppingBag, Upl
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
-import { getDefaultActiveRole, getRoleHomePath } from "@/lib/roleAccess";
+import { getDefaultActiveRole, getRoleHomePath, hasPrivilegedRole } from "@/lib/roleAccess";
 import {
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
@@ -179,6 +179,7 @@ export default function Auth() {
   const isClientSignup = !isLogin && roleMode === "client";
   const showExtendedIdentityFields = !isLogin && roleMode !== "client";
   const showDocumentSection = !isLogin && requiredDocuments.length > 0;
+  const switchableRoles = roles.filter((candidateRole) => candidateRole !== "client" || !hasPrivilegedRole(roles));
   const postAuthRedirectTarget = useMemo(() => {
     const redirectTarget = searchParams.get("redirect");
     if (!redirectTarget) return null;
@@ -186,12 +187,12 @@ export default function Auth() {
   }, [searchParams]);
 
   const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
-    if (canSwitchRole || selectedRole === "client") {
+    if (selectedRole === "client" && !hasPrivilegedRole(roles)) {
       return postAuthRedirectTarget || ROLE_CONFIG[selectedRole].to;
     }
 
     return getRoleHomePath(selectedRole);
-  }, [canSwitchRole, postAuthRedirectTarget]);
+  }, [postAuthRedirectTarget, roles]);
 
   useEffect(() => {
     if (!user || roles.length === 0 || privilegedSignupSubmitting) return;
@@ -454,7 +455,7 @@ export default function Auth() {
             <CardDescription>Choisissez votre espace pour continuer</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {roles.map((role) => {
+            {switchableRoles.map((role) => {
               const config = ROLE_CONFIG[role];
               return (
                 <button

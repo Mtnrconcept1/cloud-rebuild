@@ -22,6 +22,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
+import { canShowClientSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isNative } from "@/lib/platform";
 import { useTokLogoDocumentIcons } from "@/hooks/useTokLogo";
@@ -187,6 +188,24 @@ function AdminHostBoundary() {
   return null;
 }
 
+function ClientSurfaceRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading, role, roles } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (user && !canShowClientSurface({ activeRole: role, roles })) {
+    return <Navigate to={getRoleHomePath(role)} replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function FeatureSwitch({ enabled, fallback = "/", children }: { enabled: boolean | null; fallback?: string; children: React.ReactNode }) {
   if (enabled === null) {
     return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -344,35 +363,35 @@ function AppShell() {
       <FloatingRouteBackButton />
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/recherche" element={<Recherche />} />
-          <Route path="/restaurants/:city" element={<LocalRestaurants />} />
-          <Route path="/restaurants/:city/:category" element={<LocalRestaurants />} />
-          <Route path="/r/:slug" element={<RestaurantBookingRedirect />} />
-          <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-          <Route path="/anti-gaspi" element={<FeatureSwitch enabled={antiWasteEnabled}><AntiGaspi /></FeatureSwitch>} />
-          <Route path="/panier" element={<Panier />} />
+          <Route path="/recherche" element={<ClientSurfaceRoute><Recherche /></ClientSurfaceRoute>} />
+          <Route path="/restaurants/:city" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
+          <Route path="/restaurants/:city/:category" element={<ClientSurfaceRoute><LocalRestaurants /></ClientSurfaceRoute>} />
+          <Route path="/r/:slug" element={<ClientSurfaceRoute><RestaurantBookingRedirect /></ClientSurfaceRoute>} />
+          <Route path="/restaurant/:id" element={<ClientSurfaceRoute><RestaurantDetail /></ClientSurfaceRoute>} />
+          <Route path="/anti-gaspi" element={<ClientSurfaceRoute><FeatureSwitch enabled={antiWasteEnabled}><AntiGaspi /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/panier" element={<ClientSurfaceRoute><Panier /></ClientSurfaceRoute>} />
           <Route path="/commandes" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={commandesEnabled} fallback="/"><Commandes /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/commande/confirmation" element={<FeatureSwitch enabled={commandesEnabled} fallback="/"><OrderConfirmation /></FeatureSwitch>} />
+          <Route path="/commande/confirmation" element={<ClientSurfaceRoute><FeatureSwitch enabled={commandesEnabled} fallback="/"><OrderConfirmation /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/commande/:id" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={commandesEnabled} fallback="/"><SuiviCommande /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/reservations" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={reservationEnabled} fallback="/"><Reservations /></FeatureSwitch></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute requiredRole="client"><Profil /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute requiredRole="client"><Notifications /></ProtectedRoute>} />
-          <Route path="/creneaux-garantis" element={<FeatureSwitch enabled={hasFeature("creneaux-garantis")}><CreneauxGarantis /></FeatureSwitch>} />
-          <Route path="/flex-prix-bas" element={<FeatureSwitch enabled={hasFeature("flex-prix-bas")}><FlexPrixBas /></FeatureSwitch>} />
-          <Route path="/match-groupes" element={<FeatureSwitch enabled={hasFeature("match-groupes")}><MatchGroupes /></FeatureSwitch>} />
-          <Route path="/multi-stop" element={<FeatureSwitch enabled={hasFeature("multi-stop")}><MultiStop /></FeatureSwitch>} />
-          <Route path="/multi-restaurant" element={<FeatureSwitch enabled={hasFeature("multi-restaurant")}><MultiRestaurant /></FeatureSwitch>} />
-          <Route path="/chefs-table" element={<FeatureSwitch enabled={hasFeature("chefs-table")}><ChefsTable /></FeatureSwitch>} />
-          <Route path="/zero-attente" element={<FeatureSwitch enabled={hasFeature("zero-attente")}><ZeroAttente /></FeatureSwitch>} />
-          <Route path="/garantie-qualite" element={<FeatureSwitch enabled={hasFeature("garantie-qualite")}><GarantieQualite /></FeatureSwitch>} />
-          <Route path="/budget-auto" element={<FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch>} />
-          <Route path="/abonnement" element={<FeatureSwitch enabled={abonnementEnabled}><Abonnement /></FeatureSwitch>} />
-          <Route path="/tok-one" element={<FeatureSwitch enabled={tokOneEnabled}><TokOne /></FeatureSwitch>} />
+          <Route path="/creneaux-garantis" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("creneaux-garantis")}><CreneauxGarantis /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/flex-prix-bas" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("flex-prix-bas")}><FlexPrixBas /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/match-groupes" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("match-groupes")}><MatchGroupes /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/multi-stop" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("multi-stop")}><MultiStop /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/multi-restaurant" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("multi-restaurant")}><MultiRestaurant /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/chefs-table" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("chefs-table")}><ChefsTable /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/zero-attente" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("zero-attente")}><ZeroAttente /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/garantie-qualite" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("garantie-qualite")}><GarantieQualite /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/budget-auto" element={<ClientSurfaceRoute><FeatureSwitch enabled={hasFeature("budget-auto")}><BudgetAuto /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/abonnement" element={<ClientSurfaceRoute><FeatureSwitch enabled={abonnementEnabled}><Abonnement /></FeatureSwitch></ClientSurfaceRoute>} />
+          <Route path="/tok-one" element={<ClientSurfaceRoute><FeatureSwitch enabled={tokOneEnabled}><TokOne /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/miamz-solidaires" element={<MiamzSolidaires />} />
           <Route path="/points-cadeau" element={<ProtectedRoute requiredRole="client"><FeatureSwitch enabled={giftPointsEnabled}><GiftPoints /></FeatureSwitch></ProtectedRoute>} />
-          <Route path="/ventes-flash" element={<FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch>} />
+          <Route path="/ventes-flash" element={<ClientSurfaceRoute><FeatureSwitch enabled={flashSalesEnabled}><VentesFlash /></FeatureSwitch></ClientSurfaceRoute>} />
           <Route path="/actualites" element={<FeatureSwitch enabled={actualitesSocialesEnabled} fallback="/"><Actualites /></FeatureSwitch>} />
           <Route path="/dashboard" element={<DashboardRoute><FeatureSwitch enabled={dashboardOverviewEnabled} fallback="/"><DashboardHome /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/restaurant" element={<DashboardRoute><FeatureSwitch enabled={dashboardRestaurantEnabled} fallback="/dashboard"><DashboardRestaurant /></FeatureSwitch></DashboardRoute>} />

@@ -83,7 +83,7 @@ describe("Google Business booking button phase 1", () => {
     const reservationDialog = read("src/components/ReservationDialog.tsx");
 
     expect(app).toContain('const RestaurantBookingRedirect = lazy(() => import("./pages/RestaurantBookingRedirect"))');
-    expect(app).toContain('<Route path="/r/:slug" element={<RestaurantBookingRedirect />} />');
+    expect(app).toContain('<Route path="/r/:slug" element={<ClientSurfaceRoute><RestaurantBookingRedirect /></ClientSurfaceRoute>} />');
 
     expect(redirectPage).toContain("resolve_google_booking_slug");
     expect(redirectPage).toContain("trackGoogleBookingEvent");
