@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { User, ShoppingCart, CalendarDays, LogOut, LayoutDashboard, Settings, Bell, Crown } from "lucide-react";
+import { User, ShoppingCart, CalendarDays, LayoutDashboard, Settings, Bell, Crown } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
+import SignOutButton from "@/components/auth/SignOutButton";
 
 const NAV_ITEMS = [
   { to: "/profil", label: "Mon profil", icon: User },
@@ -17,7 +18,7 @@ const NAV_ITEMS = [
 
 export default function CustomerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { signOut, roles, role } = useAuth();
+  const { roles, role } = useAuth();
   const { unreadNotifications } = useNotificationCenter(50);
   const adminDashboardHref = getAdminNavigationHref("/admin");
 
@@ -45,7 +46,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
               </div>
             )}
             <div className="mt-4 pt-4 border-t">
-              <button onClick={() => signOut()} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"><LogOut className="h-4 w-4" />Déconnexion</button>
+              <SignOutButton className="w-full justify-start rounded-xl px-3 py-2.5 text-sm font-medium" />
             </div>
           </div>
         </aside>

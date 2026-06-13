@@ -47,6 +47,7 @@ import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
+import SignOutButton from "@/components/auth/SignOutButton";
 
 type NavItem = {
   to: string;
@@ -357,7 +358,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <ChefHelpButton surface="restaurant" collapsed={collapsed} />
         </div>
 
-        <nav className="flex flex-col gap-1 px-2 pb-6">
+        <nav className="flex flex-col gap-1 px-2 pb-3">
           <NavItems
             pathname={pathname}
             sections={sections}
@@ -368,11 +369,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             dashboardAccessLocked={dashboardAccessLocked}
           />
         </nav>
+
+        <div className="mt-auto border-t px-3 py-3 dark:border-[#5f7aad]/28">
+          <SignOutButton
+            iconOnly={collapsed}
+            className={cn(
+              collapsed
+                ? "mx-auto border-destructive/20 bg-transparent shadow-none"
+                : "w-full justify-start rounded-xl px-3",
+            )}
+          />
+        </div>
       </aside>
 
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70] flex items-center gap-2">
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
+        <SignOutButton iconOnly />
       </div>
 
       {/* MOBILE */}
@@ -428,6 +441,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   role={role}
                   dashboardAccessLocked={dashboardAccessLocked}
                 />
+                <div className="mt-3 border-t pt-3">
+                  <SignOutButton
+                    onSignedOut={() => setMobileMenuOpen(false)}
+                    className="w-full justify-start rounded-xl px-3"
+                  />
+                </div>
               </nav>
             </div>
           </SheetContent>
