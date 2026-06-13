@@ -25,6 +25,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
+import SignOutButton from "@/components/auth/SignOutButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
@@ -237,6 +238,12 @@ export default function AdminMobileNavigation() {
                 unreadNotifications={unreadNotifications}
                 role={role}
               />
+              <div className="mt-3 border-t pt-3">
+                <SignOutButton
+                  onSignedOut={() => setMobileMenuOpen(false)}
+                  className="w-full justify-start rounded-xl px-3"
+                />
+              </div>
             </nav>
           </div>
         </SheetContent>
