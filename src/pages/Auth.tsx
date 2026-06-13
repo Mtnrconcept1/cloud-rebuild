@@ -152,6 +152,65 @@ function splitCourierName(fullName: string) {
   };
 }
 
+function appendPrivilegedSignupDraftFormData(input: {
+  formData: FormData;
+  userId: string;
+  role: SignupRole;
+  form: SignupFormState;
+  documents: Partial<Record<SignupDocumentType, File | null>>;
+  captchaToken: string | null;
+}) {
+  input.formData.append("user_id", input.userId);
+  input.formData.append("requested_role", input.role);
+  input.formData.append("full_name", input.form.fullName);
+  input.formData.append("email", input.form.email);
+  input.formData.append("phone", input.form.phone);
+  input.formData.append("city", input.form.city);
+  input.formData.append("address", input.form.address);
+  input.formData.append("legal_name", input.role === "restaurateur" ? input.form.legalName : "");
+  input.formData.append("business_name", input.role === "restaurateur" ? input.form.businessName : "");
+  input.formData.append(
+    "business_registration_number",
+    input.role === "restaurateur" ? input.form.businessRegistrationNumber : "",
+  );
+  input.formData.append("tax_id", input.role === "restaurateur" ? input.form.taxId : "");
+  input.formData.append("restaurant_name", input.role === "restaurateur" ? input.form.restaurantName : "");
+  input.formData.append(
+    "restaurant_description",
+    input.role === "restaurateur" ? input.form.restaurantDescription : "",
+  );
+  input.formData.append("vehicle_type", input.role === "courier" ? input.form.vehicleType : "");
+  input.formData.append("license_plate", input.role === "courier" ? input.form.licensePlate : "");
+  input.formData.append("iban", input.form.iban);
+  input.formData.append("captcha_token", input.captchaToken || "");
+
+  for (const requirement of getRequiredSignupDocuments(input.role, input.form.vehicleType)) {
+    const file = input.documents[requirement.type];
+    if (file) {
+      input.formData.append(`document_${requirement.type}`, file, file.name);
+    }
+  }
+}
+
+async function submitPrivilegedSignupDraft(input: {
+  userId: string;
+  role: SignupRole;
+  form: SignupFormState;
+  documents: Partial<Record<SignupDocumentType, File | null>>;
+  captchaToken: string | null;
+}) {
+  const formData = new FormData();
+  appendPrivilegedSignupDraftFormData({ formData, ...input });
+
+  const { error } = await supabase.functions.invoke("submit-signup-application", {
+    body: formData,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
 export default function Auth() {
   const logoSrc = useTokLogoSrc();
   const [searchParams] = useSearchParams();
@@ -350,13 +409,39 @@ export default function Auth() {
       const activeSession = signUpResponse.data.session;
       shouldSignOutPrivilegedSignupSession = isPrivilegedSignup && Boolean(activeSession);
 
-      if (!activeUser?.id || !activeSession) {
+      if (!activeUser?.id) {
         toast({
           title: "Compte créé",
           description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
         });
         if (isPrivilegedSignup) {
           setPrivilegedSignupSubmitting(false);
+        }
+        return;
+      }
+
+      if (!activeSession) {
+        if (isPrivilegedSignup) {
+          await submitPrivilegedSignupDraft({
+            userId: activeUser.id,
+            role: submittedRole,
+            form: signupForm,
+            documents,
+            captchaToken,
+          });
+          toast({
+            title: "Inscription enregistrée",
+            description: "Votre dossier complet sera transmis à l'admin TOK après confirmation de votre email.",
+          });
+          setDocuments({});
+          setSignupForm(EMPTY_SIGNUP_FORM);
+          setCaptchaToken(null);
+          setPrivilegedSignupSubmitting(false);
+        } else {
+          toast({
+            title: "Compte créé",
+            description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
+          });
         }
         return;
       }

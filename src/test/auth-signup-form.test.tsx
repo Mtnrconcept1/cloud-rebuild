@@ -13,6 +13,7 @@ const supabaseMocks = vi.hoisted(() => ({
   signOut: vi.fn(),
   signUp: vi.fn(),
   upload: vi.fn(),
+  invoke: vi.fn(),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -26,6 +27,9 @@ vi.mock("@/integrations/supabase/client", () => ({
       signUp: supabaseMocks.signUp,
     },
     rpc: supabaseMocks.rpc,
+    functions: {
+      invoke: supabaseMocks.invoke,
+    },
     storage: {
       from: () => ({
         upload: supabaseMocks.upload,
@@ -112,6 +116,7 @@ describe("Auth signup form", () => {
       data: { path: "doc.pdf" },
       error: null,
     });
+    supabaseMocks.invoke.mockResolvedValue({ data: { ok: true }, error: null });
     supabaseMocks.signUp.mockResolvedValue({
       data: {
         session: null,
@@ -275,6 +280,86 @@ describe("Auth signup form", () => {
       expect.objectContaining({
         title: "Inscription enregistrée",
         description: expect.stringContaining("après validation"),
+      }),
+    );
+  });
+
+
+  it("submits the complete restaurateur dossier through the Edge Function when email confirmation prevents a session", async () => {
+    supabaseMocks.signUp.mockResolvedValue({
+      data: {
+        session: null,
+        user: { id: "restaurant-user-id" },
+      },
+      error: null,
+    });
+
+    const { container } = renderAuth("/auth?type=restaurateur");
+
+    fireEvent.change(screen.getByLabelText("Nom du responsable"), {
+      target: { value: "Restaurateur Test" },
+    });
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "restaurant@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), {
+      target: { value: "secret123" },
+    });
+    fireEvent.change(screen.getByLabelText("Téléphone"), {
+      target: { value: "+41790000000" },
+    });
+    fireEvent.change(screen.getByLabelText("Ville"), {
+      target: { value: "Genève" },
+    });
+    fireEvent.change(screen.getByLabelText("Adresse"), {
+      target: { value: "Rue du Rhône 1" },
+    });
+    fireEvent.change(screen.getByLabelText("Nom commercial"), {
+      target: { value: "Table Tok" },
+    });
+    fireEvent.change(screen.getByLabelText("Raison sociale"), {
+      target: { value: "Table Tok Sàrl" },
+    });
+    fireEvent.change(screen.getByLabelText("Numéro d'immatriculation"), {
+      target: { value: "CHE-123.456.789" },
+    });
+    fireEvent.change(screen.getByLabelText("Nom du restaurant"), {
+      target: { value: "La Table Tok" },
+    });
+    fireEvent.change(screen.getByLabelText("IBAN de versement"), {
+      target: { value: "CH9300762011623852957" },
+    });
+
+    const documentFile = new File(["document"], "document.png", {
+      type: "image/png",
+    });
+    const fileInputs = Array.from(container.querySelectorAll<HTMLInputElement>('input[type="file"]'));
+    expect(fileInputs).toHaveLength(3);
+    for (const input of fileInputs) {
+      fireEvent.change(input, { target: { files: [documentFile] } });
+    }
+
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer mon inscription vérifiée" }));
+
+    await waitFor(() => {
+      expect(supabaseMocks.invoke).toHaveBeenCalledWith(
+        "submit-signup-application",
+        expect.objectContaining({ body: expect.any(FormData) }),
+      );
+    });
+
+    const body = supabaseMocks.invoke.mock.calls[0][1].body as FormData;
+    expect(body.get("user_id")).toBe("restaurant-user-id");
+    expect(body.get("requested_role")).toBe("restaurateur");
+    expect(body.get("restaurant_name")).toBe("La Table Tok");
+    expect(body.get("document_identity_document")).toBeInstanceOf(File);
+    expect(body.get("document_business_registration")).toBeInstanceOf(File);
+    expect(body.get("document_iban_proof")).toBeInstanceOf(File);
+    expect(supabaseMocks.rpc).not.toHaveBeenCalledWith("sync_signup_application", expect.anything());
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Inscription enregistrée",
+        description: expect.stringContaining("après confirmation"),
       }),
     );
   });

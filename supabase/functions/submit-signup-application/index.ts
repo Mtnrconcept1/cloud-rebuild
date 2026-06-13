@@ -1,0 +1,228 @@
+import { HttpError, createAdminClient, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { makeLogger } from "../_shared/logging.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
+import {
+  ACCEPTED_MIME_TYPES,
+  MAX_DOCUMENT_BYTES,
+  getRequiredDocumentTypes,
+  validateSubmissionFields,
+} from "./validation.ts";
+
+const FUNCTION_NAME = "submit-signup-application";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function sanitizeText(raw: FormDataEntryValue | null, max = 1000) {
+  return typeof raw === "string" ? raw.trim().slice(0, max) : "";
+}
+
+function requireInput(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new HttpError(400, message);
+}
+
+function getClientIp(req: Request) {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+}
+
+async function verifyTurnstileIfConfigured(token: string, req: Request) {
+  const secret = Deno.env.get("TURNSTILE_SECRET_KEY")?.trim() ||
+    Deno.env.get("CLOUDFLARE_TURNSTILE_SECRET_KEY")?.trim() ||
+    "";
+
+  if (!secret) return { skipped: true };
+  requireInput(token, "captcha_required");
+
+  const form = new FormData();
+  form.append("secret", secret);
+  form.append("response", token);
+
+  const ip = getClientIp(req);
+  if (ip !== "unknown") form.append("remoteip", ip);
+
+  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    body: form,
+  });
+  if (!response.ok) throw new HttpError(502, "captcha_verification_failed");
+
+  const payload = await response.json().catch(() => ({}));
+  if (payload?.success !== true) throw new HttpError(400, "captcha_invalid");
+  return { skipped: false };
+}
+
+function safeFileExtension(file: File) {
+  const fromName = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
+  if (["pdf", "png", "jpg", "jpeg", "webp"].includes(fromName)) return fromName;
+  if (file.type === "application/pdf") return "pdf";
+  if (file.type === "image/png") return "png";
+  if (file.type === "image/webp") return "webp";
+  return "jpg";
+}
+
+function fileNameForStorage(value: string) {
+  return value.replace(/[^a-z0-9_-]/gi, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "document";
+}
+
+async function uploadDocument(input: {
+  adminClient: ReturnType<typeof createAdminClient>;
+  userId: string;
+  role: string;
+  documentType: string;
+  file: File;
+}) {
+  requireInput(ACCEPTED_MIME_TYPES.includes(input.file.type), `invalid_document_type:${input.documentType}`);
+  requireInput(input.file.size > 0, `empty_document:${input.documentType}`);
+  requireInput(input.file.size <= MAX_DOCUMENT_BYTES, `document_too_large:${input.documentType}`);
+
+  const extension = safeFileExtension(input.file);
+  const path = [
+    input.userId,
+    fileNameForStorage(input.role),
+    `${fileNameForStorage(input.documentType)}-${crypto.randomUUID()}.${extension}`,
+  ].join("/");
+
+  const { error } = await input.adminClient.storage
+    .from("verification-documents")
+    .upload(path, input.file, {
+      contentType: input.file.type || undefined,
+      cacheControl: "3600",
+      upsert: true,
+    });
+
+  if (error) throw new HttpError(500, error.message);
+
+  return {
+    document_type: input.documentType,
+    file_path: path,
+    file_name: input.file.name,
+    mime_type: input.file.type || null,
+    file_size_bytes: input.file.size,
+  };
+}
+
+Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
+  const preflight = handleCorsPreflight(req, corsHeaders);
+  if (preflight) return preflight;
+
+  const log = makeLogger(FUNCTION_NAME);
+  const adminClient = createAdminClient();
+  let targetEntityId: string | null = null;
+
+  try {
+    if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
+
+    const contentType = req.headers.get("content-type") || "";
+    requireInput(contentType.toLowerCase().includes("multipart/form-data"), "multipart_form_data_required");
+
+    const form = await req.formData();
+    const userId = sanitizeText(form.get("user_id"), 80);
+    const role = sanitizeText(form.get("requested_role"), 40).toLowerCase();
+    const email = sanitizeText(form.get("email"), 180).toLowerCase();
+    const fields = {
+      full_name: sanitizeText(form.get("full_name"), 180),
+      phone: sanitizeText(form.get("phone"), 80),
+      city: sanitizeText(form.get("city"), 120),
+      address: sanitizeText(form.get("address"), 240),
+      legal_name: sanitizeText(form.get("legal_name"), 180),
+      business_name: sanitizeText(form.get("business_name"), 180),
+      business_registration_number: sanitizeText(form.get("business_registration_number"), 120),
+      tax_id: sanitizeText(form.get("tax_id"), 120),
+      restaurant_name: sanitizeText(form.get("restaurant_name"), 180),
+      restaurant_description: sanitizeText(form.get("restaurant_description"), 1500),
+      vehicle_type: sanitizeText(form.get("vehicle_type"), 60),
+      license_plate: sanitizeText(form.get("license_plate"), 60),
+      iban: sanitizeText(form.get("iban"), 80),
+    };
+
+    requireInput(UUID_PATTERN.test(userId), "invalid_user_id");
+    if (email) requireInput(EMAIL_PATTERN.test(email), "invalid_email");
+    const validationError = validateSubmissionFields(role, fields);
+    if (validationError) throw new HttpError(400, validationError);
+
+    const captcha = await verifyTurnstileIfConfigured(sanitizeText(form.get("captcha_token"), 1200), req);
+    const limiter = createRateLimiter(adminClient, FUNCTION_NAME);
+    await limiter.consume(`ip:${getClientIp(req)}`, { maxRequests: 8, windowSeconds: 600 });
+    await limiter.consume(`user:${userId}`, { maxRequests: 3, windowSeconds: 900 });
+    await limiter.consume("global", { maxRequests: 60, windowSeconds: 60 });
+
+    const { data: authUser, error: authUserError } = await adminClient.auth.admin.getUserById(userId);
+    if (authUserError || !authUser?.user) throw new HttpError(404, "auth_user_not_found");
+    if (email && authUser.user.email?.toLowerCase() !== email) throw new HttpError(403, "email_user_mismatch");
+
+    const requiredDocumentTypes = getRequiredDocumentTypes(role, fields.vehicle_type);
+    const uploadedDocuments = [];
+    for (const documentType of requiredDocumentTypes) {
+      const value = form.get(`document_${documentType}`);
+      requireInput(value instanceof File, `missing_document:${documentType}`);
+      uploadedDocuments.push(await uploadDocument({ adminClient, userId, role, documentType, file: value }));
+    }
+
+    const metadata = role === "courier"
+      ? {
+        first_name: fields.full_name.split(/\s+/)[0] || "",
+        last_name: fields.full_name.split(/\s+/).slice(1).join(" "),
+        onboarding_source: "auth_signup_edge",
+      }
+      : { onboarding_source: "auth_signup_edge" };
+
+    const { data: applicationRows, error: rpcError } = await adminClient.rpc("admin_submit_signup_application", {
+      p_user_id: userId,
+      p_requested_role: role,
+      p_full_name: fields.full_name,
+      p_phone: fields.phone,
+      p_city: fields.city,
+      p_address: fields.address,
+      p_legal_name: role === "restaurateur" ? fields.legal_name : null,
+      p_business_name: role === "restaurateur" ? fields.business_name : null,
+      p_business_registration_number: role === "restaurateur" ? fields.business_registration_number : null,
+      p_tax_id: role === "restaurateur" ? fields.tax_id : null,
+      p_restaurant_name: role === "restaurateur" ? fields.restaurant_name : null,
+      p_restaurant_description: role === "restaurateur" ? fields.restaurant_description : null,
+      p_vehicle_type: role === "courier" ? fields.vehicle_type : null,
+      p_license_plate: role === "courier" ? fields.license_plate : null,
+      p_iban: fields.iban,
+      p_metadata: metadata,
+      p_documents: uploadedDocuments,
+    });
+
+    if (rpcError) throw new HttpError(500, rpcError.message);
+
+    const firstRow = Array.isArray(applicationRows) ? applicationRows[0] : applicationRows;
+    targetEntityId = firstRow?.application_id || null;
+    await writeAuditLog({
+      adminClient,
+      functionName: FUNCTION_NAME,
+      action: "submit_privileged_signup_draft",
+      status: "success",
+      request: req,
+      targetEntityType: "signup_applications",
+      targetEntityId,
+      metadata: {
+        role,
+        user_id: userId,
+        documents_count: uploadedDocuments.length,
+        captcha_skipped: captcha.skipped,
+      },
+    });
+
+    log.info("privileged signup draft stored", { role, user_id: userId, targetEntityId });
+    return jsonResponse({ ok: true, application: firstRow || null }, 200, corsHeaders);
+  } catch (error) {
+    const status = error instanceof HttpError ? error.status : 500;
+    const message = error instanceof Error ? error.message : "internal_error";
+    log.error("privileged signup draft failed", { status, message, targetEntityId });
+    await writeAuditLog({
+      adminClient,
+      functionName: FUNCTION_NAME,
+      action: "submit_privileged_signup_draft",
+      status: "failure",
+      request: req,
+      targetEntityType: "signup_applications",
+      targetEntityId,
+      errorMessage: message,
+    });
+    return jsonResponse({ error: message }, status, corsHeaders);
+  }
+});
