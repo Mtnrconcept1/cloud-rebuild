@@ -85,7 +85,8 @@ describe("signup and admin moderation SQL", () => {
     expect(syncSignupApplication).toContain("IF v_role_text = 'restaurateur' THEN");
     expect(syncSignupApplication).toContain("VALUES (v_actor_id, 'restaurateur')");
     expect(syncSignupApplication).not.toContain("VALUES (v_actor_id, 'courier')");
-    expect(handleNewUser).not.toMatch(/v_requested_role\s+IN\s+\('restaurateur',\s*'courier'\)/i);
+    expect(handleNewUser).toContain("ELSE 'client'::public.app_role");
+    expect(handleNewUser).not.toContain("VALUES (NEW.id, 'client'::public.app_role)");
   });
 
   it("grants approved roles and only revokes courier roles from the admin review RPC", () => {
@@ -105,6 +106,20 @@ describe("signup and admin moderation SQL", () => {
     expect(adminHome).toContain("/admin/utilisateurs?tab=applications");
     expect(adminUsers).toContain("useSearchParams");
     expect(adminUsers).toContain("value={activeAdminTab}");
+  });
+
+
+  it("keeps privileged signups out of the client role and repairs confirmed dossiers", () => {
+    const sql = latestMigrationContaining(/Fix privileged signup dossiers and exclusive roles/i);
+    const handleNewUser = extractFunction(sql, "handle_new_user");
+    const submitDraft = extractFunction(sql, "admin_submit_signup_application");
+    const config = readFileSync(resolve(process.cwd(), "supabase/config.toml"), "utf8");
+
+    expect(handleNewUser).toContain("ELSE 'client'::public.app_role");
+    expect(submitDraft).toContain("VALUES (p_user_id, p_requested_role)");
+    expect(submitDraft).toMatch(/DELETE\s+FROM\s+public\.user_roles[\s\S]*role = 'client'::public\.app_role/i);
+    expect(sql).toMatch(/UPDATE\s+public\.signup_applications[\s\S]*status = 'pending_review'[\s\S]*email_confirmed_at IS NOT NULL/i);
+    expect(config).toMatch(/\[functions\.submit-signup-application\]\s*\nverify_jwt\s*=\s*false/i);
   });
 
   it("keeps restaurateur dossiers visible with admin badges and image previews", () => {
