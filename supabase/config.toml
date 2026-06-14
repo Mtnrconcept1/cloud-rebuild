@@ -132,3 +132,6 @@ verify_jwt = false
 
 [functions.validate-order]
 verify_jwt = true
+
+[functions.submit-signup-application]
+verify_jwt = false
