@@ -5,9 +5,11 @@ export const ACCEPTED_MIME_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
 ];
 
-export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
+export const MAX_DOCUMENT_BYTES = 15 * 1024 * 1024;
 
 export function getRequiredDocumentTypes(role: string, vehicleType: string | null): string[] {
   if (role === "courier") {

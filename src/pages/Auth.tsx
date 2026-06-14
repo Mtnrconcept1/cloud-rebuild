@@ -192,6 +192,31 @@ function appendPrivilegedSignupDraftFormData(input: {
   }
 }
 
+async function getSignupEdgeErrorMessage(error: Error) {
+  const context = (error as Error & { context?: { json?: () => Promise<unknown>; text?: () => Promise<string> } }).context;
+
+  if (!context) return error.message;
+
+  try {
+    const payload = await context.json?.();
+    if (payload && typeof payload === "object" && "error" in payload) {
+      const message = String((payload as { error?: unknown }).error || "").trim();
+      if (message) return message;
+    }
+  } catch {
+    // The edge gateway may return a non-JSON body for deployment errors.
+  }
+
+  try {
+    const text = (await context.text?.())?.trim();
+    if (text) return text.slice(0, 240);
+  } catch {
+    // Keep the original Supabase error if the response body was already consumed.
+  }
+
+  return error.message;
+}
+
 async function submitPrivilegedSignupDraft(input: {
   userId: string;
   role: SignupRole;
@@ -207,7 +232,7 @@ async function submitPrivilegedSignupDraft(input: {
   });
 
   if (error) {
-    throw error;
+    throw new Error(await getSignupEdgeErrorMessage(error));
   }
 }
 

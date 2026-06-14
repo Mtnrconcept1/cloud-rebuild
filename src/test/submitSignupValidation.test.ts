@@ -40,6 +40,8 @@ describe("submit-signup-application validation", () => {
 
   it("expose les limites MIME/taille", () => {
     expect(ACCEPTED_MIME_TYPES).toContain("application/pdf");
-    expect(MAX_DOCUMENT_BYTES).toBe(10 * 1024 * 1024);
+    expect(ACCEPTED_MIME_TYPES).toContain("image/heic");
+    expect(ACCEPTED_MIME_TYPES).toContain("image/heif");
+    expect(MAX_DOCUMENT_BYTES).toBe(15 * 1024 * 1024);
   });
 });
