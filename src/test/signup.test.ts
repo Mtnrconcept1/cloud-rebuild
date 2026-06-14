@@ -33,7 +33,7 @@ function extractFunction(sql: string, functionName: string) {
 
 describe("signup email verification + server-side draft SQL", () => {
   const draftSql = latestMigrationContaining(
-    /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_submit_signup_application/i,
+    /on_auth_user_email_confirmed[\s\S]*CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.admin_submit_signup_application/i,
   );
 
   it("ajoute le statut awaiting_email a la contrainte CHECK", () => {
@@ -108,6 +108,17 @@ describe("signup and admin moderation SQL", () => {
     expect(adminUsers).toContain("value={activeAdminTab}");
   });
 
+
+  it("guards privileged signup RPC against ambiguous application_id references", () => {
+    const sql = latestMigrationContaining(/Fix ambiguous references between RETURNS TABLE output columns and table columns/i);
+    const submitDraft = extractFunction(sql, "admin_submit_signup_application");
+
+    expect(submitDraft).toContain("FROM public.signup_application_documents sad");
+    expect(submitDraft).toContain("WHERE sad.application_id = v_application_id");
+    expect(submitDraft).not.toMatch(/FROM public\.signup_application_documents\s+WHERE application_id = v_application_id/i);
+    expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.admin_submit_signup_application[\s\S]*TO service_role/i);
+    expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
+  });
 
   it("keeps privileged signups out of the client role and repairs confirmed dossiers", () => {
     const sql = latestMigrationContaining(/Fix privileged signup dossiers and exclusive roles/i);
