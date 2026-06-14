@@ -104,7 +104,7 @@ const BASE_REQUIREMENTS: SignupDocumentRequirement[] = [
     type: "identity_document",
     label: "Pièce d'identité",
     description: "Carte d'identité, passeport ou permis de séjour en cours de validité.",
-    accept: ".pdf,.png,.jpg,.jpeg,.webp",
+    accept: ".pdf,.png,.jpg,.jpeg,.webp,.heic,.heif",
   },
 ];
 
@@ -114,13 +114,13 @@ const RESTAURATEUR_REQUIREMENTS: SignupDocumentRequirement[] = [
     type: "business_registration",
     label: "Extrait d'immatriculation",
     description: "Document officiel prouvant l'existence de l'entreprise ou de l'établissement.",
-    accept: ".pdf,.png,.jpg,.jpeg",
+    accept: ".pdf,.png,.jpg,.jpeg,.heic,.heif",
   },
   {
     type: "iban_proof",
     label: "Justificatif bancaire",
     description: "RIB, IBAN ou attestation bancaire pour les versements.",
-    accept: ".pdf,.png,.jpg,.jpeg",
+    accept: ".pdf,.png,.jpg,.jpeg,.heic,.heif",
   },
 ];
 
@@ -133,13 +133,13 @@ function getCourierRequirements(vehicleType: string | null | undefined): SignupD
       type: "work_permit",
       label: "Permis de travail / séjour",
       description: "Autorisation de travail ou document de residence si nécessaire.",
-      accept: ".pdf,.png,.jpg,.jpeg",
+      accept: ".pdf,.png,.jpg,.jpeg,.heic,.heif",
     },
     {
       type: "iban_proof",
       label: "Justificatif IBAN",
       description: "Preuve du compte bancaire ou postal à utiliser pour les virements.",
-      accept: ".pdf,.png,.jpg,.jpeg",
+      accept: ".pdf,.png,.jpg,.jpeg,.heic,.heif",
     },
   ];
 
@@ -148,7 +148,7 @@ function getCourierRequirements(vehicleType: string | null | undefined): SignupD
       type: "vehicle_registration",
       label: "Immatriculation du véhicule",
       description: "Carte grise ou document d'assurance pour le véhicule déclaré.",
-      accept: ".pdf,.png,.jpg,.jpeg",
+      accept: ".pdf,.png,.jpg,.jpeg,.heic,.heif",
     });
   }
 

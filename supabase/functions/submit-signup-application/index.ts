@@ -53,11 +53,31 @@ async function verifyTurnstileIfConfigured(token: string, req: Request) {
 
 function safeFileExtension(file: File) {
   const fromName = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "";
-  if (["pdf", "png", "jpg", "jpeg", "webp"].includes(fromName)) return fromName;
+  if (["pdf", "png", "jpg", "jpeg", "webp", "heic", "heif"].includes(fromName)) return fromName;
   if (file.type === "application/pdf") return "pdf";
   if (file.type === "image/png") return "png";
   if (file.type === "image/webp") return "webp";
-  return "jpg";
+  if (file.type === "image/heic") return "heic";
+  if (file.type === "image/heif") return "heif";
+  return "";
+}
+
+function mimeTypeForDocument(file: File) {
+  const declaredType = file.type.trim().toLowerCase();
+  if (ACCEPTED_MIME_TYPES.includes(declaredType)) return declaredType;
+
+  const extension = safeFileExtension(file);
+  const inferredMimeTypes: Record<string, string> = {
+    pdf: "application/pdf",
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    webp: "image/webp",
+    heic: "image/heic",
+    heif: "image/heif",
+  };
+
+  return inferredMimeTypes[extension] || declaredType;
 }
 
 function fileNameForStorage(value: string) {
@@ -71,7 +91,8 @@ async function uploadDocument(input: {
   documentType: string;
   file: File;
 }) {
-  requireInput(ACCEPTED_MIME_TYPES.includes(input.file.type), `invalid_document_type:${input.documentType}`);
+  const mimeType = mimeTypeForDocument(input.file);
+  requireInput(ACCEPTED_MIME_TYPES.includes(mimeType), `invalid_document_type:${input.documentType}`);
   requireInput(input.file.size > 0, `empty_document:${input.documentType}`);
   requireInput(input.file.size <= MAX_DOCUMENT_BYTES, `document_too_large:${input.documentType}`);
 
@@ -85,7 +106,7 @@ async function uploadDocument(input: {
   const { error } = await input.adminClient.storage
     .from("verification-documents")
     .upload(path, input.file, {
-      contentType: input.file.type || undefined,
+      contentType: mimeType || undefined,
       cacheControl: "3600",
       upsert: true,
     });
@@ -96,7 +117,7 @@ async function uploadDocument(input: {
     document_type: input.documentType,
     file_path: path,
     file_name: input.file.name,
-    mime_type: input.file.type || null,
+    mime_type: mimeType || null,
     file_size_bytes: input.file.size,
   };
 }

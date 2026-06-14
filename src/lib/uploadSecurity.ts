@@ -7,6 +7,8 @@ export const IMAGE_MIME_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
+  "image/heic": "heic",
+  "image/heif": "heif",
 };
 
 export const DOCUMENT_MIME_EXTENSIONS: Record<string, string> = {
@@ -46,6 +48,8 @@ const MIME_EXTENSION_ALIASES: Record<string, string[]> = {
   "image/jpeg": ["jpg", "jpeg", "jfif", "pjpeg", "pjp"],
   "image/png": ["png"],
   "image/webp": ["webp"],
+  "image/heic": ["heic"],
+  "image/heif": ["heif"],
   "application/pdf": ["pdf"],
   "video/mp4": ["mp4", "m4v"],
   "video/quicktime": ["mov", "qt"],

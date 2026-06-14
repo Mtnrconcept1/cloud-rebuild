@@ -137,4 +137,29 @@ describe("signup and admin moderation SQL", () => {
     expect(submitFunction).toContain("verification-documents");
     expect(submitFunction).toContain("missing_document");
   });
+
+  it("accepts common mobile document uploads and surfaces Edge Function errors", () => {
+    const submitFunction = readFileSync(
+      resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"),
+      "utf8",
+    );
+    const validation = readFileSync(
+      resolve(process.cwd(), "supabase/functions/submit-signup-application/validation.ts"),
+      "utf8",
+    );
+    const uploadSecurity = readFileSync(resolve(process.cwd(), "src/lib/uploadSecurity.ts"), "utf8");
+    const authPage = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
+    const signupLib = readFileSync(resolve(process.cwd(), "src/lib/signup.ts"), "utf8");
+
+    expect(validation).toContain('"image/heic"');
+    expect(validation).toContain('"image/heif"');
+    expect(submitFunction).toContain("mimeTypeForDocument");
+    expect(submitFunction).toContain("inferredMimeTypes");
+    expect(submitFunction).toContain("contentType: mimeType");
+    expect(uploadSecurity).toContain('"image/heic": "heic"');
+    expect(uploadSecurity).toContain('"image/heif": "heif"');
+    expect(signupLib).toContain(".heic,.heif");
+    expect(authPage).toContain("getSignupEdgeErrorMessage");
+    expect(authPage).toContain('"error" in payload');
+  });
 });
