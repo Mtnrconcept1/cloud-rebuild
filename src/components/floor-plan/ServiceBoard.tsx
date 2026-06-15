@@ -1,5 +1,5 @@
 import type { DragEvent, PointerEvent, RefObject, WheelEvent } from "react";
-import { Grip, LayoutPanelTop, Minus, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
+import { Grip, LayoutPanelTop, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 
 import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
 import { Badge } from "@/components/ui/badge";
@@ -219,6 +219,7 @@ export default function ServiceBoard({
               Sans table {unassignedReservationsCount}
             </Badge>
             <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white px-1 py-1 shadow-sm">
+              <span className="min-w-14 text-center text-sm font-semibold">{canvasZoomLabel}</span>
               <Button
                 type="button"
                 variant="ghost"
@@ -226,17 +227,6 @@ export default function ServiceBoard({
                 className="h-9 w-9 rounded-xl"
                 onClick={() => onUpdateCanvasZoom(canvasZoom - CANVAS_ZOOM_STEP)}
                 disabled={canvasZoom <= MIN_CANVAS_ZOOM}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <span className="min-w-14 text-center text-sm font-semibold">{canvasZoomLabel}</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-xl"
-                onClick={() => onUpdateCanvasZoom(1)}
-                disabled={canvasZoom === 1}
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>

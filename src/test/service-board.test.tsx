@@ -59,6 +59,21 @@ describe("ServiceBoard", () => {
     expect(canvas).toHaveStyle({ width: "100%", height: "100%" });
   });
 
+  it("keeps the service zoom-out button as a decrement instead of a reset", () => {
+    const onUpdateCanvasZoom = vi.fn();
+    const { container } = renderServiceBoard({
+      canvasZoom: 0.73,
+      canvasZoomLabel: "73%",
+      onUpdateCanvasZoom,
+    });
+
+    const zoomOutButton = container.querySelector(".rounded-2xl button");
+    expect(zoomOutButton).not.toBeNull();
+
+    fireEvent.click(zoomOutButton as Element);
+    expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.63);
+  });
+
   it("starts dragging furniture from the whole object surface", () => {
     const onStartDraggingTable = vi.fn();
     const { container } = renderServiceBoard({

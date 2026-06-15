@@ -37,6 +37,44 @@ describe("StudioCanvas", () => {
     expect(canvas).toHaveStyle({ width: "100%", height: "100%" });
   });
 
+  it("keeps zoom-out as a decrement and recentering does not reset the zoom", () => {
+    const onUpdateCanvasZoom = vi.fn();
+    const canvasRef = createRef<HTMLDivElement>();
+    const canvasViewportRef = createRef<HTMLDivElement>();
+    const { getByText, container } = render(
+      <StudioCanvas
+        selectedSector="Salle"
+        canvasWidth={1040}
+        canvasHeight={760}
+        canvasZoom={0.73}
+        canvasZoomLabel="73%"
+        canvasRef={canvasRef}
+        canvasViewportRef={canvasViewportRef}
+        visibleTables={[]}
+        selectedTableId={null}
+        draggingTableId={null}
+        onTablePress={vi.fn()}
+        onCanvasWheel={vi.fn()}
+        onCanvasBackgroundPress={vi.fn()}
+        onStartDraggingTable={vi.fn()}
+        onStartResizingTable={vi.fn()}
+        onStartRotatingTable={vi.fn()}
+        onUpdateCanvasZoom={onUpdateCanvasZoom}
+        getRenderedFrame={() => ({ x: 80, y: 90, w: 84, h: 84 })}
+      />,
+    );
+
+    const zoomOutButton = container.querySelector(".rounded-2xl button");
+    expect(zoomOutButton).not.toBeNull();
+
+    fireEvent.click(zoomOutButton as Element);
+    expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.63);
+
+    onUpdateCanvasZoom.mockClear();
+    fireEvent.click(getByText("Recentrer"));
+    expect(onUpdateCanvasZoom).not.toHaveBeenCalled();
+  });
+
   it("starts dragging furniture from the whole object surface", () => {
     const onStartDraggingTable = vi.fn();
     const canvasRef = createRef<HTMLDivElement>();
