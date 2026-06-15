@@ -11,7 +11,20 @@ export type InvoiceBuckets<T extends MoneyLike = MoneyLike> = {
 
 export const TOK_COMMISSION_RATE = 0.1;
 export const RESTAURANT_SHARE_RATE = 1 - TOK_COMMISSION_RATE;
-export const DEVELOPER_RESERVED_SHARE_RATE = 0.06;
+export const DEVELOPER_RESERVED_SHARE_RATE = 0.1;
+
+export const DIRECT_TOK_PURCHASE_ITEM_KINDS = [
+  "launch_pack",
+  "restaurant_subscription",
+  "credit_pack",
+] as const;
+
+type DirectTokPurchaseItemKind = (typeof DIRECT_TOK_PURCHASE_ITEM_KINDS)[number];
+type DirectTokPurchaseLineItemLike = {
+  item_kind?: string | null;
+  invoice_id?: string | null;
+  amount_ttc?: number | string | null;
+};
 
 function toAmount(value: number | string | null | undefined) {
   const parsed = Number(value);
@@ -32,6 +45,26 @@ export function calculateRestaurantShare(commissionBase: number | string | null 
 
 export function calculateDeveloperReservedShare(totalRevenue: number | string | null | undefined) {
   return roundCurrency(toAmount(totalRevenue) * DEVELOPER_RESERVED_SHARE_RATE);
+}
+
+function normalizeRevenueItemKind(value: string | null | undefined) {
+  return String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+export function isDirectTokPurchaseItemKind(value: string | null | undefined): value is DirectTokPurchaseItemKind {
+  return DIRECT_TOK_PURCHASE_ITEM_KINDS.includes(normalizeRevenueItemKind(value) as DirectTokPurchaseItemKind);
+}
+
+export function sumDirectTokPurchaseRevenue(
+  lineItems: readonly DirectTokPurchaseLineItemLike[],
+  paidInvoiceIds?: ReadonlySet<string>,
+) {
+  return roundCurrency(lineItems.reduce((sum, lineItem) => {
+    if (!isDirectTokPurchaseItemKind(lineItem.item_kind)) return sum;
+    if (paidInvoiceIds && (!lineItem.invoice_id || !paidInvoiceIds.has(lineItem.invoice_id))) return sum;
+
+    return sum + toAmount(lineItem.amount_ttc);
+  }, 0));
 }
 
 function sumInvoices(invoices: readonly MoneyLike[]) {
@@ -91,11 +124,15 @@ export function buildTokRevenueSummary(input: {
   reservationFeeAmount: number | string | null | undefined;
   campaignAmount: number | string | null | undefined;
   tokOneSubscriptionAmount: number | string | null | undefined;
+  restaurantPurchaseAmount?: number | string | null | undefined;
+  otherRevenueAmount?: number | string | null | undefined;
 }) {
   const totalRevenue = roundCurrency(toAmount(input.commissionAmount)
     + toAmount(input.reservationFeeAmount)
     + toAmount(input.campaignAmount)
-    + toAmount(input.tokOneSubscriptionAmount));
+    + toAmount(input.tokOneSubscriptionAmount)
+    + toAmount(input.restaurantPurchaseAmount)
+    + toAmount(input.otherRevenueAmount));
 
   return {
     totalRevenue,

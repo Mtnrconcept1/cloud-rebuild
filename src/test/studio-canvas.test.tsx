@@ -31,10 +31,14 @@ describe("StudioCanvas", () => {
       />,
     );
 
-    const canvas = container.querySelector(".relative.h-full.w-full.overflow-hidden");
+    const canvas = container.querySelector('[data-floor-plan-canvas="stage"]');
 
     expect(canvas).not.toBeNull();
-    expect(canvas).toHaveStyle({ width: "100%", height: "100%" });
+    expect(canvas).toHaveStyle({
+      width: "1040px",
+      height: "760px",
+      aspectRatio: "1040 / 760",
+    });
   });
 
   it("keeps zoom-out as a decrement and recentering does not reset the zoom", () => {

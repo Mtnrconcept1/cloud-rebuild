@@ -65,6 +65,8 @@ type ServiceBoardProps = {
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
+const BASE_CANVAS_WIDTH = 1040;
+const BASE_CANVAS_HEIGHT = 760;
 const SERVICE_RESIZE_HANDLES: Array<{ key: FloorPlanResizeHandle; className: string; cursor: string }> = [
   { key: "nw", className: "-left-1.5 -top-1.5", cursor: "nwse-resize" },
   { key: "n", className: "left-1/2 -top-1.5 -translate-x-1/2", cursor: "ns-resize" },
@@ -160,6 +162,8 @@ export default function ServiceBoard({
   selectedSector,
   subtitle,
   activeReservationLabel,
+  canvasWidth,
+  canvasHeight,
   canvasZoom,
   canvasZoomLabel,
   canvasRef,
@@ -190,6 +194,13 @@ export default function ServiceBoard({
   getRenderedFrame,
   getTableContentPadding,
 }: ServiceBoardProps) {
+  const canvasRatio = `${canvasWidth} / ${canvasHeight}`;
+  const canvasChromeScale = Math.max(
+    0.1,
+    Math.min(canvasWidth / BASE_CANVAS_WIDTH, canvasHeight / BASE_CANVAS_HEIGHT),
+  );
+  const getScaledCanvasToken = (value: number, minimum = 1) => `${Math.max(minimum, Math.round(value * canvasChromeScale))}px`;
+
   const startFurnitureSurfaceDrag = (
     event: PointerEvent<HTMLDivElement>,
     table: ServiceDraftTable,
@@ -262,10 +273,11 @@ export default function ServiceBoard({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
           <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-inner">
             <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden">
-              <div className="h-full w-full">
+              <div className="flex h-full w-full items-start justify-start overflow-hidden">
                 <div
                   ref={canvasRef}
-                  className="relative h-full w-full overflow-hidden rounded-[28px] border border-slate-300/70 shadow-inner"
+                  data-floor-plan-canvas="stage"
+                  className="relative shrink-0 overflow-hidden border border-slate-300/70 shadow-inner"
                   onWheelCapture={onCanvasWheel}
                   onDragOver={onCanvasDragOver}
                   onDrop={onCanvasDrop}
@@ -276,16 +288,37 @@ export default function ServiceBoard({
                     }
                   }}
                   style={{
-                    width: "100%",
-                    height: "100%",
+                    width: `${canvasWidth}px`,
+                    height: `${canvasHeight}px`,
+                    aspectRatio: canvasRatio,
+                    borderRadius: getScaledCanvasToken(28, 8),
                     backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)",
-                    backgroundSize: "36px 36px, 36px 36px",
+                    backgroundSize: `${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}, ${getScaledCanvasToken(36, 8)} ${getScaledCanvasToken(36, 8)}`,
                     backgroundColor: "#f6f7fb",
                   }}
                 >
-                  <div className="pointer-events-none absolute inset-[24px] rounded-[36px] border-[16px] border-[#36373d]" />
-                  <div className="pointer-events-none absolute inset-[46px] rounded-[26px] bg-[linear-gradient(145deg,rgba(225,192,149,0.9),rgba(192,151,111,0.92))]" />
-                  <div className="pointer-events-none absolute inset-[64px] rounded-[16px] border border-white/25" />
+                  <div
+                    className="pointer-events-none absolute border-[#36373d]"
+                    style={{
+                      inset: getScaledCanvasToken(24, 3),
+                      borderRadius: getScaledCanvasToken(36, 8),
+                      borderWidth: getScaledCanvasToken(16, 3),
+                    }}
+                  />
+                  <div
+                    className="pointer-events-none absolute bg-[linear-gradient(145deg,rgba(225,192,149,0.9),rgba(192,151,111,0.92))]"
+                    style={{
+                      inset: getScaledCanvasToken(46, 6),
+                      borderRadius: getScaledCanvasToken(26, 6),
+                    }}
+                  />
+                  <div
+                    className="pointer-events-none absolute border border-white/25"
+                    style={{
+                      inset: getScaledCanvasToken(64, 8),
+                      borderRadius: getScaledCanvasToken(16, 4),
+                    }}
+                  />
 
                   {visibleTables.length === 0 ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-slate-500">

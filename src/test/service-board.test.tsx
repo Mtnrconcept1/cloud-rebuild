@@ -53,10 +53,14 @@ describe("ServiceBoard", () => {
   it("renders a full-size responsive work canvas for service mode", () => {
     const { container } = renderServiceBoard();
 
-    const canvas = container.querySelector(".relative.h-full.w-full.overflow-hidden");
+    const canvas = container.querySelector('[data-floor-plan-canvas="stage"]');
 
     expect(canvas).not.toBeNull();
-    expect(canvas).toHaveStyle({ width: "100%", height: "100%" });
+    expect(canvas).toHaveStyle({
+      width: "1040px",
+      height: "760px",
+      aspectRatio: "1040 / 760",
+    });
   });
 
   it("keeps the service zoom-out button as a decrement instead of a reset", () => {

@@ -15,6 +15,9 @@ export type PayableInvoiceItemKind =
   | "reservation_commission"
   | "reservation_fee"
   | "campaign_payment"
+  | "launch_pack"
+  | "restaurant_subscription"
+  | "credit_pack"
   | "manual_adjustment";
 
 export type PayableInvoiceRow = Pick<
@@ -155,6 +158,30 @@ const GROUP_META: Record<
     quantityUnit: "campagne",
     footerLabel: "Montant facturé",
   },
+  launch_pack: {
+    sortOrder: 45,
+    title: "Pack de lancement",
+    subtitle: "Paiement initial TOK",
+    detailLabel: "Pack de lancement paye a TOK",
+    quantityUnit: "pack",
+    footerLabel: "Montant paye a TOK",
+  },
+  restaurant_subscription: {
+    sortOrder: 46,
+    title: "Abonnement restaurateur",
+    subtitle: "Abonnement mensuel TOK",
+    detailLabel: "Abonnement restaurateur paye a TOK",
+    quantityUnit: "abonnement",
+    footerLabel: "Montant paye a TOK",
+  },
+  credit_pack: {
+    sortOrder: 47,
+    title: "Pack de credits",
+    subtitle: "Credits achetes aupres de TOK",
+    detailLabel: "Pack de credits paye a TOK",
+    quantityUnit: "pack",
+    footerLabel: "Montant paye a TOK",
+  },
   manual_adjustment: {
     sortOrder: 50,
     title: "Ajustements",
@@ -221,8 +248,44 @@ export function getPayableInvoiceStatusClass(status: string | null | undefined) 
   return "bg-amber-100 text-amber-700";
 }
 
-export function getPayableInvoiceGroupMeta(kind: PayableInvoiceItemKind) {
-  return GROUP_META[kind];
+export function normalizePayableInvoiceItemKind(value: string | null | undefined): PayableInvoiceItemKind {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+  const aliases: Record<string, PayableInvoiceItemKind> = {
+    order_commission: "order_commission",
+    orders: "order_commission",
+    reservation_commission: "reservation_commission",
+    reservation_fee: "reservation_fee",
+    reservation_fees: "reservation_fee",
+    reservations: "reservation_fee",
+    campaign_payment: "campaign_payment",
+    campaign: "campaign_payment",
+    campaigns: "campaign_payment",
+    launch_pack: "launch_pack",
+    launch_pack_purchase: "launch_pack",
+    restaurant_launch_pack: "launch_pack",
+    restaurant_subscription: "restaurant_subscription",
+    restaurant_subscription_payment: "restaurant_subscription",
+    restaurant_subscription_upgrade: "restaurant_subscription",
+    restaurant_ai_subscription: "restaurant_subscription",
+    subscription: "restaurant_subscription",
+    subscription_payment: "restaurant_subscription",
+    credit_pack: "credit_pack",
+    credit_pack_purchase: "credit_pack",
+    restaurant_credit_pack: "credit_pack",
+    restaurant_credit_purchase: "credit_pack",
+    manual_adjustment: "manual_adjustment",
+    adjustment: "manual_adjustment",
+  };
+
+  return aliases[normalized] || "manual_adjustment";
+}
+
+export function getPayableInvoiceGroupMeta(kind: PayableInvoiceItemKind | string | null | undefined) {
+  return GROUP_META[normalizePayableInvoiceItemKind(kind)];
 }
 
 function formatQuantityLabel(quantity: number, unit: string) {
@@ -244,7 +307,12 @@ function formatBaseLabel(group: {
     return `${Math.round(group.quantity)} x ${formatPayableAmount(group.unitAmount)}`;
   }
 
-  if (group.kind === "campaign_payment") {
+  if (
+    group.kind === "campaign_payment"
+    || group.kind === "launch_pack"
+    || group.kind === "restaurant_subscription"
+    || group.kind === "credit_pack"
+  ) {
     return formatPayableAmount(group.amountTtc);
   }
 
@@ -262,8 +330,9 @@ export function buildPayableInvoiceGroups(lines: readonly PayableInvoiceLine[]) 
   }>();
 
   lines.forEach((line) => {
-    const current = groups.get(line.itemKind) || {
-      kind: line.itemKind,
+    const itemKind = normalizePayableInvoiceItemKind(line.itemKind);
+    const current = groups.get(itemKind) || {
+      kind: itemKind,
       quantity: 0,
       unitAmount: 0,
       baseAmount: 0,
@@ -277,7 +346,7 @@ export function buildPayableInvoiceGroups(lines: readonly PayableInvoiceLine[]) 
     current.amountTtc += toPayableAmount(line.amountTtc);
     current.rateLabel = current.rateLabel || line.rateLabel;
 
-    groups.set(line.itemKind, current);
+    groups.set(itemKind, current);
   });
 
   return Array.from(groups.values())
@@ -286,7 +355,14 @@ export function buildPayableInvoiceGroups(lines: readonly PayableInvoiceLine[]) 
       const countValue = Math.round(group.quantity);
       const quantityLabel = formatQuantityLabel(group.quantity, meta.quantityUnit);
       const rateLabel = group.rateLabel
-        || (group.kind === "campaign_payment" ? "Montant paye" : group.kind === "manual_adjustment" ? "Ajustement" : "10%");
+        || (
+          group.kind === "campaign_payment"
+          || group.kind === "launch_pack"
+          || group.kind === "restaurant_subscription"
+          || group.kind === "credit_pack"
+            ? "Montant paye"
+            : group.kind === "manual_adjustment" ? "Ajustement" : "10%"
+        );
 
       return {
         kind: group.kind,

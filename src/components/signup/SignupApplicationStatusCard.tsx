@@ -1,17 +1,38 @@
-import { AlertCircle, CreditCard, FileText, Loader2, ShieldCheck } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { AlertCircle, CreditCard, FileText, Loader2, ShieldCheck, Upload } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   getSignupDocumentLabel,
   getSignupDocumentStatusMeta,
+  getRequiredSignupDocuments,
   getSignupRestaurateurOnboardingSelection,
   getSignupRoleLabel,
   getSignupStatusMeta,
   isSignupRestaurateurOnboardingPaymentReady,
   type SignupApplication,
+  type SignupDocumentType,
 } from "@/lib/signup";
+
+export type SignupApplicationCorrectionPayload = {
+  fullName: string;
+  phone: string;
+  city: string;
+  address: string;
+  legalName: string;
+  businessName: string;
+  businessRegistrationNumber: string;
+  taxId: string;
+  restaurantName: string;
+  restaurantDescription: string;
+  iban: string;
+  documentInputs: Partial<Record<SignupDocumentType, File | null>>;
+};
 
 type SignupApplicationStatusCardProps = {
   application: SignupApplication | null | undefined;
@@ -19,7 +40,43 @@ type SignupApplicationStatusCardProps = {
   emptyDescription: string;
   onStartRestaurantOnboardingPayment?: () => void;
   onboardingPaymentLoading?: boolean;
+  onResubmitApplication?: (payload: SignupApplicationCorrectionPayload) => Promise<void> | void;
+  resubmittingApplication?: boolean;
 };
+
+function getInitialCorrectionPayload(application: SignupApplication): SignupApplicationCorrectionPayload {
+  return {
+    fullName: application.full_name || "",
+    phone: application.phone || "",
+    city: application.city || "",
+    address: application.address || "",
+    legalName: application.legal_name || "",
+    businessName: application.business_name || "",
+    businessRegistrationNumber: application.business_registration_number || "",
+    taxId: application.tax_id || "",
+    restaurantName: application.restaurant_name || "",
+    restaurantDescription: application.restaurant_description || "",
+    iban: application.iban || "",
+    documentInputs: {},
+  };
+}
+
+function getEmptyCorrectionPayload(): SignupApplicationCorrectionPayload {
+  return {
+    fullName: "",
+    phone: "",
+    city: "",
+    address: "",
+    legalName: "",
+    businessName: "",
+    businessRegistrationNumber: "",
+    taxId: "",
+    restaurantName: "",
+    restaurantDescription: "",
+    iban: "",
+    documentInputs: {},
+  };
+}
 
 export default function SignupApplicationStatusCard({
   application,
@@ -27,7 +84,22 @@ export default function SignupApplicationStatusCard({
   emptyDescription,
   onStartRestaurantOnboardingPayment,
   onboardingPaymentLoading = false,
+  onResubmitApplication,
+  resubmittingApplication = false,
 }: SignupApplicationStatusCardProps) {
+  const [correctionOpen, setCorrectionOpen] = useState(false);
+  const [correctionForm, setCorrectionForm] = useState<SignupApplicationCorrectionPayload>(getEmptyCorrectionPayload);
+
+  useEffect(() => {
+    if (!application) {
+      setCorrectionForm(getEmptyCorrectionPayload());
+      setCorrectionOpen(false);
+      return;
+    }
+    setCorrectionForm(getInitialCorrectionPayload(application));
+    setCorrectionOpen(false);
+  }, [application]);
+
   if (!application) {
     return (
       <Card className="tok-verification-card relative overflow-hidden rounded-3xl border-dashed border-primary/55 bg-card">
@@ -56,6 +128,33 @@ export default function SignupApplicationStatusCard({
   const documents = application.signup_application_documents || [];
   const onboardingSelection = getSignupRestaurateurOnboardingSelection(application);
   const onboardingPaymentReady = isSignupRestaurateurOnboardingPaymentReady(application);
+  const canResubmitCorrection =
+    application.requested_role === "restaurateur" && application.status === "needs_changes" && Boolean(onResubmitApplication);
+  const restaurateurRequirements = getRequiredSignupDocuments("restaurateur");
+
+  const updateCorrectionField = (field: keyof Omit<SignupApplicationCorrectionPayload, "documentInputs">, value: string) => {
+    setCorrectionForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const updateDocumentInput = (type: SignupDocumentType, file: File | null) => {
+    setCorrectionForm((current) => ({
+      ...current,
+      documentInputs: {
+        ...current.documentInputs,
+        [type]: file,
+      },
+    }));
+  };
+
+  const handleCorrectionSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!onResubmitApplication) return;
+    await onResubmitApplication(correctionForm);
+    setCorrectionOpen(false);
+  };
 
   return (
     <Card className="tok-dashboard-section relative overflow-hidden rounded-3xl border border-primary/25 bg-primary/5">
@@ -116,6 +215,186 @@ export default function SignupApplicationStatusCard({
               Note de revue
             </div>
             <p>{application.review_note}</p>
+          </div>
+        ) : null}
+
+        {canResubmitCorrection ? (
+          <div className="rounded-xl border border-amber-200 bg-background/90 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="font-medium">Correction du dossier</p>
+                <p className="pt-1 text-sm text-muted-foreground">
+                  Modifiez les informations demandées par l'admin et remplacez uniquement les documents concernés.
+                </p>
+              </div>
+              <Button type="button" variant="outline" onClick={() => setCorrectionOpen((current) => !current)}>
+                {correctionOpen ? "Fermer" : "Corriger le dossier"}
+              </Button>
+            </div>
+
+            {correctionOpen ? (
+              <form className="mt-4 space-y-4" onSubmit={handleCorrectionSubmit}>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-full-name-${application.id}`}>Nom du responsable</Label>
+                    <Input
+                      id={`correction-full-name-${application.id}`}
+                      value={correctionForm.fullName}
+                      onChange={(event) => updateCorrectionField("fullName", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-phone-${application.id}`}>Téléphone</Label>
+                    <Input
+                      id={`correction-phone-${application.id}`}
+                      value={correctionForm.phone}
+                      onChange={(event) => updateCorrectionField("phone", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-city-${application.id}`}>Ville</Label>
+                    <Input
+                      id={`correction-city-${application.id}`}
+                      value={correctionForm.city}
+                      onChange={(event) => updateCorrectionField("city", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-address-${application.id}`}>Adresse</Label>
+                    <Input
+                      id={`correction-address-${application.id}`}
+                      value={correctionForm.address}
+                      onChange={(event) => updateCorrectionField("address", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-business-name-${application.id}`}>Nom commercial</Label>
+                    <Input
+                      id={`correction-business-name-${application.id}`}
+                      value={correctionForm.businessName}
+                      onChange={(event) => updateCorrectionField("businessName", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-legal-name-${application.id}`}>Raison sociale</Label>
+                    <Input
+                      id={`correction-legal-name-${application.id}`}
+                      value={correctionForm.legalName}
+                      onChange={(event) => updateCorrectionField("legalName", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-registration-${application.id}`}>Numéro d'immatriculation</Label>
+                    <Input
+                      id={`correction-registration-${application.id}`}
+                      value={correctionForm.businessRegistrationNumber}
+                      onChange={(event) => updateCorrectionField("businessRegistrationNumber", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-tax-id-${application.id}`}>Numéro TVA (optionnel)</Label>
+                    <Input
+                      id={`correction-tax-id-${application.id}`}
+                      value={correctionForm.taxId}
+                      onChange={(event) => updateCorrectionField("taxId", event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-restaurant-name-${application.id}`}>Nom du restaurant</Label>
+                    <Input
+                      id={`correction-restaurant-name-${application.id}`}
+                      value={correctionForm.restaurantName}
+                      onChange={(event) => updateCorrectionField("restaurantName", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`correction-iban-${application.id}`}>IBAN de versement</Label>
+                    <Input
+                      id={`correction-iban-${application.id}`}
+                      value={correctionForm.iban}
+                      onChange={(event) => updateCorrectionField("iban", event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor={`correction-description-${application.id}`}>Description du restaurant</Label>
+                    <Textarea
+                      id={`correction-description-${application.id}`}
+                      value={correctionForm.restaurantDescription}
+                      onChange={(event) => updateCorrectionField("restaurantDescription", event.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Documents à remplacer</p>
+                    <p className="text-xs text-muted-foreground">
+                      Les documents déjà soumis restent attachés au dossier si vous ne les remplacez pas.
+                    </p>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {restaurateurRequirements.map((requirement) => {
+                      const selectedFile = correctionForm.documentInputs[requirement.type];
+                      return (
+                        <label
+                          key={requirement.type}
+                          className="flex cursor-pointer flex-col gap-3 rounded-xl border border-dashed p-3 text-sm transition-colors hover:border-primary/50"
+                        >
+                          <span className="font-medium">{requirement.label}</span>
+                          <span className="min-h-5 truncate text-xs text-muted-foreground">
+                            {selectedFile ? selectedFile.name : "Conserver ou remplacer"}
+                          </span>
+                          <span className="inline-flex items-center gap-2 text-xs text-primary">
+                            <Upload className="h-3.5 w-3.5" />
+                            Uploader un nouveau document
+                          </span>
+                          <Input
+                            type="file"
+                            className="hidden"
+                            accept={requirement.accept}
+                            onChange={(event) => updateDocumentInput(requirement.type, event.target.files?.[0] || null)}
+                            disabled={resubmittingApplication}
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setCorrectionForm(getInitialCorrectionPayload(application));
+                      setCorrectionOpen(false);
+                    }}
+                    disabled={resubmittingApplication}
+                  >
+                    Annuler
+                  </Button>
+                  <Button type="submit" disabled={resubmittingApplication}>
+                    {resubmittingApplication ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Envoi...
+                      </>
+                    ) : (
+                      "Renvoyer le dossier"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            ) : null}
           </div>
         ) : null}
 

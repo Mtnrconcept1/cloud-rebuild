@@ -25,7 +25,12 @@ type TokPayableInvoiceDocumentProps = {
 function getGroupIcon(kind: PayableInvoiceItemKind) {
   if (kind === "order_commission") return ShoppingBag;
   if (kind === "campaign_payment") return Megaphone;
-  if (kind === "manual_adjustment") return ReceiptText;
+  if (
+    kind === "manual_adjustment"
+    || kind === "launch_pack"
+    || kind === "restaurant_subscription"
+    || kind === "credit_pack"
+  ) return ReceiptText;
   return CalendarDays;
 }
 

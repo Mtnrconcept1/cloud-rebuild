@@ -162,9 +162,8 @@ type FloorPlanReservationSchedule = {
 
 const DEFAULT_PADDING = 16;
 const DEFAULT_CANVAS_WIDTH = 1040;
-const DEFAULT_CANVAS_HEIGHT = 680;
+const DEFAULT_CANVAS_HEIGHT = 760;
 const ROOM_SURFACE_INSET = 46;
-const ROOM_SURFACE_RENDER_GUARD = 4;
 
 const VALID_SEAT_TYPES = new Set<FloorPlanSeatType>(["chair", "stool", "bench", "corner-bench"]);
 const VALID_LINEAR_SEAT_TYPES = new Set<FloorPlanLinearSeatType>(["chair", "stool", "bench"]);
@@ -1410,9 +1409,19 @@ export function clampFloorPlanLayout(
   };
 }
 
+function getFloorPlanCanvasScale(canvasWidth: number, canvasHeight: number) {
+  const widthScale = canvasWidth / DEFAULT_CANVAS_WIDTH;
+  const heightScale = canvasHeight / DEFAULT_CANVAS_HEIGHT;
+  const scale = Math.min(widthScale, heightScale);
+
+  return Number.isFinite(scale) && scale > 0 ? scale : 1;
+}
+
 function getFloorPlanRoomSurfaceBounds(canvasWidth: number, canvasHeight: number) {
-  const minX = Math.min(ROOM_SURFACE_INSET, Math.max(0, Math.floor(canvasWidth / 2) - 1));
-  const minY = Math.min(ROOM_SURFACE_INSET, Math.max(0, Math.floor(canvasHeight / 2) - 1));
+  const canvasScale = getFloorPlanCanvasScale(canvasWidth, canvasHeight);
+  const roomInset = Math.max(1, Math.round(ROOM_SURFACE_INSET * canvasScale));
+  const minX = Math.min(roomInset, Math.max(0, Math.floor(canvasWidth / 2) - 1));
+  const minY = Math.min(roomInset, Math.max(0, Math.floor(canvasHeight / 2) - 1));
 
   return {
     minX,
@@ -1422,21 +1431,17 @@ function getFloorPlanRoomSurfaceBounds(canvasWidth: number, canvasHeight: number
   };
 }
 
-function getFloorPlanLogicalSurfaceBounds(canvasWidth: number, canvasHeight: number) {
-  return getFloorPlanRoomSurfaceBounds(
-    Math.max(canvasWidth, DEFAULT_CANVAS_WIDTH),
-    Math.max(canvasHeight, DEFAULT_CANVAS_HEIGHT),
-  );
+function getFloorPlanLogicalSurfaceBounds(_canvasWidth: number, _canvasHeight: number) {
+  return {
+    minX: ROOM_SURFACE_INSET,
+    minY: ROOM_SURFACE_INSET,
+    maxX: DEFAULT_CANVAS_WIDTH - ROOM_SURFACE_INSET,
+    maxY: DEFAULT_CANVAS_HEIGHT - ROOM_SURFACE_INSET,
+  };
 }
 
 function getFloorPlanRenderSurfaceBounds(canvasWidth: number, canvasHeight: number) {
-  const bounds = getFloorPlanRoomSurfaceBounds(canvasWidth, canvasHeight);
-
-  return {
-    ...bounds,
-    maxX: Math.max(bounds.minX, bounds.maxX - ROOM_SURFACE_RENDER_GUARD),
-    maxY: Math.max(bounds.minY, bounds.maxY - ROOM_SURFACE_RENDER_GUARD),
-  };
+  return getFloorPlanRoomSurfaceBounds(canvasWidth, canvasHeight);
 }
 
 function getFloorPlanSurfaceFitZoom(
@@ -1477,18 +1482,22 @@ export function getRenderedFloorPlanFrame(
   const logicalBounds = getFloorPlanLogicalSurfaceBounds(canvasWidth, canvasHeight);
   const logicalMaxX = Math.max(logicalBounds.minX, logicalBounds.maxX - layout.w);
   const logicalMaxY = Math.max(logicalBounds.minY, logicalBounds.maxY - layout.h);
+  const safeLayoutX = Math.min(Math.max(logicalBounds.minX, isFiniteNumber(layout.x) ? layout.x : logicalBounds.minX), logicalMaxX);
+  const safeLayoutY = Math.min(Math.max(logicalBounds.minY, isFiniteNumber(layout.y) ? layout.y : logicalBounds.minY), logicalMaxY);
+  const logicalTravelX = Math.max(0, logicalMaxX - logicalBounds.minX);
+  const logicalTravelY = Math.max(0, logicalMaxY - logicalBounds.minY);
   const renderedMaxX = Math.max(renderBounds.minX, renderBounds.maxX - renderedWidth);
   const renderedMaxY = Math.max(renderBounds.minY, renderBounds.maxY - renderedHeight);
-  const ratioX = logicalMaxX <= logicalBounds.minX
-    ? 0
-    : (Math.min(Math.max(logicalBounds.minX, layout.x || logicalBounds.minX), logicalMaxX) - logicalBounds.minX) / (logicalMaxX - logicalBounds.minX);
-  const ratioY = logicalMaxY <= logicalBounds.minY
-    ? 0
-    : (Math.min(Math.max(logicalBounds.minY, layout.y || logicalBounds.minY), logicalMaxY) - logicalBounds.minY) / (logicalMaxY - logicalBounds.minY);
+  const renderedTravelX = Math.max(0, renderedMaxX - renderBounds.minX);
+  const renderedTravelY = Math.max(0, renderedMaxY - renderBounds.minY);
 
   return {
-    x: renderBounds.minX + Math.max(0, Math.min(1, ratioX)) * (renderedMaxX - renderBounds.minX),
-    y: renderBounds.minY + Math.max(0, Math.min(1, ratioY)) * (renderedMaxY - renderBounds.minY),
+    x: logicalTravelX > 0
+      ? renderBounds.minX + ((safeLayoutX - logicalBounds.minX) / logicalTravelX) * renderedTravelX
+      : renderBounds.minX,
+    y: logicalTravelY > 0
+      ? renderBounds.minY + ((safeLayoutY - logicalBounds.minY) / logicalTravelY) * renderedTravelY
+      : renderBounds.minY,
     w: renderedWidth,
     h: renderedHeight,
   };
@@ -1514,16 +1523,18 @@ export function getLogicalFloorPlanPositionFromRenderedFrame(
   const renderedMaxY = Math.max(renderBounds.minY, renderBounds.maxY - renderedHeight);
   const safeRenderedX = Math.min(Math.max(renderBounds.minX, renderedX), renderedMaxX);
   const safeRenderedY = Math.min(Math.max(renderBounds.minY, renderedY), renderedMaxY);
-  const ratioX = renderedMaxX <= renderBounds.minX
-    ? 0
-    : (safeRenderedX - renderBounds.minX) / (renderedMaxX - renderBounds.minX);
-  const ratioY = renderedMaxY <= renderBounds.minY
-    ? 0
-    : (safeRenderedY - renderBounds.minY) / (renderedMaxY - renderBounds.minY);
+  const logicalTravelX = Math.max(0, logicalMaxX - logicalBounds.minX);
+  const logicalTravelY = Math.max(0, logicalMaxY - logicalBounds.minY);
+  const renderedTravelX = Math.max(0, renderedMaxX - renderBounds.minX);
+  const renderedTravelY = Math.max(0, renderedMaxY - renderBounds.minY);
 
   return {
-    x: logicalBounds.minX + Math.max(0, Math.min(1, ratioX)) * (logicalMaxX - logicalBounds.minX),
-    y: logicalBounds.minY + Math.max(0, Math.min(1, ratioY)) * (logicalMaxY - logicalBounds.minY),
+    x: renderedTravelX > 0
+      ? logicalBounds.minX + ((safeRenderedX - renderBounds.minX) / renderedTravelX) * logicalTravelX
+      : logicalBounds.minX,
+    y: renderedTravelY > 0
+      ? logicalBounds.minY + ((safeRenderedY - renderBounds.minY) / renderedTravelY) * logicalTravelY
+      : logicalBounds.minY,
   };
 }
 

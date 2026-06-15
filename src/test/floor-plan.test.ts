@@ -294,10 +294,72 @@ describe("floor plan helpers", () => {
     expect(effectiveZoom).toBeLessThanOrEqual(1);
   });
 
-  it("lets zoomed-out items use the full visible brown surface when positioned at the far edge", () => {
+  it("keeps zoomed furniture movable across the full brown surface", () => {
+    const tables = [
+      {
+        id: "anchor",
+        table_number: "20",
+        capacity: 4,
+        is_active: true,
+        sector: "Salle",
+        layout: { x: 120, y: 90, w: 160, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1, 1, 1] },
+      },
+      {
+        id: "right",
+        table_number: "21",
+        capacity: 2,
+        is_active: true,
+        sector: "Salle",
+        layout: { x: 420, y: 250, w: 120, h: 90, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+      },
+    ];
+
+    const full = buildFloorPlanViewportModel(tables, {
+      sector: "Salle",
+      zoom: 1,
+      canvasWidth: 1040,
+      canvasHeight: 760,
+    });
+    const zoomed = buildFloorPlanViewportModel(tables, {
+      sector: "Salle",
+      zoom: 0.5,
+      canvasWidth: 1040,
+      canvasHeight: 760,
+    });
+    const resized = buildFloorPlanViewportModel(tables, {
+      sector: "Salle",
+      zoom: 1,
+      canvasWidth: 780,
+      canvasHeight: 570,
+    });
+
+    const fullAnchor = full.getRenderedFrame(tables[0]);
+    const fullRight = full.getRenderedFrame(tables[1]);
+    const zoomedAnchor = zoomed.getRenderedFrame(tables[0]);
+    const zoomedRight = zoomed.getRenderedFrame(tables[1]);
+    const resizedAnchor = resized.getRenderedFrame(tables[0]);
+    const resizedRight = resized.getRenderedFrame(tables[1]);
+    const zoomedScale = zoomedAnchor.w / fullAnchor.w;
+    const resizedScale = resizedAnchor.w / fullAnchor.w;
+
+    expect(zoomedScale).toBeCloseTo(0.5, 5);
+    expect(zoomedRight.x).toBeGreaterThan(zoomedAnchor.x);
+    expect(zoomedRight.y).toBeGreaterThan(zoomedAnchor.y);
+    expect(zoomedRight.x + zoomedRight.w).toBeLessThanOrEqual(1040 - 46);
+    expect(zoomedRight.y + zoomedRight.h).toBeLessThanOrEqual(760 - 46);
+    expect(resizedScale).toBeLessThan(1);
+    expect(resizedRight.x).toBeGreaterThan(resizedAnchor.x);
+    expect(resizedRight.y).toBeGreaterThan(resizedAnchor.y);
+    expect(resizedRight.x + resizedRight.w).toBeLessThanOrEqual(780 - Math.round(46 * (780 / 1040)));
+    expect(resizedRight.y + resizedRight.h).toBeLessThanOrEqual(570 - Math.round(46 * (570 / 760)));
+    expect(fullRight.x).toBeGreaterThan(fullAnchor.x);
+    expect(fullRight.y).toBeGreaterThan(fullAnchor.y);
+  });
+
+  it("keeps zoomed-out edge items on the brown surface edge", () => {
     const layout = {
       x: 1040 - 60 - 46,
-      y: 680 - 40 - 46,
+      y: 760 - 40 - 46,
       w: 60,
       h: 40,
       rotation: 0,
@@ -306,18 +368,18 @@ describe("floor plan helpers", () => {
       seatLabels: [],
     };
 
-    const frame = getRenderedFloorPlanFrame(layout, 0.1, 1040, 680);
+    const frame = getRenderedFloorPlanFrame(layout, 0.1, 1040, 760);
     const logical = getLogicalFloorPlanPositionFromRenderedFrame(
       layout,
-      1040 - frame.w - 50,
-      680 - frame.h - 50,
+      frame.x,
+      frame.y,
       0.1,
       1040,
-      680,
+      760,
     );
 
-    expect(frame.x).toBeCloseTo(1040 - frame.w - 50, 5);
-    expect(frame.y).toBeCloseTo(680 - frame.h - 50, 5);
+    expect(frame.x + frame.w).toBeCloseTo(1040 - 46, 5);
+    expect(frame.y + frame.h).toBeCloseTo(760 - 46, 5);
     expect(logical.x).toBe(layout.x);
     expect(logical.y).toBe(layout.y);
   });
@@ -341,7 +403,7 @@ describe("floor plan helpers", () => {
 
     const bottomRight = getLogicalFloorPlanPositionFromRenderedFrame(layout, 99999, 99999, 1.25, 1040, 680);
     expect(bottomRight.x).toBeCloseTo(1040 - layout.w - 46, 5);
-    expect(bottomRight.y).toBeCloseTo(680 - layout.h - 46, 5);
+    expect(bottomRight.y).toBeCloseTo(760 - layout.h - 46, 5);
   });
 
   it("keeps viewport-rendered items inside the canvas even when stored coordinates overflow", () => {
@@ -388,13 +450,13 @@ describe("floor plan helpers", () => {
     expect(clampedTopLeft.x).toBe(1040 - 46 - layout.w);
     expect(clampedTopLeft.y).toBe(46);
     expect(clampedBottomRight.x).toBe(1040 - 46 - layout.w);
-    expect(clampedBottomRight.y).toBe(680 - 46 - layout.h);
+    expect(clampedBottomRight.y).toBe(760 - 46 - layout.h);
   });
 
-  it("lets zoomed furniture use the full visible brown room surface", () => {
+  it("keeps zoomed furniture constrained by the fixed-ratio brown room surface", () => {
     const layout = {
       x: 1040 - 46 - 100,
-      y: 680 - 46 - 80,
+      y: 760 - 46 - 80,
       w: 100,
       h: 80,
       rotation: 0,
@@ -403,22 +465,74 @@ describe("floor plan helpers", () => {
       seatLabels: [],
     };
 
-    const frame = getRenderedFloorPlanFrame(layout, 0.5, 800, 560);
-    const topLeft = getLogicalFloorPlanPositionFromRenderedFrame(layout, 46, 46, 0.5, 800, 560);
-    const bottomRight = getLogicalFloorPlanPositionFromRenderedFrame(
+    const frame = getRenderedFloorPlanFrame(layout, 0.5, 800, 585);
+    const renderInset = Math.round(46 * (800 / 1040));
+    const topLeft = getLogicalFloorPlanPositionFromRenderedFrame(layout, renderInset, renderInset, 0.5, 800, 585);
+    const logical = getLogicalFloorPlanPositionFromRenderedFrame(layout, frame.x, frame.y, 0.5, 800, 585);
+
+    expect(frame.x + frame.w).toBeCloseTo(800 - renderInset, 5);
+    expect(frame.y + frame.h).toBeCloseTo(585 - renderInset, 5);
+    expect(topLeft).toEqual({ x: 46, y: 46 });
+    expect(logical.x).toBe(layout.x);
+    expect(logical.y).toBe(layout.y);
+  });
+
+  it("renders edge-clamped furniture all the way to the brown room surface edges", () => {
+    const canvasWidth = 816;
+    const canvasHeight = 596;
+    const canvasScale = Math.min(canvasWidth / 1040, canvasHeight / 760);
+    const roomInset = Math.round(46 * canvasScale);
+    const layout = {
+      x: 1040 - 46 - 100,
+      y: 760 - 46 - 80,
+      w: 100,
+      h: 80,
+      rotation: 0,
+      shape: "rect" as const,
+      kind: "plant" as const,
+      seatLabels: [],
+    };
+
+    const frame = getRenderedFloorPlanFrame(layout, 1, canvasWidth, canvasHeight);
+    const effectiveZoom = resolveFloorPlanViewportZoom(1, canvasWidth, canvasHeight);
+
+    expect(frame.w).toBeCloseTo(layout.w * effectiveZoom, 5);
+    expect(frame.h).toBeCloseTo(layout.h * effectiveZoom, 5);
+    expect(frame.x + frame.w).toBeGreaterThanOrEqual(canvasWidth - roomInset - 0.5);
+    expect(frame.x + frame.w).toBeLessThanOrEqual(canvasWidth - roomInset);
+    expect(frame.y + frame.h).toBeCloseTo(canvasHeight - roomInset, 5);
+  });
+
+  it("lets zoomed-out furniture be dragged to the visual brown surface edges", () => {
+    const canvasWidth = 1040;
+    const canvasHeight = 760;
+    const layout = {
+      x: 1040 - 46 - 100,
+      y: 760 - 46 - 80,
+      w: 100,
+      h: 80,
+      rotation: 0,
+      shape: "rect" as const,
+      kind: "plant" as const,
+      seatLabels: [],
+    };
+
+    const frame = getRenderedFloorPlanFrame(layout, 0.5, canvasWidth, canvasHeight);
+    const logical = getLogicalFloorPlanPositionFromRenderedFrame(
       layout,
-      800 - 50 - frame.w,
-      560 - 50 - frame.h,
+      canvasWidth - 46 - frame.w,
+      canvasHeight - 46 - frame.h,
       0.5,
-      800,
-      560,
+      canvasWidth,
+      canvasHeight,
     );
 
-    expect(frame.x).toBe(800 - 50 - frame.w);
-    expect(frame.y).toBe(560 - 50 - frame.h);
-    expect(topLeft).toEqual({ x: 46, y: 46 });
-    expect(bottomRight.x).toBe(layout.x);
-    expect(bottomRight.y).toBe(layout.y);
+    expect(frame.w).toBeCloseTo(layout.w * 0.5, 5);
+    expect(frame.h).toBeCloseTo(layout.h * 0.5, 5);
+    expect(frame.x + frame.w).toBeCloseTo(canvasWidth - 46, 5);
+    expect(frame.y + frame.h).toBeCloseTo(canvasHeight - 46, 5);
+    expect(logical.x).toBe(layout.x);
+    expect(logical.y).toBe(layout.y);
   });
 
   it("builds a sector viewport model with frames, counts and topmost reservable hit testing", () => {
@@ -510,7 +624,7 @@ describe("floor plan helpers", () => {
       sector: "Salle",
       zoom: 0.5,
       canvasWidth: 1040,
-      canvasHeight: 680,
+      canvasHeight: 760,
     });
     const anchorFrame = model.getRenderedFrame(tables[0]);
     const rightFrame = model.getRenderedFrame(tables[1]);
@@ -522,7 +636,7 @@ describe("floor plan helpers", () => {
     expect(rightFrame.x).toBeGreaterThan(anchorFrame.x);
     expect(rightFrame.y).toBeGreaterThan(anchorFrame.y);
     expect(rightFrame.x + rightFrame.w).toBeLessThanOrEqual(1040 - 50);
-    expect(rightFrame.y + rightFrame.h).toBeLessThanOrEqual(680 - 50);
+    expect(rightFrame.y + rightFrame.h).toBeLessThanOrEqual(760 - 50);
   });
 
   it("uses the interactive frame for tiny reservable table hit testing", () => {

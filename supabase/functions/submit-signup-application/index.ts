@@ -158,6 +158,10 @@ Deno.serve(async (req) => {
       launch_pack_id: sanitizeText(form.get("launch_pack_id"), 80),
       subscription_plan_id: sanitizeText(form.get("subscription_plan_id"), 80),
       subscription_billing_period: sanitizeText(form.get("subscription_billing_period"), 20).toLowerCase(),
+      terms_accepted: sanitizeText(form.get("terms_accepted"), 20).toLowerCase(),
+      privacy_policy_accepted: sanitizeText(form.get("privacy_policy_accepted"), 20).toLowerCase(),
+      legal_acceptance_version: sanitizeText(form.get("legal_acceptance_version"), 40),
+      legal_acceptance_at: sanitizeText(form.get("legal_acceptance_at"), 80),
     };
 
     requireInput(UUID_PATTERN.test(userId), "invalid_user_id");
@@ -183,11 +187,22 @@ Deno.serve(async (req) => {
       uploadedDocuments.push(await uploadDocument({ adminClient, userId, role, documentType, file: value }));
     }
 
+    const legalAcceptedAt = fields.legal_acceptance_at || new Date().toISOString();
+    const legalMetadata = {
+      legal_terms_accepted: true,
+      privacy_policy_accepted: true,
+      legal_terms_accepted_at: legalAcceptedAt,
+      privacy_policy_accepted_at: legalAcceptedAt,
+      legal_acceptance_version: fields.legal_acceptance_version || "2026-06-15",
+      legal_acceptance_source: "auth_signup_edge",
+    };
+
     const metadata = role === "courier"
       ? {
         first_name: fields.full_name.split(/\s+/)[0] || "",
         last_name: fields.full_name.split(/\s+/).slice(1).join(" "),
         onboarding_source: "auth_signup_edge",
+        ...legalMetadata,
       }
       : {
         onboarding_source: "auth_signup_edge",
@@ -195,6 +210,7 @@ Deno.serve(async (req) => {
         selected_subscription_plan_id: fields.subscription_plan_id,
         selected_subscription_billing_period: fields.subscription_billing_period,
         onboarding_payment_status: "pending_payment",
+        ...legalMetadata,
       };
 
     const { data: applicationRows, error: rpcError } = await adminClient.rpc("admin_submit_signup_application", {

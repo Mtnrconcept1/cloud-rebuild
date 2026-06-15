@@ -32,6 +32,7 @@ describe("submit-signup-application validation", () => {
       full_name: "A", iban: "CH..", business_registration_number: "CHE..", business_name: "x",
       legal_name: "y", restaurant_name: "z", phone: "1", city: "c", address: "a",
       launch_pack_id: "pack-1", subscription_plan_id: "plan-1", subscription_billing_period: "monthly",
+      terms_accepted: "true", privacy_policy_accepted: "true",
     })).toBeNull();
   });
 
@@ -46,6 +47,8 @@ describe("submit-signup-application validation", () => {
       business_registration_number: "CHE-123.456.789",
       restaurant_name: "La Table Tok",
       iban: "CH9300762011623852957",
+      terms_accepted: "true",
+      privacy_policy_accepted: "true",
     };
 
     expect(validateSubmissionFields("restaurateur", baseFields)).toMatch(/pack/i);
@@ -70,6 +73,30 @@ describe("submit-signup-application validation", () => {
       subscription_plan_id: "plan-1",
       subscription_billing_period: "monthly",
     })).toBeNull();
+  });
+
+  it("refuse un dossier sans acceptation des CGU et de la politique de confidentialite", () => {
+    const baseFields = {
+      full_name: "Restaurateur Test",
+      phone: "+41790000000",
+      city: "Geneve",
+      address: "Rue du Rhone 1",
+      business_name: "Table Tok",
+      legal_name: "Table Tok Sarl",
+      business_registration_number: "CHE-123.456.789",
+      restaurant_name: "La Table Tok",
+      iban: "CH9300762011623852957",
+      launch_pack_id: "pack-1",
+      subscription_plan_id: "plan-1",
+      subscription_billing_period: "monthly",
+    };
+
+    expect(validateSubmissionFields("restaurateur", baseFields)).toMatch(/CGU/i);
+    expect(validateSubmissionFields("restaurateur", {
+      ...baseFields,
+      terms_accepted: "true",
+      privacy_policy_accepted: "",
+    })).toMatch(/politique de confidentialite/i);
   });
 
   it("rejette les roles non pro", () => {

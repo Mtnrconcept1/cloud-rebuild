@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Bike, ChefHat, CreditCard, Eye, EyeOff, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ import CityAutocomplete from "@/components/CityAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
@@ -32,6 +33,7 @@ import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
 import { isCaptchaEnabled } from "@/lib/captcha";
 
 const supabase = getSupabase();
+const LEGAL_ACCEPTANCE_VERSION = "2026-06-15";
 
 type SignupFormState = {
   fullName: string;
@@ -55,6 +57,13 @@ type RestaurateurOnboardingChoices = {
   launchPackId: string;
   subscriptionPlanId: string;
   subscriptionBillingPeriod: SignupSubscriptionBillingPeriod;
+};
+
+type SignupLegalAcceptance = {
+  termsAccepted: boolean;
+  privacyPolicyAccepted: boolean;
+  acceptedAt: string;
+  version: string;
 };
 
 type SignupLaunchPackOption = {
@@ -154,10 +163,12 @@ function getSignupValidationError(
   role: SignupRole,
   form: SignupFormState,
   onboardingChoices?: RestaurateurOnboardingChoices,
+  legalAccepted = false,
 ) {
   if (!form.fullName.trim()) return "Le nom complet est requis.";
   if (!form.email.trim()) return "L'email est requis.";
   if (!form.password.trim() || form.password.length < 6) return "Le mot de passe doit contenir au moins 6 caracteres.";
+  if (!legalAccepted) return "Vous devez accepter les CGU et la politique de confidentialité.";
 
   if (role === "restaurateur") {
     if (!form.phone.trim()) return "Le téléphone est requis.";
@@ -188,6 +199,25 @@ function getSignupValidationError(
   return null;
 }
 
+function createLegalAcceptancePayload(acceptedAt = new Date().toISOString()): SignupLegalAcceptance {
+  return {
+    termsAccepted: true,
+    privacyPolicyAccepted: true,
+    acceptedAt,
+    version: LEGAL_ACCEPTANCE_VERSION,
+  };
+}
+
+function toLegalAcceptanceMetadata(legalAcceptance: SignupLegalAcceptance) {
+  return {
+    legal_terms_accepted: legalAcceptance.termsAccepted,
+    privacy_policy_accepted: legalAcceptance.privacyPolicyAccepted,
+    legal_terms_accepted_at: legalAcceptance.acceptedAt,
+    privacy_policy_accepted_at: legalAcceptance.acceptedAt,
+    legal_acceptance_version: legalAcceptance.version,
+  };
+}
+
 function splitCourierName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
   return {
@@ -204,6 +234,7 @@ function appendPrivilegedSignupDraftFormData(input: {
   onboardingChoices?: RestaurateurOnboardingChoices;
   documents: Partial<Record<SignupDocumentType, File | null>>;
   captchaToken: string | null;
+  legalAcceptance: SignupLegalAcceptance;
 }) {
   input.formData.append("user_id", input.userId);
   input.formData.append("requested_role", input.role);
@@ -230,6 +261,10 @@ function appendPrivilegedSignupDraftFormData(input: {
   input.formData.append("launch_pack_id", input.role === "restaurateur" ? input.onboardingChoices?.launchPackId || "" : "");
   input.formData.append("subscription_plan_id", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionPlanId || "" : "");
   input.formData.append("subscription_billing_period", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionBillingPeriod || "" : "");
+  input.formData.append("terms_accepted", input.legalAcceptance.termsAccepted ? "true" : "false");
+  input.formData.append("privacy_policy_accepted", input.legalAcceptance.privacyPolicyAccepted ? "true" : "false");
+  input.formData.append("legal_acceptance_version", input.legalAcceptance.version);
+  input.formData.append("legal_acceptance_at", input.legalAcceptance.acceptedAt);
   input.formData.append("captcha_token", input.captchaToken || "");
 
   for (const requirement of getRequiredSignupDocuments(input.role, input.form.vehicleType)) {
@@ -272,6 +307,7 @@ async function submitPrivilegedSignupDraft(input: {
   onboardingChoices?: RestaurateurOnboardingChoices;
   documents: Partial<Record<SignupDocumentType, File | null>>;
   captchaToken: string | null;
+  legalAcceptance: SignupLegalAcceptance;
 }) {
   const formData = new FormData();
   appendPrivilegedSignupDraftFormData({ formData, ...input });
@@ -307,6 +343,7 @@ export default function Auth() {
   const [selectedLaunchPackId, setSelectedLaunchPackId] = useState("");
   const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
   const [selectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [launchPacks, setLaunchPacks] = useState<SignupLaunchPackOption[]>([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
   const [launchPacksLoading, setLaunchPacksLoading] = useState(false);
@@ -532,10 +569,12 @@ export default function Auth() {
       const submittedRequiredDocuments = getRequiredSignupDocuments(submittedRole, signupForm.vehicleType);
       const isPrivilegedSignup = submittedRole !== "client";
       const submittedOnboardingChoices = restaurateurOnboardingChoices;
+      const submittedLegalAcceptance = createLegalAcceptancePayload();
       const validationError = getSignupValidationError(
         submittedRole,
         signupForm,
         submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
+        legalAccepted,
       );
       if (validationError) {
         throw new Error(validationError);
@@ -560,6 +599,7 @@ export default function Auth() {
           data: {
             full_name: signupForm.fullName,
             role: submittedRole,
+            ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
           },
           emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
           captchaToken: captchaToken || undefined,
@@ -594,6 +634,7 @@ export default function Auth() {
             onboardingChoices: submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
             documents,
             captchaToken,
+            legalAcceptance: submittedLegalAcceptance,
           });
           toast({
             title: "Inscription enregistrée",
@@ -601,6 +642,7 @@ export default function Auth() {
           });
           setDocuments({});
           setSignupForm(EMPTY_SIGNUP_FORM);
+          setLegalAccepted(false);
           setCaptchaToken(null);
           setPrivilegedSignupSubmitting(false);
         } else {
@@ -646,7 +688,10 @@ export default function Auth() {
           submittedRole === "courier" || submittedRole === "restaurateur" ? signupForm.iban : null,
         p_metadata:
           submittedRole === "courier"
-            ? splitCourierName(signupForm.fullName)
+            ? {
+              ...splitCourierName(signupForm.fullName),
+              ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
+            }
             : submittedRole === "restaurateur"
               ? {
                 onboarding_source: "auth_signup",
@@ -654,8 +699,9 @@ export default function Auth() {
                 selected_subscription_plan_id: submittedOnboardingChoices.subscriptionPlanId,
                 selected_subscription_billing_period: submittedOnboardingChoices.subscriptionBillingPeriod,
                 onboarding_payment_status: "pending_payment",
+                ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
               }
-              : { verification_source: "auth_signup" },
+              : { verification_source: "auth_signup", ...toLegalAcceptanceMetadata(submittedLegalAcceptance) },
         p_documents: uploadedDocuments,
       });
 
@@ -682,6 +728,7 @@ export default function Auth() {
       }
       setIsLogin(true);
       setDocuments({});
+      setLegalAccepted(false);
       setSignupForm((current) => ({
         ...EMPTY_SIGNUP_FORM,
         email: current.email,
@@ -1193,6 +1240,34 @@ export default function Auth() {
                       );
                     })}
                   </div>
+                </div>
+              ) : null}
+
+              {!isLogin ? (
+                <div className="rounded-2xl border bg-card/60 p-4">
+                  <label htmlFor="legal-acceptance" className="flex cursor-pointer items-start gap-3 text-sm">
+                    <Checkbox
+                      id="legal-acceptance"
+                      checked={legalAccepted}
+                      onCheckedChange={(checked) => setLegalAccepted(checked === true)}
+                      aria-label="J'accepte les CGU et la politique de confidentialité"
+                    />
+                    <span className="leading-6 text-muted-foreground">
+                      J'accepte les{" "}
+                      <Link to="/cgu" target="_blank" className="font-medium text-primary hover:underline">
+                        CGU
+                      </Link>{" "}
+                      et la{" "}
+                      <Link
+                        to="/politique-confidentialite"
+                        target="_blank"
+                        className="font-medium text-primary hover:underline"
+                      >
+                        politique de confidentialité
+                      </Link>{" "}
+                      de TOK.
+                    </span>
+                  </label>
                 </div>
               ) : null}
 

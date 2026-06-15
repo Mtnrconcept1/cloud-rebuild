@@ -14,7 +14,12 @@ import {
   getTokCoveredMiamzAmount,
   type CommissionBaseTotals,
 } from "@/lib/comptaCommissionSources";
-import { buildTokAccountingSummary, buildTokRevenueSummary, calculateTokCommission } from "@/lib/comptaFlow";
+import {
+  buildTokAccountingSummary,
+  buildTokRevenueSummary,
+  calculateTokCommission,
+  sumDirectTokPurchaseRevenue,
+} from "@/lib/comptaFlow";
 import {
   buildAccountingExportEntries,
   type AccountingExportEntry,
@@ -157,6 +162,7 @@ export type AdminReservationFeeAccrualRow = {
 export type AdminPayableLineItemRow = {
   id: string;
   restaurant_id: string;
+  invoice_id: string;
   item_kind: string;
   source_id: string | null;
   source_table: string | null;
@@ -1211,7 +1217,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     queryFn: async () => {
       let query = supabase
         .from("restaurant_invoice_line_items")
-        .select("id, restaurant_id, item_kind, source_id, source_table, amount_ttc")
+        .select("id, restaurant_id, invoice_id, item_kind, source_id, source_table, amount_ttc")
         .gte("occurred_at", `${monthBounds.monthStart}T00:00:00.000Z`)
         .lte("occurred_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
         .order("occurred_at", { ascending: false });
@@ -1427,14 +1433,30 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       };
     }, { amount: 0, count: 0 });
   }, [selectedRestaurant, tokOnePaymentsQuery.data]);
+  const directTokPurchaseRevenueAmount = useMemo(() => {
+    const paidInvoiceIds = new Set(
+      payableInvoiceSections.history
+        .filter((invoice) => invoice.invoice_type === "payable")
+        .map((invoice) => invoice.id),
+    );
+
+    return sumDirectTokPurchaseRevenue(payableLineItemsQuery.data || [], paidInvoiceIds);
+  }, [payableInvoiceSections.history, payableLineItemsQuery.data]);
   const totalRevenueSummary = useMemo(
     () => buildTokRevenueSummary({
       commissionAmount: summary.inflow.totalCommissions,
       reservationFeeAmount: reservationFeeRevenueAmount,
       campaignAmount: paidCampaignsTotal,
       tokOneSubscriptionAmount: tokOneRevenue.amount,
+      restaurantPurchaseAmount: directTokPurchaseRevenueAmount,
     }),
-    [paidCampaignsTotal, reservationFeeRevenueAmount, summary.inflow.totalCommissions, tokOneRevenue.amount],
+    [
+      directTokPurchaseRevenueAmount,
+      paidCampaignsTotal,
+      reservationFeeRevenueAmount,
+      summary.inflow.totalCommissions,
+      tokOneRevenue.amount,
+    ],
   );
   const refundOperations = useMemo(
     () => [...(refundedOrdersQuery.data || []), ...(refundedReservationsQuery.data || [])],
@@ -1490,6 +1512,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     tokCoveredMiamzCount: tokCoveredMiamz.count,
     tokOneSubscriptionAmount: tokOneRevenue.amount,
     tokOneSubscriptionCount: tokOneRevenue.count,
+    directTokPurchaseRevenueAmount,
     totalRevenue: totalRevenueSummary.totalRevenue,
     developerReservedShare: totalRevenueSummary.developerReservedShare,
     refundsIssuedTotal,

@@ -51,6 +51,29 @@ describe("automatic floor-plan image import", () => {
     expect(panel).toContain("MAX_IMPORT_IMAGE_BYTES");
   });
 
+  it("requires a precise image-analysis JSON contract before placing imported furniture", () => {
+    const edgeFunction = read("supabase/functions/floorplan-ai/index.ts");
+
+    expect(edgeFunction).toContain("FLOOR_PLAN_IMAGE_IMPORT_SCHEMA");
+    expect(edgeFunction).toContain("normalizeAiFloorPlanAnalysis");
+    expect(edgeFunction).toContain("normalizeAiFloorPlanFrame");
+    expect(edgeFunction).toContain("room_bounds");
+    expect(edgeFunction).toContain("x_ratio");
+    expect(edgeFunction).toContain("y_ratio");
+    expect(edgeFunction).toContain("seatPlacements");
+    expect(edgeFunction).toContain("Ne renvoie jamais les chaises attachees aux tables comme meubles separes");
+  });
+
+  it("passes source image dimensions to improve vision coordinate mapping", () => {
+    const panel = read("src/components/floor-plan/FloorPlanAIPanel.tsx");
+
+    expect(panel).toContain("readImageDimensions");
+    expect(panel).toContain("naturalWidth");
+    expect(panel).toContain("naturalHeight");
+    expect(panel).toContain("width: dimensions.width");
+    expect(panel).toContain("height: dimensions.height");
+  });
+
   it("creates switchable variants instead of overwriting the active template immediately", () => {
     const page = read("src/pages/dashboard/DashboardPlanSalle.tsx");
 

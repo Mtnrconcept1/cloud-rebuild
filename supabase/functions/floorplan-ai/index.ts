@@ -15,6 +15,43 @@ const IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const FUNCTION_NAME = "floorplan-ai";
 const FEATURE_NAME = "floorplan_ai";
 const AI_TOOL_CREDIT_UNITS = 5;
+const CANONICAL_CANVAS_WIDTH = 1040;
+const CANONICAL_CANVAS_HEIGHT = 760;
+const CANVAS_ROOM_INSET = 46;
+const FLOOR_PLAN_IMAGE_IMPORT_SCHEMA = `JSON image-import obligatoire:
+{
+  "analysis": {
+    "source_image": {"width": 0, "height": 0},
+    "room_bounds": {"x": 0, "y": 0, "w": 0, "h": 0},
+    "tables": [
+      {
+        "table_number": "20",
+        "shape": "rect",
+        "capacity": 4,
+        "kind": "table-rect-4",
+        "x_ratio": 0.12,
+        "y_ratio": 0.08,
+        "w_ratio": 0.10,
+        "h_ratio": 0.12,
+        "seat_count": 4,
+        "seats": [{"zone": "top"}, {"zone": "top"}, {"zone": "bottom"}, {"zone": "bottom"}],
+        "seatPlacements": [{"zone": "top", "type": "chair", "count": 2}, {"zone": "bottom", "type": "chair", "count": 2}],
+        "image_bbox": {"x": 0, "y": 0, "w": 0, "h": 0},
+        "confidence": 0.95
+      }
+    ],
+    "furniture": [
+      {"kind": "plant", "label": "Plante", "x_ratio": 0.94, "y_ratio": 0.04, "w_ratio": 0.05, "h_ratio": 0.08}
+    ],
+    "zones": [],
+    "circulation": {"description": "..."},
+    "resume_occupation": {"tables_totales": 0, "places_totales": 0}
+  },
+  "tables": [],
+  "explanation": "..."
+}
+Coordonnees: x_ratio/y_ratio/w_ratio/h_ratio sont des ratios 0-1 dans room_bounds, pas dans toute l'image.
+Ne renvoie jamais les chaises attachees aux tables comme meubles separes.`;
 
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
 
@@ -23,6 +60,15 @@ type ImagePayload = {
   dataUrl: string;
   mimeType: string;
   name: string | null;
+  width: number | null;
+  height: number | null;
+};
+type AiFloorPlanSeatPlacement = {
+  zone: string;
+  type: string;
+  count: number;
+  benchLength?: number;
+  benchDepth?: number;
 };
 type AiFloorPlanTable = {
   table_number: string;
@@ -30,16 +76,21 @@ type AiFloorPlanTable = {
   kind: string;
   shape: "round" | "rect";
   seatType?: string;
+  seatPlacements?: AiFloorPlanSeatPlacement[];
   x: number;
   y: number;
   w: number;
   h: number;
   rotation: number;
   seatLabels: number[];
+  source_bbox?: Record<string, number>;
+  confidence?: number;
 };
 
 const RESERVABLE_TABLE_KINDS = new Set(["table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6", "table"]);
 const FURNITURE_KINDS = new Set(["chair", "stool", "bar", "corner-bench", "banquette", "booth", "host-stand", "divider", "plant", "service-station"]);
+const RECT_SEAT_ZONES = new Set(["top", "right", "bottom", "left"]);
+const ROUND_SEAT_ZONES = new Set(["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"]);
 
 function clampNumber(value: unknown, fallback: number, min: number, max: number) {
   const parsed = Number(value);
@@ -53,58 +104,423 @@ function getTableKind(shape: "round" | "rect", capacity: number) {
   return capacity <= 4 ? "table-rect-4" : "table-rect-6";
 }
 
-function normalizeFloorPlanAiResult(value: unknown, canvasWidth: number, canvasHeight: number) {
-  const source = typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
-  const rawTables = Array.isArray(source.tables) ? source.tables : [];
-  const tables = rawTables.flatMap((entry, index): AiFloorPlanTable[] => {
-    if (typeof entry !== "object" || entry === null) return [];
-    const table = entry as Record<string, unknown>;
-    const rawKind = typeof table.kind === "string" ? table.kind : "table";
-    const isFurniture = FURNITURE_KINDS.has(rawKind);
-    const shape: "round" | "rect" = table.shape === "round" ? "round" : "rect";
-    const rawSeatLabels = Array.isArray(table.seatLabels)
-      ? table.seatLabels
-      : Array.isArray(table.seat_labels)
-        ? table.seat_labels
-        : [];
-    const labelCapacity = rawSeatLabels.length;
-    const capacity = isFurniture
-      ? 0
-      : Math.round(clampNumber(table.capacity, labelCapacity || 2, 1, 12));
-    const kind = isFurniture
-      ? rawKind
-      : getTableKind(shape, capacity);
-    const widthFallback = kind === "table-rect-2" ? 136 : kind === "table-round-2" ? 128 : kind === "table-rect-6" ? 210 : 176;
-    const heightFallback = kind === "table-rect-2" ? 108 : kind === "table-round-2" ? 128 : kind === "table-rect-6" ? 118 : 112;
-    const w = Math.round(clampNumber(table.w, widthFallback, isFurniture ? 24 : 60, 300));
-    const h = Math.round(clampNumber(table.h, heightFallback, isFurniture ? 24 : 60, 300));
-    const x = Math.round(clampNumber(table.x, 24 + (index % 5) * 156, 0, Math.max(0, canvasWidth - w)));
-    const y = Math.round(clampNumber(table.y, 24 + Math.floor(index / 5) * 136, 0, Math.max(0, canvasHeight - h)));
-    const seatLabels = isFurniture
-      ? []
-      : Array.from({ length: capacity }, (_, seatIndex) => seatIndex + 1);
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
 
+function normalizeToken(value: unknown) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+}
+
+function readValue(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) return source[key];
+  }
+  return undefined;
+}
+
+function readString(source: Record<string, unknown>, keys: string[]) {
+  const value = readValue(source, keys);
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+function readNumber(source: Record<string, unknown>, keys: string[]) {
+  const parsed = Number(readValue(source, keys));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function readArray(source: Record<string, unknown>, keys: string[]) {
+  const value = readValue(source, keys);
+  return Array.isArray(value) ? value : [];
+}
+
+function readRecord(source: Record<string, unknown>, keys: string[]) {
+  return asRecord(readValue(source, keys));
+}
+
+function normalizeRatio(value: unknown) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  if (parsed < 0 || parsed > 1) return null;
+  return parsed;
+}
+
+function getCanvasRoomBounds(canvasWidth: number, canvasHeight: number) {
+  const minX = Math.min(CANVAS_ROOM_INSET, Math.max(0, Math.floor(canvasWidth / 2) - 1));
+  const minY = Math.min(CANVAS_ROOM_INSET, Math.max(0, Math.floor(canvasHeight / 2) - 1));
+  return {
+    minX,
+    minY,
+    maxX: Math.max(minX, canvasWidth - minX),
+    maxY: Math.max(minY, canvasHeight - minY),
+  };
+}
+
+function normalizeShape(value: unknown): "round" | "rect" {
+  const token = normalizeToken(value);
+  return ["round", "ronde", "rond", "circle", "circular", "circulaire"].includes(token) ? "round" : "rect";
+}
+
+function normalizeFurnitureKind(value: unknown) {
+  const token = normalizeToken(value);
+  if (["plant", "plante", "decoration_plante", "greenery", "tree", "arbre"].includes(token)) return "plant";
+  if (["host_stand", "host", "accueil", "pupitre", "borne", "comptoir_accueil"].includes(token)) return "host-stand";
+  if (["service_station", "desserte", "station_service", "meuble_service"].includes(token)) return "service-station";
+  if (["divider", "separateur", "separation", "cloison", "porte", "door", "wall"].includes(token)) return "divider";
+  if (["corner_bench", "banc_angle"].includes(token)) return "corner-bench";
+  if (["banquette", "bench"].includes(token)) return "banquette";
+  if (["booth", "box"].includes(token)) return "booth";
+  if (["bar", "comptoir"].includes(token)) return "bar";
+  if (["chair", "chaise"].includes(token)) return "chair";
+  if (["stool", "tabouret"].includes(token)) return "stool";
+  return FURNITURE_KINDS.has(token) ? token : null;
+}
+
+function normalizeSeatZone(value: unknown, shape: "round" | "rect") {
+  const token = normalizeToken(value);
+  const rectMap: Record<string, string> = {
+    top: "top",
+    haut: "top",
+    above: "top",
+    nord: "top",
+    north: "top",
+    bottom: "bottom",
+    bas: "bottom",
+    below: "bottom",
+    sud: "bottom",
+    south: "bottom",
+    left: "left",
+    gauche: "left",
+    ouest: "left",
+    west: "left",
+    right: "right",
+    droite: "right",
+    est: "right",
+    east: "right",
+  };
+  const roundMap: Record<string, string> = {
+    top: "north",
+    haut: "north",
+    above: "north",
+    nord: "north",
+    north: "north",
+    bottom: "south",
+    bas: "south",
+    below: "south",
+    sud: "south",
+    south: "south",
+    left: "west",
+    gauche: "west",
+    ouest: "west",
+    west: "west",
+    right: "east",
+    droite: "east",
+    est: "east",
+    east: "east",
+    north_east: "north-east",
+    nord_est: "north-east",
+    south_east: "south-east",
+    sud_est: "south-east",
+    south_west: "south-west",
+    sud_ouest: "south-west",
+    north_west: "north-west",
+    nord_ouest: "north-west",
+  };
+  const zone = shape === "round" ? roundMap[token] || token.replace(/_/g, "-") : rectMap[token] || token;
+  if (shape === "round") return ROUND_SEAT_ZONES.has(zone) ? zone : null;
+  return RECT_SEAT_ZONES.has(zone) ? zone : null;
+}
+
+function normalizeSeatType(value: unknown) {
+  const token = normalizeToken(value);
+  if (["stool", "tabouret"].includes(token)) return "stool";
+  if (["bench", "banquette", "banc"].includes(token)) return "bench";
+  return "chair";
+}
+
+function defaultSeatPlacements(shape: "round" | "rect", capacity: number): AiFloorPlanSeatPlacement[] {
+  const safeCapacity = Math.max(0, Math.round(capacity || 0));
+  if (safeCapacity <= 0) return [];
+  if (shape === "round") {
+    if (safeCapacity === 2) {
+      return [{ zone: "north", type: "chair", count: 1 }, { zone: "south", type: "chair", count: 1 }];
+    }
+    if (safeCapacity === 4) {
+      return ["north", "east", "south", "west"].map((zone) => ({ zone, type: "chair", count: 1 }));
+    }
+    return Array.from({ length: safeCapacity }, (_, index) => ({
+      zone: Array.from(ROUND_SEAT_ZONES)[index % ROUND_SEAT_ZONES.size],
+      type: "chair",
+      count: 1,
+    }));
+  }
+
+  if (safeCapacity === 1) return [{ zone: "bottom", type: "chair", count: 1 }];
+  if (safeCapacity === 2) return [{ zone: "top", type: "chair", count: 1 }, { zone: "bottom", type: "chair", count: 1 }];
+  const top = Math.floor(safeCapacity / 2);
+  const bottom = safeCapacity - top;
+  return [
+    ...(top > 0 ? [{ zone: "top", type: "chair", count: top }] : []),
+    ...(bottom > 0 ? [{ zone: "bottom", type: "chair", count: bottom }] : []),
+  ];
+}
+
+function normalizeSeatPlacementsFromAi(source: Record<string, unknown>, shape: "round" | "rect", capacity: number) {
+  const explicit = readArray(source, ["seatPlacements", "seat_placements", "assise_placements"]).flatMap((entry) => {
+    const record = asRecord(entry);
+    const zone = normalizeSeatZone(readValue(record, ["zone", "position", "side", "cote"]), shape);
+    const count = Math.max(1, Math.round(readNumber(record, ["count", "nombre", "places"]) || 1));
+    if (!zone) return [];
     return [{
-      table_number: String(table.table_number || table.tableNumber || `AI-${index + 1}`),
-      capacity,
-      kind: RESERVABLE_TABLE_KINDS.has(rawKind) || isFurniture ? kind : getTableKind(shape, capacity),
-      shape,
-      seatType: typeof table.seatType === "string" ? table.seatType : typeof table.seat_type === "string" ? table.seat_type : "chair",
-      x,
-      y,
-      w,
-      h,
-      rotation: Math.round(clampNumber(table.rotation, 0, -180, 180) / 15) * 15,
-      seatLabels,
+      zone,
+      type: normalizeSeatType(readValue(record, ["type", "seatType", "seat_type"])),
+      count,
+      benchLength: readNumber(record, ["benchLength", "bench_length"]) ?? undefined,
+      benchDepth: readNumber(record, ["benchDepth", "bench_depth"]) ?? undefined,
     }];
   });
+  if (explicit.length > 0) return explicit;
+
+  const seats = readArray(source, ["seats", "chairs", "assises", "chaises"]);
+  const counts = new Map<string, number>();
+  seats.forEach((entry) => {
+    const record = asRecord(entry);
+    const zone = normalizeSeatZone(readValue(record, ["zone", "position", "side", "cote"]), shape);
+    if (!zone) return;
+    counts.set(zone, (counts.get(zone) || 0) + 1);
+  });
+  if (counts.size > 0) {
+    return Array.from(counts.entries()).map(([zone, count]) => ({
+      zone,
+      type: "chair",
+      count,
+    }));
+  }
+
+  return defaultSeatPlacements(shape, capacity);
+}
+
+function getFallbackSize(kind: string, shape: "round" | "rect", capacity: number) {
+  if (kind === "plant") return { w: 84, h: 84 };
+  if (kind === "host-stand") return { w: 110, h: 98 };
+  if (kind === "service-station") return { w: 140, h: 92 };
+  if (kind === "divider") return { w: 188, h: 46 };
+  if (kind === "bar") return { w: 280, h: 104 };
+  if (kind === "banquette") return { w: 228, h: 104 };
+  if (kind === "booth") return { w: 220, h: 152 };
+  if (kind === "corner-bench") return { w: 248, h: 188 };
+  if (shape === "round") return capacity <= 2 ? { w: 128, h: 128 } : { w: 176, h: 176 };
+  if (capacity <= 2) return { w: 136, h: 108 };
+  if (capacity <= 4) return { w: 176, h: 112 };
+  return { w: 210, h: 118 };
+}
+
+function readBox(source: Record<string, unknown>, keys: string[]) {
+  const record = readRecord(source, keys);
+  if (Object.keys(record).length === 0) return null;
+  const x = readNumber(record, ["x", "left"]);
+  const y = readNumber(record, ["y", "top"]);
+  const w = readNumber(record, ["w", "width"]);
+  const h = readNumber(record, ["h", "height"]);
+  return x === null || y === null || w === null || h === null ? null : { x, y, w, h };
+}
+
+function normalizeAiFloorPlanFrame(
+  source: Record<string, unknown>,
+  canvasWidth: number,
+  canvasHeight: number,
+  fallbackIndex: number,
+  kind: string,
+  shape: "round" | "rect",
+  capacity: number,
+  roomBounds: Record<string, unknown>,
+) {
+  const surface = getCanvasRoomBounds(canvasWidth, canvasHeight);
+  const surfaceWidth = Math.max(1, surface.maxX - surface.minX);
+  const surfaceHeight = Math.max(1, surface.maxY - surface.minY);
+  const fallbackSize = getFallbackSize(kind, shape, capacity);
+  const ratioBox = readBox(source, ["normalized", "relative_bounds", "relativeBounds", "ratio_bounds", "ratioBounds"]);
+  const directRatioBox = {
+    x: normalizeRatio(readValue(source, ["x_ratio", "xRatio"])),
+    y: normalizeRatio(readValue(source, ["y_ratio", "yRatio"])),
+    w: normalizeRatio(readValue(source, ["w_ratio", "wRatio", "width_ratio", "widthRatio"])),
+    h: normalizeRatio(readValue(source, ["h_ratio", "hRatio", "height_ratio", "heightRatio"])),
+  };
+  const normalizedBox = ratioBox && [ratioBox.x, ratioBox.y, ratioBox.w, ratioBox.h].every((value) => value >= 0 && value <= 1)
+    ? ratioBox
+    : directRatioBox.x !== null && directRatioBox.y !== null && directRatioBox.w !== null && directRatioBox.h !== null
+      ? { x: directRatioBox.x, y: directRatioBox.y, w: directRatioBox.w, h: directRatioBox.h }
+      : null;
+
+  let x: number;
+  let y: number;
+  let w: number;
+  let h: number;
+
+  if (normalizedBox) {
+    x = surface.minX + normalizedBox.x * surfaceWidth;
+    y = surface.minY + normalizedBox.y * surfaceHeight;
+    w = normalizedBox.w * surfaceWidth;
+    h = normalizedBox.h * surfaceHeight;
+  } else {
+    const imageBox = readBox(source, ["image_bbox", "imageBBox", "bbox", "bounds", "box"]);
+    const roomBox = {
+      x: readNumber(roomBounds, ["x", "left"]) ?? 0,
+      y: readNumber(roomBounds, ["y", "top"]) ?? 0,
+      w: readNumber(roomBounds, ["w", "width"]) ?? 0,
+      h: readNumber(roomBounds, ["h", "height"]) ?? 0,
+    };
+
+    if (imageBox && roomBox.w > 0 && roomBox.h > 0) {
+      x = surface.minX + ((imageBox.x - roomBox.x) / roomBox.w) * surfaceWidth;
+      y = surface.minY + ((imageBox.y - roomBox.y) / roomBox.h) * surfaceHeight;
+      w = (imageBox.w / roomBox.w) * surfaceWidth;
+      h = (imageBox.h / roomBox.h) * surfaceHeight;
+    } else {
+      w = readNumber(source, ["w", "width"]) ?? fallbackSize.w;
+      h = readNumber(source, ["h", "height"]) ?? fallbackSize.h;
+      x = readNumber(source, ["x", "left"]) ?? surface.minX + (fallbackIndex % 5) * 156;
+      y = readNumber(source, ["y", "top"]) ?? surface.minY + Math.floor(fallbackIndex / 5) * 136;
+    }
+  }
+
+  const minSize = FURNITURE_KINDS.has(kind) ? 24 : 48;
+  const maxWidth = Math.max(minSize, surfaceWidth);
+  const maxHeight = Math.max(minSize, surfaceHeight);
+  const safeW = Math.round(clampNumber(w, fallbackSize.w, minSize, maxWidth));
+  const safeH = Math.round(clampNumber(h, fallbackSize.h, minSize, maxHeight));
+  const maxX = Math.max(surface.minX, surface.maxX - safeW);
+  const maxY = Math.max(surface.minY, surface.maxY - safeH);
+
+  return {
+    x: Math.round(clampNumber(x, surface.minX, surface.minX, maxX)),
+    y: Math.round(clampNumber(y, surface.minY, surface.minY, maxY)),
+    w: safeW,
+    h: safeH,
+  };
+}
+
+function normalizeAiElement(
+  entry: unknown,
+  index: number,
+  canvasWidth: number,
+  canvasHeight: number,
+  roomBounds: Record<string, unknown>,
+  forcedFurniture = false,
+): AiFloorPlanTable[] {
+  const source = asRecord(entry);
+  if (Object.keys(source).length === 0) return [];
+
+  const furnitureKind = normalizeFurnitureKind(readValue(source, ["kind", "type", "object_type", "objet", "label", "nom"]));
+  const isFurniture = forcedFurniture || (furnitureKind !== null && !normalizeToken(furnitureKind).startsWith("table"));
+  const shape = normalizeShape(readValue(source, ["shape", "forme"]));
+  const rawSeats = readArray(source, ["seats", "chairs", "assises", "chaises"]);
+  const rawPlacements = readArray(source, ["seatPlacements", "seat_placements", "assise_placements"]);
+  const placementCapacity = rawPlacements.reduce((sum, placement) => sum + Math.max(0, Math.round(readNumber(asRecord(placement), ["count", "nombre"]) || 0)), 0);
+  const capacity = isFurniture
+    ? 0
+    : Math.round(clampNumber(
+      readNumber(source, ["capacity", "places", "seat_count", "seatCount", "nombre_assises", "capacite"])
+        ?? (rawSeats.length > 0 ? rawSeats.length : placementCapacity || null),
+      2,
+      1,
+      24,
+    ));
+  const kind = isFurniture
+    ? furnitureKind || "plant"
+    : getTableKind(shape, capacity);
+  const frame = normalizeAiFloorPlanFrame(source, canvasWidth, canvasHeight, index, kind, shape, capacity, roomBounds);
+  const imageBox = readBox(source, ["image_bbox", "imageBBox", "bbox", "bounds", "box"]);
+  const confidence = readNumber(source, ["confidence", "score", "fiabilite"]);
+  const seatPlacements = isFurniture ? [] : normalizeSeatPlacementsFromAi(source, shape, capacity);
+
+  return [{
+    table_number: readString(source, ["table_number", "tableNumber", "numero", "number", "label", "nom"]) || (isFurniture ? `${kind}-${index + 1}` : `AI-${index + 1}`),
+    capacity,
+    kind: RESERVABLE_TABLE_KINDS.has(kind) || FURNITURE_KINDS.has(kind) ? kind : getTableKind(shape, capacity),
+    shape,
+    seatType: normalizeSeatType(readValue(source, ["seatType", "seat_type", "assise_type"])),
+    seatPlacements,
+    x: frame.x,
+    y: frame.y,
+    w: frame.w,
+    h: frame.h,
+    rotation: Math.round(clampNumber(readNumber(source, ["rotation", "angle"]), 0, -180, 180) / 15) * 15,
+    seatLabels: isFurniture ? [] : Array.from({ length: capacity }, (_, seatIndex) => seatIndex + 1),
+    source_bbox: imageBox || undefined,
+    confidence: confidence === null ? undefined : clampNumber(confidence, confidence, 0, 1),
+  }];
+}
+
+function normalizeAiFloorPlanAnalysis(
+  value: unknown,
+  canvasWidth: number,
+  canvasHeight: number,
+  image?: ImagePayload | null,
+) {
+  const source = asRecord(value);
+  const analysisSource = Object.keys(asRecord(source.analysis)).length > 0 ? asRecord(source.analysis) : source;
+  const roomBounds = readRecord(analysisSource, ["room_bounds", "roomBounds", "salle_bounds", "room"]);
+  const analysisTables = readArray(analysisSource, ["tables"]);
+  const rootTables = readArray(source, ["tables"]);
+  const rawTables = analysisTables.length > 0 ? analysisTables : rootTables;
+  const rawFurniture = [
+    ...readArray(analysisSource, ["furniture", "mobilier"]),
+    ...readArray(analysisSource, ["decoration", "decorations"]),
+    ...readArray(analysisSource, ["objects", "objets", "elements"]),
+  ];
+  const tables = [
+    ...rawTables.flatMap((entry, index) => normalizeAiElement(entry, index, canvasWidth, canvasHeight, roomBounds)),
+    ...rawFurniture.flatMap((entry, index) => normalizeAiElement(entry, rawTables.length + index, canvasWidth, canvasHeight, roomBounds, true)),
+  ];
+
+  return {
+    ...analysisSource,
+    source_image: {
+      ...asRecord(analysisSource.source_image),
+      width: image?.width || readNumber(asRecord(analysisSource.source_image), ["width"]) || null,
+      height: image?.height || readNumber(asRecord(analysisSource.source_image), ["height"]) || null,
+    },
+    room_bounds: roomBounds,
+    tables: tables.filter((table) => table.capacity > 0),
+    furniture: tables.filter((table) => table.capacity === 0),
+    normalized_canvas: {
+      width: canvasWidth,
+      height: canvasHeight,
+      room_inset: CANVAS_ROOM_INSET,
+    },
+  };
+}
+
+function normalizeFloorPlanAiResult(
+  value: unknown,
+  canvasWidth: number,
+  canvasHeight: number,
+  image?: ImagePayload | null,
+) {
+  const source = asRecord(value);
+  const analysis = normalizeAiFloorPlanAnalysis(source, canvasWidth, canvasHeight, image);
+  const tables = [
+    ...(Array.isArray(analysis.tables) ? analysis.tables : []),
+    ...(Array.isArray(analysis.furniture) ? analysis.furniture : []),
+  ] as AiFloorPlanTable[];
 
   return {
     ...source,
+    analysis,
     tables,
     explanation: typeof source.explanation === "string"
       ? source.explanation
-      : "Plan genere a partir de l'analyse IA.",
+      : "Plan genere a partir de l'analyse IA precise de l'image.",
   };
 }
 
@@ -155,18 +571,69 @@ FORMAT DE RÉPONSE (JSON strict):
 }`;
 }
 
+function buildFloorPlanPrompt(params: {
+  restaurant: { name: string; cuisine_type: string | null; city: string | null };
+  avgPartySize: string;
+  partyDistribution: Record<number, number>;
+  canvasWidth: number;
+  canvasHeight: number;
+  currentLayoutSummary: string;
+}) {
+  const { restaurant, avgPartySize, partyDistribution, canvasWidth, canvasHeight, currentLayoutSummary } = params;
+  return `Tu es un expert en amenagement de salles de restaurant pour la plateforme Tok.
+Tu dois TOUJOURS repondre avec un JSON valide, sans texte avant ni apres le JSON.
+
+Contexte du restaurant:
+- Nom: ${restaurant.name}
+- Cuisine: ${restaurant.cuisine_type || "Non specifie"}
+- Ville: ${restaurant.city || "Non specifie"}
+- Taille moyenne des groupes (30j): ${avgPartySize} personnes
+- Distribution: ${JSON.stringify(partyDistribution)}
+- Canvas logique Tok: ${canvasWidth}x${canvasHeight} pixels
+
+Disposition actuelle:
+${currentLayoutSummary}
+
+TYPES DISPONIBLES (kind):
+- "table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6"
+- "chair", "stool", "bar", "corner-bench", "banquette", "booth"
+- "host-stand", "divider", "plant", "service-station"
+
+SHAPES: "round" ou "rect"
+SEAT TYPES: "chair", "stool", "bench", "corner-bench"
+
+REGLES:
+- x,y dans les limites du canvas logique (0-${canvasWidth} x 0-${canvasHeight})
+- minimum 60px entre les elements pour les generations libres; pour les imports image, privilegie la fidelite au plan source.
+- rondes: w=h; tables rect min 140x90; meubles min 60x60; max 300x300
+- rotation multiple de 15; capacity = nombre de places
+- Pour les imports image, localise d'abord le rectangle interieur de la salle, puis utilise room_bounds comme origine de tous les ratios.
+- Pour les imports image, renvoie x_ratio, y_ratio, w_ratio, h_ratio pour chaque table et chaque meuble visible.
+- Les ratios de position doivent suivre l'image: meme rang, meme colonne, meme decalage relatif, meme alignement que le plan source.
+- Ne renvoie jamais les chaises attachees aux tables comme meubles separes: elles doivent devenir seat_count, seats et seatPlacements.
+- Ne fusionne jamais deux tables visibles, ne cree jamais une table invisible et conserve les numeros lus sur l'image.
+- Pour les imports image, capacity doit venir des chaises visibles: one chair above and one chair below = table 2 places, jamais 4.
+- Une table rectangulaire avec 2 chaises visibles doit utiliser kind "table-rect-2"; une ronde 2 places doit utiliser "table-round-2".
+- Une table ronde 2 places doit avoir les chaises opposees (nord/sud), pas cote a cote.
+
+FORMAT DE REPONSE (JSON strict):
+${FLOOR_PLAN_IMAGE_IMPORT_SCHEMA}`;
+}
+
 function normalizeImagePayload(value: unknown): ImagePayload | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
   const dataUrl = typeof record.dataUrl === "string" ? record.dataUrl.trim() : "";
   const mimeType = typeof record.mimeType === "string" ? record.mimeType.trim().toLowerCase() : "";
   const name = typeof record.name === "string" ? record.name.trim().slice(0, 180) : null;
+  const width = Math.round(clampNumber(record.width, 0, 0, 20_000)) || null;
+  const height = Math.round(clampNumber(record.height, 0, 0, 20_000)) || null;
 
   if (!dataUrl || !mimeType || !IMAGE_MIME_TYPES.has(mimeType)) return null;
   if (dataUrl.length > MAX_IMAGE_DATA_URL_CHARS) return null;
   if (!dataUrl.startsWith(`data:${mimeType};base64,`)) return null;
 
-  return { dataUrl, mimeType, name };
+  return { dataUrl, mimeType, name, width, height };
 }
 
 function readTokenCount(value: unknown) {
@@ -241,8 +708,10 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action as FloorplanAction;
     const restaurantId = typeof body.restaurantId === "string" ? body.restaurantId : "";
-    const canvasWidth = Math.min(Math.max(Number(body.canvasWidth) || 1040, 400), 2000);
-    const canvasHeight = Math.min(Math.max(Number(body.canvasHeight) || 680, 400), 2000);
+    const requestedCanvasWidth = Math.min(Math.max(Number(body.canvasWidth) || CANONICAL_CANVAS_WIDTH, 400), 2000);
+    const requestedCanvasHeight = Math.min(Math.max(Number(body.canvasHeight) || CANONICAL_CANVAS_HEIGHT, 400), 2000);
+    const canvasWidth = CANONICAL_CANVAS_WIDTH;
+    const canvasHeight = CANONICAL_CANVAS_HEIGHT;
     const currentLayout = Array.isArray(body.currentLayout) ? body.currentLayout : [];
     const rawPrompt = typeof body.prompt === "string" ? body.prompt.slice(0, 2000) : "";
     const image = normalizeImagePayload(body.image);
@@ -292,7 +761,7 @@ Deno.serve(async (req) => {
         .join("\n")
       : "Aucune table placée";
 
-    const systemPrompt = buildSystemPrompt({
+    const systemPrompt = buildFloorPlanPrompt({
       restaurant: {
         name: restaurant.name,
         cuisine_type: restaurant.cuisine_type,
@@ -309,7 +778,7 @@ Deno.serve(async (req) => {
     if (!userPrompt) {
       if (action === "image-import") {
         userPrompt =
-          "Analyze the uploaded floor-plan image and recreate it as a Tok room layout. Preserve visible table numbers and relative rows/columns. Infer seating capacity only from visible chairs or benches: one chair above and one chair below means capacity 2 and kind table-rect-2, not table-rect-4. Use capacity 4 only when four distinct chairs or a four-seat bench setup is visible. Estimate relative x/y/w/h positions on the canvas as tightly as possible, include visible furniture such as plants, bars, host stands and dividers, and avoid inventing objects that are not visible. Return only the strict JSON format.";
+          `Analyse l'image importee comme un plan de salle a reproduire fidelement. Dimensions source connues: ${image?.width || "inconnue"}x${image?.height || "inconnue"} px. Identifie d'abord le rectangle interieur de la salle (room_bounds), puis liste toutes les tables visibles avec leur numero exact, leur forme, leur nombre exact d'assises visibles, leurs chaises par zone et leurs ratios x_ratio/y_ratio/w_ratio/h_ratio dans la salle. Inclue uniquement le mobilier visible (plantes, accueil, bar, separateurs, dessertes). Ne renvoie jamais les chaises attachees aux tables comme meubles separes. Ne corrige pas le plan et n'optimise pas: reproduis le meme placement relatif que l'image. Retourne uniquement le JSON strict demande.`;
       } else if (action === "generate") {
         userPrompt =
           "Génère un plan de salle optimisé avec un bon mix de tables 2/4/6 personnes, un accueil et des plantes. Optimise circulation et couverts.";
@@ -344,7 +813,8 @@ Deno.serve(async (req) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent },
         ],
-        temperature: action === "image-import" ? 0.2 : 0.7,
+        temperature: action === "image-import" ? 0 : 0.7,
+        max_tokens: action === "image-import" ? 4000 : 1800,
         response_format: { type: "json_object" },
       }),
     });
@@ -382,6 +852,10 @@ Deno.serve(async (req) => {
         image_mime_type: image?.mimeType || null,
         canvas_width: canvasWidth,
         canvas_height: canvasHeight,
+        requested_canvas_width: requestedCanvasWidth,
+        requested_canvas_height: requestedCanvasHeight,
+        source_image_width: image?.width || null,
+        source_image_height: image?.height || null,
       },
     });
 
@@ -394,10 +868,17 @@ Deno.serve(async (req) => {
       request: req,
       targetEntityType: "restaurants",
       targetEntityId: restaurantId,
-      metadata: { model: selectedModel, rid: log.rid, has_image: Boolean(image), image_mime_type: image?.mimeType || null },
+      metadata: {
+        model: selectedModel,
+        rid: log.rid,
+        has_image: Boolean(image),
+        image_mime_type: image?.mimeType || null,
+        source_image_width: image?.width || null,
+        source_image_height: image?.height || null,
+      },
     });
 
-    return jsonResponse(normalizeFloorPlanAiResult(parsed, canvasWidth, canvasHeight), 200, cors);
+    return jsonResponse(normalizeFloorPlanAiResult(parsed, canvasWidth, canvasHeight, image), 200, cors);
   } catch (err) {
     const status = err instanceof HttpError ? err.status : 500;
     const message = err instanceof HttpError ? err.message : "internal_error";

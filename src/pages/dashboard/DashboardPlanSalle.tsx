@@ -255,12 +255,28 @@ type DockablePanelPosition = { x: number; y: number };
 type DockablePanelSnapTarget = DockablePanelPosition & { width: number; height: number };
 
 function getAutoFitCanvasSize(viewportWidth: number, viewportHeight: number) {
-  const nextWidth = Math.floor(viewportWidth);
-  const nextHeight = Math.floor(viewportHeight);
+  const availableWidth = Math.floor(viewportWidth);
+  const availableHeight = Math.floor(viewportHeight);
+
+  if (availableWidth <= 0 || availableHeight <= 0) {
+    return {
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+    };
+  }
+
+  const canvasRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
+  let nextWidth = availableWidth;
+  let nextHeight = Math.round(nextWidth / canvasRatio);
+
+  if (nextHeight > availableHeight) {
+    nextHeight = availableHeight;
+    nextWidth = Math.round(nextHeight * canvasRatio);
+  }
 
   return {
-    width: nextWidth > 0 ? nextWidth : CANVAS_WIDTH,
-    height: nextHeight > 0 ? nextHeight : CANVAS_HEIGHT,
+    width: Math.max(1, nextWidth),
+    height: Math.max(1, nextHeight),
   };
 }
 
@@ -2475,6 +2491,19 @@ export default function DashboardPlanSalle() {
       const seatType = aiTable.seatType && ["chair", "stool", "bench", "corner-bench"].includes(aiTable.seatType)
         ? aiTable.seatType as FloorPlanSeatType
         : undefined;
+      const seatPlacements = isTable && Array.isArray(aiTable.seatPlacements)
+        ? aiTable.seatPlacements.flatMap((placement) => (
+          placement && typeof placement.zone === "string" && typeof placement.type === "string" && Number(placement.count) > 0
+            ? [{
+              zone: placement.zone,
+              type: placement.type,
+              count: Math.round(Number(placement.count)),
+              benchLength: Number.isFinite(Number(placement.benchLength)) ? Number(placement.benchLength) : undefined,
+              benchDepth: Number.isFinite(Number(placement.benchDepth)) ? Number(placement.benchDepth) : undefined,
+            } as FloorPlanSeatPlacement]
+            : []
+        ))
+        : undefined;
 
       const layout = clampFloorPlanLayout(
         ensureFloorPlanLayoutFitsCapacity(
@@ -2488,6 +2517,7 @@ export default function DashboardPlanSalle() {
             kind: mapped.kind,
             seatLabels,
             seatType,
+            seatPlacements,
           },
           capacity,
           shape,

@@ -56,6 +56,7 @@ export default function AdminCompta() {
     reservationFeeRevenueAmount,
     tokOneSubscriptionAmount,
     tokOneSubscriptionCount,
+    directTokPurchaseRevenueAmount,
     tokCoveredMiamzAmount,
     tokCoveredMiamzCount,
     totalRevenue,
@@ -113,6 +114,7 @@ export default function AdminCompta() {
       ["Net ouvert", netOpen],
       ["Commissions", summary.inflow.totalCommissions],
       ["Campagnes", paidCampaignsTotal],
+      ["Achats restaurateur TOK", directTokPurchaseRevenueAmount],
       ["Tok One", tokOneSubscriptionAmount],
       ["Miamz Tok", tokCoveredMiamzAmount],
       ["Remboursements emis", refundsIssuedTotal],
@@ -406,14 +408,14 @@ export default function AdminCompta() {
                 icon: Coins,
                 label: "Revenu Tok",
                 value: formatAmount(totalRevenue),
-                helper: "Commissions, frais réservation, campagnes et Tok One.",
+                helper: "Commissions, frais réservation, campagnes, achats restaurateur et Tok One.",
               },
               {
                 tone: "primary",
                 icon: Percent,
                 label: "Part developpeur",
                 value: formatAmount(developerReservedShare),
-                helper: "6% du CA Tok encaissé.",
+                helper: "10% du CA Tok encaissé.",
               },
               {
                 tone: "violet",
@@ -590,6 +592,11 @@ export default function AdminCompta() {
                     label: "Abonnements Tok One",
                     value: formatAmount(tokOneSubscriptionAmount),
                     helper: `${tokOneSubscriptionCount} encaissement${tokOneSubscriptionCount > 1 ? "s" : ""}.`,
+                  },
+                  {
+                    label: "Achats restaurateur TOK",
+                    value: formatAmount(directTokPurchaseRevenueAmount),
+                    helper: "Packs de lancement, abonnements restaurateur et packs de crédits déjà payés à TOK.",
                   },
                 ]}
               />

@@ -57,6 +57,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const disabledFeatures = useMemo(() => {
     const lockedFeatures = new Set(selectedRestaurant?.disabled_dashboard_features || []);
 
+    for (const feature of selectedRestaurant?.subscription_enabled_dashboard_features || []) {
+      lockedFeatures.delete(feature);
+    }
+
     if (dashboardAccessLocked) {
       for (const feature of [
         "dashboard-advisor",

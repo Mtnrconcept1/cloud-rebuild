@@ -71,4 +71,33 @@ describe("packFeatureGating", () => {
     expect(disabled).toContain("dashboard-plan-salle");
     expect(disabled).toContain("dashboard-campagnes");
   });
+
+  it("unlocks dashboard features from the active restaurant subscription as well as the launch pack", () => {
+    const enabled = computeEnabledFeatures([], {
+      subscription: {
+        plan: "premium",
+        status: "active",
+        features: ["Insights compta et performance", "Assistant IA avance"],
+      },
+    });
+
+    expect(enabled).toContain("dashboard-advisor");
+    expect(enabled).toContain("dashboard-performances");
+    expect(enabled).toContain("dashboard-comparaison");
+    expect(enabled).toContain("dashboard-factures");
+  });
+
+  it("does not unlock subscription features when the restaurant subscription is inactive", () => {
+    const disabled = computeDisabledFeatures([], {
+      subscription: {
+        plan: "elite",
+        status: "cancelled",
+        features: ["Operations Center premium"],
+      },
+    });
+
+    expect(disabled).toContain("dashboard-plan-salle");
+    expect(disabled).toContain("dashboard-service");
+    expect(disabled).toContain("dashboard-campagnes");
+  });
 });

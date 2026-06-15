@@ -210,7 +210,7 @@ function NavItems({
               : !!(item.feature && disabledFeatures?.has(item.feature));
             const lockTitle = dashboardAccessLocked
               ? "Dossier restaurateur en attente de validation admin"
-              : "Non inclus dans votre pack";
+              : "Non inclus dans votre pack ou abonnement";
 
             if (isLocked) {
               return (

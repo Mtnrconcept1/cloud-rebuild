@@ -4,6 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Auth from "@/pages/Auth";
 
+class ResizeObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+
+globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver;
+
 const supabaseMocks = vi.hoisted(() => ({
   resend: vi.fn(),
   resetPasswordForEmail: vi.fn(),
@@ -146,6 +154,10 @@ function renderAuth(route: string) {
   );
 }
 
+function acceptLegalTerms() {
+  fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
+}
+
 describe("Auth signup form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -225,6 +237,7 @@ describe("Auth signup form", () => {
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
       target: { value: "secret123" },
     });
+    acceptLegalTerms();
     fireEvent.click(screen.getByRole("button", { name: "Créer mon compte" }));
 
     await waitFor(() => {
@@ -233,6 +246,10 @@ describe("Auth signup form", () => {
           email: "client@example.com",
           password: "secret123",
           options: expect.objectContaining({
+            data: expect.objectContaining({
+              legal_terms_accepted: true,
+              privacy_policy_accepted: true,
+            }),
             emailRedirectTo: `${window.location.origin}/auth?confirmed=1`,
           }),
         }),
@@ -244,6 +261,30 @@ describe("Auth signup form", () => {
       title: "Compte créé",
       description: "Compte créé. Vérifiez votre email pour confirmer votre compte.",
     });
+  });
+
+  it("requires legal acceptance before creating a signup account", async () => {
+    renderAuth("/auth?type=client");
+
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Client Test" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "client@example.com" } });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), {
+      target: { value: "secret123" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Créer mon compte" }));
+
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Erreur",
+          description: "Vous devez accepter les CGU et la politique de confidentialité.",
+          variant: "destructive",
+        }),
+      );
+    });
+    expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
   it("logs out a restaurateur signup session after submitting the verification dossier", async () => {
@@ -292,6 +333,7 @@ describe("Auth signup form", () => {
     fireEvent.change(screen.getByLabelText("IBAN de versement"), {
       target: { value: "CH9300762011623852957" },
     });
+    acceptLegalTerms();
 
     const documentFile = new File(["document"], "document.pdf", {
       type: "application/pdf",
@@ -319,6 +361,8 @@ describe("Auth signup form", () => {
             selected_subscription_plan_id: "restaurant-plan-id",
             selected_subscription_billing_period: "monthly",
             onboarding_payment_status: "pending_payment",
+            legal_terms_accepted: true,
+            privacy_policy_accepted: true,
           }),
         }),
       );
@@ -380,6 +424,7 @@ describe("Auth signup form", () => {
     fireEvent.change(screen.getByLabelText("IBAN de versement"), {
       target: { value: "CH9300762011623852957" },
     });
+    acceptLegalTerms();
 
     const documentFile = new File(["document"], "document.png", {
       type: "image/png",
@@ -406,6 +451,8 @@ describe("Auth signup form", () => {
     expect(body.get("launch_pack_id")).toBe("launch-pack-id");
     expect(body.get("subscription_plan_id")).toBe("restaurant-plan-id");
     expect(body.get("subscription_billing_period")).toBe("monthly");
+    expect(body.get("terms_accepted")).toBe("true");
+    expect(body.get("privacy_policy_accepted")).toBe("true");
     expect(body.get("document_identity_document")).toBeInstanceOf(File);
     expect(body.get("document_business_registration")).toBeInstanceOf(File);
     expect(body.get("document_iban_proof")).toBeInstanceOf(File);

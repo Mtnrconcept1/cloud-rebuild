@@ -37,6 +37,12 @@ export function validateSubmissionFields(
   if (!String(fields.city || "").trim()) return "La ville est requise.";
   if (!String(fields.address || "").trim()) return "L'adresse est requise.";
   if (!String(fields.iban || "").trim()) return "L'IBAN de versement est requis.";
+  if (String(fields.terms_accepted || "").trim().toLowerCase() !== "true") {
+    return "Vous devez accepter les CGU et la politique de confidentialite.";
+  }
+  if (String(fields.privacy_policy_accepted || "").trim().toLowerCase() !== "true") {
+    return "Vous devez accepter la politique de confidentialite.";
+  }
 
   if (role === "restaurateur") {
     if (!String(fields.business_name || "").trim()) return "Le nom commercial est requis.";

@@ -26,6 +26,13 @@ export type AIFloorPlanTable = {
   kind: string;
   shape: "round" | "rect";
   seatType?: string;
+  seatPlacements?: {
+    zone: string;
+    type: string;
+    count: number;
+    benchLength?: number;
+    benchDepth?: number;
+  }[];
   x: number;
   y: number;
   w: number;
@@ -37,6 +44,7 @@ export type AIFloorPlanTable = {
 export type AIFloorPlanResult = {
   tables: AIFloorPlanTable[];
   explanation: string;
+  analysis?: Record<string, unknown>;
   source?: "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
   variantName?: string;
 };
@@ -45,6 +53,8 @@ type ImportImagePayload = {
   dataUrl: string;
   mimeType: string;
   name: string;
+  width: number;
+  height: number;
 };
 
 interface FloorPlanAIPanelProps {
@@ -86,6 +96,20 @@ const SUGGESTED_ACTIONS = [
     bg: "bg-emerald-500/10 hover:bg-emerald-500/20",
   },
 ] as const;
+
+function readImageDimensions(dataUrl: string) {
+  return new Promise<{ width: number; height: number }>((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      resolve({
+        width: Math.max(1, Math.round(image.naturalWidth || image.width || 1)),
+        height: Math.max(1, Math.round(image.naturalHeight || image.height || 1)),
+      });
+    };
+    image.onerror = () => resolve({ width: 0, height: 0 });
+    image.src = dataUrl;
+  });
+}
 
 export default function FloorPlanAIPanel({
   restaurantId,
@@ -178,11 +202,14 @@ export default function FloorPlanAIPanel({
       reader.onerror = () => reject(new Error("Lecture de l'image impossible"));
       reader.readAsDataURL(file);
     });
+    const dimensions = await readImageDimensions(dataUrl);
 
     setImportImage({
       dataUrl,
       mimeType: file.type,
       name: file.name,
+      width: dimensions.width,
+      height: dimensions.height,
     });
   };
 

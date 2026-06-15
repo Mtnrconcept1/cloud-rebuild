@@ -14,6 +14,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import {
   buildPayableInvoiceDocumentData,
   isPayableInvoiceType,
+  normalizePayableInvoiceItemKind,
   type PayableInvoiceLine,
   type PayableInvoiceRow,
   type PayableInvoiceType,
@@ -76,7 +77,7 @@ function normalizePayableLines(
 
   return (rows || []).map((row) => ({
     lineId: String(row.line_id || ""),
-    itemKind: String(row.item_kind || "manual_adjustment") as PayableInvoiceLine["itemKind"],
+    itemKind: normalizePayableInvoiceItemKind(String(row.item_kind || "manual_adjustment")),
     sourceTable: row.source_table ? String(row.source_table) : null,
     sourceId: row.source_id ? String(row.source_id) : null,
     sourceLabel: row.source_label ? String(row.source_label) : null,
@@ -162,7 +163,7 @@ function useTokPayableInvoiceDocumentData(invoice: PayableInvoiceRow | null, ena
     queryFn: async () => {
       if (!invoice) return null;
       if (!isPayableInvoiceType(invoice.invoice_type)) {
-        throw new Error(`Type de facturé non pris en charge: ${String(invoice.invoice_type)}`);
+        throw new Error(`Type de facture non pris en charge: ${String(invoice.invoice_type)}`);
       }
 
       const linesPromise = invoice.invoice_type === "payable"
@@ -226,9 +227,9 @@ export function TokPayableInvoiceDialog({
           <DialogHeader className="border-b border-slate-200/80 px-4 py-4 text-left sm:px-8 sm:py-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-1 sm:pr-8">
-                <DialogTitle className="font-display text-xl sm:text-2xl">Facture recue de TOK</DialogTitle>
+                <DialogTitle className="font-display text-xl sm:text-2xl">Facture reçue de TOK</DialogTitle>
                 <DialogDescription className="text-sm">
-                  Apercu admin/dashboard restaurateur de la facturé payable canonique.
+                  Aperçu admin/dashboard restaurateur de la facture payable canonique.
                 </DialogDescription>
               </div>
               <Button className="w-full justify-center sm:w-auto" onClick={handlePrint} disabled={!query.data}>
@@ -242,13 +243,13 @@ export function TokPayableInvoiceDialog({
             {query.isLoading ? (
               <div className="flex min-h-[420px] items-center justify-center text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Chargement de la facturé...
+                Chargement de la facture...
               </div>
             ) : null}
 
             {!query.isLoading && query.error ? (
               <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                Impossible de charger la facturé. {getErrorMessage(query.error)}
+                Impossible de charger la facture. {getErrorMessage(query.error)}
               </div>
             ) : null}
 

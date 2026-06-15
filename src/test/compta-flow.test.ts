@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEVELOPER_RESERVED_SHARE_RATE,
   calculateDeveloperReservedShare,
+  sumDirectTokPurchaseRevenue,
   buildTokRevenueSummary,
   buildRestaurantAccountingSummary,
   buildTokAccountingSummary,
@@ -45,18 +46,32 @@ describe("buildTokAccountingSummary", () => {
 });
 
 describe("buildTokRevenueSummary", () => {
-  it("adds final platform revenue streams and reserves 6% for the developer", () => {
+  it("adds every platform inflow and reserves 10% for the developer", () => {
     const summary = buildTokRevenueSummary({
       commissionAmount: 120,
       reservationFeeAmount: 25,
       campaignAmount: 80,
       tokOneSubscriptionAmount: 15,
+      restaurantPurchaseAmount: 679,
+      otherRevenueAmount: 81,
     });
 
-    expect(summary.totalRevenue).toBe(240);
-    expect(summary.developerReservedShare).toBe(14.4);
-    expect(DEVELOPER_RESERVED_SHARE_RATE).toBe(0.06);
-    expect(calculateDeveloperReservedShare(1000)).toBe(60);
+    expect(summary.totalRevenue).toBe(1000);
+    expect(summary.developerReservedShare).toBe(100);
+    expect(DEVELOPER_RESERVED_SHARE_RATE).toBe(0.1);
+    expect(calculateDeveloperReservedShare(1000)).toBe(100);
+  });
+
+  it("sums only paid direct restaurant purchases for developer revenue", () => {
+    const paidInvoiceIds = new Set(["invoice-paid"]);
+
+    expect(sumDirectTokPurchaseRevenue([
+      { invoice_id: "invoice-paid", item_kind: "launch_pack", amount_ttc: 490 },
+      { invoice_id: "invoice-paid", item_kind: "restaurant_subscription", amount_ttc: 89 },
+      { invoice_id: "invoice-paid", item_kind: "credit_pack", amount_ttc: 100 },
+      { invoice_id: "invoice-paid", item_kind: "order_commission", amount_ttc: 12 },
+      { invoice_id: "invoice-open", item_kind: "credit_pack", amount_ttc: 200 },
+    ], paidInvoiceIds)).toBe(679);
   });
 });
 

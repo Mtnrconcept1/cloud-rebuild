@@ -4,7 +4,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import GoogleBusinessBookingCard from "@/components/dashboard/GoogleBusinessBookingCard";
-import SignupApplicationStatusCard from "@/components/signup/SignupApplicationStatusCard";
+import SignupApplicationStatusCard, { type SignupApplicationCorrectionPayload } from "@/components/signup/SignupApplicationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,12 @@ import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/servi
 import { cn } from "@/lib/utils";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { invokeSupabaseFunction } from "@/lib/session";
-import { getSignupRestaurateurOnboardingSelection } from "@/lib/signup";
+import {
+  getSignupRestaurateurOnboardingSelection,
+  uploadVerificationDocument,
+  type SignupDocumentType,
+  type UploadedSignupDocument,
+} from "@/lib/signup";
 
 const supabase = getSupabase();
 
@@ -326,6 +331,70 @@ export default function Dashboard() {
     }
   };
 
+  const resubmitSignupApplication = useMutation({
+    mutationFn: async (payload: SignupApplicationCorrectionPayload) => {
+      if (!signupApplication?.id || signupApplication.requested_role !== "restaurateur") {
+        throw new Error("Aucun dossier restaurateur à corriger.");
+      }
+
+      const uploadedDocuments: UploadedSignupDocument[] = [];
+      const documentEntries = Object.entries(payload.documentInputs) as Array<[SignupDocumentType, File | null | undefined]>;
+      for (const [documentType, file] of documentEntries) {
+        if (!file) continue;
+        uploadedDocuments.push(await uploadVerificationDocument({
+          userId: signupApplication.user_id,
+          role: "restaurateur",
+          documentType,
+          file,
+        }));
+      }
+
+      const existingMetadata = signupApplication.metadata && typeof signupApplication.metadata === "object"
+        ? signupApplication.metadata
+        : {};
+
+      const { error } = await (supabase.rpc as any)("sync_signup_application", {
+        p_requested_role: "restaurateur",
+        p_full_name: payload.fullName,
+        p_phone: payload.phone,
+        p_city: payload.city,
+        p_address: payload.address,
+        p_legal_name: payload.legalName,
+        p_business_name: payload.businessName,
+        p_business_registration_number: payload.businessRegistrationNumber,
+        p_tax_id: payload.taxId,
+        p_restaurant_name: payload.restaurantName,
+        p_restaurant_description: payload.restaurantDescription,
+        p_vehicle_type: null,
+        p_license_plate: null,
+        p_iban: payload.iban,
+        p_metadata: {
+          ...existingMetadata,
+          correction_source: "dashboard",
+          correction_resubmitted_at: new Date().toISOString(),
+        },
+        p_documents: uploadedDocuments,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["signup-application"] });
+      queryClient.invalidateQueries({ queryKey: ["signup-application", signupApplication?.user_id, "restaurateur"] });
+      toast({
+        title: "Dossier renvoyé",
+        description: "Vos corrections ont été transmises à l'admin TOK pour une nouvelle validation.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Envoi impossible",
+        description: error instanceof Error ? error.message : "Le dossier n'a pas pu être renvoyé.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const typedUpcomingReservations = upcomingReservations as UpcomingReservationRow[];
 
   const todayServiceCounts = typedUpcomingReservations.reduce(
@@ -346,6 +415,8 @@ export default function Dashboard() {
             application={signupApplication}
             onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
             onboardingPaymentLoading={onboardingCheckoutLoading}
+            onResubmitApplication={resubmitSignupApplication.mutateAsync}
+            resubmittingApplication={resubmitSignupApplication.isPending}
             title="Dossier de vérification restaurateur"
             emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
           />
@@ -379,6 +450,8 @@ export default function Dashboard() {
           application={signupApplication}
           onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
           onboardingPaymentLoading={onboardingCheckoutLoading}
+          onResubmitApplication={resubmitSignupApplication.mutateAsync}
+          resubmittingApplication={resubmitSignupApplication.isPending}
           title="Dossier de vérification restaurateur"
           emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
         />
