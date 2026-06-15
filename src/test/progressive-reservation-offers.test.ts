@@ -99,4 +99,16 @@ describe("progressive reservation offers", () => {
     expect(adminOrdersReservations).toContain("progressive_offer_discount_percent");
     expect(detailModal).toContain("Offre progressive");
   });
+
+  it("opens a progressive offer reservation on the datetime step so the client chooses the time", () => {
+    const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
+    const reservationDialog = read("src/components/ReservationDialog.tsx");
+
+    expect(restaurantDetail).toContain("reservationDialogResetKey");
+    expect(restaurantDetail).toContain("setReservationDialogResetKey((current) => current + 1)");
+    expect(restaurantDetail).toContain("resetKey={reservationDialogResetKey}");
+    expect(reservationDialog).toContain("resetKey?: number");
+    expect(reservationDialog).toContain("setStep(\"datetime\")");
+    expect(reservationDialog).toContain("[open, resetKey]");
+  });
 });

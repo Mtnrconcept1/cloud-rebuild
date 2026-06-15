@@ -76,7 +76,11 @@ export function buildReservationSlotGroups({
   return (["lunch", "dinner"] as ServicePeriod[])
     .map((service) => {
       const settings = serviceSettings[service];
-      const slots = generateTimeSlotsForService(settings).filter((time) => {
+      const serviceTimes = generateTimeSlotsForService(settings);
+      const serviceReservedTables = serviceTimes.reduce((total, time) => (
+        total + Math.max(0, Math.floor(Number(reservedTablesByTime[time] || 0)))
+      ), 0);
+      const slots = serviceTimes.filter((time) => {
         if (!isSameCalendarDay(selectedDate, now)) return true;
         return buildDateTime(selectedDate, time).getTime() > now.getTime();
       });
@@ -86,7 +90,7 @@ export function buildReservationSlotGroups({
         label: SERVICE_PERIOD_LABELS[service],
         slots: slots.map((time) => {
           const capacity = Math.max(0, getSlotCapacityForTime(time, settings));
-          const reservedTables = Math.max(0, Math.floor(Number(reservedTablesByTime[time] || 0)));
+          const reservedTables = serviceReservedTables;
           const remainingTables = Math.max(0, capacity - reservedTables);
           const available = capacity > 0 && remainingTables > 0;
 

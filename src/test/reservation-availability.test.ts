@@ -34,14 +34,13 @@ describe("reservation availability helpers", () => {
     expect(isReservationCalendarDateDisabled(new Date(2026, 4, 27), now)).toBe(false);
   });
 
-  it("builds selectable blocks only for open future times and greys out full slots", () => {
+  it("builds selectable blocks only for open future times and greys out a full service", () => {
     const groups = buildReservationSlotGroups({
       serviceSettings: withDinnerCapacity(),
       selectedDate: new Date(2026, 4, 26),
       now: new Date(2026, 4, 26, 19, 10),
       reservedTablesByTime: {
         "20:00": 10,
-        "21:00": 9,
       },
     });
 
@@ -59,9 +58,10 @@ describe("reservation availability helpers", () => {
     expect(groups[0].slots[1]).toMatchObject({
       time: "21:00",
       capacity: 10,
-      reservedTables: 9,
-      remainingTables: 1,
-      available: true,
+      reservedTables: 10,
+      remainingTables: 0,
+      available: false,
+      disabledReason: "Complet",
     });
   });
 
@@ -71,5 +71,32 @@ describe("reservation availability helpers", () => {
     expect(getSlotCapacityForTime("19:00", settings)).toBe(10);
     expect(getSlotCapacityForTime("22:00", settings)).toBe(10);
     expect(getSlotCapacityForTime("18:30", settings)).toBe(8);
+  });
+
+  it("shares the table capacity across every slot in a service", () => {
+    const groups = buildReservationSlotGroups({
+      serviceSettings: withDinnerCapacity(),
+      selectedDate: new Date(2026, 4, 27),
+      now: new Date(2026, 4, 26, 19, 10),
+      reservedTablesByTime: {
+        "19:00": 4,
+        "21:00": 5,
+      },
+    });
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0].slots.map((slot) => ({
+      time: slot.time,
+      capacity: slot.capacity,
+      reservedTables: slot.reservedTables,
+      remainingTables: slot.remainingTables,
+      available: slot.available,
+    }))).toEqual([
+      { time: "19:00", capacity: 10, reservedTables: 9, remainingTables: 1, available: true },
+      { time: "20:00", capacity: 10, reservedTables: 9, remainingTables: 1, available: true },
+      { time: "21:00", capacity: 10, reservedTables: 9, remainingTables: 1, available: true },
+      { time: "22:00", capacity: 10, reservedTables: 9, remainingTables: 1, available: true },
+      { time: "23:00", capacity: 10, reservedTables: 9, remainingTables: 1, available: true },
+    ]);
   });
 });

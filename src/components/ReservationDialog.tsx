@@ -51,6 +51,7 @@ interface ReservationDialogProps {
   initialTime?: string;
   initialPartySize?: number;
   progressiveOfferId?: string | null;
+  resetKey?: number;
 }
 
 type Step = "datetime" | "mode" | "promo" | "confirm";
@@ -103,6 +104,7 @@ export default function ReservationDialog({
   initialTime,
   initialPartySize,
   progressiveOfferId,
+  resetKey,
 }: ReservationDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -123,6 +125,11 @@ export default function ReservationDialog({
   const [loading, setLoading] = useState(false);
   const [donatePoints, setDonatePoints] = useState(false);
   const [reservationMode, setReservationMode] = useState<ReservationMode>("classique");
+
+  useEffect(() => {
+    if (!open) return;
+    setStep("datetime");
+  }, [open, resetKey]);
 
   useEffect(() => {
     if (!open || !initialDate) return;

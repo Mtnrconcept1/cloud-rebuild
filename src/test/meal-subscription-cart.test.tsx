@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Abonnement from "@/pages/Abonnement";
 import { getMealSubscriptionOccurrenceDates } from "@/lib/mealSubscription";
 const TEST_SUBSCRIPTION_END_DATE = "2026-06-15";
@@ -150,6 +150,8 @@ function renderAbonnement() {
 }
 describe("Abonnement cart sync", () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date("2026-06-01T08:00:00.000Z"));
     vi.clearAllMocks();
     cartMocks.setOrderMode.mockReturnValue(false);
     restaurantRows.rows = [];
@@ -165,6 +167,11 @@ describe("Abonnement cart sync", () => {
       },
     ];
   });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("rebuilds the cart from an existing active subscription before opening the cart", async () => {
     const lundiOccurrences = expectedOccurrences("Lundi", "12:00");
     const lundiTotal = expectedTotal([{ day: "Lundi", price: 16, time: "12:00" }]);

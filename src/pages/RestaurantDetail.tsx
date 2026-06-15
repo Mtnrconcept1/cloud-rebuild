@@ -164,6 +164,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
+  const [reservationDialogResetKey, setReservationDialogResetKey] = useState(0);
   const [reservationProgressiveOfferId, setReservationProgressiveOfferId] = useState<string | null | undefined>(undefined);
   const [reservationWidgetSelection, setReservationWidgetSelection] = useState<{ date: Date; time: string; partySize: number } | null>(null);
   const [activeTab, setActiveTab] = useState("menu");
@@ -195,6 +196,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       setReservationProgressiveOfferId(searchParams.get("progressiveOfferId"));
       const timeParam = searchParams.get("time");
       if (timeParam) setReservationDefaults({ date: new Date(), time: timeParam, partySize: 2 });
+      setReservationDialogResetKey((current) => current + 1);
       setReservationOpen(true);
 
       if (
@@ -490,6 +492,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const handleWidgetReserve = (date: Date, time: string, partySize: number) => {
     setReservationDefaults({ date, time, partySize });
     setReservationProgressiveOfferId(null);
+    setReservationDialogResetKey((current) => current + 1);
     setReservationOpen(true);
   };
 
@@ -509,6 +512,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       partySize: 2,
     });
     setReservationProgressiveOfferId(offer.id);
+    setReservationDialogResetKey((current) => current + 1);
     setReservationOpen(true);
   };
 
@@ -523,6 +527,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
       return;
     }
 
+    setReservationDialogResetKey((current) => current + 1);
     setReservationOpen(true);
   };
 
@@ -629,7 +634,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                   </button>
                   {zeroWaitAvailable && showReserveChoice && (
                     <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-background border-2 border-primary/20 rounded-2xl shadow-xl p-3 space-y-2">
-                      <button onClick={() => { setShowReserveChoice(false); setReservationOpen(true); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-all text-left group">
+                      <button onClick={() => { setShowReserveChoice(false); setReservationDialogResetKey((current) => current + 1); setReservationOpen(true); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-all text-left group">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Utensils className="h-5 w-5 text-primary" /></div>
                         <div><p className="font-semibold text-sm">Réservation classique</p><p className="text-xs text-muted-foreground">Réserver avec promos</p></div>
                       </button>
@@ -1097,6 +1102,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
           initialTime={reservationDefaults?.time}
           initialPartySize={reservationDefaults?.partySize}
           progressiveOfferId={activeReservationProgressiveOfferId}
+          resetKey={reservationDialogResetKey}
         />
       ) : null}
 
