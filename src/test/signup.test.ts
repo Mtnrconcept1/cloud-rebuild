@@ -110,11 +110,15 @@ describe("signup and admin moderation SQL", () => {
 
 
   it("guards privileged signup RPC against ambiguous application_id references", () => {
-    const sql = latestMigrationContaining(/Fix ambiguous references between RETURNS TABLE output columns and table columns/i);
+    const sql = latestMigrationContaining(/Finalize the privileged signup RPC ambiguity fix/i);
     const submitDraft = extractFunction(sql, "admin_submit_signup_application");
 
     expect(submitDraft).toContain("FROM public.signup_application_documents sad");
     expect(submitDraft).toContain("WHERE sad.application_id = v_application_id");
+    expect(submitDraft).toContain(
+      "ON CONFLICT ON CONSTRAINT signup_application_documents_application_id_document_type_key DO UPDATE",
+    );
+    expect(submitDraft).not.toContain("ON CONFLICT (application_id, document_type)");
     expect(submitDraft).not.toMatch(/FROM public\.signup_application_documents\s+WHERE application_id = v_application_id/i);
     expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.admin_submit_signup_application[\s\S]*TO service_role/i);
     expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
