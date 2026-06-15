@@ -61,6 +61,9 @@ interface PromoOffer {
   discountLabel: string;
   discountPercent: number;
   formulaName: string;
+  formulaId?: string | null;
+  maxTables?: number | null;
+  remainingTables?: number | null;
   progressiveOfferId?: string | null;
 }
 
@@ -77,6 +80,15 @@ type SlotAvailabilityRow = {
   reserved_tables: number;
   capacity: number;
   remaining_tables: number;
+  available: boolean;
+};
+
+type FormulaServiceAvailabilityRow = {
+  formula_id: string;
+  formula_name: string;
+  max_tables: number | null;
+  reserved_tables: number;
+  remaining_tables: number | null;
   available: boolean;
 };
 
@@ -181,6 +193,23 @@ export default function ReservationDialog({
 
       if (error) throw error;
 
+      const formulaAvailabilityById = new Map<string, FormulaServiceAvailabilityRow>();
+      if (reservationDate) {
+        const { data: formulaAvailabilityData, error: formulaAvailabilityError } = await (supabase.rpc as any)("get_meal_formula_service_availability", {
+          p_restaurant_id: restaurantId,
+          p_date: reservationDate,
+          p_time: time,
+        });
+
+        if (formulaAvailabilityError) {
+          console.warn("Meal formula service availability fallback:", formulaAvailabilityError.message);
+        } else {
+          ((formulaAvailabilityData || []) as FormulaServiceAvailabilityRow[]).forEach((row) => {
+            if (row?.formula_id) formulaAvailabilityById.set(row.formula_id, row);
+          });
+        }
+      }
+
       let progressiveRows: ProgressiveReservationOffer[] = [];
       if (reservationDate) {
         let progressiveQuery = (supabase.from("reservation_progressive_offers" as any) as any)
@@ -202,15 +231,26 @@ export default function ReservationDialog({
 
       const formulaPromos = ((data || []) as MealFormulaRow[])
         .filter((formula) => isMealFormulaAvailableForSlot(formula.availability || null, reservationDate, time))
-        .map((formula) => ({
+        .flatMap((formula) => {
+          const serviceAvailability = formulaAvailabilityById.get(formula.id);
+          if (serviceAvailability && !serviceAvailability.available) return [];
+          const remainingText = typeof serviceAvailability?.remaining_tables === "number"
+            ? ` ${serviceAvailability.remaining_tables} table(s) promo restante(s) sur ce service.`
+            : "";
+
+          return [{
           id: formula.id,
           kind: "formula" as const,
           label: formula.name,
-          description: formula.description || "Formule promotionnelle liée à votre réservation.",
+          description: `${formula.description || "Formule promotionnelle liee a votre reservation."}${remainingText}`,
           discountLabel: `-${Number(formula.discount_percent) || 0}%`,
           discountPercent: Number(formula.discount_percent) || 0,
           formulaName: formula.name,
-        }))
+          formulaId: formula.id,
+          maxTables: serviceAvailability?.max_tables ?? null,
+          remainingTables: serviceAvailability?.remaining_tables ?? null,
+          }];
+        })
         .sort((a, b) => b.discountPercent - a.discountPercent);
 
       const progressivePromos = progressiveRows
@@ -357,8 +397,11 @@ export default function ReservationDialog({
     const reservationFeature = hasProgressiveOffer ? "promo-progressive" : hasFormula ? "promo-formule" : "classique";
     const reservationMetadata = {
       feature: reservationFeature,
+      formula_id: hasFormula ? selectedPromo?.formulaId ?? null : null,
       formula_applied: hasFormula ? selectedPromo?.formulaName ?? null : null,
       formula_discount_percent: hasFormula ? selectedPromo?.discountPercent ?? null : null,
+      formula_max_tables_per_service: hasFormula ? selectedPromo?.maxTables ?? null : null,
+      formula_remaining_tables: hasFormula ? selectedPromo?.remainingTables ?? null : null,
       progressive_offer_id: hasProgressiveOffer ? selectedPromo?.progressiveOfferId ?? null : null,
       progressive_offer_name: hasProgressiveOffer ? selectedPromo?.formulaName ?? null : null,
       progressive_offer_discount_percent: hasProgressiveOffer ? selectedPromo?.discountPercent ?? null : null,

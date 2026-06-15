@@ -60,6 +60,7 @@ describe("progressive reservation offers", () => {
     expect(dashboardFormules).toContain("Offre progressive");
     expect(dashboardFormules).toContain("reservation_progressive_offers");
     expect(dashboardFormules).toContain("finalize_progressive_offer");
+    expect(index).toContain('import { Badge } from "@/components/ui/badge"');
     expect(index).toContain("Offres progressives");
     expect(index).toContain("reservation_progressive_offers");
     expect(restaurantDetail).toContain("progressiveOfferId");

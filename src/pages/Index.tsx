@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import PromoCarousel from "@/components/PromoCarousel";
 import LoyaltyStatus from "@/components/LoyaltyStatus";

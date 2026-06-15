@@ -15,6 +15,8 @@ export type MealFormulaAvailability = {
   endTime?: string;
   servicePeriods?: ServicePeriod[];
   services?: Partial<Record<ServicePeriod, MealFormulaServiceAvailability>>;
+  maxTablesPerService?: number | string | null;
+  max_tables_per_service?: number | string | null;
 } | null;
 
 export type MealFormulaRow = {
@@ -179,6 +181,42 @@ export function isMealFormulaAvailableForSlot(
   if (targetMinutes === null || startMinutes === null || endMinutes === null) return true;
 
   return isTimeInWindow(targetMinutes, startMinutes, endMinutes);
+}
+
+function parsePositiveIntegerLimit(value: unknown): number | null {
+  const parsed = typeof value === "string" && value.trim() !== ""
+    ? Number(value)
+    : typeof value === "number"
+      ? value
+      : NaN;
+  if (!Number.isFinite(parsed)) return null;
+  const normalized = Math.floor(parsed);
+  return normalized > 0 ? normalized : null;
+}
+
+export function getMealFormulaMaxTablesPerService(availability: MealFormulaAvailability): number | null {
+  if (!availability || typeof availability !== "object") return null;
+  return (
+    parsePositiveIntegerLimit(availability.maxTablesPerService)
+    ?? parsePositiveIntegerLimit(availability.max_tables_per_service)
+  );
+}
+
+export function getMealFormulaRemainingTablesForService(
+  availability: MealFormulaAvailability,
+  reservedTables: number,
+): number | null {
+  const maxTables = getMealFormulaMaxTablesPerService(availability);
+  if (maxTables === null) return null;
+  return Math.max(0, maxTables - Math.max(0, Math.floor(Number(reservedTables) || 0)));
+}
+
+export function isMealFormulaBelowServiceLimit(
+  availability: MealFormulaAvailability,
+  reservedTables: number,
+): boolean {
+  const remainingTables = getMealFormulaRemainingTablesForService(availability, reservedTables);
+  return remainingTables === null || remainingTables > 0;
 }
 
 function isContextCompatible(appliesTo: string | null | undefined, context: MealFormulaContext): boolean {

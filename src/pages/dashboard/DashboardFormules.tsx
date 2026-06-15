@@ -95,6 +95,7 @@ type Availability = {
   days: string[];
   servicePeriods: ServicePeriod[];
   services: Record<ServicePeriod, ServiceAvailability>;
+  maxTablesPerService: number;
 };
 
 const DEFAULT_AVAILABILITY: Availability = {
@@ -112,7 +113,14 @@ const DEFAULT_AVAILABILITY: Availability = {
       endTime: DEFAULT_SERVICE_SETTINGS.dinner.end_time,
     },
   },
+  maxTablesPerService: 10,
 };
+
+function normalizeMaxTablesPerService(value: unknown): number {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return DEFAULT_AVAILABILITY.maxTablesPerService;
+  return Math.max(1, Math.min(200, Math.floor(numeric)));
+}
 
 function normalizeAvailability(raw: any): Availability {
   if (!raw || typeof raw !== "object") {
@@ -130,6 +138,9 @@ function normalizeAvailability(raw: any): Availability {
       lunch: { ...DEFAULT_AVAILABILITY.services.lunch },
       dinner: { ...DEFAULT_AVAILABILITY.services.dinner },
     },
+    maxTablesPerService: normalizeMaxTablesPerService(
+      raw.maxTablesPerService ?? raw.max_tables_per_service,
+    ),
   };
 
   const servicePeriods = Array.isArray(raw.servicePeriods)
@@ -189,6 +200,7 @@ function serializeAvailability(availability: Availability) {
   return {
     days: availability.days,
     servicePeriods,
+    maxTablesPerService: normalizeMaxTablesPerService(availability.maxTablesPerService),
     services: {
       lunch: availability.services.lunch,
       dinner: availability.services.dinner,
@@ -653,10 +665,14 @@ function PresetFormulaCard({
     setSaving(true);
     try {
       const discountPercent = Math.min(100, Math.max(1, Number(discountValue) || preset.defaultDiscount));
+      const normalizedAvailability = {
+        ...availabilityValue,
+        maxTablesPerService: normalizeMaxTablesPerService(availabilityValue.maxTablesPerService),
+      };
       const payload = {
         is_active: active,
         discount_percent: discountPercent,
-        availability: serializeAvailability(availabilityValue),
+        availability: serializeAvailability(normalizedAvailability),
       };
 
       if (existing) {
@@ -674,7 +690,7 @@ function PresetFormulaCard({
             applies_to: "both",
             is_active: active,
             is_standard: true,
-            availability: serializeAvailability(availabilityValue),
+            availability: serializeAvailability(normalizedAvailability),
           })
           .select("id")
           .single();
@@ -715,6 +731,16 @@ function PresetFormulaCard({
   const handleDiscountBlur = async () => {
     if (!existing && !isActive) return;
     await save(isActive, discount, availability);
+  };
+
+  const handleFormulaLimitBlur = async () => {
+    const nextAvailability = {
+      ...availability,
+      maxTablesPerService: normalizeMaxTablesPerService(availability.maxTablesPerService),
+    };
+    setAvailability(nextAvailability);
+    if (!existing && !isActive) return;
+    await save(isActive, discount, nextAvailability);
   };
 
   const handleDayToggle = async (day: string) => {
@@ -805,7 +831,7 @@ function PresetFormulaCard({
 
         {(isActive || existing) && (
           <div className="space-y-4 border-t pt-4">
-            <div className="flex items-center gap-4">
+            <div className="grid gap-4 md:grid-cols-[8rem_12rem_minmax(0,1fr)] md:items-end">
               <div className="w-32 space-y-1">
                 <Label className="text-xs font-medium">Réduction</Label>
                 <div className="relative">
@@ -822,8 +848,27 @@ function PresetFormulaCard({
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
                 </div>
               </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Tables maximum avec promotion</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={200}
+                  value={availability.maxTablesPerService}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setAvailability((current) => ({
+                      ...current,
+                      maxTablesPerService: value === "" ? 1 : normalizeMaxTablesPerService(value),
+                    }));
+                  }}
+                  onBlur={handleFormulaLimitBlur}
+                  disabled={saving}
+                />
+              </div>
               <div className="flex-1">
                 <p className="text-[11px] text-muted-foreground">
+                  Quand la limite est atteinte, la formule s'arrete jusqu'au prochain service.
                   Le pourcentage de réduction applique sur le total de la formule.
                 </p>
               </div>

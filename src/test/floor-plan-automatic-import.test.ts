@@ -74,6 +74,17 @@ describe("automatic floor-plan image import", () => {
     expect(edgeFunction).toContain('readArray(analysisSource, ["decoration", "decorations"])');
   });
 
+  it("does not discard semantic tables when the vision analysis returns only a partial table list", () => {
+    const edgeFunction = read("supabase/functions/floorplan-ai/index.ts");
+
+    expect(edgeFunction).toContain("mergeFloorPlanEntriesByIdentity");
+    expect(edgeFunction).toContain("getFloorPlanTableIdentity");
+    expect(edgeFunction).toContain("const semanticTables = readArray(semanticRoomSource, [\"tables\"])");
+    expect(edgeFunction).toContain("[analysisTables, rootTables, semanticTables]");
+    expect(edgeFunction).toContain("Inclue toutes les tables visibles");
+    expect(edgeFunction).toContain("la reponse doit contenir 14 tables");
+  });
+
   it("passes source image dimensions to improve vision coordinate mapping", () => {
     const panel = read("src/components/floor-plan/FloorPlanAIPanel.tsx");
 

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   detectBestMealFormula,
+  getMealFormulaMaxTablesPerService,
+  getMealFormulaRemainingTablesForService,
+  isMealFormulaBelowServiceLimit,
   toCourse,
   coursesFromFormulaKey,
   formatMissingCoursesText,
@@ -49,6 +52,24 @@ describe("meal formulas helpers", () => {
     expect(coursesFromFormulaKey("entree_plat")).toEqual(["entree", "plat"]);
     expect(coursesFromFormulaKey("plat_dessert")).toEqual(["plat", "dessert"]);
     expect(coursesFromFormulaKey("unknown")).toEqual([]);
+  });
+
+  it("tracks table quotas per service for reservation formulas", () => {
+    const availability = {
+      days: ["mon"],
+      services: {
+        lunch: { enabled: true, startTime: "12:00", endTime: "14:30" },
+      },
+      servicePeriods: ["lunch"],
+      maxTablesPerService: 4,
+    };
+
+    expect(getMealFormulaMaxTablesPerService(availability)).toBe(4);
+    expect(getMealFormulaRemainingTablesForService(availability, 3)).toBe(1);
+    expect(isMealFormulaBelowServiceLimit(availability, 3)).toBe(true);
+    expect(getMealFormulaRemainingTablesForService(availability, 4)).toBe(0);
+    expect(isMealFormulaBelowServiceLimit(availability, 4)).toBe(false);
+    expect(isMealFormulaBelowServiceLimit({ days: ["mon"] }, 500)).toBe(true);
   });
 });
 

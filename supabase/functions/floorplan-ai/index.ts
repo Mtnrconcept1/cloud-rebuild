@@ -62,6 +62,8 @@ const FLOOR_PLAN_IMAGE_IMPORT_SCHEMA = `JSON image-import obligatoire:
 }
 Coordonnees: x_ratio/y_ratio/w_ratio/h_ratio sont des ratios 0-1 dans room_bounds, pas dans toute l'image.
 Si "analysis.tables" contient des ratios precis, ils sont prioritaires. Si l'IA renvoie seulement "salle.tables" avec des positions comme haut_centre_droit ou bas_gauche, Tok les convertit en placement stable.
+Inclue toutes les tables visibles quelle que soit leur couleur ou leur statut: les tables beige/libres comptent autant que les tables vertes/occupees.
+Avant de repondre, verifie que le nombre de tables listees correspond au nombre de numeros de table visibles. Une sortie partielle a 5 ou 7 tables est invalide si l'image montre 14 numeros.
 Ne renvoie jamais les chaises attachees aux tables comme meubles separes.`;
 
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
@@ -494,6 +496,45 @@ function withSemanticFrameHint(entry: unknown, hint?: SemanticFrameHint) {
   return { ...asRecord(entry), ...hint };
 }
 
+function getFloorPlanTableIdentity(entry: unknown) {
+  const source = asRecord(entry);
+  const tableNumber = readString(source, ["table_number", "tableNumber", "numero", "number", "label", "nom"]);
+  return tableNumber ? normalizeToken(tableNumber) : null;
+}
+
+function getFloorPlanFurnitureIdentity(entry: unknown) {
+  const source = asRecord(entry);
+  const kind = normalizeFurnitureKind(readValue(source, ["kind", "type", "object_type", "objet", "label", "nom"]))
+    || normalizeToken(readValue(source, ["kind", "type", "object_type", "objet"]));
+  const position = getSemanticPositionToken(source);
+  const label = normalizeToken(readString(source, ["label", "nom", "name"]) || "");
+  const key = [kind, position, label].filter(Boolean).join(":");
+  return key.length > 0 ? key : null;
+}
+
+function mergeFloorPlanEntriesByIdentity(
+  groups: unknown[][],
+  getIdentity: (entry: unknown) => string | null,
+) {
+  const merged: unknown[] = [];
+  const seen = new Set<string>();
+
+  groups.forEach((entries) => {
+    entries.forEach((entry) => {
+      const source = asRecord(entry);
+      if (Object.keys(source).length === 0) return;
+      const identity = getIdentity(entry);
+      if (identity) {
+        if (seen.has(identity)) return;
+        seen.add(identity);
+      }
+      merged.push(entry);
+    });
+  });
+
+  return merged;
+}
+
 function readBox(source: Record<string, unknown>, keys: string[]) {
   const record = readRecord(source, keys);
   if (Object.keys(record).length === 0) return null;
@@ -647,12 +688,30 @@ function normalizeAiFloorPlanAnalysis(
   const roomBounds = readRecord(analysisSource, ["room_bounds", "roomBounds", "salle_bounds", "room"]);
   const analysisTables = readArray(analysisSource, ["tables"]);
   const rootTables = readArray(source, ["tables"]);
-  const rawTables = analysisTables.length > 0 ? analysisTables : rootTables;
-  const rawFurniture = [
+  const semanticTables = readArray(semanticRoomSource, ["tables"]);
+  const rawTables = mergeFloorPlanEntriesByIdentity(
+    [analysisTables, rootTables, semanticTables],
+    getFloorPlanTableIdentity,
+  );
+  const analysisFurniture = [
     ...readArray(analysisSource, ["furniture", "mobilier"]),
     ...readArray(analysisSource, ["decoration", "decorations"]),
     ...readArray(analysisSource, ["objects", "objets", "elements"]),
   ];
+  const rootFurniture = [
+    ...readArray(source, ["furniture", "mobilier"]),
+    ...readArray(source, ["decoration", "decorations"]),
+    ...readArray(source, ["objects", "objets", "elements"]),
+  ];
+  const semanticFurniture = [
+    ...readArray(semanticRoomSource, ["furniture", "mobilier"]),
+    ...readArray(semanticRoomSource, ["decoration", "decorations"]),
+    ...readArray(semanticRoomSource, ["objects", "objets", "elements"]),
+  ];
+  const rawFurniture = mergeFloorPlanEntriesByIdentity(
+    [analysisFurniture, rootFurniture, semanticFurniture],
+    getFloorPlanFurnitureIdentity,
+  );
   const semanticTableHints = buildSemanticFloorPlanFrameHints(rawTables, canvasWidth, canvasHeight);
   const semanticFurnitureHints = buildSemanticFloorPlanFrameHints(rawFurniture, canvasWidth, canvasHeight, true);
   const tables = [
@@ -802,6 +861,8 @@ REGLES:
 - Les ratios de position doivent suivre l'image: meme rang, meme colonne, meme decalage relatif, meme alignement que le plan source.
 - Ne renvoie jamais les chaises attachees aux tables comme meubles separes: elles doivent devenir seat_count, seats et seatPlacements.
 - Ne fusionne jamais deux tables visibles, ne cree jamais une table invisible et conserve les numeros lus sur l'image.
+- Inclue toutes les tables visibles, y compris les tables beige/libres ou peu colorees; ne liste pas uniquement les tables vertes/occupees.
+- Verifie le decompte final avant de repondre: si l'image montre les numeros 20 a 33, la reponse doit contenir 14 tables, pas 5 ni 7.
 - Pour les imports image, capacity doit venir des chaises visibles: one chair above and one chair below = table 2 places, jamais 4.
 - Une table rectangulaire avec 2 chaises visibles doit utiliser kind "table-rect-2"; une ronde 2 places doit utiliser "table-round-2".
 - Une table ronde 2 places doit avoir les chaises opposees (nord/sud), pas cote a cote.
