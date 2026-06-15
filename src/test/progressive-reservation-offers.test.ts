@@ -92,7 +92,7 @@ describe("progressive reservation offers", () => {
     expect(reservationDialog).toContain('setTime((initialProgressiveOffer.service_time || "19:00").slice(0, 5))');
     expect(dashboardFormules).toContain("Service cible");
     expect(dashboardFormules).toContain("Tous les creneaux du service");
-    expect(reservationMutations).toContain("p_progressive_offer_id");
+    expect(reservationMutations).toContain("progressive_offer_id");
     expect(customerReservations).toContain("progressive_offer_discount_percent");
     expect(dashboardReservations).toContain("progressive_offer_discount_percent");
     expect(adminShared).toContain("progressiveOfferDiscountPercent");

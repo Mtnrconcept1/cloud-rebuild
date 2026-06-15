@@ -5,6 +5,7 @@ import {
   triggerNotificationDispatch,
 } from "./notifications.ts";
 import { recordReservationChargeIfMissing } from "./payment-transactions.ts";
+import { queueReservationConfirmationEmails } from "./transactional-emails.ts";
 
 type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
@@ -41,6 +42,9 @@ type ChefTableDropRow = {
   restaurants?: {
     owner_id?: string | null;
     name?: string | null;
+    address?: string | null;
+    city?: string | null;
+    phone?: string | null;
   } | null;
 };
 
@@ -109,6 +113,19 @@ function normalizeExistingReservation(
     metadata: (reservation.metadata || {}) as Record<string, unknown>,
     preorder_items: (reservation.preorder_items || []) as Array<Record<string, unknown>>,
   };
+}
+
+function getPublicAppBaseUrl() {
+  return Deno.env.get("PUBLIC_APP_URL")
+    || Deno.env.get("APP_BASE_URL")
+    || Deno.env.get("SITE_URL")
+    || "https://www.thetok.ch";
+}
+
+async function getAuthUserEmail(adminClient: any, userId: string | null | undefined) {
+  if (!userId) return null;
+  const { data } = await adminClient.auth.admin.getUserById(userId);
+  return data?.user?.email || null;
 }
 
 async function findExistingChefReservation(input: {
@@ -336,7 +353,7 @@ export async function finalizeChefsTableCheckout(input: {
   const dropIds = Array.from(new Set(reservationItems.map((item) => item.dropId)));
   const { data: dropsRaw, error: dropsError } = await adminClient
     .from("chef_table_drops")
-    .select("id, restaurant_id, chef_name, dish_name, description, price, original_price, drop_time, remaining_portions, is_vip, required_miamz_points, restaurants(owner_id, name)")
+    .select("id, restaurant_id, chef_name, dish_name, description, price, original_price, drop_time, remaining_portions, is_vip, required_miamz_points, restaurants(owner_id, name, address, city, phone)")
     .in("id", dropIds);
 
   if (dropsError) throw dropsError;
@@ -698,6 +715,59 @@ export async function finalizeChefsTableCheckout(input: {
         log?.error?.("chefs_table_customer_notification_failed", {
           reservation_id: reservationId,
           message: error instanceof Error ? error.message : "unknown",
+        });
+      }
+
+      try {
+        const dropRestaurant = dropMap.get(group.drops[0].dropId)?.restaurants || null;
+        const customerEmail = await getAuthUserEmail(adminClient, userId);
+        const restaurantEmail = await getAuthUserEmail(adminClient, restaurantOwnerId);
+        const { data: customerProfile } = await adminClient
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        await queueReservationConfirmationEmails({
+          adminClient,
+          appBaseUrl: getPublicAppBaseUrl(),
+          reservation: {
+            id: reservationId,
+            date: group.date,
+            time: group.time,
+            party_size: group.partySize,
+            feature: "chefs_table",
+            total_amount: group.total,
+            notes: note,
+          },
+          restaurant: {
+            id: group.restaurantId,
+            name: group.restaurantName,
+            address: dropRestaurant?.address || null,
+            city: dropRestaurant?.city || null,
+            phone: dropRestaurant?.phone || null,
+          },
+          customer: {
+            name: customerProfile?.full_name || null,
+            email: customerEmail,
+          },
+          restaurantEmail,
+          featureLabel: "La Table du Chef",
+          items: group.preorderItems.map((item) => {
+            const metadata = item.metadata as Record<string, unknown> | undefined;
+            return {
+              name: String(item.name || "Expérience La Table du Chef"),
+              description: metadata?.chef_name ? `Chef ${metadata.chef_name}` : "Expérience réservée",
+              quantity: Number(item.quantity || 1),
+              unitPrice: Number(item.unit_price || 0),
+              totalPrice: Number(item.total_price || 0),
+            };
+          }),
+        });
+      } catch (emailError) {
+        log?.error?.("chefs_table_confirmation_email_queue_failed", {
+          reservation_id: reservationId,
+          message: emailError instanceof Error ? emailError.message : "unknown",
         });
       }
     } catch (error) {

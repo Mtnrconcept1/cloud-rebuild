@@ -10,6 +10,7 @@ import {
   triggerNotificationDispatch,
 } from "./notifications.ts";
 import { recordOrderChargeIfMissing } from "./payment-transactions.ts";
+import { queueOrderConfirmationEmails, type TransactionalEmailItem } from "./transactional-emails.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -25,6 +26,10 @@ export type OrderLookupRow = {
   restaurant_id: string;
   delivery_address: string | null;
   total_amount: number | null;
+  original_total?: number | null;
+  discount_amount?: number | null;
+  delivery_fee?: number | null;
+  service_fee_amount?: number | null;
   order_number: string | null;
   metadata: JsonRecord | null;
   scheduled_at: string | null;
@@ -179,7 +184,7 @@ async function findOrdersByIdentifiers(
     }
   };
 
-  const baseSelect = "id, status, payment_status, user_id, restaurant_id, delivery_address, total_amount, order_number, metadata, scheduled_at";
+  const baseSelect = "id, status, payment_status, user_id, restaurant_id, delivery_address, total_amount, original_total, discount_amount, delivery_fee, service_fee_amount, order_number, metadata, scheduled_at";
 
   const { data: sessionOrders } = await adminClient
     .from("orders")
@@ -281,28 +286,53 @@ export async function getStripePaymentMethodDetails(
   return { cardBrand, cardLast4, billingPhone };
 }
 
-async function queueOrderConfirmationEmail(input: {
-  adminClient: any;
-  userId: string;
-  orderReference: string | null;
-  totalAmount: number;
-  orderIds: string[];
-}) {
-  const { adminClient, userId, orderReference, totalAmount, orderIds } = input;
-  const { data: authUser } = await adminClient.auth.admin.getUserById(userId);
-  const userEmail = authUser?.user?.email || null;
-  if (!userEmail) return;
+function getPublicAppBaseUrl() {
+  return Deno.env.get("PUBLIC_APP_URL")
+    || Deno.env.get("APP_BASE_URL")
+    || Deno.env.get("SITE_URL")
+    || "https://www.thetok.ch";
+}
 
-  await adminClient.from("email_queue").insert({
-    to_email: userEmail,
-    subject: `Confirmation de commande ${orderReference || ""}`.trim() || "Confirmation de commande",
-    body_text: `Paiement confirme. Total valide: ${totalAmount.toFixed(2)} CHF`,
-    metadata: {
-      order_ids: orderIds,
-      order_reference: orderReference,
-      total_amount: totalAmount,
-    },
+function readString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function readNumber(value: unknown, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizeRelatedRow(value: unknown) {
+  if (Array.isArray(value)) return value[0] || null;
+  return value && typeof value === "object" ? value as Record<string, unknown> : null;
+}
+
+async function fetchOrderEmailItems(adminClient: any, orderId: string): Promise<TransactionalEmailItem[]> {
+  const { data, error } = await adminClient
+    .from("order_items")
+    .select("quantity, unit_price, total_price, metadata, menu_items(name, description, image_url)")
+    .eq("order_id", orderId);
+
+  if (error) throw error;
+
+  return ((data || []) as Array<Record<string, unknown>>).map((row) => {
+    const metadata = isJsonRecord(row.metadata) ? row.metadata : {};
+    const menuItem = normalizeRelatedRow(row.menu_items);
+    return {
+      name: readString(menuItem?.name) || readString(metadata.name) || "Article",
+      description: readString(menuItem?.description) || readString(metadata.description),
+      quantity: Math.max(1, readNumber(row.quantity, 1)),
+      unitPrice: readNumber(row.unit_price),
+      totalPrice: readNumber(row.total_price),
+      imageUrl: readString(menuItem?.image_url) || readString(metadata.image_url),
+    };
   });
+}
+
+async function getAuthUserEmail(adminClient: any, userId: string | null | undefined) {
+  if (!userId) return null;
+  const { data } = await adminClient.auth.admin.getUserById(userId);
+  return data?.user?.email || null;
 }
 
 export async function finalizePaidOrderCheckout(input: {
@@ -432,7 +462,7 @@ export async function finalizePaidOrderCheckout(input: {
 
     const { data: restaurant } = await adminClient
       .from("restaurants")
-      .select("owner_id, name")
+      .select("id, owner_id, name, address, city, phone")
       .eq("id", order.restaurant_id)
       .maybeSingle();
     const { data: profile } = order.user_id
@@ -475,6 +505,54 @@ export async function finalizePaidOrderCheckout(input: {
         },
       });
     }
+
+    try {
+      const customerEmail = await getAuthUserEmail(adminClient, order.user_id);
+      const restaurantEmail = await getAuthUserEmail(adminClient, restaurant?.owner_id);
+      const emailItems = await fetchOrderEmailItems(adminClient, order.id);
+      const journeyLabel = getOrderJourneyLabel({
+        isDelivery,
+        metadata: deliveryMetadata as Record<string, unknown>,
+      });
+
+      await queueOrderConfirmationEmails({
+        adminClient,
+        appBaseUrl: getPublicAppBaseUrl(),
+        order: {
+          id: order.id,
+          order_number: order.order_number || session.metadata?.order_reference || null,
+          created_at: new Date().toISOString(),
+          total_amount: Number(order.total_amount || 0),
+          original_total: readNumber(order.original_total ?? deliveryMetadata.original_total ?? deliveryMetadata.pre_discount_subtotal, Number(order.total_amount || 0)),
+          discount_amount: readNumber(order.discount_amount ?? deliveryMetadata.discount_amount),
+          delivery_fee: readNumber(order.delivery_fee ?? deliveryMetadata.delivery_fee ?? deliveryMetadata.delivery_fee_amount),
+          service_fee_amount: readNumber(order.service_fee_amount ?? deliveryMetadata.quality_fee_amount),
+          delivery_address: order.delivery_address || null,
+          metadata: deliveryMetadata,
+        },
+        restaurant: {
+          id: order.restaurant_id,
+          name: restaurant?.name || null,
+          address: restaurant?.address || null,
+          city: restaurant?.city || null,
+          phone: restaurant?.phone || null,
+        },
+        customer: {
+          name: profile?.full_name || null,
+          email: customerEmail,
+        },
+        restaurantEmail,
+        orderTypeLabel: journeyLabel,
+        scheduledLabel: readString(deliveryMetadata.scheduled_delivery_label),
+        paymentMethodLabel: paymentMethod,
+        items: emailItems,
+      });
+    } catch (emailError) {
+      log?.error?.("order_confirmation_email_queue_failed", {
+        orderId: order.id,
+        message: emailError instanceof Error ? emailError.message : "unknown",
+      });
+    }
   }
 
   if (primaryOrder?.user_id) {
@@ -495,17 +573,6 @@ export async function finalizePaidOrderCheckout(input: {
       if (benefitsError) {
         throw benefitsError;
       }
-    }
-
-    if (shouldDispatch) {
-      const totalAmount = finalizedOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
-      await queueOrderConfirmationEmail({
-        adminClient,
-        userId: primaryOrder.user_id,
-        orderReference: primaryOrder.order_number || session.metadata?.order_reference || null,
-        totalAmount,
-        orderIds: finalizedOrders.map((order) => order.id),
-      });
     }
   }
 

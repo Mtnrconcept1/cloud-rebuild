@@ -64,6 +64,9 @@ verify_jwt = true
 [functions.create-chefs-table-reservation]
 verify_jwt = true
 
+[functions.create-reservation]
+verify_jwt = true
+
 [functions.create-zero-attente-reservation]
 verify_jwt = true
 

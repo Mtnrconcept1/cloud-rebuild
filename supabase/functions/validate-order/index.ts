@@ -17,6 +17,7 @@ import {
   enqueueNotification,
   triggerNotificationDispatch,
 } from "../_shared/notifications.ts";
+import { queueOrderConfirmationEmails } from "../_shared/transactional-emails.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
@@ -66,6 +67,13 @@ function getRecordString(value: Record<string, unknown>, key: string) {
 function getRecordNumber(value: Record<string, unknown>, key: string, fallback: number) {
   const raw = Number(value[key]);
   return Number.isFinite(raw) ? raw : fallback;
+}
+
+function getPublicAppBaseUrl() {
+  return Deno.env.get("PUBLIC_APP_URL")
+    || Deno.env.get("APP_BASE_URL")
+    || Deno.env.get("SITE_URL")
+    || "https://www.thetok.ch";
 }
 
 function resolveCapacityRequestedAt(
@@ -345,27 +353,72 @@ Deno.serve(async (req) => {
       throw new HttpError(500, updateError.message);
     }
 
-      const { data: profile } = await actor.adminClient
-        .from("profiles")
-        .select("full_name")
+    const { data: profile } = await actor.adminClient
+      .from("profiles")
+      .select("full_name")
       .eq("user_id", actor.userId)
       .maybeSingle();
 
     if (!isAwaitingOnlinePayment) {
       const { data: authUser } = await actor.adminClient.auth.admin.getUserById(actor.userId);
-      const userEmail = authUser?.user?.email || "client@thetok.ch";
+      const { data: restaurantForEmail } = await actor.adminClient
+        .from("restaurants")
+        .select("id, owner_id, name, address, city, phone")
+        .eq("id", restaurant_id)
+        .maybeSingle();
+      const { data: ownerAuthUser } = restaurantForEmail?.owner_id
+        ? await actor.adminClient.auth.admin.getUserById(restaurantForEmail.owner_id)
+        : { data: null };
 
-      await actor.adminClient.from("email_queue").insert({
-        to_email: userEmail,
-        subject: `Confirmation de commande ${orderReference}`.trim(),
-        body_text: `Commande enregistree. Total valide: ${pricing.total.toFixed(2)} CHF`,
-        metadata: {
-          order_id: orderId,
-          restaurant_id,
-          items: pricing.validatedItems.length,
-          customer_name: profile?.full_name || null,
-        },
-      });
+      try {
+        await queueOrderConfirmationEmails({
+          adminClient: actor.adminClient,
+          appBaseUrl: getPublicAppBaseUrl(),
+          order: {
+            id: String(orderId),
+            order_number: orderReference || null,
+            created_at: new Date().toISOString(),
+            total_amount: pricing.total,
+            original_total: pricing.originalTotal,
+            discount_amount: pricing.discountAmount,
+            delivery_fee: pricing.deliveryFee,
+            service_fee_amount: pricing.qualityFee,
+            delivery_address: delivery_address || null,
+            notes: notes || null,
+            metadata: finalMetadata as Record<string, unknown>,
+          },
+          restaurant: {
+            id: restaurant_id,
+            name: restaurantForEmail?.name || null,
+            address: restaurantForEmail?.address || null,
+            city: restaurantForEmail?.city || null,
+            phone: restaurantForEmail?.phone || null,
+          },
+          customer: {
+            name: profile?.full_name || null,
+            email: authUser?.user?.email || null,
+          },
+          restaurantEmail: ownerAuthUser?.user?.email || null,
+          orderTypeLabel: getOrderJourneyLabel({
+            isDelivery,
+            metadata: finalMetadata as Record<string, unknown>,
+          }),
+          scheduledLabel: scheduledDelivery?.scheduledLabel || null,
+          paymentMethodLabel: paymentMethod === "cash" ? "Espèces" : paymentMethod,
+          items: pricing.validatedItems.map((item) => ({
+            name: item.name,
+            description: item.category || item.source,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.unitPrice * item.quantity,
+          })),
+        });
+      } catch (emailError) {
+        log.error("validate-order transactional email queue failed", {
+          orderId: String(orderId),
+          message: emailError instanceof Error ? emailError.message : "unknown",
+        });
+      }
     }
 
     if (!isAwaitingOnlinePayment && isDelivery && scheduledDelivery) {

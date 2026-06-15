@@ -1,11 +1,5 @@
 import { getSupabase } from "@/integrations/supabase/client";
 
-type SafeReservationCreateRow = {
-  reservation_id: string | null;
-  error_code: string | null;
-  error_message: string | null;
-};
-
 type SafeReservationStatusRow = {
   updated: boolean | null;
   error_code: string | null;
@@ -72,41 +66,49 @@ const getFirstRow = <T>(data: T[] | T | null | undefined): T | null => {
 export async function createReservationWithValidation(
   input: CreateReservationInput,
 ): Promise<ReservationCreateResult> {
-  // Call supabase.rpc as a method (not detached) to preserve `this` context.
-  // Supabase internally accesses `this.rest` which breaks if `this` is lost.
-  const { data, error } = await (getSupabase().rpc as any)("validate_and_create_reservation_safe", {
-    p_restaurant_id: input.restaurantId,
-    p_date: input.date,
-    p_time: input.time,
-    p_party_size: input.partySize,
-      p_feature: input.feature,
-      p_metadata: input.metadata,
-      p_notes: input.notes ?? null,
-      p_progressive_offer_id: input.progressiveOfferId ?? null,
-    });
+  const { data, error } = await getSupabase().functions.invoke("create-reservation", {
+    body: {
+      restaurant_id: input.restaurantId,
+      date: input.date,
+      time: input.time,
+      party_size: input.partySize,
+      feature: input.feature,
+      metadata: input.metadata,
+      notes: input.notes ?? null,
+      progressive_offer_id: input.progressiveOfferId ?? null,
+    },
+  });
 
   if (error) throw error;
 
-  const result = getFirstRow<SafeReservationCreateRow>(data);
-  if (!result) {
+  if (!data || typeof data !== "object") {
     throw new Error("Réponse serveur invalide.");
   }
 
-  if (result.error_message) {
+  const result = data as {
+    ok?: boolean;
+    reservationId?: string;
+    reservation_id?: string;
+    error_code?: string;
+    error_message?: string;
+  };
+
+  if (result.ok === false || result.error_message) {
     return {
       ok: false,
       errorCode: result.error_code || "validation_error",
-      errorMessage: result.error_message,
+      errorMessage: result.error_message || "Reservation impossible.",
     };
   }
 
-  if (!result.reservation_id) {
+  const reservationId = result.reservationId || result.reservation_id;
+  if (!reservationId) {
     throw new Error("Réservation non créée.");
   }
 
   return {
     ok: true,
-    reservationId: result.reservation_id,
+    reservationId,
   };
 }
 

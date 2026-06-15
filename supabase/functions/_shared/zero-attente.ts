@@ -5,6 +5,7 @@ import {
   triggerNotificationDispatch,
 } from "./notifications.ts";
 import { recordZeroAttenteChargeIfMissing } from "./payment-transactions.ts";
+import { queueReservationConfirmationEmails } from "./transactional-emails.ts";
 
 type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
@@ -123,6 +124,19 @@ function isZeroAttenteCheckoutKind(checkoutKind: string | null | undefined) {
   return checkoutKind === "zero-attente" || checkoutKind === "reservation_zero_attente";
 }
 
+function getPublicAppBaseUrl() {
+  return Deno.env.get("PUBLIC_APP_URL")
+    || Deno.env.get("APP_BASE_URL")
+    || Deno.env.get("SITE_URL")
+    || "https://www.thetok.ch";
+}
+
+async function getAuthUserEmail(adminClient: any, userId: string | null | undefined) {
+  if (!userId) return null;
+  const { data } = await adminClient.auth.admin.getUserById(userId);
+  return data?.user?.email || null;
+}
+
 export async function finalizeZeroAttenteCheckout(input: {
   adminClient: any;
   session: Stripe.Checkout.Session;
@@ -191,7 +205,7 @@ export async function finalizeZeroAttenteCheckout(input: {
 
   const { data: restaurant, error: restaurantError } = await adminClient
     .from("restaurants")
-    .select("owner_id, name")
+    .select("id, owner_id, name, address, city, phone")
     .eq("id", restaurantId)
     .maybeSingle();
   if (restaurantError) throw restaurantError;
@@ -378,6 +392,49 @@ export async function finalizeZeroAttenteCheckout(input: {
         url: "/reservations",
       },
     });
+
+    try {
+      const customerEmail = await getAuthUserEmail(adminClient, userId);
+      const restaurantEmail = await getAuthUserEmail(adminClient, restaurant?.owner_id);
+      await queueReservationConfirmationEmails({
+        adminClient,
+        appBaseUrl: getPublicAppBaseUrl(),
+        reservation: {
+          id: reservationId,
+          date: arrivalDate,
+          time: arrivalTime,
+          party_size: partySize,
+          feature: "zero-attente",
+          total_amount: total,
+          notes: note,
+        },
+        restaurant: {
+          id: restaurantId,
+          name: restaurant?.name || null,
+          address: restaurant?.address || null,
+          city: restaurant?.city || null,
+          phone: restaurant?.phone || null,
+        },
+        customer: {
+          name: zaProfile?.full_name || null,
+          email: customerEmail,
+        },
+        restaurantEmail,
+        featureLabel: "Zéro Attente",
+        items: preorderItems.map((item) => ({
+          name: item.name,
+          description: item.source,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          totalPrice: item.total_price,
+        })),
+      });
+    } catch (emailError) {
+      log?.error?.("zero_attente_confirmation_email_queue_failed", {
+        reservation_id: reservationId,
+        message: emailError instanceof Error ? emailError.message : "unknown",
+      });
+    }
 
     if (shouldDispatchNotifications) {
       try {
