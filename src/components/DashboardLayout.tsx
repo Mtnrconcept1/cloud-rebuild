@@ -258,7 +258,17 @@ function NavItems({
   );
 }
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+type DashboardLayoutProps = {
+  children: React.ReactNode;
+  contentWidth?: "default" | "full";
+  mainClassName?: string;
+};
+
+export default function DashboardLayout({
+  children,
+  contentWidth = "default",
+  mainClassName,
+}: DashboardLayoutProps) {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason } = useDashboardRestaurant();
@@ -461,13 +471,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* MAIN */}
-      <main className="relative flex-1 overflow-hidden p-5 pb-28 md:p-6">
+      <main className={cn("relative flex-1 overflow-hidden p-5 pb-28 md:p-6", mainClassName)}>
         <div className="pointer-events-none absolute inset-0 hidden dark:block">
           <div className="absolute -left-36 top-10 h-96 w-96 rounded-full bg-[#ff6a1a]/12 blur-3xl" />
           <div className="absolute right-0 top-1/4 h-[28rem] w-[28rem] rounded-full bg-[#1e4aa0]/18 blur-3xl" />
           <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-[#8b55ff]/10 blur-3xl" />
         </div>
-        <div className="relative z-10 mx-auto w-full max-w-7xl">
+        <div
+          className={cn(
+            "relative z-10 w-full",
+            contentWidth === "full" ? "max-w-none" : "mx-auto max-w-7xl",
+          )}
+        >
           <BackNavigationButton fallback={backFallback} className="mb-4" />
           {dashboardAccessLocked ? (
             <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50/90 p-5 text-amber-950 shadow-sm dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-50">

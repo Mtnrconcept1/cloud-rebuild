@@ -2960,8 +2960,8 @@ export default function DashboardPlanSalle() {
   })();
 
   return (
-    <DashboardLayout>
-      <div className="flex min-h-[calc(100vh-5rem)] flex-col gap-3 xl:overflow-hidden">
+    <DashboardLayout contentWidth="full" mainClassName="p-3 pb-24 md:p-4">
+      <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:overflow-hidden">
         <div className="shrink-0">
           <div className="rounded-2xl border border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm">
             <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">

@@ -42,7 +42,12 @@ describe("floor plan page layout", () => {
   it("fits the studio canvas to the available block without local canvas scrolling", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
     const canvas = readSource("src/components/floor-plan/StudioCanvas.tsx");
+    const dashboardLayout = readSource("src/components/DashboardLayout.tsx");
 
+    expect(page).toContain('<DashboardLayout contentWidth="full"');
+    expect(page).toContain('mainClassName="p-3 pb-24 md:p-4"');
+    expect(dashboardLayout).toContain('contentWidth?: "default" | "full"');
+    expect(dashboardLayout).toContain('contentWidth === "full" ? "max-w-none" : "mx-auto max-w-7xl"');
     expect(page).toContain("getAutoFitCanvasSize");
     expect(page).toContain("setCanvasHeight");
     expect(page).toContain("canvasRef.current || viewport");
