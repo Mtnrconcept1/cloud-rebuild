@@ -1,5 +1,5 @@
 import { useMemo, type DragEvent, type PointerEvent } from "react";
-import { Clock3, Grip, Search, Sparkles, Table2 } from "lucide-react";
+import { Clock3, Grip, PanelRightClose, PanelRightOpen, Pin, PinOff, Search, Sparkles, Table2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,10 @@ type ReservationQueueProps = {
   draftAssignments: Record<string, string | null>;
   tableMap: Map<string, ServiceDraftTable>;
   recommendedTablesByReservationId?: Map<string, ReservationTableRecommendation>;
+  collapsed?: boolean;
+  detached?: boolean;
+  onToggleCollapsed?: () => void;
+  onToggleDetached?: () => void;
   onReservationQueryChange: (value: string) => void;
   onReservationPress: (reservationId: string) => void;
   onReservationDragStart: (event: DragEvent<HTMLDivElement>, reservationId: string) => void;
@@ -250,6 +254,10 @@ export default function ReservationQueue({
   draftAssignments,
   tableMap,
   recommendedTablesByReservationId = new Map(),
+  collapsed = false,
+  detached = false,
+  onToggleCollapsed,
+  onToggleDetached,
   onReservationQueryChange,
   onReservationPress,
   onReservationDragStart,
@@ -280,6 +288,25 @@ export default function ReservationQueue({
       .slice(0, 8);
   }, [assignedReservations, draftAssignments, tableMap, unassignedReservations]);
 
+  if (collapsed) {
+    return (
+      <Card className="flex min-h-[180px] flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+        <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-panel-drag-handle title="Déplacer la file de service">
+          <Grip className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-xl" onClick={onToggleCollapsed} title="Déplier la file de service">
+          <PanelRightOpen className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={onToggleDetached} title={detached ? "Rattacher la file" : "Détacher la file"}>
+          {detached ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+        </Button>
+        <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
+          {totalReservations}
+        </Badge>
+      </Card>
+    );
+  }
+
   return (
     <Card className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <CardHeader className="space-y-3 border-b border-slate-200/80 px-4 py-3">
@@ -288,9 +315,20 @@ export default function ReservationQueue({
             <CardTitle className="text-lg text-slate-950">File de service</CardTitle>
             <CardDescription className="mt-1 text-sm text-slate-500">Glissez ou touchez une réservation.</CardDescription>
           </div>
-          <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
-            {totalReservations}
-          </Badge>
+          <div className="flex shrink-0 items-center gap-1">
+            <Badge variant="outline" className="rounded-full border-slate-200 bg-white text-slate-600">
+              {totalReservations}
+            </Badge>
+            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-panel-drag-handle title="Déplacer la file de service">
+              <Grip className="h-4 w-4" />
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={onToggleDetached} title={detached ? "Rattacher" : "Détacher"}>
+              {detached ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={onToggleCollapsed} title="Replier la file de service">
+              <PanelRightClose className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">

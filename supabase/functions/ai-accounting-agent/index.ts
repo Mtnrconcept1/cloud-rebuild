@@ -294,6 +294,8 @@ async function insertUsage(
     estimated_cost_chf: estimateCostChf(payload.usage?.input_tokens, payload.usage?.output_tokens),
     metadata: {
       feature: FEATURE_NAME,
+      credit_kind: "ai_tools",
+      credit_units: 5,
       accounting_insight_id: payload.insightId || null,
       ...(payload.metadata || {}),
     },

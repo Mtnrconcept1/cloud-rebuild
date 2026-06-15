@@ -1,10 +1,23 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Copy,
   Grip,
   Layers,
   LayoutPanelTop,
+  PanelRightClose,
+  PanelRightOpen,
+  Pin,
+  PinOff,
   Plus,
   Printer,
   Redo2,
@@ -50,6 +63,7 @@ import {
   isReservableFloorPlanItem,
   normalizeFloorPlanLayout,
   reservationsOverlap,
+  resolveFloorPlanViewportZoom,
   resizeFloorPlanLayoutToFootprint,
   resizeRenderedFloorPlanFrame,
   updateFloorPlanItemLayoutById,
@@ -222,6 +236,7 @@ const CANVAS_HEIGHT = 760;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
+const PANEL_SNAP_DISTANCE = 24;
 const RELEASED_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived"]);
 const FLOOR_PLAN_RESERVATIONS_LIMIT = 500;
 const EMPTY_BRANCHES: BranchRow[] = [];
@@ -235,6 +250,129 @@ const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 const getSafeTime = (value: string | null | undefined) => (value && value.slice(0, 5)) || "00:00";
+
+type DockablePanelPosition = { x: number; y: number };
+type DockablePanelSnapTarget = DockablePanelPosition & { width: number; height: number };
+
+function getAutoFitCanvasSize(viewportWidth: number, viewportHeight: number) {
+  const nextWidth = Math.floor(viewportWidth);
+  const nextHeight = Math.floor(viewportHeight);
+
+  return {
+    width: nextWidth > 0 ? nextWidth : CANVAS_WIDTH,
+    height: nextHeight > 0 ? nextHeight : CANVAS_HEIGHT,
+  };
+}
+
+function snapDockablePanelPosition(
+  position: DockablePanelPosition,
+  size: { width: number; height: number },
+  targets: DockablePanelSnapTarget[],
+) {
+  const viewportWidth = typeof window === "undefined" ? 1440 : window.innerWidth;
+  const viewportHeight = typeof window === "undefined" ? 900 : window.innerHeight;
+  const minX = 12;
+  const minY = 12;
+  const maxX = Math.max(minX, viewportWidth - size.width - 12);
+  const maxY = Math.max(minY, viewportHeight - size.height - 12);
+  let nextX = Math.min(maxX, Math.max(minX, position.x));
+  let nextY = Math.min(maxY, Math.max(minY, position.y));
+
+  const snapX = (candidate: number) => {
+    if (Math.abs(nextX - candidate) <= PANEL_SNAP_DISTANCE) nextX = candidate;
+  };
+  const snapY = (candidate: number) => {
+    if (Math.abs(nextY - candidate) <= PANEL_SNAP_DISTANCE) nextY = candidate;
+  };
+
+  snapX(minX);
+  snapX(maxX);
+  snapY(minY);
+  snapY(maxY);
+
+  targets.forEach((target) => {
+    snapX(target.x);
+    snapX(target.x + target.width - size.width);
+    snapX(target.x + target.width + 8);
+    snapX(target.x - size.width - 8);
+    snapY(target.y);
+    snapY(target.y + target.height - size.height);
+    snapY(target.y + target.height + 8);
+    snapY(target.y - size.height - 8);
+  });
+
+  return {
+    x: Math.min(maxX, Math.max(minX, Math.round(nextX))),
+    y: Math.min(maxY, Math.max(minY, Math.round(nextY))),
+  };
+}
+
+function DockableFloorPlanPanel({
+  detached,
+  position,
+  snapTargets = [],
+  className,
+  children,
+  onPositionChange,
+}: {
+  detached: boolean;
+  position: DockablePanelPosition;
+  snapTargets?: DockablePanelSnapTarget[];
+  className?: string;
+  children: ReactNode;
+  onPositionChange: (position: DockablePanelPosition) => void;
+}) {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  const startDraggingPanel = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!detached) return;
+    const handle = (event.target as HTMLElement).closest("[data-panel-drag-handle]");
+    if (!handle) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    event.preventDefault();
+    panel.setPointerCapture?.(event.pointerId);
+    const bounds = panel.getBoundingClientRect();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startPosition = { x: bounds.left, y: bounds.top };
+    const size = { width: bounds.width, height: bounds.height };
+
+    const handleMove = (moveEvent: PointerEvent) => {
+      onPositionChange({
+        x: startPosition.x + moveEvent.clientX - startX,
+        y: startPosition.y + moveEvent.clientY - startY,
+      });
+    };
+    const handleUp = (upEvent: PointerEvent) => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      onPositionChange(snapDockablePanelPosition({
+        x: startPosition.x + upEvent.clientX - startX,
+        y: startPosition.y + upEvent.clientY - startY,
+      }, size, snapTargets));
+    };
+
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp, { once: true });
+  };
+
+  if (!detached) {
+    return <div className={cn("min-h-0", className)}>{children}</div>;
+  }
+
+  return (
+    <div
+      ref={panelRef}
+      className={cn("fixed z-[90] max-h-[calc(100vh-24px)] min-h-0 w-[min(380px,calc(100vw-24px))]", className)}
+      style={{ left: position.x, top: position.y }}
+      onPointerDown={startDraggingPanel}
+    >
+      {children}
+    </div>
+  );
+}
 
 function formatDateOnlyForQuery(date: Date) {
   const year = date.getFullYear();
@@ -503,12 +641,12 @@ function layoutToRecord(layout: FloorPlanTableLayout) {
   };
 }
 
-function buildFloorPlanVariantSnapshot(tables: readonly DraftTable[], canvasWidth: number): FloorPlanVariantSnapshot {
+function buildFloorPlanVariantSnapshot(tables: readonly DraftTable[], canvasWidth: number, canvasHeight: number): FloorPlanVariantSnapshot {
   return {
     version: 1,
     canvas: {
       width: Math.round(canvasWidth),
-      height: CANVAS_HEIGHT,
+      height: Math.round(canvasHeight),
     },
     tables: tables.map((table) => ({
       table_number: table.table_number,
@@ -784,6 +922,13 @@ export default function DashboardPlanSalle() {
   } | null>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [canvasWidth, setCanvasWidth] = useState(CANVAS_WIDTH);
+  const [canvasHeight, setCanvasHeight] = useState(CANVAS_HEIGHT);
+  const [serviceQueueCollapsed, setServiceQueueCollapsed] = useState(false);
+  const [serviceQueueDetached, setServiceQueueDetached] = useState(false);
+  const [serviceQueuePosition, setServiceQueuePosition] = useState<DockablePanelPosition>({ x: 1190, y: 210 });
+  const [toolsPanelCollapsed, setToolsPanelCollapsed] = useState(false);
+  const [toolsPanelDetached, setToolsPanelDetached] = useState(false);
+  const [toolsPanelPosition, setToolsPanelPosition] = useState<DockablePanelPosition>({ x: 1160, y: 220 });
   const [tableConfigDialogOpen, setTableConfigDialogOpen] = useState(false);
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
   const [editingSeatingTableId, setEditingSeatingTableId] = useState<string | null>(null);
@@ -847,24 +992,45 @@ export default function DashboardPlanSalle() {
   }, [selectedTableId]);
 
   useEffect(() => {
-    const viewport = canvasViewportRef.current;
-    if (!viewport) return undefined;
+    let observedViewport: HTMLDivElement | null = null;
+    let observer: ResizeObserver | null = null;
+    let frameId: number | null = null;
 
-    const updateWidth = () => {
-      const nextWidth = Math.max(CANVAS_WIDTH, Math.floor(viewport.clientWidth));
-      setCanvasWidth((current) => (current === nextWidth ? current : nextWidth));
+    const updateSize = () => {
+      const viewport = canvasViewportRef.current;
+      if (!viewport) return;
+      const measuredCanvas = canvasRef.current || viewport;
+      const nextSize = getAutoFitCanvasSize(measuredCanvas.clientWidth, measuredCanvas.clientHeight);
+      setCanvasWidth((current) => (current === nextSize.width ? current : nextSize.width));
+      setCanvasHeight((current) => (current === nextSize.height ? current : nextSize.height));
     };
 
-    updateWidth();
+    const observeCurrentViewport = () => {
+      const viewport = canvasViewportRef.current;
+      if (viewport && viewport !== observedViewport) {
+        observer?.disconnect();
+        observedViewport = viewport;
+        updateSize();
 
-    if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", updateWidth);
-      return () => window.removeEventListener("resize", updateWidth);
-    }
+        if (typeof ResizeObserver !== "undefined") {
+          observer = new ResizeObserver(() => updateSize());
+          observer.observe(viewport);
+        }
+      }
 
-    const observer = new ResizeObserver(() => updateWidth());
-    observer.observe(viewport);
-    return () => observer.disconnect();
+      frameId = window.requestAnimationFrame(observeCurrentViewport);
+    };
+
+    observeCurrentViewport();
+    window.addEventListener("resize", updateSize);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      observer?.disconnect();
+      window.removeEventListener("resize", updateSize);
+    };
   }, []);
 
   const { data: restaurantDetails } = useQuery({
@@ -1153,14 +1319,19 @@ export default function DashboardPlanSalle() {
       .sort((left, right) => sortReservations(left, right, sortBy))
   ), [branchScopedReservations, normalizedReservationQuery, referenceDate, serviceFilter, sortBy, statusFilter, timeRange]);
 
+  const effectiveCanvasZoom = useMemo(
+    () => resolveFloorPlanViewportZoom(canvasZoom, canvasWidth, canvasHeight),
+    [canvasHeight, canvasWidth, canvasZoom],
+  );
+
   const floorPlanViewport = useMemo(
     () => buildFloorPlanViewportModel(draftTables, {
       sector: selectedSector,
-      zoom: canvasZoom,
+      zoom: effectiveCanvasZoom,
       canvasWidth,
-      canvasHeight: CANVAS_HEIGHT,
+      canvasHeight,
     }),
-    [canvasWidth, canvasZoom, draftTables, selectedSector],
+    [canvasHeight, canvasWidth, draftTables, effectiveCanvasZoom, selectedSector],
   );
   const visibleTables = floorPlanViewport.visibleItems;
   const visibleReservableTables = floorPlanViewport.visibleReservableItems;
@@ -1318,7 +1489,7 @@ export default function DashboardPlanSalle() {
   const availableTables = visibleReservableTables.filter((table) => !assignedVisibleTableIds.has(table.id));
   const assignedVisibleReservations = filteredReservations.filter((reservation) => !!draftAssignments[reservation.id]);
   const canPersist = !!selectedBranchId && (isTemplateMode || !hasUnpersistedDraftTables);
-  const canvasZoomLabel = `${Math.round(canvasZoom * 100)}%`;
+  const canvasZoomLabel = `${Math.round(effectiveCanvasZoom * 100)}%`;
   const selectedReservationAssignedTableDropState = selectedReservation && selectedTable && selectedTableIsReservable
     ? getReservationDropState(selectedReservation.id, selectedTable.id)
     : null;
@@ -1340,6 +1511,12 @@ export default function DashboardPlanSalle() {
         || left.table.table_number.localeCompare(right.table.table_number, "fr")
       ))
       .slice(0, 6)
+    : [];
+  const serviceQueueSnapTargets = toolsPanelDetached
+    ? [{ ...toolsPanelPosition, width: toolsPanelCollapsed ? 72 : 380, height: toolsPanelCollapsed ? 220 : 620 }]
+    : [];
+  const toolsPanelSnapTargets = serviceQueueDetached
+    ? [{ ...serviceQueuePosition, width: serviceQueueCollapsed ? 72 : 380, height: serviceQueueCollapsed ? 220 : 620 }]
     : [];
   const recommendedTablesByReservationId = useMemo(() => {
     const getCurrentTableReservations = (tableId: string) => branchScopedReservations.filter((candidate) => {
@@ -1464,9 +1641,10 @@ export default function DashboardPlanSalle() {
               layout,
               nextRenderedX,
               nextRenderedY,
-              canvasZoom,
+              effectiveCanvasZoom,
               canvasWidth,
-              CANVAS_HEIGHT,
+              canvasHeight,
+              floorPlanViewport.anchor,
             );
             return {
               ...layout,
@@ -1491,14 +1669,14 @@ export default function DashboardPlanSalle() {
               resizeState.handle,
               deltaX,
               deltaY,
-              minimumSize.w * canvasZoom,
-              minimumSize.h * canvasZoom,
+              minimumSize.w * effectiveCanvasZoom,
+              minimumSize.h * effectiveCanvasZoom,
             );
             const resizedLayout = resizeFloorPlanLayoutToFootprint(
               resizeState.startLayout,
               table.capacity,
-              resizedFrame.w / canvasZoom,
-              resizedFrame.h / canvasZoom,
+              resizedFrame.w / effectiveCanvasZoom,
+              resizedFrame.h / effectiveCanvasZoom,
               resizeState.startLayout.shape,
               resizeState.startLayout.kind,
             );
@@ -1506,9 +1684,10 @@ export default function DashboardPlanSalle() {
               resizedLayout,
               resizedFrame.x,
               resizedFrame.y,
-              canvasZoom,
+              effectiveCanvasZoom,
               canvasWidth,
-              CANVAS_HEIGHT,
+              canvasHeight,
+              floorPlanViewport.anchor,
             );
             return {
               ...resizedLayout,
@@ -1549,7 +1728,7 @@ export default function DashboardPlanSalle() {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [canvasWidth, canvasZoom, dragState, getRenderedDraftTableFrame, resizeState, rotateState, tableMap]);
+  }, [canvasHeight, canvasWidth, dragState, effectiveCanvasZoom, floorPlanViewport.anchor, getRenderedDraftTableFrame, resizeState, rotateState, tableMap]);
 
   useEffect(() => {
     if (!reservationPointerDrag) return undefined;
@@ -1694,7 +1873,7 @@ export default function DashboardPlanSalle() {
       }
 
       const tables = input?.tables ?? draftTables;
-      const snapshot = buildFloorPlanVariantSnapshot(tables, canvasWidth);
+      const snapshot = buildFloorPlanVariantSnapshot(tables, canvasWidth, canvasHeight);
       const {
         data: { user },
         error: userError,
@@ -2074,15 +2253,19 @@ export default function DashboardPlanSalle() {
   const updateDraftTableFootprint = (tableId: string, width: number, height: number) => {
     updateDraftTable(tableId, (table) => ({
       ...table,
-      layout: ensureFloorPlanLayoutFitsCapacity(
-        {
-          ...table.layout,
-          w: Math.round(width),
-          h: Math.round(height),
-        },
-        table.capacity,
-        table.layout.shape,
-        table.layout.kind,
+      layout: clampFloorPlanLayout(
+        ensureFloorPlanLayoutFitsCapacity(
+          {
+            ...table.layout,
+            w: Math.round(width),
+            h: Math.round(height),
+          },
+          table.capacity,
+          table.layout.shape,
+          table.layout.kind,
+        ),
+        canvasWidth,
+        canvasHeight,
       ),
     }));
   };
@@ -2095,7 +2278,7 @@ export default function DashboardPlanSalle() {
         ...table.layout,
         x: table.layout.x + deltaX,
         y: table.layout.y + deltaY,
-      }),
+      }, canvasWidth, canvasHeight),
     }));
   };
 
@@ -2246,7 +2429,7 @@ export default function DashboardPlanSalle() {
           ...source.layout,
           x: source.layout.x + 24,
           y: source.layout.y + 24,
-        }),
+        }, canvasWidth, canvasHeight),
       },
     ];
     commitHistorySnapshot(buildHistorySnapshot(nextTables, draftAssignments, tableId));
@@ -2265,6 +2448,7 @@ export default function DashboardPlanSalle() {
     const AI_KIND_MAP: Record<string, { kind: FloorPlanItemKind; category: "table" | "furniture" }> = {
       "table-round-2": { kind: "table", category: "table" },
       "table-round-4": { kind: "table", category: "table" },
+      "table-rect-2": { kind: "table", category: "table" },
       "table-rect-4": { kind: "table", category: "table" },
       "table-rect-6": { kind: "table", category: "table" },
       table: { kind: "table", category: "table" },
@@ -2309,6 +2493,8 @@ export default function DashboardPlanSalle() {
           shape,
           mapped.kind,
         ),
+        canvasWidth,
+        canvasHeight,
       );
 
       return {
@@ -2651,7 +2837,7 @@ export default function DashboardPlanSalle() {
   const handleCanvasWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
-    updateCanvasZoom(canvasZoom + (event.deltaY < 0 ? CANVAS_ZOOM_STEP : -CANVAS_ZOOM_STEP));
+    updateCanvasZoom(effectiveCanvasZoom + (event.deltaY < 0 ? CANVAS_ZOOM_STEP : -CANVAS_ZOOM_STEP));
   };
 
   const handleCanvasDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -2897,11 +3083,16 @@ export default function DashboardPlanSalle() {
                     </Button>
                   </div>
                   <div className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:flex">
-                    <Select value={String(canvasZoom)} onValueChange={(value) => updateCanvasZoom(Number(value))}>
+                    <Select value={String(effectiveCanvasZoom)} onValueChange={(value) => updateCanvasZoom(Number(value))}>
                       <SelectTrigger className="h-9 w-[96px] rounded-lg border-0 bg-transparent px-2 shadow-none focus:ring-0">
                         <SelectValue placeholder={canvasZoomLabel} />
                       </SelectTrigger>
                       <SelectContent>
+                        {[0.5, 0.75, 1, 1.25, 1.5].includes(effectiveCanvasZoom) ? null : (
+                          <SelectItem value={String(effectiveCanvasZoom)}>
+                            {canvasZoomLabel}
+                          </SelectItem>
+                        )}
                         {[0.5, 0.75, 1, 1.25, 1.5].map((zoom) => (
                           <SelectItem key={zoom} value={String(zoom)}>
                             {Math.round(zoom * 100)}%
@@ -3142,12 +3333,20 @@ export default function DashboardPlanSalle() {
             </div>
 
             {isTemplateMode ? (
-              <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_380px]">
+              <div className={cn(
+                "grid min-h-0 flex-1 gap-3",
+                toolsPanelDetached
+                  ? "xl:grid-cols-1"
+                  : toolsPanelCollapsed
+                    ? "xl:grid-cols-[minmax(0,1fr)_72px]"
+                    : "xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_380px]",
+              )}>
                 <div className="flex min-h-0 flex-1 flex-col gap-5">
                   <StudioCanvas
                     selectedSector={selectedSector}
                     canvasWidth={canvasWidth}
-                    canvasZoom={canvasZoom}
+                    canvasHeight={canvasHeight}
+                    canvasZoom={effectiveCanvasZoom}
                     canvasZoomLabel={canvasZoomLabel}
                     canvasRef={canvasRef}
                     canvasViewportRef={canvasViewportRef}
@@ -3168,132 +3367,172 @@ export default function DashboardPlanSalle() {
 
                 </div>
 
-                <Tabs
-                  value={toolPanelTab}
-                  onValueChange={(value) => setToolPanelTab(value as "library" | "inspector")}
-                  className="flex min-h-0 flex-col rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm"
+                <DockableFloorPlanPanel
+                  detached={toolsPanelDetached}
+                  position={toolsPanelPosition}
+                  snapTargets={toolsPanelSnapTargets}
+                  onPositionChange={setToolsPanelPosition}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-950">Outils</p>
-                      <p className="truncate text-xs text-slate-500">
-                        {selectedTable ? selectedTable.table_number : "Ajoutez ou réglez un élément"}
-                      </p>
-                    </div>
-                    <TabsList className="grid h-10 w-[178px] shrink-0 grid-cols-2 rounded-xl bg-slate-100 p-1">
-                      <TabsTrigger value="library" className="rounded-lg text-xs">Ajouter</TabsTrigger>
-                      <TabsTrigger value="inspector" className="rounded-lg text-xs">Réglages</TabsTrigger>
-                    </TabsList>
-                  </div>
-                  <TabsContent value="library" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
-                    <StudioPalette
-                      selectedId={selectedId}
-                      selectedSector={selectedSector}
-                      sectorOptions={sectorOptions}
-                      libraryTab={libraryTab}
-                      libraryQuery={libraryQuery}
-                      canvasWidth={canvasWidth}
-                      canvasHeight={CANVAS_HEIGHT}
-                      draftTables={draftTables}
-                      tablesLoading={tablesLoading}
-                      newSectorName={newSectorName}
-                      onLibraryTabChange={setLibraryTab}
-                      onLibraryQueryChange={setLibraryQuery}
-                      onPresetClick={(presetId) => {
-                        addTableFromPreset(presetId);
-                        setToolPanelTab("inspector");
-                      }}
-                      onSectorSelect={setSelectedSector}
-                      onNewSectorNameChange={setNewSectorName}
-                      onAddSector={addSector}
-                      onApplyAILayout={(layout) => {
-                        applyAILayout(layout);
-                        setToolPanelTab("inspector");
-                      }}
-                      presetsByTab={filteredLibraryPresets}
-                    />
-                  </TabsContent>
-                  <TabsContent value="inspector" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
-                    <StudioInspector
-                      selectedTable={selectedTable}
-                      selectedTableIsReservable={selectedTableIsReservable}
-                      selectedTableDimensions={selectedTableDimensions}
-                      sectorOptions={sectorOptions}
-                      onRename={(value) => {
-                        if (!selectedTable) return;
-                        updateDraftTable(selectedTable.id, (table) => ({
-                          ...table,
-                          table_number: value,
-                        }));
-                      }}
-                      onSectorChange={(value) => {
-                        if (!selectedTable) return;
-                        updateDraftTable(selectedTable.id, (table) => ({
-                          ...table,
-                          sector: value,
-                        }));
-                      }}
-                      onRotationChange={(value) => {
-                        if (!selectedTable) return;
-                        updateDraftTable(selectedTable.id, (table) => ({
-                          ...table,
-                          layout: { ...table.layout, rotation: value },
-                        }));
-                      }}
-                      onRotateIncrement={() => {
-                        if (!selectedTable) return;
-                        updateDraftTable(selectedTable.id, (table) => ({
-                          ...table,
-                          layout: {
-                            ...table.layout,
-                            rotation: (table.layout.rotation + 45) % 360,
-                          },
-                        }));
-                      }}
-                      onToggleActive={(checked) => {
-                        if (!selectedTable) return;
-                        updateDraftTable(selectedTable.id, (table) => ({
-                          ...table,
-                          is_active: checked,
-                        }));
-                      }}
-                      onConfigureTable={() => {
-                        if (!selectedTable) return;
-                        setEditingSeatingTableId(selectedTable.id);
-                        setTableConfigDialogOpen(true);
-                      }}
-                      onDuplicate={() => {
-                        if (!selectedTable) return;
-                        duplicateTable(selectedTable.id);
-                      }}
-                      onRemove={() => {
-                        if (!selectedTable) return;
-                        removeDraftTable(selectedTable.id);
-                      }}
-                      onUpdateFurnitureWidth={(value) => {
-                        if (!selectedTable) return;
-                        updateDraftTableFootprint(selectedTable.id, value, selectedTable.layout.h);
-                      }}
-                      onUpdateFurnitureHeight={(value) => {
-                        if (!selectedTable) return;
-                        updateDraftTableFootprint(selectedTable.id, selectedTable.layout.w, value);
-                      }}
-                      onUpdateFurnitureSize={(width, height) => {
-                        if (!selectedTable) return;
-                        updateDraftTableFootprint(selectedTable.id, width, height);
-                      }}
-                    />
-                  </TabsContent>
-                </Tabs>
+                  {toolsPanelCollapsed ? (
+                    <Card className="flex min-h-0 flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm">
+                      <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-panel-drag-handle title="Déplacer le panneau outils">
+                        <Grip className="h-4 w-4" />
+                      </Button>
+                      <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setToolsPanelCollapsed(false)} title="Déplier les outils">
+                        <PanelRightOpen className="h-4 w-4" />
+                      </Button>
+                      <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setToolsPanelDetached((value) => !value)} title={toolsPanelDetached ? "Rattacher les outils" : "Détacher les outils"}>
+                        {toolsPanelDetached ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+                      </Button>
+                    </Card>
+                  ) : (
+                    <Tabs
+                      value={toolPanelTab}
+                      onValueChange={(value) => setToolPanelTab(value as "library" | "inspector")}
+                      className="flex min-h-0 flex-col rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-950">Outils</p>
+                          <p className="truncate text-xs text-slate-500">
+                            {selectedTable ? selectedTable.table_number : "Ajoutez ou réglez un élément"}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-panel-drag-handle title="Déplacer le panneau outils">
+                            <Grip className="h-4 w-4" />
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setToolsPanelDetached((value) => !value)} title={toolsPanelDetached ? "Rattacher" : "Détacher"}>
+                            {toolsPanelDetached ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => setToolsPanelCollapsed(true)} title="Replier les outils">
+                            <PanelRightClose className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <TabsList className="mt-3 grid h-10 w-full shrink-0 grid-cols-2 rounded-xl bg-slate-100 p-1">
+                        <TabsTrigger value="library" className="rounded-lg text-xs">Ajouter</TabsTrigger>
+                        <TabsTrigger value="inspector" className="rounded-lg text-xs">Réglages</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="library" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+                        <StudioPalette
+                          selectedId={selectedId}
+                          selectedSector={selectedSector}
+                          sectorOptions={sectorOptions}
+                          libraryTab={libraryTab}
+                          libraryQuery={libraryQuery}
+                          canvasWidth={canvasWidth}
+                          canvasHeight={canvasHeight}
+                          draftTables={draftTables}
+                          tablesLoading={tablesLoading}
+                          newSectorName={newSectorName}
+                          onLibraryTabChange={setLibraryTab}
+                          onLibraryQueryChange={setLibraryQuery}
+                          onPresetClick={(presetId) => {
+                            addTableFromPreset(presetId);
+                            setToolPanelTab("inspector");
+                          }}
+                          onSectorSelect={setSelectedSector}
+                          onNewSectorNameChange={setNewSectorName}
+                          onAddSector={addSector}
+                          onApplyAILayout={(layout) => {
+                            applyAILayout(layout);
+                            setToolPanelTab("inspector");
+                          }}
+                          presetsByTab={filteredLibraryPresets}
+                        />
+                      </TabsContent>
+                      <TabsContent value="inspector" className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+                        <StudioInspector
+                          selectedTable={selectedTable}
+                          selectedTableIsReservable={selectedTableIsReservable}
+                          selectedTableDimensions={selectedTableDimensions}
+                          sectorOptions={sectorOptions}
+                          onRename={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              table_number: value,
+                            }));
+                          }}
+                          onSectorChange={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              sector: value,
+                            }));
+                          }}
+                          onRotationChange={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              layout: { ...table.layout, rotation: value },
+                            }));
+                          }}
+                          onRotateIncrement={() => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              layout: {
+                                ...table.layout,
+                                rotation: (table.layout.rotation + 45) % 360,
+                              },
+                            }));
+                          }}
+                          onToggleActive={(checked) => {
+                            if (!selectedTable) return;
+                            updateDraftTable(selectedTable.id, (table) => ({
+                              ...table,
+                              is_active: checked,
+                            }));
+                          }}
+                          onConfigureTable={() => {
+                            if (!selectedTable) return;
+                            setEditingSeatingTableId(selectedTable.id);
+                            setTableConfigDialogOpen(true);
+                          }}
+                          onDuplicate={() => {
+                            if (!selectedTable) return;
+                            duplicateTable(selectedTable.id);
+                          }}
+                          onRemove={() => {
+                            if (!selectedTable) return;
+                            removeDraftTable(selectedTable.id);
+                          }}
+                          onUpdateFurnitureWidth={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTableFootprint(selectedTable.id, value, selectedTable.layout.h);
+                          }}
+                          onUpdateFurnitureHeight={(value) => {
+                            if (!selectedTable) return;
+                            updateDraftTableFootprint(selectedTable.id, selectedTable.layout.w, value);
+                          }}
+                          onUpdateFurnitureSize={(width, height) => {
+                            if (!selectedTable) return;
+                            updateDraftTableFootprint(selectedTable.id, width, height);
+                          }}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  )}
+                </DockableFloorPlanPanel>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
+              <div className={cn(
+                "grid min-h-0 flex-1 gap-3",
+                serviceQueueDetached
+                  ? "xl:grid-cols-1"
+                  : serviceQueueCollapsed
+                    ? "xl:grid-cols-[minmax(0,1fr)_72px]"
+                    : "xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]",
+              )}>
                 <ServiceBoard
                   selectedSector={selectedSector}
                   subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} réservation(s) visibles`}
                   activeReservationLabel={activeServiceReservation ? getReservationCustomerLabel(activeServiceReservation) : null}
                   canvasWidth={canvasWidth}
-                  canvasZoom={canvasZoom}
+                  canvasHeight={canvasHeight}
+                  canvasZoom={effectiveCanvasZoom}
                   canvasZoomLabel={canvasZoomLabel}
                   canvasRef={canvasRef}
                   canvasViewportRef={canvasViewportRef}
@@ -3329,26 +3568,37 @@ export default function DashboardPlanSalle() {
                   getTableContentPadding={getTableContentPadding}
                 />
 
-                <ReservationQueue
-                  reservationQuery={reservationQuery}
-                  reservationsLoading={reservationsLoading}
-                  selectedReservationId={selectedReservationId}
-                  selectedTable={selectedTableIsReservable ? selectedTable : null}
-                  draggedReservationId={draggedReservationId}
-                  unassignedReservations={unassignedVisibleReservations}
-                  assignedReservations={assignedVisibleReservations}
-                  draftAssignments={draftAssignments}
-                  tableMap={tableMap}
-                  recommendedTablesByReservationId={recommendedTablesByReservationId}
-                  onReservationQueryChange={setReservationQuery}
-                  onReservationPress={handleServiceReservationPress}
-                  onReservationDragStart={handleReservationDragStart}
-                  onReservationDragEnd={handleReservationDragEnd}
-                  onReservationHandlePointerDown={handleReservationHandlePointerDown}
-                  onReleaseReservation={clearReservationAssignment}
-                  onAssignReservationToTable={assignReservationToTable}
-                  getReservationDropState={getReservationDropState}
-                />
+                <DockableFloorPlanPanel
+                  detached={serviceQueueDetached}
+                  position={serviceQueuePosition}
+                  snapTargets={serviceQueueSnapTargets}
+                  onPositionChange={setServiceQueuePosition}
+                >
+                  <ReservationQueue
+                    reservationQuery={reservationQuery}
+                    reservationsLoading={reservationsLoading}
+                    selectedReservationId={selectedReservationId}
+                    selectedTable={selectedTableIsReservable ? selectedTable : null}
+                    draggedReservationId={draggedReservationId}
+                    unassignedReservations={unassignedVisibleReservations}
+                    assignedReservations={assignedVisibleReservations}
+                    draftAssignments={draftAssignments}
+                    tableMap={tableMap}
+                    recommendedTablesByReservationId={recommendedTablesByReservationId}
+                    collapsed={serviceQueueCollapsed}
+                    detached={serviceQueueDetached}
+                    onToggleCollapsed={() => setServiceQueueCollapsed((value) => !value)}
+                    onToggleDetached={() => setServiceQueueDetached((value) => !value)}
+                    onReservationQueryChange={setReservationQuery}
+                    onReservationPress={handleServiceReservationPress}
+                    onReservationDragStart={handleReservationDragStart}
+                    onReservationDragEnd={handleReservationDragEnd}
+                    onReservationHandlePointerDown={handleReservationHandlePointerDown}
+                    onReleaseReservation={clearReservationAssignment}
+                    onAssignReservationToTable={assignReservationToTable}
+                    getReservationDropState={getReservationDropState}
+                  />
+                </DockableFloorPlanPanel>
               </div>
             )}
           </div>

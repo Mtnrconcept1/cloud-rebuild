@@ -11,7 +11,9 @@ describe("floor plan page layout", () => {
   it("keeps the template workspace canvas-first with one tools panel", () => {
     const source = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
 
-    expect(source).toContain("xl:grid-cols-[minmax(0,1fr)_360px]");
+    expect(source).toContain("DockableFloorPlanPanel");
+    expect(source).toContain("toolsPanelCollapsed");
+    expect(source).toContain("toolsPanelDetached");
     expect(source).toContain("value={toolPanelTab}");
     expect(source).toContain('value="library"');
     expect(source).toContain('value="inspector"');
@@ -26,11 +28,30 @@ describe("floor plan page layout", () => {
   it("keeps floor plan panels compact instead of duplicating stat cards", () => {
     const canvas = readSource("src/components/floor-plan/StudioCanvas.tsx");
     const serviceBoard = readSource("src/components/floor-plan/ServiceBoard.tsx");
+    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
 
     expect(canvas).not.toContain("Le canevas garde son scroll local");
+    expect(page).toContain("serviceQueueCollapsed");
+    expect(page).toContain("serviceQueueDetached");
+    expect(page).toContain("getAutoFitCanvasSize");
     expect(serviceBoard).toContain("Tables {visibleTablesCount}");
     expect(serviceBoard).not.toContain("Tables visibles");
     expect(serviceBoard).not.toContain("Surface de service");
+  });
+
+  it("fits the studio canvas to the available block without local canvas scrolling", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
+    const canvas = readSource("src/components/floor-plan/StudioCanvas.tsx");
+
+    expect(page).toContain("getAutoFitCanvasSize");
+    expect(page).toContain("setCanvasHeight");
+    expect(page).toContain("canvasRef.current || viewport");
+    expect(page).toContain("canvasHeight={canvasHeight}");
+    expect(canvas).toContain("canvasHeight");
+    expect(canvas).toContain("overflow-hidden");
+    expect(canvas).toContain("h-full w-full");
+    expect(canvas).not.toContain("overflow-auto");
+    expect(canvas).not.toContain("const CANVAS_HEIGHT = 760");
   });
 
   it("renders right-side tools without nested card shells", () => {

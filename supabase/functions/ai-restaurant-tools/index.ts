@@ -103,7 +103,7 @@ async function insertUsage(
     input_tokens: payload.usage?.input_tokens ?? 0,
     output_tokens: payload.usage?.output_tokens ?? 0,
     total_tokens: payload.usage?.total_tokens ?? 0,
-    metadata: payload.metadata || {},
+    metadata: { credit_kind: "ai_tools", credit_units: 5, ...(payload.metadata || {}) },
   });
 }
 

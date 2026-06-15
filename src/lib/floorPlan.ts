@@ -64,6 +64,7 @@ export type FloorPlanTableLayout = {
 
 export type FloorPlanResizeHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 export type FloorPlanRenderedFrame = { x: number; y: number; w: number; h: number };
+export type FloorPlanViewportAnchor = { x: number; y: number };
 export type FloorPlanInteractiveFrame = FloorPlanRenderedFrame & {
   visualOffsetX: number;
   visualOffsetY: number;
@@ -162,6 +163,8 @@ type FloorPlanReservationSchedule = {
 const DEFAULT_PADDING = 16;
 const DEFAULT_CANVAS_WIDTH = 1040;
 const DEFAULT_CANVAS_HEIGHT = 680;
+const ROOM_SURFACE_INSET = 46;
+const ROOM_SURFACE_RENDER_GUARD = 4;
 
 const VALID_SEAT_TYPES = new Set<FloorPlanSeatType>(["chair", "stool", "bench", "corner-bench"]);
 const VALID_LINEAR_SEAT_TYPES = new Set<FloorPlanLinearSeatType>(["chair", "stool", "bench"]);
@@ -547,12 +550,44 @@ function distributeRoundZones(capacity: number) {
   const counts = new Map<FloorPlanRoundSeatZone, number>();
   ROUND_SEAT_ZONES.forEach((zone) => counts.set(zone, 0));
 
+  if (safeCapacity === 2) {
+    counts.set("north", 1);
+    counts.set("south", 1);
+    return counts;
+  }
+
+  if (safeCapacity === 4) {
+    counts.set("north", 1);
+    counts.set("east", 1);
+    counts.set("south", 1);
+    counts.set("west", 1);
+    return counts;
+  }
+
   for (let index = 0; index < safeCapacity; index += 1) {
     const zone = ROUND_SEAT_ZONES[index % ROUND_SEAT_ZONES.length];
     counts.set(zone, (counts.get(zone) || 0) + 1);
   }
 
   return counts;
+}
+
+function getOpposedRoundTwoSeatPlacements(
+  type: FloorPlanLinearSeatType,
+): FloorPlanSeatPlacement[] {
+  return [
+    { zone: "north", type, count: 1 },
+    { zone: "south", type, count: 1 },
+  ];
+}
+
+function shouldOpposeRoundTwoSeats(
+  shape: FloorPlanTableShape,
+  placements: FloorPlanSeatPlacement[],
+) {
+  if (shape !== "round") return false;
+  if (placements.some((placement) => placement.type === "bench")) return false;
+  return placements.reduce((total, placement) => total + placement.count, 0) === 2;
 }
 
 export function getDefaultBenchDimensions(
@@ -621,7 +656,11 @@ function normalizeSeatPlacements(
     parsedPlacements.forEach((placement) => {
       deduped.set(placement.zone, placement);
     });
-    return Array.from(deduped.values());
+    const nextPlacements = Array.from(deduped.values());
+    if (shouldOpposeRoundTwoSeats(shape, nextPlacements)) {
+      return getOpposedRoundTwoSeatPlacements(nextPlacements[0]?.type || getDefaultLinearSeatType(fallbackSeatType));
+    }
+    return nextPlacements;
   }
 
   if ((Array.isArray(rawPlacements) && rawPlacements.length === 0) || fallbackSeatType === "corner-bench") {
@@ -1348,14 +1387,80 @@ export function clampFloorPlanLayout(
   canvasWidth = DEFAULT_CANVAS_WIDTH,
   canvasHeight = DEFAULT_CANVAS_HEIGHT,
 ) {
-  const maxX = Math.max(DEFAULT_PADDING, canvasWidth - layout.w - DEFAULT_PADDING);
-  const maxY = Math.max(DEFAULT_PADDING, canvasHeight - layout.h - DEFAULT_PADDING);
+  const roomBounds = getFloorPlanLogicalSurfaceBounds(canvasWidth, canvasHeight);
+  const roomWidth = Math.max(1, roomBounds.maxX - roomBounds.minX);
+  const roomHeight = Math.max(1, roomBounds.maxY - roomBounds.minY);
+  const safeWidth = Math.min(
+    Math.max(1, Math.round(layout.w || 1)),
+    roomWidth,
+  );
+  const safeHeight = Math.min(
+    Math.max(1, Math.round(layout.h || 1)),
+    roomHeight,
+  );
+  const maxX = Math.max(roomBounds.minX, roomBounds.maxX - safeWidth);
+  const maxY = Math.max(roomBounds.minY, roomBounds.maxY - safeHeight);
 
   return {
     ...layout,
-    x: Math.min(Math.max(DEFAULT_PADDING, Math.round(layout.x || DEFAULT_PADDING)), maxX),
-    y: Math.min(Math.max(DEFAULT_PADDING, Math.round(layout.y || DEFAULT_PADDING)), maxY),
+    w: safeWidth,
+    h: safeHeight,
+    x: Math.min(Math.max(roomBounds.minX, Math.round(layout.x || roomBounds.minX)), maxX),
+    y: Math.min(Math.max(roomBounds.minY, Math.round(layout.y || roomBounds.minY)), maxY),
   };
+}
+
+function getFloorPlanRoomSurfaceBounds(canvasWidth: number, canvasHeight: number) {
+  const minX = Math.min(ROOM_SURFACE_INSET, Math.max(0, Math.floor(canvasWidth / 2) - 1));
+  const minY = Math.min(ROOM_SURFACE_INSET, Math.max(0, Math.floor(canvasHeight / 2) - 1));
+
+  return {
+    minX,
+    minY,
+    maxX: Math.max(minX, canvasWidth - minX),
+    maxY: Math.max(minY, canvasHeight - minY),
+  };
+}
+
+function getFloorPlanLogicalSurfaceBounds(canvasWidth: number, canvasHeight: number) {
+  return getFloorPlanRoomSurfaceBounds(
+    Math.max(canvasWidth, DEFAULT_CANVAS_WIDTH),
+    Math.max(canvasHeight, DEFAULT_CANVAS_HEIGHT),
+  );
+}
+
+function getFloorPlanRenderSurfaceBounds(canvasWidth: number, canvasHeight: number) {
+  const bounds = getFloorPlanRoomSurfaceBounds(canvasWidth, canvasHeight);
+
+  return {
+    ...bounds,
+    maxX: Math.max(bounds.minX, bounds.maxX - ROOM_SURFACE_RENDER_GUARD),
+    maxY: Math.max(bounds.minY, bounds.maxY - ROOM_SURFACE_RENDER_GUARD),
+  };
+}
+
+function getFloorPlanSurfaceFitZoom(
+  canvasWidth: number,
+  canvasHeight: number,
+  requestedZoom: number,
+) {
+  const renderBounds = getFloorPlanRenderSurfaceBounds(canvasWidth, canvasHeight);
+  const logicalBounds = getFloorPlanLogicalSurfaceBounds(canvasWidth, canvasHeight);
+  const renderWidth = Math.max(1, renderBounds.maxX - renderBounds.minX);
+  const renderHeight = Math.max(1, renderBounds.maxY - renderBounds.minY);
+  const logicalWidth = Math.max(1, logicalBounds.maxX - logicalBounds.minX);
+  const logicalHeight = Math.max(1, logicalBounds.maxY - logicalBounds.minY);
+  const fitZoom = Math.min(1, renderWidth / logicalWidth, renderHeight / logicalHeight);
+
+  return Math.max(0.01, Math.min(Number.isFinite(requestedZoom) ? requestedZoom : 1, fitZoom));
+}
+
+export function resolveFloorPlanViewportZoom(
+  requestedZoom: number,
+  canvasWidth = DEFAULT_CANVAS_WIDTH,
+  canvasHeight = DEFAULT_CANVAS_HEIGHT,
+) {
+  return getFloorPlanSurfaceFitZoom(canvasWidth, canvasHeight, requestedZoom);
 }
 
 export function getRenderedFloorPlanFrame(
@@ -1363,24 +1468,27 @@ export function getRenderedFloorPlanFrame(
   zoom: number,
   canvasWidth = DEFAULT_CANVAS_WIDTH,
   canvasHeight = DEFAULT_CANVAS_HEIGHT,
+  _anchor?: FloorPlanViewportAnchor,
 ): FloorPlanRenderedFrame {
-  const safeZoom = Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
+  const safeZoom = getFloorPlanSurfaceFitZoom(canvasWidth, canvasHeight, zoom);
   const renderedWidth = layout.w * safeZoom;
   const renderedHeight = layout.h * safeZoom;
-  const logicalMaxX = Math.max(DEFAULT_PADDING, canvasWidth - layout.w - DEFAULT_PADDING);
-  const logicalMaxY = Math.max(DEFAULT_PADDING, canvasHeight - layout.h - DEFAULT_PADDING);
-  const renderedMaxX = Math.max(DEFAULT_PADDING, canvasWidth - renderedWidth - DEFAULT_PADDING);
-  const renderedMaxY = Math.max(DEFAULT_PADDING, canvasHeight - renderedHeight - DEFAULT_PADDING);
-  const ratioX = logicalMaxX <= DEFAULT_PADDING
+  const renderBounds = getFloorPlanRenderSurfaceBounds(canvasWidth, canvasHeight);
+  const logicalBounds = getFloorPlanLogicalSurfaceBounds(canvasWidth, canvasHeight);
+  const logicalMaxX = Math.max(logicalBounds.minX, logicalBounds.maxX - layout.w);
+  const logicalMaxY = Math.max(logicalBounds.minY, logicalBounds.maxY - layout.h);
+  const renderedMaxX = Math.max(renderBounds.minX, renderBounds.maxX - renderedWidth);
+  const renderedMaxY = Math.max(renderBounds.minY, renderBounds.maxY - renderedHeight);
+  const ratioX = logicalMaxX <= logicalBounds.minX
     ? 0
-    : (Math.min(Math.max(DEFAULT_PADDING, layout.x || DEFAULT_PADDING), logicalMaxX) - DEFAULT_PADDING) / (logicalMaxX - DEFAULT_PADDING);
-  const ratioY = logicalMaxY <= DEFAULT_PADDING
+    : (Math.min(Math.max(logicalBounds.minX, layout.x || logicalBounds.minX), logicalMaxX) - logicalBounds.minX) / (logicalMaxX - logicalBounds.minX);
+  const ratioY = logicalMaxY <= logicalBounds.minY
     ? 0
-    : (Math.min(Math.max(DEFAULT_PADDING, layout.y || DEFAULT_PADDING), logicalMaxY) - DEFAULT_PADDING) / (logicalMaxY - DEFAULT_PADDING);
+    : (Math.min(Math.max(logicalBounds.minY, layout.y || logicalBounds.minY), logicalMaxY) - logicalBounds.minY) / (logicalMaxY - logicalBounds.minY);
 
   return {
-    x: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioX)) * (renderedMaxX - DEFAULT_PADDING),
-    y: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioY)) * (renderedMaxY - DEFAULT_PADDING),
+    x: renderBounds.minX + Math.max(0, Math.min(1, ratioX)) * (renderedMaxX - renderBounds.minX),
+    y: renderBounds.minY + Math.max(0, Math.min(1, ratioY)) * (renderedMaxY - renderBounds.minY),
     w: renderedWidth,
     h: renderedHeight,
   };
@@ -1393,26 +1501,29 @@ export function getLogicalFloorPlanPositionFromRenderedFrame(
   zoom: number,
   canvasWidth = DEFAULT_CANVAS_WIDTH,
   canvasHeight = DEFAULT_CANVAS_HEIGHT,
+  _anchor?: FloorPlanViewportAnchor,
 ) {
-  const safeZoom = Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
+  const safeZoom = getFloorPlanSurfaceFitZoom(canvasWidth, canvasHeight, zoom);
   const renderedWidth = layout.w * safeZoom;
   const renderedHeight = layout.h * safeZoom;
-  const logicalMaxX = Math.max(DEFAULT_PADDING, canvasWidth - layout.w - DEFAULT_PADDING);
-  const logicalMaxY = Math.max(DEFAULT_PADDING, canvasHeight - layout.h - DEFAULT_PADDING);
-  const renderedMaxX = Math.max(DEFAULT_PADDING, canvasWidth - renderedWidth - DEFAULT_PADDING);
-  const renderedMaxY = Math.max(DEFAULT_PADDING, canvasHeight - renderedHeight - DEFAULT_PADDING);
-  const safeRenderedX = Math.min(Math.max(DEFAULT_PADDING, renderedX), renderedMaxX);
-  const safeRenderedY = Math.min(Math.max(DEFAULT_PADDING, renderedY), renderedMaxY);
-  const ratioX = renderedMaxX <= DEFAULT_PADDING
+  const renderBounds = getFloorPlanRenderSurfaceBounds(canvasWidth, canvasHeight);
+  const logicalBounds = getFloorPlanLogicalSurfaceBounds(canvasWidth, canvasHeight);
+  const logicalMaxX = Math.max(logicalBounds.minX, logicalBounds.maxX - layout.w);
+  const logicalMaxY = Math.max(logicalBounds.minY, logicalBounds.maxY - layout.h);
+  const renderedMaxX = Math.max(renderBounds.minX, renderBounds.maxX - renderedWidth);
+  const renderedMaxY = Math.max(renderBounds.minY, renderBounds.maxY - renderedHeight);
+  const safeRenderedX = Math.min(Math.max(renderBounds.minX, renderedX), renderedMaxX);
+  const safeRenderedY = Math.min(Math.max(renderBounds.minY, renderedY), renderedMaxY);
+  const ratioX = renderedMaxX <= renderBounds.minX
     ? 0
-    : (safeRenderedX - DEFAULT_PADDING) / (renderedMaxX - DEFAULT_PADDING);
-  const ratioY = renderedMaxY <= DEFAULT_PADDING
+    : (safeRenderedX - renderBounds.minX) / (renderedMaxX - renderBounds.minX);
+  const ratioY = renderedMaxY <= renderBounds.minY
     ? 0
-    : (safeRenderedY - DEFAULT_PADDING) / (renderedMaxY - DEFAULT_PADDING);
+    : (safeRenderedY - renderBounds.minY) / (renderedMaxY - renderBounds.minY);
 
   return {
-    x: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioX)) * (logicalMaxX - DEFAULT_PADDING),
-    y: DEFAULT_PADDING + Math.max(0, Math.min(1, ratioY)) * (logicalMaxY - DEFAULT_PADDING),
+    x: logicalBounds.minX + Math.max(0, Math.min(1, ratioX)) * (logicalMaxX - logicalBounds.minX),
+    y: logicalBounds.minY + Math.max(0, Math.min(1, ratioY)) * (logicalMaxY - logicalBounds.minY),
   };
 }
 
@@ -1436,12 +1547,14 @@ export type FloorPlanViewportModel<TItem extends FloorPlanViewportItem> = {
   visibleFurnitureCount: number;
   visibleItemIdSet: Set<string>;
   visibleReservableIdSet: Set<string>;
+  anchor: FloorPlanViewportAnchor;
   framesById: Map<string, FloorPlanRenderedFrame>;
   reservableHitTargets: {
     visual: Array<FloorPlanViewportHitTarget<TItem>>;
     interactive: Array<FloorPlanViewportHitTarget<TItem>>;
   };
   getRenderedFrame: (item: TItem) => FloorPlanRenderedFrame;
+  getLogicalPosition: (item: TItem, renderedX: number, renderedY: number) => { x: number; y: number };
   getReservableItemAtPoint: (x: number, y: number) => TItem | null;
 };
 
@@ -1474,15 +1587,28 @@ export function buildFloorPlanViewportModel<TItem extends FloorPlanViewportItem>
   const visibleItems = items
     .filter((item) => item.is_active !== false)
     .filter((item) => item.sector === options.sector)
-    .sort((left, right) => left.table_number.localeCompare(right.table_number, "fr"));
+    .sort((left, right) => left.table_number.localeCompare(right.table_number, "fr"))
+    .map((item) => {
+      const clampedLayout = clampFloorPlanLayout(item.layout, canvasWidth, canvasHeight);
+      return areFloorPlanLayoutsEquivalent(item.layout, clampedLayout)
+        ? item
+        : { ...item, layout: clampedLayout };
+    }) as TItem[];
+  const anchor = visibleItems.reduce<FloorPlanViewportAnchor>((current, item) => ({
+    x: Math.min(current.x, item.layout.x || DEFAULT_PADDING),
+    y: Math.min(current.y, item.layout.y || DEFAULT_PADDING),
+  }), { x: Number.POSITIVE_INFINITY, y: Number.POSITIVE_INFINITY });
+  const safeAnchor = Number.isFinite(anchor.x) && Number.isFinite(anchor.y)
+    ? anchor
+    : { x: DEFAULT_PADDING, y: DEFAULT_PADDING };
   const visibleReservableItems = visibleItems.filter((item) => isReservableFloorPlanItem(item.layout.kind));
   const framesById = new Map(visibleItems.map((item) => [
     item.id,
-    getRenderedFloorPlanFrame(item.layout, options.zoom, canvasWidth, canvasHeight),
+    getRenderedFloorPlanFrame(item.layout, options.zoom, canvasWidth, canvasHeight, safeAnchor),
   ]));
   const getRenderedFrame = (item: TItem) => (
     framesById.get(item.id)
-      || getRenderedFloorPlanFrame(item.layout, options.zoom, canvasWidth, canvasHeight)
+      || getRenderedFloorPlanFrame(item.layout, options.zoom, canvasWidth, canvasHeight, safeAnchor)
   );
   const topmostReservableItems = visibleReservableItems.slice().reverse();
   const visualHitTargets = topmostReservableItems.map((item) => ({
@@ -1500,12 +1626,22 @@ export function buildFloorPlanViewportModel<TItem extends FloorPlanViewportItem>
     visibleFurnitureCount: visibleItems.length - visibleReservableItems.length,
     visibleItemIdSet: new Set(visibleItems.map((item) => item.id)),
     visibleReservableIdSet: new Set(visibleReservableItems.map((item) => item.id)),
+    anchor: safeAnchor,
     framesById,
     reservableHitTargets: {
       visual: visualHitTargets,
       interactive: interactiveHitTargets,
     },
     getRenderedFrame,
+    getLogicalPosition: (item, renderedX, renderedY) => getLogicalFloorPlanPositionFromRenderedFrame(
+      item.layout,
+      renderedX,
+      renderedY,
+      options.zoom,
+      canvasWidth,
+      canvasHeight,
+      safeAnchor,
+    ),
     getReservableItemAtPoint: (x: number, y: number) => {
       return getHitTargetAtPoint(visualHitTargets, x, y)
         || getHitTargetAtPoint(interactiveHitTargets, x, y);
@@ -1720,6 +1856,17 @@ export const FLOOR_PLAN_PRESETS: FloorPlanTablePreset[] = [
     shape: "round",
     w: 156,
     h: 156,
+  },
+  {
+    id: "table-rect-2",
+    label: "Table rectangle 2 pers.",
+    description: "Duo compact avec une assise de chaque cote.",
+    category: "table",
+    kind: "table",
+    capacity: 2,
+    shape: "rect",
+    w: 136,
+    h: 108,
   },
   {
     id: "table-rect-4",

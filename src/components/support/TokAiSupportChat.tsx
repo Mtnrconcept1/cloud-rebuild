@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Bot, Loader2, Send, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { askClientSupport, type TokAiMessage } from "@/lib/ai/tokAiClient";
+import { useAuth } from "@/lib/auth-context";
 
 type TokAiSupportChatProps = {
   orderId?: string | null;
@@ -31,6 +33,7 @@ export default function TokAiSupportChat({
   context,
   compact = false,
 }: TokAiSupportChatProps) {
+  const { user, loading } = useAuth();
   const storageScope = orderId || reservationId || restaurantId || "general";
   const [draft, setDraft] = useSessionStorageState<SupportDraft>(
     `tok-ai-support-chat:${storageScope}`,
@@ -39,6 +42,7 @@ export default function TokAiSupportChat({
   const { messages, input, status } = draft;
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isChatAvailable = Boolean(user) && !loading;
 
   const lastAssistantReply = useMemo(
     () => messages.filter((message) => message.role === "assistant").at(-1)?.content,
@@ -48,7 +52,7 @@ export default function TokAiSupportChat({
   async function submit(event: FormEvent) {
     event.preventDefault();
     const content = input.trim();
-    if (!content || isSending) return;
+    if (!isChatAvailable || !content || isSending) return;
 
     const nextMessages = [...messages, { role: "user" as const, content }];
     setDraft((previous) => ({ ...previous, messages: nextMessages, input: "" }));
@@ -88,10 +92,10 @@ export default function TokAiSupportChat({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Bot className="h-5 w-5 text-primary" />
-            Support IA TOK
+            {isChatAvailable ? "Support IA TOK" : "Chat indisponible"}
           </CardTitle>
-          <Badge variant={status === "escalated" || status === "waiting_tok" ? "secondary" : "outline"}>
-            {status}
+          <Badge variant={isChatAvailable && (status === "escalated" || status === "waiting_tok") ? "secondary" : "outline"}>
+            {isChatAvailable ? status : "connexion requise"}
           </Badge>
         </div>
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
@@ -100,6 +104,8 @@ export default function TokAiSupportChat({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isChatAvailable ? (
+          <>
         {lastAssistantReply ? (
           <div className="rounded-xl border bg-background p-3 text-sm leading-6">
             {lastAssistantReply}
@@ -124,6 +130,20 @@ export default function TokAiSupportChat({
             Envoyer au support IA
           </Button>
         </form>
+          </>
+        ) : (
+          <div className="space-y-3 rounded-xl border border-dashed bg-background/70 p-4 text-sm">
+            <p className="font-medium text-foreground">Chat indisponible</p>
+            <p className="leading-6 text-muted-foreground">
+              {loading
+                ? "Vérification de votre session en cours."
+                : "Connectez-vous pour accéder au support IA TOK et créer un dossier traçable."}
+            </p>
+            <Button asChild className="rounded-full">
+              <Link to="/auth">Se connecter</Link>
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

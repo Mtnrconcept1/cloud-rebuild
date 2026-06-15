@@ -1038,8 +1038,11 @@ function CampaignForm({
   const baseBudgetValue = Math.max(0, Number(totalBudget) || 0);
   const placementMultiplier = getCampaignPlacementCostMultiplier(placementSelection, type);
   const totalBudgetValue = calculateCampaignTotalCost(baseBudgetValue, placementSelection, type);
-  const allowedPaymentMethods = useMemo(() => getAllowedPaymentMethods(activeFeatures, []), [activeFeatures]);
-  const requiresCheckout = totalBudgetValue > 0 && !isPaidCampaign && paymentMethod !== "cash";
+  const allowedPaymentMethods = useMemo<PaymentMethodId[]>(() => {
+    const methods = getAllowedPaymentMethods(activeFeatures, []);
+    return methods.includes("credits") ? methods : [...methods, "credits"];
+  }, [activeFeatures]);
+  const requiresCheckout = totalBudgetValue > 0 && !isPaidCampaign && paymentMethod !== "cash" && paymentMethod !== "credits";
   const recommendedStrategy = useMemo(
     () => recommendCampaignStrategy({
       type,
@@ -1161,6 +1164,7 @@ function CampaignForm({
       ...existingChannels,
       ...placementSelection,
     };
+    const usesCredits = paymentMethod === "credits" && totalBudgetValue > 0;
     const payload = {
       restaurant_id: restaurantId,
       title,
@@ -1178,7 +1182,7 @@ function CampaignForm({
       starts_at: startsAt ? new Date(startsAt).toISOString() : null,
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
       payment_method: paymentMethod,
-      payment_status: isPaidCampaign ? "paid" : (paymentMethod === "cash" && totalBudgetValue > 0 ? "pending" : "unpaid"),
+      payment_status: isPaidCampaign || usesCredits ? "paid" : (paymentMethod === "cash" && totalBudgetValue > 0 ? "pending" : "unpaid"),
       status: isPaidCampaign ? (initial?.status || "draft") : (paymentMethod === "cash" && totalBudgetValue > 0 ? "pending_payment" : "draft"),
     };
 
@@ -1225,6 +1229,13 @@ function CampaignForm({
         toast({
           title: "Campagne en attente",
           description: "La campagne est en attente de règlement manuel avant activation.",
+        });
+      }
+
+      if (usesCredits && !isPaidCampaign) {
+        toast({
+          title: "Credits reserves",
+          description: "Le budget de campagne a ete reserve sur votre solde TOK.",
         });
       }
 
@@ -1511,6 +1522,11 @@ function CampaignForm({
           cashDescription="Le règlement manuel n'active pas la campagne tant qu'il n'est pas validé."
           secureDescription="Paiement sécurisé via Stripe. La campagne est activée après confirmation."
         />
+        {paymentMethod === "credits" ? (
+          <p className="text-xs text-primary">
+            Le budget sera reserve sur le solde de credits TOK de l'abonnement ou des packs achetes.
+          </p>
+        ) : null}
         {isPaidCampaign ? (
           <p className="text-xs text-green-600">
             Campagne déjà payée a hauteur de {Number(initial?.paid_amount || 0).toFixed(2)} CHF via {String(initial?.payment_method || "card").toUpperCase()}.
@@ -1523,6 +1539,8 @@ function CampaignForm({
           ? "Enregistrement..."
           : requiresCheckout
             ? "Payer et lancer la campagne"
+            : paymentMethod === "credits" && totalBudgetValue > 0 && !isPaidCampaign
+              ? "Utiliser les credits et creer la campagne"
             : initial
               ? "Enregistrer la campagne"
               : "Créer la campagne"}

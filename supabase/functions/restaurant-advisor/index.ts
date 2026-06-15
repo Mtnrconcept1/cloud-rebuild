@@ -101,7 +101,7 @@ async function insertUsage(
     output_tokens: outputTokens,
     total_tokens: inputTokens + outputTokens,
     estimated_cost_chf: estimateCostChf(inputTokens, outputTokens),
-    metadata: { feature: FEATURE_NAME, ...(payload.metadata || {}) },
+    metadata: { feature: FEATURE_NAME, credit_kind: "ai_tools", credit_units: 5, ...(payload.metadata || {}) },
   });
 }
 

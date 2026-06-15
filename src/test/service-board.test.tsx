@@ -14,6 +14,7 @@ function renderServiceBoard(overrides: Partial<Parameters<typeof ServiceBoard>[0
       subtitle="Aujourd'hui"
       activeReservationLabel={null}
       canvasWidth={1040}
+      canvasHeight={760}
       canvasZoom={1}
       canvasZoomLabel="100%"
       canvasRef={canvasRef}
@@ -49,10 +50,13 @@ function renderServiceBoard(overrides: Partial<Parameters<typeof ServiceBoard>[0
 }
 
 describe("ServiceBoard", () => {
-  it("renders a taller work canvas for service mode", () => {
+  it("renders a full-size responsive work canvas for service mode", () => {
     const { container } = renderServiceBoard();
 
-    expect(container.querySelector('[style*="height: 760px"]')).not.toBeNull();
+    const canvas = container.querySelector(".relative.h-full.w-full.overflow-hidden");
+
+    expect(canvas).not.toBeNull();
+    expect(canvas).toHaveStyle({ width: "100%", height: "100%" });
   });
 
   it("starts dragging furniture from the whole object surface", () => {

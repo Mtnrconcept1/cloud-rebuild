@@ -82,6 +82,26 @@ describe("TOK AI tools foundation", () => {
     }
   });
 
+  it("charges five ai_tools credits for every non-photo restaurant AI request", () => {
+    for (const fn of ["ai-restaurant-agent", "ai-restaurant-tools", "restaurant-advisor", "generate-campaign", "floorplan-ai", "ai-accounting-agent"]) {
+      const source = readProjectFile(`supabase/functions/${fn}/index.ts`);
+
+      expect(source).toContain("ai_usage_logs");
+      expect(source).toContain('credit_kind: "ai_tools"');
+      expect(source).toContain("credit_units");
+      expect(source).toContain("5");
+    }
+
+    const photoSource = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
+    expect(photoSource).toContain('credit_kind: "photo_retouch"');
+    expect(photoSource).not.toContain('credit_kind: "ai_tools"');
+
+    const migration = readProjectFile("supabase/migrations/20260615031500_campaign_credit_packs.sql");
+    expect(migration).toContain("'ai-restaurant-agent', 'ai-restaurant-tools', 'restaurant-advisor', 'generate-campaign', 'floorplan-ai', 'ai-accounting-agent'");
+    expect(migration).toContain("ul.metadata->>'credit_kind'");
+    expect(migration).toContain("THEN 5 END");
+  });
+
   it("keeps generated image storage on the governed private bucket by default", () => {
     const source = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
 

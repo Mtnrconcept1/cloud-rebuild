@@ -113,4 +113,24 @@ describe("campaign pricing helpers", () => {
     expect(sharedPricing).toContain("normalizeCampaignPlacementSelection");
     expect(sharedPricing).toContain("banner: 0.35");
   });
+
+  it("lets restaurant campaigns reserve subscription or top-up credits before Stripe checkout", () => {
+    const portal = readSource("supabase/functions/campaign-portal/index.ts");
+    const dashboard = readSource("src/pages/dashboard/DashboardCampagnes.tsx");
+    const paymentMethods = readSource("src/lib/paymentMethods.ts");
+
+    expect(portal).toContain('"credits"');
+    expect(portal).toContain("get_restaurant_credit_usage");
+    expect(portal).toContain("getCampaignCreditBalance");
+    expect(portal).toContain("Credits campagnes insuffisants");
+    expect(portal).toContain("paid_amount: creditsBudget");
+
+    expect(dashboard).toContain('"credits"');
+    expect(dashboard).toContain('paymentMethod !== "credits"');
+    expect(dashboard).toContain("Utiliser les credits");
+    expect(dashboard).toContain("Le budget sera reserve");
+
+    expect(paymentMethods).toContain('| "credits"');
+    expect(paymentMethods).toContain('Exclude<PaymentMethodId, "credits">');
+  });
 });

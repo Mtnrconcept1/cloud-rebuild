@@ -5,13 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 import StudioCanvas from "@/components/floor-plan/StudioCanvas";
 
 describe("StudioCanvas", () => {
-  it("renders a taller work canvas for the floor plan editor", () => {
+  it("renders a full-size responsive work canvas for the floor plan editor", () => {
     const canvasRef = createRef<HTMLDivElement>();
     const canvasViewportRef = createRef<HTMLDivElement>();
     const { container } = render(
       <StudioCanvas
         selectedSector="Salle"
         canvasWidth={1040}
+        canvasHeight={760}
         canvasZoom={1}
         canvasZoomLabel="100%"
         canvasRef={canvasRef}
@@ -30,7 +31,10 @@ describe("StudioCanvas", () => {
       />,
     );
 
-    expect(container.querySelector('[style*="height: 760px"]')).not.toBeNull();
+    const canvas = container.querySelector(".relative.h-full.w-full.overflow-hidden");
+
+    expect(canvas).not.toBeNull();
+    expect(canvas).toHaveStyle({ width: "100%", height: "100%" });
   });
 
   it("starts dragging furniture from the whole object surface", () => {
@@ -41,6 +45,7 @@ describe("StudioCanvas", () => {
       <StudioCanvas
         selectedSector="Salle"
         canvasWidth={1040}
+        canvasHeight={760}
         canvasZoom={1}
         canvasZoomLabel="100%"
         canvasRef={canvasRef}
@@ -92,6 +97,7 @@ describe("StudioCanvas", () => {
       <StudioCanvas
         selectedSector="Salle"
         canvasWidth={1040}
+        canvasHeight={760}
         canvasZoom={1}
         canvasZoomLabel="100%"
         canvasRef={canvasRef}
@@ -142,6 +148,7 @@ describe("StudioCanvas", () => {
       <StudioCanvas
         selectedSector="Salle"
         canvasWidth={1040}
+        canvasHeight={760}
         canvasZoom={1}
         canvasZoomLabel="100%"
         canvasRef={canvasRef}
@@ -191,6 +198,7 @@ describe("StudioCanvas", () => {
       <StudioCanvas
         selectedSector="Salle"
         canvasWidth={1040}
+        canvasHeight={760}
         canvasZoom={1}
         canvasZoomLabel="100%"
         canvasRef={canvasRef}

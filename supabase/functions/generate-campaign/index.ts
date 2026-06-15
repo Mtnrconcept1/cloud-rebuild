@@ -302,6 +302,27 @@ Retourne UNIQUEMENT le JSON, sans explication.`;
       }
     }
 
+    await actor.adminClient.from("ai_usage_logs").insert({
+      function_name: "generate-campaign",
+      action: "generate_campaign_copy",
+      feature_name: "campaign_assistant",
+      source: "generate-campaign",
+      model: generationSource === "ai" ? "google/gemini-2.5-flash" : "fallback",
+      user_id: actor.userId,
+      restaurant_id: restaurantId,
+      status: "success",
+      input_tokens: 0,
+      output_tokens: 0,
+      total_tokens: 0,
+      estimated_cost_chf: 0,
+      metadata: {
+        credit_kind: "ai_tools",
+        credit_units: 5,
+        generation_source: generationSource,
+        fallback_reason: fallbackReason,
+      },
+    });
+
     await writeAuditLog({
       adminClient: actor.adminClient,
       actor,

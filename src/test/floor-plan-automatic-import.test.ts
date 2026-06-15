@@ -41,6 +41,9 @@ describe("automatic floor-plan image import", () => {
     expect(edgeFunction).toContain("OPENAI_VISION_MODEL");
     expect(edgeFunction).toContain('type: "image_url"');
     expect(edgeFunction).toContain('detail: "high"');
+    expect(edgeFunction).toContain('"table-rect-2"');
+    expect(edgeFunction).toContain("one chair above and one chair below");
+    expect(edgeFunction).toContain("normalizeFloorPlanAiResult");
     expect(panel).toContain("Plan de salle automatique");
     expect(panel).toContain('type="file"');
     expect(panel).toContain('accept="image/png,image/jpeg,image/webp"');

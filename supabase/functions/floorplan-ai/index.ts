@@ -12,6 +12,9 @@ import { makeLogger } from "../_shared/logging.ts";
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 const MAX_IMAGE_DATA_URL_CHARS = 8_000_000;
 const IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const FUNCTION_NAME = "floorplan-ai";
+const FEATURE_NAME = "floorplan_ai";
+const AI_TOOL_CREDIT_UNITS = 5;
 
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
 
@@ -21,6 +24,89 @@ type ImagePayload = {
   mimeType: string;
   name: string | null;
 };
+type AiFloorPlanTable = {
+  table_number: string;
+  capacity: number;
+  kind: string;
+  shape: "round" | "rect";
+  seatType?: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rotation: number;
+  seatLabels: number[];
+};
+
+const RESERVABLE_TABLE_KINDS = new Set(["table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6", "table"]);
+const FURNITURE_KINDS = new Set(["chair", "stool", "bar", "corner-bench", "banquette", "booth", "host-stand", "divider", "plant", "service-station"]);
+
+function clampNumber(value: unknown, fallback: number, min: number, max: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function getTableKind(shape: "round" | "rect", capacity: number) {
+  if (shape === "round") return capacity <= 2 ? "table-round-2" : "table-round-4";
+  if (capacity <= 2) return "table-rect-2";
+  return capacity <= 4 ? "table-rect-4" : "table-rect-6";
+}
+
+function normalizeFloorPlanAiResult(value: unknown, canvasWidth: number, canvasHeight: number) {
+  const source = typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
+  const rawTables = Array.isArray(source.tables) ? source.tables : [];
+  const tables = rawTables.flatMap((entry, index): AiFloorPlanTable[] => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const table = entry as Record<string, unknown>;
+    const rawKind = typeof table.kind === "string" ? table.kind : "table";
+    const isFurniture = FURNITURE_KINDS.has(rawKind);
+    const shape: "round" | "rect" = table.shape === "round" ? "round" : "rect";
+    const rawSeatLabels = Array.isArray(table.seatLabels)
+      ? table.seatLabels
+      : Array.isArray(table.seat_labels)
+        ? table.seat_labels
+        : [];
+    const labelCapacity = rawSeatLabels.length;
+    const capacity = isFurniture
+      ? 0
+      : Math.round(clampNumber(table.capacity, labelCapacity || 2, 1, 12));
+    const kind = isFurniture
+      ? rawKind
+      : getTableKind(shape, capacity);
+    const widthFallback = kind === "table-rect-2" ? 136 : kind === "table-round-2" ? 128 : kind === "table-rect-6" ? 210 : 176;
+    const heightFallback = kind === "table-rect-2" ? 108 : kind === "table-round-2" ? 128 : kind === "table-rect-6" ? 118 : 112;
+    const w = Math.round(clampNumber(table.w, widthFallback, isFurniture ? 24 : 60, 300));
+    const h = Math.round(clampNumber(table.h, heightFallback, isFurniture ? 24 : 60, 300));
+    const x = Math.round(clampNumber(table.x, 24 + (index % 5) * 156, 0, Math.max(0, canvasWidth - w)));
+    const y = Math.round(clampNumber(table.y, 24 + Math.floor(index / 5) * 136, 0, Math.max(0, canvasHeight - h)));
+    const seatLabels = isFurniture
+      ? []
+      : Array.from({ length: capacity }, (_, seatIndex) => seatIndex + 1);
+
+    return [{
+      table_number: String(table.table_number || table.tableNumber || `AI-${index + 1}`),
+      capacity,
+      kind: RESERVABLE_TABLE_KINDS.has(rawKind) || isFurniture ? kind : getTableKind(shape, capacity),
+      shape,
+      seatType: typeof table.seatType === "string" ? table.seatType : typeof table.seat_type === "string" ? table.seat_type : "chair",
+      x,
+      y,
+      w,
+      h,
+      rotation: Math.round(clampNumber(table.rotation, 0, -180, 180) / 15) * 15,
+      seatLabels,
+    }];
+  });
+
+  return {
+    ...source,
+    tables,
+    explanation: typeof source.explanation === "string"
+      ? source.explanation
+      : "Plan genere a partir de l'analyse IA.",
+  };
+}
 
 function buildSystemPrompt(params: {
   restaurant: { name: string; cuisine_type: string | null; city: string | null };
@@ -46,7 +132,7 @@ Disposition actuelle:
 ${currentLayoutSummary}
 
 TYPES DISPONIBLES (kind):
-- "table-round-2", "table-round-4", "table-rect-4", "table-rect-6"
+- "table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6"
 - "chair", "stool", "bar", "corner-bench", "banquette", "booth"
 - "host-stand", "divider", "plant", "service-station"
 
@@ -58,6 +144,9 @@ RÈGLES:
 - minimum 60px entre les éléments
 - rondes: w=h; tables rect min 140x90; meubles min 60x60; max 300x300
 - rotation multiple de 15; capacity = nombre de places
+- Pour les imports image, capacity doit venir des chaises visibles: one chair above and one chair below = table 2 places, jamais 4.
+- Une table rectangulaire avec 2 chaises visibles doit utiliser kind "table-rect-2"; une ronde 2 places doit utiliser "table-round-2".
+- Une table ronde 2 places doit avoir les chaises opposees (nord/sud), pas cote a cote.
 
 FORMAT DE RÉPONSE (JSON strict):
 {
@@ -80,12 +169,61 @@ function normalizeImagePayload(value: unknown): ImagePayload | null {
   return { dataUrl, mimeType, name };
 }
 
+function readTokenCount(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : 0;
+}
+
+function extractChatUsage(value: unknown) {
+  const usage = typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>).usage
+    : null;
+  const record = typeof usage === "object" && usage !== null ? usage as Record<string, unknown> : {};
+  const inputTokens = readTokenCount(record.prompt_tokens ?? record.input_tokens);
+  const outputTokens = readTokenCount(record.completion_tokens ?? record.output_tokens);
+  const totalTokens = readTokenCount(record.total_tokens) || inputTokens + outputTokens;
+
+  return { inputTokens, outputTokens, totalTokens };
+}
+
+function estimateCostChf(inputTokens = 0, outputTokens = 0) {
+  return Number(((inputTokens * 0.00000025) + (outputTokens * 0.000001)).toFixed(6));
+}
+
+async function insertUsage(
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  payload: {
+    status: "success";
+    action: FloorplanAction;
+    restaurantId: string;
+    model: string;
+    usage: ReturnType<typeof extractChatUsage>;
+    metadata?: Record<string, unknown>;
+  },
+) {
+  await actor.adminClient.from("ai_usage_logs").insert({
+    function_name: FUNCTION_NAME,
+    action: payload.action,
+    feature_name: FEATURE_NAME,
+    source: FUNCTION_NAME,
+    model: payload.model,
+    user_id: actor.userId,
+    restaurant_id: payload.restaurantId,
+    status: payload.status,
+    input_tokens: payload.usage.inputTokens,
+    output_tokens: payload.usage.outputTokens,
+    total_tokens: payload.usage.totalTokens,
+    estimated_cost_chf: estimateCostChf(payload.usage.inputTokens, payload.usage.outputTokens),
+    metadata: { credit_kind: "ai_tools", credit_units: AI_TOOL_CREDIT_UNITS, ...(payload.metadata || {}) },
+  });
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
   if (preflight) return preflight;
 
-  const log = makeLogger("floorplan-ai");
+  const log = makeLogger(FUNCTION_NAME);
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
@@ -171,7 +309,7 @@ Deno.serve(async (req) => {
     if (!userPrompt) {
       if (action === "image-import") {
         userPrompt =
-          "Analyze the uploaded floor-plan image and recreate it as a Tok room layout. Preserve visible table numbers, infer seating capacity from visible chairs or benches, estimate relative x/y/w/h positions on the canvas, include visible furniture such as plants, bars, host stands and dividers, and avoid inventing objects that are not visible. Return only the strict JSON format.";
+          "Analyze the uploaded floor-plan image and recreate it as a Tok room layout. Preserve visible table numbers and relative rows/columns. Infer seating capacity only from visible chairs or benches: one chair above and one chair below means capacity 2 and kind table-rect-2, not table-rect-4. Use capacity 4 only when four distinct chairs or a four-seat bench setup is visible. Estimate relative x/y/w/h positions on the canvas as tightly as possible, include visible furniture such as plants, bars, host stands and dividers, and avoid inventing objects that are not visible. Return only the strict JSON format.";
       } else if (action === "generate") {
         userPrompt =
           "Génère un plan de salle optimisé avec un bon mix de tables 2/4/6 personnes, un accueil et des plantes. Optimise circulation et couverts.";
@@ -231,9 +369,25 @@ Deno.serve(async (req) => {
       throw new HttpError(502, "ai_invalid_response");
     }
 
+    const usage = extractChatUsage(data);
+    await insertUsage(actor, {
+      status: "success",
+      action,
+      restaurantId,
+      model: selectedModel,
+      usage,
+      metadata: {
+        rid: log.rid,
+        has_image: Boolean(image),
+        image_mime_type: image?.mimeType || null,
+        canvas_width: canvasWidth,
+        canvas_height: canvasHeight,
+      },
+    });
+
     await writeAuditLog({
       adminClient: actor.adminClient,
-      functionName: "floorplan-ai",
+      functionName: FUNCTION_NAME,
       status: "success",
       action,
       actor,
@@ -243,7 +397,7 @@ Deno.serve(async (req) => {
       metadata: { model: selectedModel, rid: log.rid, has_image: Boolean(image), image_mime_type: image?.mimeType || null },
     });
 
-    return jsonResponse(parsed as Record<string, unknown>, 200, cors);
+    return jsonResponse(normalizeFloorPlanAiResult(parsed, canvasWidth, canvasHeight), 200, cors);
   } catch (err) {
     const status = err instanceof HttpError ? err.status : 500;
     const message = err instanceof HttpError ? err.message : "internal_error";
@@ -252,7 +406,7 @@ Deno.serve(async (req) => {
     if (actor) {
       await writeAuditLog({
         adminClient: actor.adminClient,
-        functionName: "floorplan-ai",
+        functionName: FUNCTION_NAME,
         status: "failure",
         actor,
         request: req,

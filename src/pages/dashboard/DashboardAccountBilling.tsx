@@ -10,6 +10,7 @@ import {
   CreditCard,
   Loader2,
   Megaphone,
+  PlusCircle,
   ReceiptText,
   Sparkles,
   WalletCards,
@@ -52,6 +53,20 @@ type RestaurantSubscriptionPlan = {
   ai_photo_credits: number;
   monthly_image_limit: number;
   monthly_premium_image_limit: number;
+  features: string[] | null;
+  position: number;
+  is_active: boolean;
+};
+
+type RestaurantCreditPack = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  price_chf: number;
+  campaign_credit_chf: number;
+  ai_tool_credits: number;
+  ai_photo_credits: number;
   features: string[] | null;
   position: number;
   is_active: boolean;
@@ -163,7 +178,7 @@ function formatDateTime(value: string | null | undefined) {
   });
 }
 
-function normalizeFeatures(value: RestaurantSubscriptionPlan["features"]) {
+function normalizeFeatures(value: string[] | null) {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
@@ -202,6 +217,16 @@ async function fetchRestaurantSubscriptionPlans(): Promise<RestaurantSubscriptio
 
   if (error) throw error;
   return (data || []) as RestaurantSubscriptionPlan[];
+}
+
+async function fetchRestaurantCreditPacks(): Promise<RestaurantCreditPack[]> {
+  const { data, error } = await (supabase.from as any)("restaurant_credit_packs")
+    .select("id, slug, name, description, price_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, features, position, is_active")
+    .eq("is_active", true)
+    .order("position", { ascending: true });
+
+  if (error) throw error;
+  return (data || []) as RestaurantCreditPack[];
 }
 
 function CreditSummaryCard({ credit }: { credit: BillingCreditSummary }) {
@@ -296,6 +321,60 @@ function PlanCard({
   );
 }
 
+function CreditPackCard({
+  pack,
+  checkingOutPackId,
+  onBuy,
+}: {
+  pack: RestaurantCreditPack;
+  checkingOutPackId: string | null;
+  onBuy: (pack: RestaurantCreditPack) => void;
+}) {
+  const features = normalizeFeatures(pack.features);
+  const isCheckingOut = checkingOutPackId === pack.id;
+
+  return (
+    <Card className="flex h-full flex-col">
+      <CardHeader className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-lg">{pack.name}</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">{pack.description}</p>
+          </div>
+          <Badge variant="outline">Recharge</Badge>
+        </div>
+        <p className="text-3xl font-bold">
+          {formatChf(pack.price_chf)}
+          <span className="text-sm font-medium text-muted-foreground"> TTC</span>
+        </p>
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col gap-4">
+        <div className="grid gap-2 rounded-xl bg-muted/45 p-3 text-sm">
+          {toNumber(pack.campaign_credit_chf) > 0 ? <span>{formatChf(pack.campaign_credit_chf)} de credits campagnes</span> : null}
+          {toNumber(pack.ai_tool_credits) > 0 ? <span>{toNumber(pack.ai_tool_credits).toLocaleString("fr-CH")} credits outils IA</span> : null}
+          {toNumber(pack.ai_photo_credits) > 0 ? <span>{toNumber(pack.ai_photo_credits).toLocaleString("fr-CH")} credits photo IA</span> : null}
+        </div>
+        <ul className="space-y-2 text-sm">
+          {features.slice(0, 4).map((feature) => (
+            <li key={feature} className="flex gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+        <Button
+          className="mt-auto w-full"
+          onClick={() => onBuy(pack)}
+          disabled={isCheckingOut}
+        >
+          {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+          Acheter ce pack
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 function CreditKindBadge({ kind }: { kind: CreditKind }) {
   const meta = CREDIT_META[kind] ?? CREDIT_META.ai_tools;
   const Icon = meta.icon;
@@ -312,6 +391,7 @@ export default function DashboardAccountBilling() {
   const { selectedId } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
   const [checkingOutPlanId, setCheckingOutPlanId] = useState<string | null>(null);
+  const [checkingOutCreditPackId, setCheckingOutCreditPackId] = useState<string | null>(null);
 
   const paymentStatus = searchParams.get("status");
 
@@ -327,12 +407,18 @@ export default function DashboardAccountBilling() {
     queryFn: fetchRestaurantSubscriptionPlans,
   });
 
+  const creditPacksQuery = useQuery({
+    queryKey: ["restaurant-credit-packs"],
+    queryFn: fetchRestaurantCreditPacks,
+  });
+
   const usage = usageQuery.data;
   const credits = usage?.credits ?? EMPTY_CREDITS;
   const entries = usage?.entries ?? EMPTY_ENTRIES;
   const currentPlan = usage?.subscription?.plan_record ?? null;
   const currentPosition = toNumber(currentPlan?.position);
   const activePlans = plansQuery.data ?? [];
+  const activeCreditPacks = creditPacksQuery.data ?? [];
   const isUsageLoading = usageQuery.isLoading;
   const isUsageUnavailable = usageQuery.isError;
 
@@ -372,6 +458,35 @@ export default function DashboardAccountBilling() {
     }
   }
 
+  async function handleBuyCreditPack(pack: RestaurantCreditPack) {
+    if (!selectedId) return;
+    setCheckingOutCreditPackId(pack.id);
+
+    try {
+      const { data, error } = await invokeSupabaseFunction<{ url?: string; session_id?: string }>("create-checkout", {
+        body: {
+          checkout_kind: "restaurant-credit-pack",
+          payment_method: "card",
+          return_url: buildCheckoutReturnUrl("/dashboard/mon-compte-facturation"),
+          order_metadata: {
+            checkout_kind: "restaurant-credit-pack",
+            restaurant_id: selectedId,
+            credit_pack_id: pack.id,
+          },
+        },
+      });
+
+      if (error || !data?.url) {
+        throw new Error((error as Error | null)?.message || "Impossible de creer la session de paiement du pack.");
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la creation du paiement du pack.");
+      setCheckingOutCreditPackId(null);
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -392,7 +507,7 @@ export default function DashboardAccountBilling() {
         {paymentStatus === "success" ? (
           <Alert className="border-green-200 bg-green-50 text-green-900 dark:border-green-400/25 dark:bg-green-500/10 dark:text-green-50">
             <CheckCircle2 className="h-4 w-4" />
-            <AlertTitle>Upgrade en cours d'activation</AlertTitle>
+            <AlertTitle>Paiement en cours d'activation</AlertTitle>
             <AlertDescription>
               Le paiement a été confirmé. Le nouvel abonnement sera visible dès la synchronisation Stripe.
             </AlertDescription>
@@ -517,6 +632,37 @@ export default function DashboardAccountBilling() {
               ) : credits.map((credit) => (
                 <CreditSummaryCard key={credit.kind} credit={credit} />
               ))}
+            </section>
+
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-xl font-bold">Racheter des credits</h2>
+                <p className="text-sm text-muted-foreground">
+                  Rechargez le budget campagnes ou les credits IA lorsque le solde inclus dans l'abonnement est insuffisant.
+                </p>
+              </div>
+              {creditPacksQuery.isLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : creditPacksQuery.isError ? (
+                <Card>
+                  <CardContent className="py-8 text-sm text-muted-foreground">
+                    Les packs de credits sont temporairement indisponibles.
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {activeCreditPacks.map((pack) => (
+                    <CreditPackCard
+                      key={pack.id}
+                      pack={pack}
+                      checkingOutPackId={checkingOutCreditPackId}
+                      onBuy={handleBuyCreditPack}
+                    />
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="space-y-4">

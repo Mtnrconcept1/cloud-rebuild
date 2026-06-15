@@ -119,6 +119,7 @@ Deno.serve(async (req) => {
     let discountCents = 0;
     let zeroAttenteHoldReservationId = "";
     let chefTableHoldCount = 0;
+    let creditPackPurchaseId = "";
     const chefTableHoldItems: Array<{ drop_id: string; quantity: number }> = [];
     let sessionMetadata: Record<string, string> = {
       user_id: actor.userId || "",
@@ -548,6 +549,89 @@ Deno.serve(async (req) => {
         monthly_premium_image_limit: String(plan.monthly_premium_image_limit || 0),
         monthly_voice_minutes_limit: String(plan.monthly_voice_minutes_limit || 0),
         authoritative_total: subscriptionAmount.toFixed(2),
+      };
+    } else if (effectiveKind === "restaurant-credit-pack") {
+      const packId = String(order_metadata?.credit_pack_id || order_metadata?.pack_id || "");
+      const restaurantId = String(order_metadata?.restaurant_id || "");
+
+      if (!packId) throw new HttpError(400, "credit_pack_id requis");
+      if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
+      if (!["card", "twint"].includes(String(payment_method || "card"))) {
+        throw new HttpError(400, "Les packs de credits acceptent la carte bancaire ou TWINT");
+      }
+
+      auditKind = "restaurant-credit-pack";
+      auditTargetEntityType = "restaurant_credit_packs";
+      auditTargetEntityId = packId;
+
+      await requireRestaurantAccess(actor, restaurantId);
+
+      const { data: pack, error: packError } = await actor.adminClient
+        .from("restaurant_credit_packs")
+        .select("id, slug, name, description, price_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, is_active")
+        .eq("id", packId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (packError) throw new HttpError(500, packError.message);
+      if (!pack) throw new HttpError(404, "Pack de credits introuvable ou inactif");
+
+      const packAmount = Number(pack.price_chf || 0);
+      if (packAmount <= 0) throw new HttpError(400, "Prix du pack de credits invalide");
+
+      const { data: purchaseRecord, error: purchaseError } = await actor.adminClient
+        .from("restaurant_credit_purchases")
+        .insert({
+          restaurant_id: restaurantId,
+          credit_pack_id: pack.id,
+          purchased_by: actor.userId,
+          status: "pending_payment",
+          price_chf: packAmount,
+          currency: "chf",
+          campaign_credit_chf: Number(pack.campaign_credit_chf || 0),
+          ai_tool_credits: Number(pack.ai_tool_credits || 0),
+          ai_photo_credits: Number(pack.ai_photo_credits || 0),
+          metadata: {
+            checkout_kind: "restaurant-credit-pack",
+            pack_slug: pack.slug,
+            pack_name: pack.name,
+          },
+        })
+        .select("id")
+        .single();
+
+      if (purchaseError) throw new HttpError(500, purchaseError.message);
+      creditPackPurchaseId = purchaseRecord.id;
+
+      lineItems = [{
+        price_data: {
+          currency: "chf",
+          product_data: {
+            name: `Pack de credits TOK - ${pack.name}`,
+            description: String(pack.description || ""),
+            metadata: {
+              restaurant_credit_pack_id: pack.id,
+              restaurant_credit_pack_slug: pack.slug,
+            },
+          },
+          unit_amount: Math.round(packAmount * 100),
+        },
+        quantity: 1,
+      }];
+
+      sessionMetadata = {
+        ...sessionMetadata,
+        restaurant_id: restaurantId,
+        credit_pack_id: pack.id,
+        restaurant_credit_pack_id: pack.id,
+        restaurant_credit_pack_slug: pack.slug,
+        restaurant_credit_purchase_id: purchaseRecord.id,
+        credit_pack_purchase_id: purchaseRecord.id,
+        pack_name: pack.name,
+        campaign_credit_chf: Number(pack.campaign_credit_chf || 0).toFixed(2),
+        ai_tool_credits: String(pack.ai_tool_credits || 0),
+        ai_photo_credits: String(pack.ai_photo_credits || 0),
+        authoritative_total: packAmount.toFixed(2),
       };
     } else if (effectiveKind === "tok-one") {
       // ── Tok One premium subscription ──
@@ -1043,6 +1127,33 @@ Deno.serve(async (req) => {
     // Le restaurateur genere ensuite ses factures de reversement (90%) depuis son dashboard.
 
     const session = await stripe.checkout.sessions.create(sessionParams);
+
+    if (effectiveKind === "restaurant-credit-pack" && creditPackPurchaseId) {
+      const { error: purchaseUpdateError } = await actor.adminClient
+        .from("restaurant_credit_purchases")
+        .update({
+          stripe_checkout_session_id: session.id,
+          stripe_mode: stripeRuntime.mode,
+          metadata: {
+            ...sessionMetadata,
+            checkout_session_id: session.id,
+          },
+        })
+        .eq("id", creditPackPurchaseId);
+
+      if (purchaseUpdateError) {
+        try {
+          await stripe.checkout.sessions.expire(session.id);
+        } catch (expireError) {
+          log.warn("credit_pack_checkout_session_expire_failed", {
+            session_id: session.id,
+            message: expireError instanceof Error ? expireError.message : "unknown",
+          });
+        }
+
+        throw new HttpError(500, purchaseUpdateError.message);
+      }
+    }
 
     if (effectiveKind === "zero-attente") {
       const { data: holdReservationId, error: holdError } = await actor.adminClient.rpc(

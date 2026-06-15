@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, ShieldCheck, Smartphone, Wallet } from "lucide-react";
+import { Banknote, CreditCard, ShieldCheck, Smartphone, Wallet, WalletCards } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
 import type { PaymentMethodId } from "@/lib/paymentMethods";
@@ -19,6 +19,7 @@ const METHODS: { id: PaymentMethodId; label: string; icon: any; description: str
   { id: "postfinance_card", label: "PostFinance Card", icon: Wallet, description: "Carte PostFinance" },
   { id: "postfinance_efinance", label: "PostFinance E-Finance", icon: Wallet, description: "E-banking PostFinance" },
   { id: "cash", label: "Espèces", icon: Banknote, description: "Paiement sur place ou règlement manuel" },
+  { id: "credits", label: "Credits TOK", icon: WalletCards, description: "Solde abonnement ou pack de credits" },
 ];
 
 export default function PaymentMethodSelector({

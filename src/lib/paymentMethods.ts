@@ -3,9 +3,12 @@ export type PaymentMethodId =
   | "twint"
   | "postfinance_card"
   | "postfinance_efinance"
-  | "cash";
+  | "cash"
+  | "credits";
 
-export const ALL_PAYMENT_METHODS: PaymentMethodId[] = [
+type FeatureFlagPaymentMethodId = Exclude<PaymentMethodId, "credits">;
+
+export const ALL_PAYMENT_METHODS: FeatureFlagPaymentMethodId[] = [
   "card",
   "twint",
   "postfinance_card",
@@ -13,7 +16,7 @@ export const ALL_PAYMENT_METHODS: PaymentMethodId[] = [
   "cash",
 ];
 
-export const PAYMENT_METHOD_FEATURE_MAP: Record<PaymentMethodId, string> = {
+export const PAYMENT_METHOD_FEATURE_MAP: Record<FeatureFlagPaymentMethodId, string> = {
   card: "payment-card",
   twint: "payment-twint",
   postfinance_card: "payment-postfinance-card",
@@ -24,6 +27,7 @@ export const PAYMENT_METHOD_FEATURE_MAP: Record<PaymentMethodId, string> = {
 const STRIPE_CHECKOUT_UNSUPPORTED_METHODS = new Set<PaymentMethodId>([
   "postfinance_card",
   "postfinance_efinance",
+  "credits",
 ]);
 
 function filterCheckoutCompatibleMethods(methods: PaymentMethodId[]): PaymentMethodId[] {

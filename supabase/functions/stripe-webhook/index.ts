@@ -38,8 +38,158 @@ type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
 };
 
+type RestaurantTokPurchaseInvoiceItemKind = "launch_pack" | "restaurant_subscription" | "credit_pack";
+
 function isJsonRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function toMoney(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : 0;
+}
+
+function toDateOnly(value: string) {
+  return value.slice(0, 10);
+}
+
+function buildPaidTokInvoiceNumber(itemKind: RestaurantTokPurchaseInvoiceItemKind, sessionId: string) {
+  const normalizedSessionId = sessionId.replace(/[^a-zA-Z0-9]/g, "").slice(-10).toUpperCase();
+  const kindPrefix: Record<RestaurantTokPurchaseInvoiceItemKind, string> = {
+    launch_pack: "PACK",
+    restaurant_subscription: "SUB",
+    credit_pack: "CREDIT",
+  };
+
+  return `TOK-PAID-${kindPrefix[itemKind]}-${normalizedSessionId || "STRIPE"}`;
+}
+
+async function recordRestaurantTokPurchaseInvoiceIfMissing(input: {
+  adminClient: ReturnType<typeof createClient>;
+  session: Stripe.Checkout.Session;
+  restaurantId: string;
+  itemKind: RestaurantTokPurchaseInvoiceItemKind;
+  sourceTable: string;
+  sourceId: string | null;
+  sourceLabel: string;
+  amount: number;
+  paidAt?: string;
+  metadata?: JsonRecord;
+  log?: LoggerLike;
+}) {
+  const {
+    adminClient,
+    session,
+    restaurantId,
+    itemKind,
+    sourceTable,
+    sourceId,
+    sourceLabel,
+    amount,
+    paidAt = new Date().toISOString(),
+    metadata = {},
+    log,
+  } = input;
+  const paidAmount = toMoney(amount);
+  if (!restaurantId || paidAmount <= 0) return null;
+
+  if (sourceId) {
+    const { data: existingLine, error: existingLineError } = await adminClient
+      .from("restaurant_invoice_line_items")
+      .select("invoice_id")
+      .eq("restaurant_id", restaurantId)
+      .eq("source_table", sourceTable)
+      .eq("source_id", sourceId)
+      .eq("item_kind", itemKind)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingLineError) {
+      log?.error?.("paid_tok_purchase_invoice_lookup_failed", { message: existingLineError.message });
+      throw existingLineError;
+    }
+    if (existingLine?.invoice_id) return existingLine.invoice_id;
+  }
+
+  const invoiceNumber = buildPaidTokInvoiceNumber(itemKind, session.id);
+  const { data: existingInvoice, error: existingInvoiceError } = await adminClient
+    .from("restaurant_invoices")
+    .select("id")
+    .eq("restaurant_id", restaurantId)
+    .eq("invoice_number", invoiceNumber)
+    .limit(1)
+    .maybeSingle();
+
+  if (existingInvoiceError) {
+    log?.error?.("paid_tok_purchase_invoice_number_lookup_failed", { message: existingInvoiceError.message });
+    throw existingInvoiceError;
+  }
+
+  let invoiceId = existingInvoice?.id || null;
+  const periodDate = toDateOnly(paidAt);
+
+  if (!invoiceId) {
+    const { data: invoice, error: invoiceError } = await adminClient
+      .from("restaurant_invoices")
+      .insert({
+        restaurant_id: restaurantId,
+        period_start: periodDate,
+        period_end: periodDate,
+        amount_ht: paidAmount,
+        amount_tva: 0,
+        amount_ttc: paidAmount,
+        status: "paid",
+        paid_at: paidAt,
+        due_at: paidAt,
+        invoice_number: invoiceNumber,
+        invoice_type: "payable",
+      })
+      .select("id")
+      .maybeSingle();
+
+    if (invoiceError || !invoice?.id) {
+      log?.error?.("paid_tok_purchase_invoice_insert_failed", { message: invoiceError?.message || "missing invoice id" });
+      throw invoiceError || new Error("paid_tok_purchase_invoice_missing_id");
+    }
+
+    invoiceId = invoice.id;
+  }
+
+  const { error: lineError } = await adminClient
+    .from("restaurant_invoice_line_items")
+    .insert({
+      invoice_id: invoiceId,
+      restaurant_id: restaurantId,
+      item_kind: itemKind,
+      source_table: sourceTable,
+      source_id: sourceId,
+      source_label: sourceLabel,
+      occurred_at: paidAt,
+      quantity: 1,
+      unit_amount: paidAmount,
+      base_amount: paidAmount,
+      rate_label: "Montant paye",
+      rate_value: null,
+      amount_ht: paidAmount,
+      amount_tva: 0,
+      amount_ttc: paidAmount,
+      metadata: {
+        checkout_kind: session.metadata?.checkout_kind || "",
+        stripe_checkout_session_id: session.id,
+        stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+        stripe_subscription_id: typeof session.subscription === "string" ? session.subscription : null,
+        currency: (session.currency || "chf").toLowerCase(),
+        paid_to: "TOK",
+        ...metadata,
+      },
+    });
+
+  if (lineError && lineError.code !== "23505") {
+    log?.error?.("paid_tok_purchase_invoice_line_insert_failed", { message: lineError.message });
+    throw lineError;
+  }
+
+  return invoiceId;
 }
 
 function getCampaignId(metadata: unknown) {
@@ -485,6 +635,118 @@ Deno.serve(async (req) => {
           break;
         }
 
+        if (checkoutKind === "restaurant-credit-pack") {
+          const restaurantId = session.metadata?.restaurant_id || null;
+          const creditPackId = session.metadata?.restaurant_credit_pack_id || session.metadata?.credit_pack_id || null;
+          const creditPackPurchaseId = session.metadata?.restaurant_credit_purchase_id || session.metadata?.credit_pack_purchase_id || null;
+          const campaignCreditChf = Number(session.metadata?.campaign_credit_chf || 0);
+          const aiToolCredits = Number(session.metadata?.ai_tool_credits || 0);
+          const aiPhotoCredits = Number(session.metadata?.ai_photo_credits || 0);
+
+          if (!userId || !restaurantId || !creditPackId || !creditPackPurchaseId) {
+            log.warn("restaurant_credit_pack_missing_metadata", { sessionId: session.id });
+            break;
+          }
+
+          const { cardBrand, cardLast4 } = await getStripePaymentMethodDetails(stripe, session, log);
+          const paidAt = new Date().toISOString();
+
+          await supabaseAdmin
+            .from("restaurant_credit_purchases")
+            .update({
+              status: "paid",
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+              stripe_mode: event.livemode ? "live" : "test",
+              paid_at: paidAt,
+              metadata: {
+                checkout_kind: "restaurant-credit-pack",
+                restaurant_id: restaurantId,
+                credit_pack_id: creditPackId,
+                campaign_credit_chf: campaignCreditChf,
+                ai_tool_credits: aiToolCredits,
+                ai_photo_credits: aiPhotoCredits,
+                card_brand: cardBrand,
+                card_last4: cardLast4,
+              },
+            })
+            .eq("id", creditPackPurchaseId);
+
+          await supabaseAdmin.from("payment_transactions").insert({
+            user_id: userId,
+            stripe_checkout_session_id: session.id,
+            stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+            amount: (session.amount_total || 0) / 100,
+            currency: (session.currency || "chf").toLowerCase(),
+            type: "charge",
+            status: "succeeded",
+            metadata: {
+              checkout_kind: "restaurant-credit-pack",
+              restaurant_id: restaurantId,
+              credit_pack_id: creditPackId,
+              restaurant_credit_purchase_id: creditPackPurchaseId,
+              campaign_credit_chf: campaignCreditChf,
+              ai_tool_credits: aiToolCredits,
+              ai_photo_credits: aiPhotoCredits,
+              card_brand: cardBrand,
+              card_last4: cardLast4,
+            },
+          });
+
+          await recordRestaurantTokPurchaseInvoiceIfMissing({
+            adminClient: supabaseAdmin,
+            session,
+            restaurantId,
+            itemKind: "credit_pack",
+            sourceTable: "restaurant_credit_purchases",
+            sourceId: creditPackPurchaseId,
+            sourceLabel: "Pack de credits TOK",
+            amount: (session.amount_total || 0) / 100,
+            paidAt,
+            metadata: {
+              credit_pack_id: creditPackId,
+              restaurant_credit_purchase_id: creditPackPurchaseId,
+              campaign_credit_chf: campaignCreditChf,
+              ai_tool_credits: aiToolCredits,
+              ai_photo_credits: aiPhotoCredits,
+              card_brand: cardBrand,
+              card_last4: cardLast4,
+            },
+            log,
+          });
+
+          try {
+            const { data: restaurant } = await supabaseAdmin
+              .from("restaurants")
+              .select("owner_id, name")
+              .eq("id", restaurantId)
+              .maybeSingle();
+
+            if (restaurant?.owner_id) {
+              await enqueueNotification({
+                adminClient: supabaseAdmin,
+                userId: restaurant.owner_id,
+                title: "Pack de credits active",
+                body: "Votre pack de credits TOK a ete ajoute a votre solde de facturation.",
+                type: "payment",
+                category: "transactional",
+                data: {
+                  restaurant_id: restaurantId,
+                  restaurant_name: restaurant.name,
+                  credit_pack_id: creditPackId,
+                  restaurant_credit_purchase_id: creditPackPurchaseId,
+                  url: "/dashboard/mon-compte-facturation",
+                },
+              });
+              await triggerNotificationDispatch({ source: "stripe-webhook-restaurant-credit-pack", push: true, email: true });
+            }
+          } catch (error) {
+            log.error("restaurant_credit_pack_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
+          }
+
+          break;
+        }
+
         if (checkoutKind === "tok-one") {
           const userId = session.metadata?.user_id || null;
           const planId = session.metadata?.plan_id || null;
@@ -578,6 +840,7 @@ Deno.serve(async (req) => {
 
           const { cardBrand, cardLast4 } = await getStripePaymentMethodDetails(stripe, session, log);
           const period = resolveRestaurantSubscriptionPeriod(stripeSubscription);
+          const paidAt = new Date().toISOString();
 
           await supabaseAdmin
             .from("restaurant_launch_packs")
@@ -585,7 +848,7 @@ Deno.serve(async (req) => {
               status: "paid",
               stripe_checkout_session_id: session.id,
               stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
-              paid_at: new Date().toISOString(),
+              paid_at: paidAt,
               metadata: {
                 checkout_kind: "restaurant-onboarding",
                 signup_application_id: signupApplicationId,
@@ -598,7 +861,7 @@ Deno.serve(async (req) => {
             })
             .eq("id", restaurantLaunchPackId);
 
-          await supabaseAdmin
+          const { data: restaurantSubscriptionRow, error: restaurantSubscriptionError } = await supabaseAdmin
             .from("restaurant_ai_subscriptions")
             .upsert({
               restaurant_id: restaurantId,
@@ -631,7 +894,13 @@ Deno.serve(async (req) => {
                 ai_tool_credits: aiToolCredits,
                 ai_photo_credits: aiPhotoCredits,
               },
-            }, { onConflict: "restaurant_id" });
+            }, { onConflict: "restaurant_id" })
+            .select("id")
+            .maybeSingle();
+
+          if (restaurantSubscriptionError) {
+            log.error("restaurant_onboarding_subscription_upsert_failed", { message: restaurantSubscriptionError.message });
+          }
 
           const { data: pack } = await supabaseAdmin
             .from("launch_packs")
@@ -708,6 +977,56 @@ Deno.serve(async (req) => {
             log,
           });
 
+          await recordRestaurantTokPurchaseInvoiceIfMissing({
+            adminClient: supabaseAdmin,
+            session,
+            restaurantId,
+            itemKind: "launch_pack",
+            sourceTable: "restaurant_launch_packs",
+            sourceId: restaurantLaunchPackId,
+            sourceLabel: "Pack de lancement TOK",
+            amount: packAmount > 0 ? packAmount : (session.amount_total || 0) / 100,
+            paidAt,
+            metadata: {
+              checkout_kind: "restaurant-onboarding",
+              pack_id: packId,
+              restaurant_launch_pack_id: restaurantLaunchPackId,
+              plan_id: planId,
+              restaurant_subscription_plan_id: planId,
+              restaurant_subscription_plan_slug: planSlug,
+              billing_period: billingPeriod,
+              card_brand: cardBrand,
+              card_last4: cardLast4,
+            },
+            log,
+          });
+
+          await recordRestaurantTokPurchaseInvoiceIfMissing({
+            adminClient: supabaseAdmin,
+            session,
+            restaurantId,
+            itemKind: "restaurant_subscription",
+            sourceTable: "restaurant_ai_subscriptions",
+            sourceId: restaurantSubscriptionRow?.id || null,
+            sourceLabel: `Abonnement restaurateur TOK - ${planSlug}`,
+            amount: subscriptionAmount,
+            paidAt,
+            metadata: {
+              checkout_kind: "restaurant-onboarding",
+              charge_component: "subscription",
+              pack_id: packId,
+              restaurant_launch_pack_id: restaurantLaunchPackId,
+              plan_id: planId,
+              restaurant_subscription_plan_id: planId,
+              restaurant_subscription_plan_slug: planSlug,
+              billing_period: billingPeriod,
+              stripe_subscription_id: stripeSubscription?.id || null,
+              card_brand: cardBrand,
+              card_last4: cardLast4,
+            },
+            log,
+          });
+
           if (signupApplicationId) {
             const { data: application } = await supabaseAdmin
               .from("signup_applications")
@@ -723,7 +1042,7 @@ Deno.serve(async (req) => {
                   ...metadata,
                   onboarding_payment_status: "paid",
                   onboarding_checkout_session_id: session.id,
-                  onboarding_paid_at: new Date().toISOString(),
+                  onboarding_paid_at: paidAt,
                   restaurant_launch_pack_id: restaurantLaunchPackId,
                   restaurant_subscription_plan_id: planId,
                   restaurant_subscription_plan_slug: planSlug,
@@ -819,6 +1138,25 @@ Deno.serve(async (req) => {
               restaurant_subscription_plan_id: planId,
               restaurant_subscription_plan_slug: planSlug,
               previous_stripe_subscription_id: previousStripeSubscriptionId,
+            },
+            log,
+          });
+
+          await recordRestaurantTokPurchaseInvoiceIfMissing({
+            adminClient: supabaseAdmin,
+            session,
+            restaurantId,
+            itemKind: "restaurant_subscription",
+            sourceTable: "restaurant_ai_subscriptions",
+            sourceId: syncResult.row?.id || null,
+            sourceLabel: `Abonnement restaurateur TOK - ${planSlug}`,
+            amount: subscriptionAmount,
+            metadata: {
+              charge_component: "restaurant_subscription_upgrade",
+              restaurant_subscription_plan_id: planId,
+              restaurant_subscription_plan_slug: planSlug,
+              previous_stripe_subscription_id: previousStripeSubscriptionId,
+              stripe_subscription_id: stripeSubscription.id,
             },
             log,
           });
@@ -954,6 +1292,27 @@ Deno.serve(async (req) => {
 
           // Notify restaurant owner
           const restaurantId = session.metadata?.restaurant_id || null;
+          if (restaurantId) {
+            await recordRestaurantTokPurchaseInvoiceIfMissing({
+              adminClient: supabaseAdmin,
+              session,
+              restaurantId,
+              itemKind: "launch_pack",
+              sourceTable: "restaurant_launch_packs",
+              sourceId: restaurantLaunchPackId,
+              sourceLabel: "Pack de lancement TOK",
+              amount: (session.amount_total || 0) / 100,
+              metadata: {
+                checkout_kind: "launch-pack",
+                pack_id: packId,
+                restaurant_launch_pack_id: restaurantLaunchPackId,
+                card_brand: cardBrand,
+                card_last4: cardLast4,
+              },
+              log,
+            });
+          }
+
           if (restaurantId) {
             const { data: restaurant } = await supabaseAdmin
               .from("restaurants")

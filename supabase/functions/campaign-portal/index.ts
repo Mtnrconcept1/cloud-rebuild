@@ -18,7 +18,7 @@ import { makeLogger } from "../_shared/logging.ts";
 
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
 const VALID_TARGET_PAGES = new Set(["home", "search", "flash_sales", "anti_waste"]);
-const VALID_PAYMENT_METHODS = new Set(["card", "twint", "postfinance_card", "postfinance_efinance", "cash"]);
+const VALID_PAYMENT_METHODS = new Set(["card", "twint", "postfinance_card", "postfinance_efinance", "cash", "credits"]);
 const VALID_EDITABLE_STATUSES = new Set(["draft", "paused", "active", "ended", "pending_payment"]);
 const VALID_CUSTOMER_SEGMENTS = new Set(["all", "new", "returning", "loyal", "inactive"]);
 const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero_attente"]);
@@ -145,6 +145,9 @@ function sanitizeCampaignPayload(raw: unknown, existingCampaign?: Record<string,
   } else if (totalBudget > 0 && sanitizedPaymentMethod === "cash") {
     paymentStatus = "pending";
     status = "pending_payment";
+  } else if (totalBudget > 0 && sanitizedPaymentMethod === "credits") {
+    paymentStatus = "paid";
+    status = requestedStatus === "active" ? "active" : "draft";
   } else if (totalBudget <= 0) {
     paymentStatus = "unpaid";
     status = requestedStatus === "active" ? "active" : "draft";
@@ -207,6 +210,38 @@ function getRpcUnavailableReason(error: { code?: string | null; message?: string
   if (text.includes("schema cache") || text.includes("could not find the function")) return "rpc_unavailable";
   if (text.includes("forbidden")) return "forbidden";
   return "rpc_error";
+}
+
+function getCreditCommittedAmount(campaign?: Record<string, unknown> | null) {
+  if (!campaign) return 0;
+  const paymentMethod = normalizeLower(campaign.payment_method);
+  const paymentStatus = normalizeLower(campaign.payment_status);
+  if (paymentMethod !== "credits" || paymentStatus !== "paid") return 0;
+  return Math.max(
+    clampNonNegativeNumber(campaign.total_budget),
+    clampNonNegativeNumber(campaign.spent),
+  );
+}
+
+async function getCampaignCreditBalance(
+  adminClient: Awaited<ReturnType<typeof authenticateRequest>>["adminClient"],
+  restaurantId: string,
+) {
+  const { data, error } = await adminClient.rpc("get_restaurant_credit_usage", {
+    p_restaurant_id: restaurantId,
+  });
+
+  if (error) {
+    throw new HttpError(500, error.message);
+  }
+
+  const usage = data && typeof data === "object" && !Array.isArray(data)
+    ? data as Record<string, unknown>
+    : {};
+  const credits = Array.isArray(usage.credits) ? usage.credits as Array<Record<string, unknown>> : [];
+  const campaignCredit = credits.find((credit) => String(credit.kind || "") === "campaign");
+
+  return clampNonNegativeNumber(campaignCredit?.balance);
 }
 
 Deno.serve(async (req) => {
@@ -298,6 +333,34 @@ Deno.serve(async (req) => {
       }
 
       const payload = sanitizeCampaignPayload(body?.payload, existingCampaign);
+      const creditsBudget = payload.payment_method === "credits" && payload.total_budget > 0
+        ? payload.total_budget
+        : 0;
+
+      if (creditsBudget > 0) {
+        const availableCredits = await getCampaignCreditBalance(adminClient, restaurant.id);
+        const reusableCommitment = getCreditCommittedAmount(existingCampaign);
+        const effectiveAvailable = availableCredits + reusableCommitment;
+
+        if (creditsBudget > effectiveAvailable) {
+          throw new HttpError(
+            402,
+            `Credits campagnes insuffisants. Solde disponible: ${effectiveAvailable.toFixed(2)} CHF.`,
+          );
+        }
+
+        Object.assign(payload, {
+          payment_status: "paid",
+          paid_amount: creditsBudget,
+          paid_at: existingCampaign?.paid_at || new Date().toISOString(),
+        });
+
+        if (payload.status === "active") {
+          Object.assign(payload, {
+            activated_at: existingCampaign?.activated_at || new Date().toISOString(),
+          });
+        }
+      }
       let savedCampaign: unknown = null;
 
       if (campaignId) {
@@ -335,6 +398,7 @@ Deno.serve(async (req) => {
           restaurant_id: restaurant.id,
           type: payload.type,
           payment_status: payload.payment_status,
+          payment_method: payload.payment_method,
           status: payload.status,
         },
       });

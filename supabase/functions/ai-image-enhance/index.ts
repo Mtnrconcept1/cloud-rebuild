@@ -796,6 +796,8 @@ Deno.serve(async (req) => {
       model: usedImageOptions?.model,
       imageCount: generated ? variantCount : 0,
       metadata: {
+        credit_kind: "photo_retouch",
+        credit_units: Math.max(1, generated ? variantCount : 1),
         asset_type: assetType,
         has_source_image: Boolean(sourceImageUrl),
         generated_image: Boolean(generated),

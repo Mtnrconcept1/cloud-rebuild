@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 
 import type { StudioDraftTable, StudioRenderedTableFrame } from "./studioShared";
 
-const CANVAS_HEIGHT = 760;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
@@ -28,6 +27,7 @@ const STUDIO_RESIZE_HANDLES = [
 type StudioCanvasProps = {
   selectedSector: string;
   canvasWidth: number;
+  canvasHeight: number;
   canvasZoom: number;
   canvasZoomLabel: string;
   canvasRef: RefObject<HTMLDivElement | null>;
@@ -54,6 +54,7 @@ type StudioCanvasProps = {
 export default function StudioCanvas({
   selectedSector,
   canvasWidth,
+  canvasHeight,
   canvasZoom,
   canvasZoomLabel,
   canvasRef,
@@ -79,7 +80,7 @@ export default function StudioCanvas({
     if (!viewport) return;
 
     const nextLeft = Math.max(0, (canvasWidth - viewport.clientWidth) / 2);
-    const nextTop = Math.max(0, (CANVAS_HEIGHT - viewport.clientHeight) / 2);
+    const nextTop = Math.max(0, (canvasHeight - viewport.clientHeight) / 2);
     viewport.scrollTo({
       left: nextLeft,
       top: nextTop,
@@ -186,11 +187,11 @@ export default function StudioCanvas({
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
-          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-auto rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-inner">
-            <div className="flex min-h-full min-w-full items-start justify-start">
+          <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-xl border border-slate-200/80 bg-white/80 shadow-inner">
+            <div className="flex h-full w-full items-stretch justify-stretch">
               <div
                 ref={canvasRef}
-                className="relative overflow-hidden rounded-[28px] border border-slate-300/70 shadow-inner"
+                className="relative h-full w-full overflow-hidden rounded-[28px] border border-slate-300/70 shadow-inner"
                 onWheelCapture={onCanvasWheel}
                 onClick={(event) => {
                   if (event.target === event.currentTarget) {
@@ -198,8 +199,8 @@ export default function StudioCanvas({
                   }
                 }}
                 style={{
-                  width: canvasWidth,
-                  height: CANVAS_HEIGHT,
+                  width: "100%",
+                  height: "100%",
                   backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)",
                   backgroundSize: "36px 36px, 36px 36px",
                   backgroundColor: "#f6f7fb",

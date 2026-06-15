@@ -5,7 +5,6 @@ import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItem
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { getFloorPlanInteractiveFrame, isReservableFloorPlanItem, type FloorPlanResizeHandle } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +26,7 @@ type ServiceBoardProps = {
   subtitle: string;
   activeReservationLabel: string | null;
   canvasWidth: number;
+  canvasHeight: number;
   canvasZoom: number;
   canvasZoomLabel: string;
   canvasRef: RefObject<HTMLDivElement | null>;
@@ -62,7 +62,6 @@ type ServiceBoardProps = {
   ) => { top: number; right: number; bottom: number; left: number };
 };
 
-const CANVAS_HEIGHT = 760;
 const MIN_CANVAS_ZOOM = 0.1;
 const MAX_CANVAS_ZOOM = 1.8;
 const CANVAS_ZOOM_STEP = 0.1;
@@ -161,7 +160,6 @@ export default function ServiceBoard({
   selectedSector,
   subtitle,
   activeReservationLabel,
-  canvasWidth,
   canvasZoom,
   canvasZoomLabel,
   canvasRef,
@@ -273,11 +271,11 @@ export default function ServiceBoard({
       <CardContent className="flex min-h-0 flex-1 flex-col p-2">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2">
           <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-slate-200/80 bg-white/80 p-2 shadow-inner">
-            <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1">
-              <ScrollArea className="h-full w-full">
+            <div ref={canvasViewportRef} className="min-h-0 min-w-0 flex-1 overflow-hidden">
+              <div className="h-full w-full">
                 <div
                   ref={canvasRef}
-                  className="relative overflow-hidden rounded-[28px] border border-slate-300/70 shadow-inner"
+                  className="relative h-full w-full overflow-hidden rounded-[28px] border border-slate-300/70 shadow-inner"
                   onWheelCapture={onCanvasWheel}
                   onDragOver={onCanvasDragOver}
                   onDrop={onCanvasDrop}
@@ -288,8 +286,8 @@ export default function ServiceBoard({
                     }
                   }}
                   style={{
-                    width: canvasWidth,
-                    height: CANVAS_HEIGHT,
+                    width: "100%",
+                    height: "100%",
                     backgroundImage: "linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)",
                     backgroundSize: "36px 36px, 36px 36px",
                     backgroundColor: "#f6f7fb",
@@ -612,7 +610,7 @@ export default function ServiceBoard({
                     );
                   })}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           </div>
         </div>
