@@ -84,6 +84,9 @@ export type AdminReservationHistoryItem = {
   orderReference: string | null;
   paymentMethod: string | null;
   billingFeeChf: number;
+  progressiveOfferId: string | null;
+  progressiveOfferDiscountPercent: number;
+  progressiveOfferDiscountStatus: string | null;
   metadata: Record<string, unknown> | null;
   preorderItems: AdminReservationPreorderItem[];
   restaurant: AdminRestaurantSummary;
@@ -225,6 +228,8 @@ export function getReservationFeaturePresentation(feature: string | null | undef
       return { label: "Formule promo", className: "border-emerald-200 bg-emerald-100 text-emerald-800" };
     case "promo-offre":
       return { label: "Offre promo", className: "border-emerald-200 bg-emerald-100 text-emerald-800" };
+    case "promo-progressive":
+      return { label: "Offre progressive", className: "border-orange-200 bg-orange-100 text-orange-800" };
     default:
       return null;
   }
@@ -314,6 +319,9 @@ export function normalizeReservationHistoryRow(
     orderReference: readString(raw.order_reference),
     paymentMethod: readString(raw.payment_method),
     billingFeeChf: toAmount(raw.billing_fee_chf),
+    progressiveOfferId: readString(raw.progressive_offer_id, metadata?.progressive_offer_id),
+    progressiveOfferDiscountPercent: toAmount(raw.progressive_offer_discount_percent ?? metadata?.progressive_offer_discount_percent),
+    progressiveOfferDiscountStatus: readString(raw.progressive_offer_discount_status, metadata?.progressive_offer_discount_status),
     metadata,
     preorderItems: preorderItemsSource
       .filter((item): item is Record<string, unknown> => Boolean(asRecord(item)))

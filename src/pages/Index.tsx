@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { BadgePercent, ChevronRight, Compass, Heart, MapPinned, MoonStar, ShoppingCart, Sparkles, SunMedium, TrendingUp, UserRound } from "lucide-react";
+import { BadgePercent, ChevronRight, Compass, Heart, MapPinned, MoonStar, ShoppingCart, Sparkles, SunMedium, Timer, TrendingUp, UserRound, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -19,6 +19,15 @@ import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getActiveSponsoredRestaurants, setAnalyticsUser, trackEvent } from "@/lib/analytics";
+import {
+  formatProgressiveCountdown,
+  formatProgressiveServiceDate,
+  getCurrentProgressiveDiscount,
+  getNextProgressiveDiscount,
+  getProgressiveOfferProgressPercent,
+  getProgressiveOfferRemainingTables,
+  type ProgressiveReservationOffer,
+} from "@/lib/progressiveReservationOffers";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 
@@ -93,6 +102,11 @@ function buildSearchLink(params: Record<string, string | null | undefined | bool
   return `/recherche${query ? `?${query}` : ""}`;
 }
 
+function getProgressiveOfferRestaurant(offer: ProgressiveReservationOffer) {
+  const restaurant = offer.restaurants;
+  return Array.isArray(restaurant) ? restaurant[0] : restaurant;
+}
+
 const sectionStagger = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.09 } },
@@ -114,11 +128,17 @@ export default function Index() {
   const campaignsEnabled = activeFeatures.has("campagnes-pub");
   const [isVisible, setIsVisible] = useState(false);
   const [shouldLoadMap, setShouldLoadMap] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const mapSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 400);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -182,6 +202,32 @@ export default function Index() {
   const { data: offersRail = [] } = useQuery({
     queryKey: ["home-rail-offers"],
     queryFn: () => fetchHomeRail({ sortBy: "promotion", limit: 4 }),
+  });
+
+  const { data: progressiveOffers = [] } = useQuery({
+    queryKey: ["home-progressive-reservation-offers"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
+        .select(`
+          *,
+          restaurants (
+            id,
+            name,
+            city,
+            image_url,
+            cuisine_type,
+            rating
+          )
+        `)
+        .eq("status", "active")
+        .gt("booking_cutoff_at", new Date().toISOString())
+        .order("booking_cutoff_at", { ascending: true })
+        .limit(6);
+
+      if (error) throw error;
+      return (data || []) as ProgressiveReservationOffer[];
+    },
+    staleTime: 30_000,
   });
 
   const { data: trendingRail = [] } = useQuery({
@@ -432,6 +478,96 @@ export default function Index() {
       <section className="container py-4">
         <CampaignBanner page="home" maxBanners={1} />
       </section>
+
+      {progressiveOffers.length > 0 ? (
+        <section className="container py-4" aria-labelledby="progressive-offers-title">
+          <div className="overflow-hidden rounded-[28px] border border-orange-200 bg-orange-50/90 shadow-[0_18px_44px_rgba(249,115,22,0.12)] dark:bg-orange-950/20">
+            <div className="flex flex-col gap-4 p-5 md:p-6">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Timer className="h-5 w-5" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em]">Offres progressives</p>
+                  </div>
+                  <h2 id="progressive-offers-title" className="font-display text-2xl font-bold md:text-3xl">
+                    Plus vous reservez, plus la remise grandit
+                  </h2>
+                  <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                    Les participants obtiennent le meme pourcentage final a la fin du compte a rebours.
+                  </p>
+                </div>
+                <Button asChild variant="outline" className="w-full rounded-full bg-background/80 md:w-auto">
+                  <Link to={buildSearchLink({ sort: "promotion", promo: true })}>
+                    Explorer les offres
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+
+              <div className="grid gap-3 lg:grid-cols-3">
+                {progressiveOffers.slice(0, 3).map((offer) => {
+                  const restaurant = getProgressiveOfferRestaurant(offer);
+                  const restaurantId = restaurant?.id || offer.restaurant_id;
+                  const currentDiscount = getCurrentProgressiveDiscount(offer);
+                  const nextDiscount = getNextProgressiveDiscount(offer);
+                  const remainingTables = getProgressiveOfferRemainingTables(offer);
+                  const reservationLink = `/restaurant/${restaurantId}?reserve=true&progressiveOfferId=${offer.id}`;
+
+                  return (
+                    <Link
+                      key={offer.id}
+                      to={reservationLink}
+                      className="group overflow-hidden rounded-2xl border bg-background shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                    >
+                      <div className="aspect-[2.2/1] overflow-hidden bg-muted">
+                        <img
+                          src={restaurant?.image_url || "/images/kebab-box-spread.jpeg"}
+                          alt={restaurant?.name || offer.title}
+                          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="space-y-3 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold">{restaurant?.name || "Restaurant TOK"}</p>
+                            <p className="text-xs text-muted-foreground">{formatProgressiveServiceDate(offer.service_date)} · {(offer.service_time || "19:00").slice(0, 5)}</p>
+                          </div>
+                          <Badge className="bg-orange-500 text-white">-{nextDiscount}%</Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="rounded-xl bg-orange-50 p-2 text-orange-900 dark:bg-orange-950/30 dark:text-orange-100">
+                            <p className="text-muted-foreground">Remise actuelle</p>
+                            <p className="text-base font-bold">-{currentDiscount}%</p>
+                          </div>
+                          <div className="rounded-xl bg-emerald-50 p-2 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
+                            <p className="text-muted-foreground">Tables restantes</p>
+                            <p className="flex items-center gap-1 text-base font-bold">
+                              <Users className="h-3.5 w-3.5" />
+                              {remainingTables}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="h-2 overflow-hidden rounded-full bg-muted">
+                            <div
+                              className="h-full rounded-full bg-orange-500"
+                              style={{ width: `${getProgressiveOfferProgressPercent(offer)}%` }}
+                            />
+                          </div>
+                          <p className="text-xs font-medium text-primary">
+                            Fin dans {formatProgressiveCountdown(offer.countdown_ends_at, nowMs)}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <motion.div
         variants={sectionStagger}

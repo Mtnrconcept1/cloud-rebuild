@@ -59,6 +59,9 @@ export interface ReservationDetail {
   metadata: Json;
   preorder_items: Json;
   restaurant_name: string;
+  progressive_offer_id?: string | null;
+  progressive_offer_discount_percent?: number | null;
+  progressive_offer_discount_status?: string | null;
 }
 
 interface Props {
@@ -92,6 +95,8 @@ const getFeatureLabel = (feature: string) => {
       return { label: "Formule promo", icon: Utensils, color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
     case "promo-offre":
       return { label: "Offre promo", icon: Utensils, color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+    case "promo-progressive":
+      return { label: "Offre progressive", icon: Timer, color: "text-orange-600 bg-orange-50 border-orange-200" };
     default:
       return { label: "Classique", icon: Utensils, color: "text-primary bg-primary/5 border-primary/20" };
   }
@@ -152,6 +157,19 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
   const promoInfo = (() => {
     if (!isJsonRecord(reservation.metadata)) return null;
 
+    const progressiveDiscountPercent = Number(
+      reservation.progressive_offer_discount_percent
+      || reservation.metadata.progressive_offer_discount_percent
+      || 0,
+    );
+    const progressiveName = readString(
+      reservation.metadata.progressive_offer_name,
+      reservation.metadata.progressive_offer_title,
+    );
+    const progressiveStatus = readString(
+      reservation.progressive_offer_discount_status || undefined,
+      reservation.metadata.progressive_offer_discount_status,
+    );
     const formulaDiscountPercent = Number(reservation.metadata.formula_discount_percent || 0);
     const formulaDiscountAmount = Number(reservation.metadata.formula_discount_amount || 0);
     const formulaName = reservation.metadata.formula_applied
@@ -169,6 +187,16 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
         name: formulaName,
         discountPercent: formulaDiscountPercent,
         discountAmount: formulaDiscountAmount,
+      };
+    }
+
+    if (progressiveDiscountPercent > 0) {
+      return {
+        type: "progressive" as const,
+        name: progressiveName,
+        discountPercent: progressiveDiscountPercent,
+        discountAmount: 0,
+        status: progressiveStatus,
       };
     }
 
@@ -293,13 +321,14 @@ export default function ReservationDetailModal({ reservation, open, onOpenChange
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 flex items-center gap-2 text-sm text-emerald-700">
               <Utensils className="h-4 w-4" />
               <span>
-                {promoInfo.type === "formula" ? "Formule" : "Promotion"} avec{" "}
+                {promoInfo.type === "formula" ? "Formule" : promoInfo.type === "progressive" ? "Offre progressive" : "Promotion"} avec{" "}
                 <strong>
                   {promoInfo.discountAmount > 0 && promoInfo.discountPercent <= 0
                     ? `-${promoInfo.discountAmount.toFixed(2)} CHF`
                     : `-${promoInfo.discountPercent}%`}
                 </strong>
                 {promoInfo.name ? ` (${promoInfo.name})` : ""}
+                {"status" in promoInfo && promoInfo.status ? ` - ${promoInfo.status === "finalized" ? "remise finale" : "remise en cours"}` : ""}
               </span>
             </div>
           )}

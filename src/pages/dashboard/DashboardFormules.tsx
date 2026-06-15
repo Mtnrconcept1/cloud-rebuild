@@ -1,16 +1,27 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Percent, UtensilsCrossed, CakeSlice, Salad, Loader2 } from "lucide-react";
+import { CalendarClock, Percent, UtensilsCrossed, CakeSlice, Salad, Loader2, Timer, Users } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import {
+  formatProgressiveCountdown,
+  formatProgressiveServiceDate,
+  getCurrentProgressiveDiscount,
+  getNextProgressiveDiscount,
+  getProgressiveOfferProgressPercent,
+  getProgressiveOfferRemainingTables,
+  type ProgressiveReservationOffer,
+} from "@/lib/progressiveReservationOffers";
 import { cn } from "@/lib/utils";
 import { DEFAULT_SERVICE_SETTINGS, getServicePeriodLabel, type ServicePeriod } from "@/lib/serviceSettings";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
@@ -31,6 +42,8 @@ const SERVICE_PERIODS: Array<{ key: ServicePeriod; note: string }> = [
   { key: "lunch", note: "Formule visible sur le service du midi." },
   { key: "dinner", note: "Formule visible sur le service du soir." },
 ];
+
+const PROGRESSIVE_OFFER_LIMIT = 20;
 
 type PresetFormula = {
   formula_key: string;
@@ -183,6 +196,332 @@ function serializeAvailability(availability: Availability) {
   };
 }
 
+function padNumber(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function toDateInputValue(date: Date) {
+  return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
+}
+
+function toDateTimeLocalValue(date: Date) {
+  return `${toDateInputValue(date)}T${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
+}
+
+function buildDefaultProgressiveOfferForm() {
+  const now = new Date();
+  const serviceDate = new Date(now);
+  serviceDate.setDate(serviceDate.getDate() + 1);
+  serviceDate.setHours(19, 0, 0, 0);
+
+  const countdownEnd = new Date(serviceDate);
+  countdownEnd.setHours(18, 0, 0, 0);
+
+  return {
+    id: null as string | null,
+    title: "Offre progressive du soir",
+    description: "Plus les clients reservent avant la fin du compte a rebours, plus la remise finale augmente pour tous les participants.",
+    serviceDate: toDateInputValue(serviceDate),
+    serviceTime: "19:00",
+    countdownEndsAt: toDateTimeLocalValue(countdownEnd),
+    maxTables: "10",
+    maxDiscountPercent: "50",
+    isActive: true,
+  };
+}
+
+function progressiveOfferToForm(offer: ProgressiveReservationOffer) {
+  const countdownEnd = new Date(offer.countdown_ends_at);
+  return {
+    id: offer.id,
+    title: offer.title || "Offre progressive",
+    description: offer.description || "",
+    serviceDate: offer.service_date,
+    serviceTime: (offer.service_time || "19:00").slice(0, 5),
+    countdownEndsAt: Number.isNaN(countdownEnd.getTime())
+      ? buildDefaultProgressiveOfferForm().countdownEndsAt
+      : toDateTimeLocalValue(countdownEnd),
+    maxTables: String(offer.max_tables || 10),
+    maxDiscountPercent: String(offer.max_discount_percent || 50),
+    isActive: offer.status === "active",
+  };
+}
+
+function ProgressiveOfferManager({
+  restaurantId,
+  offers,
+  loading,
+  onSaved,
+}: {
+  restaurantId: string;
+  offers: ProgressiveReservationOffer[];
+  loading: boolean;
+  onSaved: () => void;
+}) {
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(buildDefaultProgressiveOfferForm);
+
+  const currentOffer = useMemo(
+    () => offers.find((offer) => offer.status === "active") || offers[0] || null,
+    [offers],
+  );
+
+  useEffect(() => {
+    if (currentOffer) {
+      setForm(progressiveOfferToForm(currentOffer));
+    } else {
+      setForm(buildDefaultProgressiveOfferForm());
+    }
+  }, [currentOffer]);
+
+  const resetForNewOffer = () => {
+    setForm(buildDefaultProgressiveOfferForm());
+  };
+
+  const save = async () => {
+    const title = form.title.trim();
+    const countdownEnd = new Date(form.countdownEndsAt);
+    const maxTables = Math.max(1, Math.min(200, Number(form.maxTables) || 10));
+    const maxDiscountPercent = Math.max(1, Math.min(100, Number(form.maxDiscountPercent) || 50));
+
+    if (!title) {
+      toast({ title: "Titre requis", description: "Nommez l'offre progressive.", variant: "destructive" });
+      return;
+    }
+
+    if (!form.serviceDate || Number.isNaN(new Date(`${form.serviceDate}T12:00:00`).getTime())) {
+      toast({ title: "Date requise", description: "Choisissez le jour de service de l'offre.", variant: "destructive" });
+      return;
+    }
+
+    if (Number.isNaN(countdownEnd.getTime())) {
+      toast({ title: "Compte a rebours invalide", description: "Choisissez une date et une heure de fin.", variant: "destructive" });
+      return;
+    }
+
+    const bookingCutoff = new Date(countdownEnd.getTime() - 30 * 60 * 1000);
+    if (bookingCutoff.getTime() <= Date.now() && form.isActive) {
+      toast({
+        title: "Compte a rebours trop court",
+        description: "Une offre active doit laisser au moins 30 minutes de reservation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = {
+        restaurant_id: restaurantId,
+        title,
+        description: form.description.trim() || null,
+        service_date: form.serviceDate,
+        service_time: form.serviceTime || "19:00",
+        countdown_ends_at: countdownEnd.toISOString(),
+        booking_cutoff_at: bookingCutoff.toISOString(),
+        max_tables: maxTables,
+        max_discount_percent: maxDiscountPercent,
+        status: form.isActive ? "active" : "draft",
+        updated_at: new Date().toISOString(),
+      };
+
+      if (form.id) {
+        const { error } = await (supabase.from("reservation_progressive_offers" as any) as any)
+          .update(payload)
+          .eq("id", form.id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) throw error;
+        if (data?.id) setForm((current) => ({ ...current, id: data.id }));
+      }
+
+      onSaved();
+      toast({ title: form.isActive ? "Offre progressive activee" : "Offre progressive enregistree" });
+    } catch (error: any) {
+      toast({
+        title: "Enregistrement impossible",
+        description: error?.message || "L'offre progressive n'a pas pu etre enregistree.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const finalizeOffer = async (offerId: string) => {
+    setSaving(true);
+    try {
+      const { error } = await (supabase.rpc as any)("finalize_progressive_offer", {
+        p_offer_id: offerId,
+      });
+      if (error) throw error;
+      onSaved();
+      toast({
+        title: "Remise finale figee",
+        description: "Les reservations liees affichent maintenant le pourcentage final.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Finalisation impossible",
+        description: error?.message || "Impossible de finaliser cette offre.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const previewOffer = {
+    max_discount_percent: Number(form.maxDiscountPercent || 50),
+    max_tables: Number(form.maxTables || 10),
+    current_reservations_count: currentOffer?.current_reservations_count || 0,
+    final_discount_percent: currentOffer?.final_discount_percent || null,
+    status: currentOffer?.status || (form.isActive ? "active" : "draft"),
+  };
+  const currentDiscount = getCurrentProgressiveDiscount(previewOffer);
+  const nextDiscount = getNextProgressiveDiscount(previewOffer);
+
+  return (
+    <Card className="border-orange-200 bg-orange-50/70 shadow-sm dark:bg-orange-950/10">
+      <CardContent className="space-y-5 p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500 text-white">
+              <Timer className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-lg font-semibold">Offre progressive</h3>
+                {currentOffer ? <Badge variant="outline">{currentOffer.status}</Badge> : null}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
+              </div>
+              <p className="max-w-3xl text-sm text-muted-foreground">
+                Le client reserve avant l'heure limite. Plus il y a de reservations, plus la remise finale augmente pour tous les clients participants.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-2 text-sm sm:grid-cols-3 lg:min-w-[420px]">
+            <div className="rounded-xl border bg-background/80 p-3">
+              <p className="text-xs text-muted-foreground">Remise actuelle</p>
+              <p className="text-xl font-bold text-primary">-{currentDiscount}%</p>
+            </div>
+            <div className="rounded-xl border bg-background/80 p-3">
+              <p className="text-xs text-muted-foreground">Prochaine reservation</p>
+              <p className="text-xl font-bold text-emerald-600">-{nextDiscount}%</p>
+            </div>
+            <div className="rounded-xl border bg-background/80 p-3">
+              <p className="text-xs text-muted-foreground">Tables restantes</p>
+              <p className="text-xl font-bold">{currentOffer ? getProgressiveOfferRemainingTables(currentOffer) : form.maxTables}</p>
+            </div>
+          </div>
+        </div>
+
+        {currentOffer ? (
+          <div className="grid gap-3 rounded-xl border bg-background/70 p-4 md:grid-cols-[1fr_220px]">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-orange-500 text-white">
+                  {formatProgressiveServiceDate(currentOffer.service_date)}
+                </Badge>
+                <Badge variant="outline">{(currentOffer.service_time || "19:00").slice(0, 5)}</Badge>
+                <Badge variant="outline">
+                  {currentOffer.current_reservations_count}/{currentOffer.max_tables} table(s)
+                </Badge>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-orange-500"
+                  style={{ width: `${getProgressiveOfferProgressPercent(currentOffer)}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Fin du compte a rebours dans {formatProgressiveCountdown(currentOffer.countdown_ends_at)}. Les clients peuvent reserver jusqu'a 30 minutes avant la fin.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button type="button" variant="outline" onClick={() => finalizeOffer(currentOffer.id)} disabled={saving || currentOffer.status === "finalized"}>
+                Finaliser la remise
+              </Button>
+              <Button type="button" variant="ghost" onClick={resetForNewOffer} disabled={saving}>
+                Nouvelle offre
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Titre</Label>
+                <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
+              </div>
+              <div className="flex items-center justify-between rounded-xl border bg-background px-3 py-2">
+                <div>
+                  <Label className="text-sm">Publier sur l'accueil</Label>
+                  <p className="text-[11px] text-muted-foreground">Rend l'offre visible et reservable.</p>
+                </div>
+                <Switch checked={form.isActive} onCheckedChange={(checked) => setForm((current) => ({ ...current, isActive: checked }))} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Description</Label>
+              <Textarea
+                value={form.description}
+                onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5"><CalendarClock className="h-4 w-4" /> Jour J</Label>
+              <Input type="date" value={form.serviceDate} onChange={(event) => setForm((current) => ({ ...current, serviceDate: event.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Heure de reservation</Label>
+              <Input type="time" value={form.serviceTime} onChange={(event) => setForm((current) => ({ ...current, serviceTime: event.target.value }))} />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Fin du compte a rebours</Label>
+              <Input
+                type="datetime-local"
+                value={form.countdownEndsAt}
+                onChange={(event) => setForm((current) => ({ ...current, countdownEndsAt: event.target.value }))}
+              />
+              <p className="text-[11px] text-muted-foreground">Derniere reservation autorisee 30 minutes avant cette heure.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5"><Users className="h-4 w-4" /> Tables maximum</Label>
+              <Input type="number" min={1} max={200} value={form.maxTables} onChange={(event) => setForm((current) => ({ ...current, maxTables: event.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Remise maximum (%)</Label>
+              <Input type="number" min={1} max={100} value={form.maxDiscountPercent} onChange={(event) => setForm((current) => ({ ...current, maxDiscountPercent: event.target.value }))} />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            Exemple: 50% pour 10 tables donne +5% a chaque reservation participante, puis la remise est figee a la fin du compte a rebours.
+          </p>
+          <Button type="button" onClick={save} disabled={saving} className="gap-2">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Enregistrer l'offre
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DashboardFormules() {
   const { selectedId } = useDashboardRestaurant();
   const queryClient = useQueryClient();
@@ -198,6 +537,22 @@ export default function DashboardFormules() {
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data || [];
+    },
+    enabled: !!selectedId,
+  });
+
+  const { data: progressiveOffers = [], isLoading: isProgressiveOffersLoading } = useQuery({
+    queryKey: ["dashboard-progressive-offers", selectedId],
+    queryFn: async () => {
+      if (!selectedId) return [] as ProgressiveReservationOffer[];
+      const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
+        .select("*")
+        .eq("restaurant_id", selectedId)
+        .order("service_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(PROGRESSIVE_OFFER_LIMIT);
+      if (error) throw error;
+      return (data || []) as ProgressiveReservationOffer[];
     },
     enabled: !!selectedId,
   });
@@ -222,7 +577,7 @@ export default function DashboardFormules() {
           visualLabel="Formules"
           stats={[
             { label: "Modeles", value: PRESET_FORMULAS.length, icon: UtensilsCrossed },
-            { label: "Configurees", value: formulas?.length || 0, icon: Percent },
+            { label: "Configurees", value: (formulas?.length || 0) + progressiveOffers.length, icon: Percent },
             { label: "Restaurant", value: selectedId ? "Selectionne" : "Aucun", icon: Salad },
           ]}
         />
@@ -233,6 +588,16 @@ export default function DashboardFormules() {
           </div>
         ) : (
           <div className="space-y-4">
+            {selectedId ? (
+              <ProgressiveOfferManager
+                restaurantId={selectedId}
+                offers={progressiveOffers}
+                loading={isProgressiveOffersLoading}
+                onSaved={() => {
+                  queryClient.invalidateQueries({ queryKey: ["dashboard-progressive-offers", selectedId] });
+                }}
+              />
+            ) : null}
             {PRESET_FORMULAS.map((preset) => (
               <PresetFormulaCard
                 key={preset.formula_key}

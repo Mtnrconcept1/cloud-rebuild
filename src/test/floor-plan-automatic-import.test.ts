@@ -64,6 +64,16 @@ describe("automatic floor-plan image import", () => {
     expect(edgeFunction).toContain("Ne renvoie jamais les chaises attachees aux tables comme meubles separes");
   });
 
+  it("accepts the semantic salle JSON returned by vision before falling back to grid placement", () => {
+    const edgeFunction = read("supabase/functions/floorplan-ai/index.ts");
+
+    expect(edgeFunction).toContain('readRecord(source, ["salle", "room", "venue"])');
+    expect(edgeFunction).toContain("buildSemanticFloorPlanFrameHints");
+    expect(edgeFunction).toContain("haut_centre_droit");
+    expect(edgeFunction).toContain("bas_centre_droit");
+    expect(edgeFunction).toContain('readArray(analysisSource, ["decoration", "decorations"])');
+  });
+
   it("passes source image dimensions to improve vision coordinate mapping", () => {
     const panel = read("src/components/floor-plan/FloorPlanAIPanel.tsx");
 

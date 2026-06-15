@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, ChevronRight, Camera, X, ChevronLeft, LogIn } from "lucide-react";
+import { Heart, MapPin, Phone, Clock, Star, Bike, Percent, Leaf, Utensils, ShoppingBag, ShoppingCart, Zap, ArrowLeft, Info, UtensilsCrossed, MessageSquare, ChevronRight, Camera, X, ChevronLeft, LogIn, Timer } from "lucide-react";
 import MenuItemCard from "@/components/MenuItemCard";
 import ReviewForm from "@/components/ReviewForm";
 import ReservationDialog from "@/components/ReservationDialog";
@@ -25,6 +25,14 @@ import {
   isAntiWasteOfferPubliclyVisible,
   isFlashSalePubliclyVisible,
 } from "@/lib/specialOffers";
+import {
+  formatProgressiveCountdown,
+  formatProgressiveServiceDate,
+  getNextProgressiveDiscount,
+  getProgressiveOfferProgressPercent,
+  getProgressiveOfferRemainingTables,
+  type ProgressiveReservationOffer,
+} from "@/lib/progressiveReservationOffers";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
 
@@ -152,7 +160,9 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
+  const [reservationProgressiveOfferId, setReservationProgressiveOfferId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("menu");
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const impressionTracked = useRef(false);
   const googleBookingStartTrackedRef = useRef(false);
   const deliveryEnabled = activeFeatures.has("livraison");
@@ -163,12 +173,19 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const antiWasteEnabled = activeFeatures.has("anti-gaspi");
   const zeroWaitEnabled = activeFeatures.has("zero-attente");
   const authRedirectTarget = buildAuthRedirectTarget(location.pathname, location.search);
+  const progressiveOfferId = searchParams.get("progressiveOfferId");
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const openParam = searchParams.get("open");
     const shouldOpenReservation = searchParams.get("reserve") === "true" || openParam === "reservation";
 
     if (shouldOpenReservation && reservationEnabled) {
+      setReservationProgressiveOfferId(searchParams.get("progressiveOfferId"));
       const timeParam = searchParams.get("time");
       if (timeParam) setReservationDefaults({ date: new Date(), time: timeParam, partySize: 2 });
       setReservationOpen(true);
@@ -244,6 +261,23 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     staleTime: RESTAURANT_DETAIL_STALE_MS,
   });
 
+  const { data: progressiveOffers = [] } = useQuery({
+    queryKey: ["restaurant-progressive-offers", restaurantId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
+        .select("*")
+        .eq("restaurant_id", restaurantId!)
+        .eq("status", "active")
+        .gt("booking_cutoff_at", new Date().toISOString())
+        .order("booking_cutoff_at", { ascending: true })
+        .limit(RESTAURANT_SPECIAL_OFFERS_LIMIT);
+      if (error) throw error;
+      return (data || []) as ProgressiveReservationOffer[];
+    },
+    enabled: !!restaurantId,
+    staleTime: 30_000,
+  });
+
   const { data: flashSales } = useQuery({
     queryKey: ["restaurant-flash-sales", restaurantId],
     queryFn: async () => {
@@ -303,6 +337,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const visibleAntiWasteOffers = useMemo(
     () => (antiWasteOffers || []).filter((offer: any) => isAntiWasteOfferPubliclyVisible(offer)),
     [antiWasteOffers],
+  );
+  const selectedProgressiveOffer = useMemo(
+    () => progressiveOffers.find((offer) => offer.id === (reservationProgressiveOfferId || progressiveOfferId)) || null,
+    [progressiveOfferId, progressiveOffers, reservationProgressiveOfferId],
   );
 
   const reservationAvailable = reservationEnabled && !!restaurant?.supports_reservation;
@@ -382,6 +420,25 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
   const handleWidgetReserve = (date: Date, time: string, partySize: number) => {
     setReservationDefaults({ date, time, partySize });
+    setReservationOpen(true);
+  };
+
+  const handleProgressiveOfferReserve = (offer: ProgressiveReservationOffer) => {
+    const serviceDate = new Date(`${offer.service_date}T12:00:00`);
+    const dateValue = Number.isNaN(serviceDate.getTime()) ? new Date() : serviceDate;
+    const search = `?reserve=true&progressiveOfferId=${encodeURIComponent(offer.id)}`;
+
+    if (!user) {
+      navigate(buildAuthRedirectTarget(location.pathname, search));
+      return;
+    }
+
+    setReservationDefaults({
+      date: dateValue,
+      time: (offer.service_time || "19:00").slice(0, 5),
+      partySize: 2,
+    });
+    setReservationProgressiveOfferId(offer.id);
     setReservationOpen(true);
   };
 
@@ -668,6 +725,64 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 )}
               </TabsContent>
               <TabsContent value="menu" className="space-y-6 mt-0">
+                {progressiveOffers.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Timer className="h-5 w-5 text-orange-500" />
+                      <h2 className="font-display text-xl font-bold">Offres progressives</h2>
+                      <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/20 text-[10px]">
+                        Compte a rebours
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      {progressiveOffers.map((offer) => {
+                        const nextDiscount = getNextProgressiveDiscount(offer);
+                        const remainingTables = getProgressiveOfferRemainingTables(offer);
+                        const isSelectedOffer = selectedProgressiveOffer?.id === offer.id;
+
+                        return (
+                          <div key={offer.id} className="space-y-3 rounded-2xl border-2 border-orange-500/20 bg-orange-500/5 p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <h3 className="font-bold text-lg">{offer.title}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatProgressiveServiceDate(offer.service_date)} a {(offer.service_time || "19:00").slice(0, 5)}
+                                </p>
+                              </div>
+                              <Badge className="bg-orange-500 text-white">jusqu'a -{Number(offer.max_discount_percent).toFixed(0)}%</Badge>
+                            </div>
+                            {offer.description ? <p className="text-sm text-muted-foreground">{offer.description}</p> : null}
+                            <div className="grid grid-cols-3 gap-2 text-xs">
+                              <div className="rounded-xl bg-background p-2">
+                                <p className="text-muted-foreground">Prochaine reservation</p>
+                                <p className="text-base font-bold text-primary">-{nextDiscount}%</p>
+                              </div>
+                              <div className="rounded-xl bg-background p-2">
+                                <p className="text-muted-foreground">Tables restantes</p>
+                                <p className="text-base font-bold">{remainingTables}</p>
+                              </div>
+                              <div className="rounded-xl bg-background p-2">
+                                <p className="text-muted-foreground">Fin dans</p>
+                                <p className="text-base font-bold">{formatProgressiveCountdown(offer.countdown_ends_at, nowMs)}</p>
+                              </div>
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-muted">
+                              <div className="h-full rounded-full bg-orange-500" style={{ width: `${getProgressiveOfferProgressPercent(offer)}%` }} />
+                            </div>
+                            <Button
+                              type="button"
+                              className="w-full gap-2 bg-orange-500 hover:bg-orange-600"
+                              onClick={() => handleProgressiveOfferReserve(offer)}
+                            >
+                              {isSelectedOffer ? "Offre selectionnee" : "Reserver avec cette offre"}
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 {formulas && formulas.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2"><Percent className="h-5 w-5 text-primary" /><h2 className="font-display text-xl font-bold">Formules et Menus (-{formulas[0].discount_percent}%)</h2></div>
@@ -890,7 +1005,16 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
         </div>
       ) : null}
       {reservationAvailable ? (
-        <ReservationDialog open={reservationOpen} onOpenChange={setReservationOpen} restaurantId={restaurantId!} restaurantName={restaurant.name} initialDate={reservationDefaults?.date} initialTime={reservationDefaults?.time} initialPartySize={reservationDefaults?.partySize} />
+        <ReservationDialog
+          open={reservationOpen}
+          onOpenChange={setReservationOpen}
+          restaurantId={restaurantId!}
+          restaurantName={restaurant.name}
+          initialDate={reservationDefaults?.date}
+          initialTime={reservationDefaults?.time}
+          initialPartySize={reservationDefaults?.partySize}
+          progressiveOfferId={reservationProgressiveOfferId || progressiveOfferId}
+        />
       ) : null}
 
       {/* Photo gallery lightbox */}

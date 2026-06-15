@@ -257,6 +257,12 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline">Reservation</Badge>
           {feature ? <Badge className={feature.className}>{feature.label}</Badge> : null}
+          {reservation.progressiveOfferDiscountPercent > 0 ? (
+            <Badge className="border-orange-200 bg-orange-100 text-orange-800">
+              Offre progressive -{reservation.progressiveOfferDiscountPercent}%
+              {reservation.progressiveOfferDiscountStatus === "finalized" ? " finale" : " en cours"}
+            </Badge>
+          ) : null}
           <Badge className={getStatusBadgeClass(reservation.status)}>{reservation.status}</Badge>
         </div>
         <SheetTitle className="break-words text-xl">{reservation.reference}</SheetTitle>

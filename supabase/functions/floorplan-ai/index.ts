@@ -47,10 +47,21 @@ const FLOOR_PLAN_IMAGE_IMPORT_SCHEMA = `JSON image-import obligatoire:
     "circulation": {"description": "..."},
     "resume_occupation": {"tables_totales": 0, "places_totales": 0}
   },
+  "salle": {
+    "nom": "1er Etage",
+    "forme": "rectangulaire",
+    "tables": [
+      {"numero": 20, "forme": "rectangulaire", "position": "haut_gauche", "places": 4, "etat": "occupee_ou_reservee", "couleur": "vert"},
+      {"numero": 23, "forme": "carree", "position": "haut_centre", "places": 2, "etat": "libre", "couleur": "beige"},
+      {"numero": 31, "forme": "carree", "position": "bas_centre_droit", "places": 2, "etat": "libre", "couleur": "beige"}
+    ],
+    "decoration": [{"type": "plante", "position": "haut_droit"}]
+  },
   "tables": [],
   "explanation": "..."
 }
 Coordonnees: x_ratio/y_ratio/w_ratio/h_ratio sont des ratios 0-1 dans room_bounds, pas dans toute l'image.
+Si "analysis.tables" contient des ratios precis, ils sont prioritaires. Si l'IA renvoie seulement "salle.tables" avec des positions comme haut_centre_droit ou bas_gauche, Tok les convertit en placement stable.
 Ne renvoie jamais les chaises attachees aux tables comme meubles separes.`;
 
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
@@ -85,6 +96,12 @@ type AiFloorPlanTable = {
   seatLabels: number[];
   source_bbox?: Record<string, number>;
   confidence?: number;
+};
+type SemanticFrameHint = {
+  x_ratio: number;
+  y_ratio: number;
+  w_ratio: number;
+  h_ratio: number;
 };
 
 const RESERVABLE_TABLE_KINDS = new Set(["table-round-2", "table-round-4", "table-rect-2", "table-rect-4", "table-rect-6", "table"]);
@@ -324,6 +341,159 @@ function getFallbackSize(kind: string, shape: "round" | "rect", capacity: number
   return { w: 210, h: 118 };
 }
 
+function hasExplicitFloorPlanGeometry(source: Record<string, unknown>) {
+  const ratioBox = readBox(source, ["normalized", "relative_bounds", "relativeBounds", "ratio_bounds", "ratioBounds"]);
+  const directRatioBox = [
+    readValue(source, ["x_ratio", "xRatio"]),
+    readValue(source, ["y_ratio", "yRatio"]),
+    readValue(source, ["w_ratio", "wRatio", "width_ratio", "widthRatio"]),
+    readValue(source, ["h_ratio", "hRatio", "height_ratio", "heightRatio"]),
+  ];
+  const imageBox = readBox(source, ["image_bbox", "imageBBox", "bbox", "bounds", "box"]);
+  const absoluteBox = [
+    readNumber(source, ["x", "left"]),
+    readNumber(source, ["y", "top"]),
+    readNumber(source, ["w", "width"]),
+    readNumber(source, ["h", "height"]),
+  ];
+
+  return Boolean(ratioBox)
+    || directRatioBox.every((value) => normalizeRatio(value) !== null)
+    || Boolean(imageBox)
+    || absoluteBox.every((value) => value !== null);
+}
+
+function getSemanticPositionToken(source: Record<string, unknown>) {
+  return normalizeToken(readValue(source, ["position", "emplacement", "location", "zone", "area"]));
+}
+
+function getSemanticFloorPlanGroup(token: string, forcedFurniture: boolean) {
+  if (!token) return null;
+
+  if (forcedFurniture) {
+    if (token === "haut_gauche") return "decor-top-left";
+    if (token === "haut_droit") return "decor-top-right";
+    if (token === "milieu_droit") return "decor-mid-right";
+  }
+
+  if (["haut_gauche", "haut_centre", "haut_centre_droit", "haut_droit"].some((position) => token.includes(position))) {
+    return "top-row";
+  }
+  if (["bas_gauche", "coin_inferieur_gauche"].some((position) => token.includes(position))) {
+    return "bottom-left";
+  }
+  if (["bas_centre", "bas_centre_droit", "zone_inferieure_centrale"].some((position) => token.includes(position))) {
+    return "lower-center";
+  }
+  if (token.includes("haut")) return "top-row";
+  if (token.includes("bas") && token.includes("gauche")) return "bottom-left";
+  if (token.includes("bas")) return "lower-center";
+  if (forcedFurniture && token.includes("droit")) return "decor-mid-right";
+
+  return null;
+}
+
+function getSemanticGroupCenter(group: string, itemIndex: number, itemCount: number) {
+  const safeIndex = Math.max(0, itemIndex);
+  const safeCount = Math.max(1, itemCount);
+  const lerp = (start: number, end: number) => safeCount === 1
+    ? (start + end) / 2
+    : start + ((end - start) * safeIndex) / (safeCount - 1);
+
+  switch (group) {
+    case "top-row":
+      return { x: lerp(0.11, 0.88), y: 0.12 };
+    case "lower-center":
+      return { x: lerp(0.36, 0.68), y: 0.62 };
+    case "bottom-left":
+      return { x: 0.12, y: 0.62 };
+    case "decor-top-left":
+      return { x: 0.035, y: 0.065 };
+    case "decor-top-right":
+      return { x: 0.94, y: 0.065 };
+    case "decor-mid-right":
+      return { x: 0.94, y: 0.38 };
+    default:
+      return null;
+  }
+}
+
+function getSemanticElementSizeRatios(
+  source: Record<string, unknown>,
+  canvasWidth: number,
+  canvasHeight: number,
+  forcedFurniture: boolean,
+) {
+  const shape = normalizeShape(readValue(source, ["shape", "forme"]));
+  const rawSeats = readArray(source, ["seats", "chairs", "assises", "chaises"]);
+  const rawPlacements = readArray(source, ["seatPlacements", "seat_placements", "assise_placements"]);
+  const placementCapacity = rawPlacements.reduce(
+    (sum, placement) => sum + Math.max(0, Math.round(readNumber(asRecord(placement), ["count", "nombre"]) || 0)),
+    0,
+  );
+  const capacity = forcedFurniture
+    ? 0
+    : Math.round(clampNumber(
+      readNumber(source, ["capacity", "places", "seat_count", "seatCount", "nombre_assises", "capacite"])
+        ?? (rawSeats.length > 0 ? rawSeats.length : placementCapacity || null),
+      2,
+      1,
+      24,
+    ));
+  const furnitureKind = normalizeFurnitureKind(readValue(source, ["kind", "type", "object_type", "objet", "label", "nom"]));
+  const kind = forcedFurniture ? furnitureKind || "plant" : getTableKind(shape, capacity);
+  const surface = getCanvasRoomBounds(canvasWidth, canvasHeight);
+  const surfaceWidth = Math.max(1, surface.maxX - surface.minX);
+  const surfaceHeight = Math.max(1, surface.maxY - surface.minY);
+  const size = getFallbackSize(kind, shape, capacity);
+
+  return {
+    w: clampNumber(size.w / surfaceWidth, 0.12, 0.03, 0.36),
+    h: clampNumber(size.h / surfaceHeight, 0.14, 0.03, 0.36),
+  };
+}
+
+function buildSemanticFloorPlanFrameHints(
+  entries: unknown[],
+  canvasWidth: number,
+  canvasHeight: number,
+  forcedFurniture = false,
+) {
+  const groups = new Map<string, Array<{ index: number; source: Record<string, unknown> }>>();
+
+  entries.forEach((entry, index) => {
+    const source = asRecord(entry);
+    if (Object.keys(source).length === 0 || hasExplicitFloorPlanGeometry(source)) return;
+    const group = getSemanticFloorPlanGroup(getSemanticPositionToken(source), forcedFurniture);
+    if (!group) return;
+    groups.set(group, [...(groups.get(group) || []), { index, source }]);
+  });
+
+  const hints = new Map<number, SemanticFrameHint>();
+  groups.forEach((items, group) => {
+    items.forEach((item, itemIndex) => {
+      const center = getSemanticGroupCenter(group, itemIndex, items.length);
+      if (!center) return;
+      const size = getSemanticElementSizeRatios(item.source, canvasWidth, canvasHeight, forcedFurniture);
+      const x = clampNumber(center.x - size.w / 2, 0, 0, Math.max(0, 1 - size.w));
+      const y = clampNumber(center.y - size.h / 2, 0, 0, Math.max(0, 1 - size.h));
+      hints.set(item.index, {
+        x_ratio: Number(x.toFixed(4)),
+        y_ratio: Number(y.toFixed(4)),
+        w_ratio: Number(size.w.toFixed(4)),
+        h_ratio: Number(size.h.toFixed(4)),
+      });
+    });
+  });
+
+  return hints;
+}
+
+function withSemanticFrameHint(entry: unknown, hint?: SemanticFrameHint) {
+  if (!hint) return entry;
+  return { ...asRecord(entry), ...hint };
+}
+
 function readBox(source: Record<string, unknown>, keys: string[]) {
   const record = readRecord(source, keys);
   if (Object.keys(record).length === 0) return null;
@@ -468,7 +638,12 @@ function normalizeAiFloorPlanAnalysis(
   image?: ImagePayload | null,
 ) {
   const source = asRecord(value);
-  const analysisSource = Object.keys(asRecord(source.analysis)).length > 0 ? asRecord(source.analysis) : source;
+  const semanticRoomSource = readRecord(source, ["salle", "room", "venue"]);
+  const analysisSource = Object.keys(asRecord(source.analysis)).length > 0
+    ? asRecord(source.analysis)
+    : Object.keys(semanticRoomSource).length > 0
+      ? semanticRoomSource
+      : source;
   const roomBounds = readRecord(analysisSource, ["room_bounds", "roomBounds", "salle_bounds", "room"]);
   const analysisTables = readArray(analysisSource, ["tables"]);
   const rootTables = readArray(source, ["tables"]);
@@ -478,9 +653,24 @@ function normalizeAiFloorPlanAnalysis(
     ...readArray(analysisSource, ["decoration", "decorations"]),
     ...readArray(analysisSource, ["objects", "objets", "elements"]),
   ];
+  const semanticTableHints = buildSemanticFloorPlanFrameHints(rawTables, canvasWidth, canvasHeight);
+  const semanticFurnitureHints = buildSemanticFloorPlanFrameHints(rawFurniture, canvasWidth, canvasHeight, true);
   const tables = [
-    ...rawTables.flatMap((entry, index) => normalizeAiElement(entry, index, canvasWidth, canvasHeight, roomBounds)),
-    ...rawFurniture.flatMap((entry, index) => normalizeAiElement(entry, rawTables.length + index, canvasWidth, canvasHeight, roomBounds, true)),
+    ...rawTables.flatMap((entry, index) => normalizeAiElement(
+      withSemanticFrameHint(entry, semanticTableHints.get(index)),
+      index,
+      canvasWidth,
+      canvasHeight,
+      roomBounds,
+    )),
+    ...rawFurniture.flatMap((entry, index) => normalizeAiElement(
+      withSemanticFrameHint(entry, semanticFurnitureHints.get(index)),
+      rawTables.length + index,
+      canvasWidth,
+      canvasHeight,
+      roomBounds,
+      true,
+    )),
   ];
 
   return {

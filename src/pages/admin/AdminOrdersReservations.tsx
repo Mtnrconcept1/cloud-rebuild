@@ -476,6 +476,9 @@ async function fetchReservationHistory(
       order_reference,
       payment_method,
       billing_fee_chf,
+      progressive_offer_id,
+      progressive_offer_discount_percent,
+      progressive_offer_discount_status,
       metadata,
       preorder_items,
       restaurant_id,
@@ -1220,6 +1223,12 @@ export default function AdminOrdersReservations() {
                           <TableCell data-label="Détails">
                             <div className="space-y-1">
                               {feature ? <Badge className={feature.className}>{feature.label}</Badge> : null}
+                              {reservation.progressiveOfferDiscountPercent > 0 ? (
+                                <Badge className="border-orange-200 bg-orange-100 text-orange-800">
+                                  Offre progressive -{reservation.progressiveOfferDiscountPercent}%
+                                  {reservation.progressiveOfferDiscountStatus === "finalized" ? " finale" : " en cours"}
+                                </Badge>
+                              ) : null}
                               <p className="text-xs text-muted-foreground">
                                 {reservation.partySize} pers. · {reservation.preorderItems.length} précommande{reservation.preorderItems.length > 1 ? "s" : ""}
                               </p>

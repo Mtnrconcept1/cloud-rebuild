@@ -48,6 +48,9 @@ type ReservationOperationalFields = {
   deposit_amount_chf?: number | null;
   deposit_status?: string | null;
   no_show_review_at?: string | null;
+  progressive_offer_id?: string | null;
+  progressive_offer_discount_percent?: number | null;
+  progressive_offer_discount_status?: string | null;
   reservation_confirmation_deadline_at?: string | null;
   restaurant_confirmation_required?: boolean | null;
   restaurant_confirmed_at?: string | null;
@@ -60,6 +63,9 @@ type ReservationMetadata = {
   formula_applied?: string;
   formula_discount_percent?: number;
   formula_discount_amount?: number;
+  progressive_offer_name?: string;
+  progressive_offer_discount_percent?: number;
+  progressive_offer_discount_status?: string;
   risk_level?: string;
   no_show_risk?: boolean;
   key_notes?: string[];
@@ -155,6 +161,9 @@ const extractMetadata = (reservation: ReservationRow): ReservationMetadata => {
     formula_applied: typeof metadata.formula_applied === "string" ? metadata.formula_applied : undefined,
     formula_discount_percent: toNumber(metadata.formula_discount_percent),
     formula_discount_amount: toNumber(metadata.formula_discount_amount),
+    progressive_offer_name: typeof metadata.progressive_offer_name === "string" ? metadata.progressive_offer_name : undefined,
+    progressive_offer_discount_percent: toNumber(metadata.progressive_offer_discount_percent),
+    progressive_offer_discount_status: typeof metadata.progressive_offer_discount_status === "string" ? metadata.progressive_offer_discount_status : undefined,
     risk_level: typeof riskValue === "string" ? riskValue : undefined,
     no_show_risk: typeof metadata.no_show_risk === "boolean" ? metadata.no_show_risk : undefined,
     key_notes: Array.isArray(keyNotes) && keyNotes.every((item) => typeof item === "string") ? (keyNotes as string[]) : undefined,
@@ -626,10 +635,26 @@ export default function DashboardReservations() {
                                 const servicePeriod = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
                                 const hasNoShowRisk = metadata.no_show_risk || metadata.risk_level === "high";
                                 const keyNotes = metadata.key_notes || [];
-                                const offerName = metadata.formula_applied || metadata.promo;
-                                const offerDiscountPercent = metadata.formula_discount_percent ?? metadata.discount;
+                                const progressiveDiscountPercent = Number(
+                                  reservation.progressive_offer_discount_percent
+                                  || metadata.progressive_offer_discount_percent
+                                  || 0,
+                                );
+                                const progressiveStatus = String(
+                                  reservation.progressive_offer_discount_status
+                                  || metadata.progressive_offer_discount_status
+                                  || "",
+                                );
+                                const offerName = metadata.progressive_offer_name || metadata.formula_applied || metadata.promo;
+                                const offerDiscountPercent = progressiveDiscountPercent || metadata.formula_discount_percent || metadata.discount;
                                 const offerDiscountAmount = metadata.formula_discount_amount;
-                                const offerLabel = metadata.formula_applied ? "Formule" : "Promo";
+                                const offerLabel = progressiveDiscountPercent
+                                  ? progressiveStatus === "finalized"
+                                    ? "Offre progressive finale"
+                                    : "Offre progressive en cours"
+                                  : metadata.formula_applied
+                                    ? "Formule"
+                                    : "Promo";
                                 const compactBase = isCompactMode ? "p-3" : "p-4";
                                 const statusLockMessage = getReservationStatusLockMessage(reservation);
                                 const refundSnapshot = getReservationRefundSnapshot(reservation);

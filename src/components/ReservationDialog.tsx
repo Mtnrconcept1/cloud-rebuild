@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Heart, Loader2, Tag, Utensils, Users, Zap } from "lucide-react";
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, Clock, Heart, Loader2, Tag, Timer, Utensils, Users, Zap } from "lucide-react";
 
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,13 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import { isMealFormulaAvailableForSlot, type MealFormulaAvailability } from "@/lib/meal-formulas";
 import { dispatchQueuedNotifications } from "@/lib/notificationDispatch";
 import {
+  formatProgressiveCountdown,
+  formatProgressiveServiceDate,
+  getNextProgressiveDiscount,
+  getProgressiveOfferRemainingTables,
+  type ProgressiveReservationOffer,
+} from "@/lib/progressiveReservationOffers";
+import {
   buildReservationSlotGroups,
   isReservationCalendarDateDisabled,
   type ReservationSlotAvailability,
@@ -41,17 +48,20 @@ interface ReservationDialogProps {
   initialDate?: Date;
   initialTime?: string;
   initialPartySize?: number;
+  progressiveOfferId?: string | null;
 }
 
 type Step = "datetime" | "mode" | "promo" | "confirm";
 type ReservationMode = "classique" | "zero-attente";
 interface PromoOffer {
   id: string;
+  kind: "formula" | "progressive";
   label: string;
   description: string;
   discountLabel: string;
   discountPercent: number;
   formulaName: string;
+  progressiveOfferId?: string | null;
 }
 
 interface MealFormulaRow {
@@ -78,6 +88,7 @@ export default function ReservationDialog({
   initialDate,
   initialTime,
   initialPartySize,
+  progressiveOfferId,
 }: ReservationDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -130,8 +141,33 @@ export default function ReservationDialog({
   const loyaltyPoints = profile?.loyalty_points || 0;
   const earnedXp = 100;
 
+  const { data: initialProgressiveOffer } = useQuery({
+    queryKey: ["reservation-progressive-offer", restaurantId, progressiveOfferId],
+    queryFn: async () => {
+      if (!progressiveOfferId) return null;
+      const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
+        .select("*")
+        .eq("id", progressiveOfferId)
+        .eq("restaurant_id", restaurantId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as ProgressiveReservationOffer | null;
+    },
+    enabled: open && !!restaurantId && !!progressiveOfferId,
+  });
+
+  useEffect(() => {
+    if (!open || !initialProgressiveOffer) return;
+    const serviceDate = new Date(`${initialProgressiveOffer.service_date}T12:00:00`);
+    if (!Number.isNaN(serviceDate.getTime())) {
+      setDate(serviceDate);
+    }
+    setTime((initialProgressiveOffer.service_time || "19:00").slice(0, 5));
+    setStep(zeroWaitEnabled ? "mode" : "promo");
+  }, [initialProgressiveOffer, open, zeroWaitEnabled]);
+
   const { data: promos = [], isLoading: isPromosLoading } = useQuery({
-    queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time, user?.id || null],
+    queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time, user?.id || null, progressiveOfferId || null],
     queryFn: async () => {
       const reservationDate = date ? format(date, "yyyy-MM-dd") : undefined;
 
@@ -145,10 +181,30 @@ export default function ReservationDialog({
 
       if (error) throw error;
 
-      return ((data || []) as MealFormulaRow[])
+      let progressiveRows: ProgressiveReservationOffer[] = [];
+      if (reservationDate) {
+        let progressiveQuery = (supabase.from("reservation_progressive_offers" as any) as any)
+          .select("*")
+          .eq("restaurant_id", restaurantId)
+          .eq("service_date", reservationDate)
+          .eq("status", "active")
+          .gt("booking_cutoff_at", new Date().toISOString())
+          .order("booking_cutoff_at", { ascending: true });
+
+        if (progressiveOfferId) {
+          progressiveQuery = progressiveQuery.eq("id", progressiveOfferId);
+        }
+
+        const { data: progressiveData, error: progressiveError } = await progressiveQuery;
+        if (progressiveError) throw progressiveError;
+        progressiveRows = (progressiveData || []) as ProgressiveReservationOffer[];
+      }
+
+      const formulaPromos = ((data || []) as MealFormulaRow[])
         .filter((formula) => isMealFormulaAvailableForSlot(formula.availability || null, reservationDate, time))
         .map((formula) => ({
           id: formula.id,
+          kind: "formula" as const,
           label: formula.name,
           description: formula.description || "Formule promotionnelle liée à votre réservation.",
           discountLabel: `-${Number(formula.discount_percent) || 0}%`,
@@ -156,6 +212,24 @@ export default function ReservationDialog({
           formulaName: formula.name,
         }))
         .sort((a, b) => b.discountPercent - a.discountPercent);
+
+      const progressivePromos = progressiveRows
+        .filter((offer) => getProgressiveOfferRemainingTables(offer) > 0)
+        .map((offer) => {
+          const nextDiscount = getNextProgressiveDiscount(offer);
+          return {
+            id: `progressive-${offer.id}`,
+            kind: "progressive" as const,
+            label: offer.title,
+            description: `${formatProgressiveServiceDate(offer.service_date)} - ${getProgressiveOfferRemainingTables(offer)} table(s) restante(s), fin dans ${formatProgressiveCountdown(offer.countdown_ends_at)}.`,
+            discountLabel: `jusqu'a -${Number(offer.max_discount_percent || 0).toFixed(0)}%`,
+            discountPercent: nextDiscount,
+            formulaName: offer.title,
+            progressiveOfferId: offer.id,
+          };
+        });
+
+      return [...progressivePromos, ...formulaPromos];
     },
     enabled: open && !!restaurantId,
   });
@@ -240,6 +314,14 @@ export default function ReservationDialog({
     }
   }, [promos, selectedPromo]);
 
+  useEffect(() => {
+    if (!progressiveOfferId || selectedPromo) return;
+    const progressivePromo = promos.find((promo) => promo.kind === "progressive" && promo.progressiveOfferId === progressiveOfferId);
+    if (progressivePromo) {
+      setSelectedPromo(progressivePromo);
+    }
+  }, [progressiveOfferId, promos, selectedPromo]);
+
   const handleSubmit = async () => {
     if (!user || !date) return;
 
@@ -270,11 +352,17 @@ export default function ReservationDialog({
 
     setLoading(true);
 
-    const hasFormula = !!selectedPromo;
+    const hasProgressiveOffer = selectedPromo?.kind === "progressive" && !!selectedPromo.progressiveOfferId;
+    const hasFormula = selectedPromo?.kind === "formula";
+    const reservationFeature = hasProgressiveOffer ? "promo-progressive" : hasFormula ? "promo-formule" : "classique";
     const reservationMetadata = {
-      feature: hasFormula ? "promo-formule" : "classique",
-      formula_applied: selectedPromo?.formulaName ?? null,
-      formula_discount_percent: selectedPromo?.discountPercent ?? null,
+      feature: reservationFeature,
+      formula_applied: hasFormula ? selectedPromo?.formulaName ?? null : null,
+      formula_discount_percent: hasFormula ? selectedPromo?.discountPercent ?? null : null,
+      progressive_offer_id: hasProgressiveOffer ? selectedPromo?.progressiveOfferId ?? null : null,
+      progressive_offer_name: hasProgressiveOffer ? selectedPromo?.formulaName ?? null : null,
+      progressive_offer_discount_percent: hasProgressiveOffer ? selectedPromo?.discountPercent ?? null : null,
+      progressive_offer_discount_status: hasProgressiveOffer ? "pending" : null,
       service: servicePeriod,
       restaurant_confirmation_required: serviceSettings.restaurant_confirmation_required,
       confirmation_deadline_minutes: serviceSettings.confirmation_deadline_minutes,
@@ -286,8 +374,10 @@ export default function ReservationDialog({
     };
 
     const offerPrefix = selectedPromo
-      ? `[FORMULE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
-      : "[À la carte] ";
+      ? hasProgressiveOffer
+        ? `[OFFRE PROGRESSIVE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
+        : `[FORMULE: ${selectedPromo.label} ${selectedPromo.discountLabel}] `
+      : "[A la carte] ";
 
     let reservationResult: Awaited<ReturnType<typeof createReservationWithValidation>>;
     try {
@@ -296,9 +386,10 @@ export default function ReservationDialog({
         date: format(date, "yyyy-MM-dd"),
         time,
         partySize,
-        feature: hasFormula ? "promo-formule" : "classique",
+        feature: reservationFeature,
         metadata: reservationMetadata,
         notes: offerPrefix + (notes || ""),
+        progressiveOfferId: hasProgressiveOffer ? selectedPromo?.progressiveOfferId ?? null : null,
       });
     } catch (reservationError) {
       setLoading(false);
@@ -357,13 +448,16 @@ export default function ReservationDialog({
       time,
       party_size: partySize,
       status: "pending",
-      feature: hasFormula ? "promo-formule" : "classique",
+      feature: reservationFeature,
       notes: offerPrefix + (notes || ""),
       total_amount: 0,
       created_at: new Date().toISOString(),
       metadata: reservationMetadata,
       preorder_items: [],
       restaurant_name: restaurantName,
+      progressive_offer_id: hasProgressiveOffer ? selectedPromo?.progressiveOfferId ?? null : null,
+      progressive_offer_discount_percent: hasProgressiveOffer ? selectedPromo?.discountPercent ?? null : null,
+      progressive_offer_discount_status: hasProgressiveOffer ? "pending" : "none",
     });
     onOpenChange(false);
     resetForm();
@@ -610,24 +704,32 @@ export default function ReservationDialog({
                     Chargement des formules...
                   </div>
                 ) : promos.length > 0 ? (
-                  promos.map((promo) => (
-                    <button
-                      key={promo.id}
-                      onClick={() => setSelectedPromo(promo)}
-                      className={`w-full rounded-xl border-2 p-4 text-left ${selectedPromo?.id === promo.id ? "border-miamz-green bg-miamz-green/5" : "border-border"}`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <Tag className="mt-0.5 h-5 w-5" />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-semibold">{promo.label}</p>
-                            <span className="font-semibold text-miamz-green">{promo.discountLabel}</span>
+                  promos.map((promo) => {
+                    const PromoIcon = promo.kind === "progressive" ? Timer : Tag;
+                    const selectedClass = promo.kind === "progressive"
+                      ? "border-orange-500 bg-orange-500/5"
+                      : "border-miamz-green bg-miamz-green/5";
+                    const discountClass = promo.kind === "progressive" ? "text-orange-600" : "text-miamz-green";
+
+                    return (
+                      <button
+                        key={promo.id}
+                        onClick={() => setSelectedPromo(promo)}
+                        className={`w-full rounded-xl border-2 p-4 text-left ${selectedPromo?.id === promo.id ? selectedClass : "border-border"}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <PromoIcon className="mt-0.5 h-5 w-5" />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-semibold">{promo.label}</p>
+                              <span className={`font-semibold ${discountClass}`}>{promo.discountLabel}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{promo.description}</p>
                           </div>
-                          <p className="text-xs text-muted-foreground">{promo.description}</p>
                         </div>
-                      </div>
-                    </button>
-                  ))
+                      </button>
+                    );
+                  })
                 ) : (
                   <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
                     Aucune formule disponible pour ce créneau. Vous pouvez continuer à la carte.
@@ -655,7 +757,7 @@ export default function ReservationDialog({
                   <div className="flex justify-between"><span className="text-muted-foreground">Convives</span><span className="font-medium">{partySize}</span></div>
                   {selectedPromo && (
                     <div className="flex justify-between border-t pt-2">
-                      <span className="text-muted-foreground">Formule</span>
+                      <span className="text-muted-foreground">{selectedPromo.kind === "progressive" ? "Offre progressive" : "Formule"}</span>
                       <span className="font-semibold text-miamz-green">{selectedPromo.label} {selectedPromo.discountLabel}</span>
                     </div>
                   )}

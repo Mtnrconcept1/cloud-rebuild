@@ -20,9 +20,14 @@ type ReservationSortKey = "reservation_date" | "created_at" | "restaurant" | "nu
 
 type ReservationRow = Database["public"]["Tables"]["reservations"]["Row"];
 type RestaurantName = Pick<Database["public"]["Tables"]["restaurants"]["Row"], "name">;
+type ProgressiveReservationFields = {
+  progressive_offer_id?: string | null;
+  progressive_offer_discount_percent?: number | null;
+  progressive_offer_discount_status?: string | null;
+};
 type ReservationWithRestaurant = ReservationRow & {
   restaurants: RestaurantName | RestaurantName[] | null;
-};
+} & ProgressiveReservationFields;
 
 type ReservationMetadata = {
   feature?: string;
@@ -76,8 +81,29 @@ const getFeatureBadge = (feature: string) => {
     case "chefs_table": return { label: "La Table du Chef", className: "border-amber-200 text-amber-600 bg-amber-50" };
     case "promo-formule": return { label: "Formule promo", className: "border-emerald-200 text-emerald-600 bg-emerald-50" };
     case "promo-offre": return { label: "Offre promo", className: "border-emerald-200 text-emerald-600 bg-emerald-50" };
+    case "promo-progressive": return { label: "Offre progressive", className: "border-orange-200 text-orange-600 bg-orange-50" };
     default: return null;
   }
+};
+
+const getProgressiveDiscountSnapshot = (reservation: ReservationWithRestaurant) => {
+  const metadata = isJsonRecord(reservation.metadata) ? reservation.metadata : {};
+  const percent = Number(
+    reservation.progressive_offer_discount_percent
+    || metadata.progressive_offer_discount_percent
+    || 0,
+  );
+  if (!percent) return null;
+  const status = String(
+    reservation.progressive_offer_discount_status
+    || metadata.progressive_offer_discount_status
+    || "pending",
+  );
+  return {
+    percent,
+    status,
+    label: status === "finalized" ? "Remise finale" : "Remise en cours",
+  };
 };
 
 const getPreorderItems = (reservation: ReservationWithRestaurant): PreorderSummaryItem[] => {
@@ -176,6 +202,9 @@ export default function Reservations() {
     metadata: selectedReservation.metadata,
     preorder_items: selectedReservation.preorder_items,
     restaurant_name: getRestaurantName(selectedReservation.restaurants),
+    progressive_offer_id: selectedReservation.progressive_offer_id,
+    progressive_offer_discount_percent: selectedReservation.progressive_offer_discount_percent,
+    progressive_offer_discount_status: selectedReservation.progressive_offer_discount_status,
   } : null;
 
   return (
@@ -202,6 +231,7 @@ export default function Reservations() {
               const timeValue = getDisplayTime(reservation);
               const restaurantName = getRestaurantName(reservation.restaurants);
               const featureBadge = getFeatureBadge(reservation.feature);
+              const progressiveDiscount = getProgressiveDiscountSnapshot(reservation);
               const preorderItems = getPreorderItems(reservation);
               const isExpanded = expandedReservations.has(reservation.id);
               const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
@@ -237,6 +267,11 @@ export default function Reservations() {
                         ) : !featureBadge && isZeroAttente ? (
                           <Badge variant="outline" className="mt-1 text-[10px] uppercase tracking-widest border-indigo-200 bg-indigo-50 text-indigo-600">
                             Zéro attente
+                          </Badge>
+                        ) : null}
+                        {progressiveDiscount ? (
+                          <Badge variant="outline" className="mt-1 border-orange-200 bg-orange-50 text-[10px] uppercase tracking-widest text-orange-700">
+                            {progressiveDiscount.label} -{progressiveDiscount.percent}%
                           </Badge>
                         ) : null}
                       </div>
@@ -285,6 +320,13 @@ export default function Reservations() {
                         <div className="rounded-lg bg-muted/30 p-3 text-sm">
                           <p className="mb-1 font-medium">Notes</p>
                           <p className="text-muted-foreground">{reservation.notes}</p>
+                        </div>
+                      ) : null}
+
+                      {progressiveDiscount ? (
+                        <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
+                          <p className="font-medium">Offre progressive</p>
+                          <p>{progressiveDiscount.label}: -{progressiveDiscount.percent}% sur la reservation.</p>
                         </div>
                       ) : null}
 

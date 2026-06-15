@@ -26,6 +26,7 @@ type CreateReservationInput = {
   feature: string;
   metadata: Record<string, unknown>;
   notes?: string | null;
+  progressiveOfferId?: string | null;
 };
 
 type ReservationCreateResult =
@@ -78,10 +79,11 @@ export async function createReservationWithValidation(
     p_date: input.date,
     p_time: input.time,
     p_party_size: input.partySize,
-    p_feature: input.feature,
-    p_metadata: input.metadata,
-    p_notes: input.notes ?? null,
-  });
+      p_feature: input.feature,
+      p_metadata: input.metadata,
+      p_notes: input.notes ?? null,
+      p_progressive_offer_id: input.progressiveOfferId ?? null,
+    });
 
   if (error) throw error;
 
