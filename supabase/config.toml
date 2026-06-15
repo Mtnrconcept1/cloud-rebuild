@@ -16,6 +16,9 @@ verify_jwt = false
 [functions.ai-admin-monitor]
 verify_jwt = false
 
+[functions.ai-admin-dashboard-chat]
+verify_jwt = false
+
 [functions.ai-accounting-agent]
 verify_jwt = false
 

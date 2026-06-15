@@ -375,6 +375,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/admin/ai-operations"],
   },
   {
+    name: "admin_dashboard_ai_chat",
+    label: "IA chat dashboard admin",
+    description: "Active le chat IA admin privilegie avec analyse des donnees et logs du back-office.",
+    defaultEnabled: true,
+    group: "admin_tools",
+    dependsOn: ["admin-operations-center", "ai_admin_monitoring"],
+  },
+  {
     name: "ai_premium_image_generation",
     label: "IA image premium",
     description: "Active la génération image premium réservée aux abonnements supérieurs.",

@@ -1,4 +1,4 @@
-export type HelpChatAgentId = "support_ai" | "orders_ai" | "payments_ai";
+export type HelpChatAgentId = "support_ai" | "orders_ai" | "payments_ai" | "admin_dashboard_ai";
 
 export type HelpChatSurface = "client" | "restaurant" | "admin" | "courier" | "public";
 

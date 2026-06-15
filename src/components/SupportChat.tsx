@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Bot, History, Loader2, MessageSquarePlus, Send, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Bot, History, Loader2, MessageSquarePlus, Send, ShieldCheck, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  askAdminDashboardChat,
   askClientSupport,
+  getAdminDashboardChatConversations,
+  getAdminDashboardChatMessages,
   getClientSupportConversationMessages,
   getClientSupportConversations,
   type ClientSupportConversation,
   type TokAiMessage,
 } from "@/lib/ai/tokAiClient";
 import { useAuth } from "@/lib/auth-context";
+import { isAdminAppHost, isAdminPath } from "@/lib/adminDomains";
+import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { type HelpChatAgentId, type HelpChatOpenOptions, type HelpChatSurface } from "@/lib/helpChat";
 
 type ChatMessage = {
@@ -42,6 +47,11 @@ const AGENTS: Record<HelpChatAgentId, AgentConfig> = {
     label: "Assistant IA Paiement",
     badge: "OpenAI API",
   },
+  admin_dashboard_ai: {
+    id: "admin_dashboard_ai",
+    label: "Assistant IA Admin",
+    badge: "Acces administrateur principal",
+  },
 };
 
 const SURFACE_LABELS: Record<HelpChatSurface, string> = {
@@ -53,8 +63,8 @@ const SURFACE_LABELS: Record<HelpChatSurface, string> = {
 };
 
 function getDefaultAgentForSurface(surface: HelpChatSurface): HelpChatAgentId {
+  if (surface === "admin") return "admin_dashboard_ai";
   if (surface === "courier") return "orders_ai";
-  if (surface === "admin") return "support_ai";
   return "support_ai";
 }
 
@@ -85,7 +95,7 @@ function isHelpChatSurface(value: unknown): value is HelpChatSurface {
 }
 
 function isHelpChatAgentId(value: unknown): value is HelpChatAgentId {
-  return value === "support_ai" || value === "orders_ai" || value === "payments_ai";
+  return value === "support_ai" || value === "orders_ai" || value === "payments_ai" || value === "admin_dashboard_ai";
 }
 
 function getConversationContext(conversation: ClientSupportConversation) {
@@ -111,7 +121,9 @@ function getActiveChatReference(activeConversationId: string | null, supportTick
 }
 
 export default function SupportChat() {
-  const { user, loading } = useAuth();
+  const location = useLocation();
+  const { user, loading, roles } = useAuth();
+  const { activeFeatures, loading: featureFlagsLoading } = useFeatureFlagSnapshot();
   const [isOpen, setIsOpen] = useState(false);
   const [chatSurface, setChatSurface] = useState<HelpChatSurface>("client");
   const [selectedAgent, setSelectedAgent] = useState<HelpChatAgentId>("support_ai");
@@ -131,7 +143,18 @@ export default function SupportChat() {
 
   const activeAgent = AGENTS[selectedAgent];
   const activeChatReference = getActiveChatReference(activeConversationId, supportTicketId);
-  const isChatAvailable = Boolean(user) && !loading;
+  const isAdminRoute = isAdminPath(location.pathname)
+    || (typeof window !== "undefined" && isAdminAppHost(window.location.hostname));
+  const adminDashboardAiChatEnabled = !featureFlagsLoading && activeFeatures.has("admin_dashboard_ai_chat");
+  const isAdminPrivilegedSurface = chatSurface === "admin"
+    && selectedAgent === "admin_dashboard_ai"
+    && isAdminRoute;
+  const isChatAvailable = Boolean(user)
+    && !loading
+    && (!isAdminPrivilegedSurface || (roles.includes("admin") && adminDashboardAiChatEnabled));
+  const availableAgents = isAdminRoute && chatSurface === "admin" && adminDashboardAiChatEnabled
+    ? [AGENTS.admin_dashboard_ai]
+    : Object.values(AGENTS).filter((agent) => agent.id !== "admin_dashboard_ai");
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -142,9 +165,22 @@ export default function SupportChat() {
   useEffect(() => {
     window.openChat = (options?: HelpChatOpenOptions) => {
       const normalized = normalizeOpenOptions(options);
-      setChatSurface(normalized.surface);
-      setSelectedAgent(normalized.agentId);
-      setHistory(getInitialHistory(normalized.agentId, normalized.surface));
+      const canOpenAdminAgent = normalized.surface === "admin"
+        && adminDashboardAiChatEnabled
+        && (
+          isAdminPath(location.pathname)
+          || (typeof window !== "undefined" && isAdminAppHost(window.location.hostname))
+        );
+      const nextSurface = canOpenAdminAgent ? "admin" : normalized.surface === "admin" ? "public" : normalized.surface;
+      const nextAgentId = canOpenAdminAgent
+        ? "admin_dashboard_ai"
+        : normalized.agentId === "admin_dashboard_ai"
+          ? "support_ai"
+          : normalized.agentId;
+
+      setChatSurface(nextSurface);
+      setSelectedAgent(nextAgentId);
+      setHistory(getInitialHistory(nextAgentId, nextSurface));
       setActiveConversationId(null);
       setSupportTicketId(null);
       setIsHistoryOpen(false);
@@ -157,7 +193,7 @@ export default function SupportChat() {
     return () => {
       window.openChat = undefined;
     };
-  }, []);
+  }, [adminDashboardAiChatEnabled, location.pathname]);
 
   useEffect(() => {
     if (!isChatAvailable) {
@@ -195,7 +231,9 @@ export default function SupportChat() {
     setIsHistoryLoading(true);
 
     try {
-      const conversations = await getClientSupportConversations();
+      const conversations = isAdminPrivilegedSurface
+        ? await getAdminDashboardChatConversations()
+        : await getClientSupportConversations();
       setConversationHistory(conversations);
     } catch (error) {
       setHistoryError(error instanceof Error ? error.message : "Historique indisponible.");
@@ -212,7 +250,9 @@ export default function SupportChat() {
       const { surface, agentId } = getConversationContext(conversation);
       const nextSurface = surface || chatSurface;
       const nextAgentId = agentId || selectedAgent;
-      const messages = await getClientSupportConversationMessages(conversation.id);
+      const messages = isAdminPrivilegedSurface
+        ? await getAdminDashboardChatMessages(conversation.id)
+        : await getClientSupportConversationMessages(conversation.id);
       const nextHistory = messages
         .filter((message) => message.role === "user" || message.role === "assistant")
         .map((message) => ({
@@ -257,6 +297,33 @@ export default function SupportChat() {
           role: message.type === "user" ? "user" : "assistant",
           content: message.text,
         }));
+
+      if (isAdminPrivilegedSurface) {
+        const data = await askAdminDashboardChat({
+          messages,
+          conversationId: activeConversationId,
+          context: {
+            agentId: selectedAgent,
+            surface: chatSurface,
+            currentPath: location.pathname,
+          },
+        });
+
+        setActiveConversationId(data.conversationId || activeConversationId);
+        setSupportTicketId(null);
+        setHistory((previous) => [
+          ...previous,
+          {
+            type: "bot",
+            text: [
+              data.reply || "L'Assistant IA Admin n'a pas pu generer de reponse pour le moment.",
+              data.suggested_actions?.length ? `\nActions proposees:\n${data.suggested_actions.map((item) => `- ${item}`).join("\n")}` : "",
+              data.cited_sources?.length ? `\nSources analysees: ${data.cited_sources.join(", ")}` : "",
+            ].filter(Boolean).join("\n"),
+          },
+        ]);
+        return;
+      }
 
       const data = await askClientSupport({
         messages,
@@ -355,13 +422,13 @@ export default function SupportChat() {
               {isChatAvailable ? (
                 <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
                   <label className="block text-[10px] font-bold uppercase tracking-widest opacity-80">
-                    Assistant OpenAI
+                    {isAdminPrivilegedSurface ? "Assistant admin" : "Assistant OpenAI"}
                     <select
                       value={selectedAgent}
                       onChange={(event) => handleAgentChange(event.target.value as HelpChatAgentId)}
                       className="mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs outline-none"
                     >
-                      {Object.values(AGENTS).map((agent) => (
+                      {availableAgents.map((agent) => (
                         <option key={agent.id} value={agent.id} className="text-black">
                           {agent.label}
                         </option>
@@ -371,6 +438,12 @@ export default function SupportChat() {
                   <Badge variant="outline" className="h-9 justify-center rounded-xl border-white/20 bg-white/10 text-[10px] uppercase tracking-widest text-white">
                     {SURFACE_LABELS[chatSurface]}
                   </Badge>
+                  {isAdminPrivilegedSurface ? (
+                    <div className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-white sm:col-span-2">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      Acces administrateur principal
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>

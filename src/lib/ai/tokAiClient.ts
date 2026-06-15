@@ -144,6 +144,22 @@ export type AdminMonitorRequest = {
   restaurantId?: string | null;
 };
 
+export type AdminDashboardChatRequest = {
+  messages: TokAiMessage[];
+  conversationId?: string | null;
+  context?: JsonRecord;
+};
+
+export type AdminDashboardChatResult = {
+  reply: string;
+  cited_sources: string[];
+  risk_level: "info" | "attention" | "critical";
+  suggested_actions: string[];
+  data_window: string;
+  conversationId: string;
+  model: string;
+};
+
 export type RestaurantAiSubscription = {
   id: string;
   restaurant_id: string;
@@ -332,6 +348,31 @@ export function runAdminMonitor(request: AdminMonitorRequest) {
     recoveredFunctionErrors?: JsonRecord[];
     adminEventId: string;
   }>("ai-admin-monitor", { ...request });
+}
+
+export function askAdminDashboardChat(request: AdminDashboardChatRequest) {
+  return invokeTokAiFunction<AdminDashboardChatResult>("ai-admin-dashboard-chat", {
+    action: "chat",
+    ...request,
+  });
+}
+
+export async function getAdminDashboardChatConversations(limit = 20) {
+  const result = await invokeTokAiFunction<{ conversations: ClientSupportConversation[] }>("ai-admin-dashboard-chat", {
+    action: "history",
+    limit,
+  });
+
+  return result.conversations || [];
+}
+
+export async function getAdminDashboardChatMessages(conversationId: string) {
+  const result = await invokeTokAiFunction<{ messages: ClientSupportConversationMessage[] }>("ai-admin-dashboard-chat", {
+    action: "messages",
+    conversationId,
+  });
+
+  return result.messages || [];
 }
 
 export function estimateAiCost(inputTokens = 0, outputTokens = 0) {
