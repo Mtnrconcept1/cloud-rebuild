@@ -25,6 +25,28 @@ describe("role access policy", () => {
     expect(getEffectiveRoles([])).toEqual(["client"]);
   });
 
+  it("keeps assigned client roles switchable for Supabase-backed multi-role accounts", () => {
+    const authSource = readFileSync(resolve(process.cwd(), "src/lib/auth.tsx"), "utf8");
+    const authPageSource = readFileSync(resolve(process.cwd(), "src/pages/Auth.tsx"), "utf8");
+    const navbarSource = readFileSync(resolve(process.cwd(), "src/components/Navbar.tsx"), "utf8");
+    const roleSwitcherSource = readFileSync(resolve(process.cwd(), "src/components/navigation/RoleSpaceSwitcher.tsx"), "utf8");
+    const dashboardLayoutSource = readFileSync(resolve(process.cwd(), "src/components/DashboardLayout.tsx"), "utf8");
+    const customerLayoutSource = readFileSync(resolve(process.cwd(), "src/components/CustomerDashboardLayout.tsx"), "utf8");
+    const courierLayoutSource = readFileSync(resolve(process.cwd(), "src/components/CourierDashboardLayout.tsx"), "utf8");
+    const adminFrameSource = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");
+
+    expect(authSource).not.toContain('role === "client" && hasPrivilegedRole(roles)');
+    expect(authPageSource).toContain("const switchableRoles = roles;");
+    expect(navbarSource).toContain("const switchableRoles = roles;");
+    expect(roleSwitcherSource).toContain("roles.map");
+    expect(roleSwitcherSource).toContain("switchRole(nextRole)");
+    expect(roleSwitcherSource).toContain("getRoleTarget");
+    expect(dashboardLayoutSource).toContain("RoleSpaceSwitcher");
+    expect(customerLayoutSource).toContain("RoleSpaceSwitcher");
+    expect(courierLayoutSource).toContain("RoleSpaceSwitcher");
+    expect(adminFrameSource).toContain("RoleSpaceSwitcher");
+  });
+
   it("allows cross-role dashboard access only for roles assigned by Supabase", () => {
     const assignedRoles: UserRole[] = ["client", "admin", "restaurateur", "courier"];
 
@@ -86,6 +108,12 @@ describe("role access policy", () => {
       roles: ["client", "admin", "restaurateur"],
     })).toBe(false);
 
+    expect(canAccessRole({
+      requiredRole: "client",
+      activeRole: "client",
+      roles: ["client", "admin", "restaurateur", "courier"],
+    })).toBe(true);
+
     expect(canSwitchRoles(["client"])).toBe(false);
     expect(canSwitchRoles(["client", "restaurateur"])).toBe(false);
     expect(canSwitchRoles(["client", "admin"])).toBe(true);
@@ -103,12 +131,13 @@ describe("role access policy", () => {
     expect(getRoleHomePath("admin")).toBe("/admin");
   });
 
-  it("shows shopping and customer navigation only to guests and the active client role", () => {
+  it("shows shopping and customer navigation only to guests and users actively using an assigned client role", () => {
     expect(canShowClientSurface({ activeRole: null })).toBe(true);
     expect(canShowClientSurface({ activeRole: "client", roles: ["client"] })).toBe(true);
-    expect(canShowClientSurface({ activeRole: "client", roles: ["client", "admin"] })).toBe(false);
-    expect(canShowClientSurface({ activeRole: "client", roles: ["client", "restaurateur"] })).toBe(false);
-    expect(canUseClientRole({ activeRole: "client", roles: ["client", "courier"] })).toBe(false);
+    expect(canShowClientSurface({ activeRole: "client", roles: ["client", "admin"] })).toBe(true);
+    expect(canShowClientSurface({ activeRole: "client", roles: ["client", "restaurateur"] })).toBe(true);
+    expect(canUseClientRole({ activeRole: "client", roles: ["client", "courier"] })).toBe(true);
+    expect(canUseClientRole({ activeRole: "client", roles: ["courier"] })).toBe(false);
     expect(canShowClientSurface({ activeRole: "restaurateur" })).toBe(false);
     expect(canShowClientSurface({ activeRole: "courier" })).toBe(false);
     expect(canShowClientSurface({ activeRole: "admin" })).toBe(false);
@@ -117,7 +146,7 @@ describe("role access policy", () => {
   it("shows the social feed to guests, clients and the active restaurateur role only", () => {
     expect(canShowSocialFeedSurface({ activeRole: null })).toBe(true);
     expect(canShowSocialFeedSurface({ activeRole: "client", roles: ["client"] })).toBe(true);
-    expect(canShowSocialFeedSurface({ activeRole: "client", roles: ["client", "admin"] })).toBe(false);
+    expect(canShowSocialFeedSurface({ activeRole: "client", roles: ["client", "admin"] })).toBe(true);
     expect(canShowSocialFeedSurface({ activeRole: "restaurateur", roles: ["client", "restaurateur"] })).toBe(true);
     expect(canShowSocialFeedSurface({ activeRole: "courier" })).toBe(false);
     expect(canShowSocialFeedSurface({ activeRole: "admin" })).toBe(false);

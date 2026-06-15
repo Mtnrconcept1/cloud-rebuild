@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useCart } from "@/lib/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import CountdownTimer from "@/components/CountdownTimer";
+import { getOptimizedImageUrl } from "@/lib/optimizedImages";
 
 interface AntiWasteCardProps {
   title: string;
@@ -58,6 +59,7 @@ export default function AntiWasteCard({
 }: AntiWasteCardProps) {
   const discount = Math.round((1 - discountedPrice / originalPrice) * 100);
   const resolvedImage = getBestImage(imageUrl, restaurantImageUrl, title);
+  const optimizedImage = getOptimizedImageUrl(resolvedImage, "card");
   const flashTarget = (isFlash && availableDate && pickupEnd) ? new Date(`${availableDate}T${pickupEnd}`) : null;
   const showCountdown = flashTarget && flashTarget.getTime() > Date.now();
   const { addItem } = useCart();
@@ -94,7 +96,13 @@ export default function AntiWasteCard({
   const content = (
     <div className="premium-card rounded-2xl bg-card border shadow-sm h-full flex flex-col">
       <div className="aspect-[4/3] overflow-hidden relative shrink-0">
-        <img src={resolvedImage} alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+        <img
+          src={optimizedImage}
+          alt={title}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+          decoding="async"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         <div className="absolute top-3 left-3">
           {offerType === 'surprise_bag' ? (

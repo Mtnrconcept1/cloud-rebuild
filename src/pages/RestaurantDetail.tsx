@@ -26,6 +26,7 @@ import {
   isFlashSalePubliclyVisible,
 } from "@/lib/specialOffers";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
 
 const supabase = getSupabase();
 const RESTAURANT_DETAIL_STALE_MS = 60_000;
@@ -59,6 +60,9 @@ function RestaurantGalleryWatermark({ className = "", sizeClassName = "h-12 w-12
 }
 
 function RestaurantGalleryImageFrame({ photo, alt }: { photo: RestaurantGalleryPhoto; alt: string }) {
+  const galleryImage = getOptimizedImageUrl(photo.media_url, "gallery");
+  const gallerySrcSet = getOptimizedImageSrcSet(photo.media_url, "gallery");
+
   return (
     <div
       className="relative inline-flex max-h-full max-w-full items-center justify-center"
@@ -66,9 +70,12 @@ function RestaurantGalleryImageFrame({ photo, alt }: { photo: RestaurantGalleryP
     >
       <RestaurantGalleryWatermark className="left-4 top-4" sizeClassName="h-16 w-16" />
       <img
-        src={photo.media_url}
+        src={galleryImage}
+        srcSet={gallerySrcSet}
+        sizes={gallerySrcSet ? getOptimizedImageSizes("gallery") : undefined}
         alt={photo.alt_text || alt}
         className="block max-h-full max-w-full rounded-lg object-contain"
+        decoding="async"
       />
     </div>
   );
@@ -317,6 +324,8 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   );
   const coverPhoto = mediaPhotos?.find((p) => p.is_cover) || mediaPhotos?.[0];
   const heroImage = coverPhoto?.media_url || restaurant?.image_url || "/images/kebab-box-spread.jpeg";
+  const optimizedHeroImage = getOptimizedImageUrl(heroImage, "hero");
+  const optimizedHeroSrcSet = getOptimizedImageSrcSet(heroImage, "hero");
   const avgRating = avgRating10.toFixed(1);
   const reviewCount = restaurant?.review_count || reviews?.length || 0;
   const seoTitle = restaurant
@@ -414,10 +423,26 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
             className="block h-full w-full cursor-zoom-in text-left"
             onClick={openCoverGallery}
           >
-            <img src={heroImage} alt={restaurant.name} className="w-full h-full object-cover" />
+            <img
+              src={optimizedHeroImage}
+              srcSet={optimizedHeroSrcSet}
+              sizes={optimizedHeroSrcSet ? getOptimizedImageSizes("hero") : undefined}
+              alt={restaurant.name}
+              className="w-full h-full object-cover"
+              fetchPriority="high"
+              decoding="async"
+            />
           </button>
         ) : (
-          <img src={heroImage} alt={restaurant.name} className="w-full h-full object-cover" />
+          <img
+            src={optimizedHeroImage}
+            srcSet={optimizedHeroSrcSet}
+            sizes={optimizedHeroSrcSet ? getOptimizedImageSizes("hero") : undefined}
+            alt={restaurant.name}
+            className="w-full h-full object-cover"
+            fetchPriority="high"
+            decoding="async"
+          />
         )}
         {galleryPhotos.length > 1 && (
           <Button variant="secondary" size="sm" className="absolute bottom-20 right-4 z-20 gap-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md text-white border-white/10" onClick={() => openGalleryAtIndex(0)}>
@@ -823,7 +848,13 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                         className="group relative aspect-square rounded-xl overflow-hidden border bg-muted"
                       >
                         <RestaurantGalleryWatermark sizeClassName="h-10 w-10" />
-                        <img src={photo.media_url} alt={photo.alt_text || restaurant.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+                        <img
+                          src={getOptimizedImageUrl(photo.media_url, "thumbnail")}
+                          alt={photo.alt_text || restaurant.name}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                          loading="lazy"
+                          decoding="async"
+                        />
                         {photo.is_cover && (
                           <div className="absolute top-2 left-14 z-20 bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                             <Star className="h-3 w-3" /> Couverture

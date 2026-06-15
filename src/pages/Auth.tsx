@@ -5,7 +5,7 @@ import { Bike, ChefHat, CreditCard, Eye, EyeOff, FileText, Loader2, Shield, Shop
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
 import { normalizeInternalNavigationTarget } from "@/lib/navigation";
-import { getDefaultActiveRole, getRoleHomePath, hasPrivilegedRole } from "@/lib/roleAccess";
+import { getDefaultActiveRole, getRoleHomePath } from "@/lib/roleAccess";
 import {
   getMissingSignupDocuments,
   getRequiredSignupDocuments,
@@ -331,7 +331,7 @@ export default function Auth() {
   const isClientSignup = !isLogin && roleMode === "client";
   const showExtendedIdentityFields = !isLogin && roleMode !== "client";
   const showDocumentSection = !isLogin && requiredDocuments.length > 0;
-  const switchableRoles = roles.filter((candidateRole) => candidateRole !== "client" || !hasPrivilegedRole(roles));
+  const switchableRoles = roles;
   const postAuthRedirectTarget = useMemo(() => {
     const redirectTarget = searchParams.get("redirect");
     if (!redirectTarget) return null;
@@ -339,12 +339,12 @@ export default function Auth() {
   }, [searchParams]);
 
   const getPostAuthTarget = useCallback((selectedRole: UserRole) => {
-    if (selectedRole === "client" && !hasPrivilegedRole(roles)) {
+    if (selectedRole === "client") {
       return postAuthRedirectTarget || ROLE_CONFIG[selectedRole].to;
     }
 
     return getRoleHomePath(selectedRole);
-  }, [postAuthRedirectTarget, roles]);
+  }, [postAuthRedirectTarget]);
 
   useEffect(() => {
     if (!user || roles.length === 0 || privilegedSignupSubmitting) return;
@@ -905,6 +905,7 @@ export default function Auth() {
                       <AddressAutocomplete
                         id="address"
                         value={signupForm.address}
+                        preferredCity={signupForm.city}
                         onValueChange={(value) => updateSignupField("address", value)}
                         onAddressSelect={(address, city) => {
                           updateSignupField("address", address);

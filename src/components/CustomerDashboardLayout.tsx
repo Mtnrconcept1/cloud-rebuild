@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { User, ShoppingCart, CalendarDays, LayoutDashboard, Settings, Bell, Crown } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
+import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
@@ -28,6 +29,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         <aside className="w-full md:w-64 shrink-0">
           <div className="bg-card border rounded-2xl p-4 flex flex-col gap-2 sticky top-24">
             <h2 className="font-display font-semibold px-3 py-2 mb-2 text-lg">Mon Espace</h2>
+            <RoleSpaceSwitcher className="mb-2 w-full justify-between" align="start" />
             {NAV_ITEMS.map((item) => (
               <Link key={item.to} to={item.to} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", pathname === item.to ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-muted")}>
                 <item.icon className="h-4 w-4" />

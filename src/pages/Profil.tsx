@@ -308,6 +308,7 @@ export default function Profil() {
                 <AddressAutocomplete
                   id="address"
                   value={address}
+                  preferredCity={city}
                   onValueChange={setAddress}
                   onAddressSelect={(addr, c) => {
                     setAddress(addr);

@@ -19,6 +19,7 @@ import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navi
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { setupDeepLinks } from "@/lib/deep-links";
@@ -90,6 +91,7 @@ const DashboardFactures = lazy(() => import("./pages/dashboard/DashboardFactures
 const DashboardFacturesInflow = lazy(() => import("./pages/dashboard/DashboardFacturesInflow"));
 const DashboardFacturesOutflow = lazy(() => import("./pages/dashboard/DashboardFacturesOutflow"));
 const DashboardInvoiceSettings = lazy(() => import("./pages/dashboard/DashboardInvoiceSettings"));
+const DashboardAccountBilling = lazy(() => import("./pages/dashboard/DashboardAccountBilling"));
 const DashboardPhotos = lazy(() => import("./pages/dashboard/DashboardPhotos"));
 const DashboardNotifications = lazy(() => import("./pages/dashboard/DashboardNotifications"));
 const DashboardSupport = lazy(() => import("./pages/dashboard/DashboardSupport"));
@@ -261,6 +263,7 @@ export function AdminRouteFrame({
       {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
         <ChefHelpButton surface="admin" compact className="hidden w-auto md:flex" />
+        <RoleSpaceSwitcher compact />
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
         <SignOutButton iconOnly />
@@ -324,6 +327,7 @@ function AppShell() {
   const dashboardAvisEnabled = hasFeature("dashboard-avis");
   const dashboardFacturesEnabled = hasFeature("dashboard-factures");
   const dashboardFacturesParametresEnabled = hasFeature("dashboard-factures-parametres");
+  const dashboardBillingEnabled = hasFeature("dashboard-billing");
   const dashboardOffresEnabled = hasFeature("dashboard-offres");
   const dashboardVentesFlashEnabled = hasFeature("dashboard-ventes-flash");
   const dashboardFormulesEnabled = hasFeature("dashboard-formules");
@@ -410,6 +414,7 @@ function AppShell() {
           <Route path="/dashboard/factures/entrees" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><DashboardFacturesInflow /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/factures/sorties" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesEnabled} fallback="/dashboard/factures"><DashboardFacturesOutflow /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/factures/parametres" element={<DashboardRoute><FeatureSwitch enabled={dashboardFacturesParametresEnabled} fallback="/dashboard/factures"><DashboardInvoiceSettings /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/mon-compte-facturation" element={<DashboardRoute><FeatureSwitch enabled={dashboardBillingEnabled} fallback="/dashboard"><DashboardAccountBilling /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/offres" element={<DashboardRoute><FeatureSwitch enabled={dashboardOffresEnabled} fallback="/dashboard"><DashboardOffres /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/ventes-flash" element={<DashboardRoute><FeatureSwitch enabled={dashboardVentesFlashEnabled} fallback="/dashboard"><DashboardVentesFlash /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/formules" element={<DashboardRoute><FeatureSwitch enabled={dashboardFormulesEnabled} fallback="/dashboard"><DashboardFormules /></FeatureSwitch></DashboardRoute>} />

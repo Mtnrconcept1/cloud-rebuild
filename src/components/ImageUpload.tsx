@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { normalizePublicImageUrl } from "@/lib/securityUrls";
+import { getOptimizedImageUrl, optimizeImageUpload } from "@/lib/optimizedImages";
 import {
   IMAGE_MIME_EXTENSIONS,
   MAX_IMAGE_UPLOAD_BYTES,
@@ -67,7 +68,13 @@ export default function ImageUpload({
         throw new Error("Connexion requise pour uploader une image.");
       }
 
-      const file = event.target.files[0];
+      const sourceFile = event.target.files[0];
+      const file = await optimizeImageUpload(sourceFile);
+      assertSafeFileUpload(file, {
+        allowedMimeTypes: IMAGE_MIME_EXTENSIONS,
+        maxBytes: MAX_IMAGE_UPLOAD_BYTES,
+        label: "Image optimisee",
+      });
       const filePath = createImagePath(userData.user.id, file);
       const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
         contentType: file.type,
@@ -114,7 +121,13 @@ export default function ImageUpload({
       <div className="flex flex-col gap-4">
         {value ? (
           <div className="relative w-full aspect-video rounded-lg overflow-hidden border bg-muted">
-            <img src={normalizePublicImageUrl(value)} alt="Preview" className="w-full h-full object-cover" />
+            <img
+              src={getOptimizedImageUrl(normalizePublicImageUrl(value), "card")}
+              alt="Preview"
+              className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
             <Button
               type="button"
               variant="destructive"

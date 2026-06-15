@@ -1609,6 +1609,7 @@ export default function Panier() {
                 <Label>Adresse de livraison</Label>
                 <AddressAutocomplete
                   value={address}
+                  preferredCity={deliveryCity}
                   onValueChange={(value) => {
                     setAddress(value);
                     setDeliveryCity("");
@@ -1619,7 +1620,7 @@ export default function Panier() {
                     setDeliveryCity(city || "");
                     setDeliverySelection(selection || null);
                   }}
-                  placeholder="12 rue de la Paix, 75002 Paris"
+                  placeholder="Rue du Rhône 8, 1204 Genève"
                 />
               </div>
 

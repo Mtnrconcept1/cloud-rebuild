@@ -509,6 +509,15 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/dashboard/factures/parametres"],
   },
   {
+    name: "dashboard-billing",
+    label: "Dashboard: Mon compte/Facturation",
+    description: "Expose le compte restaurateur, l'abonnement, l'upgrade et le suivi des crédits.",
+    defaultEnabled: true,
+    group: "restaurant_dashboard",
+    dependsOn: ["dashboard-restaurateur"],
+    routeTargets: ["/dashboard/mon-compte-facturation"],
+  },
+  {
     name: "dashboard-offres",
     label: "Dashboard: Anti-gaspi",
     description: "Expose la gestion anti-gaspi côté restaurateur.",

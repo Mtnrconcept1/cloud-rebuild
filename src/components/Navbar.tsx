@@ -40,7 +40,7 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
-import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath, hasPrivilegedRole } from "@/lib/roleAccess";
+import { canShowClientSurface, canShowSocialFeedSurface, getRoleHomePath } from "@/lib/roleAccess";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -128,7 +128,7 @@ export default function Navbar() {
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ activeRole: role, roles });
-  const switchableRoles = roles.filter((candidateRole) => candidateRole !== "client" || !hasPrivilegedRole(roles));
+  const switchableRoles = roles;
   const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role, roles });
   const homeTarget = showClientSurface ? "/" : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);

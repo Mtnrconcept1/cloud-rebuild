@@ -10,6 +10,7 @@ import ChefHelpButton from "@/components/help/ChefHelpButton";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
+import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { Button } from "@/components/ui/button";
@@ -246,6 +247,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
       </div>
 
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[70] flex items-center gap-2">
+        <RoleSpaceSwitcher compact />
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
         <SignOutButton iconOnly />
@@ -294,6 +296,9 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               </SheetDescription>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
+              <div className="mb-4">
+                <RoleSpaceSwitcher className="w-full justify-between" align="start" onNavigate={() => setMobileMenuOpen(false)} />
+              </div>
               <nav className="flex flex-col gap-1 pb-4">
                 <CourierNavContent
                   pathname={pathname}
@@ -326,4 +331,3 @@ export default function CourierDashboardLayout({ children }: { children: React.R
     </div>
   );
 }
-

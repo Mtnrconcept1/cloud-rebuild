@@ -14,6 +14,7 @@ import { SponsoredBadge, SponsoredContextPill } from "@/components/campaigns/Spo
 import { useSponsoredImpressionOnView } from "@/hooks/useSponsoredImpressionOnView";
 import { buildRestaurantSeoPath } from "@/lib/restaurantSlugs";
 import { cn } from "@/lib/utils";
+import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
 
 const supabase = getSupabase();
 
@@ -170,6 +171,8 @@ export default function RestaurantCard({
   const queryClient = useQueryClient();
   const activeFeatures = useActiveFeatures();
   const resolvedImage = getImageUrl(sponsoredPromoImage || imageUrl, cuisine);
+  const optimizedImage = getOptimizedImageUrl(resolvedImage, "card");
+  const optimizedSrcSet = getOptimizedImageSrcSet(resolvedImage, "card");
   const organicImpressionTracked = useRef(false);
   const isSponsored = Boolean(sponsoredCampaignId);
   const showDelivery = activeFeatures.has("livraison") && deliveryAvailable;
@@ -294,10 +297,13 @@ export default function RestaurantCard({
 
         <div className="relative aspect-[16/10] overflow-hidden">
           <img
-            src={resolvedImage}
+            src={optimizedImage}
+            srcSet={optimizedSrcSet}
+            sizes={optimizedSrcSet ? getOptimizedImageSizes("card") : undefined}
             alt={name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent dark:from-slate-950/80 dark:via-slate-950/25" />
 

@@ -39,7 +39,7 @@ export function canUseClientRole({
   activeRole: UserRole | null;
   roles: UserRole[];
 }) {
-  return activeRole === "client" && !hasPrivilegedRole(roles);
+  return activeRole === "client" && getEffectiveRoles(roles).includes("client");
 }
 
 export function canSwitchRoles(roles: UserRole[]) {

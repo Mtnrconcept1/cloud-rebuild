@@ -26,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
+import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
 import SignOutButton from "@/components/auth/SignOutButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -269,6 +270,9 @@ export default function AdminMobileNavigation() {
             </SheetDescription>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto overscroll-y-contain px-6 pb-6 pt-4">
+            <div className="mb-4">
+              <RoleSpaceSwitcher className="w-full justify-between" align="start" onNavigate={() => setMobileMenuOpen(false)} />
+            </div>
             <div className="mb-4">
               <ChefHelpButton surface="admin" onOpen={() => setMobileMenuOpen(false)} />
             </div>

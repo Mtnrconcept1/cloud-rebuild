@@ -36,6 +36,7 @@ import {
   assertSafeFileUpload,
   getSafeUploadExtension,
 } from "@/lib/uploadSecurity";
+import { optimizeImageUpload } from "@/lib/optimizedImages";
 
 const supabase = getSupabase();
 const SOCIAL_FEED_BUCKET = "social-post-media";
@@ -509,7 +510,7 @@ async function assertRestaurantAccess(restaurantId: string, userId: string) {
 
 async function uploadPostMedia(restaurantId: string, postId: string, files: File[]) {
   for (let index = 0; index < files.length; index += 1) {
-    const file = files[index];
+    const file = await optimizeImageUpload(files[index]);
     assertSafeFileUpload(file, {
       allowedMimeTypes: SOCIAL_MEDIA_MIME_EXTENSIONS,
       maxBytes: MAX_SOCIAL_MEDIA_UPLOAD_BYTES,

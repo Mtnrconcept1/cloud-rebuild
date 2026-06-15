@@ -184,6 +184,111 @@ function normalizeRestaurantSubscriptionStatus(status: string | null | undefined
   return "active";
 }
 
+async function syncRestaurantSubscriptionRecord(input: {
+  adminClient: ReturnType<typeof createClient>;
+  subscription: Stripe.Subscription;
+  stripeMode: "live" | "test";
+  stripeCheckoutSessionId?: string | null;
+  log?: LoggerLike;
+}) {
+  const {
+    adminClient,
+    subscription,
+    stripeMode,
+    stripeCheckoutSessionId = null,
+    log,
+  } = input;
+  const metadata = subscription.metadata || {};
+  const checkoutKind = String(metadata.checkout_kind || "");
+
+  let restaurantId = String(metadata.restaurant_id || "");
+  let planId = String(metadata.restaurant_subscription_plan_id || metadata.plan_id || "");
+  let planSlug = String(metadata.restaurant_subscription_plan_slug || metadata.plan_slug || "");
+
+  const { data: existing, error: existingError } = await adminClient
+    .from("restaurant_ai_subscriptions")
+    .select("id, restaurant_id, restaurant_subscription_plan_id, plan, metadata")
+    .eq("stripe_subscription_id", subscription.id)
+    .maybeSingle();
+
+  if (existingError) {
+    log?.error?.("restaurant_subscription_lookup_failed", { message: existingError.message });
+    return { updated: false, row: null };
+  }
+
+  restaurantId = restaurantId || String(existing?.restaurant_id || "");
+  planId = planId || String(existing?.restaurant_subscription_plan_id || "");
+  planSlug = planSlug || String(existing?.plan || "");
+
+  if (!restaurantId || (!planId && !planSlug)) {
+    return { updated: false, row: null };
+  }
+
+  const planQuery = adminClient
+    .from("restaurant_subscription_plans")
+    .select("id, slug, name, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit")
+    .limit(1);
+  const { data: plans, error: planError } = planId
+    ? await planQuery.eq("id", planId)
+    : await planQuery.eq("slug", planSlug);
+
+  if (planError) {
+    log?.error?.("restaurant_subscription_plan_lookup_failed", { message: planError.message });
+    return { updated: false, row: null };
+  }
+
+  const plan = Array.isArray(plans) ? plans[0] : null;
+  if (!plan) {
+    return { updated: false, row: null };
+  }
+
+  const period = resolveRestaurantSubscriptionPeriod(subscription);
+  const payload = {
+    restaurant_id: restaurantId,
+    restaurant_subscription_plan_id: plan.id,
+    plan: plan.slug,
+    status: normalizeRestaurantSubscriptionStatus(subscription.status),
+    monthly_conversation_limit: Number(plan.monthly_conversation_limit || 0),
+    monthly_text_tool_limit: Number(plan.monthly_text_tool_limit || 0),
+    monthly_image_limit: Number(plan.monthly_image_limit || 0),
+    monthly_premium_image_limit: Number(plan.monthly_premium_image_limit || 0),
+    monthly_voice_minutes_limit: Number(plan.monthly_voice_minutes_limit || 0),
+    monthly_campaign_credit_chf: Number(plan.campaign_credit_chf || 0),
+    monthly_ai_tool_credits: Number(plan.ai_tool_credits || 0),
+    monthly_photo_retouch_credits: Number(plan.ai_photo_credits || 0),
+    current_period_start: period.currentPeriodStart,
+    current_period_end: period.currentPeriodEnd,
+    started_at: period.currentPeriodStart,
+    billing_period: "monthly",
+    stripe_subscription_id: subscription.id,
+    stripe_checkout_session_id: stripeCheckoutSessionId || String(metadata.stripe_checkout_session_id || ""),
+    stripe_mode: stripeMode,
+    metadata: {
+      ...(isJsonRecord(existing?.metadata) ? existing.metadata : {}),
+      ...metadata,
+      checkout_kind: checkoutKind || "restaurant-subscription-sync",
+      restaurant_subscription_plan_id: plan.id,
+      restaurant_subscription_plan_slug: plan.slug,
+      stripe_subscription_id: subscription.id,
+      stripe_checkout_session_id: stripeCheckoutSessionId || String(metadata.stripe_checkout_session_id || ""),
+      stripe_subscription_status: subscription.status,
+    },
+  };
+
+  const { data: row, error: upsertError } = await adminClient
+    .from("restaurant_ai_subscriptions")
+    .upsert(payload, { onConflict: "restaurant_id" })
+    .select("id, restaurant_id, plan, status")
+    .maybeSingle();
+
+  if (upsertError) {
+    log?.error?.("restaurant_subscription_sync_failed", { message: upsertError.message });
+    return { updated: false, row: null };
+  }
+
+  return { updated: true, row };
+}
+
 Deno.serve(async (req) => {
   const log = makeLogger("stripe-webhook");
 
@@ -664,6 +769,113 @@ Deno.serve(async (req) => {
           break;
         }
 
+        if (checkoutKind === "restaurant-subscription-upgrade") {
+          const planId = session.metadata?.plan_id || session.metadata?.restaurant_subscription_plan_id || null;
+          const planSlug = session.metadata?.restaurant_subscription_plan_slug || null;
+          const restaurantId = session.metadata?.restaurant_id || null;
+          const previousStripeSubscriptionId = session.metadata?.previous_stripe_subscription_id || null;
+          const subscriptionAmount = Number(session.metadata?.subscription_amount || 0);
+
+          if (!userId || !planId || !planSlug || !restaurantId) {
+            log.warn("restaurant_subscription_upgrade_missing_metadata", { sessionId: session.id });
+            break;
+          }
+
+          let stripeSubscription: Stripe.Subscription | null = null;
+          if (typeof session.subscription === "string") {
+            stripeSubscription = await stripe.subscriptions.retrieve(session.subscription);
+          } else {
+            log.warn("restaurant_subscription_upgrade_no_subscription", { sessionId: session.id });
+            break;
+          }
+
+          const syncResult = await syncRestaurantSubscriptionRecord({
+            adminClient: supabaseAdmin,
+            subscription: stripeSubscription,
+            stripeMode: event.livemode ? "live" : "test",
+            stripeCheckoutSessionId: session.id,
+            log,
+          });
+
+          if (!syncResult.updated) {
+            log.warn("restaurant_subscription_upgrade_sync_skipped", { sessionId: session.id });
+            break;
+          }
+
+          await recordTokOnePaymentIfMissing({
+            adminClient: supabaseAdmin,
+            session,
+            userId,
+            planId,
+            billingPeriod: "monthly",
+            stripeSubscriptionId: stripeSubscription.id,
+            stripeMode: event.livemode ? "live" : "test",
+            eventId: event.id,
+            amountOverride: subscriptionAmount,
+            checkoutKind: "restaurant-subscription-upgrade",
+            metadata: {
+              charge_component: "restaurant_subscription_upgrade",
+              restaurant_id: restaurantId,
+              restaurant_subscription_plan_id: planId,
+              restaurant_subscription_plan_slug: planSlug,
+              previous_stripe_subscription_id: previousStripeSubscriptionId,
+            },
+            log,
+          });
+
+          if (previousStripeSubscriptionId && previousStripeSubscriptionId !== stripeSubscription.id) {
+            try {
+              await stripe.subscriptions.cancel(previousStripeSubscriptionId, {
+                invoice_now: false,
+                prorate: false,
+              });
+            } catch (error) {
+              log.error("restaurant_subscription_previous_cancel_failed", {
+                previousStripeSubscriptionId,
+                message: error instanceof Error ? error.message : "unknown",
+              });
+            }
+          }
+
+          try {
+            const { data: restaurant } = await supabaseAdmin
+              .from("restaurants")
+              .select("owner_id, name")
+              .eq("id", restaurantId)
+              .maybeSingle();
+
+            if (restaurant?.owner_id) {
+              await enqueueNotification({
+                adminClient: supabaseAdmin,
+                userId: restaurant.owner_id,
+                title: "Abonnement restaurateur upgrade",
+                body: `Votre abonnement TOK est passe sur l'offre ${planSlug}. Vos nouveaux credits sont en cours d'activation.`,
+                type: "subscription",
+                category: "transactional",
+                data: {
+                  restaurant_id: restaurantId,
+                  restaurant_name: restaurant.name,
+                  plan_id: planId,
+                  plan_slug: planSlug,
+                  stripe_subscription_id: stripeSubscription.id,
+                  url: "/dashboard/mon-compte-facturation",
+                },
+              });
+              await triggerNotificationDispatch({ source: "stripe-webhook-restaurant-subscription-upgrade", push: true, email: true });
+            }
+          } catch (error) {
+            log.error("restaurant_subscription_upgrade_notification_failed", { message: error instanceof Error ? error.message : "unknown" });
+          }
+
+          log.info("restaurant_subscription_upgrade_completed", {
+            restaurantId,
+            planSlug,
+            subscriptionId: stripeSubscription.id,
+          });
+
+          break;
+        }
+
         if (checkoutKind === "launch-pack") {
           const restaurantLaunchPackId = session.metadata?.restaurant_launch_pack_id || null;
           const packId = session.metadata?.pack_id || null;
@@ -1041,7 +1253,23 @@ Deno.serve(async (req) => {
         });
 
         if (!syncResult.updated) {
-          log.warn("tok_one_subscription_skipped", { subscriptionId: subscription.id });
+          const restaurantSyncResult = await syncRestaurantSubscriptionRecord({
+            adminClient: supabaseAdmin,
+            subscription,
+            stripeMode: event.livemode ? "live" : "test",
+            log,
+          });
+
+          if (!restaurantSyncResult.updated) {
+            log.warn("tok_one_subscription_skipped", { subscriptionId: subscription.id });
+            break;
+          }
+
+          log.info("restaurant_subscription_synced", {
+            eventType: event.type,
+            subscriptionId: subscription.id,
+            restaurantId: restaurantSyncResult.row?.restaurant_id || null,
+          });
           break;
         }
 

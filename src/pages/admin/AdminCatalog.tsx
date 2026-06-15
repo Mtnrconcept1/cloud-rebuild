@@ -15,6 +15,7 @@ import {
   assertSafeFileUpload,
   getSafeUploadExtension,
 } from "@/lib/uploadSecurity";
+import { getOptimizedImageUrl, optimizeImageUpload } from "@/lib/optimizedImages";
 
 const supabase = getSupabase();
 
@@ -94,8 +95,10 @@ export default function AdminCatalog() {
     }));
   }, [collectionsRaw]);
 
-  const uploadCatalogMedia = async (file: File) => {
+  const uploadCatalogMedia = async (sourceFile: File) => {
+    let file: File;
     try {
+      file = await optimizeImageUpload(sourceFile);
       assertSafeFileUpload(file, {
         allowedMimeTypes: IMAGE_MIME_EXTENSIONS,
         maxBytes: MAX_IMAGE_UPLOAD_BYTES,
@@ -299,7 +302,15 @@ export default function AdminCatalog() {
                   <Card>
                     <CardHeader><CardTitle>Aperçu public</CardTitle></CardHeader>
                     <CardContent className="space-y-3">
-                      {collectionForm.image_url ? <img src={collectionForm.image_url} alt="" className="h-32 w-full rounded-md object-cover" /> : <div className="flex h-32 items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">Média requis recommandé</div>}
+                      {collectionForm.image_url ? (
+                        <img
+                          src={getOptimizedImageUrl(collectionForm.image_url, "card")}
+                          alt=""
+                          className="h-32 w-full rounded-md object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : <div className="flex h-32 items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">Média requis recommandé</div>}
                       <div>
                         <p className="font-semibold">{collectionForm.title || "Titre collection"}</p>
                         <p className="text-sm text-muted-foreground">{collectionForm.description || "Description collection"}</p>

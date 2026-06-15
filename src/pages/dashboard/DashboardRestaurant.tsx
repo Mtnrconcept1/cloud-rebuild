@@ -8,6 +8,7 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ImageUpload from "@/components/ImageUpload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -36,6 +37,69 @@ type CuisineOption = {
   name: string;
   slug?: string | null;
   keywords?: string[] | null;
+};
+
+type RestaurantAmenityGroup = {
+  id: string;
+  title: string;
+  description: string;
+  options: { id: string; label: string; description: string }[];
+};
+
+const RESTAURANT_AMENITY_GROUPS: RestaurantAmenityGroup[] = [
+  {
+    id: "parking-access",
+    title: "Stationnement et accès",
+    description: "Informations utiles avant l'arrivée sur place.",
+    options: [
+      { id: "free_parking", label: "Parking gratuit", description: "Places gratuites dédiées ou à proximité." },
+      { id: "paid_parking", label: "Parking payant", description: "Parking public ou privé payant proche." },
+      { id: "street_parking", label: "Stationnement dans la rue", description: "Places disponibles dans les rues voisines." },
+      { id: "wheelchair_accessible", label: "Accès handicapé", description: "Entrée et circulation adaptées." },
+      { id: "wheelchair_accessible_restroom", label: "Toilettes accessibles", description: "Sanitaires accessibles aux personnes à mobilité réduite." },
+    ],
+  },
+  {
+    id: "comfort-connectivity",
+    title: "Confort et connectivité",
+    description: "Services attendus pendant le repas.",
+    options: [
+      { id: "free_wifi", label: "Wi-Fi gratuit", description: "Connexion client disponible gratuitement." },
+      { id: "terrace", label: "Terrasse", description: "Tables disponibles en extérieur." },
+      { id: "air_conditioning", label: "Climatisation", description: "Salle climatisée en saison chaude." },
+      { id: "power_outlets", label: "Prises électriques", description: "Prises accessibles pour ordinateur ou téléphone." },
+      { id: "private_room", label: "Salle privée", description: "Espace réservé aux groupes ou événements." },
+    ],
+  },
+  {
+    id: "families-pets",
+    title: "Familles et animaux",
+    description: "Accueil des familles, enfants et compagnons.",
+    options: [
+      { id: "pets_allowed", label: "Animaux acceptés", description: "Animaux admis sous conditions de l'établissement." },
+      { id: "high_chairs", label: "Chaises enfant", description: "Chaises hautes disponibles." },
+      { id: "kids_menu", label: "Menu enfant", description: "Offres adaptées aux enfants." },
+      { id: "changing_table", label: "Table à langer", description: "Espace change pour bébé." },
+      { id: "stroller_friendly", label: "Poussettes acceptées", description: "Accès et emplacement adaptés." },
+    ],
+  },
+  {
+    id: "ordering-pickup",
+    title: "Commande et retrait",
+    description: "Options pratiques autour de la commande.",
+    options: [
+      { id: "drive_in", label: "Drive-in", description: "Retrait possible sans quitter le véhicule." },
+      { id: "curbside_pickup", label: "Retrait devant le restaurant", description: "Remise rapide devant l'établissement." },
+      { id: "counter_pickup", label: "Comptoir express", description: "File ou comptoir dédié aux retraits." },
+      { id: "late_service", label: "Service tardif", description: "Service disponible en fin de soirée." },
+      { id: "group_friendly", label: "Groupes acceptés", description: "Accueil adapté aux grandes tables." },
+    ],
+  },
+];
+
+const normalizeRestaurantAmenities = (amenities: unknown) => {
+  if (!Array.isArray(amenities)) return [];
+  return amenities.filter((value): value is string => typeof value === "string" && value.trim().length > 0);
 };
 
 export default function DashboardRestaurant() {
@@ -73,6 +137,7 @@ export default function DashboardRestaurant() {
     supports_pickup: false,
     supports_dinein: false,
     supports_reservation: false,
+    amenities: [] as string[],
   });
 
   const { data: restaurant } = useQuery({
@@ -130,6 +195,7 @@ export default function DashboardRestaurant() {
       supports_pickup: restaurant.supports_pickup || false,
       supports_dinein: restaurant.supports_dinein || false,
       supports_reservation: restaurant.supports_reservation || false,
+      amenities: normalizeRestaurantAmenities((restaurant as Record<string, unknown>).amenities),
     });
     setDisabledPaymentMethods((restaurant as Record<string, unknown>).disabled_payment_methods as string[] || []);
   }, [restaurant]);
@@ -175,6 +241,15 @@ export default function DashboardRestaurant() {
     ));
   };
 
+  const toggleAmenity = (amenityId: string) => {
+    setForm((current) => ({
+      ...current,
+      amenities: current.amenities.includes(amenityId)
+        ? current.amenities.filter((id) => id !== amenityId)
+        : [...current.amenities, amenityId],
+    }));
+  };
+
   const syncRestaurantCuisines = async (restaurantId: string) => {
     const { error } = await (supabase as any).rpc("restaurant_set_cuisines", {
       p_restaurant_id: restaurantId,
@@ -190,6 +265,7 @@ export default function DashboardRestaurant() {
     try {
       const payload = {
         ...form,
+        amenities: form.amenities,
         cuisine_type: cuisineSummary,
         disabled_payment_methods: disabledPaymentMethods,
       };
@@ -260,6 +336,7 @@ export default function DashboardRestaurant() {
           visualLabel="Profil"
           stats={[
             { label: "Categories", value: selectedCuisineIds.length, icon: Store },
+            { label: "Commodités", value: form.amenities.length, icon: CheckCircle2 },
             { label: "Paiements coupes", value: disabledPaymentMethods.length, icon: CreditCard },
             { label: "Stripe", value: restaurant?.stripe_account_id ? "Connecte" : "A relier", icon: Wallet },
           ]}
@@ -314,6 +391,13 @@ export default function DashboardRestaurant() {
             <Label>Adresse</Label>
             <AddressAutocomplete
               value={form.address}
+              preferredCity={form.city}
+              locationBias={{
+                latitude: form.latitude,
+                longitude: form.longitude,
+                city: form.city,
+                country: "Suisse",
+              }}
               onValueChange={(value) => {
                 setForm((current) => ({
                   ...current,
@@ -341,6 +425,56 @@ export default function DashboardRestaurant() {
           </div>
 
           <ImageUpload label="Photo du restaurant" value={form.image_url} onChange={(url) => setForm({ ...form, image_url: url })} />
+
+          <div className="mt-6 space-y-4 border-t pt-4">
+            <div>
+              <h3 className="font-semibold">Commodités et services</h3>
+              <p className="text-sm text-muted-foreground">
+                Sélectionnez les attributs visibles par les clients, sur le modèle des fiches Google Business.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {RESTAURANT_AMENITY_GROUPS.map((group) => (
+                <section key={group.id} className="rounded-xl border bg-background p-4">
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold">{group.title}</h4>
+                    <p className="text-xs text-muted-foreground">{group.description}</p>
+                  </div>
+                  <div className="space-y-3">
+                    {group.options.map((option) => {
+                      const checked = form.amenities.includes(option.id);
+                      const checkboxId = `restaurant-amenity-${option.id}`;
+                      return (
+                        <div key={option.id} className="flex items-start gap-3">
+                          <Checkbox
+                            id={checkboxId}
+                            checked={checked}
+                            onCheckedChange={() => toggleAmenity(option.id)}
+                            className="mt-0.5"
+                          />
+                          <div className="grid gap-0.5 leading-none">
+                            <Label htmlFor={checkboxId} className="cursor-pointer text-sm font-medium leading-none">
+                              {option.label}
+                            </Label>
+                            <p className="text-xs leading-5 text-muted-foreground">{option.description}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+            {form.amenities.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {RESTAURANT_AMENITY_GROUPS.flatMap((group) => group.options)
+                  .filter((option) => form.amenities.includes(option.id))
+                  .map((option) => (
+                    <Badge key={option.id} variant="secondary">{option.label}</Badge>
+                  ))}
+              </div>
+            ) : null}
+          </div>
 
           {deliveryEnabled ? (
             <>

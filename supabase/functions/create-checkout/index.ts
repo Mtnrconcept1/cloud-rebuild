@@ -78,7 +78,10 @@ Deno.serve(async (req) => {
     } = await req.json();
 
     const effectiveKind = checkout_kind || order_metadata?.checkout_kind || "order";
-    const isSubscriptionCheckout = effectiveKind === "tok-one" || effectiveKind === "restaurant-onboarding";
+    const isSubscriptionCheckout =
+      effectiveKind === "tok-one"
+      || effectiveKind === "restaurant-onboarding"
+      || effectiveKind === "restaurant-subscription-upgrade";
     const stripeRuntime = getStripeRuntimeForCheckoutKind(effectiveKind);
     const stripe = stripeRuntime.stripe;
     const safeReturnUrl = normalizeCheckoutReturnUrl(return_url);
@@ -421,6 +424,130 @@ Deno.serve(async (req) => {
         monthly_premium_image_limit: String(plan.monthly_premium_image_limit || 0),
         monthly_voice_minutes_limit: String(plan.monthly_voice_minutes_limit || 0),
         authoritative_total: (packAmount + subscriptionAmount).toFixed(2),
+      };
+    } else if (effectiveKind === "restaurant-subscription-upgrade") {
+      const planId = String(order_metadata?.plan_id || "");
+      const restaurantId = String(order_metadata?.restaurant_id || "");
+      const restaurantSubscriptionUpgradeSamePlanCode = "restaurant_subscription_upgrade_same_plan";
+
+      if (!planId) throw new HttpError(400, "plan_id requis");
+      if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
+      if (payment_method !== "card") {
+        throw new HttpError(400, "L'upgrade d'abonnement restaurateur requiert un paiement par carte");
+      }
+
+      auditKind = "restaurant-subscription-upgrade";
+      auditTargetEntityType = "restaurant_ai_subscriptions";
+      auditTargetEntityId = restaurantId;
+
+      await requireRestaurantAccess(actor, restaurantId);
+
+      const { data: plan, error: planError } = await actor.adminClient
+        .from("restaurant_subscription_plans")
+        .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, is_active, position")
+        .eq("id", planId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (planError) throw new HttpError(500, planError.message);
+      if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
+
+      const subscriptionAmount = Number(plan.price_monthly_chf);
+      if (subscriptionAmount <= 0) throw new HttpError(400, "Prix du plan invalide");
+
+      const { data: existingSub, error: existingSubError } = await actor.adminClient
+        .from("restaurant_ai_subscriptions")
+        .select("id, plan, status, current_period_end, restaurant_subscription_plan_id, stripe_subscription_id")
+        .eq("restaurant_id", restaurantId)
+        .maybeSingle();
+
+      if (existingSubError) throw new HttpError(500, existingSubError.message);
+
+      const hasActiveSubscription = Boolean(
+        existingSub &&
+        isTokOneEntitledStatus(existingSub.status) &&
+        (!existingSub.current_period_end || new Date(existingSub.current_period_end) > new Date()),
+      );
+
+      let currentPlanPosition = 0;
+      if (existingSub?.restaurant_subscription_plan_id) {
+        const { data: currentPlan, error: currentPlanError } = await actor.adminClient
+          .from("restaurant_subscription_plans")
+          .select("id, slug, position, price_monthly_chf")
+          .eq("id", existingSub.restaurant_subscription_plan_id)
+          .maybeSingle();
+
+        if (currentPlanError) throw new HttpError(500, currentPlanError.message);
+        currentPlanPosition = Number(currentPlan?.position || 0);
+      } else if (existingSub?.plan) {
+        const { data: currentPlan, error: currentPlanError } = await actor.adminClient
+          .from("restaurant_subscription_plans")
+          .select("id, slug, position, price_monthly_chf")
+          .eq("slug", existingSub.plan)
+          .maybeSingle();
+
+        if (currentPlanError) throw new HttpError(500, currentPlanError.message);
+        currentPlanPosition = Number(currentPlan?.position || 0);
+      }
+
+      if (
+        hasActiveSubscription &&
+        (
+          existingSub?.restaurant_subscription_plan_id === plan.id
+          || existingSub?.plan === plan.slug
+          || Number(plan.position || 0) <= currentPlanPosition
+        )
+      ) {
+        log.warn(restaurantSubscriptionUpgradeSamePlanCode, {
+          restaurantId,
+          currentPlan: existingSub?.plan || null,
+          requestedPlan: plan.slug,
+        });
+        throw new HttpError(409, "Vous etes deja sur ce plan ou un plan superieur");
+      }
+
+      lineItems = [
+        {
+          price_data: {
+            currency: "chf",
+            product_data: {
+              name: `Abonnement restaurateur TOK - ${plan.name}`,
+              description: String(plan.description || ""),
+              metadata: {
+                restaurant_subscription_plan_id: plan.id,
+                restaurant_subscription_plan_slug: plan.slug,
+              },
+            },
+            recurring: {
+              interval: "month",
+            },
+            unit_amount: Math.round(subscriptionAmount * 100),
+          },
+          quantity: 1,
+        },
+      ];
+
+      sessionMetadata = {
+        ...sessionMetadata,
+        restaurant_id: restaurantId,
+        plan_id: plan.id,
+        restaurant_subscription_plan_id: plan.id,
+        restaurant_subscription_plan_slug: plan.slug,
+        plan_name: plan.name,
+        billing_period: "monthly",
+        previous_restaurant_ai_subscription_id: String(existingSub?.id || ""),
+        previous_stripe_subscription_id: String(existingSub?.stripe_subscription_id || ""),
+        previous_subscription_plan_slug: String(existingSub?.plan || ""),
+        subscription_amount: subscriptionAmount.toFixed(2),
+        campaign_credit_chf: Number(plan.campaign_credit_chf || 0).toFixed(2),
+        ai_tool_credits: String(plan.ai_tool_credits || 0),
+        ai_photo_credits: String(plan.ai_photo_credits || 0),
+        monthly_conversation_limit: String(plan.monthly_conversation_limit || 0),
+        monthly_text_tool_limit: String(plan.monthly_text_tool_limit || 0),
+        monthly_image_limit: String(plan.monthly_image_limit || 0),
+        monthly_premium_image_limit: String(plan.monthly_premium_image_limit || 0),
+        monthly_voice_minutes_limit: String(plan.monthly_voice_minutes_limit || 0),
+        authoritative_total: subscriptionAmount.toFixed(2),
       };
     } else if (effectiveKind === "tok-one") {
       // ── Tok One premium subscription ──

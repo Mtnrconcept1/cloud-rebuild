@@ -286,6 +286,8 @@ export default function DashboardInvoiceSettings() {
                   <Label>Adresse</Label>
                   <AddressAutocomplete
                     value={settings.company_address}
+                    preferredCity={settings.company_city}
+                    preferredCountry={settings.company_country || "Suisse"}
                     onValueChange={(value) => update("company_address", value)}
                     onAddressSelect={(address, city, selection) => {
                       update("company_address", address);

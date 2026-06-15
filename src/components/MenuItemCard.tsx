@@ -5,6 +5,7 @@ import { trackClick, trackImpression } from "@/lib/analytics";
 import { useCart } from "@/lib/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { resolveMenuItemImageUrl } from "@/lib/menu-item-images";
+import { getOptimizedImageUrl } from "@/lib/optimizedImages";
 import { Button } from "@/components/ui/button";
 
 interface MenuItemCardProps {
@@ -58,15 +59,17 @@ export default function MenuItemCard({
   };
 
   const finalImageUrl = resolveMenuItemImageUrl({ name, description, category, imageUrl });
+  const optimizedImageUrl = getOptimizedImageUrl(finalImageUrl, "thumbnail");
 
   return (
     <div className={`group flex gap-4 rounded-xl border bg-card p-4 transition-shadow ${disabled ? "opacity-60" : "hover:shadow-sm"}`}>
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg border bg-secondary/20">
         <img
-          src={finalImageUrl}
+          src={optimizedImageUrl}
           alt={name}
           className="h-full w-full object-cover transition-transform group-hover:scale-105"
           loading="lazy"
+          decoding="async"
         />
       </div>
       <div className="min-w-0 flex-1 space-y-1">

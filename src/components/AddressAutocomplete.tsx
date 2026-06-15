@@ -15,6 +15,13 @@ export type AddressSelection = {
   label?: string;
 };
 
+export type AddressLocationBias = {
+  latitude: number | null;
+  longitude: number | null;
+  city?: string;
+  country?: string;
+};
+
 interface Suggestion {
   key: string;
   name?: string;
@@ -23,11 +30,15 @@ interface Suggestion {
   postcode?: string;
   city?: string;
   country?: string;
+  countryCode?: string;
   full_address: string;
   latitude: number | null;
   longitude: number | null;
   label: string;
   sublabel?: string;
+  distanceKm?: number | null;
+  localScore: number;
+  sourceIndex: number;
 }
 
 type PhotonFeature = {
@@ -40,6 +51,7 @@ type PhotonFeature = {
     town?: string;
     village?: string;
     country?: string;
+    countrycode?: string;
   };
   geometry?: {
     coordinates?: unknown;
@@ -58,10 +70,158 @@ interface AddressAutocompleteProps {
   disabled?: boolean;
   mode?: "address" | "city";
   hideIcon?: boolean;
+  preferredCity?: string;
+  preferredCountry?: string;
+  locationBias?: AddressLocationBias;
 }
+
+const ADDRESS_SEARCH_LIMIT = 8;
+const ADDRESS_SUGGESTION_LIMIT = 5;
+
+const DEFAULT_ADDRESS_BIAS: Required<AddressLocationBias> = {
+  latitude: 46.2044,
+  longitude: 6.1432,
+  city: "Genève",
+  country: "Suisse",
+};
+
+const KNOWN_SWISS_CITY_BIASES: Record<string, Required<AddressLocationBias>> = {
+  bale: { latitude: 47.5596, longitude: 7.5886, city: "Bâle", country: "Suisse" },
+  basel: { latitude: 47.5596, longitude: 7.5886, city: "Bâle", country: "Suisse" },
+  bern: { latitude: 46.948, longitude: 7.4474, city: "Berne", country: "Suisse" },
+  berne: { latitude: 46.948, longitude: 7.4474, city: "Berne", country: "Suisse" },
+  fribourg: { latitude: 46.8065, longitude: 7.1619, city: "Fribourg", country: "Suisse" },
+  geneve: DEFAULT_ADDRESS_BIAS,
+  genf: DEFAULT_ADDRESS_BIAS,
+  lausanne: { latitude: 46.5197, longitude: 6.6323, city: "Lausanne", country: "Suisse" },
+  lugano: { latitude: 46.0037, longitude: 8.9511, city: "Lugano", country: "Suisse" },
+  montreux: { latitude: 46.4312, longitude: 6.9107, city: "Montreux", country: "Suisse" },
+  neuchatel: { latitude: 46.9929, longitude: 6.931, city: "Neuchâtel", country: "Suisse" },
+  nyon: { latitude: 46.3833, longitude: 6.2396, city: "Nyon", country: "Suisse" },
+  sion: { latitude: 46.2331, longitude: 7.3606, city: "Sion", country: "Suisse" },
+  vevey: { latitude: 46.4628, longitude: 6.8419, city: "Vevey", country: "Suisse" },
+  zurich: { latitude: 47.3769, longitude: 8.5417, city: "Zurich", country: "Suisse" },
+};
 
 function normalizeLocationLabel(value: unknown) {
   return String(value || "").trim().toLowerCase();
+}
+
+function normalizeForMatching(value: unknown) {
+  return normalizeLocationLabel(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function isFiniteCoordinate(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function formatCoordinate(value: number) {
+  return Number(value.toFixed(4)).toString();
+}
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function getDistanceKm(from: AddressLocationBias | null, latitude: number | null, longitude: number | null) {
+  if (!from || !isFiniteCoordinate(from.latitude) || !isFiniteCoordinate(from.longitude)) return null;
+  if (!isFiniteCoordinate(latitude) || !isFiniteCoordinate(longitude)) return null;
+
+  const earthRadiusKm = 6371;
+  const deltaLat = toRadians(latitude - from.latitude);
+  const deltaLon = toRadians(longitude - from.longitude);
+  const fromLat = toRadians(from.latitude);
+  const toLat = toRadians(latitude);
+  const haversine =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(fromLat) * Math.cos(toLat) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function getKnownCityBias(city: string | undefined) {
+  const normalizedCity = normalizeForMatching(city);
+  return normalizedCity ? KNOWN_SWISS_CITY_BIASES[normalizedCity] ?? null : null;
+}
+
+function getEffectiveBias(
+  locationBias: AddressLocationBias | undefined,
+  preferredCity: string | undefined,
+  browserLocationBias: AddressLocationBias | null,
+) {
+  if (locationBias && isFiniteCoordinate(locationBias.latitude) && isFiniteCoordinate(locationBias.longitude)) {
+    return locationBias;
+  }
+
+  const cityBias = getKnownCityBias(preferredCity);
+  if (cityBias) return cityBias;
+
+  if (browserLocationBias && isFiniteCoordinate(browserLocationBias.latitude) && isFiniteCoordinate(browserLocationBias.longitude)) {
+    return browserLocationBias;
+  }
+
+  return DEFAULT_ADDRESS_BIAS;
+}
+
+function isPreferredCountry(country: string | undefined, countryCode: string | undefined, preferredCountry: string) {
+  const normalizedCountry = normalizeForMatching(country);
+  const normalizedPreferredCountry = normalizeForMatching(preferredCountry);
+  const normalizedCountryCode = normalizeForMatching(countryCode);
+
+  return (
+    normalizedCountryCode === "ch" ||
+    normalizedCountry === "suisse" ||
+    normalizedCountry === "switzerland" ||
+    normalizedCountry === "schweiz" ||
+    Boolean(normalizedPreferredCountry && normalizedCountry === normalizedPreferredCountry)
+  );
+}
+
+function scoreSuggestion(
+  suggestion: Omit<Suggestion, "localScore" | "sourceIndex">,
+  effectiveBias: AddressLocationBias,
+  preferredCity: string | undefined,
+  preferredCountry: string,
+) {
+  let score = 0;
+  const preferredCityMatch = normalizeForMatching(preferredCity || effectiveBias.city);
+  const city = normalizeForMatching(suggestion.city);
+  const countryMatches = isPreferredCountry(suggestion.country, suggestion.countryCode, preferredCountry);
+  const distanceKm = getDistanceKm(effectiveBias, suggestion.latitude, suggestion.longitude);
+
+  if (preferredCityMatch && city === preferredCityMatch) score += 1800;
+  else if (preferredCityMatch && city.includes(preferredCityMatch)) score += 1200;
+
+  if (distanceKm !== null) {
+    if (distanceKm <= 5) score += 1200;
+    else if (distanceKm <= 15) score += 1000;
+    else if (distanceKm <= 40) score += 800;
+    else if (distanceKm <= 80) score += 550;
+    else if (distanceKm <= 150) score += 250;
+    else score -= Math.min(700, Math.round(distanceKm / 3));
+  }
+
+  score += countryMatches ? 650 : -650;
+  if (suggestion.street) score += 80;
+  if (suggestion.housenumber) score += 40;
+
+  return { score, distanceKm };
+}
+
+function rankSuggestions(suggestions: Suggestion[]) {
+  return [...suggestions].sort((left, right) => {
+    if (right.localScore !== left.localScore) return right.localScore - left.localScore;
+    const leftDistance = left.distanceKm ?? Number.POSITIVE_INFINITY;
+    const rightDistance = right.distanceKm ?? Number.POSITIVE_INFINITY;
+    if (leftDistance !== rightDistance) return leftDistance - rightDistance;
+    return left.sourceIndex - right.sourceIndex;
+  });
+}
+
+function dedupeSuggestions(suggestions: Suggestion[]) {
+  return Array.from(new Map(suggestions.map((suggestion) => [suggestion.key, suggestion])).values());
 }
 
 export default function AddressAutocomplete({
@@ -76,16 +236,21 @@ export default function AddressAutocomplete({
   disabled = false,
   mode = "address",
   hideIcon = false,
+  preferredCity,
+  preferredCountry = "Suisse",
+  locationBias,
 }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [browserLocationBias, setBrowserLocationBias] = useState<AddressLocationBias | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isCityMode = mode === "city";
+  const effectiveBias = getEffectiveBias(locationBias, preferredCity, browserLocationBias);
 
   useEffect(() => {
     setInputValue(value);
@@ -107,6 +272,39 @@ export default function AddressAutocomplete({
     abortControllerRef.current?.abort();
   }, []);
 
+  useEffect(() => {
+    if (preferredCity || locationBias) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+
+    let cancelled = false;
+    const readCurrentPosition = () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (cancelled) return;
+          setBrowserLocationBias({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        () => undefined,
+        { enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 2500 },
+      );
+    };
+
+    if (navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: "geolocation" as PermissionName })
+        .then((permission) => {
+          if (permission.state === "granted") readCurrentPosition();
+        })
+        .catch(() => undefined);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [locationBias, preferredCity]);
+
   const fetchSuggestions = async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
@@ -122,15 +320,23 @@ export default function AddressAutocomplete({
     setError(null);
 
     try {
+      const params = new URLSearchParams({
+        q: query,
+        limit: String(ADDRESS_SEARCH_LIMIT),
+        lang: "fr",
+      });
+      params.set("lat", formatCoordinate(effectiveBias.latitude as number));
+      params.set("lon", formatCoordinate(effectiveBias.longitude as number));
+
       const response = await fetch(
-        `/api/photon?q=${encodeURIComponent(query)}&limit=5&lang=fr`,
+        `/api/photon?${params.toString()}`,
         { signal: controller.signal },
       );
       if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
       const data = await response.json();
       const rawSuggestions = ((data.features || []) as PhotonFeature[])
-        .map((feature) => {
+        .map((feature, sourceIndex) => {
           const properties = feature.properties || {};
           const street = properties.street || properties.name || "";
           const house = properties.housenumber || "";
@@ -146,7 +352,7 @@ export default function AddressAutocomplete({
 
           const suggestionKeyBase = isCityMode ? cityLabel : addressLabel;
 
-          return {
+          const baseSuggestion = {
             key: `${normalizeLocationLabel(suggestionKeyBase)}|${normalizeLocationLabel(postcode)}|${normalizeLocationLabel(properties.country)}`,
             name: properties.name,
             street: properties.street,
@@ -154,6 +360,7 @@ export default function AddressAutocomplete({
             postcode: properties.postcode,
             city,
             country: properties.country,
+            countryCode: properties.countrycode,
             full_address: addressLabel,
             latitude: typeof coordinates[1] === "number" ? coordinates[1] : null,
             longitude: typeof coordinates[0] === "number" ? coordinates[0] : null,
@@ -161,15 +368,20 @@ export default function AddressAutocomplete({
             sublabel: isCityMode
               ? [postcode, properties.country].filter(Boolean).join(" ")
               : properties.country || undefined,
+          };
+          const localRank = scoreSuggestion(baseSuggestion, effectiveBias, preferredCity, preferredCountry);
+
+          return {
+            ...baseSuggestion,
+            distanceKm: localRank.distanceKm,
+            localScore: localRank.score,
+            sourceIndex,
           } satisfies Suggestion;
         })
         .filter((suggestion: Suggestion) => Boolean(isCityMode ? suggestion.label : suggestion.full_address));
 
-      const formatted = isCityMode
-        ? Array.from(
-            new Map(rawSuggestions.map((suggestion: Suggestion) => [suggestion.key, suggestion])).values(),
-          )
-        : rawSuggestions;
+      const rankedSuggestions = dedupeSuggestions(rankSuggestions(rawSuggestions));
+      const formatted = rankedSuggestions.slice(0, ADDRESS_SUGGESTION_LIMIT);
 
       setSuggestions(formatted);
       setIsOpen(true);

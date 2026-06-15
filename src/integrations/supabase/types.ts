@@ -5066,6 +5066,7 @@ export type Database = {
           avg_delivery_time_min: number | null
           avg_prep_time_min: number | null
           avg_rating: number | null
+          amenities: string[]
           base_delivery_fee: number | null
           city: string
           commission_rate: number | null
@@ -5110,6 +5111,7 @@ export type Database = {
           avg_delivery_time_min?: number | null
           avg_prep_time_min?: number | null
           avg_rating?: number | null
+          amenities?: string[]
           base_delivery_fee?: number | null
           city: string
           commission_rate?: number | null
@@ -5154,6 +5156,7 @@ export type Database = {
           avg_delivery_time_min?: number | null
           avg_prep_time_min?: number | null
           avg_rating?: number | null
+          amenities?: string[]
           base_delivery_fee?: number | null
           city?: string
           commission_rate?: number | null
