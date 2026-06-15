@@ -120,6 +120,26 @@ function getActiveChatReference(activeConversationId: string | null, supportTick
   return null;
 }
 
+function getChatUnavailableMessage({
+  loading,
+  featureFlagsLoading,
+  isAdminRoute,
+  isAdminFeatureEnabled,
+  roles,
+}: {
+  loading: boolean;
+  featureFlagsLoading: boolean;
+  isAdminRoute: boolean;
+  isAdminFeatureEnabled: boolean;
+  roles: string[];
+}) {
+  if (loading) return "Vérification de votre session en cours.";
+  if (isAdminRoute && featureFlagsLoading) return "Chargement des droits de l'Assistant IA Admin.";
+  if (isAdminRoute && !roles.includes("admin")) return "Compte administrateur requis pour utiliser l'Assistant IA Admin.";
+  if (isAdminRoute && !isAdminFeatureEnabled) return "L'Assistant IA Admin est désactivé par feature flag.";
+  return "Connectez-vous pour utiliser le chat support TOK et retrouver vos conversations.";
+}
+
 export default function SupportChat() {
   const location = useLocation();
   const { user, loading, roles } = useAuth();
@@ -152,7 +172,7 @@ export default function SupportChat() {
   const isChatAvailable = Boolean(user)
     && !loading
     && (!isAdminPrivilegedSurface || (roles.includes("admin") && adminDashboardAiChatEnabled));
-  const availableAgents = isAdminRoute && chatSurface === "admin" && adminDashboardAiChatEnabled
+  const availableAgents = isAdminRoute && chatSurface === "admin"
     ? [AGENTS.admin_dashboard_ai]
     : Object.values(AGENTS).filter((agent) => agent.id !== "admin_dashboard_ai");
 
@@ -165,12 +185,10 @@ export default function SupportChat() {
   useEffect(() => {
     window.openChat = (options?: HelpChatOpenOptions) => {
       const normalized = normalizeOpenOptions(options);
-      const canOpenAdminAgent = normalized.surface === "admin"
-        && adminDashboardAiChatEnabled
-        && (
-          isAdminPath(location.pathname)
-          || (typeof window !== "undefined" && isAdminAppHost(window.location.hostname))
-        );
+      const openingFromAdminSurface = isAdminPath(location.pathname)
+        || (typeof window !== "undefined" && isAdminAppHost(window.location.hostname));
+      const canOpenAdminAgent = openingFromAdminSurface
+        && (normalized.surface === "admin" || !options?.surface);
       const nextSurface = canOpenAdminAgent ? "admin" : normalized.surface === "admin" ? "public" : normalized.surface;
       const nextAgentId = canOpenAdminAgent
         ? "admin_dashboard_ai"
@@ -193,7 +211,22 @@ export default function SupportChat() {
     return () => {
       window.openChat = undefined;
     };
-  }, [adminDashboardAiChatEnabled, location.pathname]);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isAdminRoute || featureFlagsLoading) return;
+    if (chatSurface === "admin" && selectedAgent === "admin_dashboard_ai") return;
+
+    setChatSurface("admin");
+    setSelectedAgent("admin_dashboard_ai");
+    setHistory(getInitialHistory("admin_dashboard_ai", "admin"));
+    setActiveConversationId(null);
+    setSupportTicketId(null);
+    setIsHistoryOpen(false);
+    setHistoryError(null);
+    setInputValue("");
+    setIsTyping(false);
+  }, [chatSurface, featureFlagsLoading, isAdminRoute, selectedAgent]);
 
   useEffect(() => {
     if (!isChatAvailable) {
@@ -306,6 +339,7 @@ export default function SupportChat() {
             agentId: selectedAgent,
             surface: chatSurface,
             currentPath: location.pathname,
+            currentUrl: `${location.pathname}${location.search}`,
           },
         });
 
@@ -346,12 +380,18 @@ export default function SupportChat() {
             : data?.reply || "L'Assistant IA OpenAI n'a pas pu générer de réponse pour le moment.",
         },
       ]);
-    } catch {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "";
       setHistory((previous) => [
         ...previous,
         {
           type: "bot",
-          text: "L'Assistant IA OpenAI est indisponible pour le moment. Réessayez dans quelques instants.",
+          text: isAdminPrivilegedSurface
+            ? [
+              "L'Assistant IA Admin est indisponible pour le moment.",
+              errorMessage ? `Détail technique : ${errorMessage}` : "",
+            ].filter(Boolean).join("\n")
+            : "L'Assistant IA OpenAI est indisponible pour le moment. Réessayez dans quelques instants.",
         },
       ]);
     } finally {
@@ -554,7 +594,7 @@ export default function SupportChat() {
                     <Input
                       value={inputValue}
                       onChange={(event) => setInputValue(event.target.value)}
-                      placeholder="Écrivez votre message à l'Assistant IA OpenAI..."
+                      placeholder={isAdminPrivilegedSurface ? "Question sur les données admin, logs ou opérations..." : "Écrivez votre message à l'Assistant IA OpenAI..."}
                       className="h-10 rounded-full border-0 bg-muted/50 text-xs focus-visible:ring-1 focus-visible:ring-primary/30"
                       disabled={isTyping}
                     />
@@ -585,9 +625,13 @@ export default function SupportChat() {
                 <div className="rounded-2xl border bg-card p-4 shadow-sm">
                   <p className="text-base font-semibold text-foreground">Chat indisponible</p>
                   <p className="mt-2 leading-6 text-muted-foreground">
-                    {loading
-                      ? "Vérification de votre session en cours."
-                      : "Connectez-vous pour utiliser le chat support TOK et retrouver vos conversations."}
+                    {getChatUnavailableMessage({
+                      loading,
+                      featureFlagsLoading,
+                      isAdminRoute,
+                      isAdminFeatureEnabled: adminDashboardAiChatEnabled,
+                      roles,
+                    })}
                   </p>
                 </div>
                 <Button asChild className="rounded-full">

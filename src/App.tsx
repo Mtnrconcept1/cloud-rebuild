@@ -12,6 +12,7 @@ import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import MobileLogoIntro from "@/components/MobileLogoIntro";
 import FooterSection from "@/components/home/FooterSection";
+import SupportChat from "@/components/SupportChat";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -38,7 +39,6 @@ const RestaurantBookingRedirect = lazy(() => import("./pages/RestaurantBookingRe
 const AntiGaspi = lazy(() => import("./pages/AntiGaspi"));
 const Panier = lazy(() => import("./pages/Panier"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const SupportChat = lazy(() => import("./components/SupportChat"));
 const OrderConflictDialog = lazy(() => import("./components/OrderConflictDialog"));
 const AdminUrgentActions = lazy(() => import("./components/admin/AdminUrgentActions"));
 
@@ -466,8 +466,8 @@ function AppShell() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      <SupportChat />
       <Suspense fallback={null}>
-        <SupportChat />
         <OrderConflictDialog />
       </Suspense>
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}

@@ -1,4 +1,4 @@
-import type { KeyboardEvent, PointerEvent, RefObject, WheelEvent } from "react";
+import { useEffect, type KeyboardEvent, type PointerEvent, type RefObject, type WheelEvent } from "react";
 import { Grip, LayoutPanelTop, Move, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 
 import { FloorPlanItemIllustration } from "@/components/floor-plan/FloorPlanItemIllustration";
@@ -48,6 +48,7 @@ type StudioCanvasProps = {
   ) => void;
   onStartRotatingTable: (event: PointerEvent<HTMLElement>, tableId: string) => void;
   onUpdateCanvasZoom: (nextZoom: number) => void;
+  onCanvasViewportResize: (width: number, height: number) => void;
   onNudgeTable?: (tableId: string, deltaX: number, deltaY: number) => void;
   onDeleteTable?: (tableId: string) => void;
   getRenderedFrame: (table: StudioDraftTable) => StudioRenderedTableFrame;
@@ -71,6 +72,7 @@ export default function StudioCanvas({
   onStartResizingTable,
   onStartRotatingTable,
   onUpdateCanvasZoom,
+  onCanvasViewportResize,
   onNudgeTable,
   onDeleteTable,
   getRenderedFrame,
@@ -81,6 +83,44 @@ export default function StudioCanvas({
     Math.min(canvasWidth / BASE_CANVAS_WIDTH, canvasHeight / BASE_CANVAS_HEIGHT),
   );
   const getScaledCanvasToken = (value: number, minimum = 1) => `${Math.max(minimum, Math.round(value * canvasChromeScale))}px`;
+
+  useEffect(() => {
+    const viewport = canvasViewportRef.current;
+    if (!viewport) return undefined;
+
+    let frameId: number | null = null;
+    let lastWidth = 0;
+    let lastHeight = 0;
+
+    const notifySize = () => {
+      const width = viewport.clientWidth;
+      const height = viewport.clientHeight;
+      if (width <= 0 || height <= 0) return;
+      if (width === lastWidth && height === lastHeight) return;
+
+      lastWidth = width;
+      lastHeight = height;
+      onCanvasViewportResize(width, height);
+    };
+
+    const observeFrame = () => {
+      notifySize();
+      frameId = window.requestAnimationFrame(observeFrame);
+    };
+
+    observeFrame();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(notifySize) : null;
+    observer?.observe(viewport);
+    window.addEventListener("resize", notifySize);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      observer?.disconnect();
+      window.removeEventListener("resize", notifySize);
+    };
+  }, [canvasViewportRef, onCanvasViewportResize]);
 
   const recenterCanvas = () => {
     const viewport = canvasViewportRef.current;
@@ -145,7 +185,7 @@ export default function StudioCanvas({
   };
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <Card className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200/80 px-4 py-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>

@@ -65,6 +65,7 @@ describe("privileged admin AI chat", () => {
   it("routes admin-host chat to the privileged admin agent instead of the public support chat", () => {
     const helpChat = read("src/lib/helpChat.ts");
     const supportChat = read("src/components/SupportChat.tsx");
+    const app = read("src/App.tsx");
     const aiClient = read("src/lib/ai/tokAiClient.ts");
     const featureCatalog = read("src/lib/featureCatalog.ts");
     const migration = read("supabase/migrations/20260615095700_admin_dashboard_ai_chat_flag.sql");
@@ -78,7 +79,14 @@ describe("privileged admin AI chat", () => {
     expect(supportChat).toContain('activeFeatures.has("admin_dashboard_ai_chat")');
     expect(supportChat).toContain("isAdminPrivilegedSurface");
     expect(supportChat).toContain("askAdminDashboardChat({");
+    expect(supportChat).toContain('setChatSurface("admin")');
+    expect(supportChat).toContain('setSelectedAgent("admin_dashboard_ai")');
+    expect(supportChat).toContain("currentUrl");
+    expect(supportChat).toContain("Assistant IA Admin est indisponible");
     expect(supportChat).toContain("Assistant IA Admin");
     expect(supportChat).toContain("Acces administrateur principal");
+    expect(app).toContain('import SupportChat from "@/components/SupportChat"');
+    expect(app).not.toContain("const SupportChat = lazy");
+    expect(app).toContain("<SupportChat />\n      <Suspense fallback={null}>");
   });
 });

@@ -290,7 +290,7 @@ export default function ReservationQueue({
 
   if (collapsed) {
     return (
-      <Card className="flex min-h-[180px] flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+      <Card className="flex h-full min-h-[180px] flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
         <Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-panel-drag-handle title="Déplacer la file de service">
           <Grip className="h-4 w-4" />
         </Button>
@@ -308,7 +308,7 @@ export default function ReservationQueue({
   }
 
   return (
-    <Card className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <CardHeader className="space-y-3 border-b border-slate-200/80 px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div>

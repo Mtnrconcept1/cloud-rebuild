@@ -105,6 +105,14 @@ describe("admin production health", () => {
     expect(page).toContain("admin_get_security_abuse_summary");
     expect(page).toContain("Surveillance sécurité");
     expect(page).toContain("Tests de cartes");
+    expect(page).toContain("AdminDetailDialog");
+    expect(page).toContain("buildPaymentDetail");
+    expect(page).toContain("buildAuditDetail");
+    expect(page).toContain("Moment précis");
+    expect(page).toContain("Transaction");
+    expect(page).toContain("Compte déclencheur");
+    expect(page).toContain("Métadonnées complètes");
+    expect(page).toContain('role="button"');
     expect(page).not.toContain("refetchInterval");
   });
 });

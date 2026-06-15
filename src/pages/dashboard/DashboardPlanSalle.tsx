@@ -265,18 +265,9 @@ function getAutoFitCanvasSize(viewportWidth: number, viewportHeight: number) {
     };
   }
 
-  const canvasRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
-  let nextWidth = availableWidth;
-  let nextHeight = Math.round(nextWidth / canvasRatio);
-
-  if (nextHeight > availableHeight) {
-    nextHeight = availableHeight;
-    nextWidth = Math.round(nextHeight * canvasRatio);
-  }
-
   return {
-    width: Math.max(1, nextWidth),
-    height: Math.max(1, nextHeight),
+    width: Math.max(1, availableWidth),
+    height: Math.max(1, availableHeight),
   };
 }
 
@@ -375,7 +366,7 @@ function DockableFloorPlanPanel({
   };
 
   if (!detached) {
-    return <div className={cn("min-h-0", className)}>{children}</div>;
+    return <div className={cn("h-full min-h-0", className)}>{children}</div>;
   }
 
   return (
@@ -994,6 +985,11 @@ export default function DashboardPlanSalle() {
     setFloorPlanHistory(nextHistory);
     applyHistorySnapshot(nextHistory.present);
   };
+  const syncCanvasSizeFromViewport = useCallback((width: number, height: number) => {
+    const nextSize = getAutoFitCanvasSize(width, height);
+    setCanvasWidth((current) => (current === nextSize.width ? current : nextSize.width));
+    setCanvasHeight((current) => (current === nextSize.height ? current : nextSize.height));
+  }, []);
 
   useEffect(() => {
     draftTablesRef.current = draftTables;
@@ -1011,12 +1007,14 @@ export default function DashboardPlanSalle() {
     let observedViewport: HTMLDivElement | null = null;
     let observer: ResizeObserver | null = null;
     let frameId: number | null = null;
+    let lastViewportWidth = 0;
+    let lastViewportHeight = 0;
 
-    const updateSize = () => {
-      const viewport = canvasViewportRef.current;
+    const updateSize = (viewport = canvasViewportRef.current) => {
       if (!viewport) return;
-      const measuredCanvas = canvasRef.current || viewport;
-      const nextSize = getAutoFitCanvasSize(measuredCanvas.clientWidth, measuredCanvas.clientHeight);
+      lastViewportWidth = viewport.clientWidth;
+      lastViewportHeight = viewport.clientHeight;
+      const nextSize = getAutoFitCanvasSize(viewport.clientWidth, viewport.clientHeight);
       setCanvasWidth((current) => (current === nextSize.width ? current : nextSize.width));
       setCanvasHeight((current) => (current === nextSize.height ? current : nextSize.height));
     };
@@ -1026,12 +1024,17 @@ export default function DashboardPlanSalle() {
       if (viewport && viewport !== observedViewport) {
         observer?.disconnect();
         observedViewport = viewport;
-        updateSize();
+        updateSize(viewport);
 
         if (typeof ResizeObserver !== "undefined") {
-          observer = new ResizeObserver(() => updateSize());
+          observer = new ResizeObserver(() => updateSize(viewport));
           observer.observe(viewport);
         }
+      } else if (
+        viewport
+        && (viewport.clientWidth !== lastViewportWidth || viewport.clientHeight !== lastViewportHeight)
+      ) {
+        updateSize(viewport);
       }
 
       frameId = window.requestAnimationFrame(observeCurrentViewport);
@@ -2991,7 +2994,7 @@ export default function DashboardPlanSalle() {
 
   return (
     <DashboardLayout contentWidth="full" mainClassName="p-3 pb-24 md:p-4">
-      <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:overflow-hidden">
+      <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
         <div className="shrink-0">
           <div className="rounded-2xl border border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm">
             <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
@@ -3214,7 +3217,7 @@ export default function DashboardPlanSalle() {
         ) : null}
 
         {selectedBranch ? (
-          <div className="flex min-h-0 flex-1 flex-col gap-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 xl:overflow-hidden">
             <div className={cn(
               "grid shrink-0 gap-2 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-sm",
               isTemplateMode ? "md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_220px]" : "md:grid-cols-2 xl:grid-cols-7",
@@ -3364,14 +3367,14 @@ export default function DashboardPlanSalle() {
 
             {isTemplateMode ? (
               <div className={cn(
-                "grid min-h-0 flex-1 gap-3",
+                "grid min-h-0 flex-1 gap-3 xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden",
                 toolsPanelDetached
                   ? "xl:grid-cols-1"
                   : toolsPanelCollapsed
                     ? "xl:grid-cols-[minmax(0,1fr)_72px]"
                     : "xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_380px]",
               )}>
-                <div className="flex min-h-0 flex-1 flex-col gap-5">
+                <div className="flex min-h-0 flex-1 flex-col gap-5 xl:overflow-hidden">
                   <StudioCanvas
                     selectedSector={selectedSector}
                     canvasWidth={canvasWidth}
@@ -3390,6 +3393,7 @@ export default function DashboardPlanSalle() {
                     onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
                     onStartRotatingTable={startRotatingTable}
                     onUpdateCanvasZoom={updateCanvasZoom}
+                    onCanvasViewportResize={syncCanvasSizeFromViewport}
                     onNudgeTable={nudgeDraftTable}
                     onDeleteTable={removeDraftTable}
                     getRenderedFrame={getRenderedDraftTableFrame}
@@ -3419,7 +3423,7 @@ export default function DashboardPlanSalle() {
                     <Tabs
                       value={toolPanelTab}
                       onValueChange={(value) => setToolPanelTab(value as "library" | "inspector")}
-                      className="flex min-h-0 flex-col rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm"
+                      className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
@@ -3549,7 +3553,7 @@ export default function DashboardPlanSalle() {
               </div>
             ) : (
               <div className={cn(
-                "grid min-h-0 flex-1 gap-3",
+                "grid min-h-0 flex-1 gap-3 xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden",
                 serviceQueueDetached
                   ? "xl:grid-cols-1"
                   : serviceQueueCollapsed
@@ -3593,6 +3597,7 @@ export default function DashboardPlanSalle() {
                   onStartResizingTable={(event, tableId, handle) => startResizingTable(event, tableId, handle)}
                   onStartRotatingTable={startRotatingTable}
                   onUpdateCanvasZoom={updateCanvasZoom}
+                  onCanvasViewportResize={syncCanvasSizeFromViewport}
                   getReservationDropState={getReservationDropState}
                   getRenderedFrame={getRenderedDraftTableFrame}
                   getTableContentPadding={getTableContentPadding}

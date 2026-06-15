@@ -130,8 +130,8 @@ export default function ReservationDialog({
     setTime(initialTime || "19:00");
     setPartySize(initialPartySize || 2);
     setPromoChoiceTouched(false);
-    setStep(zeroWaitEnabled ? "mode" : "promo");
-  }, [open, initialDate, initialTime, initialPartySize, zeroWaitEnabled]);
+    setStep("datetime");
+  }, [open, initialDate, initialTime, initialPartySize]);
 
   useEffect(() => {
     if (!zeroWaitEnabled && reservationMode === "zero-attente") {
@@ -182,8 +182,8 @@ export default function ReservationDialog({
     }
     setTime((initialProgressiveOffer.service_time || "19:00").slice(0, 5));
     setPromoChoiceTouched(false);
-    setStep(zeroWaitEnabled ? "mode" : "promo");
-  }, [initialProgressiveOffer, open, zeroWaitEnabled]);
+    setStep("datetime");
+  }, [initialProgressiveOffer, open]);
 
   const { data: promos = [], isLoading: isPromosLoading } = useQuery({
     queryKey: ["reservation-promos", restaurantId, date ? format(date, "yyyy-MM-dd") : null, time, user?.id || null, progressiveOfferId || null],

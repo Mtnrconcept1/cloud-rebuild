@@ -19,6 +19,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -62,6 +69,14 @@ type AuditEntry = {
   targetType: string;
   targetId: string;
   summary: string;
+  actorUserId?: string | null;
+  actorRoles?: string[];
+  isServiceRole?: boolean;
+  requestMetadata?: unknown;
+  oldData?: unknown;
+  newData?: unknown;
+  ipAddress?: string | null;
+  raw?: unknown;
 };
 
 type ProductionHealthReport = {
@@ -116,6 +131,20 @@ type SecurityAbuseSection = {
   totalUploads?: number;
   auditedActions?: number;
   failedActions?: number;
+};
+
+type AdminDetailField = {
+  label: string;
+  value: unknown;
+};
+
+type AdminDetail = {
+  title: string;
+  subtitle?: string;
+  status?: string | null;
+  fields: AdminDetailField[];
+  raw?: unknown;
+  rawTitle?: string;
 };
 
 type SecurityAbuseReport = {
@@ -264,6 +293,248 @@ function getPaymentTarget(item: NonNullable<PaymentIntegrityReport["items"]>[num
   return item.order_number || item.order_id || item.payment_transaction_id || item.reservation_id || "-";
 }
 
+function isConcreteHealthStatus(value?: string | null): value is HealthStatus {
+  return value === "ok" || value === "watch" || value === "critical";
+}
+
+function formatExactDateTime(value?: string | null) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString("fr-CH", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function formatDetailValue(value: unknown) {
+  if (value === null || value === undefined || value === "") return "-";
+  if (Array.isArray(value)) return value.length > 0 ? value.map(formatDetailValue).join(", ") : "-";
+  if (typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "[objet non sérialisable]";
+    }
+  }
+  return String(value);
+}
+
+function formatJson(value: unknown) {
+  try {
+    return JSON.stringify(value ?? {}, null, 2);
+  } catch {
+    return "{}";
+  }
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function pickMetadataValue(metadata: unknown, keys: string[]) {
+  const record = asRecord(metadata);
+  for (const key of keys) {
+    const value = record[key];
+    if (value !== null && value !== undefined && value !== "") return value;
+  }
+  return null;
+}
+
+function getLogMetadata(log: AuditEntry) {
+  return {
+    ...asRecord(log.oldData),
+    ...asRecord(log.newData),
+    ...asRecord(log.requestMetadata),
+  };
+}
+
+function getLogTransactionReference(log: AuditEntry) {
+  const metadataValue = pickMetadataValue(getLogMetadata(log), [
+    "payment_transaction_id",
+    "transaction_id",
+    "stripe_payment_intent_id",
+    "payment_intent",
+    "charge_id",
+    "stripe_session_id",
+    "checkout_session_id",
+  ]);
+
+  if (metadataValue) return metadataValue;
+  return /payment|stripe|checkout|charge/i.test(`${log.targetType} ${log.action}`) ? log.targetId : null;
+}
+
+function getLogOrderReference(log: AuditEntry) {
+  const metadataValue = pickMetadataValue(getLogMetadata(log), ["order_id", "order_number", "commande_id"]);
+  if (metadataValue) return metadataValue;
+  return /order|commande/i.test(`${log.targetType} ${log.action}`) ? log.targetId : null;
+}
+
+function getLogReservationReference(log: AuditEntry) {
+  const metadataValue = pickMetadataValue(getLogMetadata(log), ["reservation_id", "booking_id"]);
+  if (metadataValue) return metadataValue;
+  return /reservation|booking/i.test(`${log.targetType} ${log.action}`) ? log.targetId : null;
+}
+
+function buildPaymentDetail(item: NonNullable<PaymentIntegrityReport["items"]>[number], index: number): AdminDetail {
+  return {
+    title: item.title || item.kind || `Anomalie paiement ${index + 1}`,
+    subtitle: "Intégrité paiements",
+    status: item.severity || "medium",
+    fields: [
+      { label: "Sévérité", value: item.severity || "medium" },
+      { label: "Type", value: item.kind || "anomalie" },
+      { label: "Transaction", value: item.payment_transaction_id },
+      { label: "Commande", value: item.order_number || item.order_id },
+      { label: "Réservation", value: item.reservation_id },
+      { label: "Restaurant", value: item.restaurant_id },
+      { label: "Statut commande", value: item.status },
+      { label: "Statut paiement", value: item.payment_status },
+      { label: "Résumé", value: item.title || "Anomalie à vérifier" },
+    ],
+    raw: item,
+    rawTitle: "Payload anomalie",
+  };
+}
+
+function buildAuditDetail(log: AuditEntry): AdminDetail {
+  const metadata = getLogMetadata(log);
+  const userLabel = pickMetadataValue(metadata, [
+    "actor_email",
+    "user_email",
+    "customer_email",
+    "email",
+    "full_name",
+    "user_name",
+    "customer_name",
+    "profile_name",
+  ]);
+  const restaurantLabel = pickMetadataValue(metadata, [
+    "restaurant_name",
+    "restaurant_id",
+  ]);
+  const courierLabel = pickMetadataValue(metadata, [
+    "courier_name",
+    "courier_email",
+    "courier_id",
+    "livreur_id",
+  ]);
+
+  return {
+    title: log.action,
+    subtitle: `${log.source === "edge" ? "Execution Edge" : "Historique data"} · ${CATEGORY_LABELS[log.category]}`,
+    status: log.status,
+    fields: [
+      { label: "Moment précis", value: formatExactDateTime(log.createdAt) },
+      { label: "Source technique", value: log.source === "edge" ? "Edge Function" : "Audit data" },
+      { label: "Fonction / table", value: log.functionName },
+      { label: "Statut", value: log.status },
+      { label: "Compte déclencheur", value: log.actorLabel },
+      { label: "ID utilisateur", value: log.actorUserId },
+      { label: "Rôles acteur", value: log.actorRoles },
+      { label: "Nom ou email utilisateur", value: userLabel },
+      { label: "Restaurant concerné", value: restaurantLabel },
+      { label: "Livreur concerné", value: courierLabel },
+      { label: "Transaction", value: getLogTransactionReference(log) },
+      { label: "Commande", value: getLogOrderReference(log) },
+      { label: "Réservation", value: getLogReservationReference(log) },
+      { label: "Cible technique", value: log.targetType },
+      { label: "ID cible", value: log.targetId },
+      { label: "IP", value: log.ipAddress || pickMetadataValue(log.requestMetadata, ["ip", "ip_address"]) },
+      { label: "Résumé", value: log.summary },
+    ],
+    raw: {
+      request_metadata: log.requestMetadata,
+      old_data: log.oldData,
+      new_data: log.newData,
+      raw: log.raw,
+    },
+    rawTitle: "Métadonnées complètes",
+  };
+}
+
+function buildHealthDetail(
+  title: string,
+  status: string | null | undefined,
+  fields: AdminDetailField[],
+  raw?: unknown,
+): AdminDetail {
+  return {
+    title,
+    subtitle: "Santé production",
+    status,
+    fields,
+    raw,
+    rawTitle: "Données de contrôle",
+  };
+}
+
+function DetailStatusBadge({ status }: { status?: string | null }) {
+  if (!status) return null;
+  if (isConcreteHealthStatus(status)) return <HealthBadge status={status} />;
+  return (
+    <Badge variant={status === "failure" || status === "critical" ? "destructive" : "outline"}>
+      {status}
+    </Badge>
+  );
+}
+
+function AdminDetailDialog({
+  detail,
+  onClose,
+}: {
+  detail: AdminDetail | null;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open={!!detail} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex flex-wrap items-center gap-2">
+            <span>{detail?.title || "Détail"}</span>
+            <DetailStatusBadge status={detail?.status} />
+          </DialogTitle>
+          <DialogDescription>
+            {detail?.subtitle || "Détail précis du signal admin sélectionné."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(detail?.fields || []).map((field) => (
+              <div key={field.label} className="rounded-lg border bg-muted/20 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  {field.label}
+                </p>
+                <p className="mt-1 break-words text-sm font-medium">
+                  {formatDetailValue(field.value)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {detail?.raw !== undefined ? (
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                {detail.rawTitle || "Payload complet"}
+              </p>
+              <pre className="mt-2 max-h-80 overflow-auto rounded-md bg-background p-3 text-xs leading-relaxed text-muted-foreground">
+                {formatJson(detail.raw)}
+              </pre>
+            </div>
+          ) : null}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AdminAuditLogs() {
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<AuditSource>("all");
@@ -276,6 +547,7 @@ export default function AdminAuditLogs() {
   const [functionFilter, setFunctionFilter] = useState("all");
   const [targetTypeFilter, setTargetTypeFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState<AuditSort>("newest");
+  const [selectedDetail, setSelectedDetail] = useState<AdminDetail | null>(null);
 
   const startIso = timeRange === "custom" ? toIsoFromLocalDateTime(customStart) : getTimeRangeStart(timeRange);
   const endIso = timeRange === "custom" ? toIsoFromLocalDateTime(customEnd) : null;
@@ -321,7 +593,7 @@ export default function AdminAuditLogs() {
         .limit(AUDIT_LOG_FETCH_LIMIT);
 
       let dataQuery = (supabase.from("audit_log" as any))
-        .select("id, user_id, action, entity_type, entity_id, created_at")
+        .select("id, user_id, action, entity_type, entity_id, ip_address, old_data, new_data, created_at")
         .order("created_at", { ascending: false })
         .limit(AUDIT_LOG_FETCH_LIMIT);
 
@@ -365,6 +637,11 @@ export default function AdminAuditLogs() {
           targetType,
           targetId,
           summary,
+          actorUserId: row.actor_user_id ?? null,
+          actorRoles: Array.isArray(row.actor_roles) ? row.actor_roles : [],
+          isServiceRole: Boolean(row.is_service_role),
+          requestMetadata: row.request_metadata,
+          raw: row,
         };
       });
 
@@ -386,6 +663,11 @@ export default function AdminAuditLogs() {
           targetType,
           targetId,
           summary,
+          actorUserId: row.user_id ?? null,
+          ipAddress: row.ip_address ?? null,
+          oldData: row.old_data,
+          newData: row.new_data,
+          raw: row,
         };
       });
 
@@ -446,30 +728,40 @@ export default function AdminAuditLogs() {
       value: formatNumber(securityAbuse?.massAccountCreation?.newAccounts),
       message: securityAbuse?.massAccountCreation?.message,
       status: securityAbuse?.massAccountCreation?.status,
+      metricLabel: "Nouveaux comptes",
+      raw: securityAbuse?.massAccountCreation,
     },
     {
       title: "Échecs sensibles",
       value: formatNumber(securityAbuse?.sensitiveEndpointFailures?.totalFailures),
       message: securityAbuse?.sensitiveEndpointFailures?.message,
       status: securityAbuse?.sensitiveEndpointFailures?.status,
+      metricLabel: "Échecs",
+      raw: securityAbuse?.sensitiveEndpointFailures,
     },
     {
       title: "Tests de cartes",
       value: formatNumber(securityAbuse?.cardTesting?.failedPaymentTransactions),
       message: securityAbuse?.cardTesting?.message,
       status: securityAbuse?.cardTesting?.status,
+      metricLabel: "Transactions échouées",
+      raw: securityAbuse?.cardTesting,
     },
     {
       title: "Uploads massifs",
       value: formatNumber(securityAbuse?.massUploads?.totalUploads),
       message: securityAbuse?.massUploads?.message,
       status: securityAbuse?.massUploads?.status,
+      metricLabel: "Uploads",
+      raw: securityAbuse?.massUploads,
     },
     {
       title: "Actions auditées",
       value: formatNumber(securityAbuse?.sensitiveActions?.auditedActions),
       message: securityAbuse?.sensitiveActions?.message,
       status: securityAbuse?.sensitiveActions?.status,
+      metricLabel: "Actions auditées",
+      raw: securityAbuse?.sensitiveActions,
     },
   ];
   const hasActiveFilters = search || sourceFilter !== "all" || statusFilter !== "all" || timeRange !== "24h" || categoryFilter !== "all" || actorFilter !== "all" || functionFilter !== "all" || targetTypeFilter !== "all" || sortOrder !== "newest" || customStart || customEnd;
@@ -541,12 +833,90 @@ export default function AdminAuditLogs() {
                 <div className="rounded-lg border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">Edge suivies</p><p className="mt-2 text-2xl font-bold">{formatNumber(productionHealth?.counts?.edgeFunctions)}</p></div>
               </div>
               <div className="grid gap-4 xl:grid-cols-3">
-                <div className="rounded-lg border p-4"><h3 className="flex items-center gap-2 font-semibold"><TimerReset className="h-4 w-4" />Cron jobs</h3><p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.cron?.jobs?.length)} jobs suivis.</p><HealthBadge status={productionHealth?.cron?.status} /></div>
-                <div className="rounded-lg border p-4"><h3 className="flex items-center gap-2 font-semibold"><TerminalSquare className="h-4 w-4" />Edge Functions critiques</h3><p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.edgeFunctions?.functions?.length)} fonctions suivies.</p><HealthBadge status={productionHealth?.edgeFunctions?.status} /></div>
-                <div className="rounded-lg border p-4"><h3 className="flex items-center gap-2 font-semibold"><CreditCard className="h-4 w-4" />Stripe webhook</h3><p className="mt-2 text-sm text-muted-foreground">{productionHealth?.stripe?.message || "Aucun signal Stripe disponible."}</p><HealthBadge status={productionHealth?.stripe?.status} /></div>
-                <div className="rounded-lg border p-4"><h3 className="font-semibold">Supabase advisors</h3><p className="mt-2 text-sm text-muted-foreground">{productionHealth?.advisors?.message || "Aucun snapshot synchronisé."}</p><HealthBadge status={productionHealth?.advisors?.status} /></div>
-                <div className="rounded-lg border p-4"><h3 className="flex items-center gap-2 font-semibold"><KeyRound className="h-4 w-4" />Variables critiques</h3><p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.configuration?.checks?.length)} contrôles configurés.</p><HealthBadge status={productionHealth?.configuration?.status} /></div>
-                <div className="rounded-lg border p-4"><h3 className="flex items-center gap-2 font-semibold"><CheckCircle2 className="h-4 w-4" />Alertes prioritaires</h3><p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.alerts?.length)} signalements actifs.</p></div>
+                <button
+                  type="button"
+                  className="rounded-lg border p-4 text-left transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  onClick={() => setSelectedDetail(buildHealthDetail("Cron jobs", productionHealth?.cron?.status, [
+                    { label: "Dernière vérification", value: formatExactDateTime(productionHealth?.checkedAt) },
+                    { label: "Jobs suivis", value: productionHealth?.cron?.jobs?.length },
+                    { label: "Statut", value: productionHealth?.cron?.status },
+                  ], productionHealth?.cron))}
+                >
+                  <h3 className="flex items-center gap-2 font-semibold"><TimerReset className="h-4 w-4" />Cron jobs</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.cron?.jobs?.length)} jobs suivis.</p>
+                  <HealthBadge status={productionHealth?.cron?.status} />
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border p-4 text-left transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  onClick={() => setSelectedDetail(buildHealthDetail("Edge Functions critiques", productionHealth?.edgeFunctions?.status, [
+                    { label: "Dernière vérification", value: formatExactDateTime(productionHealth?.checkedAt) },
+                    { label: "Fonctions suivies", value: productionHealth?.edgeFunctions?.functions?.length },
+                    { label: "Statut", value: productionHealth?.edgeFunctions?.status },
+                  ], productionHealth?.edgeFunctions))}
+                >
+                  <h3 className="flex items-center gap-2 font-semibold"><TerminalSquare className="h-4 w-4" />Edge Functions critiques</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.edgeFunctions?.functions?.length)} fonctions suivies.</p>
+                  <HealthBadge status={productionHealth?.edgeFunctions?.status} />
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border p-4 text-left transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  onClick={() => setSelectedDetail(buildHealthDetail("Stripe webhook", productionHealth?.stripe?.status, [
+                    { label: "Dernière vérification", value: formatExactDateTime(productionHealth?.checkedAt) },
+                    { label: "Succès 24h", value: productionHealth?.stripe?.success24h },
+                    { label: "Échecs 24h", value: productionHealth?.stripe?.failures24h },
+                    { label: "Ignorés 24h", value: productionHealth?.stripe?.ignored24h },
+                    { label: "Résumé", value: productionHealth?.stripe?.message },
+                  ], productionHealth?.stripe))}
+                >
+                  <h3 className="flex items-center gap-2 font-semibold"><CreditCard className="h-4 w-4" />Stripe webhook</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{productionHealth?.stripe?.message || "Aucun signal Stripe disponible."}</p>
+                  <HealthBadge status={productionHealth?.stripe?.status} />
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border p-4 text-left transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  onClick={() => setSelectedDetail(buildHealthDetail("Supabase advisors", productionHealth?.advisors?.status, [
+                    { label: "Dernière vérification", value: formatExactDateTime(productionHealth?.checkedAt) },
+                    { label: "Total", value: productionHealth?.advisors?.total },
+                    { label: "Critiques", value: productionHealth?.advisors?.critical },
+                    { label: "Warnings", value: productionHealth?.advisors?.warning },
+                    { label: "Sécurité", value: productionHealth?.advisors?.security },
+                    { label: "Performance", value: productionHealth?.advisors?.performance },
+                    { label: "Résumé", value: productionHealth?.advisors?.message },
+                  ], productionHealth?.advisors))}
+                >
+                  <h3 className="font-semibold">Supabase advisors</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{productionHealth?.advisors?.message || "Aucun snapshot synchronisé."}</p>
+                  <HealthBadge status={productionHealth?.advisors?.status} />
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border p-4 text-left transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  onClick={() => setSelectedDetail(buildHealthDetail("Variables critiques", productionHealth?.configuration?.status, [
+                    { label: "Dernière vérification", value: formatExactDateTime(productionHealth?.checkedAt) },
+                    { label: "Contrôles configurés", value: productionHealth?.configuration?.checks?.length },
+                    { label: "Statut", value: productionHealth?.configuration?.status },
+                  ], productionHealth?.configuration))}
+                >
+                  <h3 className="flex items-center gap-2 font-semibold"><KeyRound className="h-4 w-4" />Variables critiques</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.configuration?.checks?.length)} contrôles configurés.</p>
+                  <HealthBadge status={productionHealth?.configuration?.status} />
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border p-4 text-left transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  onClick={() => setSelectedDetail(buildHealthDetail("Alertes prioritaires", productionHealth?.status, [
+                    { label: "Dernière vérification", value: formatExactDateTime(productionHealth?.checkedAt) },
+                    { label: "Signalements actifs", value: productionHealth?.alerts?.length },
+                    { label: "Critiques", value: productionHealth?.counts?.critical },
+                    { label: "À surveiller", value: productionHealth?.counts?.watch },
+                  ], productionHealth?.alerts))}
+                >
+                  <h3 className="flex items-center gap-2 font-semibold"><CheckCircle2 className="h-4 w-4" />Alertes prioritaires</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{formatNumber(productionHealth?.alerts?.length)} signalements actifs.</p>
+                </button>
               </div>
             </div>
           )}
@@ -589,14 +959,32 @@ export default function AdminAuditLogs() {
           ) : (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               {securityAbuseSections.map((section) => (
-                <div key={section.title} className="rounded-lg border bg-muted/20 p-3">
+                <button
+                  key={section.title}
+                  type="button"
+                  className="rounded-lg border bg-muted/20 p-3 text-left transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  onClick={() => setSelectedDetail({
+                    title: section.title,
+                    subtitle: "Surveillance sécurité",
+                    status: section.status,
+                    fields: [
+                      { label: "Dernière vérification", value: formatExactDateTime(securityAbuse?.checkedAt) },
+                      { label: section.metricLabel, value: section.value },
+                      { label: "Fenêtre", value: `${securityAbuse?.windowHours || 24}h` },
+                      { label: "Statut", value: section.status },
+                      { label: "Résumé", value: section.message || "Aucun signal disponible." },
+                    ],
+                    raw: section.raw,
+                    rawTitle: "Signal sécurité",
+                  })}
+                >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-medium text-muted-foreground">{section.title}</p>
                     <HealthBadge status={section.status} />
                   </div>
                   <p className="mt-2 text-2xl font-bold">{section.value}</p>
                   <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{section.message || "Aucun signal disponible."}</p>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -635,7 +1023,19 @@ export default function AdminAuditLogs() {
                 <TableHeader><TableRow><TableHead>Sévérité</TableHead><TableHead>Type</TableHead><TableHead>Cible</TableHead><TableHead>Restaurant</TableHead><TableHead>Résumé</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {paymentAnomalies.slice(0, 12).map((item, index) => (
-                    <TableRow key={`${item.kind}-${getPaymentTarget(item)}-${index}`}>
+                    <TableRow
+                      key={`${item.kind}-${getPaymentTarget(item)}-${index}`}
+                      role="button"
+                      tabIndex={0}
+                      className="cursor-pointer transition hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                      onClick={() => setSelectedDetail(buildPaymentDetail(item, index))}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedDetail(buildPaymentDetail(item, index));
+                        }
+                      }}
+                    >
                       <TableCell data-label="Sévérité"><Badge variant={item.severity === "critical" ? "destructive" : "secondary"}>{item.severity || "medium"}</Badge></TableCell>
                       <TableCell data-label="Type" className="font-medium">{item.kind || "anomalie"}</TableCell>
                       <TableCell data-label="Cible" className="text-xs text-muted-foreground md:max-w-[14rem] md:truncate">{getPaymentTarget(item)}</TableCell>
@@ -705,7 +1105,19 @@ export default function AdminAuditLogs() {
                 </TableHeader>
                 <TableBody>
                   {filteredLogs.slice(0, 300).map((log, index) => (
-                    <TableRow key={`${log.source}-${log.id}-${index}`}>
+                    <TableRow
+                      key={`${log.source}-${log.id}-${index}`}
+                      role="button"
+                      tabIndex={0}
+                      className="cursor-pointer transition hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                      onClick={() => setSelectedDetail(buildAuditDetail(log))}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedDetail(buildAuditDetail(log));
+                        }
+                      }}
+                    >
                       <TableCell data-label="Quand" className="text-xs text-muted-foreground md:whitespace-nowrap">{formatDateTime(log.createdAt)}</TableCell>
                       <TableCell data-label="Source"><Badge variant={log.source === "edge" ? "default" : "outline"}>{log.source === "edge" ? "Edge" : "Data"}</Badge></TableCell>
                       <TableCell data-label="Type"><Badge variant="outline">{CATEGORY_LABELS[log.category]}</Badge></TableCell>
@@ -726,6 +1138,7 @@ export default function AdminAuditLogs() {
           </CardContent>
         </Card>
       )}
+      <AdminDetailDialog detail={selectedDetail} onClose={() => setSelectedDetail(null)} />
     </div>
   );
 }
