@@ -20,7 +20,12 @@ import { getServiceSettings } from "@/lib/serviceSettings";
 
 const supabase = getSupabase();
 
-interface ReservationWidgetProps { restaurantId: string; restaurantName: string; onReserve: (date: Date, time: string, partySize: number) => void; }
+interface ReservationWidgetProps {
+  restaurantId: string;
+  restaurantName: string;
+  onReserve: (date: Date, time: string, partySize: number) => void;
+  onSelectionChange?: (selection: { date: Date; time: string; partySize: number } | null) => void;
+}
 
 const FALLBACK_PARTY_SIZES = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -40,7 +45,7 @@ type SlotAvailabilityRow = {
   available: boolean;
 };
 
-export default function ReservationWidget({ restaurantId, restaurantName, onReserve }: ReservationWidgetProps) {
+export default function ReservationWidget({ restaurantId, restaurantName, onReserve, onSelectionChange }: ReservationWidgetProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [date, setDate] = useState<Date>();
@@ -120,6 +125,15 @@ export default function ReservationWidget({ restaurantId, restaurantName, onRese
     if (!date || selectedSlot?.available || !availableSlots[0]) return;
     setTime(availableSlots[0].time);
   }, [availableSlots, date, selectedSlot?.available]);
+
+  useEffect(() => {
+    if (!onSelectionChange) return;
+    if (!date) {
+      onSelectionChange(null);
+      return;
+    }
+    onSelectionChange({ date, time, partySize: Number(partySize) });
+  }, [date, onSelectionChange, partySize, time]);
 
   const PARTY_SIZES = useMemo(() => {
     if (!serviceSettingsData) return FALLBACK_PARTY_SIZES;

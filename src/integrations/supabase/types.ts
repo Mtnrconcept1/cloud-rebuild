@@ -3690,6 +3690,7 @@ export type Database = {
           city: string | null
           created_at: string
           current_tier: Database["public"]["Enums"]["loyalty_tier"] | null
+          date_of_birth: string | null
           full_name: string | null
           id: string
           loyalty_points: number | null
@@ -3703,6 +3704,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           current_tier?: Database["public"]["Enums"]["loyalty_tier"] | null
+          date_of_birth?: string | null
           full_name?: string | null
           id?: string
           loyalty_points?: number | null
@@ -3716,6 +3718,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           current_tier?: Database["public"]["Enums"]["loyalty_tier"] | null
+          date_of_birth?: string | null
           full_name?: string | null
           id?: string
           loyalty_points?: number | null

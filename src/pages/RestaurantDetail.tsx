@@ -1,5 +1,6 @@
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -12,13 +13,12 @@ import ReservationDialog from "@/components/ReservationDialog";
 import ReservationWidget from "@/components/ReservationWidget";
 import PriceRangeIcons from "@/components/PriceRangeIcons";
 import AntiWasteCard from "@/components/AntiWasteCard";
-import { useState, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/lib/cart-context";
 import { trackGoogleBookingEvent } from "@/hooks/useGoogleBusinessBooking";
 import { trackEvent, trackImpression } from "@/lib/analytics";
 import { useActiveFeatures } from "@/lib/featureFlags";
-import { useRef } from "react";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import {
@@ -31,6 +31,8 @@ import {
   getNextProgressiveDiscount,
   getProgressiveOfferProgressPercent,
   getProgressiveOfferRemainingTables,
+  getProgressiveOfferServiceLabel,
+  isProgressiveOfferAvailableForSlot,
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import { useTokLogoSrc } from "@/hooks/useTokLogo";
@@ -43,6 +45,8 @@ const RESTAURANT_MENU_ITEMS_LIMIT = 120;
 const RESTAURANT_REVIEWS_LIMIT = 50;
 const RESTAURANT_FORMULAS_LIMIT = 24;
 const RESTAURANT_SPECIAL_OFFERS_LIMIT = 12;
+const RESERVATION_SIDEBAR_PREFERRED_STICKY_TOP = 96;
+const RESERVATION_SIDEBAR_BOTTOM_GAP = 16;
 
 type RestaurantGalleryPhoto = {
   id: string;
@@ -160,11 +164,14 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [reservationDefaults, setReservationDefaults] = useState<{ date?: Date; time?: string; partySize?: number; }>({});
-  const [reservationProgressiveOfferId, setReservationProgressiveOfferId] = useState<string | null>(null);
+  const [reservationProgressiveOfferId, setReservationProgressiveOfferId] = useState<string | null | undefined>(undefined);
+  const [reservationWidgetSelection, setReservationWidgetSelection] = useState<{ date: Date; time: string; partySize: number } | null>(null);
   const [activeTab, setActiveTab] = useState("menu");
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [reservationSidebarTop, setReservationSidebarTop] = useState(RESERVATION_SIDEBAR_PREFERRED_STICKY_TOP);
   const impressionTracked = useRef(false);
   const googleBookingStartTrackedRef = useRef(false);
+  const reservationSidebarRef = useRef<HTMLDivElement>(null);
   const deliveryEnabled = activeFeatures.has("livraison");
   const takeawayEnabled = activeFeatures.has("emporter");
   const reservationEnabled = activeFeatures.has("reservation");
@@ -338,10 +345,22 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     () => (antiWasteOffers || []).filter((offer: any) => isAntiWasteOfferPubliclyVisible(offer)),
     [antiWasteOffers],
   );
+  const activeReservationProgressiveOfferId = reservationProgressiveOfferId === undefined
+    ? progressiveOfferId
+    : reservationProgressiveOfferId;
   const selectedProgressiveOffer = useMemo(
-    () => progressiveOffers.find((offer) => offer.id === (reservationProgressiveOfferId || progressiveOfferId)) || null,
-    [progressiveOfferId, progressiveOffers, reservationProgressiveOfferId],
+    () => progressiveOffers.find((offer) => offer.id === activeReservationProgressiveOfferId) || null,
+    [activeReservationProgressiveOfferId, progressiveOffers],
   );
+  const visibleProgressiveOffers = useMemo(() => {
+    const bookableOffers = progressiveOffers.filter((offer) => getProgressiveOfferRemainingTables(offer) > 0);
+    if (!reservationWidgetSelection?.date) return bookableOffers;
+
+    const selectedDate = format(reservationWidgetSelection.date, "yyyy-MM-dd");
+    return bookableOffers.filter((offer) => (
+      isProgressiveOfferAvailableForSlot(offer, selectedDate, reservationWidgetSelection.time)
+    ));
+  }, [progressiveOffers, reservationWidgetSelection]);
 
   const reservationAvailable = reservationEnabled && !!restaurant?.supports_reservation;
   const takeawayAvailable = takeawayEnabled && !!restaurant?.supports_pickup;
@@ -393,6 +412,40 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
   });
 
   useEffect(() => {
+    const element = reservationSidebarRef.current;
+    if (!element) return;
+
+    let frameId = 0;
+
+    const updateStickyTop = () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+
+      frameId = window.requestAnimationFrame(() => {
+        const sidebarHeight = element.scrollHeight;
+        const viewportHeight = window.innerHeight;
+        const bottomAlignedTop = viewportHeight - sidebarHeight - RESERVATION_SIDEBAR_BOTTOM_GAP;
+        const nextTop = Math.min(RESERVATION_SIDEBAR_PREFERRED_STICKY_TOP, bottomAlignedTop);
+
+        setReservationSidebarTop((currentTop) => (Math.abs(currentTop - nextTop) < 1 ? currentTop : nextTop));
+      });
+    };
+
+    updateStickyTop();
+    window.addEventListener("resize", updateStickyTop);
+    window.addEventListener("load", updateStickyTop);
+
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateStickyTop) : null;
+    observer?.observe(element);
+
+    return () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", updateStickyTop);
+      window.removeEventListener("load", updateStickyTop);
+      observer?.disconnect();
+    };
+  }, [cartItemsForCurrentRestaurant.length, restaurantId, reservationAvailable]);
+
+  useEffect(() => {
     if (!reservationAvailable && reservationOpen) {
       setReservationOpen(false);
       setShowReserveChoice(false);
@@ -412,6 +465,22 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     }
   }, [orderMode, restaurant, setOrderMode, showDelivery, takeawayAvailable]);
 
+  const handleWidgetSelectionChange = useCallback((selection: { date: Date; time: string; partySize: number } | null) => {
+    setReservationWidgetSelection((current) => {
+      if (!selection) return current === null ? current : null;
+      const selectionDateTime = selection.date.getTime();
+      if (
+        current
+        && current.date.getTime() === selectionDateTime
+        && current.time === selection.time
+        && current.partySize === selection.partySize
+      ) {
+        return current;
+      }
+      return selection;
+    });
+  }, []);
+
   if (!restaurant) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
   const galleryPhotos = mediaPhotos && mediaPhotos.length > 0 ? mediaPhotos : [];
@@ -420,6 +489,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
   const handleWidgetReserve = (date: Date, time: string, partySize: number) => {
     setReservationDefaults({ date, time, partySize });
+    setReservationProgressiveOfferId(null);
     setReservationOpen(true);
   };
 
@@ -467,6 +537,10 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
     const coverIndex = coverPhoto ? galleryPhotos.findIndex((photo) => photo.id === coverPhoto.id) : 0;
     openGalleryAtIndex(coverIndex >= 0 ? coverIndex : 0);
   };
+
+  const reservationSidebarStyle = {
+    "--reservation-sidebar-sticky-top": `${reservationSidebarTop}px`,
+  } as CSSProperties;
 
   return (
     <main className="min-h-screen bg-background">
@@ -725,7 +799,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                 )}
               </TabsContent>
               <TabsContent value="menu" className="space-y-6 mt-0">
-                {progressiveOffers.length > 0 && (
+                {visibleProgressiveOffers.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <Timer className="h-5 w-5 text-orange-500" />
@@ -735,7 +809,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                       </Badge>
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {progressiveOffers.map((offer) => {
+                      {visibleProgressiveOffers.map((offer) => {
                         const nextDiscount = getNextProgressiveDiscount(offer);
                         const remainingTables = getProgressiveOfferRemainingTables(offer);
                         const isSelectedOffer = selectedProgressiveOffer?.id === offer.id;
@@ -746,7 +820,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
                               <div>
                                 <h3 className="font-bold text-lg">{offer.title}</h3>
                                 <p className="text-sm text-muted-foreground">
-                                  {formatProgressiveServiceDate(offer.service_date)} a {(offer.service_time || "19:00").slice(0, 5)}
+                                  {formatProgressiveServiceDate(offer.service_date)} - service {getProgressiveOfferServiceLabel(offer)}
                                 </p>
                               </div>
                               <Badge className="bg-orange-500 text-white">jusqu'a -{Number(offer.max_discount_percent).toFixed(0)}%</Badge>
@@ -984,9 +1058,18 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
             </Tabs>
           </div>
           <div className="w-full lg:w-80 shrink-0">
-            <div className="sticky top-24 space-y-4">
+            <div
+              ref={reservationSidebarRef}
+              className="space-y-4 lg:sticky lg:top-[var(--reservation-sidebar-sticky-top)]"
+              style={reservationSidebarStyle}
+            >
               {reservationAvailable ? (
-                <ReservationWidget restaurantId={restaurantId!} restaurantName={restaurant.name} onReserve={handleWidgetReserve} />
+                <ReservationWidget
+                  restaurantId={restaurantId!}
+                  restaurantName={restaurant.name}
+                  onReserve={handleWidgetReserve}
+                  onSelectionChange={handleWidgetSelectionChange}
+                />
               ) : (
                 <div className="rounded-2xl border border-dashed bg-card p-4 text-sm text-muted-foreground">
                   Les réservations sont actuellement indisponibles pour ce restaurant.
@@ -1013,7 +1096,7 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
           initialDate={reservationDefaults?.date}
           initialTime={reservationDefaults?.time}
           initialPartySize={reservationDefaults?.partySize}
-          progressiveOfferId={reservationProgressiveOfferId || progressiveOfferId}
+          progressiveOfferId={activeReservationProgressiveOfferId}
         />
       ) : null}
 

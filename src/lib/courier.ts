@@ -242,6 +242,7 @@ export async function saveCourierProfile(payload: {
   first_name: string;
   last_name: string;
   phone: string;
+  date_of_birth: string;
   vehicle_type: string;
   license_plate: string;
   iban: string;

@@ -40,6 +40,18 @@ import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 
 const supabase = getSupabase();
 
+function splitFullName(value: string) {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  const firstName = parts.shift() || null;
+  const lastName = parts.length > 0 ? parts.join(" ") : null;
+  return { firstName, lastName };
+}
+
+function isFutureDate(value: string) {
+  const parsed = new Date(`${value}T00:00:00`);
+  return Number.isFinite(parsed.getTime()) && parsed > new Date();
+}
+
 type FavoriteRestaurant = {
   id: string;
   name: string;
@@ -98,6 +110,7 @@ export default function Profil() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const { data: signupApplication } = useSignupApplication("client");
   const { data: tokOneSub } = useTokOneSubscription();
   const { data: tokOnePlans } = useTokOnePlans();
@@ -112,6 +125,20 @@ export default function Profil() {
     enabled: !!user,
   });
 
+  const { data: accountProfile } = useQuery({
+    queryKey: ["user-profile", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("date_of_birth")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || "");
@@ -119,22 +146,58 @@ export default function Profil() {
       setAddress(profile.address || "");
       setCity(profile.city || "");
       setAvatarUrl(profile.avatar_url || "");
+      setBirthDate(profile.date_of_birth || accountProfile?.date_of_birth || "");
+    } else if (accountProfile?.date_of_birth) {
+      setBirthDate(accountProfile.date_of_birth);
     }
-  }, [profile]);
+  }, [profile, accountProfile?.date_of_birth]);
 
   const handleSave = async () => {
     if (!user) return;
+    const normalizedBirthDate = birthDate.trim() || null;
+    if (normalizedBirthDate && isFutureDate(normalizedBirthDate)) {
+      toast({
+        title: "Date invalide",
+        description: "La date de naissance ne peut pas être dans le futur.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { firstName, lastName } = splitFullName(fullName);
+
     setLoading(true);
-    const { error } = await supabase
+    const { error: profileError } = await supabase
       .from("profiles")
-      .update({ full_name: fullName, phone, address, city, avatar_url: avatarUrl })
-      .eq("user_id", user.id);
+      .upsert({
+        user_id: user.id,
+        full_name: fullName,
+        phone,
+        address,
+        city,
+        avatar_url: avatarUrl,
+        date_of_birth: normalizedBirthDate,
+      }, { onConflict: "user_id" });
+    const { error: accountProfileError } = profileError
+      ? { error: null }
+      : await supabase
+        .from("user_profiles")
+        .upsert({
+          user_id: user.id,
+          first_name: firstName,
+          last_name: lastName,
+          phone_number: phone,
+          avatar_url: avatarUrl,
+          date_of_birth: normalizedBirthDate,
+        }, { onConflict: "user_id" });
+    const error = profileError || accountProfileError;
     setLoading(false);
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Profil mis à jour !" });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["user-profile", user.id] });
     }
   };
 
@@ -288,10 +351,23 @@ export default function Profil() {
                 <Label>Email</Label>
                 <Input value={user?.email || ""} disabled />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label>Téléphone</Label>
                   <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="birth_date">Date de naissance</Label>
+                  <Input
+                    id="birth_date"
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    max={new Date().toISOString().slice(0, 10)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Active les attentions Miamz anniversaire.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>Ville</Label>

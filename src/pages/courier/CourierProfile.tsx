@@ -95,6 +95,7 @@ export default function CourierProfile() {
     first_name: "",
     last_name: "",
     phone: "",
+    date_of_birth: "",
     vehicle_type: "bicycle",
     license_plate: "",
     iban: "",
@@ -114,6 +115,7 @@ export default function CourierProfile() {
       first_name: profile.first_name || "",
       last_name: profile.last_name || "",
       phone: profile.phone || "",
+      date_of_birth: profile.date_of_birth || "",
       vehicle_type: profile.vehicle_type || "bicycle",
       license_plate: profile.license_plate || "",
       iban: profile.iban || "",
@@ -226,6 +228,19 @@ export default function CourierProfile() {
                   value={form.first_name}
                   onChange={(event) => setForm((prev) => ({ ...prev, first_name: event.target.value }))}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="date_of_birth">Date de naissance</Label>
+                <Input
+                  id="date_of_birth"
+                  type="date"
+                  value={form.date_of_birth}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(event) => setForm((prev) => ({ ...prev, date_of_birth: event.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Active les attentions Miamz anniversaire dans vos notifications.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="last_name">Nom</Label>

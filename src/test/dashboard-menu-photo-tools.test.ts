@@ -10,8 +10,8 @@ describe("dashboard menu photo tools", () => {
   const dashboardMenu = read("src/pages/dashboard/DashboardMenu.tsx");
   const imageUpload = read("src/components/ImageUpload.tsx");
 
-  it("keeps manual URL input available by default but hides it in the dish modal", () => {
-    expect(imageUpload).toContain("showUrlInput = true");
+  it("hides manual URL input by default and keeps it hidden in the dish modal", () => {
+    expect(imageUpload).toContain("showUrlInput = false");
     expect(dashboardMenu).toContain("showUrlInput={false}");
     expect(dashboardMenu).not.toContain("placeholder=\"Ou collez l'URL HTTPS");
   });

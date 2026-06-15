@@ -27,6 +27,7 @@ import {
   getNextProgressiveDiscount,
   getProgressiveOfferProgressPercent,
   getProgressiveOfferRemainingTables,
+  getProgressiveOfferServiceLabel,
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
@@ -532,7 +533,7 @@ export default function Index() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="truncate font-semibold">{restaurant?.name || "Restaurant TOK"}</p>
-                            <p className="text-xs text-muted-foreground">{formatProgressiveServiceDate(offer.service_date)} · {(offer.service_time || "19:00").slice(0, 5)}</p>
+                            <p className="text-xs text-muted-foreground">{formatProgressiveServiceDate(offer.service_date)} · service {getProgressiveOfferServiceLabel(offer)}</p>
                           </div>
                           <Badge className="bg-orange-500 text-white">-{nextDiscount}%</Badge>
                         </div>

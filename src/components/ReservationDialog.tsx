@@ -26,7 +26,9 @@ import {
   formatProgressiveCountdown,
   formatProgressiveServiceDate,
   getNextProgressiveDiscount,
+  getProgressiveOfferServiceLabel,
   getProgressiveOfferRemainingTables,
+  isProgressiveOfferAvailableForSlot,
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import {
@@ -117,6 +119,7 @@ export default function ReservationDialog({
   const [partySize, setPartySize] = useState(2);
   const [notes, setNotes] = useState("");
   const [selectedPromo, setSelectedPromo] = useState<PromoOffer | null>(null);
+  const [promoChoiceTouched, setPromoChoiceTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [donatePoints, setDonatePoints] = useState(false);
   const [reservationMode, setReservationMode] = useState<ReservationMode>("classique");
@@ -126,6 +129,7 @@ export default function ReservationDialog({
     setDate(initialDate);
     setTime(initialTime || "19:00");
     setPartySize(initialPartySize || 2);
+    setPromoChoiceTouched(false);
     setStep(zeroWaitEnabled ? "mode" : "promo");
   }, [open, initialDate, initialTime, initialPartySize, zeroWaitEnabled]);
 
@@ -161,6 +165,8 @@ export default function ReservationDialog({
         .select("*")
         .eq("id", progressiveOfferId)
         .eq("restaurant_id", restaurantId)
+        .eq("status", "active")
+        .gt("booking_cutoff_at", new Date().toISOString())
         .maybeSingle();
       if (error) throw error;
       return data as ProgressiveReservationOffer | null;
@@ -175,6 +181,7 @@ export default function ReservationDialog({
       setDate(serviceDate);
     }
     setTime((initialProgressiveOffer.service_time || "19:00").slice(0, 5));
+    setPromoChoiceTouched(false);
     setStep(zeroWaitEnabled ? "mode" : "promo");
   }, [initialProgressiveOffer, open, zeroWaitEnabled]);
 
@@ -226,7 +233,8 @@ export default function ReservationDialog({
 
         const { data: progressiveData, error: progressiveError } = await progressiveQuery;
         if (progressiveError) throw progressiveError;
-        progressiveRows = (progressiveData || []) as ProgressiveReservationOffer[];
+        progressiveRows = ((progressiveData || []) as ProgressiveReservationOffer[])
+          .filter((offer) => isProgressiveOfferAvailableForSlot(offer, reservationDate, time));
       }
 
       const formulaPromos = ((data || []) as MealFormulaRow[])
@@ -261,7 +269,7 @@ export default function ReservationDialog({
             id: `progressive-${offer.id}`,
             kind: "progressive" as const,
             label: offer.title,
-            description: `${formatProgressiveServiceDate(offer.service_date)} - ${getProgressiveOfferRemainingTables(offer)} table(s) restante(s), fin dans ${formatProgressiveCountdown(offer.countdown_ends_at)}.`,
+            description: `${formatProgressiveServiceDate(offer.service_date)} - service ${getProgressiveOfferServiceLabel(offer)} - ${getProgressiveOfferRemainingTables(offer)} table(s) restante(s), fin dans ${formatProgressiveCountdown(offer.countdown_ends_at)}.`,
             discountLabel: `jusqu'a -${Number(offer.max_discount_percent || 0).toFixed(0)}%`,
             discountPercent: nextDiscount,
             formulaName: offer.title,
@@ -355,12 +363,12 @@ export default function ReservationDialog({
   }, [promos, selectedPromo]);
 
   useEffect(() => {
-    if (!progressiveOfferId || selectedPromo) return;
+    if (!progressiveOfferId || selectedPromo || promoChoiceTouched) return;
     const progressivePromo = promos.find((promo) => promo.kind === "progressive" && promo.progressiveOfferId === progressiveOfferId);
     if (progressivePromo) {
       setSelectedPromo(progressivePromo);
     }
-  }, [progressiveOfferId, promos, selectedPromo]);
+  }, [progressiveOfferId, promoChoiceTouched, promos, selectedPromo]);
 
   const handleSubmit = async () => {
     if (!user || !date) return;
@@ -513,6 +521,7 @@ export default function ReservationDialog({
     setPartySize(2);
     setNotes("");
     setSelectedPromo(null);
+    setPromoChoiceTouched(false);
     setDonatePoints(false);
     setReservationMode("classique");
   };
@@ -729,7 +738,10 @@ export default function ReservationDialog({
             {step === "promo" && (
               <>
                 <button
-                  onClick={() => setSelectedPromo(null)}
+                  onClick={() => {
+                    setSelectedPromo(null);
+                    setPromoChoiceTouched(true);
+                  }}
                   className={`w-full rounded-xl border-2 p-4 text-left ${selectedPromo === null ? "border-primary bg-primary/5" : "border-border"}`}
                 >
                   <div className="flex items-center gap-3">
@@ -757,7 +769,10 @@ export default function ReservationDialog({
                     return (
                       <button
                         key={promo.id}
-                        onClick={() => setSelectedPromo(promo)}
+                        onClick={() => {
+                          setSelectedPromo(promo);
+                          setPromoChoiceTouched(true);
+                        }}
                         className={`w-full rounded-xl border-2 p-4 text-left ${selectedPromo?.id === promo.id ? selectedClass : "border-border"}`}
                       >
                         <div className="flex items-start gap-3">

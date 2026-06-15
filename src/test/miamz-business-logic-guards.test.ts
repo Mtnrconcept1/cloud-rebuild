@@ -14,6 +14,10 @@ const loyaltyStatusSource = readFileSync(resolve(root, "src/components/LoyaltySt
 const reservationQueueSource = readFileSync(resolve(root, "src/components/floor-plan/ReservationQueue.tsx"), "utf8");
 const refundMutationsSource = readFileSync(resolve(root, "src/lib/refundMutations.ts"), "utf8");
 const adminOpsSource = readFileSync(resolve(root, "src/pages/admin/AdminOrdersReservations.tsx"), "utf8");
+const profileSource = readFileSync(resolve(root, "src/pages/Profil.tsx"), "utf8");
+const courierProfileSource = readFileSync(resolve(root, "src/pages/courier/CourierProfile.tsx"), "utf8");
+const courierPortalSource = readFileSync(resolve(root, "supabase/functions/courier-portal/index.ts"), "utf8");
+const imageUploadSource = readFileSync(resolve(root, "src/components/ImageUpload.tsx"), "utf8");
 
 describe("Miamz business logic guards", () => {
   it("defines server-side Miamz entitlement effects with restricted execution", () => {
@@ -68,5 +72,21 @@ describe("Miamz business logic guards", () => {
     expect(reservationQueueSource).toContain("Priorite Miamz");
     expect(refundMutationsSource).toContain("miamz_priority_score");
     expect(adminOpsSource).toContain("getRefundMiamzPriorityLabel");
+  });
+
+  it("collects birth dates and sends automatic birthday notifications", () => {
+    expect(profileSource).toContain("date_of_birth");
+    expect(profileSource).toContain("Date de naissance");
+    expect(profileSource).toContain('from("user_profiles")');
+    expect(courierProfileSource).toContain("date_of_birth");
+    expect(courierPortalSource).toContain("normalizeDateOfBirth");
+    expect(courierPortalSource).toContain('from("user_profiles")');
+    expect(migrationsSource).toContain("enqueue_birthday_notifications");
+    expect(migrationsSource).toContain("idx_notifications_birthday_once_year");
+    expect(migrationsSource).toContain("tok-birthday-notifications");
+  });
+
+  it("keeps manual image URLs hidden by default outside privileged flows", () => {
+    expect(imageUploadSource).toContain("showUrlInput = false");
   });
 });

@@ -20,6 +20,8 @@ import {
   getNextProgressiveDiscount,
   getProgressiveOfferProgressPercent,
   getProgressiveOfferRemainingTables,
+  getProgressiveOfferServiceLabel,
+  getProgressiveOfferServicePeriod,
   type ProgressiveReservationOffer,
 } from "@/lib/progressiveReservationOffers";
 import { cn } from "@/lib/utils";
@@ -220,6 +222,10 @@ function toDateTimeLocalValue(date: Date) {
   return `${toDateInputValue(date)}T${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
 }
 
+function getProgressiveServiceDefaultTime(period: ServicePeriod) {
+  return DEFAULT_SERVICE_SETTINGS[period].start_time;
+}
+
 function buildDefaultProgressiveOfferForm() {
   const now = new Date();
   const serviceDate = new Date(now);
@@ -397,6 +403,7 @@ function ProgressiveOfferManager({
   };
   const currentDiscount = getCurrentProgressiveDiscount(previewOffer);
   const nextDiscount = getNextProgressiveDiscount(previewOffer);
+  const selectedProgressiveService = getProgressiveOfferServicePeriod({ service_time: form.serviceTime });
 
   return (
     <Card className="border-orange-200 bg-orange-50/70 shadow-sm dark:bg-orange-950/10">
@@ -413,7 +420,7 @@ function ProgressiveOfferManager({
                 {loading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
               </div>
               <p className="max-w-3xl text-sm text-muted-foreground">
-                Le client reserve avant l'heure limite. Plus il y a de reservations, plus la remise finale augmente pour tous les clients participants.
+                Le client reserve avant l'heure limite. Plus il y a de reservations sur le service choisi, plus la remise finale augmente pour tous les clients participants.
               </p>
             </div>
           </div>
@@ -440,7 +447,7 @@ function ProgressiveOfferManager({
                 <Badge className="bg-orange-500 text-white">
                   {formatProgressiveServiceDate(currentOffer.service_date)}
                 </Badge>
-                <Badge variant="outline">{(currentOffer.service_time || "19:00").slice(0, 5)}</Badge>
+                <Badge variant="outline">Service {getProgressiveOfferServiceLabel(currentOffer)}</Badge>
                 <Badge variant="outline">
                   {currentOffer.current_reservations_count}/{currentOffer.max_tables} table(s)
                 </Badge>
@@ -497,8 +504,26 @@ function ProgressiveOfferManager({
               <Input type="date" value={form.serviceDate} onChange={(event) => setForm((current) => ({ ...current, serviceDate: event.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label>Heure de reservation</Label>
-              <Input type="time" value={form.serviceTime} onChange={(event) => setForm((current) => ({ ...current, serviceTime: event.target.value }))} />
+              <Label>Service cible</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {SERVICE_PERIODS.map(({ key }) => {
+                  const isSelected = selectedProgressiveService === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setForm((current) => ({ ...current, serviceTime: getProgressiveServiceDefaultTime(key) }))}
+                      className={cn(
+                        "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
+                        isSelected ? "border-orange-500 bg-orange-500/10 text-orange-700" : "border-border bg-background hover:border-orange-300",
+                      )}
+                    >
+                      <span className="block font-semibold">{getServicePeriodLabel(key)}</span>
+                      <span className="text-[11px] text-muted-foreground">Tous les creneaux du service</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label>Fin du compte a rebours</Label>

@@ -128,7 +128,7 @@ export default function DashboardPhotos() {
   const save = async (event: FormEvent) => {
     event.preventDefault();
     if (!selectedId || !form.media_url.trim()) {
-      return toast({ title: "Validation", description: "L'URL de l'image est requise.", variant: "destructive" });
+      return toast({ title: "Validation", description: "La photo est requise.", variant: "destructive" });
     }
     const payload = {
       restaurant_id: selectedId,

@@ -24,7 +24,7 @@ function latestMigrationContaining(needle: string) {
 
 describe("progressive reservation offers", () => {
   it("stores progressive booking offers and enforces the discount lifecycle in Supabase", () => {
-    const migration = latestMigrationContaining("reservation_progressive_offers");
+    const migration = latestMigrationContaining("CREATE TABLE IF NOT EXISTS public.reservation_progressive_offers");
 
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.reservation_progressive_offers");
     expect(migration).toContain("max_tables");
@@ -45,6 +45,17 @@ describe("progressive reservation offers", () => {
     expect(migration).toContain("CREATE OR REPLACE TRIGGER reservations_progressive_offer_recount");
   });
 
+  it("scopes progressive offers to their service period on the backend", () => {
+    const migration = latestMigrationContaining("get_progressive_offer_service_key");
+
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.get_progressive_offer_service_key");
+    expect(migration).toContain("EXTRACT(HOUR FROM p_time) < 16");
+    expect(migration).toContain("v_reservation_service <> v_offer_service");
+    expect(migration).toContain("Cette offre progressive est disponible uniquement pour le service");
+    expect(migration).toContain("progressive_offer_service");
+    expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.get_progressive_offer_service_key(time) TO anon, authenticated, service_role");
+  });
+
   it("wires progressive offers through restaurant, customer and admin surfaces", () => {
     const dashboardFormules = read("src/pages/dashboard/DashboardFormules.tsx");
     const index = read("src/pages/Index.tsx");
@@ -63,10 +74,22 @@ describe("progressive reservation offers", () => {
     expect(index).toContain('import { Badge } from "@/components/ui/badge"');
     expect(index).toContain("Offres progressives");
     expect(index).toContain("reservation_progressive_offers");
+    expect(index).toContain("getProgressiveOfferServiceLabel");
     expect(restaurantDetail).toContain("progressiveOfferId");
     expect(restaurantDetail).toContain("reservation_progressive_offers");
+    expect(restaurantDetail).toContain("getProgressiveOfferServiceLabel");
+    expect(restaurantDetail).toContain("visibleProgressiveOffers");
+    expect(restaurantDetail).toContain("isProgressiveOfferAvailableForSlot");
+    expect(restaurantDetail).toContain("setReservationProgressiveOfferId(null)");
+    expect(restaurantDetail).toContain("activeReservationProgressiveOfferId");
+    expect(restaurantDetail).toContain("onSelectionChange={handleWidgetSelectionChange}");
     expect(reservationDialog).toContain("progressiveOfferId");
     expect(reservationDialog).toContain("promo-progressive");
+    expect(reservationDialog).toContain("promoChoiceTouched");
+    expect(reservationDialog).toContain("isProgressiveOfferAvailableForSlot");
+    expect(reservationDialog).toContain('setPromoChoiceTouched(true)');
+    expect(dashboardFormules).toContain("Service cible");
+    expect(dashboardFormules).toContain("Tous les creneaux du service");
     expect(reservationMutations).toContain("p_progressive_offer_id");
     expect(customerReservations).toContain("progressive_offer_discount_percent");
     expect(dashboardReservations).toContain("progressive_offer_discount_percent");

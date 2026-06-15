@@ -51,7 +51,7 @@ export default function ImageUpload({
   label = "Image",
   bucket = "images",
   className = "",
-  showUrlInput = true,
+  showUrlInput = false,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
@@ -73,7 +73,7 @@ export default function ImageUpload({
       assertSafeFileUpload(file, {
         allowedMimeTypes: IMAGE_MIME_EXTENSIONS,
         maxBytes: MAX_IMAGE_UPLOAD_BYTES,
-        label: "Image optimisee",
+        label: "Image optimisée",
       });
       const filePath = createImagePath(userData.user.id, file);
       const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {

@@ -44,6 +44,38 @@ function isValidSignatureDataUrl(value: unknown) {
     && signature.length <= 250_000;
 }
 
+function normalizeDateOfBirth(value: unknown, now: Date) {
+  const rawValue = String(value || "").trim();
+  if (!rawValue) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(rawValue)) {
+    throw new HttpError(400, "Date de naissance invalide");
+  }
+
+  const parsed = new Date(`${rawValue}T00:00:00.000Z`);
+  if (!Number.isFinite(parsed.getTime()) || parsed > now) {
+    throw new HttpError(400, "Date de naissance invalide");
+  }
+
+  return rawValue;
+}
+
+async function enrichCourierWithAccountProfile(
+  adminClient: ReturnType<typeof createAdminClient>,
+  courier: Record<string, unknown>,
+  userId: string,
+) {
+  const { data: accountProfile } = await adminClient
+    .from("user_profiles")
+    .select("date_of_birth")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return {
+    ...courier,
+    date_of_birth: accountProfile?.date_of_birth || null,
+  };
+}
+
 async function getCourierForActor(adminClient: ReturnType<typeof createAdminClient>, userId: string) {
   const { data: courier, error } = await adminClient
     .from("couriers")
@@ -360,6 +392,7 @@ Deno.serve(async (req) => {
 
     if (action === "ensure_profile") {
       const courier = await ensureCourierForActor(adminClient, actor.userId, now);
+      const hydratedCourier = await enrichCourierWithAccountProfile(adminClient, courier, actor.userId);
 
       await writeAuditLog({
         adminClient,
@@ -372,7 +405,7 @@ Deno.serve(async (req) => {
         targetEntityId: String(courier.id),
       });
 
-      return jsonResponse({ courier }, 200, corsHeaders);
+      return jsonResponse({ courier: hydratedCourier }, 200, corsHeaders);
     }
 
     const courier = await ensureCourierForActor(adminClient, actor.userId, now);
@@ -484,6 +517,7 @@ Deno.serve(async (req) => {
     if (action === "save_profile") {
       const allowedVehicleTypes = new Set(["bicycle", "scooter", "car", "walk"]);
       const vehicleType = String(payload?.vehicle_type || courier.vehicle_type || "bicycle");
+      const dateOfBirth = normalizeDateOfBirth(payload?.date_of_birth, now);
       const rawShifts = Array.isArray(payload?.shifts) ? payload.shifts : [];
 
       if (!allowedVehicleTypes.has(vehicleType)) {
@@ -534,6 +568,35 @@ Deno.serve(async (req) => {
 
       if (updateCourierError) throw new HttpError(500, updateCourierError.message);
 
+      const firstName = String(payload?.first_name || "").trim();
+      const lastName = String(payload?.last_name || "").trim();
+      const phone = String(payload?.phone || "").trim();
+
+      const { error: accountProfileError } = await adminClient
+        .from("user_profiles")
+        .upsert({
+          user_id: actor.userId,
+          first_name: firstName || null,
+          last_name: lastName || null,
+          phone_number: phone || null,
+          date_of_birth: dateOfBirth,
+          updated_at: toIsoDate(now),
+        }, { onConflict: "user_id" });
+
+      if (accountProfileError) throw new HttpError(500, accountProfileError.message);
+
+      const { error: publicProfileError } = await adminClient
+        .from("profiles")
+        .upsert({
+          user_id: actor.userId,
+          full_name: [firstName, lastName].filter(Boolean).join(" ").trim() || null,
+          phone: phone || null,
+          date_of_birth: dateOfBirth,
+          updated_at: toIsoDate(now),
+        }, { onConflict: "user_id" });
+
+      if (publicProfileError) throw new HttpError(500, publicProfileError.message);
+
       const { error: deleteShiftsError } = await adminClient
         .from("courier_shifts")
         .delete()
@@ -566,7 +629,8 @@ Deno.serve(async (req) => {
         },
       });
 
-      return jsonResponse({ courier: updatedCourier, shifts: savedShifts }, 200, corsHeaders);
+      const hydratedCourier = await enrichCourierWithAccountProfile(adminClient, updatedCourier, actor.userId);
+      return jsonResponse({ courier: hydratedCourier, shifts: savedShifts }, 200, corsHeaders);
     }
 
     if (action === "respond_attempt") {

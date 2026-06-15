@@ -1,3 +1,5 @@
+import { detectServiceFromTime, getServicePeriodLabel, type ServicePeriod } from "@/lib/serviceSettings";
+
 export type ProgressiveReservationOffer = {
   id: string;
   restaurant_id: string;
@@ -22,6 +24,26 @@ export type ProgressiveReservationOffer = {
     rating?: number | null;
   } | null;
 };
+
+export function getProgressiveOfferServicePeriod(offer: Pick<ProgressiveReservationOffer, "service_time">): ServicePeriod {
+  return detectServiceFromTime((offer.service_time || "19:00").slice(0, 5));
+}
+
+export function getProgressiveOfferServiceLabel(offer: Pick<ProgressiveReservationOffer, "service_time">) {
+  return getServicePeriodLabel(getProgressiveOfferServicePeriod(offer));
+}
+
+export function isProgressiveOfferAvailableForSlot(
+  offer: Pick<ProgressiveReservationOffer, "service_date" | "service_time">,
+  reservationDate: string | null | undefined,
+  reservationTime: string,
+) {
+  return (
+    !!reservationDate
+    && offer.service_date === reservationDate
+    && getProgressiveOfferServicePeriod(offer) === detectServiceFromTime(reservationTime)
+  );
+}
 
 export function getProgressiveOfferReservationCount(offer: Pick<ProgressiveReservationOffer, "current_reservations_count" | "max_tables">) {
   return Math.min(Math.max(Number(offer.current_reservations_count || 0), 0), Math.max(Number(offer.max_tables || 1), 1));
