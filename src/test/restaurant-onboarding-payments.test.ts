@@ -59,7 +59,9 @@ describe("restaurant onboarding pack and subscription payments", () => {
   });
 
   it("blocks admin approval until the selected pack and subscription are paid", () => {
-    const migration = latestMigrationContaining(/signup_restaurateur_onboarding_payment_ready/);
+    const migration = latestMigrationContaining(
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.signup_restaurateur_onboarding_payment_ready/i,
+    );
     const admin = read("src/pages/admin/AdminUtilisateurs.tsx");
     const statusCard = read("src/components/signup/SignupApplicationStatusCard.tsx");
 

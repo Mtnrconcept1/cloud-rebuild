@@ -124,6 +124,21 @@ describe("signup and admin moderation SQL", () => {
     expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
   });
 
+  it("guards admin review RPC against ambiguous signup application document columns", () => {
+    const sql = latestMigrationContaining(/Fix admin signup review ambiguity/i);
+    const reviewApplication = extractFunction(sql, "admin_review_signup_application");
+
+    expect(reviewApplication).toContain("UPDATE public.signup_application_documents AS sad");
+    expect(reviewApplication).toContain("WHERE sad.application_id = p_application_id");
+    expect(reviewApplication).toContain("reviewed_by = CASE WHEN v_is_service_role THEN sad.reviewed_by ELSE v_actor_id END");
+    expect(reviewApplication).toContain("UPDATE public.signup_applications AS sa");
+    expect(reviewApplication).toContain("WHERE sa.id = p_application_id");
+    expect(reviewApplication).not.toMatch(/WHERE\s+application_id\s*=\s*p_application_id/i);
+    expect(reviewApplication).not.toMatch(/WHERE\s+id\s*=\s*p_application_id/i);
+    expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.admin_review_signup_application[\s\S]*TO authenticated,\s*service_role/i);
+    expect(sql).toContain("NOTIFY pgrst, 'reload schema'");
+  });
+
   it("keeps privileged signups out of the client role and repairs confirmed dossiers", () => {
     const sql = latestMigrationContaining(/Fix privileged signup dossiers and exclusive roles/i);
     const handleNewUser = extractFunction(sql, "handle_new_user");
