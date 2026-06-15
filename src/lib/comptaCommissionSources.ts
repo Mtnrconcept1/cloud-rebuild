@@ -23,6 +23,7 @@ export const COMMISSION_SOURCE_LABELS: Record<CommissionSource, string> = {
 
 type OrderLike = {
   payment_status?: string | null;
+  status?: string | null;
   metadata?: Record<string, unknown> | null;
   total_amount?: number | string | null;
   refunded_amount_chf?: number | string | null;
@@ -39,7 +40,12 @@ type ReservationLike = {
 export type CommissionBaseTotals = Record<CommissionSource, number>;
 
 function normalize(value: unknown) {
-  return String(value || "").trim().toLowerCase().replace(/[\s_]+/g, "-");
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s_]+/g, "-");
 }
 
 function getRecord(value: unknown) {
@@ -58,6 +64,26 @@ function toAmount(value: unknown) {
 function isPaidStatus(status: unknown) {
   const normalizedStatus = normalize(status);
   return normalizedStatus === "paid" || normalizedStatus === "captured";
+}
+
+function isNonBillableOrderStatus(status: unknown) {
+  const normalizedStatus = normalize(status);
+  return normalizedStatus === "cancelled"
+    || normalizedStatus === "canceled"
+    || normalizedStatus === "payment-failed"
+    || normalizedStatus === "refused"
+    || normalizedStatus === "pending"
+    || normalizedStatus === "pending-payment";
+}
+
+function isConfirmedCashOrder(order: OrderLike) {
+  const metadata = getRecord(order.metadata);
+  const paymentMethod = normalize(metadata.payment_method);
+  const cashPaymentMethods = ["cash", normalize("espèces"), "cash-on-delivery", "on-site", "onsite"];
+
+  return cashPaymentMethods.includes(paymentMethod)
+    && Boolean(normalize(order.status))
+    && !isNonBillableOrderStatus(order.status);
 }
 
 function isReservationEligible(status: unknown, totalAmount: unknown) {
@@ -109,7 +135,11 @@ export function getNetAmountAfterRefund(
 }
 
 export function classifyOrderCommissionSource(order: OrderLike): CommissionSource | null {
-  if (!isPaidStatus(order.payment_status)) {
+  if (isNonBillableOrderStatus(order.status)) {
+    return null;
+  }
+
+  if (!isPaidStatus(order.payment_status) && !isConfirmedCashOrder(order)) {
     return null;
   }
 

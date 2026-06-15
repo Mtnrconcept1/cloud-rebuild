@@ -26,6 +26,23 @@ describe("financial health", () => {
     });
   });
 
+  it("does not flag confirmed cash orders as missing Stripe capture", () => {
+    expect(summarizeFinancialHealth([
+      {
+        id: "order-cash",
+        status: "confirmed",
+        payment_status: "pending",
+        metadata: { payment_method: "cash" },
+      },
+    ])).toEqual({
+      confirmedNotCaptured: 0,
+      refundPending: 0,
+      failedPayments: 0,
+      healthy: true,
+      affectedIds: [],
+    });
+  });
+
   it("counts failed payments and pending refunds", () => {
     expect(summarizeFinancialHealth([
       { id: "order-1", status: "payment_failed", payment_status: "failed" },

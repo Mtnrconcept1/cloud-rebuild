@@ -1017,7 +1017,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     queryFn: async () => {
       let query = supabase
         .from("orders")
-        .select("id, status, payment_status, refund_status")
+        .select("id, status, payment_status, refund_status, metadata")
         .gte("created_at", monthBounds.monthStartDate.toISOString())
         .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`);
 
@@ -1029,7 +1029,7 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       if (error && isRefundColumnsMissingError(error)) {
         let fallbackQuery = supabase
           .from("orders")
-          .select("id, status, payment_status")
+          .select("id, status, payment_status, metadata")
           .gte("created_at", monthBounds.monthStartDate.toISOString())
           .lte("created_at", `${monthBounds.monthEnd}T23:59:59.999Z`);
 

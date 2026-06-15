@@ -332,7 +332,7 @@ Deno.serve(async (req) => {
         estimated_delivery_at: estimatedDeliveryAt,
         payment_status: isAwaitingOnlinePayment
           ? "pending"
-          : (paymentMethod === "cash" ? "pending" : (isSettledWithoutStripe ? "captured" : "authorized")),
+          : (paymentMethod === "cash" ? "paid" : (isSettledWithoutStripe ? "captured" : "authorized")),
         status: isAwaitingOnlinePayment ? "pending_payment" : "confirmed",
         acceptance_deadline_at: isAwaitingOnlinePayment ? null : acceptanceDeadlineAt,
         restaurant_response_status: isAwaitingOnlinePayment ? null : "pending",

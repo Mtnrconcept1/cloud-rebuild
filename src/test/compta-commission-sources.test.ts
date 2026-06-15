@@ -53,6 +53,29 @@ describe("classifyOrderCommissionSource", () => {
       payment_status: "pending",
     })).toBeNull();
   });
+
+  it("classifies confirmed cash orders as commissionable even before online payment capture", () => {
+    const order = {
+      metadata: { type: "takeaway", payment_method: "cash" },
+      payment_status: "pending",
+      status: "confirmed",
+      total_amount: 80,
+    };
+
+    expect(classifyOrderCommissionSource(order)).toBe("orders");
+    expect(getNetOrderCommissionBase(order)).toBe(80);
+  });
+
+  it("does not classify cancelled cash orders as commissionable", () => {
+    const order = {
+      metadata: { type: "takeaway", payment_method: "cash" },
+      payment_status: "pending",
+      status: "cancelled",
+      total_amount: 80,
+    };
+
+    expect(classifyOrderCommissionSource(order)).toBeNull();
+  });
 });
 
 describe("classifyReservationCommissionSource", () => {

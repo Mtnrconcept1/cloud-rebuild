@@ -3,6 +3,7 @@ export type FinancialHealthRow = {
   status?: string | null;
   payment_status?: string | null;
   refund_status?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 export type FinancialHealthSummary = {
@@ -26,7 +27,23 @@ const CONFIRMED_OPERATION_STATUSES = new Set([
 ]);
 
 function normalize(value: string | null | undefined) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function readMetadataString(metadata: FinancialHealthRow["metadata"], key: string) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return "";
+  }
+
+  return normalize(String(metadata[key] || ""));
+}
+
+function normalizePaymentMethod(value: string) {
+  return value.replace(/[\s-]+/g, "_");
 }
 
 function stableId(row: FinancialHealthRow, index: number) {
@@ -44,8 +61,11 @@ export function summarizeFinancialHealth(rows: FinancialHealthRow[]): FinancialH
     const status = normalize(row.status);
     const paymentStatus = normalize(row.payment_status);
     const refundStatus = normalize(row.refund_status);
+    const paymentMethod = normalizePaymentMethod(readMetadataString(row.metadata, "payment_method"));
+    const cashPaymentMethods = ["cash", normalizePaymentMethod(normalize("espèces")), "cash_on_delivery", "on_site", "onsite"];
+    const isCashOrder = cashPaymentMethods.includes(paymentMethod);
 
-    if (CONFIRMED_OPERATION_STATUSES.has(status) && !SETTLED_PAYMENT_STATUSES.has(paymentStatus)) {
+    if (CONFIRMED_OPERATION_STATUSES.has(status) && !SETTLED_PAYMENT_STATUSES.has(paymentStatus) && !isCashOrder) {
       confirmedNotCaptured += 1;
       affectedIds.add(id);
     }
