@@ -1,12 +1,15 @@
-import { AlertCircle, FileText, ShieldCheck } from "lucide-react";
+import { AlertCircle, CreditCard, FileText, Loader2, ShieldCheck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getSignupDocumentLabel,
   getSignupDocumentStatusMeta,
+  getSignupRestaurateurOnboardingSelection,
   getSignupRoleLabel,
   getSignupStatusMeta,
+  isSignupRestaurateurOnboardingPaymentReady,
   type SignupApplication,
 } from "@/lib/signup";
 
@@ -14,12 +17,16 @@ type SignupApplicationStatusCardProps = {
   application: SignupApplication | null | undefined;
   title: string;
   emptyDescription: string;
+  onStartRestaurantOnboardingPayment?: () => void;
+  onboardingPaymentLoading?: boolean;
 };
 
 export default function SignupApplicationStatusCard({
   application,
   title,
   emptyDescription,
+  onStartRestaurantOnboardingPayment,
+  onboardingPaymentLoading = false,
 }: SignupApplicationStatusCardProps) {
   if (!application) {
     return (
@@ -47,6 +54,8 @@ export default function SignupApplicationStatusCard({
 
   const statusMeta = getSignupStatusMeta(application.status);
   const documents = application.signup_application_documents || [];
+  const onboardingSelection = getSignupRestaurateurOnboardingSelection(application);
+  const onboardingPaymentReady = isSignupRestaurateurOnboardingPaymentReady(application);
 
   return (
     <Card className="tok-dashboard-section relative overflow-hidden rounded-3xl border border-primary/25 bg-primary/5">
@@ -69,6 +78,37 @@ export default function SignupApplicationStatusCard({
         <p className="text-sm text-muted-foreground">{statusMeta.description}</p>
       </CardHeader>
       <CardContent className="space-y-4">
+        {onboardingSelection ? (
+          <div className="rounded-xl border bg-background/80 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <CreditCard className="h-4 w-4 text-primary" />
+                  Paiement onboarding
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Pack et abonnement {onboardingSelection.subscriptionBillingPeriod === "yearly" ? "annuel" : "mensuel"}
+                  {" "}associés au dossier.
+                </p>
+              </div>
+              <Badge className={onboardingPaymentReady ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>
+                {onboardingPaymentReady ? "Paiement confirmé" : "Paiement requis"}
+              </Badge>
+            </div>
+            {!onboardingPaymentReady && application.status !== "approved" && onStartRestaurantOnboardingPayment ? (
+              <Button
+                type="button"
+                className="mt-4 gap-2"
+                onClick={onStartRestaurantOnboardingPayment}
+                disabled={onboardingPaymentLoading}
+              >
+                {onboardingPaymentLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                Payer le pack et l'abonnement
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+
         {application.review_note ? (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
             <div className="mb-1 flex items-center gap-2 font-medium">

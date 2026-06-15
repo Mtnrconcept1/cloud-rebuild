@@ -20,9 +20,11 @@ import { getSupabase } from "@/integrations/supabase/client";
 import {
   getSignupDocumentLabel,
   getSignupDocumentStatusMeta,
+  getSignupRestaurateurOnboardingSelection,
   getSignupRoleLabel,
   getSignupStatusMeta,
   getVerificationDocumentUrl,
+  isSignupRestaurateurOnboardingPaymentReady,
   type SignupApplication,
   type SignupApplicationDocument,
 } from "@/lib/signup";
@@ -138,6 +140,14 @@ function getRoleLabel(role: string) {
     default:
       return "Client";
   }
+}
+
+function canApproveSignupApplication(application: SignupApplication) {
+  return application.requested_role !== "restaurateur" || isSignupRestaurateurOnboardingPaymentReady(application);
+}
+
+function getOnboardingPaymentStatusLabel(application: SignupApplication) {
+  return canApproveSignupApplication(application) ? "Paiement confirmé" : "Paiement requis";
 }
 
 function formatDate(value: unknown) {
@@ -1198,6 +1208,8 @@ export default function AdminUtilisateurs() {
                 const statusMeta = getSignupStatusMeta(application.status);
                 const documents = application.signup_application_documents || [];
                 const noteValue = reviewNotes[application.id] ?? application.review_note ?? "";
+                const onboardingSelection = getSignupRestaurateurOnboardingSelection(application);
+                const onboardingPaymentReady = canApproveSignupApplication(application);
 
                 return (
                   <div key={application.id} className="rounded-xl border bg-card p-4 space-y-4">
@@ -1242,6 +1254,27 @@ export default function AdminUtilisateurs() {
                         </p>
                       </div>
                     </div>
+
+                    {onboardingSelection ? (
+                      <div className="rounded-xl border p-4 text-sm">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="font-medium">Paiement onboarding</p>
+                            <p className="pt-1 text-muted-foreground">
+                              Pack et abonnement {onboardingSelection.subscriptionBillingPeriod === "yearly" ? "annuel" : "mensuel"} sélectionnés.
+                            </p>
+                          </div>
+                          <Badge className={onboardingPaymentReady ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>
+                            {getOnboardingPaymentStatusLabel(application)}
+                          </Badge>
+                        </div>
+                        {!onboardingPaymentReady ? (
+                          <p className="pt-3 text-xs text-muted-foreground">
+                            L'approbation admin sera refusée par Supabase tant que le pack et l'abonnement ne sont pas payés.
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
 
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-sm font-medium">
@@ -1322,9 +1355,13 @@ export default function AdminUtilisateurs() {
                       </Button>
                       <Button
                         onClick={() => reviewApplication(application.id, "approved")}
-                        disabled={reviewingApplicationId === application.id}
+                        disabled={reviewingApplicationId === application.id || !onboardingPaymentReady}
                       >
-                        {reviewingApplicationId === application.id ? "Enregistrement..." : "Approuver"}
+                        {reviewingApplicationId === application.id
+                          ? "Enregistrement..."
+                          : !onboardingPaymentReady
+                            ? "Paiement requis"
+                            : "Approuver"}
                       </Button>
                     </div>
                   </div>

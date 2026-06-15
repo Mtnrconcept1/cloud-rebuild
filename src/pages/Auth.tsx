@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bike, ChefHat, Eye, EyeOff, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
+import { Bike, ChefHat, CreditCard, Eye, EyeOff, FileText, Loader2, Shield, ShoppingBag, Upload } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth, type UserRole } from "@/lib/auth-context";
@@ -12,6 +12,7 @@ import {
   SIGNUP_ROLE_META,
   uploadVerificationDocument,
   type SignupDocumentType,
+  type SignupSubscriptionBillingPeriod,
   type SignupRole,
   type UploadedSignupDocument,
 } from "@/lib/signup";
@@ -48,6 +49,32 @@ type SignupFormState = {
   vehicleType: string;
   licensePlate: string;
   iban: string;
+};
+
+type RestaurateurOnboardingChoices = {
+  launchPackId: string;
+  subscriptionPlanId: string;
+  subscriptionBillingPeriod: SignupSubscriptionBillingPeriod;
+};
+
+type SignupLaunchPackOption = {
+  id: string;
+  name: string;
+  description: string | null;
+  price_chf: number;
+};
+
+type RestaurantSubscriptionPlanOption = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  price_monthly_chf: number;
+  campaign_credit_chf: number;
+  ai_tool_credits: number;
+  ai_photo_credits: number;
+  monthly_image_limit: number;
+  monthly_premium_image_limit: number;
 };
 
 const ROLE_CONFIG: Record<
@@ -108,6 +135,14 @@ const EMPTY_SIGNUP_FORM: SignupFormState = {
   iban: "",
 };
 
+function formatChf(amount: number | null | undefined) {
+  return new Intl.NumberFormat("fr-CH", {
+    style: "currency",
+    currency: "CHF",
+    maximumFractionDigits: Number(amount) % 1 === 0 ? 0 : 2,
+  }).format(Number(amount || 0));
+}
+
 function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
   const requestedType = String(searchParams.get("type") || "").toLowerCase();
   if (requestedType === "restaurateur") return "restaurateur";
@@ -115,7 +150,11 @@ function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
   return "client";
 }
 
-function getSignupValidationError(role: SignupRole, form: SignupFormState) {
+function getSignupValidationError(
+  role: SignupRole,
+  form: SignupFormState,
+  onboardingChoices?: RestaurateurOnboardingChoices,
+) {
   if (!form.fullName.trim()) return "Le nom complet est requis.";
   if (!form.email.trim()) return "L'email est requis.";
   if (!form.password.trim() || form.password.length < 6) return "Le mot de passe doit contenir au moins 6 caracteres.";
@@ -129,6 +168,11 @@ function getSignupValidationError(role: SignupRole, form: SignupFormState) {
     if (!form.businessRegistrationNumber.trim()) return "Le numéro d'immatriculation est requis.";
     if (!form.restaurantName.trim()) return "Le nom du restaurant est requis.";
     if (!form.iban.trim()) return "L'IBAN de versement est requis.";
+    if (!onboardingChoices?.launchPackId) return "Choisissez un pack de lancement.";
+    if (!onboardingChoices?.subscriptionPlanId) return "Choisissez un abonnement TOK.";
+    if (onboardingChoices.subscriptionBillingPeriod !== "monthly") {
+      return "Choisissez une période d'abonnement valide.";
+    }
   }
 
   if (role === "courier") {
@@ -157,6 +201,7 @@ function appendPrivilegedSignupDraftFormData(input: {
   userId: string;
   role: SignupRole;
   form: SignupFormState;
+  onboardingChoices?: RestaurateurOnboardingChoices;
   documents: Partial<Record<SignupDocumentType, File | null>>;
   captchaToken: string | null;
 }) {
@@ -182,6 +227,9 @@ function appendPrivilegedSignupDraftFormData(input: {
   input.formData.append("vehicle_type", input.role === "courier" ? input.form.vehicleType : "");
   input.formData.append("license_plate", input.role === "courier" ? input.form.licensePlate : "");
   input.formData.append("iban", input.form.iban);
+  input.formData.append("launch_pack_id", input.role === "restaurateur" ? input.onboardingChoices?.launchPackId || "" : "");
+  input.formData.append("subscription_plan_id", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionPlanId || "" : "");
+  input.formData.append("subscription_billing_period", input.role === "restaurateur" ? input.onboardingChoices?.subscriptionBillingPeriod || "" : "");
   input.formData.append("captcha_token", input.captchaToken || "");
 
   for (const requirement of getRequiredSignupDocuments(input.role, input.form.vehicleType)) {
@@ -221,6 +269,7 @@ async function submitPrivilegedSignupDraft(input: {
   userId: string;
   role: SignupRole;
   form: SignupFormState;
+  onboardingChoices?: RestaurateurOnboardingChoices;
   documents: Partial<Record<SignupDocumentType, File | null>>;
   captchaToken: string | null;
 }) {
@@ -255,11 +304,30 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] = useState(false);
+  const [selectedLaunchPackId, setSelectedLaunchPackId] = useState("");
+  const [selectedSubscriptionPlanId, setSelectedSubscriptionPlanId] = useState("");
+  const [selectedSubscriptionBillingPeriod] = useState<SignupSubscriptionBillingPeriod>("monthly");
+  const [launchPacks, setLaunchPacks] = useState<SignupLaunchPackOption[]>([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<RestaurantSubscriptionPlanOption[]>([]);
+  const [launchPacksLoading, setLaunchPacksLoading] = useState(false);
+  const [subscriptionPlansLoading, setSubscriptionPlansLoading] = useState(false);
 
   const requiredDocuments = useMemo(
     () => getRequiredSignupDocuments(roleMode, signupForm.vehicleType),
     [roleMode, signupForm.vehicleType],
   );
+  const restaurateurOnboardingChoices = useMemo<RestaurateurOnboardingChoices>(() => ({
+    launchPackId: selectedLaunchPackId,
+    subscriptionPlanId: selectedSubscriptionPlanId,
+    subscriptionBillingPeriod: selectedSubscriptionBillingPeriod,
+  }), [selectedLaunchPackId, selectedSubscriptionBillingPeriod, selectedSubscriptionPlanId]);
+  const selectedSubscriptionPlan = useMemo(
+    () => subscriptionPlans.find((plan) => plan.id === selectedSubscriptionPlanId) || null,
+    [selectedSubscriptionPlanId, subscriptionPlans],
+  );
+  const selectedSubscriptionPrice = selectedSubscriptionPlan
+    ? selectedSubscriptionPlan.price_monthly_chf
+    : null;
   const isClientSignup = !isLogin && roleMode === "client";
   const showExtendedIdentityFields = !isLogin && roleMode !== "client";
   const showDocumentSection = !isLogin && requiredDocuments.length > 0;
@@ -289,6 +357,73 @@ export default function Auth() {
     const targetRole = role || getDefaultActiveRole(roles);
     navigate(getPostAuthTarget(targetRole), { replace: true });
   }, [canSwitchRole, getPostAuthTarget, navigate, privilegedSignupSubmitting, role, roles, showRolePicker, user]);
+
+  useEffect(() => {
+    if (isLogin || roleMode !== "restaurateur") return;
+    let mounted = true;
+
+    setLaunchPacksLoading(true);
+    supabase
+      .from("launch_packs")
+      .select("id, name, description, price_chf")
+      .eq("is_active", true)
+      .order("position", { ascending: true })
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error) {
+          setLaunchPacks([]);
+        } else {
+          setLaunchPacks((data || []) as SignupLaunchPackOption[]);
+        }
+      })
+      .finally(() => {
+        if (mounted) setLaunchPacksLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [isLogin, roleMode]);
+
+  useEffect(() => {
+    if (isLogin || roleMode !== "restaurateur") return;
+    let mounted = true;
+
+    setSubscriptionPlansLoading(true);
+    (supabase.from as any)("restaurant_subscription_plans")
+      .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_image_limit, monthly_premium_image_limit")
+      .eq("is_active", true)
+      .order("position", { ascending: true })
+      .then(({ data, error }: { data?: unknown[] | null; error?: Error | null }) => {
+        if (!mounted) return;
+        if (error) {
+          setSubscriptionPlans([]);
+        } else {
+          setSubscriptionPlans((data || []) as RestaurantSubscriptionPlanOption[]);
+        }
+      })
+      .finally(() => {
+        if (mounted) setSubscriptionPlansLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [isLogin, roleMode]);
+
+  useEffect(() => {
+    if (roleMode !== "restaurateur") return;
+    if (!selectedLaunchPackId && launchPacks[0]?.id) {
+      setSelectedLaunchPackId(launchPacks[0].id);
+    }
+  }, [launchPacks, roleMode, selectedLaunchPackId]);
+
+  useEffect(() => {
+    if (roleMode !== "restaurateur") return;
+    if (!selectedSubscriptionPlanId && subscriptionPlans[0]?.id) {
+      setSelectedSubscriptionPlanId(subscriptionPlans[0].id);
+    }
+  }, [roleMode, selectedSubscriptionPlanId, subscriptionPlans]);
 
   useEffect(() => {
     if (!user && privilegedSignupSubmitting) {
@@ -396,7 +531,12 @@ export default function Auth() {
       const submittedRole = roleMode;
       const submittedRequiredDocuments = getRequiredSignupDocuments(submittedRole, signupForm.vehicleType);
       const isPrivilegedSignup = submittedRole !== "client";
-      const validationError = getSignupValidationError(submittedRole, signupForm);
+      const submittedOnboardingChoices = restaurateurOnboardingChoices;
+      const validationError = getSignupValidationError(
+        submittedRole,
+        signupForm,
+        submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
+      );
       if (validationError) {
         throw new Error(validationError);
       }
@@ -451,6 +591,7 @@ export default function Auth() {
             userId: activeUser.id,
             role: submittedRole,
             form: signupForm,
+            onboardingChoices: submittedRole === "restaurateur" ? submittedOnboardingChoices : undefined,
             documents,
             captchaToken,
           });
@@ -507,7 +648,13 @@ export default function Auth() {
           submittedRole === "courier"
             ? splitCourierName(signupForm.fullName)
             : submittedRole === "restaurateur"
-              ? { onboarding_source: "auth_signup" }
+              ? {
+                onboarding_source: "auth_signup",
+                selected_launch_pack_id: submittedOnboardingChoices.launchPackId,
+                selected_subscription_plan_id: submittedOnboardingChoices.subscriptionPlanId,
+                selected_subscription_billing_period: submittedOnboardingChoices.subscriptionBillingPeriod,
+                onboarding_payment_status: "pending_payment",
+              }
               : { verification_source: "auth_signup" },
         p_documents: uploadedDocuments,
       });
@@ -851,6 +998,111 @@ export default function Auth() {
                 </div>
               ) : null}
 
+              {!isLogin && roleMode === "restaurateur" ? (
+                <div className="space-y-4 rounded-2xl border bg-card/60 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <CreditCard className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Pack de lancement et abonnement</p>
+                      <p className="text-sm text-muted-foreground">
+                        Ces choix sont joints au dossier. Le paiement sera demandé depuis le dashboard
+                        avant la validation finale par l'administration.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Pack de lancement</Label>
+                    {launchPacksLoading ? (
+                      <div className="rounded-xl border p-4 text-sm text-muted-foreground">
+                        Chargement des packs...
+                      </div>
+                    ) : launchPacks.length > 0 ? (
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {launchPacks.map((pack) => {
+                          const selected = selectedLaunchPackId === pack.id;
+                          return (
+                            <button
+                              key={pack.id}
+                              type="button"
+                              className={`rounded-xl border p-4 text-left transition-colors ${
+                                selected ? "border-primary bg-primary/10" : "bg-background hover:border-primary/50"
+                              }`}
+                              onClick={() => setSelectedLaunchPackId(pack.id)}
+                            >
+                              <span className="block text-sm font-semibold">{pack.name}</span>
+                              <span className="block pt-1 text-xs text-muted-foreground">
+                                {pack.description || "Accompagnement de lancement TOK."}
+                              </span>
+                              <span className="block pt-3 text-sm font-bold">{formatChf(pack.price_chf)}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+                        Aucun pack actif n'est disponible. Contactez TOK avant de poursuivre.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Abonnement restaurateur mensuel</Label>
+
+                    {subscriptionPlansLoading ? (
+                      <div className="rounded-xl border p-4 text-sm text-muted-foreground">
+                        Chargement des abonnements...
+                      </div>
+                    ) : subscriptionPlans.length > 0 ? (
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {subscriptionPlans.map((plan) => {
+                          const selected = selectedSubscriptionPlanId === plan.id;
+                          const amount = plan.price_monthly_chf;
+                          return (
+                            <button
+                              key={plan.id}
+                              type="button"
+                              className={`rounded-xl border p-4 text-left transition-colors ${
+                                selected ? "border-primary bg-primary/10" : "bg-background hover:border-primary/50"
+                              }`}
+                              onClick={() => setSelectedSubscriptionPlanId(plan.id)}
+                            >
+                              <span className="block text-sm font-semibold">{plan.name}</span>
+                              <span className="block pt-1 text-xs text-muted-foreground">
+                                {plan.description || "Abonnement TOK pour activer le partenariat."}
+                              </span>
+                              <span className="block pt-3 text-sm font-bold">
+                                {formatChf(amount)} / mois
+                              </span>
+                              <span className="mt-3 grid gap-1 text-xs text-muted-foreground">
+                                <span>{formatChf(plan.campaign_credit_chf)} de crédits campagnes / mois</span>
+                                <span>{plan.ai_tool_credits} crédits outils IA / mois</span>
+                                <span>{plan.ai_photo_credits} crédits photo IA / mois</span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+                        Aucun abonnement actif n'est disponible. Contactez TOK avant de poursuivre.
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedLaunchPackId && selectedSubscriptionPlan ? (
+                    <div className="rounded-xl border bg-background p-3 text-sm">
+                      <p className="font-medium">Total initial à régler après création du dossier</p>
+                      <p className="pt-1 text-muted-foreground">
+                        Pack choisi + {formatChf(selectedSubscriptionPrice)} / mois.
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
               {!isLogin && roleMode === "courier" ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
@@ -898,7 +1150,7 @@ export default function Auth() {
                     <p className="font-medium">Documents a fournir</p>
                     <p className="text-sm text-muted-foreground">
                       Chaque profil impose des pieces justificatives différentes. Les fichiers sont
-                      stockes dans un espace prive et revus par l'administration.
+                      stockés dans un espace privé et revus par l'administration.
                     </p>
                   </div>
 

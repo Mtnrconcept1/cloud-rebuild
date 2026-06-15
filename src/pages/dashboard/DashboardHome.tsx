@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -16,6 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
+import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { invokeSupabaseFunction } from "@/lib/session";
+import { getSignupRestaurateurOnboardingSelection } from "@/lib/signup";
 
 const supabase = getSupabase();
 
@@ -133,6 +136,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { selectedId, dashboardAccessLocked } = useDashboardRestaurant();
   const { data: signupApplication } = useSignupApplication("restaurateur");
+  const [onboardingCheckoutLoading, setOnboardingCheckoutLoading] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const { data: restaurant } = useQuery({
@@ -272,6 +276,56 @@ export default function Dashboard() {
     },
   });
 
+  const startRestaurantOnboardingPayment = async () => {
+    const onboardingSelection = getSignupRestaurateurOnboardingSelection(signupApplication);
+    const signupRestaurantId = typeof signupApplication?.metadata?.restaurant_id === "string"
+      ? signupApplication.metadata.restaurant_id
+      : "";
+    const restaurantId = selectedId || signupRestaurantId;
+
+    if (!signupApplication?.id || !restaurantId || !onboardingSelection) {
+      toast({
+        title: "Paiement indisponible",
+        description: "Le dossier restaurateur ne contient pas encore tous les choix requis.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setOnboardingCheckoutLoading(true);
+    try {
+      const { data, error } = await invokeSupabaseFunction<{ url?: string; session_id?: string }>("create-checkout", {
+        body: {
+          checkout_kind: "restaurant-onboarding",
+          items: [],
+          payment_method: "card",
+          return_url: buildCheckoutReturnUrl("/dashboard"),
+          order_metadata: {
+            checkout_kind: "restaurant-onboarding",
+            signup_application_id: signupApplication.id,
+            restaurant_id: restaurantId,
+            pack_id: onboardingSelection.launchPackId,
+            plan_id: onboardingSelection.subscriptionPlanId,
+            billing_period: onboardingSelection.subscriptionBillingPeriod,
+          },
+        },
+      });
+
+      if (error || !data?.url) {
+        throw new Error((error as Error | null)?.message || "Impossible de créer la session de paiement.");
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      toast({
+        title: "Paiement impossible",
+        description: error instanceof Error ? error.message : "Veuillez réessayer dans quelques instants.",
+        variant: "destructive",
+      });
+      setOnboardingCheckoutLoading(false);
+    }
+  };
+
   const typedUpcomingReservations = upcomingReservations as UpcomingReservationRow[];
 
   const todayServiceCounts = typedUpcomingReservations.reduce(
@@ -290,6 +344,8 @@ export default function Dashboard() {
         <div className="space-y-6">
           <SignupApplicationStatusCard
             application={signupApplication}
+            onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
+            onboardingPaymentLoading={onboardingCheckoutLoading}
             title="Dossier de vérification restaurateur"
             emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
           />
@@ -321,6 +377,8 @@ export default function Dashboard() {
 
         <SignupApplicationStatusCard
           application={signupApplication}
+          onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
+          onboardingPaymentLoading={onboardingCheckoutLoading}
           title="Dossier de vérification restaurateur"
           emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
         />

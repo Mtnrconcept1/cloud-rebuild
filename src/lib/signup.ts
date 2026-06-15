@@ -34,6 +34,15 @@ export type UploadedSignupDocument = {
   file_size_bytes: number | null;
 };
 
+export type SignupSubscriptionBillingPeriod = "monthly" | "yearly";
+
+export type SignupRestaurateurOnboardingSelection = {
+  launchPackId: string;
+  subscriptionPlanId: string;
+  subscriptionBillingPeriod: SignupSubscriptionBillingPeriod;
+  onboardingPaymentStatus: string;
+};
+
 export type SignupApplicationDocument = {
   id: string;
   application_id: string;
@@ -207,6 +216,44 @@ export function getSignupStatusMeta(status: string | null | undefined) {
         description: "Les justificatifs ont été reçus et sont en cours de vérification.",
       };
   }
+}
+
+export function normalizeSignupSubscriptionBillingPeriod(value: unknown): SignupSubscriptionBillingPeriod {
+  return value === "yearly" ? "yearly" : "monthly";
+}
+
+function getMetadataString(metadata: Record<string, unknown> | null | undefined, key: string) {
+  const value = metadata?.[key];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export function getSignupRestaurateurOnboardingSelection(
+  application: Pick<SignupApplication, "requested_role" | "metadata"> | null | undefined,
+): SignupRestaurateurOnboardingSelection | null {
+  if (!application || application.requested_role !== "restaurateur") return null;
+  const metadata = application.metadata || {};
+  const launchPackId = getMetadataString(metadata, "selected_launch_pack_id");
+  const subscriptionPlanId = getMetadataString(metadata, "selected_subscription_plan_id");
+  const subscriptionBillingPeriod = normalizeSignupSubscriptionBillingPeriod(
+    getMetadataString(metadata, "selected_subscription_billing_period"),
+  );
+  const onboardingPaymentStatus = getMetadataString(metadata, "onboarding_payment_status");
+
+  if (!launchPackId || !subscriptionPlanId) return null;
+  return {
+    launchPackId,
+    subscriptionPlanId,
+    subscriptionBillingPeriod,
+    onboardingPaymentStatus: onboardingPaymentStatus || "pending_payment",
+  };
+}
+
+export function isSignupRestaurateurOnboardingPaymentReady(
+  application: Pick<SignupApplication, "requested_role" | "metadata"> | null | undefined,
+) {
+  const selection = getSignupRestaurateurOnboardingSelection(application);
+  if (!selection) return application?.requested_role !== "restaurateur";
+  return ["paid", "active", "trialing"].includes(selection.onboardingPaymentStatus);
 }
 
 export function getSignupDocumentStatusMeta(status: string | null | undefined) {

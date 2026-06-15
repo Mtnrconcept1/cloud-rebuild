@@ -155,6 +155,9 @@ Deno.serve(async (req) => {
       vehicle_type: sanitizeText(form.get("vehicle_type"), 60),
       license_plate: sanitizeText(form.get("license_plate"), 60),
       iban: sanitizeText(form.get("iban"), 80),
+      launch_pack_id: sanitizeText(form.get("launch_pack_id"), 80),
+      subscription_plan_id: sanitizeText(form.get("subscription_plan_id"), 80),
+      subscription_billing_period: sanitizeText(form.get("subscription_billing_period"), 20).toLowerCase(),
     };
 
     requireInput(UUID_PATTERN.test(userId), "invalid_user_id");
@@ -186,7 +189,13 @@ Deno.serve(async (req) => {
         last_name: fields.full_name.split(/\s+/).slice(1).join(" "),
         onboarding_source: "auth_signup_edge",
       }
-      : { onboarding_source: "auth_signup_edge" };
+      : {
+        onboarding_source: "auth_signup_edge",
+        selected_launch_pack_id: fields.launch_pack_id,
+        selected_subscription_plan_id: fields.subscription_plan_id,
+        selected_subscription_billing_period: fields.subscription_billing_period,
+        onboarding_payment_status: "pending_payment",
+      };
 
     const { data: applicationRows, error: rpcError } = await adminClient.rpc("admin_submit_signup_application", {
       p_user_id: userId,

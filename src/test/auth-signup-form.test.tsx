@@ -14,6 +14,7 @@ const supabaseMocks = vi.hoisted(() => ({
   signUp: vi.fn(),
   upload: vi.fn(),
   invoke: vi.fn(),
+  from: vi.fn(),
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -26,6 +27,7 @@ vi.mock("@/integrations/supabase/client", () => ({
       signOut: supabaseMocks.signOut,
       signUp: supabaseMocks.signUp,
     },
+    from: supabaseMocks.from,
     rpc: supabaseMocks.rpc,
     functions: {
       invoke: supabaseMocks.invoke,
@@ -96,6 +98,44 @@ vi.mock("@/components/CityAutocomplete", () => ({
   ),
 }));
 
+const launchPackRows = [
+  {
+    id: "launch-pack-id",
+    name: "Pack Starter",
+    description: "Pack de test",
+    price_chf: 490,
+  },
+];
+
+const restaurantSubscriptionPlanRows = [
+  {
+    id: "restaurant-plan-id",
+    slug: "starter",
+    name: "TOK Starter",
+    description: "Plan restaurateur de test",
+    price_monthly_chf: 69,
+    campaign_credit_chf: 25,
+    ai_tool_credits: 80,
+    ai_photo_credits: 10,
+    monthly_image_limit: 10,
+    monthly_premium_image_limit: 2,
+  },
+];
+
+function mockSupabaseTable(table: string) {
+  const rows = table === "launch_packs"
+    ? launchPackRows
+    : table === "restaurant_subscription_plans"
+      ? restaurantSubscriptionPlanRows
+      : [];
+  const builder = {
+    select: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    order: vi.fn(() => Promise.resolve({ data: rows, error: null })),
+  };
+  return builder;
+}
+
 function renderAuth(route: string) {
   return render(
     <MemoryRouter initialEntries={[route]}>
@@ -110,6 +150,7 @@ describe("Auth signup form", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabaseMocks.resend.mockResolvedValue({ error: null });
+    supabaseMocks.from.mockImplementation(mockSupabaseTable);
     supabaseMocks.rpc.mockResolvedValue({ data: null, error: null });
     supabaseMocks.signOut.mockResolvedValue({ error: null });
     supabaseMocks.upload.mockResolvedValue({
@@ -215,6 +256,8 @@ describe("Auth signup form", () => {
     });
 
     const { container } = renderAuth("/auth?type=restaurateur");
+    await screen.findByText("Pack Starter");
+    await screen.findByText("TOK Starter");
 
     fireEvent.change(screen.getByLabelText("Nom du responsable"), {
       target: { value: "Restaurateur Test" },
@@ -271,6 +314,12 @@ describe("Auth signup form", () => {
         expect.objectContaining({
           p_requested_role: "restaurateur",
           p_restaurant_name: "La Table Tok",
+          p_metadata: expect.objectContaining({
+            selected_launch_pack_id: "launch-pack-id",
+            selected_subscription_plan_id: "restaurant-plan-id",
+            selected_subscription_billing_period: "monthly",
+            onboarding_payment_status: "pending_payment",
+          }),
         }),
       );
     });
@@ -295,6 +344,8 @@ describe("Auth signup form", () => {
     });
 
     const { container } = renderAuth("/auth?type=restaurateur");
+    await screen.findByText("Pack Starter");
+    await screen.findByText("TOK Starter");
 
     fireEvent.change(screen.getByLabelText("Nom du responsable"), {
       target: { value: "Restaurateur Test" },
@@ -352,6 +403,9 @@ describe("Auth signup form", () => {
     expect(body.get("user_id")).toBe("restaurant-user-id");
     expect(body.get("requested_role")).toBe("restaurateur");
     expect(body.get("restaurant_name")).toBe("La Table Tok");
+    expect(body.get("launch_pack_id")).toBe("launch-pack-id");
+    expect(body.get("subscription_plan_id")).toBe("restaurant-plan-id");
+    expect(body.get("subscription_billing_period")).toBe("monthly");
     expect(body.get("document_identity_document")).toBeInstanceOf(File);
     expect(body.get("document_business_registration")).toBeInstanceOf(File);
     expect(body.get("document_iban_proof")).toBeInstanceOf(File);
@@ -381,8 +435,9 @@ describe("Auth signup form", () => {
     });
   });
 
-  it("keeps the restaurateur signup email field editable", () => {
+  it("keeps the restaurateur signup email field editable", async () => {
     renderAuth("/auth?type=restaurateur");
+    await screen.findByText("Pack Starter");
 
     const emailInput = screen.getByLabelText("Email");
     fireEvent.change(emailInput, { target: { value: "restaurant@example.com" } });

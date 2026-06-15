@@ -47,7 +47,9 @@ describe("Tok One Stripe test mode", () => {
     expect(createCheckoutSource).toContain("getStripeRuntimeForCheckoutKind(effectiveKind)");
     expect(createCheckoutSource).toContain("const stripe = stripeRuntime.stripe");
     expect(createCheckoutSource).toContain("stripe_mode: stripeRuntime.mode");
-    expect(createCheckoutSource).toContain('mode: effectiveKind === "tok-one" ? "subscription" : "payment"');
+    expect(createCheckoutSource).toContain('effectiveKind === "tok-one"');
+    expect(createCheckoutSource).toContain("isSubscriptionCheckout");
+    expect(createCheckoutSource).toContain('mode: isSubscriptionCheckout ? "subscription" : "payment"');
     expect(createCheckoutSource).toContain("subscription_data");
   });
 

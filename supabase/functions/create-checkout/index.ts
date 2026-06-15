@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
     } = await req.json();
 
     const effectiveKind = checkout_kind || order_metadata?.checkout_kind || "order";
+    const isSubscriptionCheckout = effectiveKind === "tok-one" || effectiveKind === "restaurant-onboarding";
     const stripeRuntime = getStripeRuntimeForCheckoutKind(effectiveKind);
     const stripe = stripeRuntime.stripe;
     const safeReturnUrl = normalizeCheckoutReturnUrl(return_url);
@@ -223,6 +224,203 @@ Deno.serve(async (req) => {
         pack_slug: pack.slug,
         restaurant_launch_pack_id: purchaseRecord.id,
         authoritative_total: packAmount.toFixed(2),
+      };
+    } else if (effectiveKind === "restaurant-onboarding") {
+      const packId = String(order_metadata?.pack_id || "");
+      const planId = String(order_metadata?.plan_id || "");
+      const restaurantId = String(order_metadata?.restaurant_id || "");
+      const signupApplicationId = String(order_metadata?.signup_application_id || "");
+      const billingPeriod = String(order_metadata?.billing_period || "monthly") === "yearly"
+        ? "yearly"
+        : "monthly";
+
+      if (!packId) throw new HttpError(400, "pack_id requis");
+      if (!planId) throw new HttpError(400, "plan_id requis");
+      if (!restaurantId) throw new HttpError(400, "restaurant_id requis");
+      if (billingPeriod !== "monthly") throw new HttpError(400, "Les abonnements restaurateur sont mensuels");
+      if (payment_method !== "card") {
+        throw new HttpError(400, "L'onboarding restaurateur requiert un paiement par carte");
+      }
+
+      auditKind = "restaurant-onboarding";
+      auditTargetEntityType = "signup_applications";
+      auditTargetEntityId = signupApplicationId || restaurantId;
+
+      await requireRestaurantAccess(actor, restaurantId);
+
+      if (signupApplicationId) {
+        const { data: application, error: applicationError } = await actor.adminClient
+          .from("signup_applications")
+          .select("id, user_id, requested_role, metadata")
+          .eq("id", signupApplicationId)
+          .maybeSingle();
+
+        if (applicationError) throw new HttpError(500, applicationError.message);
+        if (!application) throw new HttpError(404, "Dossier d'inscription introuvable");
+        if (application.user_id !== actor.userId || application.requested_role !== "restaurateur") {
+          throw new HttpError(403, "Dossier d'inscription invalide");
+        }
+
+        const applicationMetadata = application.metadata && typeof application.metadata === "object"
+          ? application.metadata as Record<string, unknown>
+          : {};
+        const applicationRestaurantId = String(applicationMetadata.restaurant_id || "");
+        const selectedPackId = String(applicationMetadata.selected_launch_pack_id || "");
+        const selectedPlanId = String(applicationMetadata.selected_subscription_plan_id || "");
+        const selectedBillingPeriod = String(applicationMetadata.selected_subscription_billing_period || "monthly");
+
+        if (applicationRestaurantId && applicationRestaurantId !== restaurantId) {
+          throw new HttpError(403, "Restaurant du dossier invalide");
+        }
+        if (selectedPackId && selectedPackId !== packId) {
+          throw new HttpError(400, "Le pack choisi ne correspond pas au dossier");
+        }
+        if (selectedPlanId && selectedPlanId !== planId) {
+          throw new HttpError(400, "L'abonnement choisi ne correspond pas au dossier");
+        }
+        if (selectedBillingPeriod && selectedBillingPeriod !== billingPeriod) {
+          throw new HttpError(400, "La periode d'abonnement ne correspond pas au dossier");
+        }
+      }
+
+      const [{ data: pack, error: packError }, { data: plan, error: planError }] = await Promise.all([
+        actor.adminClient
+          .from("launch_packs")
+          .select("id, slug, name, price_chf, services, is_active")
+          .eq("id", packId)
+          .eq("is_active", true)
+          .maybeSingle(),
+        actor.adminClient
+          .from("restaurant_subscription_plans")
+          .select("id, slug, name, description, price_monthly_chf, campaign_credit_chf, ai_tool_credits, ai_photo_credits, monthly_conversation_limit, monthly_text_tool_limit, monthly_image_limit, monthly_premium_image_limit, monthly_voice_minutes_limit, is_active")
+          .eq("id", planId)
+          .eq("is_active", true)
+          .maybeSingle(),
+      ]);
+
+      if (packError) throw new HttpError(500, packError.message);
+      if (planError) throw new HttpError(500, planError.message);
+      if (!pack) throw new HttpError(404, "Pack introuvable ou inactif");
+      if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
+
+      const packAmount = Number(pack.price_chf);
+      const subscriptionAmount = Number(plan.price_monthly_chf);
+
+      if (packAmount <= 0) throw new HttpError(400, "Prix du pack invalide");
+      if (subscriptionAmount <= 0) throw new HttpError(400, "Prix du plan invalide");
+
+      const { data: existingSub, error: existingSubError } = await actor.adminClient
+        .from("restaurant_ai_subscriptions")
+        .select("id, status, current_period_end")
+        .eq("restaurant_id", restaurantId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingSubError) throw new HttpError(500, existingSubError.message);
+      const hasActiveSubscription = Boolean(
+        existingSub &&
+        isTokOneEntitledStatus(existingSub.status) &&
+        (!existingSub.current_period_end || new Date(existingSub.current_period_end) > new Date()),
+      );
+      if (hasActiveSubscription) {
+        throw new HttpError(409, "Vous avez deja un abonnement actif");
+      }
+
+      const { data: existingPack, error: existingPackError } = await actor.adminClient
+        .from("restaurant_launch_packs")
+        .select("id, status")
+        .eq("restaurant_id", restaurantId)
+        .eq("pack_id", packId)
+        .maybeSingle();
+
+      if (existingPackError) throw new HttpError(500, existingPackError.message);
+      if (existingPack && existingPack.status !== "pending_payment" && existingPack.status !== "cancelled") {
+        throw new HttpError(409, "Ce pack est deja achete pour ce restaurant");
+      }
+
+      const purchasePayload = {
+        restaurant_id: restaurantId,
+        pack_id: packId,
+        purchased_by: actor.userId,
+        status: "pending_payment",
+        metadata: {
+          checkout_kind: "restaurant-onboarding",
+          signup_application_id: signupApplicationId || null,
+          plan_id: planId,
+          billing_period: "monthly",
+        },
+      };
+
+      const { data: purchaseRecord, error: purchaseError } = existingPack?.id
+        ? await actor.adminClient
+          .from("restaurant_launch_packs")
+          .update(purchasePayload)
+          .eq("id", existingPack.id)
+          .select("id")
+          .single()
+        : await actor.adminClient
+          .from("restaurant_launch_packs")
+          .insert(purchasePayload)
+          .select("id")
+          .single();
+
+      if (purchaseError) throw new HttpError(500, purchaseError.message);
+
+      lineItems = [
+        {
+          price_data: {
+            currency: "chf",
+            product_data: {
+              name: `Pack de lancement - ${pack.name}`,
+            },
+            unit_amount: Math.round(packAmount * 100),
+          },
+          quantity: 1,
+        },
+        {
+          price_data: {
+            currency: "chf",
+            product_data: {
+              name: `Abonnement restaurateur TOK - ${plan.name}`,
+              description: String(plan.description || ""),
+              metadata: {
+                restaurant_subscription_plan_id: plan.id,
+                restaurant_subscription_plan_slug: plan.slug,
+              },
+            },
+            recurring: {
+              interval: "month",
+            },
+            unit_amount: Math.round(subscriptionAmount * 100),
+          },
+          quantity: 1,
+        },
+      ];
+
+      sessionMetadata = {
+        ...sessionMetadata,
+        restaurant_id: restaurantId,
+        signup_application_id: signupApplicationId,
+        pack_id: pack.id,
+        pack_slug: pack.slug,
+        plan_id: plan.id,
+        restaurant_subscription_plan_id: plan.id,
+        restaurant_subscription_plan_slug: plan.slug,
+        plan_name: plan.name,
+        billing_period: "monthly",
+        restaurant_launch_pack_id: purchaseRecord.id,
+        launch_pack_amount: packAmount.toFixed(2),
+        subscription_amount: subscriptionAmount.toFixed(2),
+        campaign_credit_chf: Number(plan.campaign_credit_chf || 0).toFixed(2),
+        ai_tool_credits: String(plan.ai_tool_credits || 0),
+        ai_photo_credits: String(plan.ai_photo_credits || 0),
+        monthly_conversation_limit: String(plan.monthly_conversation_limit || 0),
+        monthly_text_tool_limit: String(plan.monthly_text_tool_limit || 0),
+        monthly_image_limit: String(plan.monthly_image_limit || 0),
+        monthly_premium_image_limit: String(plan.monthly_premium_image_limit || 0),
+        monthly_voice_minutes_limit: String(plan.monthly_voice_minutes_limit || 0),
+        authoritative_total: (packAmount + subscriptionAmount).toFixed(2),
       };
     } else if (effectiveKind === "tok-one") {
       // ── Tok One premium subscription ──
@@ -669,9 +867,9 @@ Deno.serve(async (req) => {
     const userEmail = userLookup?.data.user?.email || undefined;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      payment_method_types: effectiveKind === "tok-one" ? ["card"] : paymentMethodTypes,
+      payment_method_types: isSubscriptionCheckout ? ["card"] : paymentMethodTypes,
       line_items: lineItems,
-      mode: effectiveKind === "tok-one" ? "subscription" : "payment",
+      mode: isSubscriptionCheckout ? "subscription" : "payment",
       success_url: `${safeReturnUrl}${urlSeparator}session_id={CHECKOUT_SESSION_ID}&status=success`,
       cancel_url: `${safeReturnUrl}${urlSeparator}status=cancelled`,
       customer_email: userEmail,
@@ -679,17 +877,19 @@ Deno.serve(async (req) => {
       metadata: sessionMetadata,
     };
 
-    if (effectiveKind === "tok-one") {
+    if (isSubscriptionCheckout) {
       sessionParams.payment_method_collection = "always";
       sessionParams.subscription_data = {
-        trial_period_days: 14,
-        trial_settings: {
+        metadata: sessionMetadata,
+      };
+      if (effectiveKind === "tok-one") {
+        sessionParams.subscription_data.trial_period_days = 14;
+        sessionParams.subscription_data.trial_settings = {
           end_behavior: {
             missing_payment_method: "cancel",
           },
-        },
-        metadata: sessionMetadata,
-      };
+        };
+      }
     }
 
     if (discountCents > 0) {
