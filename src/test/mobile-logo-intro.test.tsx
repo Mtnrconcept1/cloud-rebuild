@@ -16,6 +16,7 @@ describe("MobileLogoIntro", () => {
     vi.useFakeTimers();
     window.history.pushState({}, "", "/");
     setViewportWidth(390);
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -44,10 +45,10 @@ describe("MobileLogoIntro", () => {
     expect(video).toHaveAttribute("height", "1920");
     expect(video).toHaveAttribute("preload", "auto");
     expect(video.autoplay).toBe(true);
-    expect(video.muted).toBe(true);
+    expect(video.muted).toBe(false);
     expect(video.playsInline).toBe(true);
-    expect(soundToggle).toHaveTextContent("Activer le son");
-    expect(soundToggle).toHaveAttribute("aria-label", "Activer le son de l'intro TOK");
+    expect(soundToggle).toHaveTextContent("Son activé");
+    expect(soundToggle).toHaveAttribute("aria-label", "Couper le son de l'intro TOK");
     expect(screen.queryByTestId("mobile-logo-intro-logo")).not.toBeInTheDocument();
     expect(logoFrame).toHaveClass("relative", "grid", "place-items-center");
     expect(video).toHaveClass("h-full", "w-full", "object-cover");
@@ -73,25 +74,19 @@ describe("MobileLogoIntro", () => {
     expect(video).toHaveAttribute("height", "1080");
   });
 
-  it("lets the user activate and cut the intro audio from the overlay", async () => {
-    const playSpy = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
-
+  it("tries to play the intro with audio immediately and lets the user cut it", async () => {
     render(<MobileLogoIntro />);
 
     const video = screen.getByTestId("mobile-logo-intro-video") as HTMLVideoElement;
     const soundToggle = screen.getByTestId("mobile-logo-intro-sound-toggle");
 
-    expect(video.muted).toBe(true);
-
     await act(async () => {
-      fireEvent.click(soundToggle);
       await Promise.resolve();
     });
 
-    expect(playSpy).toHaveBeenCalledTimes(1);
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
     expect(video.muted).toBe(false);
     expect(soundToggle).toHaveTextContent("Son activé");
-    expect(soundToggle).toHaveAttribute("aria-label", "Couper le son de l'intro TOK");
 
     await act(async () => {
       fireEvent.click(soundToggle);

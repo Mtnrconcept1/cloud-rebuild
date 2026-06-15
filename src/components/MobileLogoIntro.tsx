@@ -48,7 +48,7 @@ export default function MobileLogoIntro() {
   const [visible, setVisible] = useState(() => shouldShowIntro());
   const [variant, setVariant] = useState<IntroVariant>(() => getIntroVariant());
   const [fadingOut, setFadingOut] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [soundBlocked, setSoundBlocked] = useState(false);
   const dismissedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -97,10 +97,61 @@ export default function MobileLogoIntro() {
     return () => window.clearTimeout(timeoutId);
   }, [visible, fadingOut]);
 
+  useEffect(() => {
+    if (!visible) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    let cancelled = false;
+    const fallBackToMutedPlayback = () => {
+      if (cancelled) return;
+
+      video.muted = true;
+      setSoundEnabled(false);
+      setSoundBlocked(true);
+
+      try {
+        const mutedAttempt = video.play();
+        if (mutedAttempt && typeof mutedAttempt.catch === "function") {
+          void mutedAttempt.catch(() => undefined);
+        }
+      } catch {
+        // The timed fade still removes the overlay if media playback is unavailable.
+      }
+    };
+
+    video.muted = false;
+    video.volume = 1;
+    setSoundEnabled(true);
+    setSoundBlocked(false);
+
+    try {
+      const playAttempt = video.play();
+      if (playAttempt && typeof playAttempt.catch === "function") {
+        void playAttempt.catch(fallBackToMutedPlayback);
+      }
+    } catch {
+      fallBackToMutedPlayback();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, variant]);
+
   if (!visible) return null;
 
   const introMedia = LOGO_INTRO_MEDIA[variant];
   const SoundIcon = soundEnabled ? Volume2 : VolumeX;
+  const soundButtonLabel = soundEnabled
+    ? "Couper le son de l'intro TOK"
+    : "Activer le son de l'intro TOK";
+  const soundButtonText = soundBlocked
+    ? "Réessayer le son"
+    : soundEnabled
+      ? "Son activé"
+      : "Activer le son";
 
   const handleSoundToggle = async () => {
     const video = videoRef.current;
@@ -173,16 +224,14 @@ export default function MobileLogoIntro() {
           }}
         />
         <button
-          aria-label={soundEnabled ? "Couper le son de l'intro TOK" : "Activer le son de l'intro TOK"}
+          aria-label={soundButtonLabel}
           className="absolute bottom-5 right-5 z-10 inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-black/62 px-4 text-sm font-semibold text-white shadow-2xl backdrop-blur-md transition hover:bg-black/78 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 md:bottom-8 md:right-8"
           data-testid="mobile-logo-intro-sound-toggle"
           type="button"
           onClick={handleSoundToggle}
         >
           <SoundIcon aria-hidden="true" className="h-4 w-4" />
-          <span>
-            {soundBlocked ? "Réessayer le son" : soundEnabled ? "Son activé" : "Activer le son"}
-          </span>
+          <span>{soundButtonText}</span>
         </button>
       </div>
     </div>
