@@ -21,6 +21,8 @@ type StudioPaletteProps = {
   sectorOptions: string[];
   libraryTab: StudioLibraryTab;
   libraryQuery: string;
+  canvasWidth: number;
+  canvasHeight: number;
   draftTables: StudioDraftTable[];
   tablesLoading: boolean;
   newSectorName: string;
@@ -92,6 +94,8 @@ export default function StudioPalette({
   sectorOptions,
   libraryTab,
   libraryQuery,
+  canvasWidth,
+  canvasHeight,
   draftTables,
   tablesLoading,
   newSectorName,
@@ -250,8 +254,8 @@ export default function StudioPalette({
                           kind: table.layout.kind,
                         },
                       }))}
-                      canvasWidth={1040}
-                      canvasHeight={680}
+                      canvasWidth={canvasWidth}
+                      canvasHeight={canvasHeight}
                       onApply={onApplyAILayout}
                     />
                   </div>

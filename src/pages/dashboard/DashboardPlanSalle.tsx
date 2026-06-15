@@ -1,7 +1,9 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Copy,
   Grip,
+  Layers,
   LayoutPanelTop,
   Plus,
   Printer,
@@ -156,6 +158,35 @@ type LayoutOverrideRow = {
   updated_at?: string | null;
 };
 
+type FloorPlanVariantSnapshotTable = {
+  table_number: string;
+  capacity: number;
+  is_active: boolean;
+  sector: string;
+  layout: Record<string, Json>;
+};
+
+type FloorPlanVariantSnapshot = {
+  version: 1;
+  canvas: {
+    width: number;
+    height: number;
+  };
+  tables: FloorPlanVariantSnapshotTable[];
+};
+
+type FloorPlanVariantRow = {
+  id: string;
+  restaurant_id: string;
+  branch_id: string;
+  name: string;
+  source: "manual" | "ai-image" | "ai-generated";
+  snapshot: unknown;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type DraftTable = {
   id: string;
   persisted: boolean;
@@ -198,6 +229,7 @@ const EMPTY_TABLES: TableRow[] = [];
 const EMPTY_RESERVATIONS: ReservationWithCustomer[] = [];
 const EMPTY_SLOTS: SlotRow[] = [];
 const EMPTY_LAYOUT_OVERRIDES: LayoutOverrideRow[] = [];
+const EMPTY_FLOOR_PLAN_VARIANTS: FloorPlanVariantRow[] = [];
 
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -471,6 +503,77 @@ function layoutToRecord(layout: FloorPlanTableLayout) {
   };
 }
 
+function buildFloorPlanVariantSnapshot(tables: readonly DraftTable[], canvasWidth: number): FloorPlanVariantSnapshot {
+  return {
+    version: 1,
+    canvas: {
+      width: Math.round(canvasWidth),
+      height: CANVAS_HEIGHT,
+    },
+    tables: tables.map((table) => ({
+      table_number: table.table_number,
+      capacity: table.capacity,
+      is_active: table.is_active,
+      sector: table.sector || DEFAULT_SECTOR,
+      layout: layoutToRecord(table.layout) as Record<string, Json>,
+    })),
+  };
+}
+
+function parseFloorPlanVariantSnapshot(value: unknown): FloorPlanVariantSnapshot | null {
+  if (!isJsonRecord((value ?? null) as Json)) return null;
+  const snapshot = value as Record<string, unknown>;
+  const tables = Array.isArray(snapshot.tables) ? snapshot.tables : [];
+  const parsedTables = tables.flatMap((entry) => {
+    if (!isJsonRecord((entry ?? null) as Json)) return [];
+    const row = entry as Record<string, unknown>;
+    const layout = isJsonRecord((row.layout ?? null) as Json) ? row.layout as Record<string, Json> : null;
+    if (!layout) return [];
+
+    return [{
+      table_number: typeof row.table_number === "string" && row.table_number.trim()
+        ? row.table_number.trim()
+        : "Table",
+      capacity: Math.max(0, Math.round(Number(row.capacity) || 0)),
+      is_active: typeof row.is_active === "boolean" ? row.is_active : true,
+      sector: typeof row.sector === "string" && row.sector.trim() ? row.sector.trim() : DEFAULT_SECTOR,
+      layout,
+    }];
+  });
+
+  return {
+    version: 1,
+    canvas: {
+      width: Number((snapshot.canvas as Record<string, unknown> | undefined)?.width) || CANVAS_WIDTH,
+      height: Number((snapshot.canvas as Record<string, unknown> | undefined)?.height) || CANVAS_HEIGHT,
+    },
+    tables: parsedTables,
+  };
+}
+
+function buildDraftTablesFromVariant(
+  variant: FloorPlanVariantRow,
+  branchId: string,
+): DraftTable[] {
+  const snapshot = parseFloorPlanVariantSnapshot(variant.snapshot);
+  if (!snapshot) return [];
+
+  return snapshot.tables.map((table, index) => {
+    const layout = buildTemplateLayout(table.layout, index, table.capacity || 0);
+    const isReservable = isReservableFloorPlanItem(layout.kind);
+    return {
+      id: `variant-${variant.id}-${index}-${crypto.randomUUID()}`,
+      persisted: false,
+      branch_id: branchId,
+      table_number: table.table_number,
+      capacity: isReservable ? Math.max(1, table.capacity || 2) : 0,
+      is_active: table.is_active,
+      sector: table.sector || DEFAULT_SECTOR,
+      layout,
+    };
+  });
+}
+
 function areLayoutsEquivalent(left: FloorPlanTableLayout, right: FloorPlanTableLayout) {
   return JSON.stringify(layoutToRecord(left)) === JSON.stringify(layoutToRecord(right));
 }
@@ -647,6 +750,7 @@ export default function DashboardPlanSalle() {
   const [libraryQuery, setLibraryQuery] = useState("");
   const [libraryTab, setLibraryTab] = useState<StudioLibraryTab>("tables");
   const [toolPanelTab, setToolPanelTab] = useState<"library" | "inspector">("library");
+  const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
   const [draftTables, setDraftTables] = useState<DraftTable[]>([]);
   const [draftAssignments, setDraftAssignments] = useState<Record<string, string | null>>({});
   const [floorPlanHistory, setFloorPlanHistory] = useState<FloorPlanHistory<FloorPlanHistorySnapshot>>(() => (
@@ -789,6 +893,23 @@ export default function DashboardPlanSalle() {
 
   const selectedBranch = branches.find((branch) => branch.id === selectedBranchId) || null;
 
+  const { data: floorPlanVariantsData, error: floorPlanVariantsError } = useQuery({
+    queryKey: ["floor-plan-variants", selectedBranchId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("floor_plan_variants" as any))
+        .select("*")
+        .eq("branch_id", selectedBranchId!)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as FloorPlanVariantRow[];
+    },
+    enabled: !!selectedBranchId,
+  });
+  const floorPlanVariants = floorPlanVariantsData ?? EMPTY_FLOOR_PLAN_VARIANTS;
+  const activeVariant = activeVariantId
+    ? floorPlanVariants.find((variant) => variant.id === activeVariantId) || null
+    : null;
+
   const { data: persistedTablesData, isLoading: tablesLoading, error: tablesError } = useQuery({
     queryKey: ["floor-plan-tables", selectedBranchId],
     queryFn: async () => {
@@ -909,6 +1030,7 @@ export default function DashboardPlanSalle() {
   }, [branches, selectedBranchId]);
 
   useEffect(() => {
+    setActiveVariantId(null);
     if (!selectedBranchId) {
       setDraftTables([]);
       setExtraSectors([]);
@@ -1561,6 +1683,62 @@ export default function DashboardPlanSalle() {
     },
   });
 
+  const saveFloorPlanVariantMutation = useMutation({
+    mutationFn: async (input?: {
+      name?: string;
+      source?: FloorPlanVariantRow["source"];
+      tables?: DraftTable[];
+    }) => {
+      if (!selectedId || !selectedBranchId) {
+        throw new Error("Sélectionnez d'abord une salle.");
+      }
+
+      const tables = input?.tables ?? draftTables;
+      const snapshot = buildFloorPlanVariantSnapshot(tables, canvasWidth);
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Session invalide.");
+
+      const nowLabel = new Date().toLocaleString("fr-CH", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const defaultName = input?.source === "ai-image"
+        ? `Plan IA image - ${nowLabel}`
+        : `Plan enregistré - ${nowLabel}`;
+
+      const { data, error } = await (supabase.from("floor_plan_variants" as any))
+        .insert({
+          restaurant_id: selectedId,
+          branch_id: selectedBranchId,
+          name: input?.name?.trim() || defaultName,
+          source: input?.source || "manual",
+          snapshot,
+          created_by: user.id,
+        })
+        .select("*")
+        .single();
+
+      if (error) throw error;
+      return data as FloorPlanVariantRow;
+    },
+    onSuccess: (variant) => {
+      setActiveVariantId(variant.id);
+      queryClient.invalidateQueries({ queryKey: ["floor-plan-variants", selectedBranchId] });
+      toast({
+        title: "Plan enregistré",
+        description: `${variant.name} est disponible dans les plans sauvegardés.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur variante", description: error.message, variant: "destructive" });
+    },
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (options?: SaveMutationOptions) => {
       void options;
@@ -1722,6 +1900,55 @@ export default function DashboardPlanSalle() {
       });
     },
   });
+
+  const loadFloorPlanVariant = (variantId: string) => {
+    if (!selectedBranchId) return;
+    if (variantId === "current") {
+      const nextTables: DraftTable[] = persistedTables.map((table, index) => {
+        const rawCapacity = Number(table.capacity);
+        const fallbackCapacity = Number.isFinite(rawCapacity) ? rawCapacity : 2;
+        const layout = buildTemplateLayout(table.layout, index, fallbackCapacity);
+        return {
+          id: table.id,
+          persisted: true,
+          branch_id: table.branch_id,
+          table_number: table.table_number,
+          capacity: isReservableFloorPlanItem(layout.kind) ? Math.max(1, Math.round(fallbackCapacity || 2)) : 0,
+          is_active: table.is_active ?? true,
+          sector: table.sector?.trim() || DEFAULT_SECTOR,
+          layout,
+        };
+      });
+      setActiveVariantId(null);
+      setExtraSectors([]);
+      commitHistorySnapshot(buildHistorySnapshot(nextTables, draftAssignments, null));
+      return;
+    }
+
+    const variant = floorPlanVariants.find((item) => item.id === variantId);
+    if (!variant) return;
+
+    const nextTables = buildDraftTablesFromVariant(variant, selectedBranchId);
+    if (nextTables.length === 0) {
+      toast({
+        title: "Plan vide",
+        description: "Cette variante ne contient aucun élément exploitable.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const nextSectors = Array.from(new Set(nextTables.map((table) => table.sector).filter(Boolean)));
+    setEditMode("template");
+    setActiveVariantId(variant.id);
+    setExtraSectors(nextSectors.filter((sector) => sector !== DEFAULT_SECTOR));
+    setSelectedSector(nextSectors[0] || DEFAULT_SECTOR);
+    commitHistorySnapshot(buildHistorySnapshot(nextTables, {}, null));
+    toast({
+      title: "Plan chargé",
+      description: "Vous pouvez l'ajuster puis l'enregistrer comme template actif.",
+    });
+  };
 
   const updateReservationStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -2096,7 +2323,12 @@ export default function DashboardPlanSalle() {
       };
     });
 
-    commitHistorySnapshot(buildHistorySnapshot(newTables, draftAssignments, null));
+    commitHistorySnapshot(buildHistorySnapshot(newTables, {}, null));
+    saveFloorPlanVariantMutation.mutate({
+      name: result.variantName,
+      source: result.source === "image-import" ? "ai-image" : "ai-generated",
+      tables: newTables,
+    });
     toast({
       title: "Disposition IA appliquée",
       description: `${newTables.length} éléments placés, ${newTables.reduce((s, t) => s + t.capacity, 0)} couverts au total.`,
@@ -2515,7 +2747,7 @@ export default function DashboardPlanSalle() {
     if (isTemplateMode) {
       return hasUnpersistedDraftTables
         ? {
-            label: "Template a enregistrer",
+            label: "Template à enregistrer",
             detail: "De nouveaux éléments doivent être sauvegardés avant diffusion.",
             tone: "border-amber-200 bg-amber-50 text-amber-800",
           }
@@ -2610,6 +2842,22 @@ export default function DashboardPlanSalle() {
                       </span>
                     </div>
                   </Button>
+                  {isTemplateMode ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 rounded-xl border-slate-200 bg-white px-3 text-sm shadow-sm"
+                      onClick={() => saveFloorPlanVariantMutation.mutate({ source: "manual" })}
+                      disabled={!selectedBranch || saveFloorPlanVariantMutation.isPending}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Copy className="h-4 w-4 text-slate-700" />
+                        <span className="font-semibold text-slate-900">
+                          {saveFloorPlanVariantMutation.isPending ? "Sauvegarde..." : "Sauver variante"}
+                        </span>
+                      </div>
+                    </Button>
+                  ) : null}
                   {!isTemplateMode ? (
                     <Button
                       type="button"
@@ -2711,6 +2959,7 @@ export default function DashboardPlanSalle() {
         {restaurantsError ? <p className="text-destructive">Erreur restaurants : {restaurantsError}</p> : null}
         {branchesError ? <p className="text-destructive">Erreur salles : {(branchesError as Error).message}</p> : null}
         {tablesError ? <p className="text-destructive">Erreur tables : {(tablesError as Error).message}</p> : null}
+        {floorPlanVariantsError ? <p className="text-destructive">Erreur plans : {(floorPlanVariantsError as Error).message}</p> : null}
         {layoutOverridesError ? <p className="text-destructive">Erreur plan du jour : {(layoutOverridesError as Error).message}</p> : null}
         {reservationsError ? <p className="text-destructive">Erreur réservations : {(reservationsError as Error).message}</p> : null}
         {slotsError ? <p className="text-destructive">Erreur affectations : {(slotsError as Error).message}</p> : null}
@@ -2747,7 +2996,7 @@ export default function DashboardPlanSalle() {
           <div className="flex min-h-0 flex-1 flex-col gap-3">
             <div className={cn(
               "grid shrink-0 gap-2 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-sm",
-              isTemplateMode ? "md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]" : "md:grid-cols-2 xl:grid-cols-7",
+              isTemplateMode ? "md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_220px]" : "md:grid-cols-2 xl:grid-cols-7",
             )}>
               <div className="space-y-1.5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Salle</p>
@@ -2780,6 +3029,31 @@ export default function DashboardPlanSalle() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {isTemplateMode ? (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Plan</p>
+                  <Select value={activeVariantId || "current"} onValueChange={loadFloorPlanVariant}>
+                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white">
+                      <SelectValue placeholder="Template actif" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="current">Template actif</SelectItem>
+                      {floorPlanVariants.map((variant) => (
+                        <SelectItem key={variant.id} value={variant.id}>
+                          {variant.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {activeVariant ? (
+                    <p className="flex items-center gap-1 text-[11px] text-slate-500">
+                      <Layers className="h-3 w-3" />
+                      Variante chargée, non publiée tant que vous n'enregistrez pas.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
 
               {isTemplateMode ? (
                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -2918,6 +3192,8 @@ export default function DashboardPlanSalle() {
                       sectorOptions={sectorOptions}
                       libraryTab={libraryTab}
                       libraryQuery={libraryQuery}
+                      canvasWidth={canvasWidth}
+                      canvasHeight={CANVAS_HEIGHT}
                       draftTables={draftTables}
                       tablesLoading={tablesLoading}
                       newSectorName={newSectorName}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Bot,
+  ImageUp,
   LayoutGrid,
   Lightbulb,
   Sofa,
@@ -16,6 +17,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { getSupabase } from "@/integrations/supabase/client";
 
 const supabase = getSupabase();
+const MAX_IMPORT_IMAGE_BYTES = 6 * 1024 * 1024;
+const IMPORT_IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 export type AIFloorPlanTable = {
   table_number: string;
@@ -34,6 +37,14 @@ export type AIFloorPlanTable = {
 export type AIFloorPlanResult = {
   tables: AIFloorPlanTable[];
   explanation: string;
+  source?: "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
+  variantName?: string;
+};
+
+type ImportImagePayload = {
+  dataUrl: string;
+  mimeType: string;
+  name: string;
 };
 
 interface FloorPlanAIPanelProps {
@@ -52,7 +63,7 @@ interface FloorPlanAIPanelProps {
 const SUGGESTED_ACTIONS = [
   {
     id: "generate",
-    label: "Generer un plan",
+    label: "Générer un plan",
     description: "Crée un plan optimisé de A à Z",
     icon: LayoutGrid,
     color: "text-blue-500",
@@ -61,7 +72,7 @@ const SUGGESTED_ACTIONS = [
   {
     id: "optimize",
     label: "Optimiser le placement",
-    description: "Ameliore la disposition actuelle",
+    description: "Améliore la disposition actuelle",
     icon: Wand2,
     color: "text-amber-500",
     bg: "bg-amber-500/10 hover:bg-amber-500/20",
@@ -88,8 +99,9 @@ export default function FloorPlanAIPanel({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AIFloorPlanResult | null>(null);
   const [customPrompt, setCustomPrompt] = useState("");
+  const [importImage, setImportImage] = useState<ImportImagePayload | null>(null);
 
-  const callAI = async (action: string, prompt?: string) => {
+  const callAI = async (action: AIFloorPlanResult["source"], prompt?: string, image?: ImportImagePayload | null) => {
   setLoading(true);
   setError(null);
   setResult(null);
@@ -112,6 +124,7 @@ export default function FloorPlanAIPanel({
         canvasWidth,
         canvasHeight,
         prompt,
+        image: image || undefined,
       },
     });
 
@@ -125,7 +138,11 @@ export default function FloorPlanAIPanel({
       throw new Error("Réponse IA invalide");
     }
 
-    setResult(aiData);
+    setResult({
+      ...aiData,
+      source: action,
+      variantName: action === "image-import" ? `Plan IA - ${new Date().toLocaleDateString("fr-CH")}` : undefined,
+    });
   } catch (e) {
     setError(e instanceof Error ? e.message : "Erreur inconnue");
   } finally {
@@ -139,6 +156,36 @@ export default function FloorPlanAIPanel({
     callAI("custom", customPrompt.trim());
   };
 
+  const handleImportImageChange = async (file: File | null) => {
+    setError(null);
+    setResult(null);
+    setImportImage(null);
+    if (!file) return;
+
+    if (!IMPORT_IMAGE_MIME_TYPES.has(file.type)) {
+      setError("Format image non supporté. Utilisez PNG, JPG ou WebP.");
+      return;
+    }
+
+    if (file.size > MAX_IMPORT_IMAGE_BYTES) {
+      setError("Image trop lourde. Limite: 6 Mo.");
+      return;
+    }
+
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Lecture de l'image impossible"));
+      reader.readAsDataURL(file);
+    });
+
+    setImportImage({
+      dataUrl,
+      mimeType: file.type,
+      name: file.name,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
@@ -149,6 +196,42 @@ export default function FloorPlanAIPanel({
           <h3 className="text-sm font-bold">Assistant IA</h3>
           <p className="text-[10px] text-muted-foreground">Powered by OpenAI</p>
         </div>
+      </div>
+
+      <div className="space-y-2 rounded-xl border border-orange-200 bg-orange-50/70 p-3">
+        <div className="flex items-start gap-2">
+          <ImageUp className="mt-0.5 h-4 w-4 shrink-0 text-orange-700" />
+          <div>
+            <p className="text-xs font-bold text-orange-950">Plan de salle automatique</p>
+            <p className="text-[10px] leading-tight text-orange-800/80">
+              Importez une image: l'IA détecte tables, numéros, assises et mobilier.
+            </p>
+          </div>
+        </div>
+        <Input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="h-9 cursor-pointer bg-white text-xs"
+          disabled={loading || disabled}
+          onChange={(event) => {
+            void handleImportImageChange(event.target.files?.[0] || null);
+          }}
+        />
+        {importImage ? (
+          <div className="overflow-hidden rounded-lg border bg-white">
+            <img src={importImage.dataUrl} alt="Aperçu du plan importé" className="h-24 w-full object-contain" />
+          </div>
+        ) : null}
+        <Button
+          type="button"
+          size="sm"
+          className="w-full gap-2 text-xs font-bold"
+          disabled={loading || disabled || !importImage}
+          onClick={() => callAI("image-import", undefined, importImage)}
+        >
+          <Wand2 className="h-3.5 w-3.5" />
+          Créer un nouveau plan
+        </Button>
       </div>
 
       <div className="space-y-1.5">

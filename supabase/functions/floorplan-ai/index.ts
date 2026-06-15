@@ -10,10 +10,17 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const MAX_IMAGE_DATA_URL_CHARS = 8_000_000;
+const IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
-type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom";
+type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
 
 type ReservationRow = { party_size: number | null };
+type ImagePayload = {
+  dataUrl: string;
+  mimeType: string;
+  name: string | null;
+};
 
 function buildSystemPrompt(params: {
   restaurant: { name: string; cuisine_type: string | null; city: string | null };
@@ -59,6 +66,20 @@ FORMAT DE RÉPONSE (JSON strict):
 }`;
 }
 
+function normalizeImagePayload(value: unknown): ImagePayload | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const dataUrl = typeof record.dataUrl === "string" ? record.dataUrl.trim() : "";
+  const mimeType = typeof record.mimeType === "string" ? record.mimeType.trim().toLowerCase() : "";
+  const name = typeof record.name === "string" ? record.name.trim().slice(0, 180) : null;
+
+  if (!dataUrl || !mimeType || !IMAGE_MIME_TYPES.has(mimeType)) return null;
+  if (dataUrl.length > MAX_IMAGE_DATA_URL_CHARS) return null;
+  if (!dataUrl.startsWith(`data:${mimeType};base64,`)) return null;
+
+  return { dataUrl, mimeType, name };
+}
+
 Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
@@ -73,6 +94,7 @@ Deno.serve(async (req) => {
 
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL") || "gpt-4o-mini";
+    const OPENAI_VISION_MODEL = Deno.env.get("OPENAI_VISION_MODEL") || OPENAI_MODEL;
     if (!OPENAI_API_KEY) {
       log.error("openai_key_missing");
       throw new HttpError(503, "ai_service_unavailable");
@@ -85,9 +107,13 @@ Deno.serve(async (req) => {
     const canvasHeight = Math.min(Math.max(Number(body.canvasHeight) || 680, 400), 2000);
     const currentLayout = Array.isArray(body.currentLayout) ? body.currentLayout : [];
     const rawPrompt = typeof body.prompt === "string" ? body.prompt.slice(0, 2000) : "";
+    const image = normalizeImagePayload(body.image);
 
-    if (!restaurantId || !["generate", "optimize", "suggest-furniture", "custom"].includes(action)) {
+    if (!restaurantId || !["generate", "optimize", "suggest-furniture", "custom", "image-import"].includes(action)) {
       throw new HttpError(400, "invalid_request");
+    }
+    if (action === "image-import" && !image) {
+      throw new HttpError(400, "invalid_image");
     }
 
     // Ownership check.
@@ -143,7 +169,10 @@ Deno.serve(async (req) => {
 
     let userPrompt = rawPrompt;
     if (!userPrompt) {
-      if (action === "generate") {
+      if (action === "image-import") {
+        userPrompt =
+          "Analyze the uploaded floor-plan image and recreate it as a Tok room layout. Preserve visible table numbers, infer seating capacity from visible chairs or benches, estimate relative x/y/w/h positions on the canvas, include visible furniture such as plants, bars, host stands and dividers, and avoid inventing objects that are not visible. Return only the strict JSON format.";
+      } else if (action === "generate") {
         userPrompt =
           "Génère un plan de salle optimisé avec un bon mix de tables 2/4/6 personnes, un accueil et des plantes. Optimise circulation et couverts.";
       } else if (action === "optimize") {
@@ -157,6 +186,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    const selectedModel = action === "image-import" ? OPENAI_VISION_MODEL : OPENAI_MODEL;
+    const userContent = image
+      ? [
+        { type: "text", text: userPrompt },
+        { type: "image_url", image_url: { url: image.dataUrl, detail: "high" } },
+      ]
+      : userPrompt;
+
     const aiResponse = await fetch(OPENAI_URL, {
       method: "POST",
       headers: {
@@ -164,12 +201,12 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: OPENAI_MODEL,
+        model: selectedModel,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: userContent },
         ],
-        temperature: 0.7,
+        temperature: action === "image-import" ? 0.2 : 0.7,
         response_format: { type: "json_object" },
       }),
     });
@@ -203,7 +240,7 @@ Deno.serve(async (req) => {
       request: req,
       targetEntityType: "restaurants",
       targetEntityId: restaurantId,
-      metadata: { model: OPENAI_MODEL, rid: log.rid },
+      metadata: { model: selectedModel, rid: log.rid, has_image: Boolean(image), image_mime_type: image?.mimeType || null },
     });
 
     return jsonResponse(parsed as Record<string, unknown>, 200, cors);
