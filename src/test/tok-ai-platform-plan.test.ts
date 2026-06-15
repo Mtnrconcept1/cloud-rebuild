@@ -259,6 +259,9 @@ describe("TOK AI platform plan", () => {
     expect(adminMonitor).toContain("ai_failure_ratio_7d");
     expect(adminMonitor).toContain("failure_ratio_not_absolute_spend");
     expect(adminMonitor).toContain("ERROR_LOG_LOOKBACK_HOURS");
+    expect(adminMonitor).toContain("ADMIN_MONITOR_OUTPUT_TOKENS");
+    expect(adminMonitor).toContain("getAdminMonitorMaxOutputTokens");
+    expect(adminMonitor).toContain("full_report: 4200");
     expect(adminMonitor).toContain("verifyCurrentFunctionFailures");
     expect(adminMonitor).toContain("isOperationalFunctionFailure");
     expect(adminMonitor).toContain("isExpectedClientAuditRejection");
@@ -274,6 +277,19 @@ describe("TOK AI platform plan", () => {
     expect(adminMonitor).toContain("ai_response_parse_fallback");
     expect(adminMonitor).toContain("ai_response_fallback");
     expect(adminMonitor).toContain("!aiResponseFallback && result.security_alerts.length > 0");
+    expect(adminMonitor).toContain("checkedAt: checkedAt.toISOString()");
     expect(adminMonitor).toContain("aucune sanction utilisateur");
+  });
+
+  it("keeps AI operations reports fresh instead of replaying stale session diagnostics", () => {
+    const adminAiOperations = readProjectFile("src/pages/admin/AdminAiOperations.tsx");
+    const aiClient = readProjectFile("src/lib/ai/tokAiClient.ts");
+
+    expect(aiClient).toContain("checkedAt?: string");
+    expect(adminAiOperations).toContain("generatedAt");
+    expect(adminAiOperations).toContain("REPORT_FRESHNESS_MS");
+    expect(adminAiOperations).toContain("isStoredReportStale");
+    expect(adminAiOperations).toContain("clearDraft()");
+    expect(adminAiOperations).toContain("Analyse du");
   });
 });

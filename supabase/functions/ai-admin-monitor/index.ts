@@ -38,6 +38,13 @@ const FEATURE_NAME = "ai_admin_monitoring";
 const ERROR_LOG_LOOKBACK_HOURS = 6;
 const SUPPORT_CONTEXT_LOOKBACK_DAYS = 14;
 const SECURITY_CONTEXT_LOOKBACK_DAYS = 7;
+const ADMIN_MONITOR_OUTPUT_TOKENS: Record<MonitorAction, number> = {
+  health: 2600,
+  security: 2600,
+  costs: 2600,
+  incidents: 2600,
+  full_report: 4200,
+};
 
 type AuditLogRow = {
   function_name?: string | null;
@@ -122,6 +129,10 @@ function maybeUuid(raw: unknown) {
 function normalizeAction(raw: unknown): MonitorAction {
   if (raw === "security" || raw === "costs" || raw === "incidents" || raw === "full_report") return raw;
   return "health";
+}
+
+function getAdminMonitorMaxOutputTokens(action: MonitorAction) {
+  return ADMIN_MONITOR_OUTPUT_TOKENS[action] || ADMIN_MONITOR_OUTPUT_TOKENS.health;
 }
 
 function isQuotaAllowed(value: unknown) {
@@ -639,7 +650,7 @@ Reponds en francais operationnel avec priorites.`;
         { role: "system", content: systemPrompt },
         { role: "user", content: JSON.stringify(context) },
       ],
-      maxOutputTokens: action === "full_report" ? 2100 : 1500,
+      maxOutputTokens: getAdminMonitorMaxOutputTokens(action),
       jsonSchema: {
         name: "tok_ai_admin_monitor_result",
         description: "Admin monitoring AI report.",
@@ -774,6 +785,7 @@ Reponds en francais operationnel avec priorites.`;
       action,
       restaurantId,
       adminEventId,
+      checkedAt: checkedAt.toISOString(),
       healthScore,
       metrics: context.metrics,
       quota,

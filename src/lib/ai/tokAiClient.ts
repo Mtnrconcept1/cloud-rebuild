@@ -346,6 +346,7 @@ export function runAdminMonitor(request: AdminMonitorRequest) {
     verificationSummary?: string;
     logVerification?: JsonRecord;
     recoveredFunctionErrors?: JsonRecord[];
+    checkedAt?: string;
     adminEventId: string;
   }>("ai-admin-monitor", { ...request });
 }

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Activity, AlertTriangle, Brain, CheckCircle2, Clock, FileDown, ShieldAlert, Ticket, Zap } from "lucide-react";
 
@@ -15,12 +16,15 @@ type AdminMonitorResult = Awaited<ReturnType<typeof runAdminMonitor>>;
 type AdminAiOperationsDraft = {
   action: "health" | "security" | "costs" | "incidents" | "full_report";
   result: AdminMonitorResult | null;
+  generatedAt: string | null;
 };
 
 const DEFAULT_DRAFT: AdminAiOperationsDraft = {
   action: "health",
   result: null,
+  generatedAt: null,
 };
+const REPORT_FRESHNESS_MS = 20 * 60 * 1000;
 
 function exportAdminAiOperationsReport(result: AdminMonitorResult, action: AdminAiOperationsDraft["action"]) {
   const payload = {
@@ -45,6 +49,23 @@ function getSmokeTestLabel(result: AdminMonitorResult) {
   return `Test app ${payload.ok === true ? "OK" : "KO"} (${status})`;
 }
 
+function isStoredReportStale(generatedAt: string | null | undefined) {
+  if (!generatedAt) return true;
+  const parsed = Date.parse(generatedAt);
+  if (!Number.isFinite(parsed)) return true;
+  return Date.now() - parsed > REPORT_FRESHNESS_MS;
+}
+
+function formatStoredReportTime(generatedAt: string | null | undefined) {
+  if (!generatedAt) return "";
+  const parsed = Date.parse(generatedAt);
+  if (!Number.isFinite(parsed)) return "";
+  return new Intl.DateTimeFormat("fr-CH", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(parsed));
+}
+
 export default function AdminAiOperations() {
   const [draft, setDraft, clearDraft] = useSessionStorageState<AdminAiOperationsDraft>(
     "tok-admin-ai-operations",
@@ -54,10 +75,22 @@ export default function AdminAiOperations() {
 
   const monitorMutation = useMutation({
     mutationFn: () => runAdminMonitor({ action }),
-    onSuccess: (data) => setDraft((previous) => ({ ...previous, result: data })),
+    onSuccess: (data) => setDraft((previous) => ({
+      ...previous,
+      result: data,
+      generatedAt: data.checkedAt || new Date().toISOString(),
+    })),
   });
 
   const result = draft.result;
+  const generatedAtLabel = formatStoredReportTime(draft.generatedAt || result?.checkedAt);
+
+  useEffect(() => {
+    if (!draft.result || monitorMutation.isPending) return;
+    if (isStoredReportStale(draft.generatedAt || draft.result.checkedAt)) {
+      clearDraft();
+    }
+  }, [clearDraft, draft.generatedAt, draft.result, monitorMutation.isPending]);
 
   return (
     <div className="container space-y-6 py-8">
@@ -115,6 +148,9 @@ export default function AdminAiOperations() {
                 <Button type="button" variant="ghost" size="sm" onClick={clearDraft}>
                   Effacer le rapport
                 </Button>
+                {generatedAtLabel ? (
+                  <Badge variant="outline">Analyse du {generatedAtLabel}</Badge>
+                ) : null}
               </>
             ) : null}
           </div>

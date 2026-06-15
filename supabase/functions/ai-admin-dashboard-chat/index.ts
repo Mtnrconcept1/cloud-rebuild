@@ -90,6 +90,24 @@ async function getActorEmail(actor: Awaited<ReturnType<typeof authenticateReques
   return normalizeOwnerEmail(data.user?.email);
 }
 
+async function getSingleConfiguredAdminUserId(actor: Awaited<ReturnType<typeof authenticateRequest>>) {
+  const { data, error } = await actor.adminClient
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin")
+    .limit(2);
+
+  if (error) throw new HttpError(503, error.message);
+
+  const adminIds = new Set(
+    (data || [])
+      .map((row: Record<string, unknown>) => typeof row.user_id === "string" ? row.user_id : "")
+      .filter(Boolean),
+  );
+
+  return adminIds.size === 1 ? [...adminIds][0] : "";
+}
+
 async function requireSingleAdminAiPrincipal(actor: Awaited<ReturnType<typeof authenticateRequest>>) {
   requireUserRole(actor, ["admin"], "admin_access_required");
 
@@ -97,7 +115,10 @@ async function requireSingleAdminAiPrincipal(actor: Awaited<ReturnType<typeof au
   const configuredEmail = normalizeOwnerEmail(Deno.env.get("TOK_ADMIN_AI_OWNER_EMAIL"));
 
   if (!configuredUserId && !configuredEmail) {
-    throw new HttpError(403, "admin_ai_owner_not_configured");
+    const singleAdminUserId = await getSingleConfiguredAdminUserId(actor);
+    if (!singleAdminUserId) throw new HttpError(403, "admin_ai_owner_not_configured");
+    if (actor.userId !== singleAdminUserId) throw new HttpError(403, "admin_ai_owner_required");
+    return;
   }
 
   const idMatches = configuredUserId ? actor.userId === configuredUserId : true;

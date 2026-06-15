@@ -21,6 +21,10 @@ describe("privileged admin AI chat", () => {
     expect(source).toContain("requireSingleAdminAiPrincipal");
     expect(source).toContain("TOK_ADMIN_AI_OWNER_USER_ID");
     expect(source).toContain("TOK_ADMIN_AI_OWNER_EMAIL");
+    expect(source).toContain("getSingleConfiguredAdminUserId");
+    expect(source).toContain('.from("user_roles")');
+    expect(source).toContain('.eq("role", "admin")');
+    expect(source).toContain("adminIds.size === 1");
     expect(source).toContain('requireUserRole(actor, ["admin"]');
     expect(source).toContain("requireAdminDashboardAiChatEnabled");
     expect(source).toContain("admin_dashboard_ai_chat_disabled");
