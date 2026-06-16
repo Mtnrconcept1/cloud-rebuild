@@ -1,4 +1,4 @@
-import { ArrowUpRight, CheckCircle2, LockKeyhole, Star, Trophy } from "lucide-react";
+import { ArrowUpRight, Cake, CheckCircle2, Loader2, LockKeyhole, Star, Trophy } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -149,13 +149,22 @@ export default function LoyaltyStatus() {
                         <Button
                           type="button"
                           size="sm"
-                          variant="outline"
-                          className="mt-3 h-8 rounded-md px-2 text-xs"
+                          className="mt-3 min-h-10 w-full justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 px-4 text-xs font-bold text-white shadow-lg shadow-pink-500/20 transition hover:from-pink-600 hover:to-orange-600 sm:w-auto"
                           aria-label={`Bonus anniversaire - ${benefit.title}`}
                           disabled={birthdayBonusMutation.isPending}
                           onClick={() => birthdayBonusMutation.mutate()}
                         >
-                          {birthdayBonusMutation.isPending ? "Traitement..." : "Reclamer"}
+                          {birthdayBonusMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Traitement...
+                            </>
+                          ) : (
+                            <>
+                              <Cake className="h-4 w-4" />
+                              Reclamer mon bonus
+                            </>
+                          )}
                         </Button>
                       ) : null}
                     </div>

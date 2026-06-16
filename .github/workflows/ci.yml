@@ -8,7 +8,7 @@ on:
       - master
 
 env:
-  NODE_VERSION: 24
+  NODE_VERSION: 22
   PNPM_VERSION: 10.28.1
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   VITE_SUPABASE_URL: https://example.supabase.co

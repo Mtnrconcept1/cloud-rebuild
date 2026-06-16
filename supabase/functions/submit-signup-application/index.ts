@@ -1,4 +1,4 @@
-import { HttpError, createAdminClient, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
+import { HttpError, authenticateRequest, createAdminClient, jsonResponse, writeAuditLog } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
@@ -25,12 +25,33 @@ function getClientIp(req: Request) {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 }
 
+function isProductionRuntime() {
+  const environment = [
+    Deno.env.get("ENVIRONMENT"),
+    Deno.env.get("APP_ENV"),
+    Deno.env.get("NODE_ENV"),
+  ].join(" ").toLowerCase();
+  const publicUrls = [
+    Deno.env.get("APP_BASE_URL"),
+    Deno.env.get("PUBLIC_APP_URL"),
+    Deno.env.get("SITE_URL"),
+  ].join(" ").toLowerCase();
+
+  return environment.includes("production") ||
+    publicUrls.includes("thetok.ch") ||
+    publicUrls.includes("cloud-rebuild-recovered.vercel.app");
+}
+
 async function verifyTurnstileIfConfigured(token: string, req: Request) {
   const secret = Deno.env.get("TURNSTILE_SECRET_KEY")?.trim() ||
     Deno.env.get("CLOUDFLARE_TURNSTILE_SECRET_KEY")?.trim() ||
     "";
 
-  if (!secret) return { skipped: true };
+  if (!secret) {
+    if (isProductionRuntime()) throw new HttpError(503, "captcha_not_configured");
+    return { skipped: true };
+  }
+
   requireInput(token, "captcha_required");
 
   const form = new FormData();
@@ -130,9 +151,11 @@ Deno.serve(async (req) => {
   const log = makeLogger(FUNCTION_NAME);
   const adminClient = createAdminClient();
   let targetEntityId: string | null = null;
+  let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
 
   try {
     if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
+    actor = await authenticateRequest(req, { allowServiceRole: false });
 
     const contentType = req.headers.get("content-type") || "";
     requireInput(contentType.toLowerCase().includes("multipart/form-data"), "multipart_form_data_required");
@@ -165,6 +188,7 @@ Deno.serve(async (req) => {
     };
 
     requireInput(UUID_PATTERN.test(userId), "invalid_user_id");
+    requireInput(actor.userId === userId, "user_id_mismatch");
     if (email) requireInput(EMAIL_PATTERN.test(email), "invalid_email");
     const validationError = validateSubmissionFields(role, fields);
     if (validationError) throw new HttpError(400, validationError);
@@ -242,6 +266,7 @@ Deno.serve(async (req) => {
       functionName: FUNCTION_NAME,
       action: "submit_privileged_signup_draft",
       status: "success",
+      actor,
       request: req,
       targetEntityType: "signup_applications",
       targetEntityId,
@@ -264,6 +289,7 @@ Deno.serve(async (req) => {
       functionName: FUNCTION_NAME,
       action: "submit_privileged_signup_draft",
       status: "failure",
+      actor,
       request: req,
       targetEntityType: "signup_applications",
       targetEntityId,

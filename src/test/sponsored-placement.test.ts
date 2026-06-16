@@ -306,6 +306,9 @@ describe("prioritizeSponsoredCards", () => {
     expect(banner).toContain('getActiveSponsoredRestaurants(page, "banner")');
     expect(banner).toContain("rotateSponsoredCardsWithinRestaurants");
     expect(banner).toContain("rotationSeed");
+    expect(banner).toContain("campaign-copy-panel");
+    expect(banner).toContain("bg-slate-950/62");
+    expect(banner).toContain("backdrop-blur-xl");
     expect(analytics).toContain("avoidCompanionPlacementDuplicates");
     expect(analytics).toContain("campaignSupportsPlacement(campaign, placement)");
   });

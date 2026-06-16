@@ -1,14 +1,17 @@
-import { FormEvent, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   Bookmark,
   CalendarCheck,
+  ChevronDown,
   EyeOff,
   MessageCircle,
+  MoreVertical,
   Repeat2,
   Send,
   Share2,
+  SlidersHorizontal,
   ShoppingBag,
   Sparkles,
   Store,
@@ -26,7 +29,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useAddSocialComment,
@@ -80,6 +97,108 @@ function formatPostDate(value: string) {
   }
 }
 
+function getCollapsedMobileBody(body: string) {
+  const normalized = body.replace(/\s+/g, " ").trim();
+  if (normalized.length <= 78) return normalized;
+  return `${normalized.slice(0, 78).trimEnd()}...`;
+}
+
+const SOCIAL_REPORT_REASONS = [
+  { value: "spam", label: "Spam ou promotion trompeuse" },
+  { value: "inappropriate", label: "Contenu inapproprié ou offensant" },
+  { value: "harassment", label: "Harcèlement ou attaque ciblée" },
+  { value: "false_information", label: "Information trompeuse" },
+  { value: "rights", label: "Violation de droits ou contenu volé" },
+  { value: "other", label: "Autres" },
+] as const;
+
+type SocialReportReason = (typeof SOCIAL_REPORT_REASONS)[number]["value"];
+
+const COMMENT_SORT_OPTIONS = [
+  { value: "newest", label: "Plus récents" },
+  { value: "oldest", label: "Plus anciens" },
+  { value: "likes", label: "Plus likés" },
+] as const;
+
+type CommentSortMode = (typeof COMMENT_SORT_OPTIONS)[number]["value"];
+
+function getCommentTimestamp(comment: SocialFeedComment) {
+  const value = new Date(comment.createdAt).getTime();
+  return Number.isFinite(value) ? value : 0;
+}
+
+function getCommentEngagement(comment: SocialFeedComment) {
+  return Math.max(0, Number(comment.reactionsCount || comment.reactionCounts?.like || 0));
+}
+
+function sortCommentThread(nodes: SocialCommentThread[], sortMode: CommentSortMode): SocialCommentThread[] {
+  return [...nodes]
+    .sort((first, second) => {
+      if (sortMode === "likes") {
+        const engagementDelta = getCommentEngagement(second.comment) - getCommentEngagement(first.comment);
+        if (engagementDelta !== 0) return engagementDelta;
+        return getCommentTimestamp(second.comment) - getCommentTimestamp(first.comment);
+      }
+
+      const dateDelta = getCommentTimestamp(second.comment) - getCommentTimestamp(first.comment);
+      return sortMode === "oldest" ? -dateDelta : dateDelta;
+    })
+    .map((node) => ({
+      ...node,
+      replies: sortCommentThread(node.replies, sortMode),
+    }));
+}
+
+function CommentSortButton({
+  value,
+  onChange,
+  onSelect,
+  compact = false,
+}: {
+  value: CommentSortMode;
+  onChange: (value: CommentSortMode) => void;
+  onSelect?: () => void;
+  compact?: boolean;
+}) {
+  const activeOption = COMMENT_SORT_OPTIONS.find((option) => option.value === value) || COMMENT_SORT_OPTIONS[0];
+
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          aria-label="Trier les commentaires"
+          className={cn(
+            "h-9 gap-1.5 rounded-full px-2.5 text-sm font-semibold text-slate-950 hover:bg-orange-50 hover:text-orange-700",
+            compact && "h-8 px-1.5 text-sm",
+          )}
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          Trier
+          <span className="hidden text-muted-foreground sm:inline">: {activeOption.label}</span>
+          <ChevronDown className="h-3.5 w-3.5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44 rounded-xl">
+        {COMMENT_SORT_OPTIONS.map((option) => (
+          <DropdownMenuItem
+            key={option.value}
+            className={cn("cursor-pointer rounded-lg", option.value === value && "font-semibold text-orange-700")}
+            onClick={() => {
+              onChange(option.value);
+              onSelect?.();
+            }}
+          >
+            {option.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function ReactionSummary({ counts }: { counts: SocialReactionCounts }) {
   const summary = summarizeSocialReactions(counts);
   if (!summary.length) return null;
@@ -119,7 +238,7 @@ function ReactionPicker({
 
   return (
     <div
-      className="relative inline-flex"
+      className={cn("relative inline-flex max-sm:w-full", compact && "max-sm:w-auto")}
       onBlur={(event) => {
         const nextTarget = event.relatedTarget;
         if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
@@ -132,9 +251,9 @@ function ReactionPicker({
         variant={currentReaction ? "secondary" : "outline"}
         size="sm"
         className={cn(
-          "gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm hover:bg-orange-50",
+          "gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm hover:bg-orange-50 max-sm:h-11 max-sm:w-full max-sm:min-w-0 max-sm:justify-center max-sm:rounded-xl max-sm:px-1.5 max-sm:text-sm",
           currentReaction && "bg-orange-50 text-primary",
-          compact && "h-8 px-2 text-xs",
+          compact && "h-8 px-2 text-xs max-sm:h-8 max-sm:w-auto max-sm:px-2 max-sm:text-xs",
         )}
         disabled={disabled}
         aria-haspopup="menu"
@@ -179,15 +298,22 @@ function CommentForm({
   postId,
   parentCommentId,
   placeholder,
+  initialBody = "",
+  variant = "default",
+  authorInitial = "T",
   onDone,
 }: {
   postId: string;
   parentCommentId?: string | null;
   placeholder: string;
+  initialBody?: string;
+  variant?: "default" | "mobilePreview";
+  authorInitial?: string;
   onDone?: () => void;
 }) {
-  const [body, setBody] = useState("");
+  const [body, setBody] = useState(initialBody);
   const addComment = useAddSocialComment(postId, parentCommentId);
+  const isMobilePreview = variant === "mobilePreview";
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -197,18 +323,30 @@ function CommentForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex items-end gap-2">
+    <form onSubmit={submit} className={cn("flex items-end gap-2", isMobilePreview && "items-center gap-2")}>
+      {isMobilePreview ? (
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-500 text-sm font-bold text-white">
+          {authorInitial}
+        </span>
+      ) : null}
       <Textarea
         value={body}
         onChange={(event) => setBody(event.target.value)}
         placeholder={placeholder}
-        className="min-h-10 min-w-0 flex-1 resize-none text-base sm:text-sm"
+        rows={isMobilePreview ? 1 : undefined}
+        className={cn(
+          "min-h-10 min-w-0 flex-1 resize-none text-base sm:text-sm",
+          isMobilePreview && "h-10 min-h-10 rounded-full border-slate-200 bg-white px-4 py-2 text-sm shadow-inner shadow-slate-100/60",
+        )}
         maxLength={1000}
       />
       <Button
         type="submit"
         size="icon"
-        className="h-10 w-10 shrink-0"
+        className={cn(
+          "h-10 w-10 shrink-0",
+          isMobilePreview && "rounded-full bg-slate-100 text-slate-400 shadow-none hover:bg-orange-100 hover:text-primary",
+        )}
         disabled={!body.trim() || addComment.isPending}
         aria-label="Envoyer le commentaire"
       >
@@ -218,6 +356,160 @@ function CommentForm({
   );
 }
 
+function MobileCommentsPanel({
+  post,
+  sortMode,
+  onSortModeChange,
+  onOpenComments,
+}: {
+  post: SocialFeedPost;
+  sortMode: CommentSortMode;
+  onSortModeChange: (value: CommentSortMode) => void;
+  onOpenComments: () => void;
+}) {
+  const comments = useSocialComments(post.id);
+  const firstComment = useMemo(() => {
+    const tree = sortCommentThread(buildSocialCommentThread(comments.data || []), sortMode);
+    return tree[0]?.comment || null;
+  }, [comments.data, sortMode]);
+
+  return (
+    <div className="mt-4 hidden rounded-[1.1rem] border bg-white px-3 py-3 shadow-md shadow-slate-200/60 max-sm:block">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-black tracking-tight text-slate-950">Commentaires ({post.commentsCount})</h3>
+        <CommentSortButton
+          compact
+          value={sortMode}
+          onChange={onSortModeChange}
+          onSelect={onOpenComments}
+        />
+      </div>
+      {firstComment ? (
+        <button
+          type="button"
+          className="mt-3 block w-full rounded-2xl bg-slate-50 px-3 py-2 text-left transition hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/30"
+          onClick={onOpenComments}
+          aria-label="Ouvrir le post et tous les commentaires"
+        >
+          <div className="flex items-start gap-2">
+            <Avatar className="mt-0.5 h-8 w-8 shrink-0 rounded-full border border-slate-200 bg-white shadow-sm">
+              <AvatarImage src={firstComment.authorAvatarUrl || undefined} alt={firstComment.authorName || "Client"} />
+              <AvatarFallback className="rounded-full bg-slate-100 text-xs font-black text-slate-700">
+                {getInitials(firstComment.authorName || "Client").slice(0, 1)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center justify-between gap-2">
+                <span className="truncate text-xs font-bold text-slate-950">{firstComment.authorName || "Client"}</span>
+                <span className="shrink-0 text-[11px] text-muted-foreground">{formatPostDate(firstComment.createdAt)}</span>
+              </span>
+              <span className="mt-0.5 line-clamp-2 block text-sm leading-5 text-slate-700">{firstComment.body}</span>
+            </span>
+          </div>
+        </button>
+      ) : comments.isLoading ? (
+        <p className="mt-3 rounded-2xl bg-slate-50 px-3 py-2 text-sm text-muted-foreground">Chargement des commentaires...</p>
+      ) : null}
+      {post.commentsCount > 1 || firstComment ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mt-2 h-8 w-full rounded-full text-sm font-semibold text-orange-700 hover:bg-orange-50 hover:text-orange-800"
+          onClick={onOpenComments}
+        >
+          Voir plus
+        </Button>
+      ) : null}
+      <div className="mt-3">
+        <CommentForm
+          postId={post.id}
+          placeholder="Écrire un commentaire..."
+          variant="mobilePreview"
+          authorInitial="T"
+        />
+      </div>
+
+    </div>
+  );
+}
+
+function SocialPostModalSummary({ post }: { post: SocialFeedPost }) {
+  const cta = getCta(post);
+  const CtaIcon = cta?.icon;
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-2xl border bg-white p-3 shadow-sm">
+      <div className="flex items-start gap-3">
+        <Avatar className="h-10 w-10 rounded-xl border border-orange-100">
+          <AvatarImage src={post.restaurant.imageUrl || undefined} alt={post.restaurant.name} />
+          <AvatarFallback className="rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 text-xs font-bold text-white">
+            {getInitials(post.restaurant.name)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black text-slate-950">{post.restaurant.name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {[post.restaurant.cuisineType, post.restaurant.city, formatPostDate(post.createdAt)].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+            {cta ? (
+              <Button asChild size="sm" className="h-8 shrink-0 gap-1.5 rounded-full bg-orange-600 px-3 text-xs hover:bg-orange-700">
+                <Link to={cta.to}>
+                  {CtaIcon ? <CtaIcon className="h-3.5 w-3.5" /> : null}
+                  {cta.label}
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+          <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm leading-5 text-slate-800">{post.body}</p>
+        </div>
+      </div>
+      </div>
+
+      {post.media.length > 0 ? (
+        <SocialMediaCarousel
+          media={post.media}
+          variant="side"
+          mobileBleed="container"
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function MobileMediaActionRail({
+  onOptions,
+}: {
+  onOptions: () => void;
+}) {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-20 hidden max-sm:block">
+      <button
+        type="button"
+        aria-label="Options du média"
+        onClick={onOptions}
+        className="pointer-events-auto absolute right-3 top-4 flex h-10 w-10 items-center justify-center rounded-full text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] transition hover:bg-white/15"
+      >
+        <MoreVertical className="h-7 w-7 stroke-[2.5]" />
+      </button>
+    </div>
+  );
+}
+
+const MAX_COMMENT_VISUAL_DEPTH = 4;
+
+function getCommentMention(authorName?: string | null) {
+  const compactName = String(authorName || "client")
+    .trim()
+    .replace(/^@+/, "")
+    .replace(/\s+/g, "");
+  return `@${compactName || "client"} `;
+}
+
 function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; depth?: number }) {
   const [replying, setReplying] = useState(false);
   const { user, isSuperAdmin } = useAuth();
@@ -225,6 +517,7 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
   const deleteComment = useDeleteSocialComment();
   const comment = node.comment;
   const canDelete = comment.userId === user?.id || isSuperAdmin;
+  const shouldIndent = depth > 0 && depth <= MAX_COMMENT_VISUAL_DEPTH;
 
   const confirmDelete = () => {
     if (!window.confirm("Supprimer ce commentaire ?")) return;
@@ -232,14 +525,31 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
   };
 
   return (
-    <div className={cn(depth > 0 && "ml-5 border-l pl-3")}>
-      <div className="rounded-lg bg-muted/55 p-3">
-        <div className="mb-1 flex items-center justify-between gap-3">
-          <span className="text-sm font-semibold">{comment.authorName || "Client"}</span>
-          <span className="text-xs text-muted-foreground">{formatPostDate(comment.createdAt)}</span>
+    <div
+      className={cn(
+        "min-w-0 max-w-full overflow-visible",
+        shouldIndent && "ml-3 border-l pl-2 sm:ml-5 sm:pl-3",
+      )}
+    >
+      <div className="min-w-0 max-w-full overflow-visible rounded-lg bg-muted/55 p-3">
+        <div className="mb-1 flex items-start gap-2.5">
+          <Avatar className="h-8 w-8 shrink-0 rounded-full border border-slate-200 bg-white shadow-sm">
+            <AvatarImage src={comment.authorAvatarUrl || undefined} alt={comment.authorName || "Client"} />
+            <AvatarFallback className="rounded-full bg-slate-100 text-xs font-black text-slate-700">
+              {getInitials(comment.authorName || "Client").slice(0, 1)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <span className="truncate text-sm font-semibold">{comment.authorName || "Client"}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{formatPostDate(comment.createdAt)}</span>
+            </div>
+            <p className="min-w-0 max-w-full whitespace-pre-wrap break-words text-sm [overflow-wrap:anywhere]">
+              {comment.body}
+            </p>
+          </div>
         </div>
-        <p className="whitespace-pre-wrap text-sm">{comment.body}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-2 flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-visible">
           <ReactionPicker
             compact
             currentReaction={comment.myReaction}
@@ -271,6 +581,7 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
           <CommentForm
             postId={comment.postId}
             parentCommentId={comment.id}
+            initialBody={getCommentMention(comment.authorName)}
             placeholder={`Répondre à ${comment.authorName || "ce commentaire"}`}
             onDone={() => setReplying(false)}
           />
@@ -278,7 +589,7 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
       ) : null}
 
       {node.replies.length > 0 ? (
-        <div className="mt-3 space-y-3">
+        <div className="mt-3 min-w-0 max-w-full space-y-3 overflow-hidden">
           {node.replies.map((reply) => (
             <SocialCommentItem key={reply.comment.id} node={reply} depth={depth + 1} />
           ))}
@@ -288,15 +599,30 @@ function SocialCommentItem({ node, depth = 0 }: { node: SocialCommentThread; dep
   );
 }
 
-function SocialComments({ post }: { post: SocialFeedPost }) {
+function SocialComments({
+  post,
+  sortMode,
+  onSortModeChange,
+}: {
+  post: SocialFeedPost;
+  sortMode: CommentSortMode;
+  onSortModeChange: (value: CommentSortMode) => void;
+}) {
   const comments = useSocialComments(post.id);
-  const commentTree = buildSocialCommentThread(comments.data || []);
+  const commentTree = useMemo(
+    () => sortCommentThread(buildSocialCommentThread(comments.data || []), sortMode),
+    [comments.data, sortMode],
+  );
 
   return (
-    <div className="mt-4 border-t pt-4">
+    <div className="mt-4 min-w-0 max-w-full overflow-hidden border-t pt-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="text-sm font-bold text-slate-950">Commentaires ({post.commentsCount})</h3>
+        <CommentSortButton value={sortMode} onChange={onSortModeChange} />
+      </div>
       <CommentForm postId={post.id} placeholder="Ajouter un commentaire" />
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 min-w-0 max-w-full space-y-3 overflow-hidden">
         {comments.isLoading ? (
           <p className="text-sm text-muted-foreground">Chargement...</p>
         ) : commentTree.length > 0 ? (
@@ -337,7 +663,7 @@ function getCta(post: SocialFeedPost) {
     case "order":
       return { label: "Commander", icon: ShoppingBag, to: `${restaurantPath}?order=1` };
     case "menu":
-      return { label: "Voir menu", icon: Store, to: `${restaurantPath}#menu` };
+      return { label: "Voir le menu", icon: Store, to: `${restaurantPath}#menu` };
     case "offer":
       return { label: "Voir l'offre", icon: Sparkles, to: `${restaurantPath}?offer=${encodeURIComponent(post.ctaTargetId || post.id)}` };
     default:
@@ -355,6 +681,11 @@ export default function SocialPostCard({
   highlighted?: boolean;
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [bodyExpanded, setBodyExpanded] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<SocialReportReason>("spam");
+  const [reportDetails, setReportDetails] = useState("");
+  const [commentSortMode, setCommentSortMode] = useState<CommentSortMode>("newest");
   const { user, isSuperAdmin } = useAuth();
   const setPostReaction = useSetSocialPostReaction();
   const toggleSave = useToggleSocialSave();
@@ -371,6 +702,10 @@ export default function SocialPostCard({
   const hasMedia = post.media.length > 0;
   const campaignGoalLabel = getCampaignGoalLabel(post);
   const audienceLabel = getAudienceLabel(post);
+  const canExpandBody = post.body.trim().length > 115 || post.body.includes("\n");
+  const collapsedMobileBody = getCollapsedMobileBody(post.body);
+  const mobilePrimaryActionClass =
+    "max-sm:h-11 max-sm:w-full max-sm:min-w-0 max-sm:justify-center max-sm:gap-1 max-sm:rounded-xl max-sm:px-1.5 max-sm:text-sm";
 
   const sharePost = async () => {
     const url = getSocialPostShareUrl(post.id);
@@ -398,12 +733,35 @@ export default function SocialPostCard({
     deletePost.mutate(post);
   };
 
+  const openReportDialog = () => {
+    setReportReason("spam");
+    setReportDetails("");
+    setReportDialogOpen(true);
+  };
+
+  const submitReport = () => {
+    const selectedReason = SOCIAL_REPORT_REASONS.find((reason) => reason.value === reportReason);
+    const details = reportDetails.trim();
+
+    if (reportReason === "other" && !details) {
+      toast.error("Veuillez préciser la raison du signalement.");
+      return;
+    }
+
+    reportItem.mutate({
+      targetType: "post",
+      targetId: post.id,
+      reason: details && selectedReason ? `${selectedReason.label} - ${details}` : selectedReason?.label || details,
+    });
+    setReportDialogOpen(false);
+  };
+
   return (
     <Card className={cn(
-      "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70",
+      "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70 max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-none max-sm:border-0 max-sm:shadow-none max-sm:hover:translate-y-0",
       highlighted && "border-primary/60 ring-2 ring-primary/20",
     )}>
-      <CardContent className={cn("p-5", compact && "p-4")}>
+      <CardContent className={cn("p-5 max-sm:px-0", compact && "p-4")}>
         {post.repost ? (
           <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
             <Repeat2 className="h-3.5 w-3.5" />
@@ -411,39 +769,45 @@ export default function SocialPostCard({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <Link to={`/restaurant/${post.restaurantId}`} className="flex w-full min-w-0 flex-1 items-center gap-3">
-            <Avatar className="h-14 w-14 rounded-2xl border-2 border-orange-100 shadow-sm">
+        <div className="flex items-start justify-between gap-3 max-sm:relative max-sm:block max-sm:pt-9">
+          <Link to={`/restaurant/${post.restaurantId}`} className="flex w-full min-w-0 flex-1 items-center gap-3 max-sm:gap-2.5">
+            <Avatar className="h-14 w-14 rounded-2xl border-2 border-orange-100 shadow-sm max-sm:h-11 max-sm:w-11 max-sm:rounded-xl">
               <AvatarImage src={post.restaurant.imageUrl || undefined} alt={post.restaurant.name} />
-              <AvatarFallback className="rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 font-bold text-white">
+              <AvatarFallback className="rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 font-bold text-white max-sm:rounded-xl max-sm:text-xs">
                 {getInitials(post.restaurant.name)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <h3 className="truncate text-base font-bold leading-tight text-slate-950">{post.restaurant.name}</h3>
+                <h3 className="truncate text-base font-bold leading-tight text-slate-950 max-sm:text-base">{post.restaurant.name}</h3>
                 {post.isSponsored ? (
                   <Badge className="rounded-full bg-violet-50 px-2.5 py-0.5 text-[11px] font-semibold text-violet-700 hover:bg-violet-50">
                     Sponsorisé
                   </Badge>
                 ) : null}
               </div>
-              <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+              <p className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-muted-foreground max-sm:text-[11px]">
                 {[post.restaurant.cuisineType, post.restaurant.city, formatPostDate(post.createdAt)].filter(Boolean).join(" · ")}
                 {post.followedByMe ? (
-                  <span className="ml-1 inline-flex items-center gap-1 text-emerald-600">
+                  <span className="ml-1 inline-flex items-center gap-1 text-emerald-600 max-sm:hidden">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     En ligne
                   </span>
                 ) : null}
               </p>
+              {post.followedByMe ? (
+                <p className="mt-0.5 hidden items-center gap-1.5 text-xs font-semibold text-emerald-600 max-sm:flex">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  En ligne
+                </p>
+              ) : null}
             </div>
           </Link>
-          <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
+          <div className="flex shrink-0 items-center justify-end gap-2 max-sm:absolute max-sm:right-0 max-sm:top-0">
             <Button
               variant={post.followedByMe ? "secondary" : "outline"}
               size="sm"
-              className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm"
+              className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm max-sm:h-9 max-sm:rounded-lg max-sm:px-2.5 max-sm:text-xs"
               onClick={() => toggleFollow.mutate(post)}
               disabled={toggleFollow.isPending}
             >
@@ -454,7 +818,7 @@ export default function SocialPostCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-xl text-destructive"
+                className="h-9 w-9 rounded-xl text-destructive max-sm:h-9 max-sm:w-9 max-sm:rounded-lg"
                 onClick={confirmDeletePost}
                 disabled={deletePost.isPending}
                 aria-label="Supprimer le post"
@@ -462,60 +826,111 @@ export default function SocialPostCard({
                 <Trash2 className="h-4 w-4" />
               </Button>
             ) : null}
+            {!canDeletePost ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden h-9 w-9 rounded-lg text-slate-950 max-sm:inline-flex"
+                onClick={openReportDialog}
+                aria-label="Options du post"
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            ) : null}
           </div>
         </div>
 
-        <div className={cn("mt-4 grid gap-4", hasMedia && "lg:grid-cols-[minmax(0,1fr)_minmax(15rem,19rem)] lg:items-center")}>
-          <div className="min-w-0">
-            <p className="whitespace-pre-wrap text-[15px] font-medium leading-7 text-slate-950">{post.body}</p>
-
-            <div className="mt-4 flex flex-wrap gap-2">
+        <div
+          className={cn(
+            "mt-4 grid gap-4 max-sm:mt-2 max-sm:gap-2",
+            hasMedia && "lg:grid-cols-[minmax(0,0.78fr)_minmax(22rem,1.35fr)] lg:items-center lg:gap-5",
+          )}
+        >
+          <div className={cn("min-w-0", hasMedia && "order-1 lg:order-1")}>
+            <div className="flex flex-wrap gap-2 max-sm:max-h-6 max-sm:gap-1.5 max-sm:overflow-hidden">
               {post.postType ? (
-                <Badge variant="secondary" className="rounded-full bg-orange-50 text-orange-700 hover:bg-orange-50">
+                <Badge variant="secondary" className="rounded-full bg-orange-50 text-orange-700 hover:bg-orange-50 max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]">
                   {getPostTypeLabel(post)}
                 </Badge>
               ) : null}
               {post.recommendationReasons?.slice(0, 3).map((reason) => (
-                <Badge key={reason} variant="outline" className="rounded-full border-emerald-100 bg-emerald-50 text-emerald-700">
+                <Badge key={reason} variant="outline" className="rounded-full border-emerald-100 bg-emerald-50 text-emerald-700 max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]">
                   {reason}
                 </Badge>
               ))}
               {campaignGoalLabel ? (
-                <Badge variant="outline" className="gap-1 rounded-full border-amber-100 bg-amber-50 text-amber-700">
+                <Badge variant="outline" className="gap-1 rounded-full border-amber-100 bg-amber-50 text-amber-700 max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]">
                   <Target className="h-3 w-3" />
                   {campaignGoalLabel}
                 </Badge>
               ) : null}
               {audienceLabel ? (
-                <Badge variant="outline" className="rounded-full border-blue-100 bg-blue-50 text-blue-700">
+                <Badge variant="outline" className="rounded-full border-blue-100 bg-blue-50 text-blue-700 max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]">
                   {audienceLabel}
                 </Badge>
               ) : null}
               {post.offerCode ? (
-                <Badge variant="outline" className="rounded-full border-pink-100 bg-pink-50 text-pink-700">
+                <Badge variant="outline" className="rounded-full border-pink-100 bg-pink-50 text-pink-700 max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]">
                   Code {post.offerCode}
                 </Badge>
               ) : null}
             </div>
 
+            <div className="mt-4 max-sm:mt-2">
+              <p
+                className="whitespace-pre-wrap text-[15px] font-medium leading-7 text-slate-950 max-sm:hidden"
+              >
+                {post.body}
+              </p>
+              <p className="hidden whitespace-pre-wrap text-sm font-medium leading-5 text-slate-950 max-sm:block">
+                {canExpandBody && !bodyExpanded ? collapsedMobileBody : post.body}
+                {canExpandBody ? (
+                  <>
+                    {" "}
+                    <button
+                      type="button"
+                      className="inline font-semibold text-slate-500 transition hover:text-primary"
+                      onClick={() => setBodyExpanded((expanded) => !expanded)}
+                    >
+                      {bodyExpanded ? "Afficher moins" : "Afficher plus"}
+                    </button>
+                  </>
+                ) : null}
+              </p>
+            </div>
+
             {cta ? (
               <Button
                 asChild
-                className="mt-4 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700"
+                className="mt-4 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 max-sm:-mx-6 max-sm:mt-2.5 max-sm:h-10 max-sm:w-screen max-sm:justify-center max-sm:rounded-none max-sm:px-4 max-sm:text-sm max-sm:font-extrabold max-sm:shadow-md max-sm:shadow-orange-500/20"
                 onClick={() => recordEvent.mutate({ postId: post.id, eventType: "cta_click", metadata: { ctaType: post.ctaType } })}
               >
                 <Link to={cta.to}>
-                  {CtaIcon ? <CtaIcon className="h-4 w-4" /> : null}
+                  {CtaIcon ? <CtaIcon className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" /> : null}
                   {cta.label}
                 </Link>
               </Button>
             ) : null}
           </div>
 
-          {hasMedia ? <SocialMediaCarousel media={post.media} variant="side" /> : null}
+          {hasMedia ? (
+            <SocialMediaCarousel
+              media={post.media}
+              variant="side"
+              className="order-2 max-sm:mt-2 lg:order-2"
+              mobileOverlay={(
+                <MobileMediaActionRail
+                  onOptions={openReportDialog}
+                />
+              )}
+            />
+          ) : null}
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border bg-white/85 p-2 shadow-sm">
+        <div className={cn(
+          "mt-5 grid grid-cols-[repeat(6,minmax(0,1fr))] gap-1.5 rounded-none border-0 bg-transparent p-0 shadow-none sm:flex sm:flex-wrap sm:items-center sm:rounded-2xl sm:border sm:bg-white/85 sm:p-2 sm:shadow-sm",
+          hasMedia && "max-sm:mt-2 max-sm:px-0",
+        )}>
           <ReactionPicker
             currentReaction={post.myReaction}
             counts={post.reactionCounts}
@@ -526,35 +941,35 @@ export default function SocialPostCard({
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm"
+            className={cn("gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm", mobilePrimaryActionClass)}
             onClick={() => setCommentsOpen((open) => !open)}
             aria-label={commentsOpen ? "Masquer les commentaires" : "Afficher les commentaires"}
           >
-            <MessageCircle className="h-4 w-4" />
+            <MessageCircle className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" />
             {post.commentsCount}
           </Button>
           <Button
             variant={post.repostedByMe ? "secondary" : "outline"}
             size="sm"
-            className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm"
+            className={cn("gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm", mobilePrimaryActionClass)}
             onClick={() => toggleRepost.mutate(post)}
             disabled={toggleRepost.isPending}
           >
-            <Repeat2 className="h-4 w-4" />
+            <Repeat2 className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" />
             {post.repostsCount}
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm" onClick={sharePost} disabled={recordShare.isPending}>
-            <Share2 className="h-4 w-4" />
+          <Button variant="outline" size="sm" className={cn("gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm", mobilePrimaryActionClass)} onClick={sharePost} disabled={recordShare.isPending}>
+            <Share2 className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" />
             {post.sharesCount}
           </Button>
           <Button
             variant={post.savedByMe ? "secondary" : "outline"}
             size="sm"
-            className="gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm"
+            className={cn("gap-1.5 rounded-xl border-slate-200 bg-white shadow-sm", mobilePrimaryActionClass)}
             onClick={() => toggleSave.mutate(post)}
             disabled={toggleSave.isPending}
           >
-            <Bookmark className={cn("h-4 w-4", post.savedByMe && "fill-current")} />
+            <Bookmark className={cn("h-4 w-4 max-sm:h-3.5 max-sm:w-3.5", post.savedByMe && "fill-current")} />
             {post.savedByMe ? "Sauvé" : "Sauver"}
           </Button>
           {!compact ? (
@@ -562,7 +977,7 @@ export default function SocialPostCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 rounded-xl text-muted-foreground"
+                className="gap-1.5 rounded-xl text-muted-foreground max-sm:hidden"
                 onClick={() => feedback.mutate({ post, feedbackType: "show_more", reason: "Preference client" })}
                 disabled={feedback.isPending}
               >
@@ -572,7 +987,7 @@ export default function SocialPostCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 rounded-xl text-muted-foreground"
+                className="gap-1.5 rounded-xl text-muted-foreground max-sm:hidden"
                 onClick={() => feedback.mutate({ post, feedbackType: "not_interested", reason: "Moins comme ca" })}
                 disabled={feedback.isPending}
               >
@@ -582,7 +997,7 @@ export default function SocialPostCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 rounded-xl text-muted-foreground"
+                className="gap-1.5 rounded-xl text-muted-foreground max-sm:hidden"
                 onClick={() => feedback.mutate({ post, feedbackType: "hide_post", reason: "Post masque par le client" })}
                 disabled={feedback.isPending}
               >
@@ -594,13 +1009,22 @@ export default function SocialPostCard({
           <Button
             variant="ghost"
             size="icon"
-            className="ml-auto h-9 w-9 rounded-xl text-muted-foreground"
-            onClick={() => reportItem.mutate({ targetType: "post", targetId: post.id, reason: "Contenu inapproprie" })}
+            className="ml-auto h-9 w-9 rounded-xl text-muted-foreground max-sm:ml-0 max-sm:h-11 max-sm:w-full max-sm:min-w-0 max-sm:rounded-xl max-sm:border max-sm:border-slate-200 max-sm:bg-white max-sm:shadow-sm"
+            onClick={openReportDialog}
             aria-label="Signaler le post"
           >
-            <TriangleAlert className="h-4 w-4" />
+            <TriangleAlert className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" />
           </Button>
         </div>
+
+        {hasMedia && !compact ? (
+          <MobileCommentsPanel
+            post={post}
+            sortMode={commentSortMode}
+            onSortModeChange={setCommentSortMode}
+            onOpenComments={() => setCommentsOpen(true)}
+          />
+        ) : null}
 
         {compact ? (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -611,14 +1035,76 @@ export default function SocialPostCard({
           </div>
         ) : null}
 
+        <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+          <DialogContent className="max-w-md rounded-2xl p-5 sm:p-6">
+            <DialogHeader>
+              <DialogTitle>Signaler ce post</DialogTitle>
+              <DialogDescription>
+                Choisissez la raison du signalement. Notre équipe l'examinera avant toute action.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <label className="block space-y-2 text-sm font-semibold text-slate-900">
+                <span>Raison du signalement</span>
+                <select
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+                  value={reportReason}
+                  onChange={(event) => setReportReason(event.target.value as SocialReportReason)}
+                  aria-label="Raison du signalement"
+                >
+                  {SOCIAL_REPORT_REASONS.map((reason) => (
+                    <option key={reason.value} value={reason.value}>
+                      {reason.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {reportReason === "other" ? (
+                <label className="block space-y-2 text-sm font-semibold text-slate-900">
+                  <span>Précisez la raison</span>
+                  <Textarea
+                    value={reportDetails}
+                    onChange={(event) => setReportDetails(event.target.value)}
+                    placeholder="Décrivez brièvement le problème."
+                    className="min-h-24 rounded-xl"
+                    aria-label="Préciser la raison du signalement"
+                  />
+                </label>
+              ) : null}
+
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+                Le signalement doit être légitime. Toute campagne de signalement abusif, de harcèlement d'un concurrent
+                ou du restaurateur concerné pourra entraîner la suppression du compte.
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button type="button" variant="outline" onClick={() => setReportDialogOpen(false)}>
+                Annuler
+              </Button>
+              <Button
+                type="button"
+                className="bg-orange-600 hover:bg-orange-700"
+                onClick={submitReport}
+                disabled={reportItem.isPending || (reportReason === "other" && !reportDetails.trim())}
+              >
+                Envoyer le signalement
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Drawer open={commentsOpen} onOpenChange={setCommentsOpen} shouldScaleBackground={false}>
           <DrawerContent className="max-h-[calc(100dvh-0.75rem)] min-h-0 overflow-hidden">
             <DrawerHeader className="shrink-0">
               <DrawerTitle>Commentaires</DrawerTitle>
               <DrawerDescription>{post.restaurant.name}</DrawerDescription>
             </DrawerHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]">
-              <SocialComments post={post} />
+            <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]">
+              <SocialPostModalSummary post={post} />
+              <SocialComments post={post} sortMode={commentSortMode} onSortModeChange={setCommentSortMode} />
             </div>
           </DrawerContent>
         </Drawer>

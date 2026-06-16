@@ -89,6 +89,7 @@ describe("transactional order and reservation emails", () => {
     expect(read("supabase/functions/create-reservation/index.ts")).toContain("validate_and_create_reservation_safe");
     expect(read("supabase/functions/create-reservation/index.ts")).toContain("queueReservationConfirmationEmails");
     expect(read("src/lib/reservationMutations.ts")).toContain('functions.invoke("create-reservation"');
-    expect(read("supabase/config.toml")).toContain("[functions.create-reservation]\nverify_jwt = true");
+    expect(read("supabase/config.toml")).toContain("[functions.create-reservation]\nverify_jwt = false");
+    expect(read("supabase/functions/create-reservation/index.ts")).toContain("authenticateRequest(req, { allowServiceRole: false })");
   });
 });

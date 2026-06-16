@@ -38,6 +38,14 @@ describe("admin catalog governance", () => {
     expect(page).toContain("Monter");
     expect(page).toContain("Descendre");
     expect(page).toContain("collectionForm.restaurant_ids.length === 0");
+    expect(page).toContain("ADMIN_CATALOG_CUISINES_LIMIT");
+    expect(page).toContain("ADMIN_CATALOG_COLLECTIONS_LIMIT");
+    expect(page).toContain("ADMIN_CATALOG_COLLECTION_LINKS_LIMIT");
+    expect(page).toContain("ADMIN_CATALOG_RESTAURANTS_LIMIT");
+    expect(page).toContain(".limit(ADMIN_CATALOG_CUISINES_LIMIT)");
+    expect(page).toContain(".limit(ADMIN_CATALOG_COLLECTIONS_LIMIT)");
+    expect(page).toContain(".limit(ADMIN_CATALOG_COLLECTION_LINKS_LIMIT)");
+    expect(page).toContain(".limit(ADMIN_CATALOG_RESTAURANTS_LIMIT)");
     expect(page).not.toContain('.from("collections").delete');
     expect(page).not.toContain('.from("collection_restaurants").delete');
   });

@@ -32,6 +32,58 @@ function latestMigrationContaining(marker: string) {
 }
 
 describe("phase 1 launch audit plan readiness", () => {
+  it("keeps CI, production deploy, package engines, and docs on the same runtime contract", () => {
+    const ciWorkflow = readProjectFile(".github/workflows/ci.yml");
+    const deployWorkflow = readProjectFile(".github/workflows/deploy-production.yml");
+    const docs = readProjectFile("docs/skills/TOK_APPLICATION_SKILL.md");
+    const pkg = readJsonFile<{ engines: Record<string, string>; packageManager: string }>("package.json");
+
+    expect(ciWorkflow).toMatch(/NODE_VERSION:\s*22/);
+    expect(ciWorkflow).not.toMatch(/NODE_VERSION:\s*24/);
+    expect(deployWorkflow).toMatch(/NODE_VERSION:\s*22/);
+    expect(deployWorkflow).toMatch(/SUPABASE_CLI_VERSION:\s*2\.102\.0/);
+    expect(pkg.engines.node).toBe(">=22.0.0");
+    expect(pkg.engines.pnpm).toBe(">=10.28.1");
+    expect(pkg.packageManager).toBe("pnpm@10.28.1");
+    expect(docs).toContain("Supabase CLI 2.102.0");
+  });
+
+  it("runs release readiness inside the GitHub production environment without exposing secrets", () => {
+    const deployWorkflow = readProjectFile(".github/workflows/deploy-production.yml");
+
+    expect(deployWorkflow).toContain("environment: production");
+    expect(deployWorkflow).toContain("name: Release readiness");
+    expect(deployWorkflow).toContain("pnpm run release:readiness");
+
+    for (const requiredSecret of [
+      "secrets.VITE_STRIPE_PUBLISHABLE_KEY",
+      "secrets.STRIPE_SECRET_KEY",
+      "secrets.STRIPE_WEBHOOK_SECRET",
+      "secrets.INTERNAL_CRON_SECRET",
+      "secrets.RESEND_API_KEY",
+      "secrets.EMAIL_FROM",
+      "secrets.ALLOWED_ORIGINS",
+      "secrets.FIREBASE_SERVICE_ACCOUNT",
+      "secrets.FIREBASE_PROJECT_ID",
+      "secrets.FIREBASE_CLIENT_EMAIL",
+      "secrets.FIREBASE_PRIVATE_KEY",
+      "secrets.APPLE_TEAM_ID",
+      "secrets.ANDROID_KEYSTORE_BASE64",
+    ]) {
+      expect(deployWorkflow).toContain(requiredSecret);
+    }
+
+    for (const requiredVariable of [
+      "vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED",
+      "vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE",
+    ]) {
+      expect(deployWorkflow).toContain(requiredVariable);
+    }
+
+    expect(deployWorkflow).toContain("APP_BASE_URL: ${{ env.APP_BASE_URL }}");
+    expect(deployWorkflow).toContain("PUBLIC_APP_URL: ${{ env.PUBLIC_APP_URL }}");
+  });
+
   it("aligns the PWA manifest with the TOK Geneva launch positioning", () => {
     const manifest = readJsonFile<{
       name: string;

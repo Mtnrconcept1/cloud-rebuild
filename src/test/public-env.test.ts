@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import {
   getMissingSupabasePublicEnvKeys,
@@ -43,5 +45,15 @@ describe("public env", () => {
     ).toThrow(
       "Missing required Supabase public environment variables for production build: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY.",
     );
+  });
+
+  it("lets development .env.local dev_VITE public values override stale .env values", () => {
+    const viteConfig = readFileSync(resolve(process.cwd(), "vite.config.ts"), "utf8");
+
+    expect(viteConfig).toContain("applyDevelopmentPublicEnvOverrides");
+    expect(viteConfig).toContain("dev_VITE_PUBLIC_");
+    expect(viteConfig).toContain("dev_VITE_");
+    expect(viteConfig).toContain("VITE_SUPABASE_URL");
+    expect(viteConfig).toContain("VITE_SUPABASE_PUBLISHABLE_KEY");
   });
 });

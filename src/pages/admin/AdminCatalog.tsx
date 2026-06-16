@@ -18,6 +18,10 @@ import {
 import { getOptimizedImageUrl, optimizeImageUpload } from "@/lib/optimizedImages";
 
 const supabase = getSupabase();
+const ADMIN_CATALOG_CUISINES_LIMIT = 250;
+const ADMIN_CATALOG_COLLECTIONS_LIMIT = 100;
+const ADMIN_CATALOG_COLLECTION_LINKS_LIMIT = 1_000;
+const ADMIN_CATALOG_RESTAURANTS_LIMIT = 500;
 
 type CollectionFormState = {
   title: string;
@@ -53,7 +57,8 @@ export default function AdminCatalog() {
         .from("cuisines")
         .select("*")
         .is("archived_at", null)
-        .order("name");
+        .order("name")
+        .limit(ADMIN_CATALOG_CUISINES_LIMIT);
       if (error) throw error;
       return data || [];
     },
@@ -63,8 +68,12 @@ export default function AdminCatalog() {
     queryKey: ["admin-collections-raw"],
     queryFn: async () => {
       const [collectionsRes, linksRes] = await Promise.all([
-        supabase.from("collections").select("*").order("sort_order").order("title"),
-        supabase.from("collection_restaurants").select("collection_id, restaurant_id, sort_order").order("sort_order"),
+        supabase.from("collections").select("*").order("sort_order").order("title").limit(ADMIN_CATALOG_COLLECTIONS_LIMIT),
+        supabase
+          .from("collection_restaurants")
+          .select("collection_id, restaurant_id, sort_order")
+          .order("sort_order")
+          .limit(ADMIN_CATALOG_COLLECTION_LINKS_LIMIT),
       ]);
       if (collectionsRes.error) throw collectionsRes.error;
       if (linksRes.error) throw linksRes.error;
@@ -75,7 +84,11 @@ export default function AdminCatalog() {
   const { data: restaurants = [] } = useQuery({
     queryKey: ["admin-catalog-restaurants"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("restaurants").select("id, name, is_active, image_url").order("name");
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("id, name, is_active, image_url")
+        .order("name")
+        .limit(ADMIN_CATALOG_RESTAURANTS_LIMIT);
       if (error) throw error;
       return data || [];
     },

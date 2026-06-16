@@ -1,6 +1,6 @@
 import {
   DEFAULT_AUDIENCE_CRITERIA,
-  matchesAudienceCriteria,
+  scoreAudienceCriteria,
   type AudienceSnapshot,
 } from "@/lib/campaignTargeting";
 
@@ -59,21 +59,6 @@ function normalizeTargetPages(value: unknown): string[] {
   return trimmed.split(",").map((page) => page.trim()).filter(Boolean);
 }
 
-function hasUsableAudienceSnapshot(snapshot: AudienceSnapshot | null) {
-  if (!snapshot) return false;
-
-  return Boolean(
-    snapshot.city ||
-    (Array.isArray(snapshot.favoriteRestaurantIds) && snapshot.favoriteRestaurantIds.length > 0) ||
-    snapshot.interactionCount > 0 ||
-    snapshot.avgBasket > 0 ||
-    snapshot.daysSinceLastActivity != null ||
-    (Array.isArray(snapshot.cuisineSignals) && snapshot.cuisineSignals.length > 0) ||
-    (Array.isArray(snapshot.journeyTypes) && snapshot.journeyTypes.length > 0) ||
-    (Array.isArray(snapshot.serviceMoments) && snapshot.serviceMoments.length > 0),
-  );
-}
-
 export function isCampaignVisibleForViewer(
   campaign: CampaignVisibilityCandidate,
   {
@@ -114,14 +99,14 @@ export function isCampaignVisibleForViewer(
     return true;
   }
 
-  if (!hasUsableAudienceSnapshot(audienceSnapshot)) {
+  if (!audienceSnapshot) {
     return true;
   }
 
   const restaurantId = campaign?.restaurant_id || campaign?.restaurants?.id || null;
-  return matchesAudienceCriteria(
+  return scoreAudienceCriteria(
     campaign?.target_criteria || DEFAULT_AUDIENCE_CRITERIA,
     audienceSnapshot,
     restaurantId,
-  );
+  ).score > 0;
 }

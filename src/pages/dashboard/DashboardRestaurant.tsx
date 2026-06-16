@@ -19,6 +19,7 @@ import { buildCurrentCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { useAuth } from "@/lib/auth-context";
 import { SUPABASE_URL } from "@/lib/env";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { fetchWithFreshAccessToken } from "@/lib/session";
 import {
   buildRestaurantCategorySearchTerms,
@@ -317,7 +318,7 @@ export default function DashboardRestaurant() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erreur");
-      window.location.href = data.url;
+      redirectToTrustedCheckoutUrl(data.url);
     } catch (error: any) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
       setConnectLoading(false);

@@ -78,6 +78,33 @@ describe("Actualites sponsored SQL safety guards", () => {
     expect(sql).not.toContain("INTO v_promotion_id, v_campaign_id");
   });
 
+  it("uses weighted audience targeting before showing sponsored posts in Actualites", () => {
+    const sql = readMigration("actualites_sponsored_targeting_score");
+
+    expect(sql).toContain("profiles_gender_check");
+    expect(sql).toContain("social_campaign_targeting_score");
+    expect(sql).toContain("v_score := v_score + 1");
+    expect(sql).toContain("v_score := v_score + 4");
+    expect(sql).toContain("v_score := v_score + 8");
+    expect(sql).toContain("v_score := v_score + 10");
+    expect(sql).toContain("CROSS JOIN LATERAL public.social_campaign_targeting_score");
+    expect(sql).toContain("AND targeting.score > 0");
+    expect(sql).toContain("targeting_multiplier");
+    expect(sql).toContain("paced.budget_pacing_score * paced.boost_weight * paced.targeting_multiplier");
+  });
+
+  it("notifies the parent author when a comment reply mentions them", () => {
+    const sql = readMigration("social_comment_reply_mentions");
+
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.notify_social_comment()");
+    expect(sql).toContain("NEW.parent_comment_id IS NOT NULL");
+    expect(sql).toContain("v_parent_author_id IS DISTINCT FROM NEW.user_id");
+    expect(sql).toContain("'social_comment_mention'");
+    expect(sql).toContain("vous a mentionné dans un commentaire");
+    expect(sql).toContain("'mentioned_by_user_id', NEW.user_id");
+    expect(sql).toContain("DROP TRIGGER IF EXISTS notify_social_comment_insert");
+  });
+
   it("allows public reads and anonymous impression/click tracking without opening social write actions", () => {
     const sql = readMigration("public_actualites_and_anonymous_tracking");
 

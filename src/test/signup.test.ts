@@ -152,6 +152,20 @@ describe("signup and admin moderation SQL", () => {
     expect(config).toMatch(/\[functions\.submit-signup-application\]\s*\nverify_jwt\s*=\s*false/i);
   });
 
+  it("binds privileged signup submissions to the authenticated JWT user", () => {
+    const config = readFileSync(resolve(process.cwd(), "supabase/config.toml"), "utf8");
+    const submitFunction = readFileSync(
+      resolve(process.cwd(), "supabase/functions/submit-signup-application/index.ts"),
+      "utf8",
+    );
+
+    expect(config).toMatch(/\[functions\.submit-signup-application\]\s*\nverify_jwt\s*=\s*false/i);
+    expect(submitFunction).toContain("authenticateRequest(req, { allowServiceRole: false })");
+    expect(submitFunction).toContain('requireInput(actor.userId === userId, "user_id_mismatch")');
+    expect(submitFunction).toContain("captcha_not_configured");
+    expect(submitFunction).toContain("isProductionRuntime");
+  });
+
   it("keeps restaurateur dossiers visible with admin badges and image previews", () => {
     const adminUsers = readFileSync(resolve(process.cwd(), "src/pages/admin/AdminUtilisateurs.tsx"), "utf8");
     const mobileNav = readFileSync(resolve(process.cwd(), "src/components/admin/AdminMobileNavigation.tsx"), "utf8");

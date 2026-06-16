@@ -33,8 +33,37 @@ function manualChunks(id: string) {
   }
 }
 
+function cleanEnvValue(value: string | undefined) {
+  if (!value) return "";
+  return value.trim().replace(/^['"]|['"]$/g, "").trim();
+}
+
+function applyDevelopmentPublicEnvOverrides(mode: string, env: Record<string, string>) {
+  if (mode === "production") return;
+
+  const mappings = [
+    ["dev_VITE_PUBLIC_", "VITE_"],
+    ["dev_VITE_", "VITE_"],
+  ] as const;
+
+  for (const [sourcePrefix, targetPrefix] of mappings) {
+    for (const [key, rawValue] of Object.entries(env)) {
+      if (!key.startsWith(sourcePrefix)) continue;
+
+      const value = cleanEnvValue(rawValue);
+      if (!value) continue;
+
+      const targetKey = `${targetPrefix}${key.slice(sourcePrefix.length)}`;
+      process.env[targetKey] = value;
+    }
+  }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  applyDevelopmentPublicEnvOverrides(mode, env);
+
   if (!process.env.VITE_SUPABASE_URL && process.env.SUPABASE_URL) {
     process.env.VITE_SUPABASE_URL = process.env.SUPABASE_URL;
   }
@@ -44,7 +73,6 @@ export default defineConfig(({ mode }) => {
   }
 
   if (mode === "production") {
-    const env = loadEnv(mode, process.cwd(), "");
     const missingSupabaseEnvKeys = getMissingSupabasePublicEnvKeys(env);
 
     if (missingSupabaseEnvKeys.length) {

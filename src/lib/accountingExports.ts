@@ -7,6 +7,7 @@ import {
   getTokCoveredMiamzAmount,
 } from "@/lib/comptaCommissionSources";
 import { calculateRestaurantShare, calculateTokCommission } from "@/lib/comptaFlow";
+import { openSafePrintWindow } from "@/lib/safePrintWindow";
 
 export type AccountingExportPerspective = "admin" | "restaurant";
 
@@ -636,9 +637,6 @@ export function exportAccountingStatementPdf({
   scopeLabel: string;
   periodLabel: string;
 }) {
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
   const summary = buildAccountingStatementSummary(entries);
   const statementTitle = statement === "balance_sheet"
     ? "Bilan"
@@ -687,11 +685,7 @@ export function exportAccountingStatementPdf({
         <table><tbody>${buildSummaryTable(entries, "expense")}</tbody></table>
       `;
 
-  printWindow.document.write(`<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <title>${escapeHtml(statementTitle)} - ${escapeHtml(title)}</title>
+  const headHtml = `
     <style>
       body { color: #111827; font-family: Arial, sans-serif; line-height: 1.45; margin: 32px; }
       h1 { font-size: 24px; margin: 0 0 4px; }
@@ -707,17 +701,18 @@ export function exportAccountingStatementPdf({
       .kpis strong { display: block; font-size: 18px; margin-top: 6px; }
       @media print { body { margin: 20mm; } .kpis { break-inside: avoid; } }
     </style>
-  </head>
-  <body>
+  `;
+  const bodyHtml = `
     <h1>${escapeHtml(statementTitle)}</h1>
     <div class="meta">${escapeHtml(title)} · ${escapeHtml(scopeLabel)} · ${escapeHtml(periodLabel)} · Export généré le ${escapeHtml(formatDatePartUtc(new Date()))}</div>
     ${body}
-  </body>
-</html>`);
-  printWindow.document.close();
-  printWindow.focus();
-  const print = printWindow.print || window.print;
-  print.call(printWindow);
+  `;
+
+  openSafePrintWindow({
+    title: `${statementTitle} - ${title}`,
+    headHtml,
+    bodyHtml,
+  });
 }
 
 export function sanitizeAccountingFilePart(value: string) {

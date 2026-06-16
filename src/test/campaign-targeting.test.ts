@@ -4,6 +4,7 @@ import {
   DEFAULT_AUDIENCE_CRITERIA,
   matchesAudienceCriteria,
   normalizeAudienceCriteria,
+  scoreAudienceCriteria,
   summarizeAudienceCriteria,
 } from "@/lib/campaignTargeting";
 
@@ -40,6 +41,7 @@ describe("campaignTargeting", () => {
       },
       {
         city: "Geneve",
+        gender: "female",
         favoriteRestaurantIds: ["restaurant-1"],
         interactionCount: 8,
         avgBasket: 32,
@@ -54,6 +56,31 @@ describe("campaignTargeting", () => {
     expect(matches).toBe(true);
   });
 
+  it("scores soft targeting with stronger weight for cuisine than gender", () => {
+    const result = scoreAudienceCriteria(
+      {
+        ...DEFAULT_AUDIENCE_CRITERIA,
+        cuisines: ["italien"],
+        genders: ["female"],
+        journeyTypes: ["delivery"],
+      },
+      {
+        city: "Geneve",
+        gender: "female",
+        favoriteRestaurantIds: [],
+        interactionCount: 1,
+        avgBasket: 18,
+        daysSinceLastActivity: 8,
+        cuisineSignals: ["italien"],
+        journeyTypes: ["delivery"],
+        serviceMoments: [],
+      },
+    );
+
+    expect(result.score).toBe(15);
+    expect(result.matchedCriteria).toEqual(["gender", "cuisine", "journeyType"]);
+  });
+
   it("allows truly new users to match the new customer segment", () => {
     const matches = matchesAudienceCriteria(
       {
@@ -62,6 +89,7 @@ describe("campaignTargeting", () => {
       },
       {
         city: "Geneve",
+        gender: null,
         favoriteRestaurantIds: [],
         interactionCount: 0,
         avgBasket: 0,

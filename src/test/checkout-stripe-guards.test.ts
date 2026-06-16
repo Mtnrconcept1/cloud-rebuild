@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -18,6 +18,17 @@ const restoreStockMigration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260603114000_restore_special_offer_stock.sql"),
   "utf8",
 );
+
+function readMigrationContaining(pattern: RegExp) {
+  const migrationsDir = resolve(process.cwd(), "supabase/migrations");
+  const fileName = readdirSync(migrationsDir).find((name) => {
+    if (!name.endsWith(".sql")) return false;
+    return pattern.test(readFileSync(resolve(migrationsDir, name), "utf8"));
+  });
+
+  expect(fileName, `migration matching ${pattern} should exist`).toBeTruthy();
+  return readFileSync(resolve(migrationsDir, fileName!), "utf8");
+}
 
 describe("checkout and Stripe webhook safety guards", () => {
   it("creates Stripe sessions with required metadata for reconciliation", () => {
@@ -40,7 +51,12 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(webhookSecretSources).toContain("STRIPE_WEBHOOK_SIGNING_SECRET");
     expect(stripeWebhookSource).toContain("stripe_webhook_events");
     expect(stripeWebhookSource).toContain("duplicate_event_skipped");
-    expect(stripeWebhookSource).toContain("insert({ event_id: event.id, event_type: event.type, livemode: event.livemode })");
+    expect(stripeWebhookSource).toContain("claimStripeWebhookEvent");
+    expect(stripeWebhookSource).toContain('error.code === "23505"');
+    expect(stripeWebhookSource).toContain("stripe_webhook_event_claim_failed");
+    expect(stripeWebhookSource).not.toMatch(
+      /\.select\("event_id"\)[\s\S]{0,240}\.eq\("event_id", event\.id\)[\s\S]{0,240}\.maybeSingle/,
+    );
   });
 
   it("activates paid campaigns only from checkout.session.completed", () => {
@@ -113,6 +129,25 @@ describe("checkout and Stripe webhook safety guards", () => {
     expect(validateOrderSource).toContain('payment_status: isAwaitingOnlinePayment');
     expect(validateOrderSource).toContain('status: isAwaitingOnlinePayment ? "pending_payment" : "confirmed"');
     expect(validateOrderSource).toContain("if (!isAwaitingOnlinePayment)");
+  });
+
+  it("blocks online payment orders from being confirmed before payment capture", () => {
+    const migration = readMigrationContaining(/guard_online_order_confirmation_requires_payment/);
+
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.guard_online_order_confirmation_requires_payment");
+    expect(migration).toContain("CREATE TRIGGER guard_online_order_confirmation_requires_payment");
+    expect(migration).toContain("BEFORE UPDATE OF status, payment_status ON public.orders");
+    expect(migration).toContain("payment_method");
+    expect(migration).toContain("'card'");
+    expect(migration).toContain("'twint'");
+    expect(migration).toContain("'postfinance_card'");
+    expect(migration).toContain("'postfinance_efinance'");
+    expect(migration).toContain("'pending_payment'");
+    expect(migration).toContain("'captured'");
+    expect(migration).toContain("'paid'");
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.trigger_order_status_notification");
+    expect(migration).toContain("RETURN NEW");
+    expect(migration).toContain("DELETE FROM public.notifications");
   });
 
   it("marks expired checkout sessions as failed without touching captured orders", () => {

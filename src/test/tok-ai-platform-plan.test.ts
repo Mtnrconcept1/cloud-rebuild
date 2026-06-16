@@ -170,10 +170,11 @@ describe("TOK AI platform plan", () => {
       "Export synthèse",
       "Export PDF",
       "exportAiAccountingPdf",
-      "window.print",
+      "openSafePrintWindow",
     ]) {
       expect(adminComptaAi).toContain(text);
     }
+    expect(adminComptaAi).not.toContain("document.write");
 
     for (const text of [
       "Santé IA",

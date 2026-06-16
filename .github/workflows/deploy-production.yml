@@ -69,6 +69,28 @@ jobs:
       - name: Verify production Supabase target
         run: pnpm run supabase:doctor:prod
 
+      - name: Release readiness
+        run: pnpm run release:readiness
+        env:
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          INTERNAL_CRON_SECRET: ${{ secrets.INTERNAL_CRON_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          APP_BASE_URL: ${{ env.APP_BASE_URL }}
+          PUBLIC_APP_URL: ${{ env.PUBLIC_APP_URL }}
+          ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          FIREBASE_TOKEN_URI: ${{ secrets.FIREBASE_TOKEN_URI }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: ${{ vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED }}
+          SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: ${{ vars.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE }}
+
       - name: Lint
         run: pnpm run lint
 

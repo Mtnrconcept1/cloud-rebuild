@@ -17,6 +17,7 @@ import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import LoyaltySection from "@/components/cart/LoyaltySection";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { useMealFormulaDetection } from "@/hooks/useMealFormulaDetection";
 import { formatMissingCoursesText, roundCurrency } from "@/lib/meal-formulas";
 import { trackSponsoredConversion } from "@/lib/analytics";
@@ -395,8 +396,7 @@ export default function ZeroAttente() {
         toast({ title: "Erreur paiement", description: checkoutError?.message || "Impossible de créer la session de paiement.", variant: "destructive" });
         return;
       }
-      // Redirect to Stripe
-      window.location.href = checkoutData.url;
+      redirectToTrustedCheckoutUrl(checkoutData.url);
       return;
     }
 

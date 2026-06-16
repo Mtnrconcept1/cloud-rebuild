@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -22,16 +22,33 @@ function getVerifyJwt(config: string, functionName: string) {
 }
 
 describe("authenticated security audit hardening", () => {
-  it("enables Supabase gateway JWT verification for user-authenticated Edge Functions", () => {
+  it("declares an explicit Supabase Edge Function auth policy for every function directory", () => {
+    const config = read("supabase/config.toml");
+    const functionNames = readdirSync(resolve(root, "supabase/functions"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && entry.name !== "_shared")
+      .map((entry) => entry.name)
+      .sort();
+
+    expect(functionNames.length).toBeGreaterThan(0);
+    for (const functionName of functionNames) {
+      expect(["true", "false"]).toContain(getVerifyJwt(config, functionName));
+    }
+  });
+
+  it("uses handler-level auth instead of Supabase gateway JWT verification for ES256-compatible functions", () => {
     const config = read("supabase/config.toml");
 
     for (const functionName of [
       "authorize-match-group-order",
       "campaign-portal",
+      "cancel-pending-order-checkout",
       "complete-order-checkout",
+      "confirm-match-group-authorization",
       "courier-portal",
       "create-checkout",
       "create-chefs-table-reservation",
+      "create-reservation",
+      "create-social-post-boost",
       "create-zero-attente-reservation",
       "delete-account",
       "floorplan-ai",
@@ -42,13 +59,19 @@ describe("authenticated security audit hardening", () => {
       "restaurant-order-status",
       "restaurant-media-governance",
       "stripe-connect-onboard",
+      "submit-signup-application",
       "validate-order",
     ]) {
-      expect(getVerifyJwt(config, functionName)).toBe("true");
+      const source = read(`supabase/functions/${functionName}/index.ts`);
+
+      expect(getVerifyJwt(config, functionName)).toBe("false");
+      expect(
+        source.includes("authenticateRequest(") || source.includes(".auth.getUser") || source.includes("getUser("),
+        `${functionName} must verify the caller inside the handler when gateway JWT verification is disabled`,
+      ).toBe(true);
     }
 
-    expect(config).not.toMatch(/verify_jwt`\s+is incompatible/i);
-    expect(config).not.toMatch(/every function below explicitly opts out/i);
+    expect(config).not.toMatch(/verify_jwt\s*=\s*true/i);
   });
 
   it("keeps webhook, scheduler, internal secret and public collector endpoints without gateway JWT verification", () => {

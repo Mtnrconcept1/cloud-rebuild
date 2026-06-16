@@ -1,6 +1,7 @@
 export const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const MAX_DOCUMENT_UPLOAD_BYTES = 15 * 1024 * 1024;
 export const MAX_SOCIAL_MEDIA_UPLOAD_BYTES = 25 * 1024 * 1024;
+export const MAX_SOCIAL_VIDEO_SOURCE_UPLOAD_BYTES = 120 * 1024 * 1024;
 
 export const IMAGE_MIME_EXTENSIONS: Record<string, string> = {
   "image/gif": "gif",
@@ -124,4 +125,16 @@ export function assertSafeFileUpload(
 
 export function getSafeUploadExtension(file: File, allowedMimeTypes: Record<string, string>) {
   return allowedMimeTypes[file.type] || "bin";
+}
+
+export function getMaxSocialMediaSourceUploadBytes(file: File) {
+  return file.type.startsWith("video/") ? MAX_SOCIAL_VIDEO_SOURCE_UPLOAD_BYTES : MAX_SOCIAL_MEDIA_UPLOAD_BYTES;
+}
+
+export function assertSafeSocialMediaSourceFileUpload(file: File) {
+  assertSafeFileUpload(file, {
+    allowedMimeTypes: SOCIAL_MEDIA_MIME_EXTENSIONS,
+    maxBytes: getMaxSocialMediaSourceUploadBytes(file),
+    label: "Media social",
+  });
 }

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -6,6 +6,7 @@ import SocialPostCard from "@/components/social/SocialPostCard";
 
 const socialHooks = vi.hoisted(() => ({
   addComment: vi.fn(async () => undefined),
+  comments: [] as any[],
   deleteMutate: vi.fn(),
   feedbackMutate: vi.fn(),
   mutate: vi.fn(),
@@ -26,7 +27,7 @@ vi.mock("@/hooks/useSocialFeed", () => ({
   useReportSocialItem: () => ({ mutate: socialHooks.reportMutate, isPending: false }),
   useSetSocialCommentReaction: () => ({ mutate: socialHooks.mutate, isPending: false }),
   useSetSocialPostReaction: () => ({ mutate: socialHooks.mutate, isPending: false }),
-  useSocialComments: () => ({ data: [], isLoading: false }),
+  useSocialComments: () => ({ data: socialHooks.comments, isLoading: false }),
   useSocialFeedFeedback: () => ({ mutate: socialHooks.feedbackMutate, isPending: false }),
   useToggleRestaurantFollow: () => ({ mutate: socialHooks.mutate, isPending: false }),
   useToggleSocialRepost: () => ({ mutate: socialHooks.mutate, isPending: false }),
@@ -77,12 +78,14 @@ const post = {
 
 describe("SocialPostCard actions", () => {
   beforeEach(() => {
+    Element.prototype.setPointerCapture ??= vi.fn();
     socialHooks.addComment.mockClear();
     socialHooks.deleteMutate.mockClear();
     socialHooks.feedbackMutate.mockClear();
     socialHooks.mutate.mockClear();
     socialHooks.mutateAsync.mockClear();
     socialHooks.reportMutate.mockClear();
+    socialHooks.comments = [];
   });
 
   it("wires preference, hide and report actions to explicit feedback types", () => {
@@ -114,10 +117,38 @@ describe("SocialPostCard actions", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Signaler le post" }));
+    expect(screen.getByRole("dialog", { name: "Signaler ce post" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Raison du signalement"), { target: { value: "harassment" } });
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer le signalement" }));
     expect(socialHooks.reportMutate).toHaveBeenCalledWith({
       targetType: "post",
       targetId: "post-1",
-      reason: "Contenu inapproprie",
+      reason: "Harcèlement ou attaque ciblée",
+    });
+  });
+
+  it("requires details before submitting an other report reason", () => {
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={post as any} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Signaler le post" }));
+    fireEvent.change(screen.getByLabelText("Raison du signalement"), { target: { value: "other" } });
+
+    const submitButton = screen.getByRole("button", { name: "Envoyer le signalement" });
+    expect(submitButton).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Préciser la raison du signalement"), {
+      target: { value: "Le contenu usurpe une photo d'un autre restaurant." },
+    });
+    expect(submitButton).not.toBeDisabled();
+
+    fireEvent.click(submitButton);
+    expect(socialHooks.reportMutate).toHaveBeenCalledWith({
+      targetType: "post",
+      targetId: "post-1",
+      reason: "Autres - Le contenu usurpe une photo d'un autre restaurant.",
     });
   });
 
@@ -139,5 +170,196 @@ describe("SocialPostCard actions", () => {
     );
 
     expect(screen.getByText(/Sponsoris/i)).toBeInTheDocument();
+  });
+
+  it("collapses long mobile copy behind Afficher plus and highlights the menu CTA", () => {
+    render(
+      <MemoryRouter>
+        <SocialPostCard
+          post={{
+            ...post,
+            body: "En cuisine aujourd'hui: un arrivage frais, une preparation maison et une equipe prete pour le service. Decouvrez la carte du moment avec nos suggestions de saison.",
+            ctaType: "menu",
+            media: [{
+              id: "media-1",
+              postId: "post-1",
+              mediaUrl: "https://example.com/video.webm",
+              mediaType: "video",
+              sortOrder: 0,
+              altText: "Cuisine du jour",
+            }],
+          } as any}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("link", { name: /Voir le menu/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Options du média" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /👍\s*0/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Afficher les commentaires" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sauver" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Signaler le post" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trier les commentaires" })).toBeInTheDocument();
+    expect(screen.getByText("Commentaires (0)")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Écrire un commentaire...")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Afficher plus" }));
+    expect(screen.getByRole("button", { name: "Afficher moins" })).toBeInTheDocument();
+  });
+
+  it("sorts comments by date or likes from the comments panel", () => {
+    socialHooks.comments = [
+      {
+        id: "popular-old",
+        postId: "post-1",
+        parentCommentId: null,
+        userId: "user-2",
+        body: "Commentaire populaire",
+        status: "published",
+        createdAt: "2026-06-01T10:00:00.000Z",
+        authorName: "Client A",
+        reactionsCount: 8,
+        reactionCounts: { like: 8 },
+        myReaction: null,
+      },
+      {
+        id: "recent-quiet",
+        postId: "post-1",
+        parentCommentId: null,
+        userId: "user-3",
+        body: "Commentaire recent",
+        status: "published",
+        createdAt: "2026-06-03T10:00:00.000Z",
+        authorName: "Client B",
+        reactionsCount: 1,
+        reactionCounts: { like: 1 },
+        myReaction: null,
+      },
+    ];
+
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={{ ...post, commentsCount: 2 } as any} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Afficher les commentaires" }));
+
+    const popularComment = screen.getByText("Commentaire populaire");
+    const recentComment = screen.getByText("Commentaire recent");
+    expect(recentComment.compareDocumentPosition(popularComment) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Trier les commentaires" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Plus likés" }));
+
+    expect(popularComment.compareDocumentPosition(recentComment) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("shows the first mobile comment preview and opens the full post comments panel", () => {
+    socialHooks.comments = [
+      {
+        id: "comment-preview",
+        postId: "post-1",
+        parentCommentId: null,
+        userId: "user-2",
+        body: "Premier avis visible directement sous la vidéo.",
+        status: "published",
+        createdAt: "2026-06-04T10:00:00.000Z",
+        authorName: "Client Preview",
+        reactionsCount: 2,
+        reactionCounts: { like: 2 },
+        myReaction: null,
+      },
+    ];
+
+    render(
+      <MemoryRouter>
+        <SocialPostCard
+          post={{
+            ...post,
+            body: "Post restaurateur affiché dans la modale.",
+            commentsCount: 1,
+            media: [{
+              id: "media-1",
+              postId: "post-1",
+              mediaUrl: "https://example.com/video.webm",
+              mediaType: "video",
+              sortOrder: 0,
+              altText: "Cuisine du jour",
+            }],
+          } as any}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("Premier avis visible directement sous la vidéo.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Voir plus" }));
+
+    expect(screen.getByRole("dialog", { name: "Commentaires" })).toBeInTheDocument();
+    expect(screen.getAllByText("Post restaurateur affiché dans la modale.").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Premier avis visible directement sous la vidéo.").length).toBeGreaterThanOrEqual(1);
+  });
+  it("prefills comment replies with an @ mention of the parent author", async () => {
+    socialHooks.comments = [
+      {
+        id: "comment-parent",
+        postId: "post-1",
+        parentCommentId: null,
+        userId: "user-2",
+        body: "Question sur le plat.",
+        status: "published",
+        createdAt: "2026-06-04T10:00:00.000Z",
+        authorName: "raph",
+        reactionsCount: 0,
+        reactionCounts: {},
+        myReaction: null,
+      },
+    ];
+
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={{ ...post, commentsCount: 1 } as any} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Afficher les commentaires" }));
+    fireEvent.click(screen.getAllByRole("button", { name: /pondre/i })[0]);
+
+    const replyInput = await waitFor(() => screen.getByDisplayValue(/@raph/));
+    fireEvent.change(replyInput, { target: { value: "@raph Merci pour votre question." } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Envoyer le commentaire" }).at(-1)!);
+
+    expect(socialHooks.addComment).toHaveBeenCalledWith("@raph Merci pour votre question.");
+  });
+
+  it("opens the reaction picker for a comment", async () => {
+    socialHooks.comments = [
+      {
+        id: "comment-reactable",
+        postId: "post-1",
+        parentCommentId: null,
+        userId: "user-2",
+        body: "Commentaire avec reaction.",
+        status: "published",
+        createdAt: "2026-06-04T10:00:00.000Z",
+        authorName: "raph",
+        reactionsCount: 1,
+        reactionCounts: { love: 1 },
+        myReaction: "love",
+      },
+    ];
+
+    render(
+      <MemoryRouter>
+        <SocialPostCard post={{ ...post, commentsCount: 1 } as any} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Afficher les commentaires" }));
+    const reactionButton = await waitFor(() => screen.getByRole("button", { name: /1/ }));
+    fireEvent.click(reactionButton);
+
+    expect(screen.getAllByRole("menuitem").length).toBeGreaterThanOrEqual(3);
   });
 });

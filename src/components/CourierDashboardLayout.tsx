@@ -25,6 +25,7 @@ import {
   type CourierMissionPreview,
 } from "@/lib/courierMission";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { normalizeInternalNavigationTarget } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 type CourierNavItem = {
@@ -192,7 +193,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
         ? {
             label: "Ouvrir",
             onClick: () => {
-              window.location.href = data.url as string;
+              window.location.href = normalizeInternalNavigationTarget(data.url as string, "/courier/jobs");
             },
           }
         : undefined,

@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 
 const MOBILE_BREAKPOINT = 768;
-const LOGO_INTRO_VISIBLE_MS = 8_500;
-const LOGO_INTRO_FADE_MS = 700;
-const LOGO_INTRO_DISMISS_FALLBACK_MS = LOGO_INTRO_FADE_MS + 100;
+const LOGO_INTRO_VERSION = "2026-06-action-first";
+const LOGO_INTRO_STORAGE_KEY = `tok-logo-intro:${LOGO_INTRO_VERSION}`;
+const LOGO_INTRO_VISIBLE_MS = 650;
+const LOGO_INTRO_FADE_MS = 180;
+const LOGO_INTRO_DISMISS_FALLBACK_MS = LOGO_INTRO_FADE_MS + 80;
 
 type IntroVariant = "mobile" | "desktop";
 
@@ -41,17 +43,39 @@ function isHomePath() {
 }
 
 function shouldShowIntro() {
-  return isHomePath();
+  if (!isHomePath() || typeof window === "undefined") return false;
+
+  try {
+    return window.localStorage.getItem(LOGO_INTRO_STORAGE_KEY) !== "seen";
+  } catch {
+    return true;
+  }
+}
+
+function markIntroSeen() {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(LOGO_INTRO_STORAGE_KEY, "seen");
+  } catch {
+    // Storage can be unavailable in private modes; the timed intro still remains short.
+  }
 }
 
 export default function MobileLogoIntro() {
   const [visible, setVisible] = useState(() => shouldShowIntro());
   const [variant, setVariant] = useState<IntroVariant>(() => getIntroVariant());
   const [fadingOut, setFadingOut] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const [soundBlocked, setSoundBlocked] = useState(false);
   const dismissedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const completeDismiss = useCallback(() => {
+    dismissedRef.current = true;
+    markIntroSeen();
+    setVisible(false);
+  }, []);
 
   useEffect(() => {
     const onResize = () => {
@@ -68,17 +92,6 @@ export default function MobileLogoIntro() {
   useEffect(() => {
     if (!visible) return;
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [visible]);
-
-  useEffect(() => {
-    if (!visible) return;
-
     const timeoutId = window.setTimeout(() => {
       setFadingOut(true);
     }, LOGO_INTRO_VISIBLE_MS);
@@ -90,12 +103,11 @@ export default function MobileLogoIntro() {
     if (!visible || !fadingOut) return;
 
     const timeoutId = window.setTimeout(() => {
-      dismissedRef.current = true;
-      setVisible(false);
+      completeDismiss();
     }, LOGO_INTRO_DISMISS_FALLBACK_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [visible, fadingOut]);
+  }, [completeDismiss, visible, fadingOut]);
 
   useEffect(() => {
     if (!visible) return;
@@ -104,35 +116,18 @@ export default function MobileLogoIntro() {
     if (!video) return;
 
     let cancelled = false;
-    const fallBackToMutedPlayback = () => {
-      if (cancelled) return;
-
-      video.muted = true;
-      setSoundEnabled(false);
-      setSoundBlocked(true);
-
-      try {
-        const mutedAttempt = video.play();
-        if (mutedAttempt && typeof mutedAttempt.catch === "function") {
-          void mutedAttempt.catch(() => undefined);
-        }
-      } catch {
-        // The timed fade still removes the overlay if media playback is unavailable.
-      }
-    };
-
-    video.muted = false;
-    video.volume = 1;
-    setSoundEnabled(true);
+    video.muted = true;
+    video.volume = 0;
+    setSoundEnabled(false);
     setSoundBlocked(false);
 
     try {
       const playAttempt = video.play();
       if (playAttempt && typeof playAttempt.catch === "function") {
-        void playAttempt.catch(fallBackToMutedPlayback);
+        void playAttempt.catch(() => undefined);
       }
     } catch {
-      fallBackToMutedPlayback();
+      // The timed fade still removes the overlay if media playback is unavailable.
     }
 
     return () => {
@@ -182,14 +177,16 @@ export default function MobileLogoIntro() {
     <div
       aria-label="Intro TOK"
       className={[
-        "fixed inset-0 z-[9999] flex items-center justify-center bg-black transition-opacity duration-700 ease-out",
+        "pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center bg-black transition-opacity ease-out",
         fadingOut ? "opacity-0" : "opacity-100",
       ].join(" ")}
       data-testid="mobile-logo-intro"
-      onTransitionEnd={() => {
+      style={{ transitionDuration: `${LOGO_INTRO_FADE_MS}ms` }}
+      onTransitionEnd={(event) => {
+        if (event.currentTarget !== event.target) return;
+
         if (fadingOut) {
-          dismissedRef.current = true;
-          setVisible(false);
+          completeDismiss();
         }
       }}
     >
@@ -207,7 +204,7 @@ export default function MobileLogoIntro() {
           muted={!soundEnabled}
           playsInline
           poster={introMedia.poster}
-          preload="auto"
+          preload="metadata"
           ref={videoRef}
           onEnded={() => setFadingOut(true)}
           onError={() => setFadingOut(true)}
@@ -224,8 +221,16 @@ export default function MobileLogoIntro() {
           }}
         />
         <button
+          className="pointer-events-auto absolute right-5 top-5 z-10 inline-flex h-10 items-center rounded-full border border-white/20 bg-black/62 px-4 text-sm font-semibold text-white shadow-2xl backdrop-blur-md transition hover:bg-black/78 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 md:right-8 md:top-8"
+          data-testid="mobile-logo-intro-skip"
+          type="button"
+          onClick={() => setFadingOut(true)}
+        >
+          Passer
+        </button>
+        <button
           aria-label={soundButtonLabel}
-          className="absolute bottom-5 right-5 z-10 inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-black/62 px-4 text-sm font-semibold text-white shadow-2xl backdrop-blur-md transition hover:bg-black/78 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 md:bottom-8 md:right-8"
+          className="pointer-events-auto absolute bottom-5 right-5 z-10 inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-black/62 px-4 text-sm font-semibold text-white shadow-2xl backdrop-blur-md transition hover:bg-black/78 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 md:bottom-8 md:right-8"
           data-testid="mobile-logo-intro-sound-toggle"
           type="button"
           onClick={handleSoundToggle}

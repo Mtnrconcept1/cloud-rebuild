@@ -21,9 +21,14 @@ function fileContains(path, fragments) {
 
 const createCheckoutPath = "supabase/functions/create-checkout/index.ts";
 const stripeWebhookPath = "supabase/functions/stripe-webhook/index.ts";
+const stripeClientPath = "supabase/functions/_shared/stripe-client.ts";
 const orderCheckoutPath = "supabase/functions/_shared/order-checkout.ts";
 const paymentAnomaliesPath = "supabase/migrations/20260531165000_payment_integrity_anomaly_rpc.sql";
 const scaleMigrationPath = "supabase/migrations/20260607053000_scale_readiness_indexes_and_guards.sql";
+const stripeWebhookVerificationSource = [
+  exists(stripeWebhookPath) ? read(stripeWebhookPath) : "",
+  exists(stripeClientPath) ? read(stripeClientPath) : "",
+].join("\n");
 
 addCheck(
   "Stripe Checkout sessions carry reconciliation metadata",
@@ -38,11 +43,11 @@ addCheck(
 
 addCheck(
   "Stripe webhook verifies signatures before side effects",
-  fileContains(stripeWebhookPath, [
+  [
     "constructEventAsync",
     "STRIPE_WEBHOOK_SECRET",
     "STRIPE_WEBHOOK_SIGNING_SECRET",
-  ]),
+  ].every((fragment) => stripeWebhookVerificationSource.includes(fragment)),
   "Unsigned or replayed webhook payloads must never mutate production data.",
 );
 
@@ -51,7 +56,9 @@ addCheck(
   fileContains(stripeWebhookPath, [
     "stripe_webhook_events",
     "duplicate_event_skipped",
-    "insert({ event_id: event.id, event_type: event.type, livemode: event.livemode })",
+    "claimStripeWebhookEvent",
+    "23505",
+    "stripe_webhook_event_claim_failed",
   ]),
   "Idempotency must be present before order, campaign, subscription, or reservation side effects.",
 );

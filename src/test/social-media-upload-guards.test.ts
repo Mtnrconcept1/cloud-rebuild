@@ -21,10 +21,17 @@ describe("social media upload guards", () => {
     const composer = read("src/components/social/SocialComposer.tsx");
 
     expect(uploadSecurity).toContain("SOCIAL_MEDIA_ACCEPT");
+    expect(uploadSecurity).toContain("MAX_SOCIAL_VIDEO_SOURCE_UPLOAD_BYTES");
+    expect(uploadSecurity).toContain("assertSafeSocialMediaSourceFileUpload");
     const createPostSection = hook.slice(hook.indexOf("export function useCreateSocialPost"));
-    expect(createPostSection).toContain("assertSocialPostMediaFiles(files)");
-    expect(createPostSection.indexOf("assertSocialPostMediaFiles(files)")).toBeLessThan(createPostSection.indexOf(".insert({"));
+    expect(hook).toContain("optimizeSocialMediaUpload");
+    expect(hook).toContain("prepareSocialPostMediaFiles(files)");
+    expect(createPostSection.indexOf("prepareSocialPostMediaFiles(files)")).toBeLessThan(createPostSection.indexOf(".insert({"));
+    expect(createPostSection).toContain("hidden_reason: \"Echec upload media\"");
     expect(composer).toContain("SOCIAL_MEDIA_ACCEPT");
+    expect(composer).toContain("assertSafeSocialMediaSourceFileUpload");
+    expect(composer).toContain("assertSafeSocialMediaSourceFileUpload");
+    expect(composer).not.toContain("Compression auto");
     expect(composer).not.toContain('accept="image/*,video/*"');
   });
 
@@ -38,6 +45,9 @@ describe("social media upload guards", () => {
     expect(migrations).toContain("'image/png'");
     expect(migrations).toContain("'image/webp'");
     expect(migrations).toContain("'image/gif'");
+    expect(migrations).toContain("'video/mp4'");
+    expect(migrations).toContain("'video/webm'");
+    expect(migrations).toContain("'video/quicktime'");
     expect(migrations).not.toContain("'image/svg+xml'");
   });
 });

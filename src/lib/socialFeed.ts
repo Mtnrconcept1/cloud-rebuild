@@ -262,6 +262,7 @@ export type SocialFeedComment = {
   status: "published" | "hidden" | "deleted";
   createdAt: string;
   authorName?: string | null;
+  authorAvatarUrl?: string | null;
   reactionsCount: number;
   reactionCounts: SocialReactionCounts;
   myReaction: SocialReactionType | null;

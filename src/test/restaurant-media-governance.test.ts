@@ -48,7 +48,7 @@ describe("restaurant media governance", () => {
 
     expect(config).toContain("[functions.restaurant-media-governance]");
     expect(config).toMatch(
-      /\[functions\.restaurant-media-governance\]\s+verify_jwt\s*=\s*true/i,
+      /\[functions\.restaurant-media-governance\]\s+verify_jwt\s*=\s*false/i,
     );
     expect(client).toContain('"restaurant-media-governance"');
     expect(client).toContain('action: "delete_media"');

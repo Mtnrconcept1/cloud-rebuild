@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { InvoiceDetailAccordion } from "@/components/invoices/InvoiceDetailAccordion";
+import { openExternalHttpsUrl } from "@/lib/securityUrls";
 import {
   getAdminComptaActionErrorMessage,
   markAdminRestaurantInvoicePaid,
@@ -35,7 +36,7 @@ function getErrorMessage(error: unknown) {
 
 function downloadInvoicePdf(invoice: AdminInvoiceRow) {
   if (invoice.pdf_url) {
-    window.open(invoice.pdf_url, "_blank", "noopener,noreferrer");
+    openExternalHttpsUrl(invoice.pdf_url);
   }
 }
 

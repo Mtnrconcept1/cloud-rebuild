@@ -34,9 +34,10 @@ import {
   MAX_SOCIAL_MEDIA_UPLOAD_BYTES,
   SOCIAL_MEDIA_MIME_EXTENSIONS,
   assertSafeFileUpload,
+  assertSafeSocialMediaSourceFileUpload,
   getSafeUploadExtension,
 } from "@/lib/uploadSecurity";
-import { optimizeImageUpload } from "@/lib/optimizedImages";
+import { optimizeSocialMediaUpload } from "@/lib/media/socialMediaCompression";
 
 const supabase = getSupabase();
 const SOCIAL_FEED_BUCKET = "social-post-media";
@@ -179,6 +180,12 @@ type SetPostReactionInput = {
 type SetCommentReactionInput = {
   comment: SocialFeedComment;
   reaction: SocialReactionType | null;
+};
+
+type PreparedSocialPostMediaFile = {
+  file: File;
+  sourceName: string;
+  mediaType: "image" | "video";
 };
 
 type SocialFeedFeedbackInput = {
@@ -508,14 +515,10 @@ async function assertRestaurantAccess(restaurantId: string, userId: string) {
   if (!data) throw new Error("Restaurant non autorise.");
 }
 
-async function uploadPostMedia(restaurantId: string, postId: string, files: File[]) {
+async function uploadPostMedia(restaurantId: string, postId: string, files: PreparedSocialPostMediaFile[]) {
   for (let index = 0; index < files.length; index += 1) {
-    const file = await optimizeImageUpload(files[index]);
-    assertSafeFileUpload(file, {
-      allowedMimeTypes: SOCIAL_MEDIA_MIME_EXTENSIONS,
-      maxBytes: MAX_SOCIAL_MEDIA_UPLOAD_BYTES,
-      label: "Media social",
-    });
+    const item = files[index];
+    const file = item.file;
     const extension = getSafeUploadExtension(file, SOCIAL_MEDIA_MIME_EXTENSIONS);
     const path = `${restaurantId}/${postId}/${index}-${crypto.randomUUID()}.${extension}`;
     const { error: uploadError } = await supabase.storage.from(SOCIAL_FEED_BUCKET).upload(path, file, {
@@ -531,9 +534,9 @@ async function uploadPostMedia(restaurantId: string, postId: string, files: File
       post_id: postId,
       media_url: data.publicUrl,
       media_path: path,
-      media_type: file.type.startsWith("video/") ? "video" : "image",
+      media_type: item.mediaType,
       sort_order: index,
-      alt_text: file.name,
+      alt_text: item.sourceName,
     });
 
     if (insertError) throw insertError;
@@ -543,12 +546,29 @@ async function uploadPostMedia(restaurantId: string, postId: string, files: File
 function assertSocialPostMediaFiles(files: File[]) {
   if (files.length > MAX_POST_MEDIA) throw new Error(`Maximum ${MAX_POST_MEDIA} medias par post.`);
   for (const file of files) {
+    assertSafeSocialMediaSourceFileUpload(file);
+  }
+}
+
+async function prepareSocialPostMediaFiles(files: File[]) {
+  assertSocialPostMediaFiles(files);
+
+  const prepared: PreparedSocialPostMediaFile[] = [];
+  for (const sourceFile of files) {
+    const file = await optimizeSocialMediaUpload(sourceFile);
     assertSafeFileUpload(file, {
       allowedMimeTypes: SOCIAL_MEDIA_MIME_EXTENSIONS,
       maxBytes: MAX_SOCIAL_MEDIA_UPLOAD_BYTES,
       label: "Media social",
     });
+    prepared.push({
+      file,
+      sourceName: sourceFile.name,
+      mediaType: file.type.startsWith("video/") ? "video" : "image",
+    });
   }
+
+  return prepared;
 }
 
 function validateSocialPostDraft(input: {
@@ -823,7 +843,7 @@ export function useCreateSocialPost() {
       utmCampaign = null,
     }: CreateSocialPostInput) => {
       if (!user?.id) throw new Error("Connexion requise.");
-      assertSocialPostMediaFiles(files);
+      const preparedMediaFiles = await prepareSocialPostMediaFiles(files);
 
       const cleanBody = body.trim();
       const errors = validateSocialPostDraft({
@@ -892,7 +912,20 @@ export function useCreateSocialPost() {
       }
 
       if (error) throw error;
-      await uploadPostMedia(restaurantId, post.id, files);
+
+      try {
+        await uploadPostMedia(restaurantId, post.id, preparedMediaFiles);
+      } catch (mediaError) {
+        await (supabase.from("social_posts" as any) as any)
+          .update({
+            status: "deleted",
+            hidden_reason: "Echec upload media",
+            hidden_by: user.id,
+            hidden_at: new Date().toISOString(),
+          })
+          .eq("id", post.id);
+        throw mediaError;
+      }
       return post.id as string;
     },
     onSuccess: (_, input) => {
@@ -1245,7 +1278,7 @@ export function useSocialComments(postId?: string | null) {
           : Promise.resolve({ data: [], error: null }),
         userIds.length
           ? (supabase.from("profiles" as any) as any)
-              .select("user_id,full_name")
+              .select("user_id,full_name,avatar_url")
               .in("user_id", userIds)
           : Promise.resolve({ data: [], error: null }),
       ]);
@@ -1255,9 +1288,13 @@ export function useSocialComments(postId?: string | null) {
       if (reactionResult.error && !missingReactionSchema) throw reactionResult.error;
 
       const profileNames = new Map<string, string>();
+      const profileAvatarUrls = new Map<string, string>();
       for (const profile of profileResult.data || []) {
         if (profile.user_id && profile.full_name) {
           profileNames.set(String(profile.user_id), String(profile.full_name));
+        }
+        if (profile.user_id && profile.avatar_url) {
+          profileAvatarUrls.set(String(profile.user_id), String(profile.avatar_url));
         }
       }
 
@@ -1287,6 +1324,7 @@ export function useSocialComments(postId?: string | null) {
           status: row.status,
           createdAt: row.created_at,
           authorName: profileNames.get(String(row.user_id)) || null,
+          authorAvatarUrl: profileAvatarUrls.get(String(row.user_id)) || null,
           reactionsCount: Number(row.reactions_count || countReactions(reactionCounts)),
           reactionCounts,
           myReaction: myReactionByComment.get(String(row.id)) || null,

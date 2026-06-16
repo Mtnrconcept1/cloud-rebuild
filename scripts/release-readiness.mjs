@@ -31,6 +31,7 @@ export function inspectReleaseReadiness(options = {}) {
   inspectAndroidSigning(root, env, errors);
   inspectEdgeSecrets(env, errors);
   inspectFirebaseServiceAccount(env, errors);
+  inspectSupabaseAuthSecurity(env, errors);
 
   return {
     ok: errors.length === 0,
@@ -164,6 +165,20 @@ function inspectFirebaseServiceAccount(env, errors) {
 
   if (isValidFirebaseServiceAccount(separateEnv)) return;
   errors.push("Missing valid Firebase service account config for production push delivery.");
+}
+
+function inspectSupabaseAuthSecurity(env, errors) {
+  const confirmed = clean(env.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED).toLowerCase();
+  const evidence = clean(env.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE);
+  const accepted = new Set(["1", "true", "yes", "active", "confirmed"]);
+
+  if (!accepted.has(confirmed)) {
+    errors.push("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED=true after verifying Supabase Auth leaked password protection for production.");
+  }
+
+  if (isPlaceholder(evidence) || evidence.length < 12) {
+    errors.push("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE with Dashboard/API proof for issue #204.");
+  }
 }
 
 function parseFirebaseServiceAccount(value) {

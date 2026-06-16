@@ -28,15 +28,23 @@ afterEach(() => {
 describe("route back navigation", () => {
   it("provides one shared back button with history fallback handling", () => {
     const source = read("src/components/navigation/BackNavigationButton.tsx");
+    const helper = read("src/lib/backNavigation.ts");
 
     expect(source).toContain("ArrowLeft");
     expect(source).toContain("export function BackNavigationButton");
     expect(source).toContain("export function FloatingRouteBackButton");
+    expect(helper).toContain("export function shouldShowFloatingBackButton");
+    expect(source).toContain('import { shouldShowFloatingBackButton } from "@/lib/backNavigation";');
     expect(source).toContain("getBackFallbackForPathname");
     expect(source).toContain("navigate(-1)");
     expect(source).toContain("showLabel");
     expect(source).toContain("sr-only");
     expect(source).toContain("aria-label=");
+    expect(source).toContain("pointer-events-none absolute");
+    expect(source).toContain("z-[65]");
+    expect(source).toContain("pointer-events-auto");
+    expect(source).toContain('pathname === "/actualites"');
+    expect(source).toContain("top-[calc(env(safe-area-inset-top,0px)+0.75rem)]");
   });
 
   it("adds back navigation to public, admin, dashboard, client and courier shells", () => {
@@ -47,6 +55,7 @@ describe("route back navigation", () => {
     const backNavigation = read("src/components/navigation/BackNavigationButton.tsx");
 
     expect(app).toContain("<FloatingRouteBackButton />");
+    expect(app).not.toContain("floating-back-button-mobile-offset");
     expect(app).toContain("function AdminRouteFrame");
     expect(app).toContain('import { createPortal } from "react-dom";');
     expect(app).toContain("adminBackButtonPortalStyle");

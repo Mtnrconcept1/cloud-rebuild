@@ -16,15 +16,19 @@ describe("MobileLogoIntro", () => {
     vi.useFakeTimers();
     window.history.pushState({}, "", "/");
     setViewportWidth(390);
+    window.localStorage.clear();
+    document.body.style.overflow = "";
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
   });
 
   afterEach(() => {
+    window.localStorage.clear();
+    document.body.style.overflow = "";
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
-  it("covers the mobile viewport with the optimized portrait intro video", () => {
+  it("briefly layers the portrait intro video without blocking the page", () => {
     render(<MobileLogoIntro />);
 
     const overlay = screen.getByTestId("mobile-logo-intro");
@@ -32,10 +36,13 @@ describe("MobileLogoIntro", () => {
     const video = screen.getByTestId("mobile-logo-intro-video") as HTMLVideoElement;
     const sources = Array.from(video.querySelectorAll("source"));
     const soundToggle = screen.getByTestId("mobile-logo-intro-sound-toggle");
+    const skipButton = screen.getByTestId("mobile-logo-intro-skip");
     const vignette = screen.getByTestId("mobile-logo-intro-vignette");
 
-    expect(overlay).toHaveClass("fixed", "inset-0", "z-[9999]", "bg-black");
+    expect(overlay).toHaveClass("pointer-events-none", "fixed", "inset-0", "z-[9999]", "bg-black");
     expect(overlay).toHaveAttribute("aria-label", "Intro TOK");
+    expect(overlay).toHaveStyle({ transitionDuration: "180ms" });
+    expect(document.body.style.overflow).toBe("");
     expect(video).toHaveAttribute("poster", "/higgsfield/tok-intro-mobile-poster.webp");
     expect(sources).toHaveLength(1);
     expect(sources[0]).toHaveAttribute("src", "/higgsfield/tok-intro-mobile.mp4");
@@ -43,12 +50,15 @@ describe("MobileLogoIntro", () => {
     expect(video).toHaveAttribute("data-intro-variant", "mobile");
     expect(video).toHaveAttribute("width", "1080");
     expect(video).toHaveAttribute("height", "1920");
-    expect(video).toHaveAttribute("preload", "auto");
+    expect(video).toHaveAttribute("preload", "metadata");
     expect(video.autoplay).toBe(true);
-    expect(video.muted).toBe(false);
+    expect(video.muted).toBe(true);
     expect(video.playsInline).toBe(true);
-    expect(soundToggle).toHaveTextContent("Son activé");
-    expect(soundToggle).toHaveAttribute("aria-label", "Couper le son de l'intro TOK");
+    expect(skipButton).toHaveTextContent("Passer");
+    expect(skipButton).toHaveClass("pointer-events-auto");
+    expect(soundToggle).toHaveTextContent("Activer le son");
+    expect(soundToggle).toHaveAttribute("aria-label", "Activer le son de l'intro TOK");
+    expect(soundToggle).toHaveClass("pointer-events-auto");
     expect(screen.queryByTestId("mobile-logo-intro-logo")).not.toBeInTheDocument();
     expect(logoFrame).toHaveClass("relative", "grid", "place-items-center");
     expect(video).toHaveClass("h-full", "w-full", "object-cover");
@@ -57,7 +67,7 @@ describe("MobileLogoIntro", () => {
     expect(vignette.getAttribute("style")).toContain("linear-gradient");
   });
 
-  it("covers desktop viewports with the optimized landscape intro video", () => {
+  it("briefly layers desktop viewports with the optimized landscape intro video", () => {
     setViewportWidth(1024);
 
     render(<MobileLogoIntro />);
@@ -72,9 +82,11 @@ describe("MobileLogoIntro", () => {
     expect(video).toHaveAttribute("data-intro-variant", "desktop");
     expect(video).toHaveAttribute("width", "1920");
     expect(video).toHaveAttribute("height", "1080");
+    expect(video).toHaveAttribute("preload", "metadata");
+    expect(video.muted).toBe(true);
   });
 
-  it("tries to play the intro with audio immediately and lets the user cut it", async () => {
+  it("starts muted and lets the user explicitly enable sound", async () => {
     render(<MobileLogoIntro />);
 
     const video = screen.getByTestId("mobile-logo-intro-video") as HTMLVideoElement;
@@ -85,33 +97,64 @@ describe("MobileLogoIntro", () => {
     });
 
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
-    expect(video.muted).toBe(false);
-    expect(soundToggle).toHaveTextContent("Son activé");
+    expect(video.muted).toBe(true);
+    expect(video.volume).toBe(0);
+    expect(soundToggle).toHaveTextContent("Activer le son");
 
     await act(async () => {
       fireEvent.click(soundToggle);
     });
 
-    expect(video.muted).toBe(true);
-    expect(soundToggle).toHaveTextContent("Activer le son");
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(2);
+    expect(video.muted).toBe(false);
+    expect(video.volume).toBe(1);
+    expect(soundToggle).toHaveTextContent("Son activé");
   });
 
-  it("does not render on mobile routes outside the home page", () => {
-    window.history.pushState({}, "", "/recherche");
+  it.each([
+    "/recherche",
+    "/panier",
+    "/auth",
+    "/commande/123",
+    "/dashboard",
+    "/admin",
+    "/courier",
+  ])("does not render on operational route %s", (route) => {
+    window.history.pushState({}, "", route);
 
     render(<MobileLogoIntro />);
 
     expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
   });
 
-  it("fades out after the logo intro and then removes the blocking overlay", () => {
-    render(<MobileLogoIntro />);
+  it("fades out quickly and then remembers the intro version", () => {
+    const { unmount } = render(<MobileLogoIntro />);
 
     const overlay = screen.getByTestId("mobile-logo-intro");
 
     act(() => {
-      vi.advanceTimersByTime(8500);
+      vi.advanceTimersByTime(650);
     });
+
+    expect(overlay).toHaveClass("opacity-0");
+
+    fireEvent.transitionEnd(overlay);
+
+    expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
+
+    unmount();
+    render(<MobileLogoIntro />);
+
+    expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
+  });
+
+  it("can be skipped immediately", () => {
+    render(<MobileLogoIntro />);
+
+    const overlay = screen.getByTestId("mobile-logo-intro");
+    const skipButton = screen.getByTestId("mobile-logo-intro-skip");
+
+    fireEvent.click(skipButton);
 
     expect(overlay).toHaveClass("opacity-0");
 
@@ -120,17 +163,17 @@ describe("MobileLogoIntro", () => {
     expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();
   });
 
-  it("removes the blocking overlay even if the transition end event is not fired", () => {
+  it("removes the lightweight overlay even if the transition end event is not fired", () => {
     render(<MobileLogoIntro />);
 
     act(() => {
-      vi.advanceTimersByTime(8500);
+      vi.advanceTimersByTime(650);
     });
 
     expect(screen.getByTestId("mobile-logo-intro")).toHaveClass("opacity-0");
 
     act(() => {
-      vi.advanceTimersByTime(800);
+      vi.advanceTimersByTime(260);
     });
 
     expect(screen.queryByTestId("mobile-logo-intro")).not.toBeInTheDocument();

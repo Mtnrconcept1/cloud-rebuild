@@ -34,6 +34,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ImageUpload from "@/components/ImageUpload";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1221,7 +1222,7 @@ function CampaignForm({
           throw new Error(checkoutError?.message || "Impossible de créer la session de paiement.");
         }
 
-        window.location.href = checkoutData.url;
+        redirectToTrustedCheckoutUrl(checkoutData.url);
         return;
       }
 

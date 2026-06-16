@@ -19,6 +19,7 @@ import {
   type PackService,
 } from "@/lib/launchPacks";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
 import type { PaymentMethodId } from "@/lib/paymentMethods";
@@ -321,7 +322,7 @@ export default function DashboardPack() {
         );
       }
 
-      window.location.href = checkoutData.url;
+      redirectToTrustedCheckoutUrl(checkoutData.url);
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(

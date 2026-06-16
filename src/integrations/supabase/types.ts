@@ -3692,6 +3692,7 @@ export type Database = {
           current_tier: Database["public"]["Enums"]["loyalty_tier"] | null
           date_of_birth: string | null
           full_name: string | null
+          gender: string | null
           id: string
           loyalty_points: number | null
           phone: string | null
@@ -3706,6 +3707,7 @@ export type Database = {
           current_tier?: Database["public"]["Enums"]["loyalty_tier"] | null
           date_of_birth?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
           loyalty_points?: number | null
           phone?: string | null
@@ -3720,6 +3722,7 @@ export type Database = {
           current_tier?: Database["public"]["Enums"]["loyalty_tier"] | null
           date_of_birth?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
           loyalty_points?: number | null
           phone?: string | null

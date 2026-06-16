@@ -48,6 +48,8 @@ describe("release readiness inspection", () => {
     expect(result.errors).toContain("Missing public/.well-known/assetlinks.json for Android App Links.");
     expect(result.errors).toContain("Missing Android release keystore config at android/keystore.properties.");
     expect(result.errors).toContain("Missing STRIPE_WEBHOOK_SECRET for production payment capture.");
+    expect(result.errors).toContain("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED=true after verifying Supabase Auth leaked password protection for production.");
+    expect(result.errors).toContain("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE with Dashboard/API proof for issue #204.");
   });
 
   it("accepts configured app links, mobile signing, and critical production secrets", () => {
@@ -84,6 +86,8 @@ describe("release readiness inspection", () => {
         PUBLIC_APP_URL: "https://www.thetok.ch",
         ALLOWED_ORIGINS: "https://app.thetok.ch,https://www.thetok.ch",
         APPLE_TEAM_ID: "TEAM123456",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "GitHub issue #204 dashboard proof 2026-06-16",
       },
     });
 
@@ -125,6 +129,8 @@ describe("release readiness inspection", () => {
         PUBLIC_APP_URL: "https://www.thetok.ch",
         ALLOWED_ORIGINS: "https://app.thetok.ch,https://www.thetok.ch",
         APPLE_TEAM_ID: "TEAM123456",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
+        SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "GitHub issue #204 dashboard proof 2026-06-16",
       },
     });
 

@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/table";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { getSupabase } from "@/integrations/supabase/client";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
@@ -451,7 +452,7 @@ export default function DashboardAccountBilling() {
         throw new Error((error as Error | null)?.message || "Impossible de créer la session d'upgrade.");
       }
 
-      window.location.href = data.url;
+      redirectToTrustedCheckoutUrl(data.url);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erreur lors de la création de l'upgrade.");
       setCheckingOutPlanId(null);
@@ -480,7 +481,7 @@ export default function DashboardAccountBilling() {
         throw new Error((error as Error | null)?.message || "Impossible de creer la session de paiement du pack.");
       }
 
-      window.location.href = data.url;
+      redirectToTrustedCheckoutUrl(data.url);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erreur lors de la creation du paiement du pack.");
       setCheckingOutCreditPackId(null);

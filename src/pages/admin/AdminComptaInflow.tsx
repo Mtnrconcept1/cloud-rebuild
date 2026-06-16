@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
+import { openExternalHttpsUrl } from "@/lib/securityUrls";
 import {
   generateAdminTokPayableInvoices,
   getAdminComptaActionErrorMessage,
@@ -38,7 +39,7 @@ function getErrorMessage(error: unknown) {
 
 function downloadInvoicePdf(invoice: AdminInvoiceRow) {
   if (invoice.pdf_url) {
-    window.open(invoice.pdf_url, "_blank", "noopener,noreferrer");
+    openExternalHttpsUrl(invoice.pdf_url);
   }
 }
 

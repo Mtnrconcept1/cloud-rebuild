@@ -68,6 +68,8 @@ describe("Miamz business logic guards", () => {
 
   it("exposes active Miamz actions and operational priority badges in the UI", () => {
     expect(loyaltyStatusSource).toContain("claim_miamz_birthday_bonus");
+    expect(loyaltyStatusSource).toContain("Reclamer mon bonus");
+    expect(loyaltyStatusSource).toContain("from-pink-500 to-orange-500");
     expect(reservationQueueSource).toContain("getReservationMiamzPriority");
     expect(reservationQueueSource).toContain("Priorite Miamz");
     expect(refundMutationsSource).toContain("miamz_priority_score");
@@ -84,6 +86,13 @@ describe("Miamz business logic guards", () => {
     expect(migrationsSource).toContain("enqueue_birthday_notifications");
     expect(migrationsSource).toContain("idx_notifications_birthday_once_year");
     expect(migrationsSource).toContain("tok-birthday-notifications");
+  });
+
+  it("keeps the customer profile tabs contained on mobile", () => {
+    expect(profileSource).toContain("!grid h-auto w-full grid-cols-3");
+    expect(profileSource).toContain("sm:grid-cols-6");
+    expect(profileSource).toContain("min-w-0 gap-1 rounded-xl");
+    expect(profileSource).toContain("truncate");
   });
 
   it("keeps manual image URLs hidden by default outside privileged flows", () => {

@@ -24,6 +24,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { PUBLIC_MENU_ITEMS_LIMIT, PUBLIC_RESTAURANTS_LIMIT } from "@/lib/queryLimits";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 
 const supabase = getSupabase();
@@ -481,7 +482,7 @@ export default function MatchGroupes() {
       return checkout.url as string;
     },
     onSuccess: (url) => {
-      window.location.assign(url);
+      redirectToTrustedCheckoutUrl(url);
     },
     onError: (error: any) => {
       toast({ title: "Prépaiement impossible", description: error.message, variant: "destructive" });

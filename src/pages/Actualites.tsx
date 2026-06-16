@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import {
   BellRing,
   Bookmark,
-  ChefHat,
   ChevronRight,
   Flame,
   MapPin,
@@ -67,6 +66,72 @@ function buildPostSearchIndex(post: SocialFeedPost) {
   return `${normalizeActualitesSearch(fields)} ${compactActualitesSearch(fields)}`;
 }
 
+function ActualitesBoostBanner({ onSponsorClick }: { onSponsorClick: () => void }) {
+  return (
+    <section
+      aria-label="Mettre votre restaurant en avant"
+      className="relative isolate overflow-hidden rounded-[1.35rem] bg-[#ff4b00] bg-[image:url('/fondbanniere.png')] bg-cover bg-center shadow-xl shadow-orange-500/20 max-sm:h-[33rem] max-sm:rounded-[1.15rem] max-sm:bg-[image:url('/fondbanniere2.png')]"
+    >
+      <div className="relative z-10 grid min-h-[22rem] grid-cols-[minmax(0,1.1fr)_minmax(15rem,0.86fr)] gap-4 px-5 pb-5 pt-4 sm:min-h-[20rem] sm:px-6 sm:py-6 md:grid-cols-[minmax(18rem,1.1fr)_minmax(16rem,0.82fr)] md:items-center lg:min-h-[21rem] max-sm:block max-sm:h-full max-sm:min-h-0 max-sm:p-0">
+        <div className="relative min-h-[19rem] sm:min-h-[20rem] max-sm:absolute max-sm:inset-0 max-sm:min-h-0">
+          <img
+            src="/chef3.png"
+            alt="Ton resto mis en avant a partir de CHF 1.-"
+            loading="eager"
+            className="absolute left-[-2.8rem] top-0 ml-[9px] mt-[-35px] h-[28rem] w-[34rem] max-w-none object-contain object-top pl-[39px] drop-shadow-2xl [mask-image:radial-gradient(ellipse_at_45%_42%,black_64%,transparent_88%)] sm:left-[-3.4rem] sm:top-[-0.25rem] sm:h-[29rem] sm:w-[36rem] md:left-[-3.75rem] md:h-[30rem] md:w-[36rem] lg:left-[-3.25rem] lg:h-[31rem] lg:w-[37rem] max-sm:left-[-4.55rem] max-sm:top-[-1.05rem] max-sm:ml-0 max-sm:mt-0 max-sm:h-auto max-sm:w-[29.5rem] max-sm:object-contain max-sm:pl-0"
+          />
+        </div>
+
+        <div className="flex min-w-0 flex-col justify-center gap-4 text-white md:pl-4 lg:pl-6 max-sm:absolute max-sm:inset-x-4 max-sm:bottom-4 max-sm:z-20 max-sm:gap-3">
+          <div className="space-y-3 max-sm:mb-2 max-sm:ml-[12.5rem] max-sm:grid max-sm:grid-cols-1 max-sm:gap-2 max-sm:space-y-0">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg shadow-orange-900/15 max-sm:h-8 max-sm:w-8">
+                <TrendingUp className="h-5 w-5 max-sm:h-4 max-sm:w-4" aria-hidden="true" />
+              </span>
+              <span>
+                <strong className="block text-lg font-black leading-tight max-sm:text-[12px]">Plus de visibilite</strong>
+                <span className="block text-sm font-medium leading-snug text-white/90 max-sm:text-[11px]">
+                  Soyez vu par des milliers de gourmands
+                </span>
+              </span>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg shadow-orange-900/15 max-sm:h-8 max-sm:w-8">
+                <BellRing className="h-5 w-5 max-sm:h-4 max-sm:w-4" aria-hidden="true" />
+              </span>
+              <span>
+                <strong className="block text-lg font-black leading-tight max-sm:text-[12px]">Plus de clients</strong>
+                <span className="block text-sm font-medium leading-snug text-white/90 max-sm:text-[11px]">
+                  Attirez de nouveaux clients chaque jour
+                </span>
+              </span>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg shadow-orange-900/15 max-sm:h-8 max-sm:w-8">
+                <Rocket className="h-5 w-5 max-sm:h-4 max-sm:w-4" aria-hidden="true" />
+              </span>
+              <span>
+                <strong className="block text-lg font-black leading-tight max-sm:text-[12px]">Resultats rapides</strong>
+                <span className="block text-sm font-medium leading-snug text-white/90 max-sm:text-[11px]">
+                  Des resultats des les premieres heures
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            className="mt-1 h-12 rounded-2xl bg-white px-5 text-base font-black text-orange-600 shadow-xl shadow-orange-900/20 transition hover:bg-orange-50 hover:text-orange-700 max-sm:h-11 max-sm:w-full max-sm:text-sm"
+            onClick={onSponsorClick}
+          >
+            Mettre mon restaurant en avant
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Actualites() {
   const { role, isSuperAdmin, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -74,6 +139,7 @@ export default function Actualites() {
   const [searchQuery, setSearchQuery] = useState("");
   const [feedOrderSeed] = useState(() => createActualitesFeedOrderSeed());
   const [composerRestaurantId, setComposerRestaurantId] = useState<string | null>(null);
+  const [sponsorDialogRequest, setSponsorDialogRequest] = useState(0);
   const highlightedPostId = searchParams.get("post");
   const feed = useInfiniteSocialFeed(scope, 12);
   const canManage = role === "restaurateur" || isSuperAdmin;
@@ -144,115 +210,140 @@ export default function Actualites() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.14),transparent_34rem),linear-gradient(180deg,rgba(255,247,237,0.9),rgba(255,255,255,0.95)_22rem,rgba(248,250,252,0.85))] py-6 md:py-10">
-      <div className="container grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
-        <section className="min-w-0 space-y-5">
-          <div className="relative overflow-hidden rounded-[2rem] border border-orange-100/80 bg-background/90 p-5 shadow-xl shadow-orange-100/50 backdrop-blur md:p-6">
-            <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-            <div className="pointer-events-none absolute bottom-0 right-10 h-28 w-28 rounded-full bg-amber-300/20 blur-2xl" />
-
-            <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0 space-y-3">
+    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_28rem),linear-gradient(180deg,rgba(255,247,237,0.85),rgba(255,255,255,0.96)_13rem,rgba(248,250,252,0.85))] py-3 md:py-6">
+      <div className="container grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
+        <section className="min-w-0 space-y-2 max-sm:-ml-[9px] max-sm:w-[calc(100%+37px)] md:space-y-3">
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
+            <div className="hidden">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="gap-1 rounded-full bg-primary/10 px-3 py-1 text-primary hover:bg-primary/15">
-                    <Newspaper className="h-3.5 w-3.5" />
+                  <Badge className="gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] text-primary hover:bg-primary/15">
+                    <Newspaper className="h-3 w-3" />
                     Actualités restaurants
                   </Badge>
-                  <Badge variant="outline" className="rounded-full border-orange-200 bg-white/70 px-3 py-1">
-                    <Flame className="mr-1 h-3.5 w-3.5 text-orange-500" />
+                  <Badge variant="outline" className="hidden rounded-full border-orange-200 bg-white/70 px-2.5 py-0.5 text-[11px] sm:inline-flex">
+                    <Flame className="mr-1 h-3 w-3 text-orange-500" />
                     Offres locales en direct
                   </Badge>
                 </div>
                 <div>
-                  <h1 className="font-display text-3xl font-black tracking-tight text-slate-950 md:text-5xl">
+                  <h1 className="mt-1 font-display text-2xl font-black tracking-tight text-slate-950 md:text-3xl">
                     Fil restaurant
                   </h1>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
+                  <p className="hidden">
                     Découvrez les plats du moment, les coulisses, les tables libres et les offres courtes près de chez vous.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 shadow-sm ring-1 ring-border/70">
-                    <Utensils className="h-3.5 w-3.5 text-primary" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-[11px] font-medium shadow-sm ring-1 ring-border/70">
+                    <Utensils className="h-3 w-3 text-primary" />
                     {filteredPosts.length} posts
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 shadow-sm ring-1 ring-border/70">
-                    <Store className="h-3.5 w-3.5 text-primary" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-[11px] font-medium shadow-sm ring-1 ring-border/70">
+                    <Store className="h-3 w-3 text-primary" />
                     {feedStats.restaurantsCount} restaurants
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 shadow-sm ring-1 ring-border/70">
+                  <span className="hidden items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-[11px] font-medium shadow-sm ring-1 ring-border/70">
                     <MapPin className="h-3.5 w-3.5 text-primary" />
                     Suggestions proches
                   </span>
                 </div>
+                </div>
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
-                <Button className="gap-2 rounded-full shadow-lg shadow-primary/20" onClick={() => feed.refetch()} disabled={feed.isFetching}>
-                  <RefreshCw className={`h-4 w-4 ${feed.isFetching ? "animate-spin" : ""}`} />
+              <div className="flex flex-col gap-2 sm:flex-row lg:items-center">
+                <Button size="sm" className="h-9 gap-2 rounded-full px-3 shadow-md shadow-primary/15" onClick={() => feed.refetch()} disabled={feed.isFetching}>
+                  <RefreshCw className={`h-3.5 w-3.5 ${feed.isFetching ? "animate-spin" : ""}`} />
                   Actualiser
                 </Button>
-                <p className="text-xs text-muted-foreground lg:text-right">Flux enrichi par les publications restaurateurs.</p>
+                <p className="hidden text-xs text-muted-foreground lg:text-right">Flux enrichi par les publications restaurateurs.</p>
               </div>
             </div>
-          </div>
 
-          {canManage ? (
-            <div className="space-y-3">
-              {ownerRestaurants.loading ? (
-                <div className="rounded-2xl border bg-background/90 p-5 text-sm text-muted-foreground shadow-sm">
-                  Chargement de vos restaurants...
-                </div>
-              ) : ownerRestaurants.error ? (
-                <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive shadow-sm">
-                  Impossible de charger vos restaurants : {ownerRestaurants.error}
-                </div>
-              ) : restaurants.length > 0 ? (
-                <>
-                  {restaurants.length > 1 ? (
-                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-background/90 p-3 shadow-sm">
-                      <span className="inline-flex items-center gap-2 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        <ChefHat className="h-3.5 w-3.5" />
-                        Publier pour
-                      </span>
-                      {restaurants.map((restaurant) => (
-                        <Button
-                          key={restaurant.id}
-                          type="button"
-                          size="sm"
-                          variant={restaurant.id === composerRestaurant?.id ? "default" : "outline"}
-                          className="rounded-full"
-                          onClick={() => setComposerRestaurantId(restaurant.id)}
-                        >
-                          {restaurant.name}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : null}
-                  <SocialComposer
-                    restaurantId={composerRestaurant?.id || null}
-                    restaurantName={composerRestaurant?.name || null}
-                    socialLinks={composerRestaurant?.socialLinks || null}
-                  />
-                </>
-              ) : (
-                <div className="rounded-2xl border bg-background/90 p-5 text-sm text-muted-foreground shadow-sm">
-                  Aucun restaurant rattaché à ce compte.
-                </div>
-              )}
-            </div>
-          ) : null}
-
-          <div className="rounded-2xl border bg-background/95 p-3 shadow-sm">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-center">
               <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="actualites-search"
                   type="search"
                   value={searchQuery}
                   aria-label="Rechercher dans les actualités"
                   data-testid="actualites-search"
+                  placeholder="Rechercher par #, restaurant, cuisine, ville..."
+                  className="h-10 rounded-2xl border-orange-100 bg-white pl-10 pr-10 text-sm shadow-sm"
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+                {searchQuery ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-orange-50 hover:text-primary"
+                    aria-label="Effacer la recherche"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                ) : null}
+              </div>
+
+              <Tabs value={scope} onValueChange={changeScope} className="lg:w-[29rem]">
+                <TabsList className="grid h-auto w-full grid-cols-5 gap-1 rounded-2xl bg-muted/50 p-1">
+                  {SOCIAL_FEED_SCOPES.map((item) => (
+                    <TabsTrigger
+                      key={item.value}
+                      value={item.value}
+                      className="rounded-xl px-1.5 py-2 text-[11px] font-semibold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-xs"
+                    >
+                      {item.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
+          </div>
+
+          {canManage ? <ActualitesBoostBanner onSponsorClick={() => setSponsorDialogRequest((request) => request + 1)} /> : null}
+
+          {canManage ? (
+            <div id="actualites-composer" className="scroll-mt-24 space-y-2">
+              {ownerRestaurants.loading ? (
+                <div className="rounded-2xl border bg-background/90 p-4 text-sm text-muted-foreground shadow-sm">
+                  Chargement de vos restaurants...
+                </div>
+              ) : ownerRestaurants.error ? (
+                <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive shadow-sm">
+                  Impossible de charger vos restaurants : {ownerRestaurants.error}
+                </div>
+              ) : restaurants.length > 0 ? (
+                <>
+                  <SocialComposer
+                    restaurantId={composerRestaurant?.id || null}
+                    restaurantName={composerRestaurant?.name || null}
+                    socialLinks={composerRestaurant?.socialLinks || null}
+                    sponsorDialogRequest={sponsorDialogRequest}
+                    compact
+                  />
+                </>
+              ) : (
+                <div className="rounded-2xl border bg-background/90 p-4 text-sm text-muted-foreground shadow-sm">
+                  Aucun restaurant rattaché à ce compte.
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          <div className="hidden" aria-hidden="true">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="actualites-search-legacy"
+                  type="search"
+                  value={searchQuery}
+                  aria-label="Rechercher dans les actualités"
+                  data-testid="actualites-search-legacy"
                   placeholder="Rechercher par #, restaurant, cuisine, ville..."
                   className="h-12 rounded-2xl border-orange-100 bg-white pl-11 pr-12 shadow-sm"
                   onChange={(event) => setSearchQuery(event.target.value)}
@@ -279,7 +370,7 @@ export default function Actualites() {
           </div>
 
           <Tabs value={scope} onValueChange={changeScope}>
-            <div className="rounded-2xl border bg-background/90 p-2 shadow-sm">
+            <div className="hidden">
               <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1 sm:grid-cols-5">
                 {SOCIAL_FEED_SCOPES.map((item) => (
                   <TabsTrigger

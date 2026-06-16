@@ -68,6 +68,7 @@ describe("dashboard shell navigation", () => {
     expect(app).toContain('pathname.startsWith("/dashboard/")');
     expect(app).toContain('pathname.startsWith("/admin/")');
     expect(app).toContain('pathname.startsWith("/courier/")');
-    expect(app).toContain("{shouldShowPublicNavbar(pathname) ? <Navbar /> : null}");
+    expect(app).toContain("const publicNavbar = shouldShowPublicNavbar(pathname) ? <Navbar /> : null");
+    expect(app).not.toContain('pathname === "/actualites" && publicNavbar');
   });
 });

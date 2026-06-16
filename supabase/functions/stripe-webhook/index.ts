@@ -36,6 +36,7 @@ type PaymentTransactionRow = {
 
 type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
+  info?: (event: string, data?: Record<string, unknown>) => void;
 };
 
 type RestaurantTokPurchaseInvoiceItemKind = "launch_pack" | "restaurant_subscription" | "credit_pack";
@@ -62,6 +63,40 @@ function buildPaidTokInvoiceNumber(itemKind: RestaurantTokPurchaseInvoiceItemKin
   };
 
   return `TOK-PAID-${kindPrefix[itemKind]}-${normalizedSessionId || "STRIPE"}`;
+}
+
+async function claimStripeWebhookEvent(input: {
+  adminClient: ReturnType<typeof createClient>;
+  event: Stripe.Event;
+  log: LoggerLike;
+}) {
+  const { error } = await input.adminClient
+    .from("stripe_webhook_events")
+    .insert({
+      event_id: input.event.id,
+      event_type: input.event.type,
+      livemode: input.event.livemode,
+    });
+
+  if (!error) {
+    return { claimed: true, duplicate: false, errorMessage: null };
+  }
+
+  if (error.code === "23505") {
+    input.log.info?.("duplicate_event_skipped", {
+      eventId: input.event.id,
+      type: input.event.type,
+    });
+    return { claimed: false, duplicate: true, errorMessage: null };
+  }
+
+  input.log.error?.("stripe_webhook_event_claim_failed", {
+    eventId: input.event.id,
+    type: input.event.type,
+    code: error.code || null,
+    message: error.message,
+  });
+  return { claimed: false, duplicate: false, errorMessage: error.message };
 }
 
 async function recordRestaurantTokPurchaseInvoiceIfMissing(input: {
@@ -529,25 +564,34 @@ Deno.serve(async (req) => {
     return new Response("Invalid webhook signature", { status: 400 });
   }
 
-  // Idempotency: skip duplicate Stripe events (replays, retries).
-  const { data: existingEvent } = await supabaseAdmin
-    .from("stripe_webhook_events")
-    .select("event_id")
-    .eq("event_id", event.id)
-    .maybeSingle();
+  // Idempotency: acquire the event atomically before any side effect.
+  const eventClaim = await claimStripeWebhookEvent({ adminClient: supabaseAdmin, event, log });
 
-  if (existingEvent) {
-    log.info("duplicate_event_skipped", { eventId: event.id, type: event.type });
+  if (eventClaim.duplicate) {
     return new Response(JSON.stringify({ received: true, duplicate: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  // Record the event ID before processing so concurrent retries are also blocked.
-  await supabaseAdmin
-    .from("stripe_webhook_events")
-    .insert({ event_id: event.id, event_type: event.type, livemode: event.livemode });
+  if (!eventClaim.claimed) {
+    await writeAuditLog({
+      adminClient: supabaseAdmin,
+      actor: { roles: ["service_role"], isServiceRole: true },
+      request: req,
+      functionName: "stripe-webhook",
+      action: "claim_webhook_event",
+      status: "failure",
+      targetEntityType: "stripe_event",
+      targetEntityId: event.id,
+      errorMessage: eventClaim.errorMessage || "Failed to claim Stripe webhook event",
+      metadata: {
+        livemode: event.livemode,
+        type: event.type,
+      },
+    });
+    return new Response("Could not record Stripe webhook event", { status: 500 });
+  }
 
   try {
     switch (event.type) {

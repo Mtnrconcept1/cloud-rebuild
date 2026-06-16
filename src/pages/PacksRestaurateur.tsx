@@ -14,6 +14,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getSupabase } from "@/integrations/supabase/client";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { toast } from "sonner";
 import PaymentMethodSelector from "@/components/cart/PaymentMethodSelector";
@@ -459,7 +460,7 @@ export default function PacksRestaurateur() {
         );
       }
 
-      window.location.href = checkoutData.url;
+      redirectToTrustedCheckoutUrl(checkoutData.url);
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(

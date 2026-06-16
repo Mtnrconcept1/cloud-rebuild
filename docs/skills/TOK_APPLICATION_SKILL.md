@@ -313,7 +313,7 @@ Current production workflow assumptions:
 
 - Node 22.
 - pnpm 10.28.1.
-- Supabase CLI 2.95.2 via `pnpm dlx`.
+- Supabase CLI 2.102.0 via `pnpm dlx`.
 - Production Supabase project ref: `wwcrtyoueexyxkkikaos`.
 - App base/public URL: `https://cloud-rebuild-recovered.vercel.app/`.
 - Site URL: `https://www.thetok.ch`.
@@ -457,6 +457,6 @@ Before modifying high-risk areas, inspect current code, tests, migrations and wo
 - Supabase project ref: `wwcrtyoueexyxkkikaos`.
 - Package manager: pnpm.
 - Node in CI/deploy: 22.
-- Supabase CLI in deploy workflow: 2.95.2.
+- Supabase CLI in deploy workflow: 2.102.0.
 
 Keep this file updated when product scope, routes, workflows, secrets or major modules change.

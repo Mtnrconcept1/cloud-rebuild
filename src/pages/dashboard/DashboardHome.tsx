@@ -17,6 +17,7 @@ import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { cn } from "@/lib/utils";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import {
   getSignupRestaurateurOnboardingSelection,
@@ -320,7 +321,7 @@ export default function Dashboard() {
         throw new Error((error as Error | null)?.message || "Impossible de créer la session de paiement.");
       }
 
-      window.location.href = data.url;
+      redirectToTrustedCheckoutUrl(data.url);
     } catch (error) {
       toast({
         title: "Paiement impossible",

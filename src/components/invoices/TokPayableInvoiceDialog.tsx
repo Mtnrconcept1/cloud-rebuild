@@ -19,6 +19,7 @@ import {
   type PayableInvoiceRow,
   type PayableInvoiceType,
 } from "@/lib/payableInvoice";
+import { openSafePrintWindow } from "@/lib/safePrintWindow";
 import { TokPayableInvoiceDocument } from "./TokPayableInvoiceDocument";
 
 const supabase = getSupabase();
@@ -94,29 +95,15 @@ function normalizePayableLines(
   })) satisfies PayableInvoiceLine[];
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
 function openPrintWindow(title: string, content: string) {
-  const nextWindow = window.open("", "_blank", "noopener,noreferrer");
-  if (!nextWindow) return false;
-
   const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
     .map((node) => node.outerHTML)
     .join("\n");
 
-  nextWindow.document.write(`<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <title>${escapeHtml(title)}</title>
-    ${styles}
+  return openSafePrintWindow({
+    title,
+    headHtml: `
+      ${styles}
     <style>
       :root { color-scheme: light; }
       body {
@@ -138,22 +125,11 @@ function openPrintWindow(title: string, content: string) {
         margin: 10mm;
       }
     </style>
-  </head>
-  <body>
+    `,
+    bodyHtml: `
     <div class="tok-print-shell">${content}</div>
-    <script>
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          window.focus();
-          window.print();
-        }, 150);
-      });
-    </script>
-  </body>
-</html>`);
-  nextWindow.document.close();
-
-  return true;
+    `,
+  });
 }
 
 function useTokPayableInvoiceDocumentData(invoice: PayableInvoiceRow | null, enabled: boolean) {

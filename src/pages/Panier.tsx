@@ -41,6 +41,7 @@ import {
 } from "@/lib/paymentMethods";
 import { writePendingOrderCheckoutSessionId } from "@/lib/orderConfirmation";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import {
   TOK_ONE_DEFAULT_DISCOUNT_PERCENT,
   resolveTokOneDiscountPercentageForContext,
@@ -71,6 +72,18 @@ const CHECKOUT_STEPS: Array<{ id: CheckoutStepId; label: string; description: st
   { id: "suggestions", label: "Suggestions", description: "Produits en plus" },
   { id: "payment", label: "Paiement", description: "Validation finale" },
 ];
+
+function getCheckoutSteps(orderMode: "delivery" | "takeaway") {
+  return CHECKOUT_STEPS.map((step) => {
+    if (step.id !== "address" || orderMode === "delivery") return step;
+
+    return {
+      ...step,
+      label: "Heure de retrait",
+      description: "Date et créneau",
+    };
+  });
+}
 
 function hasPreciseStreetNumber(address: string, selection: AddressSelection | null) {
   const candidates = [
@@ -224,9 +237,10 @@ export default function Panier() {
     () => orderMode !== "delivery" || hasPreciseStreetNumber(address, deliverySelection),
     [address, deliverySelection, orderMode],
   );
+  const checkoutSteps = useMemo(() => getCheckoutSteps(orderMode), [orderMode]);
   const currentCheckoutStepIndex = Math.max(
     0,
-    CHECKOUT_STEPS.findIndex((step) => step.id === checkoutStep),
+    checkoutSteps.findIndex((step) => step.id === checkoutStep),
   );
   const deliveryLeadMinutes = flexOption === "express" ? 30 : flexOption === "flex" ? 90 : 45;
   const uniqueRestaurantIds = useMemo(() => Array.from(new Set(items.map((item) => item.restaurantId))), [items]);
@@ -778,7 +792,7 @@ export default function Panier() {
         if (checkoutData?.error) throw new Error(checkoutData.error);
         if (!checkoutData?.url) throw new Error("Impossible de lancer le paiement La Table du Chef.");
 
-        window.location.assign(checkoutData.url);
+        redirectToTrustedCheckoutUrl(checkoutData.url);
         return;
       }
 
@@ -1096,7 +1110,7 @@ export default function Panier() {
           });
         }
 
-        window.location.assign(checkoutData.url);
+        redirectToTrustedCheckoutUrl(checkoutData.url);
         return;
       }
 
@@ -1438,7 +1452,7 @@ export default function Panier() {
           </div>
         ) : (
           <div className="grid gap-2 rounded-2xl border bg-card/70 p-3 sm:grid-cols-4">
-            {CHECKOUT_STEPS.map((step, index) => {
+            {checkoutSteps.map((step, index) => {
               const isActive = step.id === checkoutStep;
               const isDone = index < currentCheckoutStepIndex;
               return (

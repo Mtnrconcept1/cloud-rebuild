@@ -36,6 +36,7 @@ import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
 const supabase = getSupabase();
 const NearbyRestaurantsMap = lazy(() => import("@/components/NearbyRestaurantsMap"));
 const HOME_MAP_RESTAURANTS_LIMIT = 80;
+const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
 
 const SECTION_HEADER_IMAGES = {
   personal: "/images/section-headers/heart-3d.png",
@@ -65,6 +66,27 @@ type HomeRailParams = {
   deliveryOnly?: boolean;
   limit?: number;
 };
+
+function isMissingOptionalSupabaseRelation(error: unknown, relationName: string) {
+  if (!error || typeof error !== "object") return false;
+  const details = error as { code?: string; message?: string; details?: string; hint?: string };
+  const code = String(details.code || "").toUpperCase();
+  const text = [
+    details.message,
+    details.details,
+    details.hint,
+  ].join(" ").toLowerCase();
+
+  return (
+    code === "42P01" ||
+    code === "PGRST200" ||
+    code === "PGRST204" ||
+    code === "PGRST205" ||
+    text.includes("schema cache") ||
+    text.includes("does not exist") ||
+    text.includes("not found")
+  ) && text.includes(relationName.toLowerCase());
+}
 
 function mapSearchRailRestaurant(row: any) {
   return {
@@ -209,7 +231,7 @@ export default function Index() {
   const { data: progressiveOffers = [] } = useQuery({
     queryKey: ["home-progressive-reservation-offers"],
     queryFn: async () => {
-      const { data, error } = await (supabase.from("reservation_progressive_offers" as any) as any)
+      const { data, error } = await (supabase.from(PROGRESSIVE_OFFERS_TABLE as any) as any)
         .select(`
           *,
           restaurants (
@@ -226,7 +248,10 @@ export default function Index() {
         .order("booking_cutoff_at", { ascending: true })
         .limit(6);
 
-      if (error) throw error;
+      if (error) {
+        if (isMissingOptionalSupabaseRelation(error, PROGRESSIVE_OFFERS_TABLE)) return [];
+        throw error;
+      }
       return (data || []) as ProgressiveReservationOffer[];
     },
     staleTime: 30_000,

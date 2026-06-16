@@ -11,7 +11,7 @@ describe("social composer scheduling", () => {
     expect(source).toContain("scheduledAt: scheduledAt || null");
     expect(source).toContain("const scheduledIso = scheduledAt ? new Date(scheduledAt).toISOString() : null");
     expect(source).toContain("scheduledAt: scheduledIso");
-    expect(source).toContain('{scheduledAt ? "Programmer" : "Publier"}');
+    expect(source).toContain('{createPost.isPending ? "Compression..." : scheduledAt ? "Programmer" : "Publier"}');
     expect(source).not.toContain("scheduledAt: null");
   });
 

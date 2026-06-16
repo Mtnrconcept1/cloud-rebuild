@@ -67,6 +67,7 @@ type AdminDashboardTab = AdminHistoryTab | "refunds";
 type AdminHistorySortKey = "date" | "reference" | "customer" | "restaurant" | "amount" | "status";
 
 const ADMIN_HISTORY_PAGE_SIZE = 250;
+const ADMIN_RESTAURANT_OPTIONS_LIMIT = 500;
 const RESERVATION_INVENTORY_HEALTH_LIMIT = 500;
 
 function formatAmount(value: number) {
@@ -377,7 +378,8 @@ async function fetchRestaurantOptions() {
   const { data, error } = await supabase
     .from("restaurants")
     .select("id, name")
-    .order("name");
+    .order("name")
+    .limit(ADMIN_RESTAURANT_OPTIONS_LIMIT);
 
   if (error) throw error;
 

@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { buildTokOneEntitlements } from "@/lib/subscriptionEntitlements";
 
 const supabase = getSupabase();
@@ -668,7 +669,7 @@ export default function TokOne() {
       if (error) throw error;
       const checkoutUrl = (data as { url?: string } | null)?.url;
       if (!checkoutUrl) throw new Error("URL de paiement absente.");
-      window.location.href = checkoutUrl;
+      redirectToTrustedCheckoutUrl(checkoutUrl);
     } catch (error) {
       toast({
         title: "Paiement impossible",

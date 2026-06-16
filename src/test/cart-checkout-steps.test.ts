@@ -11,8 +11,12 @@ describe("cart checkout steps", () => {
   it("splits the classic cart into summary, address, suggestions and payment steps", () => {
     expect(cartPageSource).toContain('type CheckoutStepId = "summary" | "address" | "suggestions" | "payment"');
     expect(cartPageSource).toContain("CHECKOUT_STEPS");
+    expect(cartPageSource).toContain("getCheckoutSteps");
     expect(cartPageSource).toContain('label: "Resume"');
     expect(cartPageSource).toContain('label: "Adresse"');
+    expect(cartPageSource).toContain('label: "Heure de retrait"');
+    expect(cartPageSource).toContain('description: "Date et créneau"');
+    expect(cartPageSource).toContain("const checkoutSteps = useMemo(() => getCheckoutSteps(orderMode), [orderMode])");
     expect(cartPageSource).toContain('label: "Suggestions"');
     expect(cartPageSource).toContain('label: "Paiement"');
     expect(cartPageSource).toContain('checkoutStep === "summary"');

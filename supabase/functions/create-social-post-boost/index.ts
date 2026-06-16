@@ -29,6 +29,64 @@ function sanitizeDate(value: unknown) {
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
+const TARGETING_WEIGHTS = {
+  gender: 1,
+  serviceMoment: 3,
+  journeyType: 4,
+  recentActivity: 5,
+  minAvgBasket: 5,
+  minOrders: 5,
+  customerSegment: 6,
+  city: 8,
+  favoriteRestaurant: 8,
+  cuisine: 10,
+} as const;
+
+const VALID_GENDERS = new Set(["all", "female", "male"]);
+const VALID_CUSTOMER_SEGMENTS = new Set(["all", "new", "returning", "loyal", "inactive"]);
+const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero_attente"]);
+const VALID_SERVICE_MOMENTS = new Set(["lunch", "dinner", "weekend"]);
+
+function normalizeToken(value: unknown) {
+  return text(value)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+function normalizeTokenArray(value: unknown, allowed?: Set<string>) {
+  if (!Array.isArray(value)) return [];
+  return Array.from(new Set(
+    value
+      .map(normalizeToken)
+      .filter((token) => token && (!allowed || allowed.has(token))),
+  ));
+}
+
+function normalizeTargetCriteria(value: unknown, restaurantId: string) {
+  const source = value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+  const genders = normalizeTokenArray(source.genders, VALID_GENDERS);
+  const normalizedGenders = genders.length > 0 ? genders : ["all"];
+  const customerSegment = normalizeToken(source.customerSegment);
+
+  return {
+    cities: normalizeTokenArray(source.cities),
+    cuisines: normalizeTokenArray(source.cuisines),
+    minOrders: Math.max(0, Math.round(positiveNumber(source.minOrders, 0))),
+    maxDaysSinceOrder: Math.max(1, Math.round(positiveNumber(source.maxDaysSinceOrder, 365))),
+    minAvgBasket: Math.max(0, positiveNumber(source.minAvgBasket, 0)),
+    favoritesOnly: Boolean(source.favoritesOnly),
+    genders: normalizedGenders,
+    customerSegment: VALID_CUSTOMER_SEGMENTS.has(customerSegment) ? customerSegment : "all",
+    journeyTypes: normalizeTokenArray(source.journeyTypes, VALID_JOURNEY_TYPES),
+    serviceMoments: normalizeTokenArray(source.serviceMoments, VALID_SERVICE_MOMENTS),
+    restaurantId,
+    targetingWeights: TARGETING_WEIGHTS,
+  };
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -74,6 +132,7 @@ Deno.serve(async (req) => {
     const dailyBudget = Math.round((totalBudget / durationDays) * 100) / 100;
     const title = text(body.title) || "Post sponsorise Actualites";
     const campaignBody = text(body.body) || String(post.body || "").slice(0, 220);
+    const targetCriteria = normalizeTargetCriteria(body.targetCriteria, restaurant.id);
 
     const { data: campaign, error: campaignError } = await adminClient
       .from("ad_campaigns")
@@ -84,7 +143,7 @@ Deno.serve(async (req) => {
         type: "boost",
         image_url: text(body.imageUrl) || null,
         target_pages: ["actualites"],
-        target_criteria: body.targetCriteria && typeof body.targetCriteria === "object" ? body.targetCriteria : {},
+        target_criteria: targetCriteria,
         total_budget: totalBudget,
         budget_daily: dailyBudget,
         starts_at: startsAt,
@@ -115,7 +174,7 @@ Deno.serve(async (req) => {
         currency: "CHF",
         placement: "actualites_feed",
         boost_weight: 1,
-        targeting: body.targetCriteria && typeof body.targetCriteria === "object" ? body.targetCriteria : {},
+        targeting: targetCriteria,
         created_by: actor.userId || null,
       });
 

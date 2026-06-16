@@ -305,13 +305,31 @@ export default function Profil() {
         </div>
 
         <Tabs defaultValue={defaultTab}>
-          <TabsList className="w-full flex-wrap">
-            <TabsTrigger value="infos" className="text-xs sm:text-sm">Informations</TabsTrigger>
-            <TabsTrigger value="favoris" className="text-xs sm:text-sm">Favoris ({favorites?.length || 0})</TabsTrigger>
-            <TabsTrigger value="abonnement" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Crown className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Abonnement</span><span className="sm:hidden">Abo.</span></TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Bell className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Notifications</span><span className="sm:hidden">Notifs</span></TabsTrigger>
-            <TabsTrigger value="fidelite" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Trophy className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Fidélité</span><span className="sm:hidden">Points</span></TabsTrigger>
-            <TabsTrigger value="parametres" className="gap-1 sm:gap-2 text-xs sm:text-sm"><Settings className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Paramètres</span><span className="sm:hidden">Param.</span></TabsTrigger>
+          <TabsList className="!grid h-auto w-full grid-cols-3 gap-1 rounded-2xl bg-muted/60 p-1 sm:grid-cols-6">
+            <TabsTrigger value="infos" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+              <User className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate"><span className="sm:hidden">Infos</span><span className="hidden sm:inline">Informations</span></span>
+            </TabsTrigger>
+            <TabsTrigger value="favoris" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+              <Heart className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate"><span className="sm:hidden">Fav.</span><span className="hidden sm:inline">Favoris</span> ({favorites?.length || 0})</span>
+            </TabsTrigger>
+            <TabsTrigger value="abonnement" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+              <Crown className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate"><span className="hidden sm:inline">Abonnement</span><span className="sm:hidden">Abo.</span></span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+              <Bell className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate"><span className="hidden sm:inline">Notifications</span><span className="sm:hidden">Notifs</span></span>
+            </TabsTrigger>
+            <TabsTrigger value="fidelite" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+              <Trophy className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate"><span className="hidden sm:inline">Fidélité</span><span className="sm:hidden">Points</span></span>
+            </TabsTrigger>
+            <TabsTrigger value="parametres" className="min-w-0 gap-1 rounded-xl px-1.5 py-2 text-[11px] leading-none sm:px-2 sm:text-xs">
+              <Settings className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate"><span className="hidden sm:inline">Paramètres</span><span className="sm:hidden">Param.</span></span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="infos" className="space-y-6 pt-4">

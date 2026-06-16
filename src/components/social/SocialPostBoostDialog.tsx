@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_AUDIENCE_CRITERIA, normalizeAudienceCriteria } from "@/lib/campaignTargeting";
 import { buildCheckoutReturnUrl } from "@/lib/checkoutReturnUrl";
 import { estimateCampaignPlan, getCampaignPricing, recommendCampaignStrategy } from "@/lib/campaignPricing";
+import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { invokeSupabaseFunction } from "@/lib/session";
 import type { SocialFeedPost } from "@/lib/socialFeed";
 
@@ -143,7 +144,7 @@ export default function SocialPostBoostDialog({
       }
 
       onCreated?.();
-      globalThis.location.assign(checkout.data.url);
+      redirectToTrustedCheckoutUrl(checkout.data.url);
     } catch (error) {
       toast({
         title: "Erreur",

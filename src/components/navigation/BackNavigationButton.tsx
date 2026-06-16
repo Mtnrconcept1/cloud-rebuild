@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import { shouldShowFloatingBackButton } from "@/lib/backNavigation";
 import { cn } from "@/lib/utils";
 
 type BackNavigationButtonProps = {
@@ -11,14 +12,6 @@ type BackNavigationButtonProps = {
   className?: string;
   showLabel?: boolean;
 };
-
-const CUSTOMER_SHELL_PATHS = new Set([
-  "/profil",
-  "/commandes",
-  "/reservations",
-  "/notifications",
-  "/commande/confirmation",
-]);
 
 function getBackFallbackForPathname(pathname: string) {
   if (pathname.startsWith("/admin/compta/")) return "/admin/compta";
@@ -34,15 +27,6 @@ function hasAppHistory() {
   if (typeof window === "undefined") return false;
   const historyIndex = (window.history.state as { idx?: unknown } | null)?.idx;
   return typeof historyIndex === "number" && historyIndex > 0;
-}
-
-function shouldShowFloatingBackButton(pathname: string) {
-  if (pathname === "/" || pathname === "/auth") return false;
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return false;
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) return false;
-  if (pathname === "/courier" || pathname.startsWith("/courier/")) return false;
-  if (CUSTOMER_SHELL_PATHS.has(pathname)) return false;
-  return true;
 }
 
 export function BackNavigationButton({
@@ -87,10 +71,17 @@ export function FloatingRouteBackButton() {
   if (!shouldShowFloatingBackButton(pathname)) return null;
 
   return (
-    <div className="fixed left-3 top-[calc(env(safe-area-inset-top,0px)+4.75rem)] z-[55] sm:left-4 sm:top-20">
+    <div
+      className={cn(
+        "pointer-events-none absolute left-[calc(env(safe-area-inset-left,0px)+0.75rem)] z-[65] sm:left-4",
+        pathname === "/actualites"
+          ? "top-[calc(env(safe-area-inset-top,0px)+0.75rem)] sm:top-4"
+          : "top-[calc(env(safe-area-inset-top,0px)+4.75rem)] sm:top-20",
+      )}
+    >
       <BackNavigationButton
         fallback={getBackFallbackForPathname(pathname)}
-        className="shadow-[0_14px_34px_rgba(15,23,42,0.16)]"
+        className="pointer-events-auto shadow-[0_14px_34px_rgba(15,23,42,0.16)]"
       />
     </div>
   );

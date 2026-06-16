@@ -8,6 +8,7 @@ import { isCampaignVisibleForViewer } from "@/lib/campaignVisibility";
 
 const baseSnapshot: AudienceSnapshot = {
   city: "Puplinge",
+  gender: "female",
   favoriteRestaurantIds: [],
   interactionCount: 1,
   avgBasket: 24,
@@ -19,6 +20,7 @@ const baseSnapshot: AudienceSnapshot = {
 
 const emptyClientSnapshot: AudienceSnapshot = {
   city: null,
+  gender: null,
   favoriteRestaurantIds: [],
   interactionCount: 0,
   avgBasket: 0,
@@ -92,7 +94,7 @@ describe("campaignVisibility", () => {
     expect(visible).toBe(true);
   });
 
-  it("does not hide active sponsored placements for connected clients without audience signals", () => {
+  it("hides targeted sponsored placements for connected clients without matching signals", () => {
     const visible = isCampaignVisibleForViewer(
       {
         restaurant_id: "restaurant-1",
@@ -110,7 +112,7 @@ describe("campaignVisibility", () => {
       },
     );
 
-    expect(visible).toBe(true);
+    expect(visible).toBe(false);
   });
 
   it("includes in-app paid campaigns in public sponsored placements", () => {

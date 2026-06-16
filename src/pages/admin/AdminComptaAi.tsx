@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { formatAccountingAiResultForDisplay } from "@/lib/ai/accountingPublicCopy";
 import { runAccountingAgent } from "@/lib/ai/tokAiClient";
+import { openSafePrintWindow } from "@/lib/safePrintWindow";
 
 type AccountingResult = Awaited<ReturnType<typeof runAccountingAgent>>;
 type AccountingDraft = {
@@ -81,9 +82,6 @@ function downloadAiAccountingMarkdown(result: AccountingResult, month: string, a
 }
 
 function exportAiAccountingPdf(result: AccountingResult, month: string, action: AccountingDraft["action"]) {
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
   const publicResult = formatAccountingAiResultForDisplay(result);
   const anomalies = publicResult.anomalies
     .map((item) => `<li><strong>${escapeHtml(item.severity)} - ${escapeHtml(item.label)}</strong><br />${escapeHtml(item.evidence)}</li>`)
@@ -91,11 +89,7 @@ function exportAiAccountingPdf(result: AccountingResult, month: string, action: 
   const recommendations = publicResult.recommended_actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   const marginNotes = publicResult.margin_notes.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
 
-  printWindow.document.write(`<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <title>Rapport comptabilité IA TOK - ${escapeHtml(month)}</title>
+  const headHtml = `
     <style>
       body { color: #111827; font-family: Arial, sans-serif; line-height: 1.5; margin: 32px; }
       h1 { font-size: 24px; margin-bottom: 4px; }
@@ -104,8 +98,8 @@ function exportAiAccountingPdf(result: AccountingResult, month: string, action: 
       li { margin-bottom: 8px; }
       pre { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; white-space: pre-wrap; }
     </style>
-  </head>
-  <body>
+  `;
+  const bodyHtml = `
     <h1>Rapport comptabilité IA TOK</h1>
     <div class="meta">Période ${escapeHtml(month)} · ${escapeHtml(ACTION_LABELS[action])} · Brouillon audité</div>
     <h2>Résumé</h2>
@@ -120,12 +114,13 @@ function exportAiAccountingPdf(result: AccountingResult, month: string, action: 
     <ul>${recommendations || "<li>Aucune action recommandée.</li>"}</ul>
     <h2>Export synthèse</h2>
     <pre>${escapeHtml(publicResult.export_markdown || "")}</pre>
-  </body>
-</html>`);
-  printWindow.document.close();
-  printWindow.focus();
-  const print = printWindow.print || window.print;
-  print.call(printWindow);
+  `;
+
+  openSafePrintWindow({
+    title: `Rapport comptabilité IA TOK - ${month}`,
+    headHtml,
+    bodyHtml,
+  });
 }
 
 function formatMetricValue(value: unknown) {

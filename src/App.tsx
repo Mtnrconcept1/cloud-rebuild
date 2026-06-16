@@ -361,11 +361,12 @@ function AppShell() {
   const adminOperationsCenterEnabled = hasFeature("admin-operations-center");
   const deliveryEnabled = hasFeature("livraison");
   const showPublicFooter = shouldShowPublicFooter(pathname);
+  const publicNavbar = shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
 
   return (
     <>
       <MobileLogoIntro />
-      {shouldShowPublicNavbar(pathname) ? <Navbar /> : null}
+      {publicNavbar}
       <FloatingRouteBackButton />
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
         <Routes>

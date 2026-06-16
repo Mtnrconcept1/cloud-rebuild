@@ -344,7 +344,7 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
 
   try {
     const [profileResponse, favoritesResponse, ordersResponse, reservationsResponse] = await Promise.all([
-      getSupabase().from("profiles" as any).select("city").eq("user_id", currentUserId).maybeSingle(),
+      getSupabase().from("profiles" as any).select("city, gender").eq("user_id", currentUserId).maybeSingle(),
       getSupabase().from("favorites" as any).select("restaurant_id").eq("user_id", currentUserId),
       getSupabase().from("orders" as any).select("restaurant_id, total_amount, created_at, delivery_address, status").eq("user_id", currentUserId),
       getSupabase().from("reservations" as any).select("restaurant_id, created_at, status, feature, metadata, time, date").eq("user_id", currentUserId),
@@ -430,6 +430,7 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
 
     const snapshot: AudienceSnapshot = {
       city: (profileResponse.data as any)?.city || null,
+      gender: (profileResponse.data as any)?.gender || null,
       favoriteRestaurantIds,
       interactionCount: validOrders.length + validReservations.length,
       avgBasket,
@@ -448,6 +449,7 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
   } catch {
     return {
       city: null,
+      gender: null,
       favoriteRestaurantIds: [],
       interactionCount: 0,
       avgBasket: 0,

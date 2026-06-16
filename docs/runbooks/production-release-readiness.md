@@ -17,6 +17,7 @@ Mettre Tok en production uniquement quand les secrets reels, les domaines, le si
 - Firebase/APNs: configuration push Android, cle APNs ou auth key Apple, topic iOS.
 - Sentry: DSN production web/mobile et release upload configure.
 - Vercel: domaines Tok production, CORS allowlist stricte, variables d'environnement synchronisees.
+- Supabase Auth: confirmer dans le Dashboard ou via API que la protection contre les mots de passe compromis est activee sur le projet production; renseigner `SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED=true` et `SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE` dans les variables GitHub de l'environnement production.
 
 ## Mobile release
 - Android: `android/app/release.keystore` disponible hors git, alias/mots de passe fournis par CI, `assetlinks.json` publie sur le domaine production.
@@ -35,4 +36,3 @@ Mettre Tok en production uniquement quand les secrets reels, les domaines, le si
 - Web: rollback Vercel vers le dernier deploiement sain.
 - Supabase: preparer migration inverse pour chaque migration destructive; ne jamais supprimer de colonne sans phase de compatibilite.
 - Mobile: garder la version precedente publiee, ne promouvoir la release qu'apres verification deep links et push.
-

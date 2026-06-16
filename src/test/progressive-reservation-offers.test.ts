@@ -74,6 +74,8 @@ describe("progressive reservation offers", () => {
     expect(index).toContain('import { Badge } from "@/components/ui/badge"');
     expect(index).toContain("Offres progressives");
     expect(index).toContain("reservation_progressive_offers");
+    expect(index).toContain("isMissingOptionalSupabaseRelation");
+    expect(index).toContain("PROGRESSIVE_OFFERS_TABLE");
     expect(index).toContain("getProgressiveOfferServiceLabel");
     expect(restaurantDetail).toContain("progressiveOfferId");
     expect(restaurantDetail).toContain("reservation_progressive_offers");
