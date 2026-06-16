@@ -3,6 +3,6 @@
 *.ts text eol=lf
 *.tsx text eol=lf
 *.json text eol=lf
-tools/prod-schema-utf8.json text eol=crlf -working-tree-encoding
+tools/prod-schema-utf8.json -text -working-tree-encoding
 *.md text eol=lf
 *.env text eol=lf
