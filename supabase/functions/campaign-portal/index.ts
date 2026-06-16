@@ -23,11 +23,20 @@ const VALID_EDITABLE_STATUSES = new Set(["draft", "paused", "active", "ended", "
 const VALID_CUSTOMER_SEGMENTS = new Set(["all", "new", "returning", "loyal", "inactive"]);
 const VALID_JOURNEY_TYPES = new Set(["delivery", "takeaway", "reservation", "zero_attente"]);
 const VALID_SERVICE_MOMENTS = new Set(["lunch", "dinner", "weekend"]);
-const VALID_CREATIVE_TEMPLATES = new Set(["signature", "offer", "story"]);
+const VALID_CREATIVE_TEMPLATES = new Set([
+  "signature",
+  "offer",
+  "story",
+  "contrast",
+  "minimal",
+  "dynamic",
+  "immersive",
+  "street",
+]);
 const VALID_CREATIVE_TONES = new Set(["tok_orange", "fresh_green", "night_gold", "berry"]);
 const VALID_CREATIVE_FONTS = new Set(["display", "modern", "editorial"]);
-const VALID_CREATIVE_BACKGROUNDS = new Set(["gradient", "soft_pattern", "photo_overlay"]);
-const VALID_CREATIVE_SHAPES = new Set(["rounded", "ticket", "capsule"]);
+const VALID_CREATIVE_BACKGROUNDS = new Set(["gradient", "soft_pattern", "photo_overlay", "paper", "dark_grain"]);
+const VALID_CREATIVE_SHAPES = new Set(["rounded", "ticket", "capsule", "wave", "fade", "grunge", "diagonal"]);
 
 type CampaignPortalAction = "list" | "save" | "update_status" | "delete" | "estimate_audience";
 

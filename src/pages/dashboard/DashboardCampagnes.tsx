@@ -2,13 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType }
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowRight,
   BarChart3,
   CalendarDays,
   CheckCircle2,
   Edit2,
   Eye,
+  Heart,
   LayoutTemplate,
   Loader2,
+  MapPin,
   Megaphone,
   MousePointer,
   Palette,
@@ -16,9 +19,11 @@ import {
   ShoppingCart,
   Sparkles,
   Shapes,
+  Star,
   Target,
   Timer,
   Type,
+  Utensils,
   Trash2,
   TrendingUp,
   Wallet,
@@ -1041,7 +1046,17 @@ function CampaignCreativeStudio({
   const campaignTypeLabel = CAMPAIGN_TYPES.find((campaignType) => campaignType.value === type)?.label || "Campagne";
   const previewTitle = title.trim() || "Votre restaurant en pleine lumière";
   const previewBody = body.trim() || "Une campagne claire, lisible et prête à convertir les clients les plus proches.";
-  const showPhotoOverlay = value.background === "photo_overlay" && Boolean(imageUrl);
+  const hasImage = Boolean(imageUrl);
+  const isDarkTemplate = ["offer", "contrast", "immersive", "street"].includes(value.template);
+  const restaurantLabel = title.trim() ? "Votre restaurant" : "Quirinale";
+  const mutedTextClassName = isDarkTemplate ? "text-white/72" : "text-slate-600";
+  const metaTextClassName = isDarkTemplate ? "text-white/82" : "text-slate-700";
+  const panelEyebrowClassName = value.template === "street"
+    ? "text-emerald-700"
+    : isDarkTemplate
+      ? "text-orange-200"
+      : "text-orange-600";
+  const ctaClassName = "bg-[#ff5a14] text-white hover:bg-[#f04d0d]";
 
   return (
     <section className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-orange-50/40 to-background p-4 shadow-sm dark:via-orange-950/15">
@@ -1052,7 +1067,7 @@ function CampaignCreativeStudio({
             <p className="text-sm font-semibold">Studio visuel de campagne</p>
           </div>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Personnalisez le rendu sponsorisé avant paiement: structure, couleur, police, fond et forme restent sauvegardés avec la campagne.
+            Personnalisez le rendu sponsorisé avant paiement: structure, couleur, police, fond et masque restent sauvegardés avec la campagne.
           </p>
         </div>
         <Badge variant="secondary" className="w-fit">
@@ -1063,16 +1078,51 @@ function CampaignCreativeStudio({
       <div className="mt-4 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <div
           className={cn(
-            "relative flex min-h-[280px] overflow-hidden border border-white/20 bg-gradient-to-br p-5 text-white shadow-[0_24px_70px_-34px_rgba(234,88,12,0.8)] sm:min-h-[320px]",
+            "relative mx-auto flex min-h-[440px] w-full max-w-[380px] overflow-hidden border border-white/35 bg-gradient-to-br p-4 shadow-[0_24px_70px_-34px_rgba(20,20,20,0.9)] sm:min-h-[470px]",
             tone.previewClassName,
             shape.previewClassName,
             font.className,
+            template.cardClassName,
           )}
         >
-          {showPhotoOverlay ? (
-            <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-overlay" />
-          ) : null}
           <div className={cn("absolute inset-0", background.layerClassName)} />
+          {value.template === "street" ? (
+            <>
+              <span className="absolute -left-8 top-20 h-20 w-28 rotate-[-14deg] rounded-[45%] bg-lime-400/70 blur-[1px]" />
+              <span className="absolute right-8 top-24 h-10 w-24 rotate-[12deg] rounded-[45%] bg-lime-400/55 blur-[1px]" />
+            </>
+          ) : null}
+          {value.template === "dynamic" ? (
+            <>
+              <span className="absolute -right-12 top-20 h-32 w-32 rounded-full bg-lime-200/65" />
+              <span className="absolute right-16 bottom-24 h-16 w-16 rounded-full bg-yellow-300/70" />
+            </>
+          ) : null}
+          <div className={cn("overflow-hidden shadow-2xl ring-1 ring-white/30", template.mediaClassName, shape.mediaMaskClassName)}>
+            {hasImage ? (
+              <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.42),transparent_30%),linear-gradient(135deg,#1f2937,#f97316)] text-center text-xs font-bold text-white/86">
+                <span className="flex flex-col items-center gap-2 px-4">
+                  <Utensils className="h-6 w-6" />
+                  Photo uploadée
+                </span>
+              </div>
+            )}
+            <div
+              className={cn(
+                "absolute inset-0",
+                value.template === "offer" || value.template === "immersive"
+                  ? "bg-gradient-to-b from-black/36 via-black/20 to-black/72"
+                  : value.template === "contrast" || value.template === "street"
+                    ? "bg-gradient-to-l from-black/28 to-transparent"
+                    : "bg-gradient-to-b from-transparent to-black/8",
+              )}
+            />
+            {value.shape === "grunge" ? (
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,255,255,0.9)_0_1px,transparent_2px),radial-gradient(circle_at_72%_45%,rgba(255,255,255,0.7)_0_1px,transparent_2px)] bg-[length:18px_18px] opacity-25 mix-blend-screen" />
+            ) : null}
+          </div>
           {value.shape === "ticket" ? (
             <>
               <span className="absolute -left-5 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full bg-background" />
@@ -1080,62 +1130,93 @@ function CampaignCreativeStudio({
             </>
           ) : null}
 
-          <div className={cn("relative z-10 flex h-full w-full flex-col gap-5", template.contentClassName)}>
+          <div className={cn("relative z-10 flex h-full w-full flex-col gap-4", template.contentClassName)}>
             <div className="flex items-center justify-between gap-3">
-              <span className={cn("rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ring-1", tone.accentClassName)}>
+              <span className={cn("inline-flex items-center gap-1 rounded-lg px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] shadow-lg", template.badgeClassName)}>
+                <Megaphone className="h-3 w-3" />
                 Sponsorisé
               </span>
-              <span className="rounded-full bg-black/20 px-3 py-1 text-[11px] font-semibold backdrop-blur">
-                {campaignTypeLabel}
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-red-500 shadow-lg">
+                <Heart className="h-4 w-4 fill-current" />
               </span>
             </div>
 
-            {value.template === "offer" ? (
-              <div className="max-w-[88%] space-y-4">
-                <div className="inline-flex rounded-2xl bg-white/18 px-4 py-3 text-sm font-semibold shadow-inner ring-1 ring-white/20 backdrop-blur">
-                  Offre locale à fort impact
-                </div>
-                <div>
-                  <h3 className="text-3xl font-black leading-tight sm:text-4xl">{previewTitle}</h3>
-                  <p className="mt-3 max-w-sm text-sm leading-6 text-white/86">{previewBody}</p>
-                </div>
+            <div className={cn("space-y-2", value.template === "offer" || value.template === "immersive" ? "max-w-[92%]" : "pt-16 sm:pt-20")}>
+              <div className="flex items-center gap-2">
+                <span className={cn("rounded-full px-2.5 py-1 text-xs font-black", isDarkTemplate ? "bg-emerald-500 text-white" : "bg-emerald-600 text-white")}>
+                  -18%
+                </span>
+                <span className={cn("text-[11px] font-black uppercase tracking-[0.16em]", metaTextClassName)}>
+                  Offre spéciale
+                </span>
               </div>
-            ) : value.template === "story" ? (
-              <div className="max-w-[90%] rounded-3xl bg-black/24 p-4 shadow-2xl ring-1 ring-white/14 backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">Coulisses du restaurant</p>
-                <h3 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">{previewTitle}</h3>
-                <p className="mt-3 text-sm leading-6 text-white/86">{previewBody}</p>
-              </div>
-            ) : (
-              <div className="grid h-full gap-4 sm:grid-cols-[1fr_0.72fr]">
-                <div className="flex min-w-0 flex-col justify-end">
-                  <h3 className="text-3xl font-black leading-tight sm:text-4xl">{previewTitle}</h3>
-                  <p className="mt-3 max-w-sm text-sm leading-6 text-white/86">{previewBody}</p>
-                </div>
-                <div className="flex items-end justify-end">
-                  <div className="w-full max-w-[190px] rounded-3xl bg-white/16 p-3 shadow-2xl ring-1 ring-white/20 backdrop-blur">
-                    {imageUrl ? (
-                      <img src={imageUrl} alt="" className="h-28 w-full rounded-2xl object-cover" />
-                    ) : (
-                      <div className="flex h-28 items-center justify-center rounded-2xl bg-white/18 text-center text-xs font-semibold text-white/80">
-                        Image de campagne
-                      </div>
-                    )}
-                    <p className="mt-3 text-xs leading-5 text-white/80">Prévisualisation sponsorisée</p>
+              <div className="flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-3xl font-black leading-none tracking-tight sm:text-4xl">{restaurantLabel}</h3>
+                  <div className={cn("mt-2 flex flex-wrap items-center gap-2 text-[11px] font-medium", metaTextClassName)}>
+                    <span>Italien</span>
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-600 px-1.5 py-0.5 text-white">
+                      <Utensils className="h-2.5 w-2.5" />
+                      <Utensils className="h-2.5 w-2.5" />
+                      <Utensils className="h-2.5 w-2.5" />
+                    </span>
+                    <span>Premium</span>
                   </div>
                 </div>
+                <span className="shrink-0 rounded-xl bg-[#ff6a00] px-2.5 py-2 text-sm font-black leading-none text-white shadow-lg">
+                  5.7
+                </span>
               </div>
-            )}
+              <p className={cn("flex items-center gap-1 text-xs", mutedTextClassName)}>
+                <MapPin className="h-3.5 w-3.5 text-[#ff5a14]" />
+                Puplinge · Rue de Graman
+              </p>
+            </div>
 
-            <button
-              type="button"
-              className={cn(
-                "mt-auto inline-flex w-fit items-center rounded-full px-5 py-2.5 text-sm font-bold shadow-lg transition-colors",
-                tone.ctaClassName,
-              )}
-            >
-              Voir le restaurant
-            </button>
+            <div className={cn("rounded-2xl border p-4", template.panelClassName)}>
+              <p className={cn("text-[10px] font-black uppercase tracking-[0.16em]", panelEyebrowClassName)}>
+                Campagne active
+              </p>
+              <h4 className="mt-1 line-clamp-2 text-base font-black leading-tight">{previewTitle}</h4>
+              <p className={cn("mt-2 line-clamp-2 text-xs leading-5", isDarkTemplate ? "text-white/82" : "text-slate-700")}>
+                {previewBody}
+              </p>
+            </div>
+
+            <div className="mt-auto space-y-3">
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-black shadow-lg transition-colors",
+                    ctaClassName,
+                  )}
+                >
+                  Découvrir l'offre
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                {["18:30", "19:00"].map((slot) => (
+                  <span
+                    key={slot}
+                    className={cn(
+                      "inline-flex min-h-11 items-center justify-center rounded-xl border px-3 text-sm font-black",
+                      isDarkTemplate ? "border-emerald-400/70 bg-black/28 text-emerald-300" : "border-emerald-300 bg-emerald-50 text-emerald-700",
+                    )}
+                  >
+                    {slot}
+                  </span>
+                ))}
+              </div>
+              <p className={cn("text-[11px]", mutedTextClassName)}>
+                Prochains créneaux visibles. Plus d'options sur la fiche.
+              </p>
+              <div className={cn("flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em]", mutedTextClassName)}>
+                <Star className="h-3 w-3 fill-current text-[#ff6a00]" />
+                {campaignTypeLabel}
+                <span className="h-1 w-1 rounded-full bg-current opacity-60" />
+                Prévisualisation sponsorisée
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1144,7 +1225,7 @@ function CampaignCreativeStudio({
             <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <LayoutTemplate className="h-4 w-4" /> Template
             </Label>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {CAMPAIGN_CREATIVE_TEMPLATES.map((entry) => {
                 const selected = value.template === entry.id;
                 return (
@@ -1158,7 +1239,7 @@ function CampaignCreativeStudio({
                       selected && "border-primary bg-primary/10 shadow-sm",
                     )}
                   >
-                    <span className="text-sm font-semibold">{entry.label}</span>
+                    <span className="text-xs font-semibold">{entry.label}</span>
                     <span className="mt-1 block text-xs leading-5 text-muted-foreground">{entry.description}</span>
                   </button>
                 );
@@ -1249,9 +1330,9 @@ function CampaignCreativeStudio({
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                <Shapes className="h-4 w-4" /> Forme
+                <Shapes className="h-4 w-4" /> Masque photo
               </Label>
-              <div className="grid gap-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {CAMPAIGN_CREATIVE_SHAPES.map((entry) => {
                   const selected = value.shape === entry.id;
                   return (

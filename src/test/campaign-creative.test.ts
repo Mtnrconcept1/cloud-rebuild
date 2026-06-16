@@ -15,17 +15,17 @@ function readSource(path: string) {
 describe("campaign creative studio", () => {
   it("normalizes campaign creative choices to supported values", () => {
     expect(normalizeCampaignCreative({
-      template: "offer",
+      template: "immersive",
       tone: "night_gold",
       font: "editorial",
-      background: "photo_overlay",
-      shape: "ticket",
+      background: "dark_grain",
+      shape: "grunge",
     })).toEqual({
-      template: "offer",
+      template: "immersive",
       tone: "night_gold",
       font: "editorial",
-      background: "photo_overlay",
-      shape: "ticket",
+      background: "dark_grain",
+      shape: "grunge",
     });
 
     expect(normalizeCampaignCreative({
@@ -42,8 +42,8 @@ describe("campaign creative studio", () => {
       template: "story",
       tone: "fresh_green",
       font: "modern",
-      background: "soft_pattern",
-      shape: "capsule",
+      background: "paper",
+      shape: "wave",
     })).toContain("Coulisses");
     expect(getCampaignCreativeSummary(DEFAULT_CAMPAIGN_CREATIVE)).toContain("TOK orange");
   });
