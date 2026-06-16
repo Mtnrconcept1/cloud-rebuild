@@ -54,6 +54,8 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(deployWorkflow).toContain("environment: production");
     expect(deployWorkflow).toContain("name: Release readiness");
     expect(deployWorkflow).toContain("pnpm run release:readiness");
+    expect(deployWorkflow).toContain("RELEASE_READINESS_STRICT: ${{ vars.PRODUCTION_DEPLOY_ENABLED }}");
+    expect(deployWorkflow).toContain("if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}");
 
     for (const requiredSecret of [
       "secrets.VITE_STRIPE_PUBLISHABLE_KEY",

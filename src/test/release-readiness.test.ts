@@ -35,15 +35,33 @@ afterEach(() => {
 });
 
 describe("release readiness inspection", () => {
-  it("flags missing mobile association files and production credentials", () => {
-    const root = makeFixture("missing");
+  it("reports missing production release requirements as warnings in advisory mode", () => {
+    const root = makeFixture("advisory-missing");
 
     const result = inspectReleaseReadiness({
       root,
       env: {},
     });
 
+    expect(result.ok).toBe(true);
+    expect(result.strict).toBe(false);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toContain("Missing public/.well-known/apple-app-site-association for iOS Universal Links.");
+    expect(result.warnings).toContain("Missing STRIPE_WEBHOOK_SECRET for production payment capture.");
+    expect(result.warnings).toContain("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE with Dashboard/API proof for issue #204.");
+  });
+
+  it("flags missing mobile association files and production credentials in strict mode", () => {
+    const root = makeFixture("missing");
+
+    const result = inspectReleaseReadiness({
+      root,
+      env: {},
+      strict: true,
+    });
+
     expect(result.ok).toBe(false);
+    expect(result.strict).toBe(true);
     expect(result.errors).toContain("Missing public/.well-known/apple-app-site-association for iOS Universal Links.");
     expect(result.errors).toContain("Missing public/.well-known/assetlinks.json for Android App Links.");
     expect(result.errors).toContain("Missing Android release keystore config at android/keystore.properties.");
@@ -89,6 +107,7 @@ describe("release readiness inspection", () => {
         SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
         SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "GitHub issue #204 dashboard proof 2026-06-16",
       },
+      strict: true,
     });
 
     expect(result.ok).toBe(true);
@@ -132,6 +151,7 @@ describe("release readiness inspection", () => {
         SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED: "true",
         SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE: "GitHub issue #204 dashboard proof 2026-06-16",
       },
+      strict: true,
     });
 
     expect(result.ok).toBe(false);

@@ -22,19 +22,24 @@ export function inspectReleaseReadiness(options = {}) {
     ...readEnvStack(root, options.envFiles || DEFAULT_ENV_FILES),
     ...(options.env || process.env),
   };
+  const strict = typeof options.strict === "boolean"
+    ? options.strict
+    : isTruthy(env.RELEASE_READINESS_STRICT);
 
   const errors = [];
   const warnings = [];
+  const report = createReporter({ errors, warnings, strict });
 
-  inspectStripe(env, errors);
-  inspectMobileAssociations(root, env, errors, warnings);
-  inspectAndroidSigning(root, env, errors);
-  inspectEdgeSecrets(env, errors);
-  inspectFirebaseServiceAccount(env, errors);
-  inspectSupabaseAuthSecurity(env, errors);
+  inspectStripe(env, report);
+  inspectMobileAssociations(root, env, report);
+  inspectAndroidSigning(root, env, report);
+  inspectEdgeSecrets(env, report);
+  inspectFirebaseServiceAccount(env, report);
+  inspectSupabaseAuthSecurity(env, report);
 
   return {
     ok: errors.length === 0,
+    strict,
     errors,
     warnings,
   };
@@ -69,43 +74,62 @@ function isPlaceholder(value) {
   );
 }
 
-function inspectStripe(env, errors) {
+function isTruthy(value) {
+  return ["1", "true", "yes", "strict", "production"].includes(clean(value).toLowerCase());
+}
+
+function createReporter({ errors, warnings, strict }) {
+  return {
+    required(message) {
+      if (strict) {
+        errors.push(message);
+      } else {
+        warnings.push(message);
+      }
+    },
+    warning(message) {
+      warnings.push(message);
+    },
+  };
+}
+
+function inspectStripe(env, report) {
   const publishable = clean(env.VITE_STRIPE_PUBLISHABLE_KEY);
   if (!/^pk_live_/.test(publishable)) {
-    errors.push("Missing VITE_STRIPE_PUBLISHABLE_KEY live publishable key for production checkout.");
+    report.required("Missing VITE_STRIPE_PUBLISHABLE_KEY live publishable key for production checkout.");
   }
 }
 
-function inspectMobileAssociations(root, env, errors, warnings) {
+function inspectMobileAssociations(root, env, report) {
   const aasaPath = path.join(root, "public", ".well-known", "apple-app-site-association");
   const assetlinksPath = path.join(root, "public", ".well-known", "assetlinks.json");
 
   if (!fs.existsSync(aasaPath)) {
-    errors.push("Missing public/.well-known/apple-app-site-association for iOS Universal Links.");
+    report.required("Missing public/.well-known/apple-app-site-association for iOS Universal Links.");
   } else {
-    const parsed = readJsonFile(aasaPath, errors, "Invalid apple-app-site-association JSON.");
+    const parsed = readJsonFile(aasaPath, report, "Invalid apple-app-site-association JSON.");
     const appIds = parsed?.applinks?.details
       ?.flatMap((detail) => Array.isArray(detail.appIDs) ? detail.appIDs : [])
       ?.map(clean) || [];
     const appleTeamId = clean(env.APPLE_TEAM_ID || env.IOS_APPLE_TEAM_ID);
 
     if (appIds.length === 0 || appIds.some(isPlaceholder)) {
-      errors.push("apple-app-site-association must include a real Apple Team ID appID for com.tok.app.");
+      report.required("apple-app-site-association must include a real Apple Team ID appID for com.tok.app.");
     }
 
     if (appleTeamId && !appIds.some((appId) => appId.startsWith(`${appleTeamId}.`))) {
-      errors.push("apple-app-site-association appIDs do not match APPLE_TEAM_ID.");
+      report.required("apple-app-site-association appIDs do not match APPLE_TEAM_ID.");
     }
 
     if (!appleTeamId) {
-      warnings.push("APPLE_TEAM_ID is not set; verify the AASA appID manually before App Store release.");
+      report.warning("APPLE_TEAM_ID is not set; verify the AASA appID manually before App Store release.");
     }
   }
 
   if (!fs.existsSync(assetlinksPath)) {
-    errors.push("Missing public/.well-known/assetlinks.json for Android App Links.");
+    report.required("Missing public/.well-known/assetlinks.json for Android App Links.");
   } else {
-    const parsed = readJsonFile(assetlinksPath, errors, "Invalid assetlinks.json JSON.");
+    const parsed = readJsonFile(assetlinksPath, report, "Invalid assetlinks.json JSON.");
     const entries = Array.isArray(parsed) ? parsed : [];
     const hasTokAndroidApp = entries.some((entry) => {
       const target = entry?.target || {};
@@ -121,32 +145,32 @@ function inspectMobileAssociations(root, env, errors, warnings) {
     });
 
     if (!hasTokAndroidApp) {
-      errors.push("assetlinks.json must include com.tok.app with the Android release SHA-256 fingerprint.");
+      report.required("assetlinks.json must include com.tok.app with the Android release SHA-256 fingerprint.");
     }
   }
 }
 
-function inspectAndroidSigning(root, env, errors) {
+function inspectAndroidSigning(root, env, report) {
   const keystoreProperties = path.join(root, "android", "keystore.properties");
   const hasKeystoreConfig = fs.existsSync(keystoreProperties)
     || clean(env.ANDROID_KEYSTORE_BASE64)
     || clean(env.ANDROID_KEYSTORE_PATH);
 
   if (!hasKeystoreConfig) {
-    errors.push("Missing Android release keystore config at android/keystore.properties.");
+    report.required("Missing Android release keystore config at android/keystore.properties.");
   }
 }
 
-function inspectEdgeSecrets(env, errors) {
+function inspectEdgeSecrets(env, report) {
   for (const [name, pattern, message] of REQUIRED_EDGE_SECRETS) {
     const value = clean(env[name]);
     if (!pattern.test(value) || isPlaceholder(value)) {
-      errors.push(message);
+      report.required(message);
     }
   }
 }
 
-function inspectFirebaseServiceAccount(env, errors) {
+function inspectFirebaseServiceAccount(env, report) {
   const serviceAccount = clean(env.FIREBASE_SERVICE_ACCOUNT);
   const separateEnv = {
     type: "service_account",
@@ -159,25 +183,25 @@ function inspectFirebaseServiceAccount(env, errors) {
   if (serviceAccount) {
     const parsed = parseFirebaseServiceAccount(serviceAccount);
     if (parsed && isValidFirebaseServiceAccount(parsed)) return;
-    errors.push("FIREBASE_SERVICE_ACCOUNT must be valid service account JSON or base64 JSON with project_id, client_email, private_key and token_uri.");
+    report.required("FIREBASE_SERVICE_ACCOUNT must be valid service account JSON or base64 JSON with project_id, client_email, private_key and token_uri.");
     return;
   }
 
   if (isValidFirebaseServiceAccount(separateEnv)) return;
-  errors.push("Missing valid Firebase service account config for production push delivery.");
+  report.required("Missing valid Firebase service account config for production push delivery.");
 }
 
-function inspectSupabaseAuthSecurity(env, errors) {
+function inspectSupabaseAuthSecurity(env, report) {
   const confirmed = clean(env.SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED).toLowerCase();
   const evidence = clean(env.SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE);
   const accepted = new Set(["1", "true", "yes", "active", "confirmed"]);
 
   if (!accepted.has(confirmed)) {
-    errors.push("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED=true after verifying Supabase Auth leaked password protection for production.");
+    report.required("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_CONFIRMED=true after verifying Supabase Auth leaked password protection for production.");
   }
 
   if (isPlaceholder(evidence) || evidence.length < 12) {
-    errors.push("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE with Dashboard/API proof for issue #204.");
+    report.required("Missing SUPABASE_LEAKED_PASSWORD_PROTECTION_EVIDENCE with Dashboard/API proof for issue #204.");
   }
 }
 
@@ -221,11 +245,11 @@ function isValidFirebaseServiceAccount(value) {
   );
 }
 
-function readJsonFile(filePath, errors, message) {
+function readJsonFile(filePath, report, message) {
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
   } catch {
-    errors.push(message);
+    report.required(message);
     return null;
   }
 }
@@ -233,6 +257,7 @@ function readJsonFile(filePath, errors, message) {
 function printResult(result) {
   console.log("Release readiness");
   console.log("=================");
+  console.log(`Mode: ${result.strict ? "strict" : "advisory"}`);
   console.log(`Result: ${result.ok ? "OK" : "FAIL"}`);
 
   for (const error of result.errors) {
@@ -247,7 +272,9 @@ function printResult(result) {
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
 if (isMain) {
-  const result = inspectReleaseReadiness();
+  const args = process.argv.slice(2);
+  const strict = args.includes("--strict") ? true : undefined;
+  const result = inspectReleaseReadiness({ strict });
   printResult(result);
   process.exit(result.ok ? 0 : 1);
 }

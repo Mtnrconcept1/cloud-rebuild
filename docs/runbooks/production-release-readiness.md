@@ -4,11 +4,11 @@
 Mettre Tok en production uniquement quand les secrets reels, les domaines, le signing mobile et les services externes sont verifies. Les placeholders ne doivent pas etre acceptes.
 
 ## Gates obligatoires
-- `npm run test`
-- `npm run lint`
-- `npm run build`
-- `npm run release:readiness`
-- `npm run supabase:doctor:prod`
+- `pnpm run test`
+- `pnpm run lint`
+- `pnpm run build`
+- `pnpm run release:readiness:strict`
+- `pnpm run supabase:doctor:prod`
 
 ## Variables et secrets requis
 - Supabase production: URL, anon key, service role key, JWT secret, project ref.
